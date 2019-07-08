@@ -26,5 +26,6 @@ public class GeyserConfiguration {
     @JsonProperty("ping-passthrough")
     private boolean pingPassthrough;
 
-
+    @JsonProperty("max-players")
+    private int maxPlayers;
 }

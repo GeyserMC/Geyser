@@ -17,6 +17,7 @@ package org.geysermc.connector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v354.Bedrock_v354;
 import lombok.Getter;
 import org.geysermc.api.ChatColor;
@@ -29,6 +30,7 @@ import org.geysermc.connector.command.GeyserCommandMap;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.ConsoleCommandReader;
 import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.connector.network.listener.ConnectorServerEventListener;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
 
@@ -36,6 +38,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -110,6 +113,17 @@ public class GeyserConnector implements Connector {
 
         pluginManager = new GeyserPluginManager(new GeyserPluginLoader(this));
         pluginManager.getLoader().loadPlugins();
+
+        BedrockServer bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
+        bedrockServer.setHandler(new ConnectorServerEventListener(this));
+        bedrockServer.bind().whenComplete((avoid, throwable) -> {
+            if (throwable == null) {
+                logger.info("Started RakNet on " + config.getBedrock().getAddress() + ":" + config.getBedrock().getPort());
+            } else {
+                logger.severe("Failed to start RakNet on " + config.getBedrock().getAddress() + ":" + config.getBedrock().getPort());
+                throwable.printStackTrace();
+            }
+        }).join();
     }
 
     public void shutdown() {

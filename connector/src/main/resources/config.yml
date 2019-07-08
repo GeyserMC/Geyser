@@ -24,6 +24,8 @@ remote:
 # Relay the MOTD, player count and max players from the remote server
 ping-passthrough: false
 
+# Maximum amount of players that can connect
+max-players: 100
 
 
 
