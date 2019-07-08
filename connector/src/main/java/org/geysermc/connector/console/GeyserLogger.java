@@ -30,7 +30,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-public class GeyserLogger {
+public class GeyserLogger implements org.geysermc.api.logger.Logger {
 
     private Logger logger;
 

@@ -15,6 +15,7 @@
 package org.geysermc.connector.command;
 
 import org.geysermc.api.command.Command;
+import org.geysermc.api.command.CommandMap;
 import org.geysermc.api.command.CommandSender;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.HelpCommand;
@@ -24,7 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserCommandMap {
+public class GeyserCommandMap implements CommandMap {
 
     private final Map<String, Command> commandMap = Collections.synchronizedMap(new HashMap<String, Command>());
     private GeyserConnector connector;

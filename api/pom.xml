@@ -9,4 +9,12 @@
         <version>${revision}</version>
     </parent>
     <artifactId>api</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.4</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 </project>

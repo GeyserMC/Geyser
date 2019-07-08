@@ -20,11 +20,17 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v354.Bedrock_v354;
 import lombok.Getter;
 import org.geysermc.api.ChatColor;
+import org.geysermc.api.Connector;
+import org.geysermc.api.Geyser;
+import org.geysermc.api.command.CommandMap;
+import org.geysermc.api.logger.Logger;
+import org.geysermc.api.plugin.Plugin;
 import org.geysermc.connector.command.GeyserCommandMap;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.ConsoleCommandReader;
 import org.geysermc.connector.console.GeyserLogger;
-import org.geysermc.connector.plugin.Loader;
+import org.geysermc.connector.plugin.GeyserPluginLoader;
+import org.geysermc.connector.plugin.GeyserPluginManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,7 +39,7 @@ import java.io.InputStream;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-public class GeyserConnector {
+public class GeyserConnector implements Connector {
 
     public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v354.V354_CODEC;
 
@@ -43,13 +49,16 @@ public class GeyserConnector {
     private static GeyserConnector instance;
 
     @Getter
-    private GeyserLogger logger;
+    private Logger logger;
 
     @Getter
-    private GeyserCommandMap commandMap;
+    private CommandMap commandMap;
 
     @Getter
     private GeyserConfiguration config;
+
+    @Getter
+    private GeyserPluginManager pluginManager;
 
     @Getter
     private boolean shuttingDown = false;
@@ -95,13 +104,21 @@ public class GeyserConnector {
             shutdown();
         }
 
-        Loader.start();
-
         commandMap = new GeyserCommandMap(this);
+
+        Geyser.setConnector(this);
+
+        pluginManager = new GeyserPluginManager(new GeyserPluginLoader(this));
+        pluginManager.getLoader().loadPlugins();
     }
 
     public void shutdown() {
         logger.info("Shutting down connector.");
+        for (Plugin plugin : pluginManager.getPlugins()) {
+            pluginManager.disablePlugin(plugin);
+            pluginManager.unloadPlugin(plugin);
+        }
+
         shuttingDown = true;
 
         generalThreadPool.shutdown();
