@@ -1,5 +1,5 @@
 # Geyser
-A bridge between Minecraft: Java Edition and Minecraft: Bedrock edition, breaking the gap from those wanting to play together.
+A bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition, closing the gap from those wanting to play together.
 
 ## What is Geyser?
 Geyser is a (heavy work in progress) connector (or proxy), bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
