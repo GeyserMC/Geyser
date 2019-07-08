@@ -2,6 +2,7 @@ package org.geysermc.connector.plugin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.geysermc.api.Geyser;
 import org.geysermc.api.plugin.Plugin;
 
 import java.io.File;
@@ -58,13 +59,20 @@ public class Loader extends ClassLoader {
 
                     is.close();
 
-                    ((Plugin) Class.forName(yml.main, true, l).newInstance()).onEnable();
+                    Plugin plugin = (Plugin) Class.forName(yml.main, true, l).newInstance();
+
+                    plugin.onLoad();
+
+                    Geyser.add(plugin);
 
                 } catch (Exception e) {
                     System.out.println("Error loading plugin " + f.getName());
                     e.printStackTrace();
                 }
             }
+        }
+        for(Plugin p : Geyser.getPlugins()) {
+            p.onEnable();
         }
         LOADER = l;
     }

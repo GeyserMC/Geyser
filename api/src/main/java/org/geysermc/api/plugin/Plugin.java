@@ -8,4 +8,8 @@ public class Plugin {
     public void onDisable() {
 
     }
+
+    public void onLoad() {
+
+    }
 }

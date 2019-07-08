@@ -24,6 +24,7 @@ import org.geysermc.connector.command.GeyserCommandMap;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.ConsoleCommandReader;
 import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.connector.plugin.Loader;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -93,6 +94,9 @@ public class GeyserConnector {
             logger.severe("Failed to create config.yml! Make sure it's up to date and writable!");
             shutdown();
         }
+
+        Loader.start();
+
         commandMap = new GeyserCommandMap(this);
     }
 
