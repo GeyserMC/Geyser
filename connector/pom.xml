@@ -9,14 +9,18 @@
         <version>${revision}</version>
     </parent>
     <artifactId>connector</artifactId>
-    <properties>
-        <outputName>Geyser</outputName>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>api</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geysermc</groupId>
+            <artifactId>common</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -50,11 +54,6 @@
             <version>1.6.4</version>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>27.0.1-jre</version>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.4</version>
@@ -78,9 +77,48 @@
             <version>2.0.3</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.steveice10</groupId>
+            <artifactId>opennbt</artifactId>
+            <version>1.3-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.steveice10</groupId>
+            <artifactId>packetlib</artifactId>
+            <version>1.4-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.steveice10</groupId>
+            <artifactId>mcauthlib</artifactId>
+            <version>1.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.steveice10</groupId>
+            <artifactId>mcprotocollib</artifactId>
+            <version>1.14.3-SNAPSHOT</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.steveice10</groupId>
+                    <artifactId>opennbt</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.github.steveice10</groupId>
+                    <artifactId>packetlib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.github.steveice10</groupId>
+                    <artifactId>mcauthlib</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${outputName}-noshade</finalName>
+        <directory>../target</directory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -114,6 +152,7 @@
                 <configuration>
                     <finalName>${outputName}</finalName>
                     <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <minimizeJar>false</minimizeJar>
                 </configuration>
             </plugin>
         </plugins>

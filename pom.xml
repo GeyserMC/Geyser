@@ -11,6 +11,7 @@
     <description>Allows for players from Minecraft Bedrock Edition to join Minecraft Java Edition servers.</description>
     <url>https://geysermc.org</url>
     <properties>
+        <outputName>Geyser</outputName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
