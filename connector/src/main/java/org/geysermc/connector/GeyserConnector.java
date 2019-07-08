@@ -14,15 +14,26 @@
 
 package org.geysermc.connector;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.protocol.bedrock.v354.Bedrock_v354;
 import org.geysermc.api.ChatColor;
 import org.geysermc.connector.command.GeyserCommandMap;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.ConsoleCommandReader;
 import org.geysermc.connector.console.GeyserLogger;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class GeyserConnector {
+
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v354.V354_CODEC;
 
     private static final String NAME = "Geyser";
     private static final String VERSION = "1.0-SNAPSHOT";
@@ -30,8 +41,11 @@ public class GeyserConnector {
     private static GeyserConnector instance;
 
     private boolean shuttingDown = false;
+
     private GeyserLogger logger;
     private GeyserCommandMap commandMap;
+    private GeyserConfiguration config;
+
     private final ScheduledExecutorService generalThreadPool;
 
     public static void main(String[] args) {
@@ -53,6 +67,24 @@ public class GeyserConnector {
         logger.info("");
         logger.info("******************************************");
 
+        try {
+            File configFile = new File("config.yml");
+            if (!configFile.exists()) {
+                FileOutputStream fos = new FileOutputStream(configFile);
+                InputStream is = GeyserConnector.class.getResourceAsStream("/config.yml");
+                int data;
+                while ((data = is.read()) != -1)
+                    fos.write(data);
+                is.close();
+                fos.close();
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+            config = objectMapper.readValue(configFile, GeyserConfiguration.class);
+        } catch (IOException ex) {
+            logger.severe("Failed to create config.yml! Make sure it's up to date and writable!");
+            shutdown();
+        }
         commandMap = new GeyserCommandMap(this);
     }
 

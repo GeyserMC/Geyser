@@ -1,0 +1,30 @@
+# --------------------------------
+# Geyser Configuration File
+#
+# A bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition.
+#
+# https://github.com/GeyserMC/Geyser
+# --------------------------------
+
+bedrock:
+  # The IP address that will listen for connections
+  address: 0.0.0.0
+  # The port that will listen for connections
+  port: 19132
+  # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients
+  motd1: "GeyserMC"
+  motd2: "Another GeyserMC forced host."
+remote:
+  # The IP address of the remote (Java Edition) server
+  address: 127.0.0.1
+  # The port of the remote (Java Edition) server
+  port: 25565
+  online-mode: true
+
+# Relay the MOTD, player count and max players from the remote server
+ping-passthrough: false
+
+
+
+
+

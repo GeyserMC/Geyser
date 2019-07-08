@@ -43,6 +43,10 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>nukkitx-repo</id>
+            <url>https://repo.nukkitx.com/maven-releases/</url>
+        </repository>
     </repositories>
     <build>
         <defaultGoal>clean install</defaultGoal>
