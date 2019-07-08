@@ -14,11 +14,10 @@
 
 package org.geysermc.connector.console;
 
-import com.google.common.base.Charsets;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +36,7 @@ public class LoggingOutputStream extends ByteArrayOutputStream {
         super.write(b);
 
         try {
-            String contents = toString(Charsets.UTF_8.name());
+            String contents = toString(StandardCharsets.UTF_8.name());
             if (!contents.isEmpty() && !contents.equals(System.getProperty("line.separator")))
                 logger.logp(level, "", "", contents);
         } catch (UnsupportedEncodingException ex) {
@@ -47,7 +46,7 @@ public class LoggingOutputStream extends ByteArrayOutputStream {
 
     @Override
     public synchronized void flush() throws IOException {
-        String contents = toString(Charsets.UTF_8.name());
+        String contents = toString(StandardCharsets.UTF_8.name());
         super.reset();
 
         if (!contents.isEmpty() && !contents.equals(System.getProperty("line.separator")))
