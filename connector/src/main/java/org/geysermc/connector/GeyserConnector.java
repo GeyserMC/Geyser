@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v354.Bedrock_v354;
+import lombok.Getter;
 import org.geysermc.api.ChatColor;
 import org.geysermc.connector.command.GeyserCommandMap;
 import org.geysermc.connector.configuration.GeyserConfiguration;
@@ -40,12 +41,19 @@ public class GeyserConnector {
 
     private static GeyserConnector instance;
 
-    private boolean shuttingDown = false;
-
+    @Getter
     private GeyserLogger logger;
+
+    @Getter
     private GeyserCommandMap commandMap;
+
+    @Getter
     private GeyserConfiguration config;
 
+    @Getter
+    private boolean shuttingDown = false;
+
+    @Getter
     private final ScheduledExecutorService generalThreadPool;
 
     public static void main(String[] args) {
@@ -86,22 +94,6 @@ public class GeyserConnector {
             shutdown();
         }
         commandMap = new GeyserCommandMap(this);
-    }
-
-    public ScheduledExecutorService getGeneralThreadPool() {
-        return generalThreadPool;
-    }
-
-    public GeyserCommandMap getCommandMap() {
-        return commandMap;
-    }
-
-    public GeyserLogger getLogger() {
-        return logger;
-    }
-
-    public boolean isShuttingDown() {
-        return shuttingDown;
     }
 
     public void shutdown() {
