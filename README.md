@@ -8,7 +8,7 @@ The ultimate goal for this project is to allow those to join Minecraft: Java Edi
 ### Please note, this project is still a HEAVY work in progress and probably won't be complete any time soon.
 
 If you're interested in development, please join our Discord server:
-https://discord.gg/cnb7wch
+https://discord.gg/mRjbCsS
 
 ## Compiling
 Clone the repo to your computer, and run `mvn clean install`.
