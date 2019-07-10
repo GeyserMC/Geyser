@@ -12,21 +12,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.listener;
+package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.network.session.GeyserSession;
 
 import java.net.InetSocketAddress;
 
-public class ConnectorServerEventListener implements BedrockServerEventHandler {
+public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     private GeyserConnector connector;
 
-    public ConnectorServerEventListener(GeyserConnector connector) {
+    public ConnectorServerEventHandler(GeyserConnector connector) {
         this.connector = connector;
     }
 
@@ -53,6 +54,7 @@ public class ConnectorServerEventListener implements BedrockServerEventHandler {
 
     @Override
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
-
+        bedrockServerSession.setLogging(true);
+        bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
     }
 }

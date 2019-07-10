@@ -30,7 +30,7 @@ import org.geysermc.connector.command.GeyserCommandMap;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.ConsoleCommandReader;
 import org.geysermc.connector.console.GeyserLogger;
-import org.geysermc.connector.network.listener.ConnectorServerEventListener;
+import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
 
@@ -115,7 +115,7 @@ public class GeyserConnector implements Connector {
         pluginManager.getLoader().loadPlugins();
 
         BedrockServer bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
-        bedrockServer.setHandler(new ConnectorServerEventListener(this));
+        bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
                 logger.info("Started RakNet on " + config.getBedrock().getAddress() + ":" + config.getBedrock().getPort());
