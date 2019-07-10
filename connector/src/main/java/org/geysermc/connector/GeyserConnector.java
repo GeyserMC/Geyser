@@ -31,6 +31,7 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.ConsoleCommandReader;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
+import org.geysermc.connector.network.remote.RemoteJavaServer;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
 
@@ -50,6 +51,9 @@ public class GeyserConnector implements Connector {
     private static final String VERSION = "1.0-SNAPSHOT";
 
     private static GeyserConnector instance;
+
+    @Getter
+    private RemoteJavaServer remoteServer;
 
     @Getter
     private Logger logger;
@@ -108,6 +112,8 @@ public class GeyserConnector implements Connector {
         }
 
         commandMap = new GeyserCommandMap(this);
+
+        remoteServer = new RemoteJavaServer(config.getRemote().getAddress(), config.getRemote().getPort());
 
         Geyser.setConnector(this);
 

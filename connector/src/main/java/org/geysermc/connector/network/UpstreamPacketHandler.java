@@ -79,9 +79,7 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     public boolean handle(ResourcePackClientResponsePacket textPacket) {
         switch (textPacket.getStatus()) {
             case COMPLETED:
-                // Start connecting to remote server
-                RemoteJavaServer remoteServer = new RemoteJavaServer(connector.getConfig().getRemote().getAddress(), connector.getConfig().getRemote().getPort());
-                session.connect(remoteServer);
+                session.connect(connector.getRemoteServer());
                 connector.getLogger().info("Player connected with " + session.getAuthenticationData().getName());
                 break;
             case HAVE_ALL_PACKS:
