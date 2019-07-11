@@ -152,7 +152,7 @@
                 <configuration>
                     <finalName>${outputName}</finalName>
                     <shadedArtifactAttached>true</shadedArtifactAttached>
-                    <minimizeJar>false</minimizeJar>
+                    <minimizeJar>true</minimizeJar>
                 </configuration>
             </plugin>
         </plugins>
