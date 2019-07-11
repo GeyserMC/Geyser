@@ -32,8 +32,10 @@ import org.geysermc.connector.console.ConsoleCommandReader;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
+import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
+import org.geysermc.connector.utils.Toolbox;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -110,6 +112,10 @@ public class GeyserConnector implements Connector {
             logger.severe("Failed to create config.yml! Make sure it's up to date and writable!");
             shutdown();
         }
+
+        Toolbox.CACHED_PALLETE.array();
+
+        TranslatorsInit.start();
 
         commandMap = new GeyserCommandMap(this);
 

@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
+import org.geysermc.connector.network.translators.Registry;
 
 import java.util.UUID;
 
@@ -72,7 +73,7 @@ public class GeyserSession implements PlayerSession {
 
             @Override
             public void packetReceived(PacketReceivedEvent event) {
-                // TODO: Implement translator code here
+                Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket());
             }
         });
 
