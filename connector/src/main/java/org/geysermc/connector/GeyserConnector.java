@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v354.Bedrock_v354;
+import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
 import lombok.Getter;
 import org.geysermc.api.ChatColor;
 import org.geysermc.api.Connector;
@@ -45,7 +45,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class GeyserConnector implements Connector {
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v354.V354_CODEC;
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v361.V361_CODEC;
 
     private static final String NAME = "Geyser";
     private static final String VERSION = "1.0-SNAPSHOT";
