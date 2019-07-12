@@ -146,7 +146,7 @@
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
-                        </goals>but
+                        </goals>
                     </execution>
                 </executions>
                 <configuration>
