@@ -28,6 +28,7 @@ package org.geysermc.connector.network;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -44,6 +45,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
+        System.out.println(inetSocketAddress + " tried to connect!");
         return true;
     }
 
@@ -54,7 +56,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setEdition("MCPE");
         pong.setMotd(config.getBedrock().getMotd1());
         pong.setSubMotd(config.getBedrock().getMotd2());
-        pong.setPlayerCount(0);
+        pong.setPlayerCount(1);
         pong.setMaximumPlayerCount(config.getMaxPlayers());
         pong.setGameType("Default");
         pong.setNintendoLimited(false);
@@ -67,5 +69,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
+        bedrockServerSession.setPacketCodec(Bedrock_v361.V361_CODEC);
     }
+
 }

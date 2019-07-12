@@ -19,7 +19,7 @@ remote:
   address: 127.0.0.1
   # The port of the remote (Java Edition) server
   port: 25565
-  online-mode: true
+  online-mode: false
 
 # Relay the MOTD, player count and max players from the remote server
 ping-passthrough: false

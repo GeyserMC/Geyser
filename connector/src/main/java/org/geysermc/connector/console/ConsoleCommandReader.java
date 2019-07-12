@@ -53,47 +53,44 @@ public class ConsoleCommandReader {
     }
 
     public void startConsole() {
-        thread = new Thread() {
-            @Override
-            public void run() {
-                if (terminal != null) {
-                    LineReader lineReader = LineReaderBuilder.builder()
-                            .appName("Geyser")
-                            .terminal(terminal)
-                            .build();
-                    TerminalConsoleAppender.setReader(lineReader);
+        thread = new Thread(() -> {
+            if (terminal != null) {
+                LineReader lineReader = LineReaderBuilder.builder()
+                        .appName("Geyser")
+                        .terminal(terminal)
+                        .build();
+                TerminalConsoleAppender.setReader(lineReader);
 
-                    try {
-                        String line;
+                try {
+                    String line;
 
-                        while (true) {
-                            try {
-                                line = lineReader.readLine("> ");
-                            } catch (EndOfFileException ignored) {
-                                continue;
-                            }
-
-                            if (line == null)
-                                break;
+                    while (true) {
+                        try {
+                            line = lineReader.readLine("> ");
+                        } catch (EndOfFileException ignored) {
+                            continue;
                         }
-                    } catch (UserInterruptException e /* do nothing */) {
 
-                    } finally {
-                        TerminalConsoleAppender.setReader(null);
+                        if (line == null)
+                            break;
                     }
-                } else {
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            ConsoleCommandSender sender = new GeyserConsoleCommandSender();
-                            connector.getCommandMap().runCommand(sender, line);
-                        }
-                    } catch (IOException ex) {
-                        Logger.getLogger("Geyser").log(Level.SEVERE, null, ex);
+                } catch (UserInterruptException e /* do nothing */) {
+                    //
+                } finally {
+                    TerminalConsoleAppender.setReader(null);
+                }
+            } else {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        ConsoleCommandSender sender = new GeyserConsoleCommandSender();
+                        connector.getCommandMap().runCommand(sender, line);
                     }
+                } catch (IOException ex) {
+                    Logger.getLogger("Geyser").log(Level.SEVERE, null, ex);
                 }
             }
-        };
+        });
 
         thread.setName("ConsoleCommandThread");
         connector.getGeneralThreadPool().execute(thread);
