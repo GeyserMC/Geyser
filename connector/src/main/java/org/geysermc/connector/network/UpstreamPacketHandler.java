@@ -52,6 +52,7 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
         System.err.println("Handled " + loginPacket.getClass().getSimpleName());
         // TODO: Implement support for multiple protocols
         if (loginPacket.getProtocolVersion() != GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
+            System.out.println("unsupported");
             session.getUpstream().disconnect("Unsupported Bedrock version. Are you running an outdated version?");
             return true;
         }
@@ -74,8 +75,12 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
+
+
         PlayStatusPacket playStatus = new PlayStatusPacket();
+
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
+
         session.getUpstream().sendPacketImmediately(playStatus);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
@@ -101,6 +106,7 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
                 session.getUpstream().disconnect("disconnectionScreen.resourcePack");
                 break;
         }
+
         return true;
     }
 

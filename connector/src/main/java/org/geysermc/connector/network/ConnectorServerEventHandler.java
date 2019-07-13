@@ -51,16 +51,18 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
+        System.out.println(inetSocketAddress + " has pinged you!");
         GeyserConfiguration config = connector.getConfig();
         BedrockPong pong = new BedrockPong();
         pong.setEdition("MCPE");
         pong.setMotd(config.getBedrock().getMotd1());
         pong.setSubMotd(config.getBedrock().getMotd2());
-        pong.setPlayerCount(1);
+        pong.setPlayerCount(2);
         pong.setMaximumPlayerCount(config.getMaxPlayers());
         pong.setGameType("Default");
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
+        pong.setVersion("1.12.0");
 
         return pong;
     }
@@ -69,7 +71,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
+        bedrockServerSession.addDisconnectHandler((x) -> System.out.println("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconected for reason " + x));
         bedrockServerSession.setPacketCodec(Bedrock_v361.V361_CODEC);
     }
+
+
 
 }

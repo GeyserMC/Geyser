@@ -28,6 +28,10 @@ package org.geysermc.api.plugin;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * The class that any main plugin class should extend.
+ * The first init point is the constructor, followed by onLoad, and finally onEnable.
+ */
 public class Plugin {
 
     @Getter
@@ -52,6 +56,13 @@ public class Plugin {
      * Called when a plugin is loaded
      */
     public void onLoad() {
+
+    }
+
+    /**
+     * Called when th server is reloaded
+     */
+    public void onReload() {
 
     }
 }

@@ -27,12 +27,20 @@ package org.geysermc.connector;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.nukkitx.network.raknet.RakNetServer;
+import com.nukkitx.network.raknet.RakNetServerListener;
+import com.nukkitx.network.raknet.RakNetServerSession;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.DatagramPacket;
 import lombok.Getter;
+import org.apache.logging.log4j.core.filter.Filterable;
+import org.fusesource.jansi.AnsiConsole;
 import org.geysermc.api.ChatColor;
 import org.geysermc.api.Connector;
+import org.geysermc.api.ConsoleColors;
 import org.geysermc.api.Geyser;
 import org.geysermc.api.command.CommandMap;
 import org.geysermc.api.logger.Logger;
@@ -48,10 +56,8 @@ import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
 import org.geysermc.connector.utils.Toolbox;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -91,15 +97,21 @@ public class GeyserConnector implements Connector {
     }
 
     private GeyserConnector() {
+        if(!(System.console() == null) && System.getProperty("os.name", "Windows 10").toLowerCase().contains("windows")) {
+            AnsiConsole.systemInstall();
+        }
         instance = this;
 
         this.generalThreadPool = Executors.newScheduledThreadPool(32); //TODO: Make configurable value
-        this.logger = new GeyserLogger(this);
+
+        this.logger = GeyserLogger.DEFAULT;
+
 
         ConsoleCommandReader consoleReader = new ConsoleCommandReader(this);
+
         consoleReader.startConsole();
 
-        logger.info(ChatColor.AQUA + "******************************************");
+        logger.info("******************************************");
         logger.info("");
         logger.info("Loading " + NAME + " vesion " + VERSION);
         logger.info("");

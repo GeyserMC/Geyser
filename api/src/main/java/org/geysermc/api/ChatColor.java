@@ -52,8 +52,8 @@ public class ChatColor {
     public static final String RESET = ESCAPE + "r";
 
     public static String toANSI(String string) {
-        string = string.replace(BOLD, "");
-        string = string.replace(OBFUSCATED, (char) 0x1b + "[6m");
+        string = string.replace(BOLD, (char) 0x1b + "[1m");
+        string = string.replace(OBFUSCATED, (char) 0x1b + "[5m");
         string = string.replace(ITALIC, (char) 0x1b + "[3m");
         string = string.replace(UNDERLINE, (char) 0x1b + "[4m");
         string = string.replace(STRIKETHROUGH, (char) 0x1b + "[9m");

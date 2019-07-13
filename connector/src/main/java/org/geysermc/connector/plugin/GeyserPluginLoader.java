@@ -27,6 +27,7 @@ package org.geysermc.connector.plugin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import org.geysermc.api.Connector;
 import org.geysermc.api.plugin.Plugin;
 import java.io.File;

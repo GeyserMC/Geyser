@@ -28,13 +28,6 @@ package org.geysermc.api.logger;
 public interface Logger {
 
     /**
-     * Logs an info message to console
-     *
-     * @param message the message to log
-     */
-    void info(String message);
-
-    /**
      * Logs a severe message to console
      *
      * @param message the message to log
@@ -42,11 +35,25 @@ public interface Logger {
     void severe(String message);
 
     /**
+     * Logs an error message to console
+     *
+     * @param message the message to log
+     */
+    void error(String message);
+
+    /**
      * Logs a warning message to console
      *
      * @param message the message to log
      */
     void warning(String message);
+
+    /**
+     * Logs an info message to console
+     *
+     * @param message the message to log
+     */
+    void info(String message);
 
     /**
      * Logs a debug message to console

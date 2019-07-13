@@ -31,6 +31,7 @@ import com.github.steveice10.packetlib.event.session.ConnectedEvent;
 import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
 import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
+import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.network.util.DisconnectReason;
 import com.nukkitx.protocol.PlayerSession;
@@ -56,6 +57,8 @@ public class GeyserSession implements PlayerSession {
     @Getter
     private Client downstream;
 
+    private final GeyserSession THIS = this;
+
     @Getter
     private AuthenticationData authenticationData;
 
@@ -78,13 +81,13 @@ public class GeyserSession implements PlayerSession {
 
             @Override
             public void disconnected(DisconnectedEvent event) {
-                connector.getLogger().info(authenticationData.getName() + " has disconnected from remote java server on address " + remoteServer.getAddress());
+                connector.getLogger().info(authenticationData.getName() + " has disconnected from remote java server on address " + remoteServer.getAddress() + " because of " + event.getReason());
                 upstream.disconnect(event.getReason());
             }
 
             @Override
             public void packetReceived(PacketReceivedEvent event) {
-                Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket());
+                Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), THIS);
             }
         });
 
