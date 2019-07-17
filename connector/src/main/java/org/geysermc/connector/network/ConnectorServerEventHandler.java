@@ -29,8 +29,10 @@ import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
+import org.geysermc.api.Geyser;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.net.InetSocketAddress;
@@ -51,7 +53,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        System.out.println(inetSocketAddress + " has pinged you!");
+        GeyserLogger.DEFAULT.info(inetSocketAddress + " has pinged you!");
         GeyserConfiguration config = connector.getConfig();
         BedrockPong pong = new BedrockPong();
         pong.setEdition("MCPE");
@@ -63,6 +65,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
         pong.setVersion("1.12.0");
+        pong.setIpv4Port(19132);
 
         return pong;
     }
@@ -71,7 +74,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
-        bedrockServerSession.addDisconnectHandler((x) -> System.out.println("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconected for reason " + x));
+        bedrockServerSession.addDisconnectHandler((x) -> GeyserLogger.DEFAULT.warning("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconected for reason " + x));
         bedrockServerSession.setPacketCodec(Bedrock_v361.V361_CODEC);
     }
 

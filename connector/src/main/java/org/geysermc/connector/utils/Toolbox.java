@@ -4,15 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.nukkitx.network.VarInts;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Toolbox {
     static {
@@ -40,8 +39,50 @@ public class Toolbox {
 
         CACHED_PALLETE = b;
 
+
+
+
+        InputStream stream2 = Toolbox.class.getClassLoader().getResourceAsStream("items.json");
+        if (stream2 == null) {
+            throw new AssertionError("Items Table not found");
+        }
+
+        ObjectMapper mapper2 = new ObjectMapper();
+
+        ArrayList<HashMap> s = new ArrayList<>();
+        try {
+            s = mapper2.readValue(stream2, ArrayList.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<StartGamePacket.ItemEntry> l = new ArrayList<>();
+
+        for(HashMap e : s) {
+            l.add(new StartGamePacket.ItemEntry((String) e.get("name"), ((Integer) e.get("id")).shortValue()));
+        }
+
+        ITEMS = l;
+
+        ByteBuf serializer;
+
+        serializer = Unpooled.buffer();
+        serializer.writeShortLE(1);
+        ArraySerializer.writeVarIntByteArray(serializer, (chunkdata) -> {
+            PSPEStuff.writeEmptySubChunk(chunkdata);
+            chunkdata.writeZero(512);
+            chunkdata.writeZero(256);
+            chunkdata.writeByte(0);
+        });
+
+        EMPTY_CHUNK = MiscSerializer.readAllBytes(serializer);
+
     }
 
+    public static final Collection<StartGamePacket.ItemEntry> ITEMS;
+
     public static final ByteBuf CACHED_PALLETE;
+
+    public static final byte[] EMPTY_CHUNK;
 
 }
