@@ -62,7 +62,7 @@
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
             <artifactId>bedrock-v361</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -74,13 +74,13 @@
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
             <artifactId>bedrock-v354</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
             <artifactId>bedrock-v340</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
