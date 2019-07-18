@@ -26,7 +26,6 @@
 package org.geysermc.connector.network;
 
 import com.nimbusds.jose.JWSObject;
-import com.nukkitx.protocol.bedrock.handler.BatchHandler;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import net.minidev.json.JSONArray;
@@ -57,8 +56,6 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        session.getUpstream().setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
-
         try {
             JSONObject chainData = (JSONObject) JSONValue.parse(loginPacket.getChainData().array());
             JSONArray chainArray = (JSONArray) chainData.get("chain");
@@ -75,16 +72,13 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-
-
         PlayStatusPacket playStatus = new PlayStatusPacket();
-
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-
         session.getUpstream().sendPacketImmediately(playStatus);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         session.getUpstream().sendPacketImmediately(resourcePacksInfo);
+
         return true;
     }
 

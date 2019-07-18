@@ -5,40 +5,31 @@ import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.protocol.bedrock.v340.serializer.FullChunkDataSerializer_v340;
-import com.nukkitx.protocol.bedrock.v340.serializer.ResourcePackChunkDataSerializer_v340;
-import com.nukkitx.protocol.bedrock.v340.serializer.SetSpawnPositionSerializer_v340;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.connector.utils.PSPEStuff;
 import org.geysermc.connector.utils.PositionSerializer;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
 
 public class TranslatorsInit {
+
     public static void start() {
         addLoginPackets();
     }
 
     private static void addLoginPackets() {
         Registry.add(ServerJoinGamePacket.class, (packet, session) -> {
-            for(byte b : Toolbox.EMPTY_CHUNK) {
-                GeyserLogger.DEFAULT.warning("" + b);
-            }
+            //for(byte b : Toolbox.EMPTY_CHUNK) {
+            //    GeyserLogger.DEFAULT.warning("" + b);
+            //}
+
             AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
-
             bedrockPacket.setUniqueEntityId(packet.getEntityId());
-
             session.getUpstream().sendPacketImmediately(bedrockPacket);
 
             StartGamePacket startGamePacket = new StartGamePacket();
@@ -93,11 +84,9 @@ public class TranslatorsInit {
             Vector3f pos = new Vector3f(0, 0, 0);
 
             int chunkX = pos.getFloorX() >> 4;
-
             int chunkZ = pos.getFloorZ() >> 4;
 
             for (int x = -3; x < 3; x++) {
-
                 for (int z = -3; z < 3; z++) {
 
                     LevelChunkPacket data = new LevelChunkPacket();
@@ -105,17 +94,13 @@ public class TranslatorsInit {
                     data.setChunkZ(chunkZ + z);
 
                     data.setData(Toolbox.EMPTY_CHUNK);
-
                     session.getUpstream().sendPacketImmediately(data);
 
                 }
-
             }
 
             PlayStatusPacket packet1 = new PlayStatusPacket();
-
             packet1.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-
             session.getUpstream().sendPacket(packet1);
         });
     }

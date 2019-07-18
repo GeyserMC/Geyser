@@ -1,15 +1,14 @@
 package org.geysermc.connector.network.translators;
 
 import com.github.steveice10.packetlib.packet.Packet;
-import org.geysermc.api.Geyser;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class Registry<T> {
+
     private final Map<Class<? extends T>, BiConsumer<? extends T, GeyserSession>> MAP = new HashMap<>();
 
     public static final Registry<Packet> JAVA = new Registry<>();
@@ -25,5 +24,4 @@ public class Registry<T> {
             System.err.println("could not translate packet" + p.getClass().getSimpleName());
         }
     }
-
 }

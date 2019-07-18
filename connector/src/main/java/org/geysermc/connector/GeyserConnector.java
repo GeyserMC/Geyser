@@ -106,9 +106,7 @@ public class GeyserConnector implements Connector {
 
         this.logger = GeyserLogger.DEFAULT;
 
-
         ConsoleCommandReader consoleReader = new ConsoleCommandReader(this);
-
         consoleReader.startConsole();
 
         logger.info("******************************************");
@@ -141,7 +139,6 @@ public class GeyserConnector implements Connector {
         TranslatorsInit.start();
 
         commandMap = new GeyserCommandMap(this);
-
         remoteServer = new RemoteJavaServer(config.getRemote().getAddress(), config.getRemote().getPort());
 
         Geyser.setConnector(this);
