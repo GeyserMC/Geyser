@@ -5,7 +5,6 @@ import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -13,13 +12,9 @@ import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.protocol.bedrock.v340.serializer.FullChunkDataSerializer_v340;
-import com.nukkitx.protocol.bedrock.v340.serializer.ResourcePackChunkDataSerializer_v340;
-import com.nukkitx.protocol.bedrock.v340.serializer.SetSpawnPositionSerializer_v340;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.geysermc.connector.console.GeyserLogger;
-import org.geysermc.connector.utils.PositionSerializer;
+import org.geysermc.connector.utils.GeyserUtils;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.ByteArrayOutputStream;
@@ -32,9 +27,6 @@ public class TranslatorsInit {
 
     private static void addLoginPackets() {
         Registry.add(ServerJoinGamePacket.class, (packet, session) -> {
-            for(byte b : Toolbox.EMPTY_CHUNK) {
-                GeyserLogger.DEFAULT.warning("" + b);
-            }
             AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
 
             bedrockPacket.setUniqueEntityId(packet.getEntityId());
@@ -104,7 +96,37 @@ public class TranslatorsInit {
                     data.setChunkX(chunkX + x);
                     data.setChunkZ(chunkZ + z);
 
-                    data.setData(Toolbox.EMPTY_CHUNK);
+                    ByteBuf buf = Unpooled.buffer();
+
+                    data.setSubChunksLength(1);
+
+                    for(int i = 0; i < 1; i++) {
+                        GeyserUtils.writeEmptySubChunk(buf);
+                    }
+
+                    for(int i  = 0; i < 256; i++) {
+                        buf.writeByte(0);
+                    }
+
+                    buf.writeZero(1);
+
+                    VarInts.writeInt(buf, 0);
+
+                    ByteArrayOutputStream s = new ByteArrayOutputStream();
+
+                    NBTOutputStream stream = NbtUtils.createNetworkWriter(s);
+
+                    try {
+                        stream.write(new CompoundTag("", new HashMap<>()));
+                        s.close();
+                        stream.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    buf.writeBytes(s.toByteArray());
+
+                    data.setData(new byte[0]);
 
                     session.getUpstream().sendPacketImmediately(data);
 
@@ -123,7 +145,7 @@ public class TranslatorsInit {
     private static byte[] empty(byte[] b, Vector2i pos) {
         ByteBuf by = Unpooled.buffer();
 
-        PositionSerializer.writePEChunkCoord(by, pos);
+        GeyserUtils.writePEChunkCoord(by, pos);
 
         return by.array();
     }

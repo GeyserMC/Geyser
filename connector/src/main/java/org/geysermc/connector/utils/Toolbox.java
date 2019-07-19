@@ -1,15 +1,12 @@
 package org.geysermc.connector.utils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -64,18 +61,18 @@ public class Toolbox {
 
         ITEMS = l;
 
-        ByteBuf serializer;
+        /*ByteBuf serializer;
 
         serializer = Unpooled.buffer();
         serializer.writeShortLE(1);
-        ArraySerializer.writeVarIntByteArray(serializer, (chunkdata) -> {
-            PSPEStuff.writeEmptySubChunk(chunkdata);
+        GeyserUtils.writeVarIntByteArray(serializer, (chunkdata) -> {
+            GeyserUtils.writeEmptySubChunk(chunkdata);
             chunkdata.writeZero(512);
             chunkdata.writeZero(256);
             chunkdata.writeByte(0);
         });
 
-        EMPTY_CHUNK = MiscSerializer.readAllBytes(serializer);
+        EMPTY_CHUNK = GeyserUtils.readAllBytes(serializer);*/
 
     }
 
@@ -83,6 +80,6 @@ public class Toolbox {
 
     public static final ByteBuf CACHED_PALLETE;
 
-    public static final byte[] EMPTY_CHUNK;
+    //public static final byte[] EMPTY_CHUNK;
 
 }

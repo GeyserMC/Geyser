@@ -47,7 +47,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        System.out.println(inetSocketAddress + " tried to connect!");
+        GeyserLogger.DEFAULT.info(inetSocketAddress + " tried to connect!");
         return true;
     }
 
@@ -74,7 +74,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
-        bedrockServerSession.addDisconnectHandler((x) -> GeyserLogger.DEFAULT.warning("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconected for reason " + x));
+        bedrockServerSession.addDisconnectHandler((x) -> GeyserLogger.DEFAULT.warning("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + x));
         bedrockServerSession.setPacketCodec(Bedrock_v361.V361_CODEC);
     }
 
