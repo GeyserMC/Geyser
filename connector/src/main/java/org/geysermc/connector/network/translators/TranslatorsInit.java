@@ -107,6 +107,12 @@ public class TranslatorsInit {
 
             session.getUpstream().sendPacketImmediately(startGamePacket);
 
+            BiomeDefinitionListPacket biomeDefListPacket = new BiomeDefinitionListPacket();
+            session.getUpstream().sendPacketImmediately(biomeDefListPacket);
+
+            AvailableEntityIdentifiersPacket availableEntityPacket = new AvailableEntityIdentifiersPacket();
+            session.getUpstream().sendPacketImmediately(availableEntityPacket);
+
             Vector3f pos = new Vector3f(0, 0, 0);
 
             int chunkX = pos.getFloorX() >> 4;
@@ -123,7 +129,7 @@ public class TranslatorsInit {
 
                     ByteBuf buf = Unpooled.buffer();
 
-                    data.setSubChunksLength(1);
+                    data.setSubChunksLength(16);
 
                     for(int i = 0; i < 1; i++) {
                         GeyserUtils.writeEmptySubChunk(buf);
