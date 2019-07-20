@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators;
 
 import com.github.steveice10.packetlib.packet.Packet;
 import org.geysermc.api.Geyser;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public class Registry<T> {
         try {
             ((BiConsumer<P, GeyserSession>) JAVA.MAP.get(clazz)).accept(p, s);
         } catch (NullPointerException e) {
-            System.err.println("could not translate packet" + p.getClass().getSimpleName());
+            GeyserLogger.DEFAULT.warning("could not translate packet " + p.getClass().getSimpleName());
         }
     }
 }

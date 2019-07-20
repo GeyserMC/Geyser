@@ -1,48 +1,23 @@
-/*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @author GeyserMC
- * @link https://github.com/GeyserMC/Geyser
- */
-
 package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.VarInts;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Toolbox {
-
     static {
+
         InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream("cached_pallete.json");
+
         ObjectMapper mapper = new ObjectMapper();
-        List<LinkedHashMap<String, Object>> entries = new ArrayList<>();
+
+        ArrayList<LinkedHashMap<String, Object>> entries = new ArrayList<>();
 
         try {
             entries = mapper.readValue(stream, ArrayList.class);
@@ -51,15 +26,61 @@ public class Toolbox {
         }
 
         ByteBuf b = Unpooled.buffer();
-        VarInts.writeInt(b, entries.size());
+
+        VarInts.writeUnsignedInt(b, entries.size());
+
         for (Map<String, Object> e : entries) {
             BedrockUtils.writeString(b, (String) e.get("name"));
-            b.writeShortLE((Integer) e.get("data"));
+            b.writeShortLE((int) e.get("data"));
+            b.writeShortLE((int) e.get("id"));
         }
 
         CACHED_PALLETE = b;
+
+
+
+
+        InputStream stream2 = Toolbox.class.getClassLoader().getResourceAsStream("items.json");
+        if (stream2 == null) {
+            throw new AssertionError("Items Table not found");
+        }
+
+        ObjectMapper mapper2 = new ObjectMapper();
+
+        ArrayList<HashMap> s = new ArrayList<>();
+        try {
+            s = mapper2.readValue(stream2, ArrayList.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<StartGamePacket.ItemEntry> l = new ArrayList<>();
+
+        for(HashMap e : s) {
+            l.add(new StartGamePacket.ItemEntry((String) e.get("name"), (short) ((int) e.get("id"))));
+        }
+
+        ITEMS = l;
+
+        /*ByteBuf serializer;
+
+        serializer = Unpooled.buffer();
+        serializer.writeShortLE(1);
+        GeyserUtils.writeVarIntByteArray(serializer, (chunkdata) -> {
+            GeyserUtils.writeEmptySubChunk(chunkdata);
+            chunkdata.writeZero(512);
+            chunkdata.writeZero(256);
+            chunkdata.writeByte(0);
+        });
+
+        EMPTY_CHUNK = GeyserUtils.readAllBytes(serializer);*/
+
     }
 
+    public static final Collection<StartGamePacket.ItemEntry> ITEMS;
+
     public static final ByteBuf CACHED_PALLETE;
+
+    //public static final byte[] EMPTY_CHUNK;
 
 }
