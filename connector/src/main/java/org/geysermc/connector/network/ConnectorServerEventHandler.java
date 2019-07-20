@@ -29,8 +29,10 @@ import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
+import org.geysermc.api.Geyser;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.net.InetSocketAddress;
@@ -45,13 +47,13 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        System.out.println(inetSocketAddress + " tried to connect!");
+        GeyserLogger.DEFAULT.info(inetSocketAddress + " tried to connect!");
         return true;
     }
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().info(inetSocketAddress + " has pinged you!");
+        GeyserLogger.DEFAULT.info(inetSocketAddress + " has pinged you!");
         GeyserConfiguration config = connector.getConfig();
         BedrockPong pong = new BedrockPong();
         pong.setEdition("MCPE");
@@ -71,8 +73,11 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     @Override
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
-        bedrockServerSession.setPacketCodec(Bedrock_v361.V361_CODEC);
-        bedrockServerSession.addDisconnectHandler((x) -> connector.getLogger().warning("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + x));
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
+        bedrockServerSession.addDisconnectHandler((x) -> GeyserLogger.DEFAULT.warning("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + x));
+        bedrockServerSession.setPacketCodec(Bedrock_v361.V361_CODEC);
     }
+
+
+
 }
