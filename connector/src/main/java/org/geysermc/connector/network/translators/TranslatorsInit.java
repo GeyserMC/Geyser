@@ -30,6 +30,7 @@ import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
+import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -38,14 +39,33 @@ import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.*;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import org.geysermc.connector.utils.GeyserUtils;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class TranslatorsInit {
+    private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
+    private static final byte[] EMPTY_LEVEL_CHUNK_DATA;
+
+    static {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size
+
+            try (NBTOutputStream stream = NbtUtils.createNetworkWriter(outputStream)) {
+                stream.write(EMPTY_TAG);
+            }
+
+            EMPTY_LEVEL_CHUNK_DATA = outputStream.toByteArray();
+        }catch (IOException e) {
+            throw new AssertionError("Unable to generate empty level chunk data");
+        }
+    }
+
     public static void start() {
         addLoginPackets();
     }
@@ -72,16 +92,16 @@ public class TranslatorsInit {
             startGamePacket.setDifficulty(1);
             startGamePacket.setDefaultSpawn(new Vector3i(0, 0, 0));
             startGamePacket.setAcheivementsDisabled(true);
-            startGamePacket.setTime(1300);
+            startGamePacket.setTime(0);
             startGamePacket.setEduLevel(false);
             startGamePacket.setEduFeaturesEnabled(false);
             startGamePacket.setRainLevel(0);
             startGamePacket.setLightningLevel(0);
-            startGamePacket.setMultiplayerGame(false);
+            startGamePacket.setMultiplayerGame(true);
             startGamePacket.setBroadcastingToLan(true);
-            startGamePacket.getGamerules().add((new GameRule("showcoordinates", true)));
-            startGamePacket.setPlatformBroadcastMode(GamePublishSetting.FRIENDS_OF_FRIENDS);
-            startGamePacket.setXblBroadcastMode(GamePublishSetting.FRIENDS_OF_FRIENDS);
+            startGamePacket.getGamerules().add(new GameRule<>("showcoordinates", true));
+            startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
+            startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
             startGamePacket.setCommandsEnabled(true);
             startGamePacket.setTexturePacksRequired(false);
             startGamePacket.setBonusChestEnabled(false);
@@ -99,19 +119,13 @@ public class TranslatorsInit {
             startGamePacket.setLevelId("oerjhii");
             startGamePacket.setWorldName("world");
             startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
-            startGamePacket.setCurrentTick(1);
-            startGamePacket.setEnchantmentSeed(1);
+            startGamePacket.setCurrentTick(0);
+            startGamePacket.setEnchantmentSeed(0);
             startGamePacket.setMultiplayerCorrelationId("");
             startGamePacket.setCachedPalette(Toolbox.CACHED_PALLETE);
             startGamePacket.setItemEntries(Toolbox.ITEMS);
 
-            session.getUpstream().sendPacketImmediately(startGamePacket);
-
-            BiomeDefinitionListPacket biomeDefListPacket = new BiomeDefinitionListPacket();
-            session.getUpstream().sendPacketImmediately(biomeDefListPacket);
-
-            AvailableEntityIdentifiersPacket availableEntityPacket = new AvailableEntityIdentifiersPacket();
-            session.getUpstream().sendPacketImmediately(availableEntityPacket);
+            session.getUpstream().sendPacket(startGamePacket);
 
             Vector3f pos = new Vector3f(0, 0, 0);
 
@@ -126,38 +140,9 @@ public class TranslatorsInit {
                     LevelChunkPacket data = new LevelChunkPacket();
                     data.setChunkX(chunkX + x);
                     data.setChunkZ(chunkZ + z);
+                    data.setSubChunksLength(0);
 
-                    ByteBuf buf = Unpooled.buffer();
-
-                    data.setSubChunksLength(16);
-
-                    for(int i = 0; i < 1; i++) {
-                        GeyserUtils.writeEmptySubChunk(buf);
-                    }
-
-                    for(int i  = 0; i < 256; i++) {
-                        buf.writeByte(0);
-                    }
-
-                    buf.writeZero(1);
-
-                    VarInts.writeInt(buf, 0);
-
-                    ByteArrayOutputStream s = new ByteArrayOutputStream();
-
-                    NBTOutputStream stream = NbtUtils.createNetworkWriter(s);
-
-                    try {
-                        stream.write(new CompoundTag("", new HashMap<>()));
-                        s.close();
-                        stream.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    buf.writeBytes(s.toByteArray());
-
-                    data.setData(new byte[0]);
+                    data.setData(EMPTY_LEVEL_CHUNK_DATA);
 
                     session.getUpstream().sendPacketImmediately(data);
 

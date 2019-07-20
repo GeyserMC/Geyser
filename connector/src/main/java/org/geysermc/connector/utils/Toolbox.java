@@ -27,11 +27,12 @@ public class Toolbox {
 
         ByteBuf b = Unpooled.buffer();
 
-        VarInts.writeInt(b, entries.size());
+        VarInts.writeUnsignedInt(b, entries.size());
 
         for (Map<String, Object> e : entries) {
             BedrockUtils.writeString(b, (String) e.get("name"));
-            b.writeShortLE((Integer) e.get("data"));
+            b.writeShortLE((int) e.get("data"));
+            b.writeShortLE((int) e.get("id"));
         }
 
         CACHED_PALLETE = b;
@@ -56,7 +57,7 @@ public class Toolbox {
         ArrayList<StartGamePacket.ItemEntry> l = new ArrayList<>();
 
         for(HashMap e : s) {
-            l.add(new StartGamePacket.ItemEntry((String) e.get("name"), ((Integer) e.get("id")).shortValue()));
+            l.add(new StartGamePacket.ItemEntry((String) e.get("name"), (short) ((int) e.get("id"))));
         }
 
         ITEMS = l;
