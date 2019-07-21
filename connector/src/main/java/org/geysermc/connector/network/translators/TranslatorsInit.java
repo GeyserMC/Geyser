@@ -46,6 +46,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class TranslatorsInit {
+
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     private static final byte[] EMPTY_LEVEL_CHUNK_DATA;
 
@@ -127,15 +128,10 @@ public class TranslatorsInit {
             session.getUpstream().sendPacket(startGamePacket);
 
             Vector3f pos = new Vector3f(0, 0, 0);
-
             int chunkX = pos.getFloorX() >> 4;
-
             int chunkZ = pos.getFloorZ() >> 4;
-
             for (int x = -3; x < 3; x++) {
-
                 for (int z = -3; z < 3; z++) {
-
                     LevelChunkPacket data = new LevelChunkPacket();
                     data.setChunkX(chunkX + x);
                     data.setChunkZ(chunkZ + z);
@@ -146,14 +142,11 @@ public class TranslatorsInit {
                     session.getUpstream().sendPacketImmediately(data);
 
                 }
-
             }
 
-            PlayStatusPacket packet1 = new PlayStatusPacket();
-
-            packet1.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-
-            session.getUpstream().sendPacket(packet1);
+            PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+            playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+            session.getUpstream().sendPacket(playStatusPacket);
         });
     }
 

@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
 import com.nimbusds.jose.JWSObject;
-import com.nukkitx.protocol.bedrock.handler.BatchHandler;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import net.minidev.json.JSONArray;

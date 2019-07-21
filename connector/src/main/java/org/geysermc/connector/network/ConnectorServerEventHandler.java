@@ -29,7 +29,6 @@ import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
-import org.geysermc.api.Geyser;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.GeyserLogger;
@@ -77,7 +76,4 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         bedrockServerSession.addDisconnectHandler((x) -> GeyserLogger.DEFAULT.warning("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + x));
         bedrockServerSession.setPacketCodec(Bedrock_v361.V361_CODEC);
     }
-
-
-
 }
