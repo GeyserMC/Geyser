@@ -31,6 +31,7 @@ import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
@@ -65,6 +66,7 @@ public class TranslatorsInit {
     public static void start() {
         addLoginPackets();
         addChatPackets();
+        addTitlePackets();
     }
 
     private static void addLoginPackets() {
@@ -183,6 +185,38 @@ public class TranslatorsInit {
             }
 
             session.getUpstream().sendPacket(textPacket);
+        });
+    }
+
+    public static void addTitlePackets() {
+        Registry.add(ServerTitlePacket.class, (packet, session) -> {
+            SetTitlePacket titlePacket = new SetTitlePacket();
+
+            switch (packet.getAction()) {
+                case TITLE:
+                    titlePacket.setType(SetTitlePacket.Type.SET_TITLE);
+                    titlePacket.setText(packet.getTitle().getFullText());
+                    break;
+                case SUBTITLE:
+                    titlePacket.setType(SetTitlePacket.Type.SET_SUBTITLE);
+                    titlePacket.setText(packet.getSubtitle().getFullText());
+                    break;
+                case CLEAR:
+                case RESET:
+                    titlePacket.setType(SetTitlePacket.Type.RESET_TITLE);
+                    titlePacket.setText("");
+                    break;
+                case ACTION_BAR:
+                    titlePacket.setType(SetTitlePacket.Type.SET_ACTIONBAR_MESSAGE);
+                    titlePacket.setText(packet.getActionBar().getFullText());
+                    break;
+            }
+
+            titlePacket.setFadeInTime(packet.getFadeIn());
+            titlePacket.setFadeOutTime(packet.getFadeOut());
+            titlePacket.setStayTime(packet.getStay());
+
+            session.getUpstream().sendPacket(titlePacket);
         });
     }
 }
