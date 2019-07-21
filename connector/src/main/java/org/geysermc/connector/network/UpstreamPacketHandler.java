@@ -174,7 +174,11 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(CommandRequestPacket packet) {
         System.out.println("Handled packet: " + packet.getClass().getSimpleName());
-        return false;
+
+        ClientChatPacket chatPacket = new ClientChatPacket(packet.getCommand());
+        session.getDownstream().getSession().send(chatPacket);
+
+        return true;
     }
 
     @Override
