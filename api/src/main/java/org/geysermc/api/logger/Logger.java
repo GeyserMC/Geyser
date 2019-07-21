@@ -61,4 +61,11 @@ public interface Logger {
      * @param message the message to log
      */
     void debug(String message);
+
+    /**
+     * Sets if the logger should print debug messages
+     *
+     * @param debug if the logger should print debug messages
+     */
+    void setDebug(boolean debug);
 }

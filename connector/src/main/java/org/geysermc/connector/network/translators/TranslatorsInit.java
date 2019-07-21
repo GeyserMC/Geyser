@@ -26,32 +26,28 @@
 package org.geysermc.connector.network.translators;
 
 import com.flowpowered.math.vector.Vector2f;
-import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.*;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufOutputStream;
-import io.netty.buffer.Unpooled;
-import org.geysermc.connector.utils.GeyserUtils;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 
 public class TranslatorsInit {
+
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     private static final byte[] EMPTY_LEVEL_CHUNK_DATA;
 
@@ -72,6 +68,8 @@ public class TranslatorsInit {
     public static void start() {
         addLoginPackets();
         addChatPackets();
+        addTitlePackets();
+        addTimePackets();
     }
 
     private static void addLoginPackets() {
@@ -132,15 +130,10 @@ public class TranslatorsInit {
             session.getUpstream().sendPacket(startGamePacket);
 
             Vector3f pos = new Vector3f(0, 0, 0);
-
             int chunkX = pos.getFloorX() >> 4;
-
             int chunkZ = pos.getFloorZ() >> 4;
-
             for (int x = -3; x < 3; x++) {
-
                 for (int z = -3; z < 3; z++) {
-
                     LevelChunkPacket data = new LevelChunkPacket();
                     data.setChunkX(chunkX + x);
                     data.setChunkZ(chunkZ + z);
@@ -151,14 +144,11 @@ public class TranslatorsInit {
                     session.getUpstream().sendPacketImmediately(data);
 
                 }
-
             }
 
-            PlayStatusPacket packet1 = new PlayStatusPacket();
-
-            packet1.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-
-            session.getUpstream().sendPacket(packet1);
+            PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+            playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+            session.getUpstream().sendPacket(playStatusPacket);
         });
     }
 
@@ -167,7 +157,7 @@ public class TranslatorsInit {
             TextPacket textPacket = new TextPacket();
             textPacket.setPlatformChatId("");
             textPacket.setSourceName("");
-            textPacket.setXuid("");
+            textPacket.setXuid(session.getAuthenticationData().getXboxUUID());
             switch (packet.getType()) {
                 case CHAT:
                     textPacket.setType(TextPacket.Type.CHAT);
@@ -190,6 +180,47 @@ public class TranslatorsInit {
             }
 
             session.getUpstream().sendPacket(textPacket);
+        });
+    }
+
+    public static void addTitlePackets() {
+        Registry.add(ServerTitlePacket.class, (packet, session) -> {
+            SetTitlePacket titlePacket = new SetTitlePacket();
+
+            switch (packet.getAction()) {
+                case TITLE:
+                    titlePacket.setType(SetTitlePacket.Type.SET_TITLE);
+                    titlePacket.setText(packet.getTitle().getFullText());
+                    break;
+                case SUBTITLE:
+                    titlePacket.setType(SetTitlePacket.Type.SET_SUBTITLE);
+                    titlePacket.setText(packet.getSubtitle().getFullText());
+                    break;
+                case CLEAR:
+                case RESET:
+                    titlePacket.setType(SetTitlePacket.Type.RESET_TITLE);
+                    titlePacket.setText("");
+                    break;
+                case ACTION_BAR:
+                    titlePacket.setType(SetTitlePacket.Type.SET_ACTIONBAR_MESSAGE);
+                    titlePacket.setText(packet.getActionBar().getFullText());
+                    break;
+            }
+
+            titlePacket.setFadeInTime(packet.getFadeIn());
+            titlePacket.setFadeOutTime(packet.getFadeOut());
+            titlePacket.setStayTime(packet.getStay());
+
+            session.getUpstream().sendPacket(titlePacket);
+        });
+    }
+
+    public static void addTimePackets() {
+        Registry.add(ServerUpdateTimePacket.class, (packet, session) -> {
+            SetTimePacket setTimePacket = new SetTimePacket();
+            setTimePacket.setTime((int) Math.abs(packet.getTime()));
+
+            session.getUpstream().sendPacket(setTimePacket);
         });
     }
 }

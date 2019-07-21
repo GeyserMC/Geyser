@@ -39,4 +39,7 @@ public class GeyserConfiguration {
 
     @JsonProperty("max-players")
     private int maxPlayers;
+
+    @JsonProperty("debug-mode")
+    private boolean debugMode;
 }

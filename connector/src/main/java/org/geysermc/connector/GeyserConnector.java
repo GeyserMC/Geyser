@@ -49,7 +49,6 @@ import org.geysermc.connector.plugin.GeyserPluginManager;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -95,12 +94,9 @@ public class GeyserConnector implements Connector {
         instance = this;
 
         this.generalThreadPool = Executors.newScheduledThreadPool(32); //TODO: Make configurable value
-
         this.logger = GeyserLogger.DEFAULT;
 
-
         ConsoleCommandReader consoleReader = new ConsoleCommandReader(this);
-
         consoleReader.startConsole();
 
         logger.info("******************************************");
@@ -128,12 +124,13 @@ public class GeyserConnector implements Connector {
             shutdown();
         }
 
+        logger.setDebug(config.isDebugMode());
+
         Toolbox.CACHED_PALLETE.array();
 
         TranslatorsInit.start();
 
         commandMap = new GeyserCommandMap(this);
-
         remoteServer = new RemoteJavaServer(config.getRemote().getAddress(), config.getRemote().getPort());
 
         Geyser.setConnector(this);
