@@ -14,7 +14,7 @@ https://discord.gg/mRjbCsS
 - [x] Server recognized in server list 
 - [x] Join detection from remote
 - [ ] Online mode/auth support
-- [ ] Chat/command support
+- [x] Chat/command support
 - [ ] Inventory support
 - [ ] Movement support
 - [ ] Entity support
