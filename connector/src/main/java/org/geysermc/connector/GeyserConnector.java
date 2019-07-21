@@ -46,12 +46,14 @@ import org.geysermc.connector.network.remote.RemoteJavaServer;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
+import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class GeyserConnector implements Connector {
 
@@ -82,6 +84,9 @@ public class GeyserConnector implements Connector {
 
     @Getter
     private final ScheduledExecutorService generalThreadPool;
+
+    @Getter
+    private PingPassthroughThread passthroughThread;
 
     public static void main(String[] args) {
         instance = new GeyserConnector();
@@ -137,6 +142,10 @@ public class GeyserConnector implements Connector {
 
         pluginManager = new GeyserPluginManager(new GeyserPluginLoader(this));
         pluginManager.getLoader().loadPlugins();
+
+        passthroughThread = new PingPassthroughThread(this);
+        if (config.isPingPassthrough())
+            generalThreadPool.scheduleAtFixedRate(passthroughThread, 1, 1, TimeUnit.SECONDS);
 
         BedrockServer bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
