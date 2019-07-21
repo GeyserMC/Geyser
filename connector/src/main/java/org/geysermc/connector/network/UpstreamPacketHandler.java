@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import com.nimbusds.jose.JWSObject;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
@@ -395,7 +396,11 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(TextPacket packet) {
         System.out.println("Handled packet: " + packet.getClass().getSimpleName());
-        return false;
+
+        ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage());
+        session.getDownstream().getSession().send(chatPacket);
+
+        return true;
     }
 
     @Override

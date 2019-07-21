@@ -29,6 +29,8 @@ import com.flowpowered.math.vector.Vector2f;
 import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
+import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
@@ -42,6 +44,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import org.geysermc.connector.utils.GeyserUtils;
+import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.ByteArrayOutputStream;
@@ -68,6 +71,7 @@ public class TranslatorsInit {
 
     public static void start() {
         addLoginPackets();
+        addChatPackets();
     }
 
     private static void addLoginPackets() {
@@ -155,6 +159,37 @@ public class TranslatorsInit {
             packet1.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
 
             session.getUpstream().sendPacket(packet1);
+        });
+    }
+
+    private static void addChatPackets() {
+        Registry.add(ServerChatPacket.class, (packet, session) -> {
+            TextPacket textPacket = new TextPacket();
+            textPacket.setPlatformChatId("");
+            textPacket.setSourceName("");
+            textPacket.setXuid(session.getAuthenticationData().getXboxUUID());
+            switch (packet.getType()) {
+                case CHAT:
+                    textPacket.setType(TextPacket.Type.CHAT);
+                case SYSTEM:
+                    textPacket.setType(TextPacket.Type.SYSTEM);
+                case NOTIFICATION:
+                    textPacket.setType(TextPacket.Type.TIP);
+                default:
+                    textPacket.setType(TextPacket.Type.RAW);
+            }
+
+            if (packet.getMessage() instanceof TranslationMessage) {
+                textPacket.setType(TextPacket.Type.TRANSLATION);
+                textPacket.setNeedsTranslation(true);
+                textPacket.setParameters(MessageUtils.getTranslationParams(((TranslationMessage) packet.getMessage()).getTranslationParams()));
+                textPacket.setMessage(MessageUtils.getBedrockMessage(packet.getMessage()));
+            } else {
+                textPacket.setNeedsTranslation(false);
+                textPacket.setMessage(MessageUtils.getBedrockMessage(packet.getMessage()));
+            }
+
+            session.getUpstream().sendPacket(textPacket);
         });
     }
 
