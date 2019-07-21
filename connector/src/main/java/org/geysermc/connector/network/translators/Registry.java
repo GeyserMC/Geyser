@@ -48,7 +48,7 @@ public class Registry<T> {
         try {
             ((BiConsumer<P, GeyserSession>) JAVA.MAP.get(clazz)).accept(p, s);
         } catch (NullPointerException e) {
-            GeyserLogger.DEFAULT.warning("could not translate packet " + p.getClass().getSimpleName());
+            GeyserLogger.DEFAULT.debug("could not translate packet " + p.getClass().getSimpleName());
         }
     }
 }

@@ -27,6 +27,9 @@ ping-passthrough: false
 # Maximum amount of players that can connect
 max-players: 100
 
+# If debug messages should be sent through console
+debug-mode: false
+
 
 
 

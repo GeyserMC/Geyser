@@ -53,7 +53,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        GeyserLogger.DEFAULT.info(inetSocketAddress + " has pinged you!");
+        GeyserLogger.DEFAULT.debug(inetSocketAddress + " has pinged you!");
         GeyserConfiguration config = connector.getConfig();
         BedrockPong pong = new BedrockPong();
         pong.setEdition("MCPE");

@@ -37,12 +37,11 @@ import java.util.logging.*;
 public class GeyserLogger implements org.geysermc.api.logger.Logger {
 
     private boolean colored = true;
-    private boolean debug = true;
+    private boolean debug = false;
 
     public static final GeyserLogger DEFAULT = new GeyserLogger();
 
     private GeyserLogger() {
-
         ConsoleHandler consoleHandler = new ConsoleHandler();
         consoleHandler.setLevel(Level.INFO);
         consoleHandler.setFormatter(new SimpleFormatter() {
@@ -117,7 +116,9 @@ public class GeyserLogger implements org.geysermc.api.logger.Logger {
     @Override
     public void debug(String message) {
         waitFor();
-        System.out.println(printConsole(ChatColor.GRAY + message, colored));
+
+        if (debug)
+            System.out.println(printConsole(ChatColor.GRAY + message, colored));
     }
 
     private synchronized void waitFor() {
@@ -129,5 +130,10 @@ public class GeyserLogger implements org.geysermc.api.logger.Logger {
 
     public static String printConsole(String message, boolean colors) {
         return colors ? ChatColor.toANSI(message + ChatColor.RESET) : ChatColor.stripColors(message + ChatColor.RESET);
+    }
+
+    @Override
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }
