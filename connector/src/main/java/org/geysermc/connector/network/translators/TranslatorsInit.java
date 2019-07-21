@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators;
 
 import com.flowpowered.math.vector.Vector2f;
-import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
@@ -36,20 +35,14 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.*;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufOutputStream;
-import io.netty.buffer.Unpooled;
-import org.geysermc.connector.utils.GeyserUtils;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 
 public class TranslatorsInit {
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
@@ -191,24 +184,5 @@ public class TranslatorsInit {
 
             session.getUpstream().sendPacket(textPacket);
         });
-    }
-
-    private static byte[] empty(byte[] b, Vector2i pos) {
-        ByteBuf by = Unpooled.buffer();
-
-        GeyserUtils.writePEChunkCoord(by, pos);
-
-        return by.array();
-    }
-
-    private static class CanWriteToBB extends ByteArrayOutputStream {
-
-        CanWriteToBB() {
-            super(8192);
-        }
-
-        void writeTo(ByteBuf buf) {
-            buf.writeBytes(super.buf, 0, super.count);
-        }
     }
 }

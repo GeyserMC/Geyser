@@ -25,7 +25,9 @@
 
 package org.geysermc.connector.network;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
 import com.nimbusds.jose.JWSObject;
 import com.nukkitx.protocol.bedrock.handler.BatchHandler;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
@@ -120,7 +122,12 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(AnimatePacket packet) {
         System.out.println("Handled packet: " + packet.getClass().getSimpleName());
-        return false;
+        switch (packet.getAction()) {
+            case SWING_ARM:
+                ClientPlayerSwingArmPacket swingArmPacket = new ClientPlayerSwingArmPacket(Hand.MAIN_HAND);
+                session.getDownstream().getSession().send(swingArmPacket);
+        }
+        return true;
     }
 
     @Override
