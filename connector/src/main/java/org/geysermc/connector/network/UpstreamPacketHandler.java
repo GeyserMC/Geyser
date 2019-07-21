@@ -407,7 +407,18 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     public boolean handle(TextPacket packet) {
         System.out.println("Handled packet: " + packet.getClass().getSimpleName());
 
+        if(packet.getMessage().charAt(0) == '.') {
+
+            ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage().replace(".", "/"));
+
+            session.getDownstream().getSession().send(chatPacket);
+
+            return true;
+
+        }
+
         ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage());
+
         session.getDownstream().getSession().send(chatPacket);
 
         return true;

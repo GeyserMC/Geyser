@@ -167,7 +167,7 @@ public class TranslatorsInit {
             TextPacket textPacket = new TextPacket();
             textPacket.setPlatformChatId("");
             textPacket.setSourceName("");
-            textPacket.setXuid(session.getAuthenticationData().getXboxUUID());
+            textPacket.setXuid("");
             switch (packet.getType()) {
                 case CHAT:
                     textPacket.setType(TextPacket.Type.CHAT);
@@ -191,24 +191,5 @@ public class TranslatorsInit {
 
             session.getUpstream().sendPacket(textPacket);
         });
-    }
-
-    private static byte[] empty(byte[] b, Vector2i pos) {
-        ByteBuf by = Unpooled.buffer();
-
-        GeyserUtils.writePEChunkCoord(by, pos);
-
-        return by.array();
-    }
-
-    private static class CanWriteToBB extends ByteArrayOutputStream {
-
-        CanWriteToBB() {
-            super(8192);
-        }
-
-        void writeTo(ByteBuf buf) {
-            buf.writeBytes(super.buf, 0, super.count);
-        }
     }
 }

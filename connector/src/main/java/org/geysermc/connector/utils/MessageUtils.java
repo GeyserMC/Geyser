@@ -30,6 +30,10 @@ public class MessageUtils {
                     strings.add("");
                 }
 
+                if (translation.getTranslationKey().equals("command.context.here")) {
+                    strings.add(" - no permission or invalid command!");
+                }
+
                 for (int j = 0; j < getTranslationParams(translation.getTranslationParams()).size(); j++) {
                     strings.add(getTranslationParams(translation.getTranslationParams()).get(j));
                 }
