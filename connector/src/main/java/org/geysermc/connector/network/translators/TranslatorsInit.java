@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
@@ -68,6 +69,7 @@ public class TranslatorsInit {
         addLoginPackets();
         addChatPackets();
         addTitlePackets();
+        addTimePackets();
     }
 
     private static void addLoginPackets() {
@@ -210,6 +212,15 @@ public class TranslatorsInit {
             titlePacket.setStayTime(packet.getStay());
 
             session.getUpstream().sendPacket(titlePacket);
+        });
+    }
+
+    public static void addTimePackets() {
+        Registry.add(ServerUpdateTimePacket.class, (packet, session) -> {
+            SetTimePacket setTimePacket = new SetTimePacket();
+            setTimePacket.setTime((int) Math.abs(packet.getTime()));
+
+            session.getUpstream().sendPacket(setTimePacket);
         });
     }
 }
