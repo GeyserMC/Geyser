@@ -25,15 +25,16 @@
 
 package org.geysermc.connector.network;
 
+import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
-import org.geysermc.api.Geyser;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.MessageUtils;
 
 import java.net.InetSocketAddress;
 
@@ -53,20 +54,31 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        GeyserLogger.DEFAULT.info(inetSocketAddress + " has pinged you!");
+        GeyserLogger.DEFAULT.debug(inetSocketAddress + " has pinged you!");
         GeyserConfiguration config = connector.getConfig();
         BedrockPong pong = new BedrockPong();
         pong.setEdition("MCPE");
-        pong.setMotd(config.getBedrock().getMotd1());
-        pong.setSubMotd(config.getBedrock().getMotd2());
-        pong.setPlayerCount(2);
-        pong.setMaximumPlayerCount(config.getMaxPlayers());
         pong.setGameType("Default");
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
         pong.setVersion("1.12.0");
         pong.setIpv4Port(19132);
 
+        if (connector.getConfig().isPingPassthrough()) {
+            ServerStatusInfo serverInfo = connector.getPassthroughThread().getInfo();
+
+            if (serverInfo != null) {
+                pong.setMotd(MessageUtils.getBedrockMessage(serverInfo.getDescription()));
+                pong.setSubMotd(config.getBedrock().getMotd2());
+                pong.setPlayerCount(serverInfo.getPlayerInfo().getOnlinePlayers());
+                pong.setMaximumPlayerCount(serverInfo.getPlayerInfo().getMaxPlayers());
+            }
+        } else {
+            pong.setPlayerCount(1);
+            pong.setMaximumPlayerCount(config.getMaxPlayers());
+            pong.setMotd(config.getBedrock().getMotd1());
+            pong.setSubMotd(config.getBedrock().getMotd2());
+        }
         return pong;
     }
 
@@ -77,7 +89,4 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         bedrockServerSession.addDisconnectHandler((x) -> GeyserLogger.DEFAULT.warning("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + x));
         bedrockServerSession.setPacketCodec(Bedrock_v361.V361_CODEC);
     }
-
-
-
 }

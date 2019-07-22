@@ -23,18 +23,45 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.plugin;
+package org.geysermc.connector.network.translators.scoreboard;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
+import lombok.Getter;
+import lombok.Setter;
 
-public class PluginYML {
+import java.util.Random;
 
-    @JsonProperty("name")
-    String name;
+/**
+ * Adapted from: https://github.com/Ragnok123/GTScoreboard
+ */
+public class Score {
 
-    @JsonProperty("version")
-    String version;
+    @Getter
+    @Setter
+    private int score;
 
-    @JsonProperty("main")
-    String main;
+    @Getter
+    private long scoreboardId;
+
+    private ScoreboardObjective objective;
+    private String fakePlayer;
+    private long id;
+    private boolean isFake;
+
+    @Getter
+    @Setter
+    private SetScorePacket.Action action = SetScorePacket.Action.SET;
+
+    private boolean modified = false;
+
+    @Getter
+    @Setter
+    private String fakeId;
+
+    public Score(ScoreboardObjective objective, String fakePlayer) {
+        scoreboardId = -new Random().nextLong();
+        objective = objective;
+        fakePlayer = fakePlayer;
+        isFake = true;
+    }
 }

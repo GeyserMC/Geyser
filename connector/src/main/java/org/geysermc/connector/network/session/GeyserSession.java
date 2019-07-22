@@ -27,26 +27,26 @@ package org.geysermc.connector.network.session;
 
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.packetlib.Client;
-import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.packetlib.event.session.ConnectedEvent;
 import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
 import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.network.util.DisconnectReason;
-import com.nukkitx.protocol.MinecraftSession;
 import com.nukkitx.protocol.PlayerSession;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.geysermc.api.command.CommandSender;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
+import org.geysermc.connector.network.session.cache.ScoreboardCache;
 import org.geysermc.connector.network.translators.Registry;
 
 import java.util.UUID;
 
-public class GeyserSession implements PlayerSession {
+public class GeyserSession implements PlayerSession, CommandSender {
 
     private GeyserConnector connector;
 
@@ -59,23 +59,25 @@ public class GeyserSession implements PlayerSession {
     @Getter
     private Client downstream;
 
+    private final GeyserSession THIS = this;
+
     @Getter
     private AuthenticationData authenticationData;
+
+    @Getter
+    private ScoreboardCache scoreboardCache;
 
     private boolean closed;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = bedrockServerSession;
+
+        this.scoreboardCache = new ScoreboardCache(this);
     }
 
     public void connect(RemoteJavaServer remoteServer) {
-		MinecraftProtocol protocol = null;
-		try {
-			protocol = new MinecraftProtocol(connector.getConfig().getRemote().getEmail(), connector.getConfig().getRemote().getPassword());
-		} catch (RequestException e) {
-			e.printStackTrace();
-	    }
+        MinecraftProtocol protocol = new MinecraftProtocol(authenticationData.getName());
         downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
         downstream.getSession().addListener(new SessionAdapter() {
 
@@ -92,7 +94,7 @@ public class GeyserSession implements PlayerSession {
 
             @Override
             public void packetReceived(PacketReceivedEvent event) {
-                Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), THIS);
             }
         });
 
@@ -131,8 +133,29 @@ public class GeyserSession implements PlayerSession {
         authenticationData = new AuthenticationData(name, uuid, xboxUUID);
     }
 
-    public BedrockServerSession getUpstream() {
-        return upstream;
+    @Override
+    public String getName() {
+        return authenticationData.getName();
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        TextPacket textPacket = new TextPacket();
+        textPacket.setPlatformChatId("");
+        textPacket.setSourceName("");
+        textPacket.setXuid("");
+        textPacket.setType(TextPacket.Type.CHAT);
+        textPacket.setNeedsTranslation(false);
+        textPacket.setMessage(message);
+
+        upstream.sendPacket(textPacket);
+    }
+
+    @Override
+    public void sendMessage(String[] messages) {
+        for (String message : messages) {
+            sendMessage(message);
+        }
     }
 
     @Getter

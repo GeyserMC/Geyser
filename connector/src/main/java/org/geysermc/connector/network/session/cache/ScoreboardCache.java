@@ -23,18 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.plugin;
+package org.geysermc.connector.network.session.cache;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
+import lombok.Getter;
+import lombok.Setter;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.scoreboard.Scoreboard;
 
-public class PluginYML {
+public class ScoreboardCache {
 
-    @JsonProperty("name")
-    String name;
+    private GeyserSession session;
 
-    @JsonProperty("version")
-    String version;
+    public ScoreboardCache(GeyserSession session) {
+        this.session = session;
+    }
 
-    @JsonProperty("main")
-    String main;
+    @Getter
+    @Setter
+    private Scoreboard scoreboard;
+
+    public void removeScoreboard() {
+        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
+        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
+        session.getUpstream().sendPacket(removeObjectivePacket);
+    }
 }
