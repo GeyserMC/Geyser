@@ -31,20 +31,21 @@ import com.github.steveice10.packetlib.event.session.ConnectedEvent;
 import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
 import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
-import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.network.util.DisconnectReason;
 import com.nukkitx.protocol.PlayerSession;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.geysermc.api.command.CommandSender;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
 import org.geysermc.connector.network.translators.Registry;
 
 import java.util.UUID;
 
-public class GeyserSession implements PlayerSession {
+public class GeyserSession implements PlayerSession, CommandSender {
 
     private GeyserConnector connector;
 
@@ -124,6 +125,31 @@ public class GeyserSession implements PlayerSession {
 
     public void setAuthenticationData(String name, UUID uuid, String xboxUUID) {
         authenticationData = new AuthenticationData(name, uuid, xboxUUID);
+    }
+
+    @Override
+    public String getName() {
+        return authenticationData.getName();
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        TextPacket textPacket = new TextPacket();
+        textPacket.setPlatformChatId("");
+        textPacket.setSourceName("");
+        textPacket.setXuid("");
+        textPacket.setType(TextPacket.Type.CHAT);
+        textPacket.setNeedsTranslation(false);
+        textPacket.setMessage(message);
+
+        upstream.sendPacket(textPacket);
+    }
+
+    @Override
+    public void sendMessage(String[] messages) {
+        for (String message : messages) {
+            sendMessage(message);
+        }
     }
 
     @Getter
