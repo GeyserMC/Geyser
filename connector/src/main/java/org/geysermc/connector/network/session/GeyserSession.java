@@ -27,14 +27,17 @@ package org.geysermc.connector.network.session;
 
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.packetlib.Client;
+import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.packetlib.event.session.ConnectedEvent;
 import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
 import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.network.util.DisconnectReason;
+import com.nukkitx.protocol.MinecraftSession;
 import com.nukkitx.protocol.PlayerSession;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
@@ -67,7 +70,12 @@ public class GeyserSession implements PlayerSession {
     }
 
     public void connect(RemoteJavaServer remoteServer) {
-        MinecraftProtocol protocol = new MinecraftProtocol(authenticationData.getName());
+		MinecraftProtocol protocol = null;
+		try {
+			protocol = new MinecraftProtocol(connector.getConfig().getRemote().getEmail(), connector.getConfig().getRemote().getPassword());
+		} catch (RequestException e) {
+			e.printStackTrace();
+	    }
         downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
         downstream.getSession().addListener(new SessionAdapter() {
 
@@ -121,6 +129,10 @@ public class GeyserSession implements PlayerSession {
 
     public void setAuthenticationData(String name, UUID uuid, String xboxUUID) {
         authenticationData = new AuthenticationData(name, uuid, xboxUUID);
+    }
+
+    public BedrockServerSession getUpstream() {
+        return upstream;
     }
 
     @Getter
