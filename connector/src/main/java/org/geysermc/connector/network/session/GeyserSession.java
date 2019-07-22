@@ -41,6 +41,7 @@ import lombok.Getter;
 import org.geysermc.api.command.CommandSender;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
+import org.geysermc.connector.network.session.cache.ScoreboardCache;
 import org.geysermc.connector.network.translators.Registry;
 
 import java.util.UUID;
@@ -63,11 +64,16 @@ public class GeyserSession implements PlayerSession, CommandSender {
     @Getter
     private AuthenticationData authenticationData;
 
+    @Getter
+    private ScoreboardCache scoreboardCache;
+
     private boolean closed;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = bedrockServerSession;
+
+        this.scoreboardCache = new ScoreboardCache(this);
     }
 
     public void connect(RemoteJavaServer remoteServer) {

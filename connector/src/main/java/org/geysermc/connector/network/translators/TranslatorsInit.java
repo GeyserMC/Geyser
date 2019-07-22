@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators;
 import com.flowpowered.math.vector.Vector2f;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.ObjectiveAction;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
@@ -36,6 +37,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntit
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
@@ -44,6 +48,9 @@ import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.connector.network.session.cache.ScoreboardCache;
+import org.geysermc.connector.network.translators.scoreboard.Scoreboard;
+import org.geysermc.connector.network.translators.scoreboard.ScoreboardObjective;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -75,6 +82,7 @@ public class TranslatorsInit {
         addTitlePackets();
         addTimePackets();
         addEntityPackets();
+        addScoreboardPackets();
     }
 
     private static void addLoginPackets() {
@@ -271,4 +279,132 @@ public class TranslatorsInit {
             session.getUpstream().sendPacket(entityMotionPacket);
         });
     }
+
+    public static void addScoreboardPackets() {
+        Registry.add(ServerDisplayScoreboardPacket.class, (packet, session) -> {
+            try {
+                ScoreboardCache cache = session.getScoreboardCache();
+                Scoreboard scoreboard = new Scoreboard(session);
+
+                /*
+                if (cache.getScoreboard() != null)
+                    cache.setScoreboard(scoreboard);
+                */
+                System.out.println("added scoreboard " + packet.getScoreboardName());
+                // scoreboard.onUpdate();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        Registry.add(ServerScoreboardObjectivePacket.class, (packet, session) -> {
+            try {
+                ScoreboardCache cache = session.getScoreboardCache();
+                Scoreboard scoreboard = new Scoreboard(session);
+                if (cache.getScoreboard() != null)
+                    scoreboard = cache.getScoreboard();
+
+
+                System.out.println("new objective registered with " + packet.getName());
+                if (packet.getAction() == ObjectiveAction.ADD || packet.getAction() == ObjectiveAction.UPDATE) {
+                    ScoreboardObjective objective = scoreboard.registerNewObjective(packet.getName());
+                    objective.setDisplaySlot(ScoreboardObjective.DisplaySlot.SIDEBAR);
+                    objective.setDisplayName(packet.getDisplayName().getFullText());
+                } else {
+                    scoreboard.unregisterObjective(packet.getDisplayName().getFullText());
+                }
+
+                scoreboard.onUpdate();
+                cache.setScoreboard(scoreboard);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        Registry.add(ServerUpdateScorePacket.class, (packet, session) -> {
+            try {
+                ScoreboardCache cache = session.getScoreboardCache();
+                Scoreboard scoreboard = new Scoreboard(session);
+                if (cache.getScoreboard() != null)
+                    scoreboard = cache.getScoreboard();
+
+                ScoreboardObjective objective = scoreboard.getObjective(packet.getObjective());
+                if (objective == null) {
+                    objective = scoreboard.registerNewObjective(packet.getObjective());
+                }
+
+                System.out.println(packet.getEntry() + " <-> objective = " + packet.getObjective() + " val " + packet.getValue());
+                switch (packet.getAction()) {
+                    case REMOVE:
+                        objective.registerScore(packet.getObjective(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.REMOVE);
+                        break;
+                    case ADD_OR_UPDATE:
+                        objective.registerScore(packet.getObjective(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.SET);
+                        break;
+                }
+
+                cache.setScoreboard(scoreboard);
+                scoreboard.onUpdate();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+
+    /*
+    public static void addScoreboardPackets() {
+        Registry.add(ServerDisplayScoreboardPacket.class, (packet, session) -> {
+            SetDisplayObjectivePacket objectivePacket = new SetDisplayObjectivePacket();
+            objectivePacket.setCriteria("dummy");
+            objectivePacket.setDisplaySlot("sidebar");
+            objectivePacket.setDisplayName(packet.getScoreboardName());
+            objectivePacket.setSortOrder(1);
+            objectivePacket.setObjectiveId(UUID.randomUUID().toString()); // uhh
+
+            session.getUpstream().sendPacket(objectivePacket);
+
+            System.out.println("added scoreboard " + packet.getScoreboardName());
+        });
+
+        Registry.add(ServerScoreboardObjectivePacket.class, (packet, session) -> {
+            if (packet.getAction() == ObjectiveAction.REMOVE) {
+                RemoveObjectivePacket objectivePacket = new RemoveObjectivePacket();
+                objectivePacket.setObjectiveId(packet.getDisplayName().getFullText());
+
+                session.getUpstream().sendPacket(objectivePacket);
+            } else {
+                SetDisplayObjectivePacket objectivePacket = new SetDisplayObjectivePacket();
+                objectivePacket.setCriteria("dummy");
+                objectivePacket.setDisplaySlot("sidebar");
+                objectivePacket.setDisplayName(packet.getDisplayName().getFullText());
+                objectivePacket.setSortOrder(1);
+                objectivePacket.setObjectiveId(packet.getName()); // uhh
+
+                session.getUpstream().sendPacket(objectivePacket);
+            }
+
+            System.out.println("new objective registered with " + packet.getName());
+        });
+
+        Registry.add(ServerUpdateScorePacket.class, (packet, session) -> {
+            if (packet.getAction() == ScoreboardAction.ADD_OR_UPDATE) {
+                SetDisplayObjectivePacket objectivePacket = new SetDisplayObjectivePacket();
+                objectivePacket.setObjectiveId(packet.getObjective());
+                objectivePacket.setDisplaySlot("sidebar");
+                objectivePacket.setCriteria("dummy");
+                objectivePacket.setDisplayName(packet.getEntry());
+                objectivePacket.setSortOrder(1);
+
+                session.getUpstream().sendPacket(objectivePacket);
+            } else {
+                RemoveObjectivePacket objectivePacket = new RemoveObjectivePacket();
+                objectivePacket.setObjectiveId(packet.getObjective());
+
+                session.getUpstream().sendPacket(objectivePacket);
+            }
+
+            System.out.println(packet.getEntry() + " <-> objective = " + packet.getObjective() + " val " + packet.getValue());
+        });
+    }
+     */
 }
