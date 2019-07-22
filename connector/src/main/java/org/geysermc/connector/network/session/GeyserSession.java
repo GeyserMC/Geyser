@@ -38,9 +38,11 @@ import com.nukkitx.protocol.PlayerSession;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.geysermc.api.session.AuthData;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
 import org.geysermc.connector.network.translators.Registry;
+import sun.security.krb5.internal.AuthorizationData;
 
 import java.util.UUID;
 
@@ -128,10 +130,10 @@ public class GeyserSession implements PlayerSession {
 
     @Getter
     @AllArgsConstructor
-    public class AuthenticationData {
+    public class AuthenticationData implements AuthData {
 
         private String name;
-        private UUID uuid;
-        private String xboxUUID;
+        private UUID UUID;
+        private String XUID;
     }
 }

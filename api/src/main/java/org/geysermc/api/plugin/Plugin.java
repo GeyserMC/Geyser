@@ -33,6 +33,8 @@ import lombok.Setter;
  * The first init point is the constructor, followed by onLoad, and finally onEnable.
  */
 public class Plugin {
+    protected String name;
+    protected String version;
 
     @Getter
     @Setter
@@ -60,9 +62,18 @@ public class Plugin {
     }
 
     /**
-     * Called when th server is reloaded
+     * Called when the server is reloaded
      */
     public void onReload() {
 
+    }
+
+    public final String getName() {
+        return name;
+    }
+
+    @Override
+    public final String toString() {
+        return getName();
     }
 }

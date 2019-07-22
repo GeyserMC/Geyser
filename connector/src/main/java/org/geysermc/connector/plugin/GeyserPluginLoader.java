@@ -32,6 +32,7 @@ import org.geysermc.api.Connector;
 import org.geysermc.api.plugin.Plugin;
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -51,7 +52,7 @@ public class GeyserPluginLoader extends ClassLoader {
         }
 
         for (File f : dir.listFiles()) {
-            if (!f.getName().endsWith(".jar"))
+            if (!f.getName().toLowerCase().endsWith(".jar"))
                 continue;
 
             try {
@@ -83,6 +84,19 @@ public class GeyserPluginLoader extends ClassLoader {
                 PluginYML yml = mapper.readValue(is, PluginYML.class);
                 is.close();
                 Plugin plugin = (Plugin) Class.forName(yml.main, true, this).newInstance();
+
+                Class cl = Plugin.class;
+
+                Field name = cl.getDeclaredField("name");
+                name.setAccessible(true);
+
+                Field version = cl.getDeclaredField("version");
+                version.setAccessible(true);
+
+                name.set(plugin, yml.name);
+
+                version.set(plugin, yml.version);
+
                 connector.getLogger().info("Loading plugin " + yml.name + " version " + yml.version);
                 connector.getPluginManager().loadPlugin(plugin);
             } catch (Exception e) {

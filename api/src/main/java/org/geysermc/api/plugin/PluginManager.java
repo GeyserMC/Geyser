@@ -25,6 +25,8 @@
 
 package org.geysermc.api.plugin;
 
+import org.geysermc.api.events.Listener;
+
 import java.util.Set;
 
 public interface PluginManager {
@@ -63,4 +65,23 @@ public interface PluginManager {
      * @return a set of the loaded plugins
      */
     Set<Plugin> getPlugins();
+
+    /**
+     * @param name The name of the plugin you want to get.
+     * @return The plugin with the String name in the parameters.
+     */
+    Plugin getPluginByName(String name);
+
+    /**
+     * Registers a listener to be run when an event is executed
+     * @param plugin the plugin registering the listener
+     * @param listener the listener which will contain the event methods
+     */
+    void registerEventListener(Plugin plugin, Listener listener);
+
+    /**
+     * Run an event
+     * @param o the event object.
+     */
+    void runEvent(Object o);
 }
