@@ -58,8 +58,6 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        session.getUpstream().setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
-
         try {
             JSONObject chainData = (JSONObject) JSONValue.parse(loginPacket.getChainData().array());
             JSONArray chainArray = (JSONArray) chainData.get("chain");
@@ -82,6 +80,7 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         session.getUpstream().sendPacketImmediately(resourcePacksInfo);
+
         return true;
     }
 

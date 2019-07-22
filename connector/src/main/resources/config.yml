@@ -20,6 +20,9 @@ remote:
   # The port of the remote (Java Edition) server
   port: 25565
   online-mode: false
+  #Online Mode Credentials -Logicism
+  email: email@email.address
+  password: password
 
 # Relay the MOTD, player count and max players from the remote server
 ping-passthrough: false
