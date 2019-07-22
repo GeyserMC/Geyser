@@ -40,6 +40,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntit
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -307,16 +308,59 @@ public class TranslatorsInit {
 
 
                 System.out.println("new objective registered with " + packet.getName());
-                if (packet.getAction() == ObjectiveAction.ADD || packet.getAction() == ObjectiveAction.UPDATE) {
+                if (packet.getAction() == ObjectiveAction.ADD) {
                     ScoreboardObjective objective = scoreboard.registerNewObjective(packet.getName());
                     objective.setDisplaySlot(ScoreboardObjective.DisplaySlot.SIDEBAR);
-                    objective.setDisplayName(packet.getDisplayName().getFullText());
+                    objective.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
+                    scoreboard.onUpdate();
+                } else if (packet.getAction() == ObjectiveAction.UPDATE) {
+                    ScoreboardObjective objective = scoreboard.getObjective(packet.getName());
+                    objective.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
+                    scoreboard.onUpdate();
                 } else {
                     scoreboard.unregisterObjective(packet.getName());
                 }
-
-                scoreboard.onUpdate();
                 cache.setScoreboard(scoreboard);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        Registry.add(ServerTeamPacket.class, (packet, session) -> {
+            try {
+                ScoreboardCache cache = session.getScoreboardCache();
+                Scoreboard scoreboard = new Scoreboard(session);
+                if (cache.getScoreboard() != null)
+                    scoreboard = cache.getScoreboard();
+
+                ScoreboardObjective objective = scoreboard.getObjective();
+                if (objective == null) {
+                    return;
+                }
+
+                System.out.println("Team name: " + packet.getTeamName());
+                // System.out.println("Team Name: " + packet.getTeamName() + " displ: " + packet.getDisplayName() + " <-> objective team = " + packet.getTeamName());
+                String scoreboardText = MessageUtils.getBedrockMessage(packet.getPrefix()) + MessageUtils.getBedrockMessage(packet.getSuffix());
+
+                // System.out.println("scoreboard text: " + scoreboardText);
+                switch (packet.getAction()) {
+                    case REMOVE:
+                    case REMOVE_PLAYER:
+
+                        objective.registerScore(packet.getTeamName(), scoreboardText, Integer.parseInt(packet.getTeamName()), SetScorePacket.Action.REMOVE);
+                        objective.setScoreText(packet.getTeamName(), scoreboardText);
+                        break;
+                    case UPDATE:
+                        objective.setScoreText(packet.getTeamName(), scoreboardText);
+                    case ADD_PLAYER:
+                    case CREATE:
+                        objective.registerScore(packet.getTeamName(), scoreboardText, Integer.parseInt(packet.getTeamName()), SetScorePacket.Action.SET);
+                        objective.setScoreText(packet.getTeamName(), scoreboardText);
+                        break;
+                }
+
+                cache.setScoreboard(scoreboard);
+                scoreboard.onUpdate();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -338,9 +382,11 @@ public class TranslatorsInit {
                 switch (packet.getAction()) {
                     case REMOVE:
                         objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.REMOVE);
+                        objective.setScoreText(packet.getEntry(), packet.getEntry());
                         break;
                     case ADD_OR_UPDATE:
                         objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.SET);
+                        objective.setScoreText(packet.getEntry(), packet.getEntry());
                         break;
                 }
 
