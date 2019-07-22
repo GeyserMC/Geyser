@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Arrays;
@@ -47,7 +48,10 @@ public class Scoreboard {
 
     private GeyserSession session;
 
+    @Getter
+    @Setter
     private long id;
+
     private Map<String, ScoreboardObjective> objectiveMap = new HashMap<String, ScoreboardObjective>();
 
     public Scoreboard(GeyserSession session) {
@@ -101,7 +105,7 @@ public class Scoreboard {
         displayObjectivePacket.setObjectiveId(objective.getObjectiveName());
         displayObjectivePacket.setDisplayName(objective.getDisplayName());
         displayObjectivePacket.setCriteria("dummy");
-        displayObjectivePacket.setDisplaySlot(ScoreboardObjective.DisplaySlot.SIDEBAR.name());
+        displayObjectivePacket.setDisplaySlot("sidebar");
         displayObjectivePacket.setSortOrder(1);
         session.getUpstream().sendPacket(displayObjectivePacket);
 
@@ -110,7 +114,8 @@ public class Scoreboard {
             fakeMap.put(entry.getKey(), entry.getValue());
         }
 
-        for (Score score : fakeMap.values()) {
+        for (String string : fakeMap.keySet()) {
+            Score score = fakeMap.get(string);
             ScoreInfo scoreInfo = new ScoreInfo(score.getScoreboardId(), objective.getObjectiveName(), score.getScore(), score.getFakeId());
 
             SetScorePacket setScorePacket = new SetScorePacket();

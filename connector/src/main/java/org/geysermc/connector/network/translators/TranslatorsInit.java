@@ -29,6 +29,7 @@ import com.flowpowered.math.vector.Vector2f;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ObjectiveAction;
+import com.github.steveice10.mc.protocol.data.message.ChatFormat;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
@@ -311,7 +312,7 @@ public class TranslatorsInit {
                     objective.setDisplaySlot(ScoreboardObjective.DisplaySlot.SIDEBAR);
                     objective.setDisplayName(packet.getDisplayName().getFullText());
                 } else {
-                    scoreboard.unregisterObjective(packet.getDisplayName().getFullText());
+                    scoreboard.unregisterObjective(packet.getName());
                 }
 
                 scoreboard.onUpdate();
@@ -336,10 +337,10 @@ public class TranslatorsInit {
                 System.out.println(packet.getEntry() + " <-> objective = " + packet.getObjective() + " val " + packet.getValue());
                 switch (packet.getAction()) {
                     case REMOVE:
-                        objective.registerScore(packet.getObjective(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.REMOVE);
+                        objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.REMOVE);
                         break;
                     case ADD_OR_UPDATE:
-                        objective.registerScore(packet.getObjective(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.SET);
+                        objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.SET);
                         break;
                 }
 

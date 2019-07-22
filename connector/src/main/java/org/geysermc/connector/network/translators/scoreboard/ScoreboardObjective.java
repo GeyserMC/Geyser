@@ -84,16 +84,11 @@ public class ScoreboardObjective {
 
     public void setScoreText(String id, String text) {
         if (scores.containsKey(id)) {
-            Score oldScore = scores.get(id);
-            oldScore.setAction(SetScorePacket.Action.REMOVE);
-            oldScore.setFakeId(id + "_old_changed");
-
             Score newScore = new Score(this, text);
-            newScore.setScore(oldScore.getScore());
+            newScore.setScore(scores.get(id).getScore());
             newScore.setFakeId(id);
             scores.remove(id);
             scores.put(id, newScore);
-            scores.put(id + "_old_changed", oldScore);
         }
     }
 
