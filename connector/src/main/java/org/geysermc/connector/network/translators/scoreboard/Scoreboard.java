@@ -89,7 +89,7 @@ public class Scoreboard {
         if (!objectiveMap.containsKey(objectiveName))
             return;
 
-        if (objective.getObjectiveName().equals(objective)) {
+        if (objective.getObjectiveName().equals(objectiveName)) {
             objective = null;
         }
 
@@ -106,7 +106,7 @@ public class Scoreboard {
         displayObjectivePacket.setDisplayName(objective.getDisplayName());
         displayObjectivePacket.setCriteria("dummy");
         displayObjectivePacket.setDisplaySlot("sidebar");
-        displayObjectivePacket.setSortOrder(1);
+        displayObjectivePacket.setSortOrder(0);
         session.getUpstream().sendPacket(displayObjectivePacket);
 
         Map<String, Score> fakeMap = new HashMap<String, Score>();
@@ -116,7 +116,7 @@ public class Scoreboard {
 
         for (String string : fakeMap.keySet()) {
             Score score = fakeMap.get(string);
-            ScoreInfo scoreInfo = new ScoreInfo(score.getScoreboardId(), objective.getObjectiveName(), score.getScore(), score.getFakeId());
+            ScoreInfo scoreInfo = new ScoreInfo(score.getScoreboardId(), objective.getObjectiveName(), score.getScore(), score.getFakePlayer());
 
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(score.getAction());

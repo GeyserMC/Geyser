@@ -44,9 +44,10 @@ public class Score {
     private long scoreboardId;
 
     private ScoreboardObjective objective;
+
+    @Getter
+    @Setter
     private String fakePlayer;
-    private long id;
-    private boolean isFake;
 
     @Getter
     @Setter
@@ -59,9 +60,8 @@ public class Score {
     private String fakeId;
 
     public Score(ScoreboardObjective objective, String fakePlayer) {
-        scoreboardId = -new Random().nextLong();
-        objective = objective;
-        fakePlayer = fakePlayer;
-        isFake = true;
+        this.scoreboardId = -new Random().nextLong();
+        this.objective = objective;
+        this.fakePlayer = fakePlayer;
     }
 }
