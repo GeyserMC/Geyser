@@ -32,6 +32,10 @@ import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionRotationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
@@ -70,6 +74,7 @@ public class TranslatorsInit {
         addChatPackets();
         addTitlePackets();
         addTimePackets();
+        addEntityPackets();
     }
 
     private static void addLoginPackets() {
@@ -221,6 +226,49 @@ public class TranslatorsInit {
             setTimePacket.setTime((int) Math.abs(packet.getTime()));
 
             session.getUpstream().sendPacket(setTimePacket);
+        });
+    }
+
+    public static void addEntityPackets() {
+        Registry.add(ServerEntityPositionPacket.class, (packet, session) -> {
+            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            moveEntityPacket.setRuntimeEntityId(packet.getEntityId());
+            moveEntityPacket.setPosition(new Vector3f(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ()));
+            moveEntityPacket.setRotation(new Vector3f(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ()));
+            moveEntityPacket.setOnGround(packet.isOnGround());
+            moveEntityPacket.setTeleported(false);
+
+            session.getUpstream().sendPacket(moveEntityPacket);
+        });
+
+        Registry.add(ServerEntityPositionRotationPacket.class, (packet, session) -> {
+            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            moveEntityPacket.setRuntimeEntityId(packet.getEntityId());
+            moveEntityPacket.setPosition(new Vector3f(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ()));
+            moveEntityPacket.setRotation(new Vector3f(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ()));
+            moveEntityPacket.setOnGround(true);
+            moveEntityPacket.setTeleported(false);
+
+            session.getUpstream().sendPacket(moveEntityPacket);
+        });
+
+        Registry.add(ServerEntityTeleportPacket.class, (packet, session) -> {
+            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            moveEntityPacket.setRuntimeEntityId(packet.getEntityId());
+            moveEntityPacket.setPosition(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
+            moveEntityPacket.setRotation(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
+            moveEntityPacket.setOnGround(packet.isOnGround());
+            moveEntityPacket.setTeleported(true);
+
+            session.getUpstream().sendPacket(moveEntityPacket);
+        });
+
+        Registry.add(ServerEntityVelocityPacket.class, (packet, session) -> {
+            SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+            entityMotionPacket.setRuntimeEntityId(packet.getEntityId());
+            entityMotionPacket.setMotion(new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
+
+            session.getUpstream().sendPacket(entityMotionPacket);
         });
     }
 }
