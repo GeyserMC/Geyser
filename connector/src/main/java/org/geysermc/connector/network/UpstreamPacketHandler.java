@@ -176,8 +176,13 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     public boolean handle(CommandRequestPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
 
-        ClientChatPacket chatPacket = new ClientChatPacket(packet.getCommand());
-        session.getDownstream().getSession().send(chatPacket);
+        String command = packet.getCommand().replace("/", "");
+        if (connector.getCommandMap().getCommands().containsKey(command)) {
+            connector.getCommandMap().runCommand(session, command);
+        } else {
+            ClientChatPacket chatPacket = new ClientChatPacket(packet.getCommand());
+            session.getDownstream().getSession().send(chatPacket);
+        }
 
         return true;
     }
@@ -408,18 +413,13 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     public boolean handle(TextPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
 
-        if(packet.getMessage().charAt(0) == '.') {
-
+        if (packet.getMessage().charAt(0) == '.') {
             ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage().replace(".", "/"));
-
             session.getDownstream().getSession().send(chatPacket);
-
             return true;
-
         }
 
         ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage());
-
         session.getDownstream().getSession().send(chatPacket);
 
         return true;
