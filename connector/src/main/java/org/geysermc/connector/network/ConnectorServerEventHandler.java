@@ -64,6 +64,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
         pong.setVersion("1.12.0");
 
+        connector.getPluginManager().runEvent(pong);
         if (connector.getConfig().isPingPassthrough()) {
             ServerStatusInfo serverInfo = connector.getPassthroughThread().getInfo();
 
