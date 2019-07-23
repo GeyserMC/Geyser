@@ -36,6 +36,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntit
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
@@ -49,6 +50,7 @@ import org.geysermc.connector.utils.Toolbox;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TranslatorsInit {
 
@@ -75,6 +77,7 @@ public class TranslatorsInit {
         addTitlePackets();
         addTimePackets();
         addEntityPackets();
+        addNotifyPackets();
     }
 
     private static void addLoginPackets() {
@@ -269,6 +272,37 @@ public class TranslatorsInit {
             entityMotionPacket.setMotion(new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
 
             session.getUpstream().sendPacket(entityMotionPacket);
+        });
+    }
+
+    public static void addNotifyPackets() {
+        Registry.add(ServerNotifyClientPacket.class, (packet, session) -> {
+            switch (packet.getNotification()) {
+                case START_RAIN:
+                    LevelEventPacket startRainPacket = new LevelEventPacket();
+                    startRainPacket.setEvent(LevelEventPacket.Event.START_RAIN);
+                    startRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
+                    startRainPacket.setPosition(new Vector3f(0, 0, 0));
+
+                    session.getUpstream().sendPacket(startRainPacket);
+                    break;
+                case STOP_RAIN:
+                    LevelEventPacket stopRainPacket = new LevelEventPacket();
+                    stopRainPacket.setEvent(LevelEventPacket.Event.STOP_RAIN);
+                    stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
+                    stopRainPacket.setPosition(new Vector3f(0, 0, 0));
+
+                    session.getUpstream().sendPacket(stopRainPacket);
+                    break;
+                case ENTER_CREDITS:
+                    // ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
+                    // showCreditsPacket.setStatus(ShowCreditsPacket.Status.START_CREDITS);
+                    // showCreditsPacket.setRuntimeEntityId(runtimeEntityId);
+                    // session.getUpstream().sendPacket(showCreditsPacket);
+                    break;
+                default:
+                    break;
+            }
         });
     }
 }
