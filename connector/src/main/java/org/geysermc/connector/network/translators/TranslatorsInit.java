@@ -50,7 +50,9 @@ import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.api.ChatColor;
 import org.geysermc.connector.network.session.cache.ScoreboardCache;
+import org.geysermc.connector.network.translators.scoreboard.Score;
 import org.geysermc.connector.network.translators.scoreboard.Scoreboard;
 import org.geysermc.connector.network.translators.scoreboard.ScoreboardObjective;
 import org.geysermc.connector.utils.MessageUtils;
@@ -306,21 +308,52 @@ public class TranslatorsInit {
                 if (cache.getScoreboard() != null)
                     scoreboard = cache.getScoreboard();
 
-
                 System.out.println("new objective registered with " + packet.getName());
-                if (packet.getAction() == ObjectiveAction.ADD) {
-                    ScoreboardObjective objective = scoreboard.registerNewObjective(packet.getName());
-                    objective.setDisplaySlot(ScoreboardObjective.DisplaySlot.SIDEBAR);
-                    objective.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
-                    scoreboard.onUpdate();
-                } else if (packet.getAction() == ObjectiveAction.UPDATE) {
-                    ScoreboardObjective objective = scoreboard.getObjective(packet.getName());
-                    objective.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
-                    scoreboard.onUpdate();
-                } else {
-                    scoreboard.unregisterObjective(packet.getName());
+                switch (packet.getAction()) {
+                    case ADD:
+                        ScoreboardObjective objective = scoreboard.registerNewObjective(packet.getName());
+                        objective.setDisplaySlot(ScoreboardObjective.DisplaySlot.SIDEBAR);
+                        objective.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
+                        break;
+                    case UPDATE:
+                        ScoreboardObjective updateObj = scoreboard.getObjective(packet.getName());
+                        updateObj.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
+                        break;
+                    case REMOVE:
+                        scoreboard.unregisterObjective(packet.getName());
+                        break;
+                }
+
+                scoreboard.onUpdate();
+                cache.setScoreboard(scoreboard);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        Registry.add(ServerUpdateScorePacket.class, (packet, session) -> {
+            try {
+                ScoreboardCache cache = session.getScoreboardCache();
+                Scoreboard scoreboard = new Scoreboard(session);
+                if (cache.getScoreboard() != null)
+                    scoreboard = cache.getScoreboard();
+
+                ScoreboardObjective objective = scoreboard.getObjective(packet.getObjective());
+                if (objective == null) {
+                    objective = scoreboard.registerNewObjective(packet.getObjective());
+                }
+
+                System.out.println(packet.getEntry() + " <-> objective = " + packet.getObjective() + " val " + packet.getValue());
+                switch (packet.getAction()) {
+                    case REMOVE:
+                        objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.REMOVE);
+                        break;
+                    case ADD_OR_UPDATE:
+                        objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.SET);
+                        break;
                 }
                 cache.setScoreboard(scoreboard);
+                scoreboard.onUpdate();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -346,7 +379,6 @@ public class TranslatorsInit {
                 switch (packet.getAction()) {
                     case REMOVE:
                     case REMOVE_PLAYER:
-
                         objective.registerScore(packet.getTeamName(), scoreboardText, Integer.parseInt(packet.getTeamName()), SetScorePacket.Action.REMOVE);
                         objective.setScoreText(packet.getTeamName(), scoreboardText);
                         break;
@@ -356,37 +388,6 @@ public class TranslatorsInit {
                     case CREATE:
                         objective.registerScore(packet.getTeamName(), scoreboardText, Integer.parseInt(packet.getTeamName()), SetScorePacket.Action.SET);
                         objective.setScoreText(packet.getTeamName(), scoreboardText);
-                        break;
-                }
-
-                cache.setScoreboard(scoreboard);
-                scoreboard.onUpdate();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
-
-        Registry.add(ServerUpdateScorePacket.class, (packet, session) -> {
-            try {
-                ScoreboardCache cache = session.getScoreboardCache();
-                Scoreboard scoreboard = new Scoreboard(session);
-                if (cache.getScoreboard() != null)
-                    scoreboard = cache.getScoreboard();
-
-                ScoreboardObjective objective = scoreboard.getObjective(packet.getObjective());
-                if (objective == null) {
-                    objective = scoreboard.registerNewObjective(packet.getObjective());
-                }
-
-                System.out.println(packet.getEntry() + " <-> objective = " + packet.getObjective() + " val " + packet.getValue());
-                switch (packet.getAction()) {
-                    case REMOVE:
-                        objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.REMOVE);
-                        objective.setScoreText(packet.getEntry(), packet.getEntry());
-                        break;
-                    case ADD_OR_UPDATE:
-                        objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.SET);
-                        objective.setScoreText(packet.getEntry(), packet.getEntry());
                         break;
                 }
 

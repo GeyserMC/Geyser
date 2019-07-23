@@ -102,6 +102,16 @@ public class ScoreboardObjective {
         return i;
     }
 
+    public Score getScore(int line) {
+        Score score = null;
+        for (Map.Entry<String, Score> entry : scores.entrySet()) {
+            if (entry.getValue().getScore() == line)
+                return entry.getValue();
+        }
+
+        return null;
+    }
+
     public void resetScore(String id) {
         if (scores.containsKey(id)) {
             Score modifiedScore = scores.get(id);
