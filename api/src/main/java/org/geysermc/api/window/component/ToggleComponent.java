@@ -23,11 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window.component;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+public class ToggleComponent extends FormComponent {
+
+    private String text;
+    private boolean defaultValue;
+
+    public ToggleComponent(String text) {
+        this(text, false);
+    }
+
+    public ToggleComponent(String text, boolean defaultValue) {
+        super("toggle");
+
+        this.text = text;
+        this.defaultValue = defaultValue;
+    }
 }

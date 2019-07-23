@@ -23,11 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window.component;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.Getter;
+import lombok.Setter;
+
+public class InputComponent extends FormComponent {
+
+    @Getter
+    @Setter
+    private String text;
+
+    @Getter
+    @Setter
+    private String placeholder;
+
+    @Getter
+    @Setter
+    private String defaultText;
+
+    public InputComponent(String text, String placeholder, String defaultText) {
+        super("input");
+
+        this.text = text;
+        this.placeholder = placeholder;
+        this.defaultText = defaultText;
+    }
 }

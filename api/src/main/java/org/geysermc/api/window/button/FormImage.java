@@ -23,11 +23,40 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window.button;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.Getter;
+import lombok.Setter;
+
+public class FormImage {
+
+    @Getter
+    @Setter
+    private FormImageType type;
+
+    @Getter
+    @Setter
+    private String data;
+
+    public FormImage(FormImageType type, String data) {
+        this.type = type;
+        this.data = data;
+    }
+
+    public enum FormImageType {
+        PATH("path"),
+        URL("url");
+
+        @Getter
+        private String name;
+
+        FormImageType(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
 }

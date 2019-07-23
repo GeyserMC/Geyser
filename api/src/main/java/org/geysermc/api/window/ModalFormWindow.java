@@ -23,11 +23,55 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import com.google.gson.Gson;
+import lombok.Getter;
+import lombok.Setter;
+import org.geysermc.api.window.response.ModalFormResponse;
+
+public class ModalFormWindow extends FormWindow {
+
+    @Getter
+    @Setter
+    private String title;
+
+    @Getter
+    @Setter
+    private String content;
+
+    @Getter
+    @Setter
+    private String button1;
+
+    @Getter
+    @Setter
+    private String button2;
+
+    public ModalFormWindow(String title, String content, String button1, String button2) {
+        super("modal");
+
+        this.title = title;
+        this.content = content;
+        this.button1 = button1;
+        this.button2 = button2;
+    }
+
+    @Override
+    public String getJSONData() {
+        return new Gson().toJson(this);
+    }
+
+    public void setResponse(String data) {
+        if (data == null || data.equalsIgnoreCase("null")) {
+            closed = true;
+            return;
+        }
+
+        if (Boolean.parseBoolean(data)) {
+            response = new ModalFormResponse(0, button1);
+        } else {
+            response = new ModalFormResponse(1, button2);
+        }
+    }
 }

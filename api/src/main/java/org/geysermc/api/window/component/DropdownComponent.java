@@ -23,11 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window.component;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+
+public class DropdownComponent extends FormComponent {
+
+    @Getter
+    @Setter
+    private String text;
+
+    @Getter
+    @Setter
+    private List<String> options;
+
+    @Getter
+    @Setter
+    private int defaultOptionIndex;
+
+    public DropdownComponent() {
+        super("dropdown");
+    }
+
+    public void addOption(String option, boolean isDefault) {
+        options.add(option);
+        if (isDefault)
+            defaultOptionIndex = options.size() - 1;
+    }
 }

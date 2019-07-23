@@ -25,9 +25,29 @@
 
 package org.geysermc.api.events;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.Getter;
+import lombok.Setter;
+
+import java.net.InetSocketAddress;
+
+@Getter
+@Setter
+public class PingEvent {
+
+    public PingEvent(InetSocketAddress address) {
+        this.address = address;
+    }
+
+    private InetSocketAddress address;
+
+    private String edition;
+    private String motd;
+    private int protocolVersion;
+    private String version;
+    private int playerCount;
+    private int maximumPlayerCount;
+    private long serverId;
+    private String subMotd;
+    private String gameType;
+    private boolean nintendoLimited;
 }

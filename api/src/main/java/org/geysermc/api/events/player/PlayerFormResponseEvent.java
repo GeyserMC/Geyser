@@ -23,11 +23,54 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.events.player;
+
+import lombok.Getter;
+import org.geysermc.api.Player;
+import org.geysermc.api.window.FormWindow;
+import org.geysermc.api.window.response.FormResponse;
 
 /**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
+ * Called when a player interacts with a form
  */
-public interface Listener {
+public class PlayerFormResponseEvent extends PlayerEvent {
+
+    @Getter
+    private int formID;
+
+    @Getter
+    private FormWindow window;
+
+    /**
+     * Constructs a new PlayerFormResponseEvent instance
+     *
+     * @param player the player interacting with the form
+     * @param formID the id of the form
+     * @param window the window
+     */
+    public PlayerFormResponseEvent(Player player, int formID, FormWindow window) {
+        super(player);
+
+        this.formID = formID;
+        this.window = window;
+    }
+
+    /**
+     * Returns the response of the window, can be null
+     * if the player closed the window
+     *
+     * @return the response of the window
+     */
+    public FormResponse getResponse() {
+        return window.getResponse();
+    }
+
+    /**
+     * Returns if the window is closed
+     *
+     * @return if the window is closed
+     */
+    public boolean isClosed() {
+        return window.isClosed();
+    }
 }

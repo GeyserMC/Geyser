@@ -23,11 +23,48 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.Getter;
+import org.geysermc.api.window.button.FormImage;
+import org.geysermc.api.window.component.FormComponent;
+import org.geysermc.api.window.response.CustomFormResponse;
+
+public class CustomFormBuilder {
+
+    @Getter
+    private CustomFormWindow form;
+
+    public CustomFormBuilder(String title) {
+        form = new CustomFormWindow(title);
+    }
+
+    public CustomFormBuilder setTitle(String title) {
+        form.setTitle(title);
+        return this;
+    }
+
+    public CustomFormBuilder setIcon(FormImage icon) {
+        form.setIcon(icon);
+        return this;
+    }
+
+    public CustomFormBuilder setResponse(String data) {
+        form.setResponse(data);
+        return this;
+    }
+
+    public CustomFormBuilder setResponse(CustomFormResponse response) {
+        form.setResponse(response);
+        return this;
+    }
+
+    public CustomFormBuilder addComponent(FormComponent component) {
+        form.addComponent(component);
+        return this;
+    }
+
+    public CustomFormWindow build() {
+        return form;
+    }
 }

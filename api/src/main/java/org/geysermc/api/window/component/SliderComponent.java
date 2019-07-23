@@ -23,11 +23,43 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window.component;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.Getter;
+import lombok.Setter;
+
+public class SliderComponent extends FormComponent {
+
+    @Getter
+    @Setter
+    private String text;
+
+    @Getter
+    @Setter
+    private float min;
+
+    @Getter
+    @Setter
+    private float max;
+
+    @Getter
+    @Setter
+    private int step;
+
+    @Getter
+    @Setter
+    private float defaultValue;
+
+    public SliderComponent(String text, float min, float max, int step, float defaultValue) {
+        super("slider");
+
+        this.text = text;
+        this.min = min < 0f ? 0f : min;
+        this.max = max > this.min ? max : this.min;
+        if (step != -1f && step > 0)
+            this.step = step;
+
+        if (defaultValue != -1f)
+            this.defaultValue = defaultValue;
+    }
 }

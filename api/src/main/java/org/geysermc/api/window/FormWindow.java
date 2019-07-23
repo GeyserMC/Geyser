@@ -23,11 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.Getter;
+import lombok.Setter;
+import org.geysermc.api.window.response.FormResponse;
+
+public abstract class FormWindow {
+
+    @Getter
+    private final String type;
+
+    @Getter
+    protected FormResponse response;
+
+    @Getter
+    @Setter
+    protected boolean closed;
+
+    public FormWindow(String type) {
+        this.type = type;
+    }
+
+    // Lombok won't work here, so we need to make our own method
+    public void setResponse(FormResponse response) {
+        this.response = response;
+    }
+
+    public abstract String getJSONData();
+
+    public abstract void setResponse(String response);
+
 }

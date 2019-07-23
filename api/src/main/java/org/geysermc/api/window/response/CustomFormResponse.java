@@ -23,11 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window.response;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.util.Map;
+
+@Getter
+@AllArgsConstructor
+public class CustomFormResponse implements FormResponse {
+
+    private Map<Integer, Object> responses;
+    private Map<Integer, FormResponseData> dropdownResponses;
+    private Map<Integer, String> inputResponses;
+    private Map<Integer, Float> sliderResponses;
+    private Map<Integer, FormResponseData> stepSliderResponses;
+    private Map<Integer, Boolean> toggleResponses;
+    private Map<Integer, String> labelResponses;
 }

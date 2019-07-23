@@ -23,11 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+public interface RemoteServer {
+
+    /**
+     * Returns the IP address of the remote server
+     *
+     * @return the IP address of the remote server
+     */
+    String getAddress();
+
+    /**
+     * Returns the port of the remote server
+     *
+     * @return the port of the remote server
+     */
+    int getPort();
 }

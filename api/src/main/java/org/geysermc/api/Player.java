@@ -23,62 +23,49 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.geysermc.api.command.CommandSender;
+import org.geysermc.api.session.AuthData;
+import org.geysermc.api.window.FormWindow;
 
-/**
- * The class that any main plugin class should extend.
- * The first init point is the constructor, followed by onLoad, and finally onEnable.
- */
-public class Plugin {
-    protected String name;
-    protected String version;
+public interface Player extends CommandSender {
 
     /**
-     * Returns if the plugin is enabled
+     * Connects the player to the remote server
      *
-     * @return if the plugin is enabled
+     * @param remoteServer the remote server to connect to
      */
-    @Getter
-    @Setter
-    private boolean enabled = true;
+    void connect(RemoteServer remoteServer);
 
     /**
-     * Called when a plugin is enabled
+     * Disconnect the player for the specified reason
+     *
+     * @param reason the reason to disconnect the player for
      */
-    public void onEnable() {
-
-    }
+    void disconnect(String reason);
 
     /**
-     * Called when a plugin is disabled
+     * Returns the authentication data of the player. This is not the
+     * player's Minecraft credentials; it's simply what is given to the server
+     * (Name, UUID, Xbox UUID) to verify the player can/actually exists.
+     *
+     * @return the authentication data of the player
      */
-    public void onDisable() {
-
-    }
+    AuthData getAuthenticationData();
 
     /**
-     * Called when a plugin is loaded
+     * Sends a form window
+     *
+     * @param window the window form to send
      */
-    public void onLoad() {
-
-    }
+    void sendForm(FormWindow window);
 
     /**
-     * Called when the server is reloaded
+     * Sends a form window with the given ID
+     *
+     * @param window the window to send
+     * @param id the id of the window
      */
-    public void onReload() {
-
-    }
-
-    public final String getName() {
-        return name;
-    }
-
-    @Override
-    public final String toString() {
-        return getName();
-    }
+    void sendForm(FormWindow window, int id);
 }

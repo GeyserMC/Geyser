@@ -23,11 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.events.player;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.Getter;
+import org.geysermc.api.Player;
+
+public class PlayerEvent {
+
+    @Getter
+    private Player player;
+
+    public PlayerEvent(Player player) {
+        this.player = player;
+    }
 }

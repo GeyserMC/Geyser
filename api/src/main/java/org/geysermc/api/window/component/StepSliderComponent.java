@@ -23,11 +23,47 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.events;
+package org.geysermc.api.window.component;
 
-/**
- * A marker class which says that a specific class uses events.
- * @see EventHandler
- */
-public interface Listener {
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class StepSliderComponent extends FormComponent {
+
+    @Getter
+    @Setter
+    private String text;
+
+    @Getter
+    private List<String> steps;
+
+    @Getter
+    @Setter
+    private int defaultStepIndex;
+
+    public StepSliderComponent(String text) {
+        this(text, new ArrayList<String>());
+    }
+
+    public StepSliderComponent(String text, List<String> steps) {
+        this(text, steps, 0);
+    }
+
+    public StepSliderComponent(String text, List<String> steps, int defaultStepIndex) {
+        super("step_slider");
+
+        this.text = text;
+        this.steps = steps;
+        this.defaultStepIndex = defaultStepIndex;
+    }
+
+    public void addStep(String step, boolean isDefault) {
+        steps.add(step);
+
+        if (isDefault)
+            defaultStepIndex = steps.size() - 1;
+    }
 }
