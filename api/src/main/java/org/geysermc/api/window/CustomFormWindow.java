@@ -92,7 +92,7 @@ public class CustomFormWindow extends FormWindow {
     }
 
     public void setResponse(String data) {
-        if (data == null || data.equalsIgnoreCase("null")) {
+        if (data == null || data.equalsIgnoreCase("null") || data.isEmpty()) {
             closed = true;
             return;
         }

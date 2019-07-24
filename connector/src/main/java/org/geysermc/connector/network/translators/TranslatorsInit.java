@@ -25,9 +25,7 @@
 
 package org.geysermc.connector.network.translators;
 
-import com.flowpowered.math.vector.Vector2f;
 import com.flowpowered.math.vector.Vector3f;
-import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
@@ -42,11 +40,8 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
-import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.utils.MessageUtils;
-import org.geysermc.connector.utils.Toolbox;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -83,59 +78,8 @@ public class TranslatorsInit {
     private static void addLoginPackets() {
         Registry.add(ServerJoinGamePacket.class, (packet, session) -> {
             AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
-
             bedrockPacket.setUniqueEntityId(packet.getEntityId());
-
             session.getUpstream().sendPacketImmediately(bedrockPacket);
-
-            StartGamePacket startGamePacket = new StartGamePacket();
-            startGamePacket.setUniqueEntityId(packet.getEntityId());
-            startGamePacket.setRuntimeEntityId(packet.getEntityId());
-            startGamePacket.setPlayerGamemode(packet.getGameMode().ordinal());
-            startGamePacket.setPlayerPosition(new Vector3f(0, 0, 0));
-            startGamePacket.setRotation(new Vector2f(1, 1));
-
-            startGamePacket.setSeed(1111);
-            startGamePacket.setDimensionId(0);
-            startGamePacket.setGeneratorId(0);
-            startGamePacket.setLevelGamemode(packet.getGameMode().ordinal());
-            startGamePacket.setDifficulty(1);
-            startGamePacket.setDefaultSpawn(new Vector3i(0, 0, 0));
-            startGamePacket.setAcheivementsDisabled(true);
-            startGamePacket.setTime(0);
-            startGamePacket.setEduLevel(false);
-            startGamePacket.setEduFeaturesEnabled(false);
-            startGamePacket.setRainLevel(0);
-            startGamePacket.setLightningLevel(0);
-            startGamePacket.setMultiplayerGame(true);
-            startGamePacket.setBroadcastingToLan(true);
-            startGamePacket.getGamerules().add(new GameRule<>("showcoordinates", true));
-            startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
-            startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
-            startGamePacket.setCommandsEnabled(true);
-            startGamePacket.setTexturePacksRequired(false);
-            startGamePacket.setBonusChestEnabled(false);
-            startGamePacket.setStartingWithMap(false);
-            startGamePacket.setTrustingPlayers(true);
-            startGamePacket.setDefaultPlayerPermission(1);
-            startGamePacket.setServerChunkTickRange(4);
-            startGamePacket.setBehaviorPackLocked(false);
-            startGamePacket.setResourcePackLocked(false);
-            startGamePacket.setFromLockedWorldTemplate(false);
-            startGamePacket.setUsingMsaGamertagsOnly(false);
-            startGamePacket.setFromWorldTemplate(false);
-            startGamePacket.setWorldTemplateOptionLocked(false);
-
-            startGamePacket.setLevelId("oerjhii");
-            startGamePacket.setWorldName("world");
-            startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
-            startGamePacket.setCurrentTick(0);
-            startGamePacket.setEnchantmentSeed(0);
-            startGamePacket.setMultiplayerCorrelationId("");
-            startGamePacket.setCachedPalette(Toolbox.CACHED_PALLETE);
-            startGamePacket.setItemEntries(Toolbox.ITEMS);
-
-            session.getUpstream().sendPacket(startGamePacket);
 
             Vector3f pos = new Vector3f(0, 0, 0);
             int chunkX = pos.getFloorX() >> 4;
@@ -153,10 +97,6 @@ public class TranslatorsInit {
 
                 }
             }
-
-            PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-            playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-            session.getUpstream().sendPacket(playStatusPacket);
         });
     }
 
