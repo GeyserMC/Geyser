@@ -34,8 +34,12 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
+import org.geysermc.api.events.player.PlayerFormResponseEvent;
+import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.auth.BedrockAuthData;
+import org.geysermc.connector.network.session.cache.WindowCache;
 
 import java.util.UUID;
 
@@ -58,6 +62,8 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
+        session.getUpstream().setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
+
         try {
             JSONObject chainData = (JSONObject) JSONValue.parse(loginPacket.getChainData().array());
             JSONArray chainArray = (JSONArray) chainData.get("chain");
@@ -67,7 +73,7 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
             JWSObject identity = JWSObject.parse((String) identityObject);
             JSONObject extraData = (JSONObject) identity.getPayload().toJSONObject().get("extraData");
 
-            session.setAuthenticationData(extraData.getAsString("displayName"), UUID.fromString(extraData.getAsString("identity")), extraData.getAsString("XUID"));
+            session.setAuthenticationData(new BedrockAuthData(extraData.getAsString("displayName"), UUID.fromString(extraData.getAsString("identity")), extraData.getAsString("XUID")));
         } catch (Exception ex) {
             session.getUpstream().disconnect("An internal error occurred when connecting to this server.");
             ex.printStackTrace();
@@ -81,6 +87,17 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         session.getUpstream().sendPacketImmediately(resourcePacksInfo);
 
+        // TODO: Implement this
+        /**
+        CustomFormWindow window = new CustomFormBuilder("Login")
+                .addComponent(new LabelComponent("Minecraft: Java Edition account authentication."))
+                .addComponent(new LabelComponent("Enter the credentials for your Minecraft: Java Edition account below."))
+                .addComponent(new InputComponent("Email/Username", "account@geysermc.org", ""))
+                .addComponent(new InputComponent("Password", "123456", ""))
+                .build();
+
+        session.sendForm(window, 1);
+         */
         return true;
     }
 
@@ -303,7 +320,16 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-        return false;
+        WindowCache windowCache = session.getWindowCache();
+        if (!windowCache.getWindows().containsKey(packet.getFormId()))
+            return false;
+
+        FormWindow window = windowCache.getWindows().remove(packet.getFormId());
+        window.setResponse(packet.getFormData().trim());
+
+        PlayerFormResponseEvent event = new PlayerFormResponseEvent(session, packet.getFormId(), window);
+        connector.getPluginManager().runEvent(event);
+        return true;
     }
 
     @Override

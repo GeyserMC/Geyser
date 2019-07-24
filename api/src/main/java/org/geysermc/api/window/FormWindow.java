@@ -23,62 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api.window;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.api.window.response.FormResponse;
 
-/**
- * The class that any main plugin class should extend.
- * The first init point is the constructor, followed by onLoad, and finally onEnable.
- */
-public class Plugin {
-    protected String name;
-    protected String version;
+public abstract class FormWindow {
 
-    /**
-     * Returns if the plugin is enabled
-     *
-     * @return if the plugin is enabled
-     */
+    @Getter
+    private final String type;
+
+    @Getter
+    protected FormResponse response;
+
     @Getter
     @Setter
-    private boolean enabled = true;
+    protected boolean closed;
 
-    /**
-     * Called when a plugin is enabled
-     */
-    public void onEnable() {
-
+    public FormWindow(String type) {
+        this.type = type;
     }
 
-    /**
-     * Called when a plugin is disabled
-     */
-    public void onDisable() {
-
+    // Lombok won't work here, so we need to make our own method
+    public void setResponse(FormResponse response) {
+        this.response = response;
     }
 
-    /**
-     * Called when a plugin is loaded
-     */
-    public void onLoad() {
+    public abstract String getJSONData();
 
-    }
+    public abstract void setResponse(String response);
 
-    /**
-     * Called when the server is reloaded
-     */
-    public void onReload() {
-
-    }
-
-    public final String getName() {
-        return name;
-    }
-
-    @Override
-    public final String toString() {
-        return getName();
-    }
 }

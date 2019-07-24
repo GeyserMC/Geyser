@@ -23,65 +23,49 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api;
 
-import org.geysermc.api.events.Listener;
+import org.geysermc.api.command.CommandSender;
+import org.geysermc.api.session.AuthData;
+import org.geysermc.api.window.FormWindow;
 
-import java.util.Set;
-
-public interface PluginManager {
+public interface Player extends CommandSender {
 
     /**
-     * Loads a plugin and all its class files
+     * Connects the player to the remote server
      *
-     * @param plugin the plugin to load
+     * @param remoteServer the remote server to connect to
      */
-    void loadPlugin(Plugin plugin);
+    void connect(RemoteServer remoteServer);
 
     /**
-     * Enables a plugin
+     * Disconnect the player for the specified reason
      *
-     * @param plugin the plugin to enable
+     * @param reason the reason to disconnect the player for
      */
-    void enablePlugin(Plugin plugin);
+    void disconnect(String reason);
 
     /**
-     * Disables a plugin
+     * Returns the authentication data of the player. This is not the
+     * player's Minecraft credentials; it's simply what is given to the server
+     * (Name, UUID, Xbox UUID) to verify the player can/actually exists.
      *
-     * @param plugin the plugin to disable
+     * @return the authentication data of the player
      */
-    void disablePlugin(Plugin plugin);
+    AuthData getAuthenticationData();
 
     /**
-     * Unloads a plugin
+     * Sends a form window
      *
-     * @param plugin the plugin to unload
+     * @param window the window form to send
      */
-    void unloadPlugin(Plugin plugin);
+    void sendForm(FormWindow window);
 
     /**
-     * Returns a set of the loaded plugins
+     * Sends a form window with the given ID
      *
-     * @return a set of the loaded plugins
+     * @param window the window to send
+     * @param id the id of the window
      */
-    Set<Plugin> getPlugins();
-
-    /**
-     * @param name The name of the plugin you want to get.
-     * @return The plugin with the String name in the parameters.
-     */
-    Plugin getPluginByName(String name);
-
-    /**
-     * Registers a listener to be run when an event is executed
-     * @param plugin the plugin registering the listener
-     * @param listener the listener which will contain the event methods
-     */
-    void registerEventListener(Plugin plugin, Listener listener);
-
-    /**
-     * Run an event
-     * @param o the event object.
-     */
-    void runEvent(Object o);
+    void sendForm(FormWindow window, int id);
 }

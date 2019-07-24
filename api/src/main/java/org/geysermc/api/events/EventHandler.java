@@ -23,62 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api.events;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * The class that any main plugin class should extend.
- * The first init point is the constructor, followed by onLoad, and finally onEnable.
+ * The annotation to put on all methods that are events.
  */
-public class Plugin {
-    protected String name;
-    protected String version;
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface EventHandler {
 
     /**
-     * Returns if the plugin is enabled
-     *
-     * @return if the plugin is enabled
+     * @return the order to execute events.
+     * @see EventPriority
      */
-    @Getter
-    @Setter
-    private boolean enabled = true;
+    EventPriority value() default EventPriority.NORMAL;
 
     /**
-     * Called when a plugin is enabled
+     * When an eventHandler should be run.
+     * The names mostly explain.
      */
-    public void onEnable() {
-
-    }
-
-    /**
-     * Called when a plugin is disabled
-     */
-    public void onDisable() {
-
-    }
-
-    /**
-     * Called when a plugin is loaded
-     */
-    public void onLoad() {
-
-    }
-
-    /**
-     * Called when the server is reloaded
-     */
-    public void onReload() {
-
-    }
-
-    public final String getName() {
-        return name;
-    }
-
-    @Override
-    public final String toString() {
-        return getName();
+    enum EventPriority {
+        FIRST,
+        NORMAL,
+        LAST,
+        READ_ONLY;
     }
 }

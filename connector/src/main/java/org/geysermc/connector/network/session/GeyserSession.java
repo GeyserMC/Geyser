@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.session;
 
-import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.event.session.ConnectedEvent;
@@ -37,22 +36,21 @@ import com.nukkitx.network.util.DisconnectReason;
 import com.nukkitx.protocol.PlayerSession;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.api.command.CommandSender;
+import org.geysermc.api.Player;
+import org.geysermc.api.RemoteServer;
+import org.geysermc.api.session.AuthData;
+import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.remote.RemoteJavaServer;
-import org.geysermc.connector.network.session.cache.ScoreboardCache;
+import org.geysermc.connector.network.session.cache.WindowCache;
 import org.geysermc.connector.network.translators.Registry;
 
-import java.util.UUID;
-
-public class GeyserSession implements PlayerSession, CommandSender {
+public class GeyserSession implements PlayerSession, Player {
 
     private GeyserConnector connector;
 
     @Getter
-    private RemoteJavaServer remoteServer;
+    private RemoteServer remoteServer;
 
     @Getter
     private BedrockServerSession upstream;
@@ -63,10 +61,10 @@ public class GeyserSession implements PlayerSession, CommandSender {
     private final GeyserSession THIS = this;
 
     @Getter
-    private AuthenticationData authenticationData;
+    private AuthData authenticationData;
 
     @Getter
-    private ScoreboardCache scoreboardCache;
+    private WindowCache windowCache;
 
     private boolean closed;
 
@@ -74,10 +72,10 @@ public class GeyserSession implements PlayerSession, CommandSender {
         this.connector = connector;
         this.upstream = bedrockServerSession;
 
-        this.scoreboardCache = new ScoreboardCache(this);
+        this.windowCache = new WindowCache(this);
     }
 
-    public void connect(RemoteJavaServer remoteServer) {
+    public void connect(RemoteServer remoteServer) {
         MinecraftProtocol protocol = new MinecraftProtocol(authenticationData.getName());
         downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
         downstream.getSession().addListener(new SessionAdapter() {
@@ -130,8 +128,8 @@ public class GeyserSession implements PlayerSession, CommandSender {
         downstream.getSession().disconnect("Disconnected from server. Reason: " + reason);
     }
 
-    public void setAuthenticationData(String name, UUID uuid, String xboxUUID) {
-        authenticationData = new AuthenticationData(name, uuid, xboxUUID);
+    public void setAuthenticationData(AuthData authData) {
+        authenticationData = authData;
     }
 
     @Override
@@ -159,12 +157,11 @@ public class GeyserSession implements PlayerSession, CommandSender {
         }
     }
 
-    @Getter
-    @AllArgsConstructor
-    public class AuthenticationData {
+    public void sendForm(FormWindow window, int id) {
+        windowCache.showWindow(window, id);
+    }
 
-        private String name;
-        private UUID uuid;
-        private String xboxUUID;
+    public void sendForm(FormWindow window) {
+        windowCache.showWindow(window);
     }
 }

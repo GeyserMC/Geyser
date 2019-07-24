@@ -23,62 +23,43 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api.window.component;
 
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * The class that any main plugin class should extend.
- * The first init point is the constructor, followed by onLoad, and finally onEnable.
- */
-public class Plugin {
-    protected String name;
-    protected String version;
+public class SliderComponent extends FormComponent {
 
-    /**
-     * Returns if the plugin is enabled
-     *
-     * @return if the plugin is enabled
-     */
     @Getter
     @Setter
-    private boolean enabled = true;
+    private String text;
 
-    /**
-     * Called when a plugin is enabled
-     */
-    public void onEnable() {
+    @Getter
+    @Setter
+    private float min;
 
-    }
+    @Getter
+    @Setter
+    private float max;
 
-    /**
-     * Called when a plugin is disabled
-     */
-    public void onDisable() {
+    @Getter
+    @Setter
+    private int step;
 
-    }
+    @Getter
+    @Setter
+    private float defaultValue;
 
-    /**
-     * Called when a plugin is loaded
-     */
-    public void onLoad() {
+    public SliderComponent(String text, float min, float max, int step, float defaultValue) {
+        super("slider");
 
-    }
+        this.text = text;
+        this.min = min < 0f ? 0f : min;
+        this.max = max > this.min ? max : this.min;
+        if (step != -1f && step > 0)
+            this.step = step;
 
-    /**
-     * Called when the server is reloaded
-     */
-    public void onReload() {
-
-    }
-
-    public final String getName() {
-        return name;
-    }
-
-    @Override
-    public final String toString() {
-        return getName();
+        if (defaultValue != -1f)
+            this.defaultValue = defaultValue;
     }
 }

@@ -23,62 +23,47 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api.window.component;
 
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * The class that any main plugin class should extend.
- * The first init point is the constructor, followed by onLoad, and finally onEnable.
- */
-public class Plugin {
-    protected String name;
-    protected String version;
+import java.util.ArrayList;
+import java.util.List;
 
-    /**
-     * Returns if the plugin is enabled
-     *
-     * @return if the plugin is enabled
-     */
+public class StepSliderComponent extends FormComponent {
+
     @Getter
     @Setter
-    private boolean enabled = true;
+    private String text;
 
-    /**
-     * Called when a plugin is enabled
-     */
-    public void onEnable() {
+    @Getter
+    private List<String> steps;
 
+    @Getter
+    @Setter
+    private int defaultStepIndex;
+
+    public StepSliderComponent(String text) {
+        this(text, new ArrayList<String>());
     }
 
-    /**
-     * Called when a plugin is disabled
-     */
-    public void onDisable() {
-
+    public StepSliderComponent(String text, List<String> steps) {
+        this(text, steps, 0);
     }
 
-    /**
-     * Called when a plugin is loaded
-     */
-    public void onLoad() {
+    public StepSliderComponent(String text, List<String> steps, int defaultStepIndex) {
+        super("step_slider");
 
+        this.text = text;
+        this.steps = steps;
+        this.defaultStepIndex = defaultStepIndex;
     }
 
-    /**
-     * Called when the server is reloaded
-     */
-    public void onReload() {
+    public void addStep(String step, boolean isDefault) {
+        steps.add(step);
 
-    }
-
-    public final String getName() {
-        return name;
-    }
-
-    @Override
-    public final String toString() {
-        return getName();
+        if (isDefault)
+            defaultStepIndex = steps.size() - 1;
     }
 }

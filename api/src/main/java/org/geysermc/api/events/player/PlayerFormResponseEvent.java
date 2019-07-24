@@ -23,62 +23,54 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api.events.player;
 
 import lombok.Getter;
-import lombok.Setter;
+import org.geysermc.api.Player;
+import org.geysermc.api.window.FormWindow;
+import org.geysermc.api.window.response.FormResponse;
 
 /**
- * The class that any main plugin class should extend.
- * The first init point is the constructor, followed by onLoad, and finally onEnable.
+ * Called when a player interacts with a form
  */
-public class Plugin {
-    protected String name;
-    protected String version;
+public class PlayerFormResponseEvent extends PlayerEvent {
 
-    /**
-     * Returns if the plugin is enabled
-     *
-     * @return if the plugin is enabled
-     */
     @Getter
-    @Setter
-    private boolean enabled = true;
+    private int formID;
+
+    @Getter
+    private FormWindow window;
 
     /**
-     * Called when a plugin is enabled
+     * Constructs a new PlayerFormResponseEvent instance
+     *
+     * @param player the player interacting with the form
+     * @param formID the id of the form
+     * @param window the window
      */
-    public void onEnable() {
+    public PlayerFormResponseEvent(Player player, int formID, FormWindow window) {
+        super(player);
 
-    }
-
-    /**
-     * Called when a plugin is disabled
-     */
-    public void onDisable() {
-
-    }
-
-    /**
-     * Called when a plugin is loaded
-     */
-    public void onLoad() {
-
+        this.formID = formID;
+        this.window = window;
     }
 
     /**
-     * Called when the server is reloaded
+     * Returns the response of the window, can be null
+     * if the player closed the window
+     *
+     * @return the response of the window
      */
-    public void onReload() {
-
+    public FormResponse getResponse() {
+        return window.getResponse();
     }
 
-    public final String getName() {
-        return name;
-    }
-
-    @Override
-    public final String toString() {
-        return getName();
+    /**
+     * Returns if the window is closed
+     *
+     * @return if the window is closed
+     */
+    public boolean isClosed() {
+        return window.isClosed();
     }
 }

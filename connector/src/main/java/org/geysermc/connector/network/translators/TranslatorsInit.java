@@ -28,8 +28,6 @@ package org.geysermc.connector.network.translators;
 import com.flowpowered.math.vector.Vector2f;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ObjectiveAction;
-import com.github.steveice10.mc.protocol.data.message.ChatFormat;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
@@ -38,10 +36,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntit
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
@@ -50,16 +45,12 @@ import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.*;
-import org.geysermc.api.ChatColor;
-import org.geysermc.connector.network.session.cache.ScoreboardCache;
-import org.geysermc.connector.network.translators.scoreboard.Score;
-import org.geysermc.connector.network.translators.scoreboard.Scoreboard;
-import org.geysermc.connector.network.translators.scoreboard.ScoreboardObjective;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TranslatorsInit {
 
@@ -86,7 +77,7 @@ public class TranslatorsInit {
         addTitlePackets();
         addTimePackets();
         addEntityPackets();
-        addScoreboardPackets();
+        addNotifyPackets();
     }
 
     private static void addLoginPackets() {
@@ -284,175 +275,34 @@ public class TranslatorsInit {
         });
     }
 
-    public static void addScoreboardPackets() {
-        Registry.add(ServerDisplayScoreboardPacket.class, (packet, session) -> {
-            try {
-                ScoreboardCache cache = session.getScoreboardCache();
-                Scoreboard scoreboard = new Scoreboard(session);
+    public static void addNotifyPackets() {
+        Registry.add(ServerNotifyClientPacket.class, (packet, session) -> {
+            switch (packet.getNotification()) {
+                case START_RAIN:
+                    LevelEventPacket startRainPacket = new LevelEventPacket();
+                    startRainPacket.setEvent(LevelEventPacket.Event.START_RAIN);
+                    startRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
+                    startRainPacket.setPosition(new Vector3f(0, 0, 0));
 
-                /*
-                if (cache.getScoreboard() != null)
-                    cache.setScoreboard(scoreboard);
-                */
-                System.out.println("added scoreboard " + packet.getScoreboardName());
-                // scoreboard.onUpdate();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
+                    session.getUpstream().sendPacket(startRainPacket);
+                    break;
+                case STOP_RAIN:
+                    LevelEventPacket stopRainPacket = new LevelEventPacket();
+                    stopRainPacket.setEvent(LevelEventPacket.Event.STOP_RAIN);
+                    stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
+                    stopRainPacket.setPosition(new Vector3f(0, 0, 0));
 
-        Registry.add(ServerScoreboardObjectivePacket.class, (packet, session) -> {
-            try {
-                ScoreboardCache cache = session.getScoreboardCache();
-                Scoreboard scoreboard = new Scoreboard(session);
-                if (cache.getScoreboard() != null)
-                    scoreboard = cache.getScoreboard();
-
-                System.out.println("new objective registered with " + packet.getName());
-                switch (packet.getAction()) {
-                    case ADD:
-                        ScoreboardObjective objective = scoreboard.registerNewObjective(packet.getName());
-                        objective.setDisplaySlot(ScoreboardObjective.DisplaySlot.SIDEBAR);
-                        objective.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
-                        break;
-                    case UPDATE:
-                        ScoreboardObjective updateObj = scoreboard.getObjective(packet.getName());
-                        updateObj.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
-                        break;
-                    case REMOVE:
-                        scoreboard.unregisterObjective(packet.getName());
-                        break;
-                }
-
-                scoreboard.onUpdate();
-                cache.setScoreboard(scoreboard);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
-
-        Registry.add(ServerUpdateScorePacket.class, (packet, session) -> {
-            try {
-                ScoreboardCache cache = session.getScoreboardCache();
-                Scoreboard scoreboard = new Scoreboard(session);
-                if (cache.getScoreboard() != null)
-                    scoreboard = cache.getScoreboard();
-
-                ScoreboardObjective objective = scoreboard.getObjective(packet.getObjective());
-                if (objective == null) {
-                    objective = scoreboard.registerNewObjective(packet.getObjective());
-                }
-
-                System.out.println(packet.getEntry() + " <-> objective = " + packet.getObjective() + " val " + packet.getValue());
-                switch (packet.getAction()) {
-                    case REMOVE:
-                        objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.REMOVE);
-                        break;
-                    case ADD_OR_UPDATE:
-                        objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.SET);
-                        break;
-                }
-                cache.setScoreboard(scoreboard);
-                scoreboard.onUpdate();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
-
-        Registry.add(ServerTeamPacket.class, (packet, session) -> {
-            try {
-                ScoreboardCache cache = session.getScoreboardCache();
-                Scoreboard scoreboard = new Scoreboard(session);
-                if (cache.getScoreboard() != null)
-                    scoreboard = cache.getScoreboard();
-
-                ScoreboardObjective objective = scoreboard.getObjective();
-                if (objective == null) {
-                    return;
-                }
-
-                System.out.println("Team name: " + packet.getTeamName());
-                // System.out.println("Team Name: " + packet.getTeamName() + " displ: " + packet.getDisplayName() + " <-> objective team = " + packet.getTeamName());
-                String scoreboardText = MessageUtils.getBedrockMessage(packet.getPrefix()) + MessageUtils.getBedrockMessage(packet.getSuffix());
-
-                // System.out.println("scoreboard text: " + scoreboardText);
-                switch (packet.getAction()) {
-                    case REMOVE:
-                    case REMOVE_PLAYER:
-                        objective.registerScore(packet.getTeamName(), scoreboardText, Integer.parseInt(packet.getTeamName()), SetScorePacket.Action.REMOVE);
-                        objective.setScoreText(packet.getTeamName(), scoreboardText);
-                        break;
-                    case UPDATE:
-                        objective.setScoreText(packet.getTeamName(), scoreboardText);
-                    case ADD_PLAYER:
-                    case CREATE:
-                        objective.registerScore(packet.getTeamName(), scoreboardText, Integer.parseInt(packet.getTeamName()), SetScorePacket.Action.SET);
-                        objective.setScoreText(packet.getTeamName(), scoreboardText);
-                        break;
-                }
-
-                cache.setScoreboard(scoreboard);
-                scoreboard.onUpdate();
-            } catch (Exception ex) {
-                ex.printStackTrace();
+                    session.getUpstream().sendPacket(stopRainPacket);
+                    break;
+                case ENTER_CREDITS:
+                    // ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
+                    // showCreditsPacket.setStatus(ShowCreditsPacket.Status.START_CREDITS);
+                    // showCreditsPacket.setRuntimeEntityId(runtimeEntityId);
+                    // session.getUpstream().sendPacket(showCreditsPacket);
+                    break;
+                default:
+                    break;
             }
         });
     }
-
-    /*
-    public static void addScoreboardPackets() {
-        Registry.add(ServerDisplayScoreboardPacket.class, (packet, session) -> {
-            SetDisplayObjectivePacket objectivePacket = new SetDisplayObjectivePacket();
-            objectivePacket.setCriteria("dummy");
-            objectivePacket.setDisplaySlot("sidebar");
-            objectivePacket.setDisplayName(packet.getScoreboardName());
-            objectivePacket.setSortOrder(1);
-            objectivePacket.setObjectiveId(UUID.randomUUID().toString()); // uhh
-
-            session.getUpstream().sendPacket(objectivePacket);
-
-            System.out.println("added scoreboard " + packet.getScoreboardName());
-        });
-
-        Registry.add(ServerScoreboardObjectivePacket.class, (packet, session) -> {
-            if (packet.getAction() == ObjectiveAction.REMOVE) {
-                RemoveObjectivePacket objectivePacket = new RemoveObjectivePacket();
-                objectivePacket.setObjectiveId(packet.getDisplayName().getFullText());
-
-                session.getUpstream().sendPacket(objectivePacket);
-            } else {
-                SetDisplayObjectivePacket objectivePacket = new SetDisplayObjectivePacket();
-                objectivePacket.setCriteria("dummy");
-                objectivePacket.setDisplaySlot("sidebar");
-                objectivePacket.setDisplayName(packet.getDisplayName().getFullText());
-                objectivePacket.setSortOrder(1);
-                objectivePacket.setObjectiveId(packet.getName()); // uhh
-
-                session.getUpstream().sendPacket(objectivePacket);
-            }
-
-            System.out.println("new objective registered with " + packet.getName());
-        });
-
-        Registry.add(ServerUpdateScorePacket.class, (packet, session) -> {
-            if (packet.getAction() == ScoreboardAction.ADD_OR_UPDATE) {
-                SetDisplayObjectivePacket objectivePacket = new SetDisplayObjectivePacket();
-                objectivePacket.setObjectiveId(packet.getObjective());
-                objectivePacket.setDisplaySlot("sidebar");
-                objectivePacket.setCriteria("dummy");
-                objectivePacket.setDisplayName(packet.getEntry());
-                objectivePacket.setSortOrder(1);
-
-                session.getUpstream().sendPacket(objectivePacket);
-            } else {
-                RemoveObjectivePacket objectivePacket = new RemoveObjectivePacket();
-                objectivePacket.setObjectiveId(packet.getObjective());
-
-                session.getUpstream().sendPacket(objectivePacket);
-            }
-
-            System.out.println(packet.getEntry() + " <-> objective = " + packet.getObjective() + " val " + packet.getValue());
-        });
-    }
-     */
 }

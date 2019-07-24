@@ -26,19 +26,23 @@
 package org.geysermc.connector.plugin;
 
 import lombok.Getter;
+import org.geysermc.api.events.EventHandler;
+import org.geysermc.api.events.Listener;
 import org.geysermc.api.plugin.Plugin;
 import org.geysermc.api.plugin.PluginManager;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.awt.*;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.List;
 
 public class GeyserPluginManager implements PluginManager {
+    private final List<PluginListener> EVENTS = new ArrayList<>();
 
     @Getter
     private GeyserPluginLoader loader;
 
-    @Getter
-    private Set<Plugin> plugins = new HashSet<Plugin>();
+    private Map<String, Plugin> plugins = new HashMap<>();
 
     public GeyserPluginManager(GeyserPluginLoader loader) {
         this.loader = loader;
@@ -46,7 +50,7 @@ public class GeyserPluginManager implements PluginManager {
 
     public void loadPlugin(Plugin plugin) {
         loader.loadPlugin(plugin);
-        plugins.add(plugin);
+        plugins.put(plugin.getName(), plugin);
     }
 
     public void unloadPlugin(Plugin plugin) {
@@ -62,6 +66,42 @@ public class GeyserPluginManager implements PluginManager {
     }
 
     public Set<Plugin> getPlugins() {
-        return plugins;
+        return new HashSet<>(plugins.values());
+    }
+
+    @Override
+    public void registerEventListener(Plugin p, Listener l) {
+        try {
+            Class<? extends Listener> clazz = l.getClass();
+
+            for(Method m : clazz.getMethods()) {
+                if(m.getAnnotation(EventHandler.class) != null) {
+                    PluginListener listener = new PluginListener();
+
+                    listener.plugin = p;
+                    listener.listener = l;
+                    listener.clazz = m.getParameterTypes()[0];
+                    listener.priority = m.getAnnotation(EventHandler.class).value();
+                    listener.run = m;
+                    EVENTS.add(listener);
+                }
+            }
+        } catch (Exception e) {
+            //
+        }
+    }
+
+    @Override
+    public void runEvent(Object o) {
+        for(EventHandler.EventPriority p : EventHandler.EventPriority.values()) {
+            for (PluginListener listener : EVENTS) {
+                listener.runIfNeeded(p, o);
+            }
+        }
+    }
+
+    @Override
+    public Plugin getPluginByName(String name) {
+        return plugins.get(name);
     }
 }

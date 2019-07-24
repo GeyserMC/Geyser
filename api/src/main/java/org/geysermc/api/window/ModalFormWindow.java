@@ -23,62 +23,55 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api.window;
 
+import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.api.window.response.ModalFormResponse;
 
-/**
- * The class that any main plugin class should extend.
- * The first init point is the constructor, followed by onLoad, and finally onEnable.
- */
-public class Plugin {
-    protected String name;
-    protected String version;
+public class ModalFormWindow extends FormWindow {
 
-    /**
-     * Returns if the plugin is enabled
-     *
-     * @return if the plugin is enabled
-     */
     @Getter
     @Setter
-    private boolean enabled = true;
+    private String title;
 
-    /**
-     * Called when a plugin is enabled
-     */
-    public void onEnable() {
+    @Getter
+    @Setter
+    private String content;
 
-    }
+    @Getter
+    @Setter
+    private String button1;
 
-    /**
-     * Called when a plugin is disabled
-     */
-    public void onDisable() {
+    @Getter
+    @Setter
+    private String button2;
 
-    }
+    public ModalFormWindow(String title, String content, String button1, String button2) {
+        super("modal");
 
-    /**
-     * Called when a plugin is loaded
-     */
-    public void onLoad() {
-
-    }
-
-    /**
-     * Called when the server is reloaded
-     */
-    public void onReload() {
-
-    }
-
-    public final String getName() {
-        return name;
+        this.title = title;
+        this.content = content;
+        this.button1 = button1;
+        this.button2 = button2;
     }
 
     @Override
-    public final String toString() {
-        return getName();
+    public String getJSONData() {
+        return new Gson().toJson(this);
+    }
+
+    public void setResponse(String data) {
+        if (data == null || data.equalsIgnoreCase("null")) {
+            closed = true;
+            return;
+        }
+
+        if (Boolean.parseBoolean(data)) {
+            response = new ModalFormResponse(0, button1);
+        } else {
+            response = new ModalFormResponse(1, button2);
+        }
     }
 }

@@ -27,10 +27,11 @@ package org.geysermc.connector.network.remote;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.geysermc.api.RemoteServer;
 
 @Getter
 @AllArgsConstructor
-public class RemoteJavaServer {
+public class RemoteJavaServer implements RemoteServer  {
 
     private String address;
     private int port;

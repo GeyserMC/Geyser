@@ -23,62 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api;
 
-import lombok.Getter;
-import lombok.Setter;
-
-/**
- * The class that any main plugin class should extend.
- * The first init point is the constructor, followed by onLoad, and finally onEnable.
- */
-public class Plugin {
-    protected String name;
-    protected String version;
+public interface RemoteServer {
 
     /**
-     * Returns if the plugin is enabled
+     * Returns the IP address of the remote server
      *
-     * @return if the plugin is enabled
+     * @return the IP address of the remote server
      */
-    @Getter
-    @Setter
-    private boolean enabled = true;
+    String getAddress();
 
     /**
-     * Called when a plugin is enabled
+     * Returns the port of the remote server
+     *
+     * @return the port of the remote server
      */
-    public void onEnable() {
-
-    }
-
-    /**
-     * Called when a plugin is disabled
-     */
-    public void onDisable() {
-
-    }
-
-    /**
-     * Called when a plugin is loaded
-     */
-    public void onLoad() {
-
-    }
-
-    /**
-     * Called when the server is reloaded
-     */
-    public void onReload() {
-
-    }
-
-    public final String getName() {
-        return name;
-    }
-
-    @Override
-    public final String toString() {
-        return getName();
-    }
+    int getPort();
 }

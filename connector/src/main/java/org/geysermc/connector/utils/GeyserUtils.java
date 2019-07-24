@@ -649,5 +649,14 @@ public class GeyserUtils {
 
     }
 
+    public static <T> boolean instanceOf(Class<T> clazz, Object o) {
+        try {
+            T t = (T) o;
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
 }

@@ -23,62 +23,48 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.plugin;
+package org.geysermc.api.window;
 
 import lombok.Getter;
-import lombok.Setter;
+import org.geysermc.api.window.button.FormImage;
+import org.geysermc.api.window.component.FormComponent;
+import org.geysermc.api.window.response.CustomFormResponse;
 
-/**
- * The class that any main plugin class should extend.
- * The first init point is the constructor, followed by onLoad, and finally onEnable.
- */
-public class Plugin {
-    protected String name;
-    protected String version;
+public class CustomFormBuilder {
 
-    /**
-     * Returns if the plugin is enabled
-     *
-     * @return if the plugin is enabled
-     */
     @Getter
-    @Setter
-    private boolean enabled = true;
+    private CustomFormWindow form;
 
-    /**
-     * Called when a plugin is enabled
-     */
-    public void onEnable() {
-
+    public CustomFormBuilder(String title) {
+        form = new CustomFormWindow(title);
     }
 
-    /**
-     * Called when a plugin is disabled
-     */
-    public void onDisable() {
-
+    public CustomFormBuilder setTitle(String title) {
+        form.setTitle(title);
+        return this;
     }
 
-    /**
-     * Called when a plugin is loaded
-     */
-    public void onLoad() {
-
+    public CustomFormBuilder setIcon(FormImage icon) {
+        form.setIcon(icon);
+        return this;
     }
 
-    /**
-     * Called when the server is reloaded
-     */
-    public void onReload() {
-
+    public CustomFormBuilder setResponse(String data) {
+        form.setResponse(data);
+        return this;
     }
 
-    public final String getName() {
-        return name;
+    public CustomFormBuilder setResponse(CustomFormResponse response) {
+        form.setResponse(response);
+        return this;
     }
 
-    @Override
-    public final String toString() {
-        return getName();
+    public CustomFormBuilder addComponent(FormComponent component) {
+        form.addComponent(component);
+        return this;
+    }
+
+    public CustomFormWindow build() {
+        return form;
     }
 }

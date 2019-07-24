@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
+import org.geysermc.api.events.PingEvent;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.GeyserLogger;
@@ -54,16 +55,16 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
+        PingEvent pong = new PingEvent(inetSocketAddress);
         GeyserLogger.DEFAULT.debug(inetSocketAddress + " has pinged you!");
         GeyserConfiguration config = connector.getConfig();
-        BedrockPong pong = new BedrockPong();
         pong.setEdition("MCPE");
         pong.setGameType("Default");
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
         pong.setVersion("1.12.0");
-        pong.setIpv4Port(19132);
 
+        connector.getPluginManager().runEvent(pong);
         if (connector.getConfig().isPingPassthrough()) {
             ServerStatusInfo serverInfo = connector.getPassthroughThread().getInfo();
 
@@ -79,7 +80,22 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setMotd(config.getBedrock().getMotd1());
             pong.setSubMotd(config.getBedrock().getMotd2());
         }
-        return pong;
+
+        BedrockPong c = new BedrockPong();
+
+        c.setEdition(pong.getEdition());
+        c.setGameType(pong.getGameType());
+        c.setNintendoLimited(pong.isNintendoLimited());
+        c.setProtocolVersion(pong.getProtocolVersion());
+        c.setVersion(pong.getVersion());
+
+        c.setMotd(pong.getMotd());
+        c.setSubMotd(pong.getSubMotd());
+        c.setPlayerCount(pong.getPlayerCount());
+        c.setMaximumPlayerCount(pong.getMaximumPlayerCount());
+
+        return c;
+
     }
 
     @Override
