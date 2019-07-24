@@ -35,7 +35,12 @@ import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 import org.geysermc.api.events.player.PlayerFormResponseEvent;
+import org.geysermc.api.window.CustomFormBuilder;
+import org.geysermc.api.window.CustomFormWindow;
 import org.geysermc.api.window.FormWindow;
+import org.geysermc.api.window.component.InputComponent;
+import org.geysermc.api.window.component.LabelComponent;
+import org.geysermc.api.window.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockAuthData;
@@ -86,18 +91,6 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         session.getUpstream().sendPacketImmediately(resourcePacksInfo);
-
-        // TODO: Implement this
-        /**
-        CustomFormWindow window = new CustomFormBuilder("Login")
-                .addComponent(new LabelComponent("Minecraft: Java Edition account authentication."))
-                .addComponent(new LabelComponent("Enter the credentials for your Minecraft: Java Edition account below."))
-                .addComponent(new InputComponent("Email/Username", "account@geysermc.org", ""))
-                .addComponent(new InputComponent("Password", "123456", ""))
-                .build();
-
-        session.sendForm(window, 1);
-         */
         return true;
     }
 
@@ -107,7 +100,7 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
         switch (textPacket.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
-                connector.getLogger().info("Player connected with " + session.getAuthenticationData().getName());
+                connector.getLogger().info("Player connected with username " + session.getAuthenticationData().getName());
                 break;
             case HAVE_ALL_PACKS:
                 ResourcePackStackPacket stack = new ResourcePackStackPacket();
@@ -327,8 +320,22 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
         FormWindow window = windowCache.getWindows().remove(packet.getFormId());
         window.setResponse(packet.getFormData().trim());
 
-        PlayerFormResponseEvent event = new PlayerFormResponseEvent(session, packet.getFormId(), window);
-        connector.getPluginManager().runEvent(event);
+        if (session.isLoggedIn()) {
+            PlayerFormResponseEvent event = new PlayerFormResponseEvent(session, packet.getFormId(), window);
+            connector.getPluginManager().runEvent(event);
+        } else {
+            if (window instanceof CustomFormWindow) {
+                CustomFormWindow customFormWindow = (CustomFormWindow) window;
+                if (!customFormWindow.getTitle().equals("Login"))
+                    return false;
+
+                CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
+                session.authenticate(response.getInputResponses().get(2), response.getInputResponses().get(3));
+
+                // Clear windows so authentication data isn't accidentally cached
+                windowCache.getWindows().clear();
+            }
+        }
         return true;
     }
 
@@ -341,6 +348,17 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(MovePlayerPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
+        if (!session.isLoggedIn()) {
+            CustomFormWindow window = new CustomFormBuilder("Login")
+                    .addComponent(new LabelComponent("Minecraft: Java Edition account authentication."))
+                    .addComponent(new LabelComponent("Enter the credentials for your Minecraft: Java Edition account below."))
+                    .addComponent(new InputComponent("Email/Username", "account@geysermc.org", ""))
+                    .addComponent(new InputComponent("Password", "123456", ""))
+                    .build();
+
+            session.sendForm(window, 1);
+            return true;
+        }
         return false;
     }
 

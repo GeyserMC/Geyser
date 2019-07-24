@@ -13,7 +13,7 @@ https://discord.gg/mRjbCsS
 ## What's Completed
 - [x] Server recognized in server list 
 - [x] Join detection from remote
-- [ ] Online mode/auth support
+- [x] Online mode/auth support
 - [x] Chat/command support
 - [ ] Inventory support
 - [ ] Movement support
