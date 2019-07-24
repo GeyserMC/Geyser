@@ -25,12 +25,13 @@
 
 package org.geysermc.connector.network;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.nimbusds.jose.JWSObject;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
-import net.minidev.json.JSONArray;
+import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
 import net.minidev.json.JSONObject;
-import net.minidev.json.JSONValue;
 import org.geysermc.api.events.player.PlayerFormResponseEvent;
 import org.geysermc.api.window.CustomFormBuilder;
 import org.geysermc.api.window.CustomFormWindow;
@@ -43,7 +44,15 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockAuthData;
 import org.geysermc.connector.network.session.cache.WindowCache;
 import org.geysermc.connector.network.translators.Registry;
+import org.geysermc.connector.utils.LoginEncryptionUtils;
 
+import javax.crypto.SecretKey;
+import java.io.IOException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECGenParameterSpec;
 import java.util.UUID;
 
 public class UpstreamPacketHandler implements BedrockPacketHandler {
@@ -65,22 +74,48 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        session.getUpstream().setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
-
+        JsonNode certData;
         try {
-            JSONObject chainData = (JSONObject) JSONValue.parse(loginPacket.getChainData().array());
-            JSONArray chainArray = (JSONArray) chainData.get("chain");
+            certData = LoginEncryptionUtils.JSON_MAPPER.readTree(loginPacket.getChainData().toByteArray());
+        } catch (IOException ex) {
+            throw new RuntimeException("Certificate JSON can not be read.");
+        }
 
-            Object identityObject = chainArray.get(chainArray.size() - 1);
+        JsonNode certChainData = certData.get("chain");
+        if (certChainData.getNodeType() != JsonNodeType.ARRAY) {
+            throw new RuntimeException("Certificate data is not valid");
+        }
 
-            JWSObject identity = JWSObject.parse((String) identityObject);
-            JSONObject extraData = (JSONObject) identity.getPayload().toJSONObject().get("extraData");
+        boolean validChain;
+        try {
+            validChain = LoginEncryptionUtils.validateChainData(certChainData);
 
+            connector.getLogger().debug(String.format("Is player data valid? %s", validChain));
+
+            JWSObject jwt = JWSObject.parse(certChainData.get(certChainData.size() - 1).asText());
+            JsonNode payload = LoginEncryptionUtils.JSON_MAPPER.readTree(jwt.getPayload().toBytes());
+
+            if (payload.get("extraData").getNodeType() != JsonNodeType.OBJECT) {
+                throw new RuntimeException("AuthData was not found!");
+            }
+
+            JSONObject extraData = (JSONObject) jwt.getPayload().toJSONObject().get("extraData");
             session.setAuthenticationData(new BedrockAuthData(extraData.getAsString("displayName"), UUID.fromString(extraData.getAsString("identity")), extraData.getAsString("XUID")));
+
+            if (payload.get("identityPublicKey").getNodeType() != JsonNodeType.STRING) {
+                throw new RuntimeException("Identity Public Key was not found!");
+            }
+
+            ECPublicKey identityPublicKey = EncryptionUtils.generateKey(payload.get("identityPublicKey").textValue());
+            JWSObject clientJwt = JWSObject.parse(loginPacket.getSkinData().toString());
+            EncryptionUtils.verifyJwt(clientJwt, identityPublicKey);
+
+            if (EncryptionUtils.canUseEncryption()) {
+                startEncryptionHandshake(identityPublicKey);
+            }
         } catch (Exception ex) {
-            session.getUpstream().disconnect("An internal error occurred when connecting to this server.");
-            ex.printStackTrace();
-            return true;
+            session.disconnect("disconnectionScreen.internalError.cantConnect");
+            throw new RuntimeException("Unable to complete login", ex);
         }
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
@@ -935,5 +970,19 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     public boolean handle(VideoStreamConnectPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         return false;
+    }
+
+    private void startEncryptionHandshake(PublicKey key) throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
+        generator.initialize(new ECGenParameterSpec("secp384r1"));
+        KeyPair serverKeyPair = generator.generateKeyPair();
+
+        byte[] token = EncryptionUtils.generateRandomToken();
+        SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
+        session.getUpstream().enableEncryption(encryptionKey);
+
+        ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
+        packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token).serialize());
+        session.getUpstream().sendPacketImmediately(packet);
     }
 }
