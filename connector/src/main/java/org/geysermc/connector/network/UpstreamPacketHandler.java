@@ -25,9 +25,6 @@
 
 package org.geysermc.connector.network;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
 import com.nimbusds.jose.JWSObject;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
@@ -45,6 +42,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockAuthData;
 import org.geysermc.connector.network.session.cache.WindowCache;
+import org.geysermc.connector.network.translators.Registry;
 
 import java.util.UUID;
 
@@ -125,11 +123,7 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(AnimatePacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-        switch (packet.getAction()) {
-            case SWING_ARM:
-                ClientPlayerSwingArmPacket swingArmPacket = new ClientPlayerSwingArmPacket(Hand.MAIN_HAND);
-                session.getDownstream().getSession().send(swingArmPacket);
-        }
+        Registry.BEDROCK.translate(packet.getClass(), packet, session);
         return true;
     }
 
@@ -184,15 +178,7 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(CommandRequestPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-
-        String command = packet.getCommand().replace("/", "");
-        if (connector.getCommandMap().getCommands().containsKey(command)) {
-            connector.getCommandMap().runCommand(session, command);
-        } else {
-            ClientChatPacket chatPacket = new ClientChatPacket(packet.getCommand());
-            session.getDownstream().getSession().send(chatPacket);
-        }
-
+        Registry.BEDROCK.translate(packet.getClass(), packet, session);
         return true;
     }
 
@@ -455,16 +441,7 @@ public class UpstreamPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(TextPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-
-        if (packet.getMessage().charAt(0) == '.') {
-            ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage().replace(".", "/"));
-            session.getDownstream().getSession().send(chatPacket);
-            return true;
-        }
-
-        ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage());
-        session.getDownstream().getSession().send(chatPacket);
-
+        Registry.BEDROCK.translate(packet.getClass(), packet, session);
         return true;
     }
 
