@@ -10,6 +10,7 @@
     <name>GeyserMC</name>
     <description>Allows for players from Minecraft Bedrock Edition to join Minecraft Java Edition servers.</description>
     <url>https://geysermc.org</url>
+
     <properties>
         <outputName>Geyser</outputName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -17,21 +18,25 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+
     <organization>
         <name>GeyserMC</name>
         <url>https://github.com/GeyserMC/Geyser/blob/master/pom.xml</url>
     </organization>
+
     <scm>
         <connection>scm:git:https://github.com/GeyserMC/Geyser.git</connection>
         <developerConnection>scm:git:git@github.com:GeyserMC/Geyser.git</developerConnection>
         <url>https://github.com/GeyserMC/Geyser</url>
     </scm>
+
     <modules>
         <module>api</module>
         <module>common</module>
         <module>connector</module>
         <module>plugin</module>
     </modules>
+
     <repositories>
         <repository>
             <id>CodeMC-repo</id>
@@ -44,10 +49,40 @@
             </snapshots>
         </repository>
         <repository>
-            <id>nukkitx-repo</id>
+            <id>nukkitx-release-repo</id>
             <url>https://repo.nukkitx.com/maven-releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>nukkitx-snapshot-repo</id>
+            <url>https://repo.nukkitx.com/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>nukkitx-releases</name>
+            <url>https://repo.nukkitx.com/maven-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>nukkitx-snapshots</name>
+            <url>https://repo.nukkitx.com/maven-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <build>
         <defaultGoal>clean install</defaultGoal>
         <resources>
