@@ -28,10 +28,8 @@ package org.geysermc.connector.network.translators;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionRotationPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnExpOrbPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -45,14 +43,12 @@ import org.geysermc.connector.network.translators.bedrock.BedrockAnimateTranslat
 import org.geysermc.connector.network.translators.bedrock.BedrockCommandRequestTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
 import org.geysermc.connector.network.translators.java.JavaChatTranslator;
-import org.geysermc.connector.network.translators.java.JavaEntityPositionRotationTranslator;
-import org.geysermc.connector.network.translators.java.JavaEntityPositionTranslator;
-import org.geysermc.connector.network.translators.java.JavaEntityTeleportTranslator;
-import org.geysermc.connector.network.translators.java.JavaEntityVelocityTranslator;
+import org.geysermc.connector.network.translators.java.entity.*;
 import org.geysermc.connector.network.translators.java.JavaJoinGameTranslator;
-import org.geysermc.connector.network.translators.java.JavaNotifyClientTranslator;
+import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnExpOrbTranslator;
+import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
 import org.geysermc.connector.network.translators.java.JavaTitleTranslator;
-import org.geysermc.connector.network.translators.java.JavaUpdateTimeTranslator;
+import org.geysermc.connector.network.translators.java.world.JavaUpdateTimeTranslator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -86,6 +82,8 @@ public class TranslatorsInit {
         Registry.registerJava(ServerEntityTeleportPacket.class, new JavaEntityTeleportTranslator());
         Registry.registerJava(ServerEntityVelocityPacket.class, new JavaEntityVelocityTranslator());
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
+        Registry.registerJava(ServerEntityDestroyPacket.class, new JavaEntityDestroyTranslator());
+        Registry.registerJava(ServerSpawnExpOrbPacket.class, new JavaSpawnExpOrbTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
