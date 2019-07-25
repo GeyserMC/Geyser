@@ -23,20 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
-import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityDestroyPacket;
+import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class JavaTimeTranslator extends PacketTranslator<ServerUpdateTimePacket> {
+public class JavaEntityDestroyTranslator extends PacketTranslator<ServerEntityDestroyPacket> {
 
     @Override
-    public void translate(ServerUpdateTimePacket packet, GeyserSession session) {
-        SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime((int) Math.abs(packet.getTime()));
+    public void translate(ServerEntityDestroyPacket packet, GeyserSession session) {
+        for (int entityId : packet.getEntityIds()) {
+            RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
+            removeEntityPacket.setUniqueEntityId(entityId);
 
-        session.getUpstream().sendPacket(setTimePacket);
+            session.getUpstream().sendPacket(removeEntityPacket);
+        }
     }
 }
+
