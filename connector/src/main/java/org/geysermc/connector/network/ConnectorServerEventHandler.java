@@ -103,6 +103,6 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
         bedrockServerSession.addDisconnectHandler((x) -> GeyserLogger.DEFAULT.warning("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + x));
-        bedrockServerSession.setPacketCodec(Bedrock_v361.V361_CODEC);
+        bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
     }
 }

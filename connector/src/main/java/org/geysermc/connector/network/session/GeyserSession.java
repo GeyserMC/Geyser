@@ -67,8 +67,6 @@ public class GeyserSession implements PlayerSession, Player {
     @Getter
     private Client downstream;
 
-    private final GeyserSession THIS = this;
-
     @Getter
     private AuthData authenticationData;
 
@@ -136,7 +134,7 @@ public class GeyserSession implements PlayerSession, Player {
 
                 @Override
                 public void packetReceived(PacketReceivedEvent event) {
-                    Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), THIS);
+                    Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                 }
             });
 
