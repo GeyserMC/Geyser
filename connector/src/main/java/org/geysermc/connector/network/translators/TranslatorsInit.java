@@ -43,8 +43,12 @@ import org.geysermc.connector.network.translators.bedrock.BedrockAnimateTranslat
 import org.geysermc.connector.network.translators.bedrock.BedrockCommandRequestTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
 import org.geysermc.connector.network.translators.java.JavaChatTranslator;
-import org.geysermc.connector.network.translators.java.entity.*;
 import org.geysermc.connector.network.translators.java.JavaJoinGameTranslator;
+import org.geysermc.connector.network.translators.java.entity.JavaEntityDestroyTranslator;
+import org.geysermc.connector.network.translators.java.entity.JavaEntityPositionRotationTranslator;
+import org.geysermc.connector.network.translators.java.entity.JavaEntityPositionTranslator;
+import org.geysermc.connector.network.translators.java.entity.JavaEntityTeleportTranslator;
+import org.geysermc.connector.network.translators.java.entity.JavaEntityVelocityTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnExpOrbTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
 import org.geysermc.connector.network.translators.java.JavaTitleTranslator;
