@@ -30,6 +30,10 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePack
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnExpOrbPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -50,6 +54,10 @@ import org.geysermc.connector.network.translators.java.entity.JavaEntityPosition
 import org.geysermc.connector.network.translators.java.entity.JavaEntityTeleportTranslator;
 import org.geysermc.connector.network.translators.java.entity.JavaEntityVelocityTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnExpOrbTranslator;
+import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardDisplayTranslator;
+import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
+import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardTeamTranslator;
+import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
 import org.geysermc.connector.network.translators.java.JavaTitleTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaUpdateTimeTranslator;
@@ -88,6 +96,10 @@ public class TranslatorsInit {
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
         Registry.registerJava(ServerEntityDestroyPacket.class, new JavaEntityDestroyTranslator());
         Registry.registerJava(ServerSpawnExpOrbPacket.class, new JavaSpawnExpOrbTranslator());
+        Registry.registerJava(ServerScoreboardObjectivePacket.class, new JavaScoreboardObjectiveTranslator());
+        Registry.registerJava(ServerDisplayScoreboardPacket.class, new JavaScoreboardDisplayTranslator());
+        Registry.registerJava(ServerTeamPacket.class, new JavaScoreboardTeamTranslator());
+        Registry.registerJava(ServerUpdateScorePacket.class, new JavaUpdateScoreTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
