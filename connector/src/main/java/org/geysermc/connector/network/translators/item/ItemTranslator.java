@@ -62,11 +62,47 @@ public class ItemTranslator {
         identifiers.put("polished_diorite", "stone:4");
         identifiers.put("andesite", "stone:5");
         identifiers.put("polished_andesite", "stone:6");
-        identifiers.put("spurce_log", "log:1");
+
+        identifiers.put("oak_log", "log");
+        identifiers.put("spruce_log", "log:1");
         identifiers.put("birch_log", "log:2");
         identifiers.put("jungle_log", "log:3");
         identifiers.put("acacia_log", "log:4");
         identifiers.put("dark_oak_log", "log:5");
+
+        identifiers.put("white_wool", "wool");
+        identifiers.put("orange_wool", "wool:1");
+        identifiers.put("magenta_wool", "wool:2");
+        identifiers.put("light_blue_wool", "wool:3");
+        identifiers.put("yellow_wool", "wool:4");
+        identifiers.put("lime_wool", "wool:5");
+        identifiers.put("pink_wool", "wool:6");
+        identifiers.put("gray_wool", "wool:7");
+        identifiers.put("light_gray_wool", "wool:8");
+        identifiers.put("cyan_wool", "wool:9");
+        identifiers.put("purple_wool", "wool:10");
+        identifiers.put("blue_wool", "wool:11");
+        identifiers.put("brown_wool", "wool:12");
+        identifiers.put("green_wool", "wool:13");
+        identifiers.put("red_wool", "wool:14");
+        identifiers.put("black_wool", "wool:15");
+
+        identifiers.put("white_carpet", "carpet");
+        identifiers.put("orange_carpet", "carpet:1");
+        identifiers.put("magenta_carpet", "carpet:2");
+        identifiers.put("light_blue_carpet", "carpet:3");
+        identifiers.put("yellow_carpet", "carpet:4");
+        identifiers.put("lime_carpet", "carpet:5");
+        identifiers.put("pink_carpet", "carpet:6");
+        identifiers.put("gray_carpet", "carpet:7");
+        identifiers.put("light_gray_carpet", "carpet:8");
+        identifiers.put("cyan_carpet", "carpet:9");
+        identifiers.put("purple_carpet", "carpet:10");
+        identifiers.put("blue_carpet", "carpet:11");
+        identifiers.put("brown_carpet", "carpet:12");
+        identifiers.put("green_carpet", "carpet:13");
+        identifiers.put("red_carpet", "carpet:14");
+        identifiers.put("black_carpet", "carpet:15");
     }
 
     public ItemStack translateToJava(ItemData data) {
