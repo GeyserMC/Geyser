@@ -63,11 +63,11 @@ import org.geysermc.connector.network.translators.java.entity.JavaEntityTeleport
 import org.geysermc.connector.network.translators.java.entity.JavaEntityVelocityTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnExpOrbTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
-import org.geysermc.connector.network.translators.java.JavaOpenWindowTranslator;
-import org.geysermc.connector.network.translators.java.JavaSetSlotTranslator;
+import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
+import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
 import org.geysermc.connector.network.translators.java.JavaTitleTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaUpdateTimeTranslator;
-import org.geysermc.connector.network.translators.java.JavaWindowItemsTranslator;
+import org.geysermc.connector.network.translators.java.window.JavaWindowItemsTranslator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

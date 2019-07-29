@@ -23,33 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.java.window;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
-import org.geysermc.connector.inventory.Inventory;
+import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.InventoryCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
-public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItemsPacket> {
+public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
 
     @Override
-    public void translate(ServerWindowItemsPacket packet, GeyserSession session) {
-        InventoryCache inventoryCache = session.getInventoryCache();
-        if (!inventoryCache.getInventories().containsKey(packet.getWindowId())) {
-            inventoryCache.cachePacket(packet.getWindowId(), packet);
-            return;
-        }
-
-        Inventory inventory = inventoryCache.getInventories().get(packet.getWindowId());
-        // Player inventory
-        if (packet.getWindowId() == 0) {
-            inventory.setItems(packet.getItems());
-            InventoryUtils.refreshPlayerInventory(session, inventory);
-            return;
-        }
-
-        InventoryUtils.updateInventory(session, packet);
+    public void translate(ServerOpenWindowPacket packet, GeyserSession session) {
+        InventoryUtils.openInventory(session, packet);
     }
 }

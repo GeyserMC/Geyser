@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
