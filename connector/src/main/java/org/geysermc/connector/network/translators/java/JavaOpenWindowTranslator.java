@@ -23,46 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api;
+package org.geysermc.connector.network.translators.java;
 
-import org.geysermc.api.command.CommandMap;
-import org.geysermc.api.logger.Logger;
-import org.geysermc.api.plugin.PluginManager;
+import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.utils.InventoryUtils;
 
-import java.util.concurrent.ScheduledExecutorService;
+public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
 
-public interface Connector {
-
-    /**
-     * Returns the logger
-     *
-     * @return the logger
-     */
-    Logger getLogger();
-
-    /**
-     * Returns the command map
-     *
-     * @return the command map
-     */
-    CommandMap getCommandMap();
-
-    /**
-     * Returns the plugin manager
-     *
-     * @return the plugin manager
-     */
-    PluginManager getPluginManager();
-
-    /**
-     * Returns the general thread pool
-     *
-     * @return the general thread pool
-     */
-    ScheduledExecutorService getGeneralThreadPool();
-
-    /**
-     * Shuts down the connector
-     */
-    void shutdown();
+    @Override
+    public void translate(ServerOpenWindowPacket packet, GeyserSession session) {
+        InventoryUtils.openInventory(session, packet);
+    }
 }
