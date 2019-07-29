@@ -23,46 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api;
 
-import org.geysermc.api.command.CommandMap;
-import org.geysermc.api.logger.Logger;
-import org.geysermc.api.plugin.PluginManager;
+package org.geysermc.connector.network.translators.bedrock;
 
-import java.util.concurrent.ScheduledExecutorService;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
+import org.geysermc.api.Geyser;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public interface Connector {
+public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {
 
-    /**
-     * Returns the logger
-     *
-     * @return the logger
-     */
-    Logger getLogger();
-
-    /**
-     * Returns the command map
-     *
-     * @return the command map
-     */
-    CommandMap getCommandMap();
-
-    /**
-     * Returns the plugin manager
-     *
-     * @return the plugin manager
-     */
-    PluginManager getPluginManager();
-
-    /**
-     * Returns the general thread pool
-     *
-     * @return the general thread pool
-     */
-    ScheduledExecutorService getGeneralThreadPool();
-
-    /**
-     * Shuts down the connector
-     */
-    void shutdown();
+    @Override
+    public void translate(CommandRequestPacket packet, GeyserSession session) {
+        String command = packet.getCommand().replace("/", "");
+        if (Geyser.getConnector().getCommandMap().getCommands().containsKey(command)) {
+            Geyser.getConnector().getCommandMap().runCommand(session, command);
+        } else {
+            ClientChatPacket chatPacket = new ClientChatPacket(packet.getCommand());
+            session.getDownstream().getSession().send(chatPacket);
+        }
+    }
 }

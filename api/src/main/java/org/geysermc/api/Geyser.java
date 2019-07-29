@@ -29,6 +29,8 @@ import org.geysermc.api.command.CommandMap;
 import org.geysermc.api.logger.Logger;
 import org.geysermc.api.plugin.PluginManager;
 
+import java.util.concurrent.ScheduledExecutorService;
+
 public class Geyser {
 
     private static Connector connector;
@@ -76,5 +78,9 @@ public class Geyser {
      */
     public static CommandMap getCommandMap() {
         return connector.getCommandMap();
+    }
+
+    public static ScheduledExecutorService getGeneralThreadPool() {
+        return connector.getGeneralThreadPool();
     }
 }

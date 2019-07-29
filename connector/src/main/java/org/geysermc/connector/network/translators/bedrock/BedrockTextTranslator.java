@@ -23,46 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api;
+package org.geysermc.connector.network.translators.bedrock;
 
-import org.geysermc.api.command.CommandMap;
-import org.geysermc.api.logger.Logger;
-import org.geysermc.api.plugin.PluginManager;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-import java.util.concurrent.ScheduledExecutorService;
+public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
 
-public interface Connector {
+    @Override
+    public void translate(TextPacket packet, GeyserSession session) {
+        if (packet.getMessage().charAt(0) == '.') {
+            ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage().replace(".", "/"));
+            session.getDownstream().getSession().send(chatPacket);
+            return;
+        }
 
-    /**
-     * Returns the logger
-     *
-     * @return the logger
-     */
-    Logger getLogger();
-
-    /**
-     * Returns the command map
-     *
-     * @return the command map
-     */
-    CommandMap getCommandMap();
-
-    /**
-     * Returns the plugin manager
-     *
-     * @return the plugin manager
-     */
-    PluginManager getPluginManager();
-
-    /**
-     * Returns the general thread pool
-     *
-     * @return the general thread pool
-     */
-    ScheduledExecutorService getGeneralThreadPool();
-
-    /**
-     * Shuts down the connector
-     */
-    void shutdown();
+        ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage());
+        session.getDownstream().getSession().send(chatPacket);
+    }
 }

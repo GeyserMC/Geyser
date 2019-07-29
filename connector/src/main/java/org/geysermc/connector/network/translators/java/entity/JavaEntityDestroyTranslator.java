@@ -23,39 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators;
+package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import org.geysermc.connector.console.GeyserLogger;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityDestroyPacket;
+import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-import java.util.HashMap;
-import java.util.Map;
+public class JavaEntityDestroyTranslator extends PacketTranslator<ServerEntityDestroyPacket> {
 
-public class Registry<T> {
+    @Override
+    public void translate(ServerEntityDestroyPacket packet, GeyserSession session) {
+        for (int entityId : packet.getEntityIds()) {
+            RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
+            removeEntityPacket.setUniqueEntityId(entityId);
 
-    private final Map<Class<? extends T>, PacketTranslator<? extends T>> MAP = new HashMap<>();
-
-    public static final Registry<Packet> JAVA = new Registry<>();
-    public static final Registry<BedrockPacket> BEDROCK = new Registry<>();
-
-    public static <T extends Packet> void registerJava(Class<T> clazz, PacketTranslator<T> translator) {
-        JAVA.MAP.put(clazz, translator);
-    }
-
-    public static <T extends BedrockPacket> void registerBedrock(Class<T> clazz, PacketTranslator<T> translator) {
-        BEDROCK.MAP.put(clazz, translator);
-    }
-
-    public <P extends T> void translate(Class<? extends P> clazz, P packet, GeyserSession session) {
-        try {
-            if (MAP.containsKey(clazz)) {
-                ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
-            }
-        } catch (NullPointerException ex) {
-            GeyserLogger.DEFAULT.debug("Could not translate packet " + packet.getClass().getSimpleName());
-            ex.printStackTrace();
+            session.getUpstream().sendPacket(removeEntityPacket);
         }
     }
 }
+

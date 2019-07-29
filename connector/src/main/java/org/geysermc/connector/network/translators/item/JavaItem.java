@@ -23,46 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api;
+package org.geysermc.connector.network.translators.item;
 
-import org.geysermc.api.command.CommandMap;
-import org.geysermc.api.logger.Logger;
-import org.geysermc.api.plugin.PluginManager;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.concurrent.ScheduledExecutorService;
+@Getter
+@AllArgsConstructor
+public class JavaItem {
 
-public interface Connector {
-
-    /**
-     * Returns the logger
-     *
-     * @return the logger
-     */
-    Logger getLogger();
-
-    /**
-     * Returns the command map
-     *
-     * @return the command map
-     */
-    CommandMap getCommandMap();
-
-    /**
-     * Returns the plugin manager
-     *
-     * @return the plugin manager
-     */
-    PluginManager getPluginManager();
-
-    /**
-     * Returns the general thread pool
-     *
-     * @return the general thread pool
-     */
-    ScheduledExecutorService getGeneralThreadPool();
-
-    /**
-     * Shuts down the connector
-     */
-    void shutdown();
+    private String identifier;
+    private int id;
 }

@@ -23,46 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api;
+package org.geysermc.connector.network.translators.java.world;
 
-import org.geysermc.api.command.CommandMap;
-import org.geysermc.api.logger.Logger;
-import org.geysermc.api.plugin.PluginManager;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
+import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-import java.util.concurrent.ScheduledExecutorService;
+public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimePacket> {
 
-public interface Connector {
+    @Override
+    public void translate(ServerUpdateTimePacket packet, GeyserSession session) {
+        SetTimePacket setTimePacket = new SetTimePacket();
+        setTimePacket.setTime((int) Math.abs(packet.getTime()));
 
-    /**
-     * Returns the logger
-     *
-     * @return the logger
-     */
-    Logger getLogger();
-
-    /**
-     * Returns the command map
-     *
-     * @return the command map
-     */
-    CommandMap getCommandMap();
-
-    /**
-     * Returns the plugin manager
-     *
-     * @return the plugin manager
-     */
-    PluginManager getPluginManager();
-
-    /**
-     * Returns the general thread pool
-     *
-     * @return the general thread pool
-     */
-    ScheduledExecutorService getGeneralThreadPool();
-
-    /**
-     * Shuts down the connector
-     */
-    void shutdown();
+        session.getUpstream().sendPacket(setTimePacket);
+    }
 }

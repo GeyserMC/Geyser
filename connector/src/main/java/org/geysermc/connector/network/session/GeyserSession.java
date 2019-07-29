@@ -50,6 +50,7 @@ import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.cache.InventoryCache;
 import org.geysermc.connector.network.session.cache.WindowCache;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.Toolbox;
@@ -67,10 +68,11 @@ public class GeyserSession implements PlayerSession, Player {
     @Getter
     private Client downstream;
 
-    private final GeyserSession THIS = this;
-
     @Getter
     private AuthData authenticationData;
+
+    @Getter
+    private InventoryCache inventoryCache;
 
     @Getter
     private WindowCache windowCache;
@@ -84,6 +86,7 @@ public class GeyserSession implements PlayerSession, Player {
         this.connector = connector;
         this.upstream = bedrockServerSession;
 
+        this.inventoryCache = new InventoryCache(this);
         this.windowCache = new WindowCache(this);
 
         this.loggedIn = false;
@@ -136,7 +139,7 @@ public class GeyserSession implements PlayerSession, Player {
 
                 @Override
                 public void packetReceived(PacketReceivedEvent event) {
-                    Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), THIS);
+                    Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                 }
             });
 
