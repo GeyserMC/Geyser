@@ -23,39 +23,55 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators;
+package org.geysermc.connector.network.session.cache;
 
 import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import org.geysermc.connector.console.GeyserLogger;
+import lombok.Getter;
+import lombok.Setter;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class Registry<T> {
+public class InventoryCache {
 
-    private final Map<Class<? extends T>, PacketTranslator<? extends T>> MAP = new HashMap<>();
+    private GeyserSession session;
 
-    public static final Registry<Packet> JAVA = new Registry<>();
-    public static final Registry<BedrockPacket> BEDROCK = new Registry<>();
+    @Getter
+    @Setter
+    private Inventory openInventory;
 
-    public static <T extends Packet> void registerJava(Class<T> clazz, PacketTranslator<T> translator) {
-        JAVA.MAP.put(clazz, translator);
+    @Getter
+    private Map<Integer, Inventory> inventories = new HashMap<Integer, Inventory>();
+
+    @Getter
+    private Map<Integer, List<Packet>> cachedPackets = new HashMap<Integer, List<Packet>>();
+
+    public InventoryCache(GeyserSession session) {
+        this.session = session;
+
+        // This is the player's inventory
+        inventories.put(0, new Inventory(0, null, 45));
     }
 
-    public static <T extends BedrockPacket> void registerBedrock(Class<T> clazz, PacketTranslator<T> translator) {
-        BEDROCK.MAP.put(clazz, translator);
+    public Inventory getPlayerInventory() {
+        return inventories.get(0);
     }
 
-    public <P extends T> void translate(Class<? extends P> clazz, P packet, GeyserSession session) {
-        try {
-            if (MAP.containsKey(clazz)) {
-                ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
-            }
-        } catch (NullPointerException ex) {
-            GeyserLogger.DEFAULT.debug("Could not translate packet " + packet.getClass().getSimpleName());
-            ex.printStackTrace();
-        }
+    public void cacheInventory(Inventory inventory) {
+        inventories.put(inventory.getId(), inventory);
+    }
+
+    public void uncacheInventory(int id) {
+        inventories.remove(id);
+    }
+
+    public void cachePacket(int id, Packet packet) {
+        List<Packet> packets = cachedPackets.getOrDefault(id, new ArrayList<Packet>());
+        packets.add(packet);
+        cachedPackets.put(id, packets);
     }
 }

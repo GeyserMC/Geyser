@@ -23,46 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api;
+package org.geysermc.connector.network.translators.inventory;
 
-import org.geysermc.api.command.CommandMap;
-import org.geysermc.api.logger.Logger;
-import org.geysermc.api.plugin.PluginManager;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.concurrent.ScheduledExecutorService;
+public abstract class InventoryTranslator {
 
-public interface Connector {
+    public abstract void prepareInventory(GeyserSession session, Inventory inventory);
+    public abstract void openInventory(GeyserSession session, Inventory inventory);
+    public abstract void updateInventory(GeyserSession session, Inventory inventory);
+    public abstract void updateSlot(GeyserSession session, Inventory inventory, int slot);
 
-    /**
-     * Returns the logger
-     *
-     * @return the logger
-     */
-    Logger getLogger();
-
-    /**
-     * Returns the command map
-     *
-     * @return the command map
-     */
-    CommandMap getCommandMap();
-
-    /**
-     * Returns the plugin manager
-     *
-     * @return the plugin manager
-     */
-    PluginManager getPluginManager();
-
-    /**
-     * Returns the general thread pool
-     *
-     * @return the general thread pool
-     */
-    ScheduledExecutorService getGeneralThreadPool();
-
-    /**
-     * Shuts down the connector
-     */
-    void shutdown();
 }

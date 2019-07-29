@@ -1,11 +1,14 @@
 package org.geysermc.connector.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.geysermc.connector.network.translators.item.BedrockItem;
+import org.geysermc.connector.network.translators.item.JavaItem;
 
 import java.io.InputStream;
 import java.util.*;
@@ -21,6 +24,16 @@ public class Toolbox {
             entries = mapper.readValue(stream, ArrayList.class);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        Map<String, BedrockItem> bedrockItems = new HashMap<String, BedrockItem>();
+        for (Map<String, Object> e : entries) {
+            BedrockItem bedrockItem = new BedrockItem((String) e.get("name"), (int) e.get("id"), (int) e.get("data"));
+            if (bedrockItem.getData() != 0) {
+                bedrockItems.put(bedrockItem.getIdentifier() + ":" + bedrockItem.getData(), bedrockItem);
+            } else {
+                bedrockItems.put(bedrockItem.getIdentifier(), bedrockItem);
+            }
         }
 
         ByteBuf b = Unpooled.buffer();
@@ -46,17 +59,43 @@ public class Toolbox {
             e.printStackTrace();
         }
 
-        ArrayList<StartGamePacket.ItemEntry> l = new ArrayList<>();
+        List<StartGamePacket.ItemEntry> l = new ArrayList<>();
         for (HashMap e : s) {
             l.add(new StartGamePacket.ItemEntry((String) e.get("name"), (short) ((int) e.get("id"))));
+            if (!bedrockItems.containsKey(e.get("name"))) {
+                BedrockItem bedrockItem = new BedrockItem((String) e.get("name"), ((int) e.get("id")), 0);
+                bedrockItems.put(bedrockItem.getIdentifier(), bedrockItem);
+            }
         }
 
         ITEMS = l;
+
+        BEDROCK_ITEMS = bedrockItems;
+
+        InputStream javaItemStream = Toolbox.class.getClassLoader().getResourceAsStream("java_items.json");
+        ObjectMapper javaItemMapper = new ObjectMapper();
+        Map<String, HashMap> javaItemList = new HashMap<String, HashMap>();
+        try {
+            javaItemList = javaItemMapper.readValue(javaItemStream, new TypeReference<Map<String, HashMap>>(){});
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        Map<String, JavaItem> javaItems = new HashMap<String, JavaItem>();
+
+        for (String str : javaItemList.keySet()) {
+            javaItems.put(str, new JavaItem(str, (int) javaItemList.get(str).get("protocol_id")));
+        }
+
+        JAVA_ITEMS = javaItems;
     }
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS;
 
     public static final ByteBuf CACHED_PALLETE;
+
+    public static final Map<String, BedrockItem> BEDROCK_ITEMS;
+    public static final Map<String, JavaItem> JAVA_ITEMS;
 
     //public static final byte[] EMPTY_CHUNK;
 }

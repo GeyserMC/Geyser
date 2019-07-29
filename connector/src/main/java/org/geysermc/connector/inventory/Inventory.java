@@ -23,46 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api;
+package org.geysermc.connector.inventory;
 
-import org.geysermc.api.command.CommandMap;
-import org.geysermc.api.logger.Logger;
-import org.geysermc.api.plugin.PluginManager;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.concurrent.ScheduledExecutorService;
+public class Inventory {
 
-public interface Connector {
+    @Getter
+    private int id;
 
-    /**
-     * Returns the logger
-     *
-     * @return the logger
-     */
-    Logger getLogger();
+    @Getter
+    @Setter
+    private boolean open;
 
-    /**
-     * Returns the command map
-     *
-     * @return the command map
-     */
-    CommandMap getCommandMap();
+    @Getter
+    private WindowType windowType;
 
-    /**
-     * Returns the plugin manager
-     *
-     * @return the plugin manager
-     */
-    PluginManager getPluginManager();
+    @Getter
+    private int size;
 
-    /**
-     * Returns the general thread pool
-     *
-     * @return the general thread pool
-     */
-    ScheduledExecutorService getGeneralThreadPool();
+    @Getter
+    @Setter
+    private String title;
 
-    /**
-     * Shuts down the connector
-     */
-    void shutdown();
+    @Getter
+    @Setter
+    private ItemStack[] items;
+
+    public Inventory(int id, WindowType windowType, int size) {
+        this.id = id;
+        this.windowType = windowType;
+        this.size = size;
+
+        this.title = "Inventory";
+        this.items = new ItemStack[size];
+    }
 }
