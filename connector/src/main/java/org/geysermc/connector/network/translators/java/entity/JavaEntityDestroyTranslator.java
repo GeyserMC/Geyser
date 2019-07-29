@@ -23,25 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.java.entity;
 
-import com.flowpowered.math.vector.Vector3f;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityDestroyPacket;
+import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityTeleportPacket> {
+public class JavaEntityDestroyTranslator extends PacketTranslator<ServerEntityDestroyPacket> {
 
     @Override
-    public void translate(ServerEntityTeleportPacket packet, GeyserSession session) {
-        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-        moveEntityPacket.setRuntimeEntityId(packet.getEntityId());
-        moveEntityPacket.setPosition(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
-        moveEntityPacket.setRotation(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
-        moveEntityPacket.setOnGround(packet.isOnGround());
-        moveEntityPacket.setTeleported(true);
+    public void translate(ServerEntityDestroyPacket packet, GeyserSession session) {
+        for (int entityId : packet.getEntityIds()) {
+            RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
+            removeEntityPacket.setUniqueEntityId(entityId);
 
-        session.getUpstream().sendPacket(moveEntityPacket);
+            session.getUpstream().sendPacket(removeEntityPacket);
+        }
     }
 }
+

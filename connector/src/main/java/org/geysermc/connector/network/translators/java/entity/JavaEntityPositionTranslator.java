@@ -23,20 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
-import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
+import com.flowpowered.math.vector.Vector3f;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionPacket;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class JavaTimeTranslator extends PacketTranslator<ServerUpdateTimePacket> {
+public class JavaEntityPositionTranslator extends PacketTranslator<ServerEntityPositionPacket> {
 
     @Override
-    public void translate(ServerUpdateTimePacket packet, GeyserSession session) {
-        SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime((int) Math.abs(packet.getTime()));
+    public void translate(ServerEntityPositionPacket packet, GeyserSession session) {
+        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+        moveEntityPacket.setRuntimeEntityId(packet.getEntityId());
+        moveEntityPacket.setPosition(new Vector3f(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ()));
+        moveEntityPacket.setRotation(new Vector3f(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ()));
+        moveEntityPacket.setOnGround(packet.isOnGround());
+        moveEntityPacket.setTeleported(false);
 
-        session.getUpstream().sendPacket(setTimePacket);
+        session.getUpstream().sendPacket(moveEntityPacket);
     }
 }
