@@ -70,6 +70,13 @@ public class ItemTranslator {
         identifiers.put("acacia_log", "log:4");
         identifiers.put("dark_oak_log", "log:5");
 
+        identifiers.put("oak_planks", "planks");
+        identifiers.put("spruce_planks", "planks:1");
+        identifiers.put("birch_planks", "planks:2");
+        identifiers.put("jungle_planks", "planks:3");
+        identifiers.put("acacia_planks", "planks:4");
+        identifiers.put("dark_oak_planks", "planks:5");
+
         identifiers.put("white_wool", "wool");
         identifiers.put("orange_wool", "wool:1");
         identifiers.put("magenta_wool", "wool:2");
