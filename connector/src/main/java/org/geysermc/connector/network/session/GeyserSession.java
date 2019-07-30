@@ -51,6 +51,7 @@ import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.cache.InventoryCache;
+import org.geysermc.connector.network.session.cache.ScoreboardCache;
 import org.geysermc.connector.network.session.cache.WindowCache;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.Toolbox;
@@ -78,6 +79,9 @@ public class GeyserSession implements PlayerSession, Player {
     private WindowCache windowCache;
 
     @Getter
+    private ScoreboardCache scoreboardCache;
+
+    @Getter
     private boolean loggedIn;
 
     private boolean closed;
@@ -88,6 +92,8 @@ public class GeyserSession implements PlayerSession, Player {
 
         this.inventoryCache = new InventoryCache(this);
         this.windowCache = new WindowCache(this);
+
+        this.scoreboardCache = new ScoreboardCache(this);
 
         this.loggedIn = false;
     }
