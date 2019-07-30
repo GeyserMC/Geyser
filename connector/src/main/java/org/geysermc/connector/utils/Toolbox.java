@@ -100,7 +100,7 @@ public class Toolbox {
     }
 
     //Method to convert java to bedrock
-    private static void convert(Map<String, BedrockItem> items1, Map<String, JavaItem> java) {
+    /*private static void convert(Map<String, BedrockItem> items1, Map<String, JavaItem> java) {
         Map<JavaItem, List<BedrockItem>> convertions = new HashMap<>();
 
         for(Map.Entry<String, JavaItem> entry2 : java.entrySet()) {
@@ -164,7 +164,7 @@ public class Toolbox {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS;
 
