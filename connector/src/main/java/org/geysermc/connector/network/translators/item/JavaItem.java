@@ -34,4 +34,14 @@ public class JavaItem {
 
     private String identifier;
     private int id;
+
+    @Override
+    public int hashCode() {
+        return id & identifier.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this || (obj instanceof JavaItem && ((JavaItem) obj).id == this.id && ((JavaItem) obj).identifier.equals(this.identifier));
+    }
 }
