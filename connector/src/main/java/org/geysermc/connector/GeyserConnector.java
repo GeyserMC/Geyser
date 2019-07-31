@@ -93,6 +93,7 @@ public class GeyserConnector implements Connector {
     }
 
     private GeyserConnector() {
+        //Metric
         if(!(System.console() == null) && System.getProperty("os.name", "Windows 10").toLowerCase().contains("windows")) {
             AnsiConsole.systemInstall();
         }

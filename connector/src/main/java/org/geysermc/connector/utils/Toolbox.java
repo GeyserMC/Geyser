@@ -94,77 +94,10 @@ public class Toolbox {
             javaItems.put(str, new JavaItem(str, (int) javaItemList.get(str).get("protocol_id")));
         }
         //Uncomment when you need new re-mappings!
-        //convert(bedrockItems, javaItems);
+        //Remapper.convert(bedrockItems, javaItems);
 
         JAVA_ITEMS = javaItems;
     }
-
-    //Method to convert java to bedrock
-    /*private static void convert(Map<String, BedrockItem> items1, Map<String, JavaItem> java) {
-        Map<JavaItem, List<BedrockItem>> convertions = new HashMap<>();
-
-        for(Map.Entry<String, JavaItem> entry2 : java.entrySet()) {
-            for (Map.Entry<String, BedrockItem> entry1 : items1.entrySet()) {
-
-                if (entry1.getValue().getIdentifier().equalsIgnoreCase(entry2.getKey())) {
-                    JavaItem j = entry2.getValue();
-
-                    convertions.computeIfAbsent(j, (x) -> new ArrayList<>());
-
-                    convertions.get(j).add(entry1.getValue());
-                } else {
-                    if (entry2.getKey().contains("white_")) {
-                        String stripped = entry2.getKey().replaceAll("white_", "").replaceAll("terracotta", "stained_hardened_clay");
-                        if (stripped.equalsIgnoreCase(entry1.getKey()) && entry1.getValue().getData() == 0) {
-                            for(DyeColor dyeColor : DyeColor.values()) {
-                                JavaItem j = java.get(entry2.getValue().getIdentifier().replaceAll("white_", dyeColor.name() + "_"));
-
-                                convertions.computeIfAbsent(j, (x) -> new ArrayList<>());
-
-                                convertions.get(j).add(new BedrockItem(entry1.getValue().getIdentifier(), entry1.getValue().getId(), dyeColor.id));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        for(DyeColor dyeColor : DyeColor.values()) {
-            JavaItem j = java.get("minecraft:white_wool".replaceAll("white_", dyeColor.name() + "_"));
-
-            System.out.println(j.getIdentifier() + " " + convertions.get(j).get(0).getIdentifier() + ":" + convertions.get(j).get(0).getData());
-        }
-
-
-        Map<String, Map<Integer, String>> BEDROCK_TO_JAVA = new HashMap<>();
-
-        Map<String, Map<String, Object>> JAVA_TO_BEDROCK = new HashMap<>();
-
-        for(Map.Entry<JavaItem, List<BedrockItem>> entry : convertions.entrySet()) {
-
-            for(BedrockItem item : entry.getValue()) {
-                JAVA_TO_BEDROCK.computeIfAbsent(entry.getKey().getIdentifier(), (x) -> new HashMap<>());
-                BEDROCK_TO_JAVA.computeIfAbsent(item.getIdentifier(), (x) -> new HashMap<>());
-                Map<String, Object> map = JAVA_TO_BEDROCK.get(entry.getKey().getIdentifier());
-
-                map.put("name", item.getIdentifier());
-                map.put("id", item.getId());
-                map.put("data", item.getData());
-
-                BEDROCK_TO_JAVA.get(item.getIdentifier()).put(item.getData(), entry.getKey().getIdentifier());
-            }
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
-        try {
-            writer.writeValue(new File("java_to_bedrock.json"), JAVA_TO_BEDROCK);
-
-            writer.writeValue(new File("bedrock_to_java.json"), BEDROCK_TO_JAVA);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }*/
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS;
 
