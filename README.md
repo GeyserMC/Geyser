@@ -10,10 +10,13 @@ A bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition, closing
 Geyser is a (heavy work in progress) connector (or proxy), bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
 The ultimate goal for this project is to allow those to join Minecraft: Java Edition servers using the Bedrock Edition.
 
-### Please note, this project is still a HEAVY work in progress and probably won't be complete any time soon.
+### Please note, this project is still a work in progress and probably won't be complete any time soon.
 
-If you're interested in development, please join our Discord server:
-https://discord.gg/mRjbCsS
+Links:
+- Website: https://geysermc.org
+- Docs: https://geysermc.org/docs
+- Download: http://ci.geysermc.org
+- Discord: https://discord.gg/mRjbCsS
 
 ## What's Completed
 - [x] Server recognized in server list 
