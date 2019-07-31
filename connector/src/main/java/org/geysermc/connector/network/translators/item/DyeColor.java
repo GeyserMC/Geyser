@@ -1,26 +1,30 @@
 package org.geysermc.connector.network.translators.item;
 
+import lombok.Getter;
+
 public enum DyeColor {
-    white,
-    orange,
-    magenta,
-    light_blue,
-    yellow,
-    lime,
-    pink,
-    gray,
-    light_gray,
-    cyan,
-    purple,
-    blue,
-    brown,
-    green,
-    red,
-    black;
 
-    public final int id;
+    WHITE,
+    ORANGE,
+    MAGENTA,
+    LIGHT_BLUE,
+    YELLOW,
+    LIME,
+    PINK,
+    GRAY,
+    LIGHT_GRAY,
+    CYAN,
+    PURPLE,
+    BLUE,
+    BROWN,
+    GREEN,
+    RED,
+    BLACK;
 
-    DyeColor() {
-        this.id = ordinal();
+    @Getter
+    private final int id = ordinal();
+
+    public String getName() {
+        return name().toLowerCase();
     }
 }

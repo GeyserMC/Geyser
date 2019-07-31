@@ -93,8 +93,8 @@ public class Toolbox {
         for (String str : javaItemList.keySet()) {
             javaItems.put(str, new JavaItem(str, (int) javaItemList.get(str).get("protocol_id")));
         }
-        //Uncomment when you need new re-mappings!
-        //Remapper.convert(bedrockItems, javaItems);
+
+        Remapper.addConversions(bedrockItems, javaItems);
 
         JAVA_ITEMS = javaItems;
     }

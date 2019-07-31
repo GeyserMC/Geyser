@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class CommonItem {
-    JavaItem java;
 
-    BedrockItem bedrock;
+    private JavaItem java;
+    private BedrockItem bedrock;
 }

@@ -1,24 +1,21 @@
 package org.geysermc.connector.network.translators.item;
 
+import lombok.Getter;
+
 public enum StoneType {
-    stone,
-    granite,
-    polished_granite,
-    diorite,
-    polished_diorite,
-    andesite,
-    polished_andesite;
 
-    public final String name;
-    public final int id;
+    STONE,
+    GRANITE,
+    POLISHED_GRANITE,
+    DIORITE,
+    POLISHED_DIORITE,
+    ANDESITE,
+    POLISHED_ANDESITE;
 
-    StoneType(String name) {
-        this.id = ordinal();
-        this.name = name;
-    }
+    @Getter
+    private final int id = ordinal();
 
-    StoneType() {
-        this.name = name();
-        this.id = ordinal();
+    public String getName() {
+        return name().toLowerCase();
     }
 }

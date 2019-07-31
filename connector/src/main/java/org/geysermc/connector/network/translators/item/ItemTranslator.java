@@ -40,7 +40,7 @@ import com.github.steveice10.opennbt.tag.builtin.ShortTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import org.geysermc.connector.utils.Remapper;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.util.ArrayList;
@@ -49,68 +49,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ItemTranslator {
-
-    private static Map<String, String> identifiers = new HashMap<String, String>();
-
-    static {
-        // Key: java translation
-        // Value: bedrock translation
-        identifiers.put("grass_block", "grass");
-        identifiers.put("granite", "stone:1");
-        identifiers.put("polished_granite", "stone:2");
-        identifiers.put("diorite", "stone:3");
-        identifiers.put("polished_diorite", "stone:4");
-        identifiers.put("andesite", "stone:5");
-        identifiers.put("polished_andesite", "stone:6");
-
-        identifiers.put("oak_log", "log");
-        identifiers.put("spruce_log", "log:1");
-        identifiers.put("birch_log", "log:2");
-        identifiers.put("jungle_log", "log:3");
-        identifiers.put("acacia_log", "log:4");
-        identifiers.put("dark_oak_log", "log:5");
-
-        identifiers.put("oak_planks", "planks");
-        identifiers.put("spruce_planks", "planks:1");
-        identifiers.put("birch_planks", "planks:2");
-        identifiers.put("jungle_planks", "planks:3");
-        identifiers.put("acacia_planks", "planks:4");
-        identifiers.put("dark_oak_planks", "planks:5");
-
-        identifiers.put("white_wool", "wool");
-        identifiers.put("orange_wool", "wool:1");
-        identifiers.put("magenta_wool", "wool:2");
-        identifiers.put("light_blue_wool", "wool:3");
-        identifiers.put("yellow_wool", "wool:4");
-        identifiers.put("lime_wool", "wool:5");
-        identifiers.put("pink_wool", "wool:6");
-        identifiers.put("gray_wool", "wool:7");
-        identifiers.put("light_gray_wool", "wool:8");
-        identifiers.put("cyan_wool", "wool:9");
-        identifiers.put("purple_wool", "wool:10");
-        identifiers.put("blue_wool", "wool:11");
-        identifiers.put("brown_wool", "wool:12");
-        identifiers.put("green_wool", "wool:13");
-        identifiers.put("red_wool", "wool:14");
-        identifiers.put("black_wool", "wool:15");
-
-        identifiers.put("white_carpet", "carpet");
-        identifiers.put("orange_carpet", "carpet:1");
-        identifiers.put("magenta_carpet", "carpet:2");
-        identifiers.put("light_blue_carpet", "carpet:3");
-        identifiers.put("yellow_carpet", "carpet:4");
-        identifiers.put("lime_carpet", "carpet:5");
-        identifiers.put("pink_carpet", "carpet:6");
-        identifiers.put("gray_carpet", "carpet:7");
-        identifiers.put("light_gray_carpet", "carpet:8");
-        identifiers.put("cyan_carpet", "carpet:9");
-        identifiers.put("purple_carpet", "carpet:10");
-        identifiers.put("blue_carpet", "carpet:11");
-        identifiers.put("brown_carpet", "carpet:12");
-        identifiers.put("green_carpet", "carpet:13");
-        identifiers.put("red_carpet", "carpet:14");
-        identifiers.put("black_carpet", "carpet:15");
-    }
 
     public ItemStack translateToJava(ItemData data) {
         JavaItem javaItem = getJavaItem(data);
@@ -135,19 +73,19 @@ public class ItemTranslator {
     }
 
     public BedrockItem getBedrockItem(ItemStack stack) {
-       for (Map.Entry<String, JavaItem> javaItems : Toolbox.JAVA_ITEMS.entrySet()) {
-           if (javaItems.getValue().getId() != stack.getId())
-               continue;
-
-           JavaItem javaItem = javaItems.getValue();
-           String identifier = getBedrockIdentifier(javaItem.getIdentifier().replace("minecraft:", ""));
-           if (!Toolbox.BEDROCK_ITEMS.containsKey(identifier))
+        for (Map.Entry<String, JavaItem> javaItems : Toolbox.JAVA_ITEMS.entrySet()) {
+            if (javaItems.getValue().getId() != stack.getId())
                 continue;
 
-           return Toolbox.BEDROCK_ITEMS.get(identifier);
-       }
+            JavaItem javaItem = javaItems.getValue();
+            String identifier = getBedrockIdentifier(javaItem.getIdentifier());
+            if (!Toolbox.BEDROCK_ITEMS.containsKey(identifier))
+                continue;
 
-       return new BedrockItem("minecraft:air", 0, 0);
+            return Toolbox.BEDROCK_ITEMS.get(identifier);
+        }
+
+        return new BedrockItem("minecraft:air", 0, 0);
     }
 
     public JavaItem getJavaItem(ItemData data) {
@@ -155,7 +93,7 @@ public class ItemTranslator {
             if (bedrockItems.getValue().getId() != data.getId())
                 continue;
 
-            String identifier = getJavaIdentifier(bedrockItems.getKey().replace("minecraft:", ""));
+            String identifier = getJavaIdentifier(bedrockItems.getKey(), data.getDamage());
             if (!Toolbox.JAVA_ITEMS.containsKey(identifier))
                 continue;
 
@@ -166,20 +104,23 @@ public class ItemTranslator {
     }
 
     public String getBedrockIdentifier(String javaIdentifier) {
-        if (!identifiers.containsKey(javaIdentifier))
-            return "minecraft:" + javaIdentifier;
-
-        return "minecraft:" + identifiers.get(javaIdentifier);
-    }
-
-    public String getJavaIdentifier(String bedrockIdentifier) {
-        for (Map.Entry<String, String> entry : identifiers.entrySet()) {
-            if (entry.getValue().equals(bedrockIdentifier)) {
-                return "minecraft:" + entry.getKey();
-            }
+        if (!Remapper.JAVA_TO_BEDROCK.containsKey(javaIdentifier)) {
+            return javaIdentifier;
         }
 
-        return "minecraft:" + bedrockIdentifier;
+        if ((int) Remapper.JAVA_TO_BEDROCK.get(javaIdentifier).get("data") > 0) {
+            return Remapper.JAVA_TO_BEDROCK.get(javaIdentifier).get("name") + ":" + Remapper.JAVA_TO_BEDROCK.get(javaIdentifier).get("data");
+        }
+
+        return (String) Remapper.JAVA_TO_BEDROCK.get(javaIdentifier).get("name");
+    }
+
+    public String getJavaIdentifier(String bedrockIdentifier, int data) {
+        if (!Remapper.BEDROCK_TO_JAVA.containsKey(bedrockIdentifier)) {
+            return bedrockIdentifier;
+        }
+
+        return Remapper.BEDROCK_TO_JAVA.get(bedrockIdentifier).get(data);
     }
 
     private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
