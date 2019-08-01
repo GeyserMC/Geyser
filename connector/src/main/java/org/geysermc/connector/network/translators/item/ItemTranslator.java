@@ -53,10 +53,12 @@ public class ItemTranslator {
     public ItemStack translateToJava(ItemData data) {
         JavaItem javaItem = getJavaItem(data);
 
-        if (data.getTag() == null) {
-            return new ItemStack(javaItem.getId(), data.getCount());
-        }
-        return new ItemStack(javaItem.getId(), data.getCount(), translateToJavaNBT(data.getTag()));
+        // TODO: Fix NBT
+        // if (data.getTag() == null) {
+        //    return new ItemStack(javaItem.getId(), data.getCount());
+        // }
+        // return new ItemStack(javaItem.getId(), data.getCount(), translateToJavaNBT(data.getTag()));
+        return new ItemStack(javaItem.getId(), data.getCount());
     }
 
     public ItemData translateToBedrock(ItemStack stack) {
@@ -66,10 +68,13 @@ public class ItemTranslator {
         }
 
         BedrockItem bedrockItem = getBedrockItem(stack);
-        if (stack.getNBT() == null) {
-            return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount());
-        }
-        return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount(), translateToBedrockNBT(stack.getNBT()));
+
+        // TODO: Fix NBT
+        //if (stack.getNBT() == null) {
+        //    return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount());
+        // }
+        // return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount(), translateToBedrockNBT(stack.getNBT()));
+        return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount());
     }
 
     public BedrockItem getBedrockItem(ItemStack stack) {
