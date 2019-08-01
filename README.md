@@ -1,4 +1,4 @@
-# Geyser
+<img src="https://geysermc.org/img/oss_logo.png" alt="Geyser" width="600" height="170"/>
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://ci.nukkitx.com/job/Geyser/job/master/badge/icon)](https://ci.nukkitx.com/job/Geyser/job/master/)
