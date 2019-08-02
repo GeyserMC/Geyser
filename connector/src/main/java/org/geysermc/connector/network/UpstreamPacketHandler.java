@@ -30,7 +30,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Registry;
-import org.geysermc.connector.utils.AuthenticationUtils;
+import org.geysermc.connector.utils.LoginEncryptionUtils;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -52,7 +52,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return true;
         }
 
-        AuthenticationUtils.encryptPlayerConnection(connector, session, loginPacket);
+        LoginEncryptionUtils.encryptPlayerConnection(connector, session, loginPacket);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
@@ -88,14 +88,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-        return AuthenticationUtils.authenticateFromForm(session, connector, packet.getFormData());
+        return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormData());
     }
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         if (!session.isLoggedIn()) {
-            AuthenticationUtils.showLoginWindow(session);
+            LoginEncryptionUtils.showLoginWindow(session);
             return true;
         }
         return false;
