@@ -30,7 +30,6 @@ import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Registry;
 
 /**
  * Bare bones implementation of BedrockPacketHandler suitable for extension.
@@ -70,9 +69,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(AnimatePacket packet) {
-        connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-        Registry.BEDROCK.translate(packet.getClass(), packet, session);
-        return true;
+        return defaultHandler(packet);
     }
 
     @Override
@@ -117,9 +114,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(CommandRequestPacket packet) {
-        connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-        Registry.BEDROCK.translate(packet.getClass(), packet, session);
-        return true;
+        return defaultHandler(packet);
     }
 
     @Override
@@ -309,9 +304,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(TextPacket packet) {
-        connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-        Registry.BEDROCK.translate(packet.getClass(), packet, session);
-        return true;
+        return defaultHandler(packet);
     }
 
     @Override
