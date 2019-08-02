@@ -97,8 +97,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             UserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
 
             if (info != null) {
-                connector.getLogger().debug("using stored credentials for bedrock user " + session.getAuthenticationData().getName());
+                connector.getLogger().info("using stored credentials for bedrock user " + session.getAuthenticationData().getName());
                 session.authenticate(info.email, info.password);
+
+                // TODO send a message to bedrock user telling them they are connected (if nothing like a motd
+                //      somes from the Java server w/in a few seconds)
                 return true;
             }
         }
