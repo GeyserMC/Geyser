@@ -27,17 +27,10 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.*;
-import org.geysermc.api.events.player.PlayerFormResponseEvent;
-import org.geysermc.api.window.CustomFormBuilder;
-import org.geysermc.api.window.CustomFormWindow;
-import org.geysermc.api.window.FormWindow;
-import org.geysermc.api.window.component.InputComponent;
-import org.geysermc.api.window.component.LabelComponent;
-import org.geysermc.api.window.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.WindowCache;
 import org.geysermc.connector.network.translators.Registry;
+import org.geysermc.connector.utils.AuthenticationUtils;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -95,44 +88,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-        WindowCache windowCache = session.getWindowCache();
-        if (!windowCache.getWindows().containsKey(packet.getFormId()))
-            return false;
-
-        FormWindow window = windowCache.getWindows().remove(packet.getFormId());
-        window.setResponse(packet.getFormData().trim());
-
-        if (session.isLoggedIn()) {
-            PlayerFormResponseEvent event = new PlayerFormResponseEvent(session, packet.getFormId(), window);
-            connector.getPluginManager().runEvent(event);
-        } else {
-            if (window instanceof CustomFormWindow) {
-                CustomFormWindow customFormWindow = (CustomFormWindow) window;
-                if (!customFormWindow.getTitle().equals("Login"))
-                    return false;
-
-                CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
-                session.authenticate(response.getInputResponses().get(2), response.getInputResponses().get(3));
-
-                // Clear windows so authentication data isn't accidentally cached
-                windowCache.getWindows().clear();
-            }
-        }
-        return true;
+        return AuthenticationUtils.authenticateFromForm(session, connector, packet.getFormData());
     }
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         if (!session.isLoggedIn()) {
-            CustomFormWindow window = new CustomFormBuilder("Login")
-                    .addComponent(new LabelComponent("Minecraft: Java Edition account authentication."))
-                    .addComponent(new LabelComponent("Enter the credentials for your Minecraft: Java Edition account below."))
-                    .addComponent(new InputComponent("Email/Username", "account@geysermc.org", ""))
-                    .addComponent(new InputComponent("Password", "123456", ""))
-                    .build();
-
-            session.sendForm(window, 1);
+            AuthenticationUtils.showLoginWindow(session);
             return true;
         }
         return false;

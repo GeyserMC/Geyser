@@ -1,4 +1,4 @@
-package org.geysermc.connector.network;
+package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
@@ -7,10 +7,17 @@ import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
 import net.minidev.json.JSONObject;
+import org.geysermc.api.events.player.PlayerFormResponseEvent;
+import org.geysermc.api.window.CustomFormBuilder;
+import org.geysermc.api.window.CustomFormWindow;
+import org.geysermc.api.window.FormWindow;
+import org.geysermc.api.window.component.InputComponent;
+import org.geysermc.api.window.component.LabelComponent;
+import org.geysermc.api.window.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockAuthData;
-import org.geysermc.connector.utils.LoginEncryptionUtils;
+import org.geysermc.connector.network.session.cache.WindowCache;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -85,5 +92,48 @@ public class AuthenticationUtils {
         session.getUpstream().sendPacketImmediately(packet);
     }
 
+    private static int AUTH_FORM_ID = 1337;
+
+    public static void showLoginWindow(GeyserSession session) {
+        CustomFormWindow window = new CustomFormBuilder("Login")
+                .addComponent(new LabelComponent("Minecraft: Java Edition account authentication."))
+                .addComponent(new LabelComponent("Enter the credentials for your Minecraft: Java Edition account below."))
+                .addComponent(new InputComponent("Email/Username", "account@geysermc.org", ""))
+                .addComponent(new InputComponent("Password", "123456", ""))
+                .build();
+
+        session.sendForm(window, AUTH_FORM_ID);
+    }
+
+    public static boolean authenticateFromForm(GeyserSession session, GeyserConnector connector, String formData) {
+        WindowCache windowCache = session.getWindowCache();
+        if (!windowCache.getWindows().containsKey(AUTH_FORM_ID))
+            return false;
+
+        FormWindow window = windowCache.getWindows().remove(AUTH_FORM_ID);
+        window.setResponse(formData.trim());
+
+        if (session.isLoggedIn()) {
+            PlayerFormResponseEvent event = new PlayerFormResponseEvent(session, AUTH_FORM_ID, window);
+            connector.getPluginManager().runEvent(event);
+        } else {
+            if (window instanceof CustomFormWindow) {
+                CustomFormWindow customFormWindow = (CustomFormWindow) window;
+                if (!customFormWindow.getTitle().equals("Login"))
+                    return false;
+
+                CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
+                String username = response.getInputResponses().get(2);
+                String password = response.getInputResponses().get(3);
+
+                session.authenticate(username, password);
+
+                // TODO should we clear the window cache in all cases or just if not already logged in?
+                // Clear windows so authentication data isn't accidentally cached
+                windowCache.getWindows().clear();
+            }
+        }
+        return true;
+    }
 
 }
