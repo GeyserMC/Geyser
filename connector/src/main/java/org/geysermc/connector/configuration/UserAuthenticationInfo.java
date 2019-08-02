@@ -25,25 +25,7 @@
 
 package org.geysermc.connector.configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-
-import java.util.Map;
-
-@Getter
-public class GeyserConfiguration {
-
-    private BedrockConfiguration bedrock;
-    private RemoteConfiguration remote;
-
-    private Map<String, UserAuthenticationInfo> userAuths;
-
-    @JsonProperty("ping-passthrough")
-    private boolean pingPassthrough;
-
-    @JsonProperty("max-players")
-    private int maxPlayers;
-
-    @JsonProperty("debug-mode")
-    private boolean debugMode;
+public class UserAuthenticationInfo {
+    public String email;
+    public String password;
 }

@@ -25,35 +25,13 @@
 
 package org.geysermc.connector.network;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.nimbusds.jose.JWSObject;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-import net.minidev.json.JSONObject;
-import org.geysermc.api.events.player.PlayerFormResponseEvent;
-import org.geysermc.api.window.CustomFormBuilder;
-import org.geysermc.api.window.CustomFormWindow;
-import org.geysermc.api.window.FormWindow;
-import org.geysermc.api.window.component.InputComponent;
-import org.geysermc.api.window.component.LabelComponent;
-import org.geysermc.api.window.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.configuration.UserAuthenticationInfo;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.auth.BedrockAuthData;
-import org.geysermc.connector.network.session.cache.WindowCache;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
-
-import javax.crypto.SecretKey;
-import java.io.IOException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PublicKey;
-import java.security.interfaces.ECPublicKey;
-import java.security.spec.ECGenParameterSpec;
-import java.util.UUID;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -75,49 +53,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return true;
         }
 
-        JsonNode certData;
-        try {
-            certData = LoginEncryptionUtils.JSON_MAPPER.readTree(loginPacket.getChainData().toByteArray());
-        } catch (IOException ex) {
-            throw new RuntimeException("Certificate JSON can not be read.");
-        }
-
-        JsonNode certChainData = certData.get("chain");
-        if (certChainData.getNodeType() != JsonNodeType.ARRAY) {
-            throw new RuntimeException("Certificate data is not valid");
-        }
-
-        boolean validChain;
-        try {
-            validChain = LoginEncryptionUtils.validateChainData(certChainData);
-
-            connector.getLogger().debug(String.format("Is player data valid? %s", validChain));
-
-            JWSObject jwt = JWSObject.parse(certChainData.get(certChainData.size() - 1).asText());
-            JsonNode payload = LoginEncryptionUtils.JSON_MAPPER.readTree(jwt.getPayload().toBytes());
-
-            if (payload.get("extraData").getNodeType() != JsonNodeType.OBJECT) {
-                throw new RuntimeException("AuthData was not found!");
-            }
-
-            JSONObject extraData = (JSONObject) jwt.getPayload().toJSONObject().get("extraData");
-            session.setAuthenticationData(new BedrockAuthData(extraData.getAsString("displayName"), UUID.fromString(extraData.getAsString("identity")), extraData.getAsString("XUID")));
-
-            if (payload.get("identityPublicKey").getNodeType() != JsonNodeType.STRING) {
-                throw new RuntimeException("Identity Public Key was not found!");
-            }
-
-            ECPublicKey identityPublicKey = EncryptionUtils.generateKey(payload.get("identityPublicKey").textValue());
-            JWSObject clientJwt = JWSObject.parse(loginPacket.getSkinData().toString());
-            EncryptionUtils.verifyJwt(clientJwt, identityPublicKey);
-
-            if (EncryptionUtils.canUseEncryption()) {
-                startEncryptionHandshake(identityPublicKey);
-            }
-        } catch (Exception ex) {
-            session.disconnect("disconnectionScreen.internalError.cantConnect");
-            throw new RuntimeException("Unable to complete login", ex);
-        }
+        LoginEncryptionUtils.encryptPlayerConnection(connector, session, loginPacket);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
@@ -153,61 +89,39 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
-        WindowCache windowCache = session.getWindowCache();
-        if (!windowCache.getWindows().containsKey(packet.getFormId()))
-            return false;
+        return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormData());
+    }
 
-        FormWindow window = windowCache.getWindows().remove(packet.getFormId());
-        window.setResponse(packet.getFormData().trim());
+    private boolean couldLoginUserByName(String bedrockUsername) {
+        if (connector.getConfig().getUserAuths() != null) {
+            UserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
 
-        if (session.isLoggedIn()) {
-            PlayerFormResponseEvent event = new PlayerFormResponseEvent(session, packet.getFormId(), window);
-            connector.getPluginManager().runEvent(event);
-        } else {
-            if (window instanceof CustomFormWindow) {
-                CustomFormWindow customFormWindow = (CustomFormWindow) window;
-                if (!customFormWindow.getTitle().equals("Login"))
-                    return false;
+            if (info != null) {
+                connector.getLogger().info("using stored credentials for bedrock user " + session.getAuthenticationData().getName());
+                session.authenticate(info.email, info.password);
 
-                CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
-                session.authenticate(response.getInputResponses().get(2), response.getInputResponses().get(3));
-
-                // Clear windows so authentication data isn't accidentally cached
-                windowCache.getWindows().clear();
+                // TODO send a message to bedrock user telling them they are connected (if nothing like a motd
+                //      somes from the Java server w/in a few seconds)
+                return true;
             }
         }
-        return true;
+
+        return false;
     }
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         if (!session.isLoggedIn()) {
-            CustomFormWindow window = new CustomFormBuilder("Login")
-                    .addComponent(new LabelComponent("Minecraft: Java Edition account authentication."))
-                    .addComponent(new LabelComponent("Enter the credentials for your Minecraft: Java Edition account below."))
-                    .addComponent(new InputComponent("Email/Username", "account@geysermc.org", ""))
-                    .addComponent(new InputComponent("Password", "123456", ""))
-                    .build();
+            // TODO it is safer to key authentication on something that won't change (UUID, not username)
+            if (!couldLoginUserByName(session.getAuthenticationData().getName())) {
+                LoginEncryptionUtils.showLoginWindow(session);
+            }
+            // else we were able to log the user in
 
-            session.sendForm(window, 1);
             return true;
         }
         return false;
-    }
-
-    private void startEncryptionHandshake(PublicKey key) throws Exception {
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
-        generator.initialize(new ECGenParameterSpec("secp384r1"));
-        KeyPair serverKeyPair = generator.generateKeyPair();
-
-        byte[] token = EncryptionUtils.generateRandomToken();
-        SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
-        session.getUpstream().enableEncryption(encryptionKey);
-
-        ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
-        packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token).serialize());
-        session.getUpstream().sendPacketImmediately(packet);
     }
 
     @Override
