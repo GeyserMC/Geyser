@@ -69,7 +69,7 @@ public class LoginEncryptionUtils {
             throw new RuntimeException("Certificate data is not valid");
         }
 
-        encryptConnectionWithCert(connector, session, loginPacket.getSkinData().toString(), certData);
+        encryptConnectionWithCert(connector, session, loginPacket.getSkinData().toString(), certChainData);
     }
 
     private static void encryptConnectionWithCert(GeyserConnector connector, GeyserSession session, String playerSkin, JsonNode certChainData) {
