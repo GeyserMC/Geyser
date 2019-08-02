@@ -150,10 +150,10 @@ public class LoginEncryptionUtils {
                     return false;
 
                 CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
-                String username = response.getInputResponses().get(2);
+                String email = response.getInputResponses().get(2);
                 String password = response.getInputResponses().get(3);
 
-                session.authenticate(username, password);
+                session.authenticate(email, password);
 
                 // TODO should we clear the window cache in all cases or just if not already logged in?
                 // Clear windows so authentication data isn't accidentally cached

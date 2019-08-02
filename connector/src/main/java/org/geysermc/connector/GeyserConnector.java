@@ -116,7 +116,7 @@ public class GeyserConnector implements Connector {
 
             config = FileUtils.loadConfig(configFile, GeyserConfiguration.class);
         } catch (IOException ex) {
-            logger.severe("Failed to create config.yml! Make sure it's up to date and writable!");
+            logger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!");
             shutdown();
         }
 

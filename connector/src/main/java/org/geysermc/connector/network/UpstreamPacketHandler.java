@@ -28,6 +28,7 @@ package org.geysermc.connector.network;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.configuration.UserAuthenticationInfo;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
@@ -91,11 +92,30 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormData());
     }
 
+    private boolean couldLoginUserByName(String bedrockUsername) {
+        if (connector.getConfig().getUserAuths() != null) {
+            UserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
+
+            if (info != null) {
+                connector.getLogger().debug("using stored credentials for bedrock user " + session.getAuthenticationData().getName());
+                session.authenticate(info.email, info.password);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public boolean handle(MovePlayerPacket packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         if (!session.isLoggedIn()) {
-            LoginEncryptionUtils.showLoginWindow(session);
+            // TODO it is safer to key authentication on something that won't change (UUID, not username)
+            if (!couldLoginUserByName(session.getAuthenticationData().getName())) {
+                LoginEncryptionUtils.showLoginWindow(session);
+            }
+            // else we were able to log the user in
+
             return true;
         }
         return false;
