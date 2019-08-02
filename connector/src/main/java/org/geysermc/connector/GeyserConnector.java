@@ -25,8 +25,6 @@
 
 package org.geysermc.connector;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
@@ -47,9 +45,11 @@ import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
 import org.geysermc.connector.thread.PingPassthroughThread;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.Toolbox;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -112,19 +112,9 @@ public class GeyserConnector implements Connector {
         logger.info("******************************************");
 
         try {
-            File configFile = new File("config.yml");
-            if (!configFile.exists()) {
-                FileOutputStream fos = new FileOutputStream(configFile);
-                InputStream is = GeyserConnector.class.getResourceAsStream("/config.yml");
-                int data;
-                while ((data = is.read()) != -1)
-                    fos.write(data);
-                is.close();
-                fos.close();
-            }
+            File configFile = FileUtils.fileOrCopiedFromResource("config.yml");
 
-            ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-            config = objectMapper.readValue(configFile, GeyserConfiguration.class);
+            config = FileUtils.loadConfig(configFile, GeyserConfiguration.class);
         } catch (IOException ex) {
             logger.severe("Failed to create config.yml! Make sure it's up to date and writable!");
             shutdown();
