@@ -25,3 +25,8 @@ hs_err_pid*
 *.iml
 *.idea
 
+# maven target directories
+target/
+
+# log directory
+logs/
