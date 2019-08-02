@@ -158,8 +158,12 @@ public class GeyserSession implements PlayerSession, Player {
     public void disconnect(String reason) {
         if (!closed) {
             loggedIn = false;
-            downstream.getSession().disconnect(reason);
-            upstream.disconnect(reason);
+            if (downstream != null && downstream.getSession() != null) {
+                downstream.getSession().disconnect(reason);
+            }
+            if (upstream != null) {
+                upstream.disconnect(reason);
+            }
         }
     }
 
