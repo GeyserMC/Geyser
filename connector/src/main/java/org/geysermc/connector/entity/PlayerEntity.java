@@ -37,12 +37,14 @@ import lombok.Setter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.Random;
+import java.util.UUID;
+
 @Getter
 @Setter
 public class PlayerEntity extends Entity {
 
-    // This is the session linked to the player entity, can be null
-    private GeyserSession session;
+    private UUID uuid;
 
     private ItemData hand;
 
@@ -51,10 +53,10 @@ public class PlayerEntity extends Entity {
     private ItemData leggings;
     private ItemData boots;
 
-    public PlayerEntity(GeyserSession session, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public PlayerEntity(UUID uuid, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
-        this.session = session;
+        this.uuid = uuid;
     }
 
     // TODO: Break this into an EquippableEntity class
@@ -76,9 +78,9 @@ public class PlayerEntity extends Entity {
     public void spawnEntity(GeyserSession session) {
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setUniqueEntityId(entityId);
-        addPlayerPacket.setUuid(this.session.getAuthenticationData().getUUID());
-        addPlayerPacket.setUsername(this.session.getAuthenticationData().getName());
+        addPlayerPacket.setUniqueEntityId(geyserId);
+        addPlayerPacket.setUuid(uuid);
+        addPlayerPacket.setUsername("Player" + new Random().nextInt(1000) + 1); // TODO: Cache player list values and set it here
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.setPosition(position);
         addPlayerPacket.setMotion(motion);
@@ -91,6 +93,9 @@ public class PlayerEntity extends Entity {
         addPlayerPacket.setPlayerPermission(0);
         addPlayerPacket.setCustomFlags(0);
         addPlayerPacket.setDeviceId("WIN10"); // TODO: Find this value
+        addPlayerPacket.getMetadata().putAll(getMetadata());
+
+        valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);
     }
 }

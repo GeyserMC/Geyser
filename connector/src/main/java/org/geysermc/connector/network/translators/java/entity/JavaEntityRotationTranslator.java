@@ -23,29 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.spawn;
+package org.geysermc.connector.network.translators.java.entity;
 
 import com.flowpowered.math.vector.Vector3f;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnExpOrbPacket;
-import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityRotationPacket;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.ExpOrbEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.utils.EntityUtils;
 
-public class JavaSpawnExpOrbTranslator extends PacketTranslator<ServerSpawnExpOrbPacket> {
+public class JavaEntityRotationTranslator extends PacketTranslator<ServerEntityRotationPacket> {
 
     @Override
-    public void translate(ServerSpawnExpOrbPacket packet, GeyserSession session) {
-        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
-        Entity entity = new ExpOrbEntity(packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.EXPERIENCE_ORB, position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
-
+    public void translate(ServerEntityRotationPacket packet, GeyserSession session) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
+            entity = session.getPlayerEntity();
+        }
         if (entity == null)
             return;
 
-        session.getEntityCache().spawnEntity(entity);
+        entity.moveRelative(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ(), packet.getPitch(), packet.getYaw());
+
+        Vector3f rotation = new Vector3f(entity.getRotation().getX() / (360d / 256d), entity.getRotation().getY() / (360d / 256d),
+                entity.getRotation().getZ() / (360d / 256d));
+        if (entity.isMovePending()) {
+            MoveEntityAbsolutePacket moveEntityAbsolutePacket = new MoveEntityAbsolutePacket();
+            moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
+            moveEntityAbsolutePacket.setPosition(entity.getPosition());
+            moveEntityAbsolutePacket.setRotation(rotation);
+            entity.setMovePending(false);
+
+            session.getUpstream().sendPacket(moveEntityAbsolutePacket);
+        }
     }
 }

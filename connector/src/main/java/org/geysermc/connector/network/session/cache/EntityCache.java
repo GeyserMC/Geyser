@@ -25,22 +25,18 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.flowpowered.math.vector.Vector3f;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnMobPacket;
 import lombok.Getter;
-import org.geysermc.api.Geyser;
-import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.EntityUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-// Each session has its own EntityCache in the occasion that an entity packet is sent specifically
-// for that player (e.g. seeing vanished players from /vanish)
+/**
+ * Each session has its own EntityCache in the occasion that an entity packet is sent specifically
+ * for that player (e.g. seeing vanished players from /vanish)
+ */
 public class EntityCache {
 
     private GeyserSession session;
@@ -48,25 +44,35 @@ public class EntityCache {
     @Getter
     private Map<Long, Entity> entities = new HashMap<Long, Entity>();
 
+    private Map<Long, Long> entityIdTranslations = new HashMap<Long, Long>();
+
+    @Getter
     private AtomicLong nextEntityId = new AtomicLong(2L);
 
     public EntityCache(GeyserSession session) {
         this.session = session;
     }
 
-    public Entity spawnEntity(ServerSpawnMobPacket packet) {
-        EntityType type = EntityUtils.toBedrockEntity(packet.getType());
-        if (type == null) {
-            GeyserLogger.DEFAULT.warning("Mob " + packet.getType() + " is not supported yet!");
-            return null;
-        }
+    public void spawnEntity(Entity entity) {
+        entity.moveAbsolute(entity.getPosition(), entity.getRotation().getX(), entity.getRotation().getY());
+        entityIdTranslations.put(entity.getEntityId(), entity.getGeyserId());
+        entities.put(entity.getGeyserId(), entity);
+        entity.spawnEntity(session);
+    }
 
-        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f motion = new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
-        Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), packet.getHeadYaw());
+    public void removeEntity(Entity entity) {
+        if (entity == null)
+            return;
 
-        Entity entity = new Entity(packet.getEntityId(), nextEntityId.incrementAndGet(), type, position, motion, rotation);
-        entity.moveAbsolute(position, packet.getPitch(), packet.getYaw());
-        return entities.put(entity.getGeyserId(), entity);
+        entityIdTranslations.remove(entity.getGeyserId());
+        entity.despawnEntity(session);
+    }
+
+    public Entity getEntityByGeyserId(long geyserId) {
+        return entities.get(geyserId);
+    }
+
+    public Entity getEntityByJavaId(long javaId) {
+        return entities.get(entityIdTranslations.get(javaId));
     }
 }

@@ -33,11 +33,14 @@ import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -50,18 +53,19 @@ public class Entity {
 
     protected Vector3f position;
     protected Vector3f motion;
+
+    // 1 - pitch, 2 - yaw, 3 - roll (head yaw)
     protected Vector3f rotation;
 
     protected int scale = 1;
-    protected float yaw;
-    protected float pitch;
-    protected boolean shouldMove;
+    protected boolean movePending;
 
     protected EntityType entityType;
 
     protected boolean valid;
 
-    protected Map<Integer, Attribute> attributes = new HashMap<Integer, Attribute>();
+    protected Set<Long> passengers = new HashSet<Long>();
+    protected Map<Attribute, Integer> attributes = new HashMap<Attribute, Integer>();
 
     public Entity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         this.entityId = entityId;
@@ -72,20 +76,24 @@ public class Entity {
         this.rotation = rotation;
 
         this.valid = false;
-        this.shouldMove = false;
+        this.movePending = false;
     }
 
     public void spawnEntity(GeyserSession session) {
         AddEntityPacket addEntityPacket = new AddEntityPacket();
+        addEntityPacket.setIdentifier("minecraft:" + entityType.name().toLowerCase());
         addEntityPacket.setRuntimeEntityId(geyserId);
-        addEntityPacket.setUniqueEntityId(entityId);
+        addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
         addEntityPacket.setMotion(motion);
         addEntityPacket.setRotation(rotation);
         addEntityPacket.setEntityType(entityType.getType());
+        addEntityPacket.getMetadata().putAll(getMetadata());
 
-        session.getUpstream().sendPacket(addEntityPacket);
         valid = true;
+        session.getUpstream().sendPacket(addEntityPacket);
+
+        GeyserLogger.DEFAULT.debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
 
     public void despawnEntity(GeyserSession session) {
@@ -93,35 +101,38 @@ public class Entity {
             return;
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
-        removeEntityPacket.setUniqueEntityId(entityId);
+        removeEntityPacket.setUniqueEntityId(geyserId);
         session.getUpstream().sendPacket(removeEntityPacket);
     }
 
     public void moveRelative(double relX, double relY, double relZ, float pitch, float yaw) {
-        if (relX == 0 && relY != 0 && relZ != 0 && yaw != 0 && pitch != 0)
+        moveRelative(relX, relY, relZ, new Vector3f(pitch, yaw, 0));
+    }
+
+    public void moveRelative(double relX, double relY, double relZ, Vector3f rotation) {
+        if (relX == 0 && relY != 0 && relZ != 0 && position.getX() == 0 && position.getY() == 0)
             return;
 
-        if (pitch != 0)
-            this.pitch = pitch;
-
-        if (yaw != 0)
-            this.yaw = yaw;
-
+        this.rotation = rotation;
         this.position = new Vector3f(position.getX() + relX, position.getX() + relY, position.getX() + relZ);
-        this.shouldMove = true;
+        this.movePending = true;
     }
 
     public void moveAbsolute(Vector3f position, float pitch, float yaw) {
-        if (position.getX() == 0 && position.getX() != 0 && position.getX() != 0 && yaw != 0 && pitch != 0)
+        moveAbsolute(position, new Vector3f(pitch, yaw, 0));
+    }
+
+    public void moveAbsolute(Vector3f position, Vector3f rotation) {
+        if (position.getX() == 0 && position.getX() != 0 && position.getX() != 0 && rotation.getX() == 0 && rotation.getY() == 0)
             return;
 
         this.position = position;
-        this.pitch = pitch;
-        this.yaw = yaw;
-        this.shouldMove = true;
+        this.rotation = rotation;
+        this.movePending = true;
     }
 
-    protected EntityDataDictionary getMetadata() {
+
+    public EntityDataDictionary getMetadata() {
         EntityDataDictionary dictionary = new EntityDataDictionary();
         dictionary.put(EntityData.NAMETAG, "");
         dictionary.put(EntityData.ENTITY_AGE, 0);

@@ -1,23 +1,17 @@
 package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.apache.logging.log4j.core.util.Patterns;
 import org.geysermc.connector.network.translators.item.BedrockItem;
-import org.geysermc.connector.network.translators.item.DyeColor;
 import org.geysermc.connector.network.translators.item.JavaItem;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class Toolbox {
 

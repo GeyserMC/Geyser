@@ -23,22 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity;
+package org.geysermc.connector.network.session.cache;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityDestroyPacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
+import lombok.Getter;
 
-public class JavaEntityDestroyTranslator extends PacketTranslator<ServerEntityDestroyPacket> {
+import java.util.HashMap;
+import java.util.Map;
 
-    @Override
-    public void translate(ServerEntityDestroyPacket packet, GeyserSession session) {
-        for (int entityId : packet.getEntityIds()) {
-            Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
-            session.getEntityCache().removeEntity(entity);
-        }
-    }
+public class DataCache<T> {
+
+    @Getter
+    private Map<String, T> cachedValues = new HashMap<String, T>();
 }
-

@@ -38,7 +38,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
     @Override
     public void translate(ServerJoinGamePacket packet, GeyserSession session) {
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
-        bedrockPacket.setUniqueEntityId(packet.getEntityId());
+        bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         session.getUpstream().sendPacketImmediately(bedrockPacket);
 
         Vector3f pos = new Vector3f(0, 0, 0);
@@ -52,10 +52,11 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
                 data.setSubChunksLength(0);
 
                 data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
-
                 session.getUpstream().sendPacketImmediately(data);
 
             }
         }
+
+        session.getJavaPacketCache().getCachedValues().put("java_join_packet", packet);
     }
 }

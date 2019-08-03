@@ -26,22 +26,21 @@
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
 import com.flowpowered.math.vector.Vector3f;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnExpOrbPacket;
-import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.ExpOrbEntity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.utils.EntityUtils;
 
-public class JavaSpawnExpOrbTranslator extends PacketTranslator<ServerSpawnExpOrbPacket> {
+public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlayerPacket> {
 
     @Override
-    public void translate(ServerSpawnExpOrbPacket packet, GeyserSession session) {
+    public void translate(ServerSpawnPlayerPacket packet, GeyserSession session) {
         Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
-        Entity entity = new ExpOrbEntity(packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.EXPERIENCE_ORB, position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
+        Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), 0);
+        Entity entity = new PlayerEntity(packet.getUUID(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                EntityType.EXPERIENCE_ORB, position, new Vector3f(0, 0, 0), rotation);
 
         if (entity == null)
             return;

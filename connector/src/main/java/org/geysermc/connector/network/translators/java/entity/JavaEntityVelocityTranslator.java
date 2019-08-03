@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java.entity;
 import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -35,9 +36,18 @@ public class JavaEntityVelocityTranslator extends PacketTranslator<ServerEntityV
 
     @Override
     public void translate(ServerEntityVelocityPacket packet, GeyserSession session) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
+            entity = session.getPlayerEntity();
+        }
+        if (entity == null)
+            return;
+
+        entity.setMotion(new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
+
         SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-        entityMotionPacket.setRuntimeEntityId(packet.getEntityId());
-        entityMotionPacket.setMotion(new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
+        entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
+        entityMotionPacket.setMotion(entity.getMotion());
 
         session.getUpstream().sendPacket(entityMotionPacket);
     }
