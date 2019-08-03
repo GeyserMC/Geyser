@@ -50,6 +50,9 @@ import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.cache.EntityCache;
 import org.geysermc.connector.network.session.cache.InventoryCache;
 import org.geysermc.connector.network.session.cache.ScoreboardCache;
 import org.geysermc.connector.network.session.cache.WindowCache;
@@ -73,6 +76,12 @@ public class GeyserSession implements PlayerSession, Player {
     private AuthData authenticationData;
 
     @Getter
+    private PlayerEntity playerEntity;
+
+    @Getter
+    private EntityCache entityCache;
+
+    @Getter
     private InventoryCache inventoryCache;
 
     @Getter
@@ -90,9 +99,11 @@ public class GeyserSession implements PlayerSession, Player {
         this.connector = connector;
         this.upstream = bedrockServerSession;
 
+        this.playerEntity = new PlayerEntity(this, 1, 1, EntityType.PLAYER, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
+
+        this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
         this.windowCache = new WindowCache(this);
-
         this.scoreboardCache = new ScoreboardCache(this);
 
         this.loggedIn = false;
