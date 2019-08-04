@@ -23,29 +23,45 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.scoreboard;
 
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
+import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Scoreboard;
 
-public class ScoreboardCache {
+import java.util.Random;
 
-    private GeyserSession session;
-
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-    }
+/**
+ * Adapted from: https://github.com/Ragnok123/GTScoreboard
+ */
+public class Score {
 
     @Getter
     @Setter
-    private Scoreboard scoreboard;
+    private int score;
 
-    public void removeScoreboard() {
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
+    @Getter
+    private long scoreboardId;
+
+    private ScoreboardObjective objective;
+
+    @Getter
+    @Setter
+    private String fakePlayer;
+
+    @Getter
+    @Setter
+    private SetScorePacket.Action action = SetScorePacket.Action.SET;
+
+    private boolean modified = false;
+
+    @Getter
+    @Setter
+    private String fakeId;
+
+    public Score(ScoreboardObjective objective, String fakePlayer) {
+        this.scoreboardId = -new Random().nextLong();
+        this.objective = objective;
+        this.fakePlayer = fakePlayer;
     }
 }

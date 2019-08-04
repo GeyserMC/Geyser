@@ -23,12 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.scoreboard;
+package org.geysermc.connector.scoreboard;
 
 import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.console.GeyserLogger;
 
 import java.util.HashMap;
 import java.util.Map;

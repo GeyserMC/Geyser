@@ -85,7 +85,7 @@ import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnMob
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnObjectTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnPaintingTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnPlayerTranslator;
-import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardDisplayTranslator;
+import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
@@ -155,7 +155,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerOpenWindowPacket.class, new JavaOpenWindowTranslator());
         Registry.registerJava(ServerSetSlotPacket.class, new JavaSetSlotTranslator());
         Registry.registerJava(ServerScoreboardObjectivePacket.class, new JavaScoreboardObjectiveTranslator());
-        Registry.registerJava(ServerDisplayScoreboardPacket.class, new JavaScoreboardDisplayTranslator());
+        Registry.registerJava(ServerDisplayScoreboardPacket.class, new JavaDisplayScoreboardTranslator());
         Registry.registerJava(ServerUpdateScorePacket.class, new JavaUpdateScoreTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());

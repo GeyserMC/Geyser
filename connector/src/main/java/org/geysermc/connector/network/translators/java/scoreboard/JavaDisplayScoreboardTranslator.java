@@ -23,45 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.scoreboard;
+package org.geysermc.connector.network.translators.java.scoreboard;
 
-import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
-import lombok.Getter;
-import lombok.Setter;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.ScoreboardCache;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.scoreboard.Scoreboard;
 
-import java.util.Random;
+public class JavaDisplayScoreboardTranslator extends PacketTranslator<ServerDisplayScoreboardPacket> {
 
-/**
- * Adapted from: https://github.com/Ragnok123/GTScoreboard
- */
-public class Score {
-
-    @Getter
-    @Setter
-    private int score;
-
-    @Getter
-    private long scoreboardId;
-
-    private ScoreboardObjective objective;
-
-    @Getter
-    @Setter
-    private String fakePlayer;
-
-    @Getter
-    @Setter
-    private SetScorePacket.Action action = SetScorePacket.Action.SET;
-
-    private boolean modified = false;
-
-    @Getter
-    @Setter
-    private String fakeId;
-
-    public Score(ScoreboardObjective objective, String fakePlayer) {
-        this.scoreboardId = -new Random().nextLong();
-        this.objective = objective;
-        this.fakePlayer = fakePlayer;
+    @Override
+    public void translate(ServerDisplayScoreboardPacket packet, GeyserSession session) {
+        try {
+            ScoreboardCache cache = session.getScoreboardCache();
+            Scoreboard scoreboard = new Scoreboard(session);
+            cache.setScoreboard(scoreboard);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

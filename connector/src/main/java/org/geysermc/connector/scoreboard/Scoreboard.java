@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.scoreboard;
+package org.geysermc.connector.scoreboard;
 
 import com.nukkitx.protocol.bedrock.data.ScoreInfo;
 import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
@@ -97,6 +97,9 @@ public class Scoreboard {
     }
 
     public void onUpdate() {
+        if (objective == null)
+            return;
+
         RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
         removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
         session.getUpstream().sendPacket(removeObjectivePacket);

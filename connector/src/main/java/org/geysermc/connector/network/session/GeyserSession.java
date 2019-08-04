@@ -150,12 +150,13 @@ public class GeyserSession implements PlayerSession, Player {
                 public void disconnected(DisconnectedEvent event) {
                     loggedIn = false;
                     connector.getLogger().info(authenticationData.getName() + " has disconnected from remote java server on address " + remoteServer.getAddress() + " because of " + event.getReason());
-                    upstream.disconnect(event.getReason());
+                    disconnect(event.getReason());
                 }
 
                 @Override
                 public void packetReceived(PacketReceivedEvent event) {
-                    Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                    if (!closed)
+                        Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                 }
             });
 
@@ -175,6 +176,8 @@ public class GeyserSession implements PlayerSession, Player {
                 upstream.disconnect(reason);
             }
         }
+
+        closed = true;
     }
 
     @Override
