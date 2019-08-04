@@ -35,6 +35,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntit
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnExpOrbPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
@@ -62,6 +65,9 @@ import org.geysermc.connector.network.translators.java.entity.JavaEntityPosition
 import org.geysermc.connector.network.translators.java.entity.JavaEntityTeleportTranslator;
 import org.geysermc.connector.network.translators.java.entity.JavaEntityVelocityTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnExpOrbTranslator;
+import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardDisplayTranslator;
+import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
+import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
@@ -114,6 +120,9 @@ public class TranslatorsInit {
         Registry.registerJava(ServerWindowItemsPacket.class, new JavaWindowItemsTranslator());
         Registry.registerJava(ServerOpenWindowPacket.class, new JavaOpenWindowTranslator());
         Registry.registerJava(ServerSetSlotPacket.class, new JavaSetSlotTranslator());
+        Registry.registerJava(ServerScoreboardObjectivePacket.class, new JavaScoreboardObjectiveTranslator());
+        Registry.registerJava(ServerDisplayScoreboardPacket.class, new JavaScoreboardDisplayTranslator());
+        Registry.registerJava(ServerUpdateScorePacket.class, new JavaUpdateScoreTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());

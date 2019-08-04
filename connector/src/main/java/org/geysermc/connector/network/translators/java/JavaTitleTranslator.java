@@ -54,11 +54,12 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
                 titlePacket.setType(SetTitlePacket.Type.SET_ACTIONBAR_MESSAGE);
                 titlePacket.setText(packet.getActionBar().getFullText());
                 break;
+            case TIMES:
+                titlePacket.setFadeInTime(packet.getFadeIn());
+                titlePacket.setFadeOutTime(packet.getFadeOut());
+                titlePacket.setStayTime(packet.getStay());
+                break;
         }
-
-        titlePacket.setFadeInTime(packet.getFadeIn());
-        titlePacket.setFadeOutTime(packet.getFadeOut());
-        titlePacket.setStayTime(packet.getStay());
 
         session.getUpstream().sendPacket(titlePacket);
     }
