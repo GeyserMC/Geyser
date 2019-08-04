@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -40,6 +41,7 @@ import com.github.steveice10.opennbt.tag.builtin.ShortTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
+import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Remapper;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -53,12 +55,10 @@ public class ItemTranslator {
     public ItemStack translateToJava(ItemData data) {
         JavaItem javaItem = getJavaItem(data);
 
-        // TODO: Fix NBT
-        // if (data.getTag() == null) {
-        //    return new ItemStack(javaItem.getId(), data.getCount());
-        // }
-        // return new ItemStack(javaItem.getId(), data.getCount(), translateToJavaNBT(data.getTag()));
-        return new ItemStack(javaItem.getId(), data.getCount());
+        if (data.getTag() == null) {
+            return new ItemStack(javaItem.getId(), data.getCount());
+        }
+        return new ItemStack(javaItem.getId(), data.getCount(), translateToJavaNBT(data.getTag()));
     }
 
     public ItemData translateToBedrock(ItemStack stack) {
@@ -68,13 +68,10 @@ public class ItemTranslator {
         }
 
         BedrockItem bedrockItem = getBedrockItem(stack);
-
-        // TODO: Fix NBT
-        //if (stack.getNBT() == null) {
-        //    return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount());
-        // }
-        // return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount(), translateToBedrockNBT(stack.getNBT()));
-        return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount());
+        if (stack.getNBT() == null) {
+           return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount());
+        }
+        return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount(), translateToBedrockNBT(stack.getNBT()));
     }
 
     public BedrockItem getBedrockItem(ItemStack stack) {
@@ -284,24 +281,23 @@ public class ItemTranslator {
 
         if (tag instanceof StringTag) {
             StringTag stringTag = (StringTag) tag;
-            return new com.nukkitx.nbt.tag.StringTag(stringTag.getName(), stringTag.getValue());
+            return new com.nukkitx.nbt.tag.StringTag(stringTag.getName(), MessageUtils.getBedrockMessage(Message.fromString(stringTag.getValue())));
         }
 
         if (tag instanceof ListTag) {
             ListTag listTag = (ListTag) tag;
+            if (listTag.getName().equalsIgnoreCase("Lore")) {
+                List<com.nukkitx.nbt.tag.StringTag> tags = new ArrayList<>();
+                for (Object value : listTag.getValue()) {
+                    if (!(value instanceof Tag))
+                        continue;
 
-            List<com.nukkitx.nbt.tag.Tag> tags = new ArrayList<com.nukkitx.nbt.tag.Tag>();
-            for (Object value : listTag.getValue()) {
-                if (!(value instanceof Tag))
-                    continue;
-
-                Tag tagValue = (Tag) value;
-                com.nukkitx.nbt.tag.Tag bedrockTag = translateToBedrockNBT(tagValue);
-                if (bedrockTag != null)
-                    tags.add(bedrockTag);
+                    com.nukkitx.nbt.tag.StringTag bedrockTag = (com.nukkitx.nbt.tag.StringTag) translateToBedrockNBT((Tag) value);
+                    if (bedrockTag != null)
+                        tags.add(bedrockTag);
+                }
+                return new com.nukkitx.nbt.tag.ListTag<>(listTag.getName(), com.nukkitx.nbt.tag.StringTag.class, tags);
             }
-            // TODO: Fix unchecked call here
-            return new com.nukkitx.nbt.tag.ListTag(listTag.getName(), listTag.getElementType(), tags);
         }
 
         if (tag instanceof CompoundTag) {

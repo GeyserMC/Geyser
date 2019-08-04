@@ -29,6 +29,7 @@ Links:
   - [ ] Team-based scoreboards
 - [ ] Inventory support
   - [x] Inventory viewing
+  - [x] NBT data (experimental)
   - [ ] Inventory movement (transactions)
 - [ ] Player movement support
 - [x] Entity support (experimental)
