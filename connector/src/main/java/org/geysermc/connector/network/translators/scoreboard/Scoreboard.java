@@ -106,7 +106,7 @@ public class Scoreboard {
         displayObjectivePacket.setDisplayName(objective.getDisplayName());
         displayObjectivePacket.setCriteria("dummy");
         displayObjectivePacket.setDisplaySlot("sidebar");
-        displayObjectivePacket.setSortOrder(2);
+        displayObjectivePacket.setSortOrder(1);
         session.getUpstream().sendPacket(displayObjectivePacket);
 
         Map<String, Score> fakeMap = new HashMap<String, Score>();

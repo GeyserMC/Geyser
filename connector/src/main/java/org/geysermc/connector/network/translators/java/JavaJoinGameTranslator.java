@@ -26,9 +26,11 @@
 package org.geysermc.connector.network.translators.java;
 
 import com.flowpowered.math.vector.Vector3f;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
@@ -40,6 +42,10 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         session.getUpstream().sendPacketImmediately(bedrockPacket);
+
+        int gamemode = packet.getGameMode().ordinal();
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(gamemode);
 
         Vector3f pos = new Vector3f(0, 0, 0);
         int chunkX = pos.getFloorX() >> 4;
