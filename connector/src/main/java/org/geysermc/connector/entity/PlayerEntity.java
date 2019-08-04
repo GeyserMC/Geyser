@@ -37,6 +37,9 @@ import lombok.Setter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
 import java.util.UUID;
 
@@ -74,13 +77,23 @@ public class PlayerEntity extends Entity {
         session.getUpstream().sendPacket(armorEquipmentPacket);
     }
 
+    public void saveDataToFile(String data, String path) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(path));
+        writer.write(data);
+        writer.newLine();
+        writer.close();
+    }
+
     @Override
     public void spawnEntity(GeyserSession session) {
+
+        String playerUsername = ("Player" + new Random().nextInt(1000) + 1);
+
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
         addPlayerPacket.setUniqueEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
         addPlayerPacket.setUuid(uuid);
-        addPlayerPacket.setUsername("Player" + new Random().nextInt(1000) + 1); // TODO: Cache player list values and set it here
+        addPlayerPacket.setUsername(playerUsername); // TODO: Faster Cache Method
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.setPosition(position);
         addPlayerPacket.setMotion(motion);
