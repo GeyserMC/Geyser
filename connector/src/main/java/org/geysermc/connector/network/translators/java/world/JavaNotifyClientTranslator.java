@@ -57,14 +57,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.getUpstream().sendPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:
-                int gamemode = 0;
-                if (packet.getValue().equals(GameMode.CREATIVE)) {
-                    gamemode = 1;
-                } else if (packet.getValue().equals(GameMode.ADVENTURE)) {
-                    gamemode = 2;
-                } else if (packet.getValue().equals(GameMode.SPECTATOR)) {
-                    gamemode = 3;
-                }
+                int gamemode = ((GameMode) packet.getValue()).ordinal();
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gamemode);
                 break;

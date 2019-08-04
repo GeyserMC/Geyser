@@ -43,14 +43,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         bedrockPacket.setUniqueEntityId(packet.getEntityId());
         session.getUpstream().sendPacketImmediately(bedrockPacket);
 
-        int gamemode = 0;
-        if (packet.getGameMode().equals(GameMode.CREATIVE)) {
-            gamemode = 1;
-        } else if (packet.getGameMode().equals(GameMode.ADVENTURE)) {
-            gamemode = 2;
-        } else if (packet.getGameMode().equals(GameMode.SPECTATOR)) {
-            gamemode = 3;
-        }
+        int gamemode = packet.getGameMode().ordinal();
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(gamemode);
 
