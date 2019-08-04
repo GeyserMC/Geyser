@@ -40,7 +40,7 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
         Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), 0);
         Entity entity = new PlayerEntity(packet.getUUID(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.EXPERIENCE_ORB, position, new Vector3f(0, 0, 0), rotation);
+                EntityType.PLAYER, position, new Vector3f(0, 0, 0), rotation);
 
         if (entity == null)
             return;
