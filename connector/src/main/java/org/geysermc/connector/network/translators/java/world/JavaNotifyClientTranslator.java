@@ -26,8 +26,10 @@
 package org.geysermc.connector.network.translators.java.world;
 
 import com.flowpowered.math.vector.Vector3f;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -53,6 +55,18 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 stopRainPacket.setPosition(new Vector3f(0, 0, 0));
 
                 session.getUpstream().sendPacket(stopRainPacket);
+                break;
+            case CHANGE_GAMEMODE:
+                int gamemode = 0;
+                if (packet.getValue().equals(GameMode.CREATIVE)) {
+                    gamemode = 1;
+                } else if (packet.getValue().equals(GameMode.ADVENTURE)) {
+                    gamemode = 2;
+                } else if (packet.getValue().equals(GameMode.SPECTATOR)) {
+                    gamemode = 3;
+                }
+                SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+                playerGameTypePacket.setGamemode(gamemode);
                 break;
             case ENTER_CREDITS:
                 // ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
