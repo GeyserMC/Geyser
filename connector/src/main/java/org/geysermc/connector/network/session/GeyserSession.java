@@ -54,6 +54,7 @@ import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.DataCache;
 import org.geysermc.connector.network.session.cache.EntityCache;
 import org.geysermc.connector.network.session.cache.InventoryCache;
@@ -76,6 +77,8 @@ public class GeyserSession implements PlayerSession, Player {
     private AuthData authenticationData;
 
     private PlayerEntity playerEntity;
+    private PlayerInventory inventory;
+
     private EntityCache entityCache;
     private InventoryCache inventoryCache;
     private WindowCache windowCache;
@@ -94,17 +97,20 @@ public class GeyserSession implements PlayerSession, Player {
         this.connector = connector;
         this.upstream = bedrockServerSession;
 
-        this.playerEntity = new PlayerEntity(UUID.randomUUID(), 1, 1, EntityType.PLAYER, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
-
         this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
         this.windowCache = new WindowCache(this);
         this.scoreboardCache = new ScoreboardCache(this);
 
+        this.playerEntity = new PlayerEntity(UUID.randomUUID(), 1, 1, EntityType.PLAYER, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
+        this.inventory = new PlayerInventory();
+
         this.javaPacketCache = new DataCache<Packet>();
 
         this.spawned = false;
         this.loggedIn = false;
+
+        this.inventoryCache.getInventories().put(0, inventory);
     }
 
     public void connect(RemoteServer remoteServer) {

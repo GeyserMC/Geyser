@@ -23,7 +23,6 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;

@@ -59,10 +59,12 @@ import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
+import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import lombok.Getter;
 import org.geysermc.connector.network.translators.bedrock.BedrockAnimateTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockCommandRequestTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockMobEquipmentTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
 import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
@@ -161,6 +163,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
         Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
+        Registry.registerBedrock(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator());
 
         itemTranslator = new ItemTranslator();
 

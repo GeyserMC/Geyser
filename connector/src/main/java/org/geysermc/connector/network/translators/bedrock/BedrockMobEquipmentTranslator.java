@@ -23,52 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.packetlib.packet.Packet;
-import lombok.Getter;
-import lombok.Setter;
-import org.geysermc.connector.inventory.Inventory;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerChangeHeldItemPacket;
+import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipmentPacket> {
 
-public class InventoryCache {
+    @Override
+    public void translate(MobEquipmentPacket packet, GeyserSession session) {
+        if (packet.getHotbarSlot() > 8)
+            return;
 
-    private GeyserSession session;
+        if (packet.getContainerId() != ContainerId.INVENTORY)
+            return;
 
-    @Getter
-    @Setter
-    private Inventory openInventory;
+        session.getInventory().setHeldItemSlot(packet.getHotbarSlot());
 
-    @Getter
-    private Map<Integer, Inventory> inventories = new HashMap<Integer, Inventory>();
-
-    @Getter
-    private Map<Integer, List<Packet>> cachedPackets = new HashMap<Integer, List<Packet>>();
-
-    public InventoryCache(GeyserSession session) {
-        this.session = session;
-    }
-
-    public Inventory getPlayerInventory() {
-        return inventories.get(0);
-    }
-
-    public void cacheInventory(Inventory inventory) {
-        inventories.put(inventory.getId(), inventory);
-    }
-
-    public void uncacheInventory(int id) {
-        inventories.remove(id);
-    }
-
-    public void cachePacket(int id, Packet packet) {
-        List<Packet> packets = cachedPackets.getOrDefault(id, new ArrayList<Packet>());
-        packets.add(packet);
-        cachedPackets.put(id, packets);
+        ClientPlayerChangeHeldItemPacket changeHeldItemPacket = new ClientPlayerChangeHeldItemPacket(packet.getHotbarSlot());
+        session.getDownstream().getSession().send(changeHeldItemPacket);
     }
 }

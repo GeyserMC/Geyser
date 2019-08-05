@@ -23,52 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.inventory;
 
-import com.github.steveice10.packetlib.packet.Packet;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class InventoryCache {
-
-    private GeyserSession session;
+public class PlayerInventory extends Inventory {
 
     @Getter
     @Setter
-    private Inventory openInventory;
+    private int heldItemSlot;
 
-    @Getter
-    private Map<Integer, Inventory> inventories = new HashMap<Integer, Inventory>();
+    public PlayerInventory() {
+        super(0, null, 45);
 
-    @Getter
-    private Map<Integer, List<Packet>> cachedPackets = new HashMap<Integer, List<Packet>>();
-
-    public InventoryCache(GeyserSession session) {
-        this.session = session;
+        heldItemSlot = 0;
     }
 
-    public Inventory getPlayerInventory() {
-        return inventories.get(0);
-    }
-
-    public void cacheInventory(Inventory inventory) {
-        inventories.put(inventory.getId(), inventory);
-    }
-
-    public void uncacheInventory(int id) {
-        inventories.remove(id);
-    }
-
-    public void cachePacket(int id, Packet packet) {
-        List<Packet> packets = cachedPackets.getOrDefault(id, new ArrayList<Packet>());
-        packets.add(packet);
-        cachedPackets.put(id, packets);
+    public ItemStack getItemInHand() {
+        return items[heldItemSlot];
     }
 }
