@@ -245,15 +245,15 @@ public class GeyserSession implements PlayerSession, Player {
 
     private void startGame() {
         StartGamePacket startGamePacket = new StartGamePacket();
-        startGamePacket.setUniqueEntityId(1);
-        startGamePacket.setRuntimeEntityId(1);
+        startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
+        startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
         startGamePacket.setPlayerGamemode(0);
-        startGamePacket.setPlayerPosition(new Vector3f(0, 0, 0));
+        startGamePacket.setPlayerPosition(new Vector3f(0, 69, 0));
         startGamePacket.setRotation(new Vector2f(1, 1));
 
         startGamePacket.setSeed(0);
-        startGamePacket.setDimensionId(0);
-        startGamePacket.setGeneratorId(0);
+        startGamePacket.setDimensionId(playerEntity.getDimension());
+        startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGamemode(0);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(new Vector3i(0, 0, 0));

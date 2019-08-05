@@ -46,6 +46,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         int gamemode = packet.getGameMode().ordinal();
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(gamemode);
+        session.getUpstream().sendPacket(playerGameTypePacket);
 
         Vector3f pos = new Vector3f(0, 0, 0);
         int chunkX = pos.getFloorX() >> 4;

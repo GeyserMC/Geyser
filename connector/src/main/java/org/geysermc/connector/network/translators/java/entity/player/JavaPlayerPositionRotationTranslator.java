@@ -25,20 +25,17 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
-import com.flowpowered.math.vector.Vector2f;
 import com.flowpowered.math.vector.Vector3f;
-import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
-import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
-import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.utils.Toolbox;
 
 public class JavaPlayerPositionRotationTranslator extends PacketTranslator<ServerPlayerPositionRotationPacket> {
 
@@ -54,63 +51,24 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         if (session.isSpawned())
             return;
 
-        ServerJoinGamePacket javaPacket = (ServerJoinGamePacket) session.getJavaPacketCache().getCachedValues().remove("java_join_packet");
+        ServerJoinGamePacket javaJoinPacket = (ServerJoinGamePacket) session.getJavaPacketCache().getCachedValues().remove("java_join_packet");
 
-        StartGamePacket startGamePacket = new StartGamePacket();
-        startGamePacket.setUniqueEntityId(entity.getEntityId());
-        startGamePacket.setRuntimeEntityId(entity.getEntityId());
-        startGamePacket.setPlayerGamemode(0);
-        startGamePacket.setPlayerPosition(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
-        startGamePacket.setRotation(new Vector2f(entity.getRotation().getX(), entity.getRotation().getY()));
-
-        startGamePacket.setSeed(0);
-        startGamePacket.setDimensionId(entity.getDimension());
-        startGamePacket.setGeneratorId(0);
-        startGamePacket.setLevelGamemode(javaPacket.getGameMode().ordinal());
-        startGamePacket.setDifficulty(1);
-        startGamePacket.setDefaultSpawn(new Vector3i(packet.getX(), packet.getY(), packet.getZ()));
-        startGamePacket.setAcheivementsDisabled(true);
-        startGamePacket.setTime(0);
-        startGamePacket.setEduLevel(false);
-        startGamePacket.setEduFeaturesEnabled(false);
-        startGamePacket.setRainLevel(0);
-        startGamePacket.setLightningLevel(0);
-        startGamePacket.setMultiplayerGame(true);
-        startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRule<>("showcoordinates", true));
-        startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
-        startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
-        startGamePacket.setCommandsEnabled(true);
-        startGamePacket.setTexturePacksRequired(false);
-        startGamePacket.setBonusChestEnabled(false);
-        startGamePacket.setStartingWithMap(false);
-        startGamePacket.setTrustingPlayers(true);
-        startGamePacket.setDefaultPlayerPermission(1);
-        startGamePacket.setServerChunkTickRange(4);
-        startGamePacket.setBehaviorPackLocked(false);
-        startGamePacket.setResourcePackLocked(false);
-        startGamePacket.setFromLockedWorldTemplate(false);
-        startGamePacket.setUsingMsaGamertagsOnly(false);
-        startGamePacket.setFromWorldTemplate(false);
-        startGamePacket.setWorldTemplateOptionLocked(false);
-
-        startGamePacket.setLevelId("world");
-        startGamePacket.setWorldName("world");
-        startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
-        startGamePacket.setCurrentTick(0);
-        startGamePacket.setEnchantmentSeed(0);
-        startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setCachedPalette(Toolbox.CACHED_PALLETE);
-        startGamePacket.setItemEntries(Toolbox.ITEMS);
-        session.getUpstream().sendPacket(startGamePacket);
+        PlayStatusPacket playStatus = new PlayStatusPacket();
+        playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
+        session.getUpstream().sendPacketImmediately(playStatus);
 
         entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getPitch(), packet.getYaw());
+
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(javaJoinPacket.getGameMode().ordinal());
+        session.getUpstream().sendPacket(playerGameTypePacket);
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
         entityDataPacket.getMetadata().putAll(entity.getMetadata());
 
         session.getUpstream().sendPacket(entityDataPacket);
+        session.getPlayerEntity().setEntityId(javaJoinPacket.getEntityId());
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -123,6 +81,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         session.getUpstream().sendPacket(movePlayerPacket);
         session.setSpawned(true);
 
-        System.out.println("resent! " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
+        GeyserLogger.DEFAULT.info("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
     }
 }
