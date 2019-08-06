@@ -54,7 +54,7 @@ class RemapUtils {
         //TODO: add stone support
         /*Remapper.predicates.put((x) -> x.getF().contains("oak"), (x, y) -> {
             //System.out.println(x.getIdentifier());
-            //if(customWoodIfNeeded(y)) return;
+            //if(customStoneIfNeeded(y)) return;
 
             if (y.getIdentifier().replaceAll("oak_", "")
                     .equalsIgnoreCase(x.getIdentifier()) && x.getData() == 0) {
@@ -85,6 +85,10 @@ class RemapUtils {
                 return false;
             }
         }
+        return false;
+    }
+
+    private static boolean customStoneIfNeeded(JavaItem j) {
         return false;
     }
 }
