@@ -1,28 +1,22 @@
 package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.apache.logging.log4j.core.util.Patterns;
 import org.geysermc.connector.network.translators.item.BedrockItem;
-import org.geysermc.connector.network.translators.item.DyeColor;
 import org.geysermc.connector.network.translators.item.JavaItem;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class Toolbox {
 
     static {
-        InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream("cached_pallete.json");
+        InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/cached_palette.json");
         ObjectMapper mapper = new ObjectMapper();
         ArrayList<LinkedHashMap<String, Object>> entries = new ArrayList<>();
 
@@ -53,7 +47,7 @@ public class Toolbox {
 
         CACHED_PALLETE = b;
 
-        InputStream stream2 = Toolbox.class.getClassLoader().getResourceAsStream("items.json");
+        InputStream stream2 = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/items.json");
         if (stream2 == null) {
             throw new AssertionError("Items Table not found");
         }
@@ -79,7 +73,7 @@ public class Toolbox {
 
         BEDROCK_ITEMS = bedrockItems;
 
-        InputStream javaItemStream = Toolbox.class.getClassLoader().getResourceAsStream("java_items.json");
+        InputStream javaItemStream = Toolbox.class.getClassLoader().getResourceAsStream("java/java_blocks.json");
         ObjectMapper javaItemMapper = new ObjectMapper();
         Map<String, HashMap> javaItemList = new HashMap<>();
         try {

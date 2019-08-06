@@ -32,5 +32,6 @@ public interface AuthData {
     String getName();
 
     UUID getUUID();
+
     String getXboxUUID();
 }

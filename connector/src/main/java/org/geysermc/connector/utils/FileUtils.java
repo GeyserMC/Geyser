@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.connector.GeyserConnector;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.function.Function;
 
 public class FileUtils {
     public static <T> T loadConfig(File src, Class<T> valueType) throws IOException {
@@ -15,16 +13,22 @@ public class FileUtils {
         return objectMapper.readValue(src, valueType);
     }
 
-    public static File fileOrCopiedFromResource(String name) throws IOException {
+    public static File fileOrCopiedFromResource(String name, Function<String, String> s) throws IOException {
         File file = new File(name);
         if (!file.exists()) {
             FileOutputStream fos = new FileOutputStream(file);
-            InputStream is = GeyserConnector.class.getResourceAsStream("/" + name); // resources need leading "/" prefix
+            InputStream input = GeyserConnector.class.getResourceAsStream("/" + name); // resources need leading "/" prefix
 
-            int data;
-            while ((data = is.read()) != -1)
-                fos.write(data);
-            is.close();
+            byte[] bytes = new byte[input.available()];
+
+            input.read(bytes);
+
+            for(char c : s.apply(new String(bytes)).toCharArray()) {
+                fos.write(c);
+            }
+
+            fos.flush();
+            input.close();
             fos.close();
         }
 

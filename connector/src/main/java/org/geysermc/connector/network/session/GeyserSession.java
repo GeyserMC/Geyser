@@ -45,6 +45,7 @@ import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import lombok.Getter;
+import org.geysermc.api.Geyser;
 import org.geysermc.api.Player;
 import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
@@ -106,6 +107,7 @@ public class GeyserSession implements PlayerSession, Player {
         if (!connector.getConfig().getRemote().isOnlineMode()) {
             connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
             authenticate(authenticationData.getName());
+            Geyser.addPlayer(this);
         }
     }
 

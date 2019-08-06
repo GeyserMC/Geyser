@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
 import org.geysermc.api.events.PingEvent;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;

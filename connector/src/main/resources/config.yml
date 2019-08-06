@@ -43,6 +43,9 @@ max-players: 100
 # If debug messages should be sent through console
 debug-mode: false
 
+# UUID: DON'T CHANGE!
+uuid: UUIDTESTUUIDTEST
+
 
 
 

@@ -26,11 +26,9 @@
 package org.geysermc.connector.console;
 
 import org.geysermc.api.ChatColor;
-import org.geysermc.connector.GeyserConnector;
 import io.sentry.Sentry;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.logging.*;
 

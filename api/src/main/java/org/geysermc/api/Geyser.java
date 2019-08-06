@@ -29,9 +29,15 @@ import org.geysermc.api.command.CommandMap;
 import org.geysermc.api.logger.Logger;
 import org.geysermc.api.plugin.PluginManager;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class Geyser {
+    private static final Map<Object, Player> players = new HashMap<>();
+
 
     private static Connector connector;
 
@@ -82,5 +88,29 @@ public class Geyser {
 
     public static ScheduledExecutorService getGeneralThreadPool() {
         return connector.getGeneralThreadPool();
+    }
+
+    /**
+     * @return the amount of online players
+     */
+    public static int getPlayerCount() {
+        return players.size();
+    }
+
+    /**
+     * Add a player
+     * @param p The player to add
+     */
+    public static void addPlayer(Player p) {
+        players.put(Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(p, "player").getAuthenticationData(), "authData").getUUID(), "player uuid"), p);
+        players.put(Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(p, "player").getAuthenticationData(), "authData").getName(), "player name"), p);
+    }
+
+    /**
+     * Disconnect a player
+     * @param p The player to remove/disconnect
+     */
+    public static void removePlayer(Player p) {
+        players.remove(Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(p, "player").getAuthenticationData(), "authData").getName(), "player name"));
     }
 }

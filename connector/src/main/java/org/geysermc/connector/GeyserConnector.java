@@ -29,6 +29,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
 import lombok.Getter;
+import org.apache.commons.io.IOUtils;
 import org.fusesource.jansi.AnsiConsole;
 import org.geysermc.api.Connector;
 import org.geysermc.api.Geyser;
@@ -39,6 +40,7 @@ import org.geysermc.connector.command.GeyserCommandMap;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.ConsoleCommandReader;
 import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
 import org.geysermc.connector.network.translators.TranslatorsInit;
@@ -51,6 +53,8 @@ import org.geysermc.connector.utils.Toolbox;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -88,6 +92,9 @@ public class GeyserConnector implements Connector {
     @Getter
     private PingPassthroughThread passthroughThread;
 
+    @Getter
+    private Metrics METRICS;
+
     public static void main(String[] args) {
         instance = new GeyserConnector();
     }
@@ -112,13 +119,17 @@ public class GeyserConnector implements Connector {
         logger.info("******************************************");
 
         try {
-            File configFile = FileUtils.fileOrCopiedFromResource("config.yml");
+            File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("UUIDTESTUUIDTEST", UUID.randomUUID().toString()));
 
             config = FileUtils.loadConfig(configFile, GeyserConfiguration.class);
         } catch (IOException ex) {
             logger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!");
             shutdown();
         }
+
+        METRICS = new Metrics("GeyserMC", instance.getConfig().getUUID(), true, java.util.logging.Logger.getLogger(""));
+
+        addMetrics(METRICS);
 
         logger.setDebug(config.isDebugMode());
 
@@ -161,5 +172,11 @@ public class GeyserConnector implements Connector {
 
         generalThreadPool.shutdown();
         System.exit(0);
+    }
+
+    private static void addMetrics(Metrics m) {
+        m.addCustomChart(new Metrics.SingleLineChart("servers", () -> 3 + new Random().nextInt(4)));
+
+        m.addCustomChart(new Metrics.SingleLineChart("players", () -> 5 + new Random().nextInt(7)));
     }
 }

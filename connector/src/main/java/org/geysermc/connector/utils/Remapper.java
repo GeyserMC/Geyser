@@ -11,8 +11,13 @@ import org.geysermc.connector.network.translators.item.WoodType;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 public class Remapper {
+    static final Map<JavaItem, List<BedrockItem>> convertions = new HashMap<>();
+
+    static final Map<Predicate<BiValue<String, String>>, BiConsumer<BedrockItem, JavaItem>> predicates = new LinkedHashMap<>();
 
     private static List<String> specials = new ArrayList<>();
 
@@ -25,54 +30,16 @@ public class Remapper {
             specials.add(type.getName());
         }
 
-        Map<JavaItem, List<BedrockItem>> convertions = new HashMap<>();
+        RemapUtils.start();
 
         for (Map.Entry<String, JavaItem> javaItem : java.entrySet()) {
             for (Map.Entry<String, BedrockItem> bedrockItem : items1.entrySet()) {
-                if (tool(javaItem.getValue().getIdentifier()))
-                    continue;
-
-                if (javaItem.getKey().contains("white_")) {
-                    String stripped = javaItem.getKey().replaceAll("white_", "").replaceAll("terracotta", "stained_hardened_clay");
-
-                    if (!stripped.equalsIgnoreCase(bedrockItem.getKey()) || bedrockItem.getValue().getData() != 0)
-                        continue;
-
-                    for (DyeColor dyeColor : DyeColor.values()) {
-                        JavaItem j = java.get(javaItem.getValue().getIdentifier().replaceAll("white_", dyeColor.getName() + "_"));
-                        convertions.computeIfAbsent(j, (x) -> new ArrayList<>());
-                        convertions.get(j).add(new BedrockItem(bedrockItem.getValue().getIdentifier(), bedrockItem.getValue().getId(), dyeColor.getId()));
+                for(Predicate<BiValue<String, String>> predicate : predicates.keySet()) {
+                    BiValue<String, String> b = new BiValue<>(javaItem.getKey(), bedrockItem.getKey());
+                    BiValue<String, String> b2 = new BiValue<>(javaItem.getKey().replaceAll("_", ""), bedrockItem.getKey().replaceAll("_", ""));
+                    if(predicate.test(b) || predicate.test(b2)) {
+                        predicates.get(predicate).accept(bedrockItem.getValue(), javaItem.getValue());
                     }
-                } else if (javaItem.getKey().contains("oak_")) {
-                    String stripped = javaItem.getKey().replaceAll("oak_", "").replaceAll("terracotta", "stained_hardened_clay");
-
-                    if (!stripped.equalsIgnoreCase(bedrockItem.getKey()) || bedrockItem.getValue().getData() != 0)
-                        continue;
-
-                    for (WoodType woodType : WoodType.values()) {
-                        JavaItem j = java.get(javaItem.getValue().getIdentifier().replaceAll("oak_", woodType.getName() + "_"));
-                        convertions.computeIfAbsent(j, (x) -> new ArrayList<>());
-                        convertions.get(j).add(new BedrockItem(bedrockItem.getValue().getIdentifier(), bedrockItem.getValue().getId(), woodType.getId()));
-                    }
-                } else if (!javaItem.getKey().contains("stairs")) {
-                    if (!javaItem.getKey().startsWith("minecraft:stone_") || !bedrockItem.getValue().getIdentifier().equalsIgnoreCase(javaItem.getKey().replace("stone_", "")) || bedrockItem.getValue().getData() != 0)
-                        continue;
-
-                    for (StoneType stoneType : StoneType.values()) {
-                        JavaItem j = java.get(javaItem.getValue().getIdentifier().replaceAll("stone_", stoneType.getName() + "_"));
-                        convertions.computeIfAbsent(j, (x) -> new ArrayList<>());
-                        convertions.get(j).add(new BedrockItem(bedrockItem.getValue().getIdentifier(), bedrockItem.getValue().getId(), stoneType.getId()));
-                    }
-                } else if (javaItem.getKey().equalsIgnoreCase("minecraft:stone") && bedrockItem.getKey().equalsIgnoreCase("minecraft:stone")) {
-                    for (StoneType stoneType : StoneType.values()) {
-                        JavaItem j = java.get(javaItem.getValue().getIdentifier().replaceAll("stone", stoneType.getName()));
-                        convertions.computeIfAbsent(j, (x) -> new ArrayList<>());
-                        convertions.get(j).add(new BedrockItem(bedrockItem.getValue().getIdentifier(), bedrockItem.getValue().getId(), stoneType.getId()));
-                    }
-                } else if (bedrockItem.getValue().getIdentifier().equalsIgnoreCase(javaItem.getKey()) && notSpecial(javaItem.getKey())) {
-                    JavaItem j = javaItem.getValue();
-                    convertions.computeIfAbsent(j, (x) -> new ArrayList<>());
-                    convertions.get(j).add(bedrockItem.getValue());
                 }
             }
         }
@@ -99,7 +66,7 @@ public class Remapper {
         }
 
         // Uncomment this for updated mappings
-        // writeMappings();
+         writeMappings();
     }
 
     private static void writeMappings() {
