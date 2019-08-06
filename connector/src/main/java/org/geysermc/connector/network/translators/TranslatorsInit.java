@@ -38,7 +38,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntit
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerSetExperiencePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnExpOrbPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnGlobalEntityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnMobPacket;
@@ -80,7 +82,9 @@ import org.geysermc.connector.network.translators.java.entity.JavaEntityProperti
 import org.geysermc.connector.network.translators.java.entity.JavaEntityRotationTranslator;
 import org.geysermc.connector.network.translators.java.entity.JavaEntityTeleportTranslator;
 import org.geysermc.connector.network.translators.java.entity.JavaEntityVelocityTranslator;
+import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerHealthTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerPositionRotationTranslator;
+import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerSetExperienceTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnExpOrbTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnGlobalEntityTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnMobTranslator;
@@ -150,6 +154,8 @@ public class TranslatorsInit {
         Registry.registerJava(ServerSpawnPlayerPacket.class, new JavaSpawnPlayerTranslator());
 
         Registry.registerJava(ServerPlayerPositionRotationPacket.class, new JavaPlayerPositionRotationTranslator());
+        Registry.registerJava(ServerPlayerSetExperiencePacket.class, new JavaPlayerSetExperienceTranslator());
+        Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
         Registry.registerJava(ServerEntityDestroyPacket.class, new JavaEntityDestroyTranslator());

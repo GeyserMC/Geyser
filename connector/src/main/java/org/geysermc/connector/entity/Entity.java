@@ -26,19 +26,25 @@
 package org.geysermc.connector.entity;
 
 import com.flowpowered.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.Attribute;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.connector.entity.attribute.Attribute;
+import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.AttributeUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -65,7 +71,7 @@ public class Entity {
     protected boolean valid;
 
     protected Set<Long> passengers = new HashSet<Long>();
-    protected Map<Attribute, Integer> attributes = new HashMap<Attribute, Integer>();
+    protected Map<AttributeType, Attribute> attributes = new HashMap<AttributeType, Attribute>();
 
     public Entity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         this.entityId = entityId;
@@ -142,5 +148,34 @@ public class Entity {
         dictionary.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
         dictionary.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         return dictionary;
+    }
+
+    public void updateBedrockAttributes(GeyserSession session) {
+        List<com.nukkitx.protocol.bedrock.data.Attribute> attributes = new ArrayList<>();
+        for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
+            if (!entry.getValue().getType().isBedrockAttribute())
+                continue;
+
+            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
+        }
+
+        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
+        updateAttributesPacket.setRuntimeEntityId(geyserId);
+        updateAttributesPacket.setAttributes(attributes);
+        session.getUpstream().sendPacket(updateAttributesPacket);
+    }
+
+    // To be used at a later date
+    public void updateJavaAttributes(GeyserSession session) {
+        List<com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute> attributes = new ArrayList<>();
+        for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
+            if (!entry.getValue().getType().isBedrockAttribute())
+                continue;
+
+            attributes.add(AttributeUtils.getJavaAttribute(entry.getValue()));
+        }
+
+        ServerEntityPropertiesPacket entityPropertiesPacket = new ServerEntityPropertiesPacket((int) entityId, attributes);
+        session.getDownstream().getSession().send(entityPropertiesPacket);
     }
 }
