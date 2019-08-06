@@ -26,22 +26,30 @@
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
 import com.flowpowered.math.vector.Vector3f;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnExpOrbPacket;
-import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnMobPacket;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.ExpOrbEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.EntityUtils;
 
-public class JavaSpawnExpOrbTranslator extends PacketTranslator<ServerSpawnExpOrbPacket> {
+public class JavaSpawnMobTranslator extends PacketTranslator<ServerSpawnMobPacket> {
 
     @Override
-    public void translate(ServerSpawnExpOrbPacket packet, GeyserSession session) {
+    public void translate(ServerSpawnMobPacket packet, GeyserSession session) {
         Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
-        Entity entity = new ExpOrbEntity(packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.EXPERIENCE_ORB, position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
+        Vector3f motion = new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
+        Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), packet.getHeadYaw());
+
+        EntityType type = EntityUtils.toBedrockEntity(packet.getType());
+        if (type == null) {
+            GeyserLogger.DEFAULT.warning("Entity type " + packet.getType() + " was null.");
+            return;
+        }
+
+        Entity entity = new Entity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                type, position, motion, rotation);
 
         if (entity == null)
             return;

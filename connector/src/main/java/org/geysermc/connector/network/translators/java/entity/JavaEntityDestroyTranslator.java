@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityDestroyPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -35,10 +36,8 @@ public class JavaEntityDestroyTranslator extends PacketTranslator<ServerEntityDe
     @Override
     public void translate(ServerEntityDestroyPacket packet, GeyserSession session) {
         for (int entityId : packet.getEntityIds()) {
-            RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
-            removeEntityPacket.setUniqueEntityId(entityId);
-
-            session.getUpstream().sendPacket(removeEntityPacket);
+            Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
+            session.getEntityCache().removeEntity(entity);
         }
     }
 }

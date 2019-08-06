@@ -23,29 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.java.entity;
 
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
-import lombok.Getter;
-import lombok.Setter;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class ScoreboardCache {
+public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntityPropertiesPacket> {
 
-    private GeyserSession session;
+    @Override
+    public void translate(ServerEntityPropertiesPacket packet, GeyserSession session) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
+            entity = session.getPlayerEntity();
+        }
+        if (entity == null)
+            return;
 
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-    }
-
-    @Getter
-    @Setter
-    private Scoreboard scoreboard;
-
-    public void removeScoreboard() {
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
     }
 }

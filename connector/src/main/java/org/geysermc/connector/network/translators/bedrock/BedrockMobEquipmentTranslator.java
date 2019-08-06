@@ -23,29 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
-import lombok.Getter;
-import lombok.Setter;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerChangeHeldItemPacket;
+import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class ScoreboardCache {
+public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipmentPacket> {
 
-    private GeyserSession session;
+    @Override
+    public void translate(MobEquipmentPacket packet, GeyserSession session) {
+        if (packet.getHotbarSlot() > 8)
+            return;
 
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-    }
+        if (packet.getContainerId() != ContainerId.INVENTORY)
+            return;
 
-    @Getter
-    @Setter
-    private Scoreboard scoreboard;
+        session.getInventory().setHeldItemSlot(packet.getHotbarSlot());
 
-    public void removeScoreboard() {
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
+        ClientPlayerChangeHeldItemPacket changeHeldItemPacket = new ClientPlayerChangeHeldItemPacket(packet.getHotbarSlot());
+        session.getDownstream().getSession().send(changeHeldItemPacket);
     }
 }

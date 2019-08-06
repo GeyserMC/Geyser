@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.scoreboard;
+package org.geysermc.connector.scoreboard;
 
 import com.nukkitx.protocol.bedrock.data.ScoreInfo;
 import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
@@ -97,6 +97,9 @@ public class Scoreboard {
     }
 
     public void onUpdate() {
+        if (objective == null)
+            return;
+
         RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
         removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
         session.getUpstream().sendPacket(removeObjectivePacket);
@@ -106,7 +109,7 @@ public class Scoreboard {
         displayObjectivePacket.setDisplayName(objective.getDisplayName());
         displayObjectivePacket.setCriteria("dummy");
         displayObjectivePacket.setDisplaySlot("sidebar");
-        displayObjectivePacket.setSortOrder(2);
+        displayObjectivePacket.setSortOrder(1);
         session.getUpstream().sendPacket(displayObjectivePacket);
 
         Map<String, Score> fakeMap = new HashMap<String, Score>();

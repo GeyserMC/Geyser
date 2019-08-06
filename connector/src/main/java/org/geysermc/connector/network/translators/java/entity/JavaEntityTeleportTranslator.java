@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java.entity;
 import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -35,13 +36,25 @@ public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityT
 
     @Override
     public void translate(ServerEntityTeleportPacket packet, GeyserSession session) {
-        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-        moveEntityPacket.setRuntimeEntityId(packet.getEntityId());
-        moveEntityPacket.setPosition(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
-        moveEntityPacket.setRotation(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
-        moveEntityPacket.setOnGround(packet.isOnGround());
-        moveEntityPacket.setTeleported(true);
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
+            entity = session.getPlayerEntity();
+        }
+        if (entity == null)
+            return;
 
-        session.getUpstream().sendPacket(moveEntityPacket);
+        entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getPitch(), packet.getYaw());
+
+        if (entity.isMovePending()) {
+            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            moveEntityPacket.setRuntimeEntityId(entity.getGeyserId());
+            moveEntityPacket.setPosition(entity.getPosition());
+            moveEntityPacket.setRotation(entity.getRotation());
+            moveEntityPacket.setOnGround(packet.isOnGround());
+            moveEntityPacket.setTeleported(true);
+            entity.setMovePending(false);
+
+            session.getUpstream().sendPacket(moveEntityPacket);
+        }
     }
 }

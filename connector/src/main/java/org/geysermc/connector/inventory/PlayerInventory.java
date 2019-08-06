@@ -23,29 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.inventory;
 
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Scoreboard;
 
-public class ScoreboardCache {
-
-    private GeyserSession session;
-
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-    }
+public class PlayerInventory extends Inventory {
 
     @Getter
     @Setter
-    private Scoreboard scoreboard;
+    private int heldItemSlot;
 
-    public void removeScoreboard() {
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
+    public PlayerInventory() {
+        super(0, null, 45);
+
+        heldItemSlot = 0;
+    }
+
+    public ItemStack getItemInHand() {
+        return items[heldItemSlot];
     }
 }

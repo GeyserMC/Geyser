@@ -23,45 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.scoreboard;
+package org.geysermc.connector.entity;
 
-import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
-import lombok.Getter;
-import lombok.Setter;
+import com.flowpowered.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.Random;
+public class ExpOrbEntity extends Entity {
 
-/**
- * Adapted from: https://github.com/Ragnok123/GTScoreboard
- */
-public class Score {
+    private int amount;
 
-    @Getter
-    @Setter
-    private int score;
+    public ExpOrbEntity(int amount, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
 
-    @Getter
-    private long scoreboardId;
+        this.amount = amount;
+    }
 
-    private ScoreboardObjective objective;
+    @Override
+    public void spawnEntity(GeyserSession session) {
+        SpawnExperienceOrbPacket spawnExpOrbPacket = new SpawnExperienceOrbPacket();
+        spawnExpOrbPacket.setPosition(position);
+        spawnExpOrbPacket.setAmount(amount);
 
-    @Getter
-    @Setter
-    private String fakePlayer;
-
-    @Getter
-    @Setter
-    private SetScorePacket.Action action = SetScorePacket.Action.SET;
-
-    private boolean modified = false;
-
-    @Getter
-    @Setter
-    private String fakeId;
-
-    public Score(ScoreboardObjective objective, String fakePlayer) {
-        this.scoreboardId = -new Random().nextLong();
-        this.objective = objective;
-        this.fakePlayer = fakePlayer;
+        valid = true;
+        session.getUpstream().sendPacket(spawnExpOrbPacket);
     }
 }

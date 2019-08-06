@@ -52,9 +52,6 @@ public class InventoryCache {
 
     public InventoryCache(GeyserSession session) {
         this.session = session;
-
-        // This is the player's inventory
-        inventories.put(0, new Inventory(0, null, 45));
     }
 
     public Inventory getPlayerInventory() {

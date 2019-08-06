@@ -25,27 +25,13 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import lombok.Getter;
-import lombok.Setter;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Scoreboard;
 
-public class ScoreboardCache {
+import java.util.HashMap;
+import java.util.Map;
 
-    private GeyserSession session;
-
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-    }
+public class DataCache<T> {
 
     @Getter
-    @Setter
-    private Scoreboard scoreboard;
-
-    public void removeScoreboard() {
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
-    }
+    private Map<String, T> cachedValues = new HashMap<String, T>();
 }

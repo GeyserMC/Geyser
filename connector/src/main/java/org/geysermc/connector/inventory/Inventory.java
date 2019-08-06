@@ -33,32 +33,40 @@ import lombok.Setter;
 public class Inventory {
 
     @Getter
-    private int id;
+    protected int id;
 
     @Getter
     @Setter
-    private boolean open;
+    protected boolean open;
 
     @Getter
-    private WindowType windowType;
+    protected WindowType windowType;
 
     @Getter
-    private int size;
-
-    @Getter
-    @Setter
-    private String title;
+    protected int size;
 
     @Getter
     @Setter
-    private ItemStack[] items;
+    protected String title;
+
+    @Getter
+    @Setter
+    protected ItemStack[] items;
 
     public Inventory(int id, WindowType windowType, int size) {
+        this("Inventory", id, windowType, size);
+    }
+
+    public Inventory(String title, int id, WindowType windowType, int size) {
+        this.title = title;
         this.id = id;
         this.windowType = windowType;
         this.size = size;
 
-        this.title = "Inventory";
         this.items = new ItemStack[size];
+    }
+
+    public ItemStack getItem(int slot) {
+        return items[slot];
     }
 }

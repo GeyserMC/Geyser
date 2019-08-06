@@ -24,9 +24,15 @@ Links:
 - [x] Join detection from remote
 - [x] Online mode/auth support
 - [x] Chat/command support
+- [ ] Scoreboard
+  - [x] Objective-based scoreboards
+  - [ ] Team-based scoreboards
 - [ ] Inventory support
-- [ ] Movement support
-- [ ] Entity support
+  - [x] Inventory viewing
+  - [x] NBT data (experimental)
+  - [ ] Inventory movement (transactions)
+- [ ] Player movement support
+- [x] Entity support (experimental)
 - [ ] Chunks
 - [ ] Block break/place support
 

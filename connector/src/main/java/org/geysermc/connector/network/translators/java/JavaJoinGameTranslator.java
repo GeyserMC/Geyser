@@ -26,9 +26,11 @@
 package org.geysermc.connector.network.translators.java;
 
 import com.flowpowered.math.vector.Vector3f;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
@@ -38,8 +40,13 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
     @Override
     public void translate(ServerJoinGamePacket packet, GeyserSession session) {
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
-        bedrockPacket.setUniqueEntityId(packet.getEntityId());
+        bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         session.getUpstream().sendPacketImmediately(bedrockPacket);
+
+        int gamemode = packet.getGameMode().ordinal();
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(gamemode);
+        session.getUpstream().sendPacket(playerGameTypePacket);
 
         Vector3f pos = new Vector3f(0, 0, 0);
         int chunkX = pos.getFloorX() >> 4;
@@ -52,10 +59,11 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
                 data.setSubChunksLength(0);
 
                 data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
-
                 session.getUpstream().sendPacketImmediately(data);
 
             }
         }
+
+        session.getJavaPacketCache().getCachedValues().put("java_join_packet", packet);
     }
 }

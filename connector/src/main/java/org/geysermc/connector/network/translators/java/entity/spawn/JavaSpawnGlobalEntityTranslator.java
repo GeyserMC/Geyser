@@ -23,29 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
-import lombok.Getter;
-import lombok.Setter;
+import com.flowpowered.math.vector.Vector3f;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnGlobalEntityPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class ScoreboardCache {
+public class JavaSpawnGlobalEntityTranslator extends PacketTranslator<ServerSpawnGlobalEntityPacket> {
 
-    private GeyserSession session;
+    @Override
+    public void translate(ServerSpawnGlobalEntityPacket packet, GeyserSession session) {
+        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
 
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-    }
+        // Currently GlobalEntityType only has a lightning bolt
+        Entity entity = new Entity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                EntityType.LIGHTNING_BOLT, position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
 
-    @Getter
-    @Setter
-    private Scoreboard scoreboard;
+        if (entity == null)
+            return;
 
-    public void removeScoreboard() {
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
+        session.getEntityCache().spawnEntity(entity);
     }
 }

@@ -25,27 +25,54 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import lombok.Getter;
-import lombok.Setter;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Scoreboard;
 
-public class ScoreboardCache {
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+/**
+ * Each session has its own EntityCache in the occasion that an entity packet is sent specifically
+ * for that player (e.g. seeing vanished players from /vanish)
+ */
+public class EntityCache {
 
     private GeyserSession session;
 
-    public ScoreboardCache(GeyserSession session) {
+    @Getter
+    private Map<Long, Entity> entities = new HashMap<Long, Entity>();
+
+    private Map<Long, Long> entityIdTranslations = new HashMap<Long, Long>();
+
+    @Getter
+    private AtomicLong nextEntityId = new AtomicLong(2L);
+
+    public EntityCache(GeyserSession session) {
         this.session = session;
     }
 
-    @Getter
-    @Setter
-    private Scoreboard scoreboard;
+    public void spawnEntity(Entity entity) {
+        entity.moveAbsolute(entity.getPosition(), entity.getRotation().getX(), entity.getRotation().getY());
+        entityIdTranslations.put(entity.getEntityId(), entity.getGeyserId());
+        entities.put(entity.getGeyserId(), entity);
+        entity.spawnEntity(session);
+    }
 
-    public void removeScoreboard() {
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
+    public void removeEntity(Entity entity) {
+        if (entity == null)
+            return;
+
+        entityIdTranslations.remove(entity.getGeyserId());
+        entity.despawnEntity(session);
+    }
+
+    public Entity getEntityByGeyserId(long geyserId) {
+        return entities.get(geyserId);
+    }
+
+    public Entity getEntityByJavaId(long javaId) {
+        return entities.get(entityIdTranslations.get(javaId));
     }
 }

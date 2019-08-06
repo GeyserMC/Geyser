@@ -23,29 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.java.scoreboard;
 
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
-import lombok.Getter;
-import lombok.Setter;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class ScoreboardCache {
+public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
 
-    private GeyserSession session;
+    @Override
+    public void translate(ServerTeamPacket packet, GeyserSession session) {
 
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-    }
-
-    @Getter
-    @Setter
-    private Scoreboard scoreboard;
-
-    public void removeScoreboard() {
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
     }
 }

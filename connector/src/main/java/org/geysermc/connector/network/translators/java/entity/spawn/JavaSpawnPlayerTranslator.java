@@ -23,29 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
-import lombok.Getter;
-import lombok.Setter;
+import com.flowpowered.math.vector.Vector3f;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class ScoreboardCache {
+public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlayerPacket> {
 
-    private GeyserSession session;
+    @Override
+    public void translate(ServerSpawnPlayerPacket packet, GeyserSession session) {
+        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
+        Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), 0);
+        Entity entity = new PlayerEntity(packet.getUUID(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                EntityType.PLAYER, position, new Vector3f(0, 0, 0), rotation);
 
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-    }
+        if (entity == null)
+            return;
 
-    @Getter
-    @Setter
-    private Scoreboard scoreboard;
-
-    public void removeScoreboard() {
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(scoreboard.getObjective().getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
+        session.getEntityCache().spawnEntity(entity);
     }
 }

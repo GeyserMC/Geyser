@@ -92,6 +92,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         c.setSubMotd(pong.getSubMotd());
         c.setPlayerCount(pong.getPlayerCount());
         c.setMaximumPlayerCount(pong.getMaximumPlayerCount());
+        c.setIpv4Port(config.getBedrock().getPort());
 
         return c;
 
