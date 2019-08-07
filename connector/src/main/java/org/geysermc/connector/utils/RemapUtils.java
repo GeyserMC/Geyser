@@ -1,9 +1,6 @@
 package org.geysermc.connector.utils;
 
-import org.geysermc.connector.network.translators.item.BedrockItem;
-import org.geysermc.connector.network.translators.item.DyeColor;
-import org.geysermc.connector.network.translators.item.JavaItem;
-import org.geysermc.connector.network.translators.item.WoodType;
+import org.geysermc.connector.network.translators.item.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,11 +28,30 @@ class RemapUtils {
             }
 
         });
+        //stone
+        Remapper.predicates.put((x) -> x.getF().contains("stone"), (x, y) -> {
+            //System.out.println(x.getIdentifier());
+            if(customStoneIfNeeded(y)) return;
+
+            if (y.getIdentifier().replaceAll("stone_", "")
+                    .equalsIgnoreCase(x.getIdentifier()) && x.getData() == 0) {
+
+                /*for (WoodType woodType : WoodType.values()) {
+                    JavaItem j = new JavaItem(y.getIdentifier().replaceAll("oak", woodType.getName()), y.getId());
+                    Remapper.convertions.computeIfAbsent(j, (q) -> new ArrayList<>());
+                    Remapper.convertions.get(j).add(new BedrockItem(x.getIdentifier(), x.getId(), woodType.getId()));
+                }*/
+            }
+
+        });
         //shared name
         Remapper.predicates.put((x) -> x.getF().equalsIgnoreCase(x.getS()), (x, y) -> {
-            if(customColorIfNeeded(y)) return;
-            Remapper.convertions.computeIfAbsent(y, (q) -> new ArrayList<>());
-            Remapper.convertions.get(y).add(x);
+            try {
+                Remapper.convertions.computeIfAbsent(y, (q) -> new ArrayList<>());
+                Remapper.convertions.get(y).add(x);
+            } catch (Exception e) {
+                //
+            }
         });
         //wood
         Remapper.predicates.put((x) -> x.getF().contains("oak"), (x, y) -> {
@@ -53,26 +69,10 @@ class RemapUtils {
             }
 
         });
-        Remapper.predicates.put((x) -> x.getF().contains("stone"), (x, y) -> {
-            //System.out.println(x.getIdentifier());
-            if(customStoneIfNeeded(y)) return;
-
-            if (y.getIdentifier().replaceAll("stone_", "")
-                    .equalsIgnoreCase(x.getIdentifier()) && x.getData() == 0) {
-
-                for (WoodType woodType : WoodType.values()) {
-                    JavaItem j = new JavaItem(y.getIdentifier().replaceAll("oak", woodType.getName()), y.getId());
-                    Remapper.convertions.computeIfAbsent(j, (q) -> new ArrayList<>());
-                    Remapper.convertions.get(j).add(new BedrockItem(x.getIdentifier(), x.getId(), woodType.getId()));
-                }
-            }
-
-        });
     }
 
     private static boolean customColorIfNeeded(JavaItem j) {
         if(j.getIdentifier().equalsIgnoreCase(MINECRAFT + "shulker_box")) {
-            System.out.println(j.getIdentifier());
             Remapper.convertions.put(j, Arrays.asList(new BedrockItem(MINECRAFT + "undyed_shulker_box", 205, 0)));
             return true;
         }
@@ -90,8 +90,11 @@ class RemapUtils {
     }
 
     private static boolean customStoneIfNeeded(JavaItem j) {
-        if(j.getIdentifier().equalsIgnoreCase("")) {
-
+        if (j.getIdentifier().equalsIgnoreCase(MINECRAFT + "stone")) {
+            for (StoneType type : StoneType.values()) {
+                Remapper.convertions.put(new JavaItem(MINECRAFT + type.getName(), type.getId() + 1), Arrays.asList(new BedrockItem(MINECRAFT + "stone", 1, type.getId())));
+            }
+            return true;
         }
         return false;
     }

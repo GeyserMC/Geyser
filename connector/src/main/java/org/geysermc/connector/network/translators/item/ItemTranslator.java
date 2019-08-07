@@ -77,6 +77,7 @@ public class ItemTranslator {
 
     public BedrockItem getBedrockItem(ItemStack stack) {
         Map<String, Object> m = Remapper.JAVA_TO_BEDROCK.get(stack.getId());
+        System.out.println(stack.getId());
         return new BedrockItem((String) m.get("name"), (Integer) m.get("id"), (Integer) m.get("data"));
     }
 
