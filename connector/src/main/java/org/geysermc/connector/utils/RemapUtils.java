@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.jar.JarEntry;
 
 class RemapUtils {
+    private static final String MINECRAFT = "minecraft:";
+
     static void start() {
         //colors
         Remapper.predicates.put((x) -> x.getF().contains("white"), (x, y) -> {
@@ -51,12 +53,11 @@ class RemapUtils {
             }
 
         });
-        //TODO: add stone support
-        /*Remapper.predicates.put((x) -> x.getF().contains("oak"), (x, y) -> {
+        Remapper.predicates.put((x) -> x.getF().contains("stone"), (x, y) -> {
             //System.out.println(x.getIdentifier());
-            //if(customStoneIfNeeded(y)) return;
+            if(customStoneIfNeeded(y)) return;
 
-            if (y.getIdentifier().replaceAll("oak_", "")
+            if (y.getIdentifier().replaceAll("stone_", "")
                     .equalsIgnoreCase(x.getIdentifier()) && x.getData() == 0) {
 
                 for (WoodType woodType : WoodType.values()) {
@@ -66,13 +67,13 @@ class RemapUtils {
                 }
             }
 
-        });*/
+        });
     }
 
     private static boolean customColorIfNeeded(JavaItem j) {
-        if(j.getIdentifier().equalsIgnoreCase("minecraft:shulker_box")) {
+        if(j.getIdentifier().equalsIgnoreCase(MINECRAFT + "shulker_box")) {
             System.out.println(j.getIdentifier());
-            Remapper.convertions.put(j, Arrays.asList(new BedrockItem("minecraft:undyed_shulker_box", 205, 0)));
+            Remapper.convertions.put(j, Arrays.asList(new BedrockItem(MINECRAFT + "undyed_shulker_box", 205, 0)));
             return true;
         }
         return false;
@@ -80,8 +81,8 @@ class RemapUtils {
 
     private static boolean customWoodIfNeeded(JavaItem j) {
         for(WoodType t : WoodType.values()) {
-            if (j.getIdentifier().equalsIgnoreCase("minecraft:stripped_" + t.getName() +"_wood")) {
-                Remapper.convertions.put(j, Arrays.asList(new BedrockItem("minecraft:wood", 467, t.getId() + 8)));
+            if (j.getIdentifier().equalsIgnoreCase(MINECRAFT + "stripped_" + t.getName() +"_wood")) {
+                Remapper.convertions.put(j, Arrays.asList(new BedrockItem(MINECRAFT + "wood", 467, t.getId() + 8)));
                 return false;
             }
         }
@@ -89,6 +90,9 @@ class RemapUtils {
     }
 
     private static boolean customStoneIfNeeded(JavaItem j) {
+        if(j.getIdentifier().equalsIgnoreCase("")) {
+
+        }
         return false;
     }
 }

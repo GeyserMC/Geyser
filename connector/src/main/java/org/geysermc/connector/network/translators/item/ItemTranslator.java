@@ -45,6 +45,7 @@ import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Remapper;
 import org.geysermc.connector.utils.Toolbox;
 
+import java.rmi.MarshalException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,34 +76,13 @@ public class ItemTranslator {
     }
 
     public BedrockItem getBedrockItem(ItemStack stack) {
-        for (Map.Entry<String, JavaItem> javaItems : Toolbox.JAVA_ITEMS.entrySet()) {
-            if (javaItems.getValue().getId() != stack.getId())
-                continue;
-
-            JavaItem javaItem = javaItems.getValue();
-            String identifier = getBedrockIdentifier(javaItem.getIdentifier());
-            if (!Toolbox.BEDROCK_ITEMS.containsKey(identifier))
-                continue;
-
-            return Toolbox.BEDROCK_ITEMS.get(identifier);
-        }
-
-        return new BedrockItem("minecraft:air", 0, 0);
+        Map<String, Object> m = Remapper.JAVA_TO_BEDROCK.get(stack.getId());
+        return new BedrockItem((String) m.get("name"), (Integer) m.get("id"), (Integer) m.get("data"));
     }
 
     public JavaItem getJavaItem(ItemData data) {
-        for (Map.Entry<String, BedrockItem> bedrockItems : Toolbox.BEDROCK_ITEMS.entrySet()) {
-            if (bedrockItems.getValue().getId() != data.getId())
-                continue;
-
-            String identifier = getJavaIdentifier(bedrockItems.getKey(), data.getDamage());
-            if (!Toolbox.JAVA_ITEMS.containsKey(identifier))
-                continue;
-
-            return Toolbox.JAVA_ITEMS.get(identifier);
-        }
-
-        return new JavaItem("minecraft:air", 0);
+        Map<String, Object> m = Remapper.BEDROCK_TO_JAVA.get(data.getId()).get(data.getDamage());
+        return new JavaItem((String) m.get("name"), (Integer) m.get("id"));
     }
 
     public String getBedrockIdentifier(String javaIdentifier) {
@@ -122,7 +102,7 @@ public class ItemTranslator {
             return bedrockIdentifier;
         }
 
-        return Remapper.BEDROCK_TO_JAVA.get(bedrockIdentifier).get(data);
+        return (String) Remapper.BEDROCK_TO_JAVA.get(bedrockIdentifier).get(data).get("name");
     }
 
     private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {

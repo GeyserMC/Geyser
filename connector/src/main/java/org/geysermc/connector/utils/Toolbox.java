@@ -26,14 +26,12 @@ public class Toolbox {
             e.printStackTrace();
         }
 
+        Map<String, BedrockItem> m = new HashMap<>();
+
         Map<String, BedrockItem> bedrockItems = new HashMap<>();
         for (Map<String, Object> e : entries) {
             BedrockItem bedrockItem = new BedrockItem((String) e.get("name"), (int) e.get("id"), (int) e.get("data"));
-            if (bedrockItem.getData() != 0) {
-                bedrockItems.put(bedrockItem.getIdentifier() + ":" + bedrockItem.getData(), bedrockItem);
-            } else {
-                bedrockItems.put(bedrockItem.getIdentifier(), bedrockItem);
-            }
+            m.put(bedrockItem.getIdentifier(), bedrockItem);
         }
 
 
@@ -73,7 +71,7 @@ public class Toolbox {
 
         BEDROCK_ITEMS = bedrockItems;
 
-        InputStream javaItemStream = Toolbox.class.getClassLoader().getResourceAsStream("java/java_blocks.json");
+        InputStream javaItemStream = Toolbox.class.getClassLoader().getResourceAsStream("java/java_items.json");
         ObjectMapper javaItemMapper = new ObjectMapper();
         Map<String, HashMap> javaItemList = new HashMap<>();
         try {
@@ -91,6 +89,29 @@ public class Toolbox {
         Remapper.addConversions(bedrockItems, javaItems);
 
         JAVA_ITEMS = javaItems;
+
+        InputStream javaItemStream2 = Toolbox.class.getClassLoader().getResourceAsStream("java/java_blocks.json");
+        ObjectMapper javaItemMapper2 = new ObjectMapper();
+        Map<String, HashMap> javaItemList2 = new HashMap<>();
+        try {
+            javaItemList2 = javaItemMapper2.readValue(javaItemStream2, new TypeReference<Map<String, HashMap>>(){});
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        Map<String, JavaItem> javaItems2 = new HashMap<String, JavaItem>();
+
+        for (String str : javaItemList2.keySet()) {
+            javaItems2.put(str, new JavaItem(str, (int) javaItemList2.get(str).get("protocol_id")));
+        }
+
+        JAVA_BLOCKS = javaItems2;
+
+        BEDROCK_BLOCKS = m;
+
+        Remapper.addConversions(bedrockItems, javaItems);
+
+        Remapper.addConversions2(m, javaItems2);
     }
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS;
@@ -99,6 +120,9 @@ public class Toolbox {
 
     public static final Map<String, BedrockItem> BEDROCK_ITEMS;
     public static final Map<String, JavaItem> JAVA_ITEMS;
+
+    public static final Map<String, BedrockItem> BEDROCK_BLOCKS;
+    public static final Map<String, JavaItem> JAVA_BLOCKS;
 
     //public static final byte[] EMPTY_CHUNK;
 }
