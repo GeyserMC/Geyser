@@ -53,6 +53,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerU
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -94,12 +95,14 @@ import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnPla
 import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
+import org.geysermc.connector.network.translators.java.world.JavaChunk;
 import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
 import org.geysermc.connector.network.translators.java.JavaTitleTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaUpdateTimeTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaWindowItemsTranslator;
+import org.geysermc.connector.utils.Chunks;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -158,6 +161,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
+        Registry.registerJava(ServerChunkDataPacket.class, new JavaChunk());
         Registry.registerJava(ServerEntityDestroyPacket.class, new JavaEntityDestroyTranslator());
         Registry.registerJava(ServerWindowItemsPacket.class, new JavaWindowItemsTranslator());
         Registry.registerJava(ServerOpenWindowPacket.class, new JavaOpenWindowTranslator());

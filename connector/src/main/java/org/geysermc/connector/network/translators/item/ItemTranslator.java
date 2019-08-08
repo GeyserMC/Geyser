@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
@@ -53,7 +54,7 @@ import java.util.Map;
 
 public class ItemTranslator {
 
-    public ItemStack translateToJava(ItemData data) {
+    public static ItemStack translateToJava(ItemData data) {
         JavaItem javaItem = getJavaItem(data);
 
         if (data.getTag() == null) {
@@ -62,7 +63,7 @@ public class ItemTranslator {
         return new ItemStack(javaItem.getId(), data.getCount(), translateToJavaNBT(data.getTag()));
     }
 
-    public ItemData translateToBedrock(ItemStack stack) {
+    public static ItemData translateToBedrock(ItemStack stack) {
         // Most likely air if null
         if (stack == null) {
             return ItemData.AIR;
@@ -75,18 +76,24 @@ public class ItemTranslator {
         return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount(), translateToBedrockNBT(stack.getNBT()));
     }
 
-    public BedrockItem getBedrockItem(ItemStack stack) {
+    public static BedrockItem getBedrockItem(ItemStack stack) {
         Map<String, Object> m = Remapper.JAVA_TO_BEDROCK.get(stack.getId());
         System.out.println(stack.getId());
         return new BedrockItem((String) m.get("name"), (Integer) m.get("id"), (Integer) m.get("data"));
     }
 
-    public JavaItem getJavaItem(ItemData data) {
+    public static JavaItem getJavaItem(ItemData data) {
         Map<String, Object> m = Remapper.BEDROCK_TO_JAVA.get(data.getId()).get(data.getDamage());
         return new JavaItem((String) m.get("name"), (Integer) m.get("id"));
     }
 
-    public String getBedrockIdentifier(String javaIdentifier) {
+    public static BedrockItem getBedrockBlock(BlockState stack) {
+        Map<String, Object> m = Remapper.JAVA_TO_BEDROCK_BLOCKS.get(stack.getId());
+        System.out.println(stack.getId());
+        return new BedrockItem((String) m.get("name"), (Integer) m.get("id"), (Integer) m.get("data"));
+    }
+
+    public static String getBedrockIdentifier(String javaIdentifier) {
         if (!Remapper.JAVA_TO_BEDROCK.containsKey(javaIdentifier)) {
             return javaIdentifier;
         }
@@ -98,7 +105,7 @@ public class ItemTranslator {
         return (String) Remapper.JAVA_TO_BEDROCK.get(javaIdentifier).get("name");
     }
 
-    public String getJavaIdentifier(String bedrockIdentifier, int data) {
+    public static String getJavaIdentifier(String bedrockIdentifier, int data) {
         if (!Remapper.BEDROCK_TO_JAVA.containsKey(bedrockIdentifier)) {
             return bedrockIdentifier;
         }
@@ -106,7 +113,7 @@ public class ItemTranslator {
         return (String) Remapper.BEDROCK_TO_JAVA.get(bedrockIdentifier).get(data).get("name");
     }
 
-    private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
+    private static CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
         CompoundTag javaTag = new CompoundTag(tag.getName());
         Map<String, Tag> javaValue = javaTag.getValue();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
@@ -123,7 +130,7 @@ public class ItemTranslator {
         return javaTag;
     }
 
-    private Tag translateToJavaNBT(com.nukkitx.nbt.tag.Tag tag) {
+    private static Tag translateToJavaNBT(com.nukkitx.nbt.tag.Tag tag) {
         if (tag instanceof com.nukkitx.nbt.tag.ByteArrayTag) {
             com.nukkitx.nbt.tag.ByteArrayTag byteArrayTag = (com.nukkitx.nbt.tag.ByteArrayTag) tag;
             return new ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
@@ -197,7 +204,7 @@ public class ItemTranslator {
         return null;
     }
 
-    private com.nukkitx.nbt.tag.CompoundTag translateToBedrockNBT(CompoundTag tag) {
+    private static com.nukkitx.nbt.tag.CompoundTag translateToBedrockNBT(CompoundTag tag) {
         Map<String, com.nukkitx.nbt.tag.Tag<?>> javaValue = new HashMap<String, com.nukkitx.nbt.tag.Tag<?>>();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
@@ -214,7 +221,7 @@ public class ItemTranslator {
         return bedrockTag;
     }
 
-    private com.nukkitx.nbt.tag.Tag translateToBedrockNBT(Tag tag) {
+    private static com.nukkitx.nbt.tag.Tag translateToBedrockNBT(Tag tag) {
         if (tag instanceof ByteArrayTag) {
             ByteArrayTag byteArrayTag = (ByteArrayTag) tag;
             return new com.nukkitx.nbt.tag.ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
