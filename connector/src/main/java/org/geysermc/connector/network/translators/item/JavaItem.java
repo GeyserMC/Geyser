@@ -32,6 +32,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class JavaItem {
 
+    public static JavaItem AIR = new JavaItem("minecraft:air", 0);
+
     private String identifier;
     private int id;
 

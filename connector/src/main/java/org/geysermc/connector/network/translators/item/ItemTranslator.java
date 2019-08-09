@@ -42,6 +42,7 @@ import com.github.steveice10.opennbt.tag.builtin.ShortTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Remapper;
 import org.geysermc.connector.utils.Toolbox;
@@ -78,11 +79,20 @@ public class ItemTranslator {
 
     public static BedrockItem getBedrockItem(ItemStack stack) {
         Map<String, Object> m = Remapper.JAVA_TO_BEDROCK.get(stack.getId());
+        if (m == null) {
+            GeyserLogger.DEFAULT.debug("Missing mapping for java item " + stack.getId());
+            return BedrockItem.AIR;
+        }
         return new BedrockItem((String) m.get("name"), (Integer) m.get("id"), (Integer) m.get("data"));
     }
 
     public static JavaItem getJavaItem(ItemData data) {
         Map<String, Object> m = Remapper.BEDROCK_TO_JAVA.get(data.getId()).get(data.getDamage());
+        if (m == null) {
+            GeyserLogger.DEFAULT.debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+
+            return JavaItem.AIR;
+        }
         return new JavaItem((String) m.get("name"), (Integer) m.get("id"));
     }
 

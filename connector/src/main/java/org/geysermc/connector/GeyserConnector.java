@@ -119,10 +119,6 @@ public class GeyserConnector implements Connector {
             shutdown();
         }
 
-        metrics = new Metrics("GeyserMC", instance.getConfig().getUUID(), true, java.util.logging.Logger.getLogger(""));
-
-        addMetrics(metrics);
-
         logger.setDebug(config.isDebugMode());
 
         Toolbox.CACHED_PALLETE.array();
@@ -151,6 +147,10 @@ public class GeyserConnector implements Connector {
                 throwable.printStackTrace();
             }
         }).join();
+
+        metrics = new Metrics("GeyserMC", instance.getConfig().getUUID(), true, java.util.logging.Logger.getLogger(""));
+        metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
+        metrics.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
     }
 
     public Collection<Player> getConnectedPlayers() {
@@ -178,10 +178,5 @@ public class GeyserConnector implements Connector {
     public void removePlayer(Player player) {
         players.remove(player.getAuthenticationData().getName());
         players.remove(player.getAuthenticationData().getUUID());
-    }
-
-    private static void addMetrics(Metrics m) {
-        m.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
-        m.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
     }
 }
