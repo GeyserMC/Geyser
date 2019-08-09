@@ -1,5 +1,6 @@
 package org.geysermc.connector.metrics;
 
+import org.geysermc.api.Geyser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
@@ -80,13 +82,7 @@ public class Metrics {
      * Starts the Scheduler which submits our data every 30 minutes.
      */
     private void startSubmitting() {
-        final Timer timer = new Timer(true);
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                submitData();
-            }
-        }, 1000*60*5, 1000*60*30);
+        Geyser.getGeneralThreadPool().scheduleAtFixedRate(this::submitData, 5, 30, TimeUnit.MINUTES);
         // Submit the data every 30 minutes, first time after 5 minutes to give other plugins enough time to start
         // WARNING: Changing the frequency has no effect but your plugin WILL be blocked/deleted!
         // WARNING: Just don't do it!
