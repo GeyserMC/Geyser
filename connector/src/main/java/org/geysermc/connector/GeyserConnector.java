@@ -29,10 +29,10 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
 import lombok.Getter;
-import org.apache.commons.io.IOUtils;
 import org.fusesource.jansi.AnsiConsole;
 import org.geysermc.api.Connector;
 import org.geysermc.api.Geyser;
+import org.geysermc.api.Player;
 import org.geysermc.api.command.CommandMap;
 import org.geysermc.api.logger.Logger;
 import org.geysermc.api.plugin.Plugin;
@@ -43,6 +43,7 @@ import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
@@ -53,12 +54,16 @@ import org.geysermc.connector.utils.Toolbox;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@Getter
 public class GeyserConnector implements Connector {
 
     public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v361.V361_CODEC;
@@ -66,34 +71,25 @@ public class GeyserConnector implements Connector {
     private static final String NAME = "Geyser";
     private static final String VERSION = "1.0-SNAPSHOT";
 
+    private final Map<Object, Player> players = new HashMap<>();
+
     private static GeyserConnector instance;
 
-    @Getter
     private RemoteJavaServer remoteServer;
 
-    @Getter
     private Logger logger;
 
-    @Getter
     private CommandMap commandMap;
 
-    @Getter
     private GeyserConfiguration config;
-
-    @Getter
     private GeyserPluginManager pluginManager;
 
-    @Getter
     private boolean shuttingDown = false;
 
-    @Getter
     private final ScheduledExecutorService generalThreadPool;
-
-    @Getter
     private PingPassthroughThread passthroughThread;
 
-    @Getter
-    private Metrics METRICS;
+    private Metrics metrics;
 
     public static void main(String[] args) {
         instance = new GeyserConnector();
@@ -127,9 +123,9 @@ public class GeyserConnector implements Connector {
             shutdown();
         }
 
-        METRICS = new Metrics("GeyserMC", instance.getConfig().getUUID(), true, java.util.logging.Logger.getLogger(""));
+        metrics = new Metrics("GeyserMC", instance.getConfig().getUUID(), true, java.util.logging.Logger.getLogger(""));
 
-        addMetrics(METRICS);
+        addMetrics(metrics);
 
         logger.setDebug(config.isDebugMode());
 
@@ -161,6 +157,10 @@ public class GeyserConnector implements Connector {
         }).join();
     }
 
+    public Collection<Player> getConnectedPlayers() {
+        return players.values();
+    }
+
     public void shutdown() {
         logger.info("Shutting down connector.");
         for (Plugin plugin : pluginManager.getPlugins()) {
@@ -174,9 +174,18 @@ public class GeyserConnector implements Connector {
         System.exit(0);
     }
 
+    public void addPlayer(Player player) {
+        players.put(player.getAuthenticationData().getName(), player);
+        players.put(player.getAuthenticationData().getUUID(), player);
+    }
+
+    public void removePlayer(Player player) {
+        players.remove(player.getAuthenticationData().getName());
+        players.remove(player.getAuthenticationData().getUUID());
+    }
+
     private static void addMetrics(Metrics m) {
         m.addCustomChart(new Metrics.SingleLineChart("servers", () -> 3 + new Random().nextInt(4)));
-
         m.addCustomChart(new Metrics.SingleLineChart("players", () -> 5 + new Random().nextInt(7)));
     }
 }

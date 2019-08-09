@@ -127,7 +127,7 @@ public class GeyserSession implements PlayerSession, Player {
 
     public void authenticate(String username) {
         authenticate(username, "");
-        Geyser.addPlayer(this);
+        connector.addPlayer(this);
     }
 
     public void authenticate(String username, String password) {
@@ -206,7 +206,7 @@ public class GeyserSession implements PlayerSession, Player {
     @Override
     public void onDisconnect(String reason) {
         downstream.getSession().disconnect("Disconnected from server. Reason: " + reason);
-        Geyser.removePlayer(this);
+        connector.removePlayer(this);
     }
 
     public void setAuthenticationData(AuthData authData) {
