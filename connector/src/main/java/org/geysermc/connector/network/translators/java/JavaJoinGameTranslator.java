@@ -51,8 +51,8 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         Vector3f pos = new Vector3f(0, 0, 0);
         int chunkX = pos.getFloorX() >> 4;
         int chunkZ = pos.getFloorZ() >> 4;
-        for (int x = -3; x < 3; x++) {
-            for (int z = -3; z < 3; z++) {
+        for (int x = -1; x < 1; x++) {
+            for (int z = -1; z < 1; z++) {
                 LevelChunkPacket data = new LevelChunkPacket();
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);

@@ -21,7 +21,7 @@ class RemapUtils {
                     .equalsIgnoreCase(x.getIdentifier()) && x.getData() == 0) {
 
                 for (DyeColor dyeColor : DyeColor.values()) {
-                    JavaItem j = new JavaItem(y.getIdentifier().replaceAll("white", dyeColor.getName()), y.getId());
+                    JavaItem j = new JavaItem(y.getIdentifier().replaceAll("white", dyeColor.getName()), y.getId() + dyeColor.getId());
                     Remapper.convertions.computeIfAbsent(j, (q) -> new ArrayList<>());
                     Remapper.convertions.get(j).add(new BedrockItem(x.getIdentifier(), x.getId(), dyeColor.getId()));
                 }
@@ -62,7 +62,7 @@ class RemapUtils {
                     .equalsIgnoreCase(x.getIdentifier()) && x.getData() == 0) {
 
                 for (WoodType woodType : WoodType.values()) {
-                    JavaItem j = new JavaItem(y.getIdentifier().replaceAll("oak", woodType.getName()), y.getId());
+                    JavaItem j = new JavaItem(y.getIdentifier().replaceAll("oak", woodType.getName()), y.getId() + woodType.getId());
                     Remapper.convertions.computeIfAbsent(j, (q) -> new ArrayList<>());
                     Remapper.convertions.get(j).add(new BedrockItem(x.getIdentifier(), x.getId(), woodType.getId()));
                 }
@@ -80,6 +80,7 @@ class RemapUtils {
     }
 
     private static boolean customWoodIfNeeded(JavaItem j) {
+        if(j.getIdentifier().contains("fence_gate")) return true;
         for(WoodType t : WoodType.values()) {
             if (j.getIdentifier().equalsIgnoreCase(MINECRAFT + "stripped_" + t.getName() +"_wood")) {
                 Remapper.convertions.put(j, Arrays.asList(new BedrockItem(MINECRAFT + "wood", 467, t.getId() + 8)));

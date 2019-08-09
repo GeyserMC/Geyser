@@ -54,11 +54,7 @@ import org.geysermc.connector.utils.Toolbox;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -158,7 +154,7 @@ public class GeyserConnector implements Connector {
     }
 
     public Collection<Player> getConnectedPlayers() {
-        return players.values();
+        return new ArrayList<>(players.values());
     }
 
     public void shutdown() {
@@ -185,7 +181,7 @@ public class GeyserConnector implements Connector {
     }
 
     private static void addMetrics(Metrics m) {
-        m.addCustomChart(new Metrics.SingleLineChart("servers", () -> 3 + new Random().nextInt(4)));
-        m.addCustomChart(new Metrics.SingleLineChart("players", () -> 5 + new Random().nextInt(7)));
+        m.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
+        m.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
     }
 }
