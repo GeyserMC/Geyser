@@ -148,7 +148,7 @@ public class GeyserConnector implements Connector {
             }
         }).join();
 
-        metrics = new Metrics("GeyserMC", instance.getConfig().getUUID(), true, java.util.logging.Logger.getLogger(""));
+        metrics = new Metrics("GeyserMC", config.getUUID(), true, java.util.logging.Logger.getLogger(""));
         metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
         metrics.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
     }
