@@ -56,6 +56,9 @@ public class GeyserCommandMap implements CommandMap {
         commandMap.put(command.getName(), command);
         connector.getLogger().debug("Registered command " + command.getName());
 
+        if (command.getAliases() == null || command.getAliases().isEmpty())
+            return;
+
         for (String alias : command.getAliases())
             commandMap.put(alias, command);
     }

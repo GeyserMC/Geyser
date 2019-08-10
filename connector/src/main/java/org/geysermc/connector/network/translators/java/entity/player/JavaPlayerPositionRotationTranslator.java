@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.flowpowered.math.vector.Vector3f;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -48,27 +49,41 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         if (!session.isLoggedIn())
             return;
 
-        if (session.isSpawned())
-            return;
+        if (!session.isSpawned()) {
+            ServerJoinGamePacket javaJoinPacket = (ServerJoinGamePacket) session.getJavaPacketCache().getCachedValues().remove("java_join_packet");
 
-        ServerJoinGamePacket javaJoinPacket = (ServerJoinGamePacket) session.getJavaPacketCache().getCachedValues().remove("java_join_packet");
+            PlayStatusPacket playStatus = new PlayStatusPacket();
+            playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
+            session.getUpstream().sendPacketImmediately(playStatus);
 
-        PlayStatusPacket playStatus = new PlayStatusPacket();
-        playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        session.getUpstream().sendPacketImmediately(playStatus);
+            entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getPitch(), packet.getYaw());
+
+            SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+            playerGameTypePacket.setGamemode(javaJoinPacket.getGameMode().ordinal());
+            session.getUpstream().sendPacket(playerGameTypePacket);
+
+            SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+            entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
+            entityDataPacket.getMetadata().putAll(entity.getMetadata());
+
+            session.getUpstream().sendPacket(entityDataPacket);
+            session.getPlayerEntity().setEntityId(javaJoinPacket.getEntityId());
+
+            MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+            movePlayerPacket.setPosition(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
+            movePlayerPacket.setRotation(new Vector3f(packet.getPitch(), packet.getYaw(), 0));
+            movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+            movePlayerPacket.setOnGround(true);
+            entity.setMovePending(false);
+
+            session.getUpstream().sendPacket(movePlayerPacket);
+            session.setSpawned(true);
+
+            GeyserLogger.DEFAULT.info("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
+        }
 
         entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getPitch(), packet.getYaw());
-
-        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        playerGameTypePacket.setGamemode(javaJoinPacket.getGameMode().ordinal());
-        session.getUpstream().sendPacket(playerGameTypePacket);
-
-        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityDataPacket.getMetadata().putAll(entity.getMetadata());
-
-        session.getUpstream().sendPacket(entityDataPacket);
-        session.getPlayerEntity().setEntityId(javaJoinPacket.getEntityId());
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -81,6 +96,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         session.getUpstream().sendPacket(movePlayerPacket);
         session.setSpawned(true);
 
-        GeyserLogger.DEFAULT.info("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
+        ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
+        session.getDownstream().getSession().send(teleportConfirmPacket);
     }
 }
