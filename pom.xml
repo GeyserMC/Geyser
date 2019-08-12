@@ -39,16 +39,6 @@
 
     <repositories>
         <repository>
-            <id>CodeMC-repo</id>
-            <url>https://repo.codemc.org/repository/maven-public</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
             <id>nukkitx-release-repo</id>
             <url>https://repo.nukkitx.com/maven-releases/</url>
             <releases>
@@ -99,16 +89,6 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20.1</version>
-                <configuration>
-                    <skip>true</skip> <!-- No unit tests to run atm -->
-                    <!-- Force the right file encoding during unit testing -->
-                    <argLine>-Dfile.encoding=${project.build.sourceEncoding} @{argLine}</argLine>
                 </configuration>
             </plugin>
             <plugin>
