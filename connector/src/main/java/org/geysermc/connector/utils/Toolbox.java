@@ -7,6 +7,7 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.translators.item.BedrockItem;
 import org.geysermc.connector.network.translators.item.JavaItem;
 
@@ -26,14 +27,14 @@ public class Toolbox {
             e.printStackTrace();
         }
 
-        Map<String, BedrockItem> m = new HashMap<>();
-
+        Map<String, BedrockItem> bedrockBlocks = new HashMap<>();
         Map<String, BedrockItem> bedrockItems = new HashMap<>();
+
         for (Map<String, Object> e : entries) {
             BedrockItem bedrockItem = new BedrockItem((String) e.get("name"), (int) e.get("id"), (int) e.get("data"));
-            m.put(bedrockItem.getIdentifier(), bedrockItem);
+            bedrockBlocks.put(bedrockItem.getIdentifier(), bedrockItem);
+            bedrockItems.put(bedrockItem.getIdentifier() + ":" + bedrockItem.getData(), bedrockItem);
         }
-
 
         ByteBuf b = Unpooled.buffer();
         VarInts.writeUnsignedInt(b, entries.size());
@@ -86,8 +87,6 @@ public class Toolbox {
             javaItems.put(str, new JavaItem(str, (int) javaItemList.get(str).get("protocol_id")));
         }
 
-        Remapper.addConversions(bedrockItems, javaItems);
-
         JAVA_ITEMS = javaItems;
 
         InputStream javaItemStream2 = Toolbox.class.getClassLoader().getResourceAsStream("java/java_blocks.json");
@@ -99,19 +98,22 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        Map<String, JavaItem> javaItems2 = new HashMap<String, JavaItem>();
+        Map<String, JavaItem> javaBlocks = new HashMap<String, JavaItem>();
 
         for (String str : javaItemList2.keySet()) {
-            javaItems2.put(str, new JavaItem(str, (int) javaItemList2.get(str).get("protocol_id")));
+            javaBlocks.put(str, new JavaItem(str, (int) javaItemList2.get(str).get("protocol_id")));
         }
 
-        JAVA_BLOCKS = javaItems2;
+        JAVA_BLOCKS = javaBlocks;
+        BEDROCK_BLOCKS = bedrockBlocks;
 
-        BEDROCK_BLOCKS = m;
+        GeyserLogger.DEFAULT.debug("Remapping items...");
+        Remapper.ITEM_REMAPPER.registerConversions(bedrockItems, javaItems);
+        GeyserLogger.DEFAULT.debug("Item remap complete!");
 
-        Remapper.addConversions(bedrockItems, javaItems);
-
-        Remapper.addConversions2(m, javaItems2);
+        GeyserLogger.DEFAULT.debug("Remapping blocks...");
+        Remapper.BLOCK_REMAPPER.registerConversions(bedrockBlocks, javaBlocks);
+        GeyserLogger.DEFAULT.debug("Block remap complete!");
     }
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS;

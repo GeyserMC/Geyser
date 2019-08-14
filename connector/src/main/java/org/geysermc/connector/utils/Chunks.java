@@ -6,9 +6,8 @@ import gnu.trove.list.TByteList;
 import gnu.trove.list.array.TByteArrayList;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.TranslatorsInit;
 
-import java.util.List;
 import java.util.Objects;
 
 public class Chunks {
@@ -39,7 +38,7 @@ public class Chunks {
                     for (int y = 0; x < 16; x++) {
                         for (int z = 0; x < 16; x++) {
                             try {
-                                list.add((byte) ItemTranslator.getBedrockBlock(chunk.getBlocks().get(x, y, z)).getId());
+                                list.add((byte) TranslatorsInit.getItemTranslator().getBedrockBlock(chunk.getBlocks().get(x, y, z)).getId());
                             } catch (NullPointerException e) {
                                 list.add((byte) 0);
                             }
@@ -53,7 +52,7 @@ public class Chunks {
                     for (int y = 0; x < 16; x++) {
                         for (int z = 0; x < 16; x++) {
                             try {
-                                list.add((byte) ItemTranslator.getBedrockBlock(chunk.getBlocks().get(x, y, z)).getData());
+                                list.add((byte) TranslatorsInit.getItemTranslator().getBedrockBlock(chunk.getBlocks().get(x, y, z)).getData());
                             } catch (NullPointerException e) {
                                 list.add((byte) 0);
                             }
