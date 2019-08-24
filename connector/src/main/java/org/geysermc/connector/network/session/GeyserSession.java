@@ -158,7 +158,7 @@ public class GeyserSession implements PlayerSession, Player {
                 public void disconnected(DisconnectedEvent event) {
                     loggedIn = false;
                     connector.getLogger().info(authenticationData.getName() + " has disconnected from remote java server on address " + remoteServer.getAddress() + " because of " + event.getReason());
-                    // upstream.disconnect(event.getReason());
+                    upstream.disconnect(event.getReason());
                 }
 
                 @Override
