@@ -43,11 +43,9 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.console.GeyserLogger;
-import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Remapper;
-import org.geysermc.connector.utils.Toolbox;
+import org.geysermc.connector.utils.MessageUtils;
 
-import java.rmi.MarshalException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +53,7 @@ import java.util.Map;
 
 public class ItemTranslator {
 
-    public static ItemStack translateToJava(ItemData data) {
+    public ItemStack translateToJava(ItemData data) {
         JavaItem javaItem = getJavaItem(data);
 
         if (data.getTag() == null) {
@@ -64,7 +62,7 @@ public class ItemTranslator {
         return new ItemStack(javaItem.getId(), data.getCount(), translateToJavaNBT(data.getTag()));
     }
 
-    public static ItemData translateToBedrock(ItemStack stack) {
+    public ItemData translateToBedrock(ItemStack stack) {
         // Most likely air if null
         if (stack == null) {
             return ItemData.AIR;
@@ -77,54 +75,38 @@ public class ItemTranslator {
         return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount(), translateToBedrockNBT(stack.getNBT()));
     }
 
-    public static BedrockItem getBedrockItem(ItemStack stack) {
-        Map<String, Object> m = Remapper.JAVA_TO_BEDROCK.get(stack.getId());
-        if (m == null) {
+    public BedrockItem getBedrockItem(ItemStack stack) {
+        BedrockItem bedrockItem = Remapper.ITEM_REMAPPER.convertToBedrock(stack);
+        if (bedrockItem == null) {
             GeyserLogger.DEFAULT.debug("Missing mapping for java item " + stack.getId());
             return BedrockItem.AIR;
         }
-        return new BedrockItem((String) m.get("name"), (Integer) m.get("id"), (Integer) m.get("data"));
+
+        return bedrockItem;
     }
 
-    public static JavaItem getJavaItem(ItemData data) {
-        Map<String, Object> m = Remapper.BEDROCK_TO_JAVA.get(data.getId()).get(data.getDamage());
-        if (m == null) {
-            GeyserLogger.DEFAULT.debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
 
+    public JavaItem getJavaItem(ItemData data) {
+        JavaItem javaItem = Remapper.ITEM_REMAPPER.convertToJava(data);
+        if (javaItem == null) {
+            GeyserLogger.DEFAULT.debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
             return JavaItem.AIR;
         }
-        return new JavaItem((String) m.get("name"), (Integer) m.get("id"));
+
+        return javaItem;
     }
 
-    public static BedrockItem getBedrockBlock(BlockState stack) {
-        Map<String, Object> m = Remapper.JAVA_TO_BEDROCK_BLOCKS.get(stack.getId());
-        if (m == null)
+    public BedrockItem getBedrockBlock(BlockState state) {
+        BedrockItem bedrockItem = Remapper.BLOCK_REMAPPER.convertToBedrock(new ItemStack(state.getId()));
+        if (bedrockItem == null) {
+            //GeyserLogger.DEFAULT.debug("Missing mapping for java item " + state.getId());
             return BedrockItem.AIR;
-
-        return new BedrockItem((String) m.get("name"), (Integer) m.get("id"), (Integer) m.get("data"));
-    }
-
-    public static String getBedrockIdentifier(String javaIdentifier) {
-        if (!Remapper.JAVA_TO_BEDROCK.containsKey(javaIdentifier)) {
-            return javaIdentifier;
         }
 
-        if ((int) Remapper.JAVA_TO_BEDROCK.get(javaIdentifier).get("data") > 0) {
-            return Remapper.JAVA_TO_BEDROCK.get(javaIdentifier).get("name") + ":" + Remapper.JAVA_TO_BEDROCK.get(javaIdentifier).get("data");
-        }
-
-        return (String) Remapper.JAVA_TO_BEDROCK.get(javaIdentifier).get("name");
+        return bedrockItem;
     }
 
-    public static String getJavaIdentifier(String bedrockIdentifier, int data) {
-        if (!Remapper.BEDROCK_TO_JAVA.containsKey(bedrockIdentifier)) {
-            return bedrockIdentifier;
-        }
-
-        return (String) Remapper.BEDROCK_TO_JAVA.get(bedrockIdentifier).get(data).get("name");
-    }
-
-    private static CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
+    private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
         CompoundTag javaTag = new CompoundTag(tag.getName());
         Map<String, Tag> javaValue = javaTag.getValue();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
@@ -141,7 +123,7 @@ public class ItemTranslator {
         return javaTag;
     }
 
-    private static Tag translateToJavaNBT(com.nukkitx.nbt.tag.Tag tag) {
+    private Tag translateToJavaNBT(com.nukkitx.nbt.tag.Tag tag) {
         if (tag instanceof com.nukkitx.nbt.tag.ByteArrayTag) {
             com.nukkitx.nbt.tag.ByteArrayTag byteArrayTag = (com.nukkitx.nbt.tag.ByteArrayTag) tag;
             return new ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
@@ -215,7 +197,7 @@ public class ItemTranslator {
         return null;
     }
 
-    private static com.nukkitx.nbt.tag.CompoundTag translateToBedrockNBT(CompoundTag tag) {
+    private com.nukkitx.nbt.tag.CompoundTag translateToBedrockNBT(CompoundTag tag) {
         Map<String, com.nukkitx.nbt.tag.Tag<?>> javaValue = new HashMap<String, com.nukkitx.nbt.tag.Tag<?>>();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
@@ -232,7 +214,7 @@ public class ItemTranslator {
         return bedrockTag;
     }
 
-    private static com.nukkitx.nbt.tag.Tag translateToBedrockNBT(Tag tag) {
+    private com.nukkitx.nbt.tag.Tag translateToBedrockNBT(Tag tag) {
         if (tag instanceof ByteArrayTag) {
             ByteArrayTag byteArrayTag = (ByteArrayTag) tag;
             return new com.nukkitx.nbt.tag.ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
