@@ -9,6 +9,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.geysermc.connector.network.translators.item.BedrockItem;
 import org.geysermc.connector.network.translators.item.JavaItem;
+import org.geysermc.connector.world.GlobalBlockPalette;
 
 import java.io.InputStream;
 import java.util.*;
@@ -38,6 +39,7 @@ public class Toolbox {
         ByteBuf b = Unpooled.buffer();
         VarInts.writeUnsignedInt(b, entries.size());
         for (Map<String, Object> e : entries) {
+            GlobalBlockPalette.registerMapping((int) e.get("id"));
             BedrockUtils.writeString(b, (String) e.get("name"));
             b.writeShortLE((int) e.get("data"));
             b.writeShortLE((int) e.get("id"));
