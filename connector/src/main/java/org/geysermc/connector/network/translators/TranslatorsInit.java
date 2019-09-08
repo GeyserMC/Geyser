@@ -100,7 +100,7 @@ import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnPla
 import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
-import org.geysermc.connector.network.translators.java.world.JavaChunkDataPacket;
+import org.geysermc.connector.network.translators.java.world.JavaChunkDataTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
@@ -168,7 +168,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
-        Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataPacket());
+        Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());
         Registry.registerJava(ServerEntityDestroyPacket.class, new JavaEntityDestroyTranslator());
         Registry.registerJava(ServerWindowItemsPacket.class, new JavaWindowItemsTranslator());
         Registry.registerJava(ServerOpenWindowPacket.class, new JavaOpenWindowTranslator());

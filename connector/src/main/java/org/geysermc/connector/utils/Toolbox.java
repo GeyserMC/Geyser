@@ -40,7 +40,7 @@ public class Toolbox {
         ByteBuf b = Unpooled.buffer();
         VarInts.writeUnsignedInt(b, entries.size());
         for (Map<String, Object> e : entries) {
-            GlobalBlockPalette.registerMapping((int) e.get("id"));
+            GlobalBlockPalette.registerMapping((int) e.get("id") << 4 | (int) e.get("data"));
             BedrockUtils.writeString(b, (String) e.get("name"));
             b.writeShortLE((int) e.get("data"));
             b.writeShortLE((int) e.get("id"));
