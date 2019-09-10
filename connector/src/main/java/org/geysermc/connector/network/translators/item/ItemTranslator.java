@@ -99,7 +99,7 @@ public class ItemTranslator {
     public BedrockItem getBedrockBlock(BlockState state) {
         BedrockItem bedrockItem = Remapper.BLOCK_REMAPPER.convertToBedrock(new ItemStack(state.getId()));
         if (bedrockItem == null) {
-            //GeyserLogger.DEFAULT.debug("Missing mapping for java item " + state.getId());
+            // GeyserLogger.DEFAULT.debug("Missing mapping for java block " + state.getId());
             return BedrockItem.AIR;
         }
 
