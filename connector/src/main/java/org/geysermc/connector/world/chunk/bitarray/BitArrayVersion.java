@@ -1,12 +1,11 @@
-package org.geysermc.connector.world.chunk.palette;
+package org.geysermc.connector.world.chunk.bitarray;
 
 import org.geysermc.connector.utils.MathUtils;
 
 /**
  * Adapted from NukkitX: https://github.com/NukkitX/Nukkit
  */
-public enum PaletteVersion {
-
+public enum BitArrayVersion {
     V16(16, 2, null),
     V8(8, 4, V16),
     V6(6, 5, V8), // 2 bit padding
@@ -19,20 +18,29 @@ public enum PaletteVersion {
     final byte bits;
     final byte entriesPerWord;
     final int maxEntryValue;
-    final PaletteVersion next;
+    final BitArrayVersion next;
 
-    PaletteVersion(int bits, int entriesPerWord, PaletteVersion next) {
+    BitArrayVersion(int bits, int entriesPerWord, BitArrayVersion next) {
         this.bits = (byte) bits;
         this.entriesPerWord = (byte) entriesPerWord;
         this.maxEntryValue = (1 << this.bits) - 1;
         this.next = next;
     }
 
-    public Palette createPalette(int size) {
+    public static BitArrayVersion get(int version, boolean read) {
+        for (BitArrayVersion ver : values()) {
+            if ((!read && ver.entriesPerWord <= version) || (read && ver.bits == version)) {
+                return ver;
+            }
+        }
+        throw new IllegalArgumentException("Invalid palette version: " + version);
+    }
+
+    public BitArray createPalette(int size) {
         return this.createPalette(size, new int[MathUtils.ceil((float) size / entriesPerWord)]);
     }
 
-    public byte getVersion() {
+    public byte getId() {
         return bits;
     }
 
@@ -40,25 +48,20 @@ public enum PaletteVersion {
         return maxEntryValue;
     }
 
-    public PaletteVersion next() {
+    public int getWordsForSize(int size) {
+        return MathUtils.ceil((float) size / entriesPerWord);
+    }
+
+    public BitArrayVersion next() {
         return next;
     }
 
-    public Palette createPalette(int size, int[] words) {
+    public BitArray createPalette(int size, int[] words) {
         if (this == V3 || this == V5 || this == V6) {
             // Padded palettes aren't able to use bitwise operations due to their padding.
-            return new PaddedPalette(this, size, words);
+            return new PaddedBitArray(this, size, words);
         } else {
-            return new Pow2Palette(this, size, words);
+            return new Pow2BitArray(this, size, words);
         }
-    }
-
-    private static PaletteVersion getVersion(int version, boolean read) {
-        for (PaletteVersion ver : values()) {
-            if ( ( !read && ver.entriesPerWord <= version ) || ( read && ver.bits == version ) ) {
-                return ver;
-            }
-        }
-        throw new IllegalArgumentException("Invalid palette version: " + version);
     }
 }

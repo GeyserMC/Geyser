@@ -1,9 +1,9 @@
-package org.geysermc.connector.world.chunk.palette;
+package org.geysermc.connector.world.chunk.bitarray;
 
 /**
  * Adapted from NukkitX: https://github.com/NukkitX/Nukkit
  */
-public interface Palette {
+public interface BitArray {
 
     void set(int index, int value);
 
@@ -13,7 +13,7 @@ public interface Palette {
 
     int[] getWords();
 
-    PaletteVersion getVersion();
+    BitArrayVersion getVersion();
 
-    Palette copy();
+    BitArray copy();
 }
