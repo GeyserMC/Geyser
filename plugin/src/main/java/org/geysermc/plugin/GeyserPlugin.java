@@ -1,21 +1,7 @@
 package org.geysermc.plugin;
 
-import com.whirvis.jraknet.RakNetPacket;
-import com.whirvis.jraknet.peer.RakNetClientPeer;
-import com.whirvis.jraknet.server.RakNetServer;
-import com.whirvis.jraknet.server.RakNetServerListener;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ConnectedPlayer;
-import net.md_5.bungee.api.plugin.Plugin;
 
-import java.lang.reflect.Field;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-public class GeyserPlugin extends Plugin {
+public class GeyserPlugin {
     /*private List<ConnectedPlayer> players;
 
     @SuppressWarnings("unchecked")
