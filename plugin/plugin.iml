@@ -11,25 +11,5 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="waterfall-294" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: net.md-5:bungeecord-api:1.14-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: net.md-5:bungeecord-chat:1.14-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.code.gson:gson:2.8.0" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: net.md-5:bungeecord-config:1.14-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.yaml:snakeyaml:1.23" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: net.md-5:bungeecord-event:1.14-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: net.md-5:bungeecord-protocol:1.14-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: net.md-5:brigadier:1.0.16-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: io.netty:netty-codec:4.1.34.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: net.sf.trove4j:core:3.1.0" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.guava:guava:20.0" level="project" />
-    <orderEntry type="library" name="Maven: com.whirvis:jraknet:2.11.8" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.12.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.12.0" level="project" />
-    <orderEntry type="library" name="Maven: io.netty:netty-handler:4.1.38.Final" level="project" />
-    <orderEntry type="library" name="Maven: io.netty:netty-common:4.1.38.Final" level="project" />
-    <orderEntry type="library" name="Maven: io.netty:netty-buffer:4.1.38.Final" level="project" />
-    <orderEntry type="library" name="Maven: io.netty:netty-transport:4.1.38.Final" level="project" />
-    <orderEntry type="library" name="Maven: io.netty:netty-resolver:4.1.38.Final" level="project" />
-    <orderEntry type="library" name="Maven: com.dosse:upnp:1.1" level="project" />
   </component>
 </module>
