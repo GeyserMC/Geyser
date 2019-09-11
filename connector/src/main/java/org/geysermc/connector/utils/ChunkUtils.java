@@ -77,7 +77,11 @@ public class ChunkUtils {
                         BlockState block = storage.get(x, y, z);
                         BedrockItem bedrockBlock = TranslatorsInit.getItemTranslator().getBedrockBlock(block);
 
-                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), bedrockBlock.getId() << 4 | bedrockBlock.getData());
+                        if(bedrockBlock.getId() == 0) {
+                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), 0 << 4 | 0);
+                        } else {
+                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), 1 << 4 | 0);
+                        }
                     }
                 }
             }
