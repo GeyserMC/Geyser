@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class GeyserPlugin extends Plugin {
-    private List<ConnectedPlayer> players;
+    /*private List<ConnectedPlayer> players;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -52,5 +52,5 @@ public class GeyserPlugin extends Plugin {
         long L2 = Long.parseLong(two);
 
         return new UUID(L1, L2);
-    }
+    }*/
 }
