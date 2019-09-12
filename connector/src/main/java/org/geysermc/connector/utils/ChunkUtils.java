@@ -80,7 +80,7 @@ public class ChunkUtils {
                         if(bedrockBlock.getId() == 0) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), 0 << 4 | 0);
                         } else {
-                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), 1 << 4 | 0);
+                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), 1 << 4 | 0);
                         }
                     }
                 }
