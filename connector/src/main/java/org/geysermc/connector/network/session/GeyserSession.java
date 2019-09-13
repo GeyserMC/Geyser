@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.session;
 
 import com.flowpowered.math.vector.Vector2f;
+import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -47,7 +48,6 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.api.Geyser;
 import org.geysermc.api.Player;
 import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
@@ -56,11 +56,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.PlayerInventory;
-import org.geysermc.connector.network.session.cache.DataCache;
-import org.geysermc.connector.network.session.cache.EntityCache;
-import org.geysermc.connector.network.session.cache.InventoryCache;
-import org.geysermc.connector.network.session.cache.ScoreboardCache;
-import org.geysermc.connector.network.session.cache.WindowCache;
+import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -86,6 +82,9 @@ public class GeyserSession implements PlayerSession, Player {
     private ScoreboardCache scoreboardCache;
 
     private DataCache<Packet> javaPacketCache;
+
+    @Setter
+    private Vector2i lastChunkPosition = null;
 
     private boolean loggedIn;
 

@@ -1,8 +1,11 @@
 package org.geysermc.connector.network.translators.java.world;
 
+import com.flowpowered.math.vector.Vector2i;
+import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.geysermc.api.Geyser;
@@ -18,6 +21,19 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
         // Not sure if this is safe or not, however without this the client usually times out
         Geyser.getConnector().getGeneralThreadPool().execute(() -> {
+            Vector2i chunkPos = session.getLastChunkPosition();
+            Vector3f position = session.getPlayerEntity().getPosition();
+            Vector2i newChunkPos = Vector2i.from(position.getFloorX() >> 4, position.getFloorZ() >> 4);
+
+            if (chunkPos == null || !chunkPos.equals(newChunkPos)) {
+                NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
+                chunkPublisherUpdatePacket.setPosition(position.toInt());
+                chunkPublisherUpdatePacket.setRadius(8 << 4);
+                session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
+
+                session.setLastChunkPosition(newChunkPos);
+            }
+
             try {
                 ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
                 ByteBuf byteBuf = Unpooled.buffer(32);
