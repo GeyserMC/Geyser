@@ -37,4 +37,14 @@ public class BedrockItem {
     private String identifier;
     private int id;
     private int data;
+
+    @Override
+    public int hashCode() {
+        return id << 4 | data;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this || (obj instanceof BedrockItem && ((BedrockItem) obj).id == this.id && ((BedrockItem) obj).identifier.equals(this.identifier) && ((BedrockItem) obj).data == this.data);
+    }
 }

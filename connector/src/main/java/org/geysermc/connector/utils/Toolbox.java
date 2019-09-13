@@ -31,15 +31,13 @@ public class Toolbox {
         Map<String, BedrockItem> bedrockBlocks = new HashMap<>();
         Map<String, BedrockItem> bedrockItems = new HashMap<>();
 
-        for (Map<String, Object> e : entries) {
-            BedrockItem bedrockItem = new BedrockItem((String) e.get("name"), (int) e.get("id"), (int) e.get("data"));
-            bedrockBlocks.put(bedrockItem.getIdentifier(), bedrockItem);
-            bedrockItems.put(bedrockItem.getIdentifier() + ":" + bedrockItem.getData(), bedrockItem);
-        }
-
         ByteBuf b = Unpooled.buffer();
         VarInts.writeUnsignedInt(b, entries.size());
         for (Map<String, Object> e : entries) {
+            BedrockItem bedrockItem = new BedrockItem((String) e.get("name"), (int) e.get("id"), (int) e.get("data"));
+            bedrockItems.put(bedrockItem.getIdentifier() + ":" + bedrockItem.getData(), bedrockItem);
+            bedrockBlocks.put(bedrockItem.getIdentifier() + ":" + bedrockItem.getData(), bedrockItem);
+
             GlobalBlockPalette.registerMapping((int) e.get("id") << 4 | (int) e.get("data"));
             BedrockUtils.writeString(b, (String) e.get("name"));
             b.writeShortLE((int) e.get("data"));

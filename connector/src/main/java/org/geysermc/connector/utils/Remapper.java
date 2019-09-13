@@ -107,6 +107,19 @@ public class Remapper {
         return null;
     }
 
+    public BedrockItem convertToBedrockB(ItemStack block) {
+        for (Map.Entry<String, JavaItem> javaItem : Toolbox.JAVA_BLOCKS.entrySet()) {
+            if (javaItem.getValue().getId() != block.getId())
+                continue;
+
+            return javaToBedrock.get(javaItem.getValue());
+        }
+
+        return null;
+    }
+
+
+
     private static String getBedrockIdentifier(String javaIdentifier) {
         javaIdentifier = javaIdentifier.toLowerCase();
         javaIdentifier = javaIdentifier.replace("terracotta", "stained_hardened_clay");

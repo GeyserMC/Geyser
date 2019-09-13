@@ -91,6 +91,7 @@ public class GeyserConnector implements Connector {
     }
 
     private GeyserConnector() {
+        System.out.println(UUID.randomUUID().toString());
         //Metric
         if(!(System.console() == null) && System.getProperty("os.name", "Windows 10").toLowerCase().contains("windows")) {
             AnsiConsole.systemInstall();

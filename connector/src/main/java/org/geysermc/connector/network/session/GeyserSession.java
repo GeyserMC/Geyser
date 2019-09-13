@@ -119,7 +119,7 @@ public class GeyserSession implements PlayerSession, Player {
         startGame();
 
         this.remoteServer = remoteServer;
-        if (!connector.getConfig().getRemote().isOnlineMode()) {
+        if (!(connector.getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
             connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
             authenticate(authenticationData.getName());
         }
