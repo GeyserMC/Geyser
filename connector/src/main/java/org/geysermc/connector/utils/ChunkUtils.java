@@ -7,6 +7,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.item.BedrockItem;
 import org.geysermc.connector.world.chunk.ChunkSection;
+import org.geysermc.connector.world.chunk.bitarray.BitArrayVersion;
 
 public class ChunkUtils {
 
@@ -69,7 +70,7 @@ public class ChunkUtils {
             ChunkSection section = chunkData.sections[chunkY];
 
             section.getBlockStorageArray()[0] = new org.geysermc.connector.world.chunk.BlockStorage();
-            section.getBlockStorageArray()[1] = new org.geysermc.connector.world.chunk.BlockStorage();
+            section.getBlockStorageArray()[1] = new org.geysermc.connector.world.chunk.BlockStorage(BitArrayVersion.V1);
 
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
@@ -77,7 +78,8 @@ public class ChunkUtils {
                         BlockState block = storage.get(x, y, z);
                         BedrockItem bedrockBlock = TranslatorsInit.getItemTranslator().getBedrockBlock(block);
 
-                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), bedrockBlock.getId() << 4 | bedrockBlock.getData());
+                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
+                                bedrockBlock.getId() << 4 | bedrockBlock.getData());
                     }
                 }
             }

@@ -56,9 +56,9 @@ public class BlockStorage {
             buffer.writeIntLE(word);
         }
 
-        VarInts.writeUnsignedInt(buffer, palette.size());
+        VarInts.writeInt(buffer, palette.size());
         palette.forEach(id -> {
-            VarInts.writeUnsignedInt(buffer, id);
+            VarInts.writeInt(buffer, id);
             return true;
         });
     }

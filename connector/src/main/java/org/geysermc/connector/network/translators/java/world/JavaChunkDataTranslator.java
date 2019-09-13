@@ -21,17 +21,15 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             try {
                 ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
                 ByteBuf byteBuf = Unpooled.buffer(32);
-                int count = 0;
                 ChunkSection[] sections = chunkData.sections;
-                for (int i = sections.length - 1; i >= 0; i--) {
-                    if (sections[i].isEmpty())
-                        continue;
 
-                    count = i + 1;
-                    break;
+                int sectionCount = 16;
+                while (sections[sectionCount].isEmpty()) {
+                    sectionCount--;
                 }
+                sectionCount++;
 
-                for (int i = 0; i < count; i++) {
+                for (int i = 0; i < sectionCount; i++) {
                     ChunkSection section = chunkData.sections[i];
                     section.writeToNetwork(byteBuf);
                 }
@@ -44,7 +42,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 byteBuf.readBytes(payload);
 
                 LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
-                levelChunkPacket.setSubChunksLength(count);
+                levelChunkPacket.setSubChunksLength(sectionCount);
                 levelChunkPacket.setCachingEnabled(false);
                 levelChunkPacket.setChunkX(packet.getColumn().getX());
                 levelChunkPacket.setChunkZ(packet.getColumn().getZ());
