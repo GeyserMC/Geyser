@@ -23,7 +23,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 ByteBuf byteBuf = Unpooled.buffer(32);
                 ChunkSection[] sections = chunkData.sections;
 
-                int sectionCount = 16;
+                int sectionCount = sections.length - 1;
                 while (sections[sectionCount].isEmpty()) {
                     sectionCount--;
                 }

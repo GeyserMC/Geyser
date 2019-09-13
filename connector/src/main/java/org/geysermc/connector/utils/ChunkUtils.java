@@ -13,64 +13,22 @@ public class ChunkUtils {
 
     public static ChunkData translateToBedrock(Column column) {
         ChunkData chunkData = new ChunkData();
-        chunkData.sections = new ChunkSection[16];
-        for (int i = 0; i < 16; i++) {
+
+        Chunk[] chunks = column.getChunks();
+        int chunkSectionCount = chunks.length;
+        chunkData.sections = new ChunkSection[chunkSectionCount];
+        for (int i = 0; i < chunkSectionCount; i++) {
             chunkData.sections[i] = new ChunkSection();
         }
 
-        /*
-        for (int y = 0; y < 256; y++) {
-            int chunkY = y >> 4;
-
-            Chunk chunk = null;
-            try {
-                chunk = column.getChunks()[chunkY];
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
-            if (chunk == null || chunk.isEmpty())
-                continue;
-
-            BlockStorage storage = chunk.getBlocks();
-            for (int x = 0; x < 16; x++) {
-                for (int z = 0; z < 16; z++) {
-                    BlockState block = storage.get(x, chunkY, z);
-                    if (block == null)
-                        block = new BlockState(0);
-
-                    BedrockItem bedrockBlock = TranslatorsInit.getItemTranslator().getBedrockBlock(block);
-
-                    ChunkSection section = chunkData.sections[chunkY];
-
-                    //org.geysermc.connector.world.chunk.BlockStorage blockStorage = new org.geysermc.connector.world.chunk.BlockStorage();
-                    int runtimeId = GlobalBlockPalette.getOrCreateRuntimeId(bedrockBlock.getId(), bedrockBlock.getData());
-                    section.setFullBlock(x, y >> 4, z, 0, runtimeId << 2 | bedrockBlock.getData());
-
-                    //section.getBlockStorageArray()[0] = blockStorage;
-                    //section.getBlockStorageArray()[1] = blockStorage;
-                }
-            }
-        }
-
-         */
-
-        for (int chunkY = 0; chunkY < 16; chunkY++) {
-            Chunk chunk = null;
-            try {
-                chunk = column.getChunks()[chunkY];
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+        for (int chunkY = 0; chunkY < chunkSectionCount; chunkY++) {
+            Chunk chunk = chunks[chunkY];
 
             if (chunk == null || chunk.isEmpty())
                 continue;
 
             BlockStorage storage = chunk.getBlocks();
             ChunkSection section = chunkData.sections[chunkY];
-
-            section.getBlockStorageArray()[0] = new org.geysermc.connector.world.chunk.BlockStorage();
-            section.getBlockStorageArray()[1] = new org.geysermc.connector.world.chunk.BlockStorage(BitArrayVersion.V1);
 
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
