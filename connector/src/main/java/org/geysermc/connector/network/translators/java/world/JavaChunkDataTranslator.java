@@ -67,7 +67,6 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            GeyserLogger.DEFAULT.info("Sent chunk packet!");
         });
     }
 }
