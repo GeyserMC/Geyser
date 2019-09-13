@@ -173,10 +173,12 @@ public class GeyserConnector implements Connector {
     public void addPlayer(Player player) {
         players.put(player.getAuthenticationData().getName(), player);
         players.put(player.getAuthenticationData().getUUID(), player);
+        players.put(player.getSocketAddress(), player);
     }
 
     public void removePlayer(Player player) {
         players.remove(player.getAuthenticationData().getName());
         players.remove(player.getAuthenticationData().getUUID());
+        players.remove(player.getSocketAddress());
     }
 }

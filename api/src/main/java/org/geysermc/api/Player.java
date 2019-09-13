@@ -29,6 +29,8 @@ import org.geysermc.api.command.CommandSender;
 import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 
+import java.net.InetSocketAddress;
+
 public interface Player extends CommandSender {
 
     /**
@@ -68,4 +70,11 @@ public interface Player extends CommandSender {
      * @param id the id of the window
      */
     void sendForm(FormWindow window, int id);
+
+    /**
+     * Returns the current hostname and port the player is connected with.
+     *
+     * @return player's socket address.
+     */
+    InetSocketAddress getSocketAddress();
 }

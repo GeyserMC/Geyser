@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import org.geysermc.api.Player;
 import org.geysermc.api.events.PingEvent;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
@@ -102,7 +103,14 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
-        bedrockServerSession.addDisconnectHandler((x) -> GeyserLogger.DEFAULT.warning("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + x));
+        bedrockServerSession.addDisconnectHandler(disconnectReason -> {
+            GeyserLogger.DEFAULT.info("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + disconnectReason);
+
+            Player player = connector.getPlayers().get(bedrockServerSession.getAddress());
+            if (player != null) {
+                player.disconnect(disconnectReason.name());
+            }
+        });
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
     }
 }

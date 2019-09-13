@@ -60,14 +60,15 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.Toolbox;
 
+import java.net.InetSocketAddress;
 import java.util.UUID;
 
 @Getter
 public class GeyserSession implements PlayerSession, Player {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
+    private final BedrockServerSession upstream;
     private RemoteServer remoteServer;
-    private BedrockServerSession upstream;
 
     private Client downstream;
 
@@ -179,7 +180,7 @@ public class GeyserSession implements PlayerSession, Player {
             if (downstream != null && downstream.getSession() != null) {
                 downstream.getSession().disconnect(reason);
             }
-            if (upstream != null) {
+            if (upstream != null && !upstream.isClosed()) {
                 upstream.disconnect(reason);
             }
         }
@@ -239,6 +240,11 @@ public class GeyserSession implements PlayerSession, Player {
 
     public void sendForm(FormWindow window, int id) {
         windowCache.showWindow(window, id);
+    }
+
+    @Override
+    public InetSocketAddress getSocketAddress() {
+        return this.upstream.getAddress();
     }
 
     public void sendForm(FormWindow window) {
