@@ -38,8 +38,6 @@ import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
-import com.nukkitx.network.util.DisconnectReason;
-import com.nukkitx.protocol.PlayerSession;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
@@ -64,7 +62,7 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 
 @Getter
-public class GeyserSession implements PlayerSession, Player {
+public class GeyserSession implements Player {
 
     private final GeyserConnector connector;
     private final BedrockServerSession upstream;
@@ -188,25 +186,12 @@ public class GeyserSession implements PlayerSession, Player {
         closed = true;
     }
 
-    @Override
     public boolean isClosed() {
         return closed;
     }
 
-    @Override
     public void close() {
         disconnect("Server closed.");
-    }
-
-    @Override
-    public void onDisconnect(DisconnectReason disconnectReason) {
-        downstream.getSession().disconnect("Disconnected from server. Reason: " + disconnectReason);
-    }
-
-    @Override
-    public void onDisconnect(String reason) {
-        downstream.getSession().disconnect("Disconnected from server. Reason: " + reason);
-        connector.removePlayer(this);
     }
 
     public void setAuthenticationData(AuthData authData) {

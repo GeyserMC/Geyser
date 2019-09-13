@@ -40,7 +40,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 ChunkSection[] sections = chunkData.sections;
 
                 int sectionCount = sections.length - 1;
-                while (sections[sectionCount].isEmpty()) {
+                while (sectionCount >= 0 && sections[sectionCount].isEmpty()) {
                     sectionCount--;
                 }
                 sectionCount++;

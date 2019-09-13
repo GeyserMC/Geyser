@@ -109,6 +109,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             Player player = connector.getPlayers().get(bedrockServerSession.getAddress());
             if (player != null) {
                 player.disconnect(disconnectReason.name());
+                connector.removePlayer(player);
             }
         });
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
