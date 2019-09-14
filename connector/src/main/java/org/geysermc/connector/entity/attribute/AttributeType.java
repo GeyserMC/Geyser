@@ -35,7 +35,7 @@ public enum AttributeType {
     // Universal Attributes
     FOLLOW_RANGE("generic.followRange", "minecraft:follow_range", 0f, 2048f, 32f),
     KNOCKBACK_RESISTANCE("generic.knockbackResistance", "minecraft:knockback_resistance", 0f, 1f, 0f),
-    MOVEMENT_SPEED("generic.movementSpeed", "minecraft:movement", 0f, 1024f, 0.699999988079071f),
+    MOVEMENT_SPEED("generic.movementSpeed", "minecraft:movement", 0f, 1024f, 0.1f),
     FLYING_SPEED("generic.flyingSpeed", "minecraft:movement", 0.0f, 1024.0f, 0.4000000059604645f),
     ATTACK_DAMAGE("generic.attackDamage", "minecraft:attack_damage", 0f, 2048f, 1f),
 
