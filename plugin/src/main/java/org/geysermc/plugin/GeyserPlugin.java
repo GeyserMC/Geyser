@@ -10,13 +10,13 @@ import net.md_5.bungee.api.plugin.Plugin;
 
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class GeyserPlugin extends Plugin {
+
     private List<ConnectedPlayer> players;
+
     @SuppressWarnings("unchecked")
     @Override
     public void onEnable() {
