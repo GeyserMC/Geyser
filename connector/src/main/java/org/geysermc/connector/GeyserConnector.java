@@ -91,6 +91,12 @@ public class GeyserConnector implements Connector {
     }
 
     private GeyserConnector() {
+
+        System.out.println(12 << 4);
+        System.out.println(2 << 2);
+        System.out.println(1 << 2 | 4);
+        System.out.println(23 << 3);
+
         System.out.println(UUID.randomUUID().toString());
         //Metric
         if(!(System.console() == null) && System.getProperty("os.name", "Windows 10").toLowerCase().contains("windows")) {

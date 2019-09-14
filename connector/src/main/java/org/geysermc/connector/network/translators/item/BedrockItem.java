@@ -33,6 +33,7 @@ import lombok.Getter;
 public class BedrockItem {
 
     public static BedrockItem AIR = new BedrockItem("minecraft:air", 0, 0);
+    public static BedrockItem DIRT = new BedrockItem("minecraft:dirt", 3, 0);
 
     private String identifier;
     private int id;
