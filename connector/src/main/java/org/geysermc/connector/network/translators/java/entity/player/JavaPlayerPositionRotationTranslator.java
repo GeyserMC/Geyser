@@ -35,6 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -56,7 +57,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
             session.getUpstream().sendPacketImmediately(playStatus);
 
-            entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getPitch(), packet.getYaw());
+            entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getPitch(), packet.getYaw());
 
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
             playerGameTypePacket.setGamemode(javaJoinPacket.getGameMode().ordinal());
@@ -71,7 +72,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-            movePlayerPacket.setPosition(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
+            movePlayerPacket.setPosition(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()));
             movePlayerPacket.setRotation(new Vector3f(packet.getPitch(), packet.getYaw(), 0));
             movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
             movePlayerPacket.setOnGround(true);
@@ -83,11 +84,11 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             GeyserLogger.DEFAULT.info("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
         }
 
-        entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getPitch(), packet.getYaw());
+        entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getPitch(), packet.getYaw());
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-        movePlayerPacket.setPosition(new Vector3f(packet.getX(), packet.getY(), packet.getZ()));
+        movePlayerPacket.setPosition(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.01f, packet.getZ()));
         movePlayerPacket.setRotation(new Vector3f(packet.getPitch(), packet.getYaw(), 0));
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
         movePlayerPacket.setOnGround(true);
