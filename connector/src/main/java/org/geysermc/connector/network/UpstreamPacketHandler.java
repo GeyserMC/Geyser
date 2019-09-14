@@ -121,7 +121,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             return true;
         }
-        return false;
+
+        return translateAndDefault(packet);
     }
 
     @Override
