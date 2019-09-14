@@ -34,6 +34,7 @@ public class Remapper {
             BedrockItem bedrockItem = bedrockItemEntry.getValue();
             String identifier = bedrockItem.getIdentifier();
 
+            // Colorable block remapping
             for (ColoredBlock coloredBlock : ColoredBlock.values()) {
                 if (!getBedrockIdentifier(coloredBlock.name()).equalsIgnoreCase(bedrockItem.getIdentifier().replace(MINECRAFT, "")))
                     continue;
@@ -48,6 +49,7 @@ public class Remapper {
                 }
             }
 
+            // Wood remapping
             for (WoodBlock woodBlock : WoodBlock.values()) {
                 if (!getBedrockIdentifier(woodBlock.name()).equalsIgnoreCase(bedrockItem.getIdentifier().replace(MINECRAFT, "")))
                     continue;
@@ -66,6 +68,7 @@ public class Remapper {
                 }
             }
 
+            // Stone remapping
             if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("stone") && !isTool(bedrockItem.getIdentifier())) {
                 for (StoneType stoneType : StoneType.values()) {
                     if (stoneType.getId() != bedrockItem.getData())
@@ -74,6 +77,23 @@ public class Remapper {
                     // Set the identifier to stone
                     identifier = MINECRAFT + stoneType.name().toLowerCase();
                 }
+            }
+
+            // Grass remapping
+            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("grass")) {
+                identifier = MINECRAFT + "grass_block";
+            }
+
+            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("tallgrass")) {
+                identifier = MINECRAFT + "grass";
+            }
+
+            // Dirt remapping
+            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("dirt")) {
+                if (bedrockItem.getData() == 0)
+                    identifier = MINECRAFT + "dirt";
+                else
+                    identifier = MINECRAFT + "coarse_dirt";
             }
 
             for (Map.Entry<String, JavaItem> javaItemEntry : javaItems.entrySet()) {
@@ -106,6 +126,19 @@ public class Remapper {
 
         return null;
     }
+
+    public BedrockItem convertToBedrockB(ItemStack block) {
+        for (Map.Entry<String, JavaItem> javaItem : Toolbox.JAVA_BLOCKS.entrySet()) {
+            if (javaItem.getValue().getId() != block.getId())
+                continue;
+
+            return javaToBedrock.get(javaItem.getValue());
+        }
+
+        return null;
+    }
+
+
 
     private static String getBedrockIdentifier(String javaIdentifier) {
         javaIdentifier = javaIdentifier.toLowerCase();

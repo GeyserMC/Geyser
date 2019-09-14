@@ -72,15 +72,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.nukkitx.protocol</groupId>
-            <artifactId>bedrock-v354</artifactId>
-            <version>2.1.2</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.protocol</groupId>
-            <artifactId>bedrock-v340</artifactId>
-            <version>2.1.2</version>
+            <groupId>com.nukkitx</groupId>
+            <artifactId>fastutil-lite</artifactId>
+            <version>8.1.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

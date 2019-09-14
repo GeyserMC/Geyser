@@ -65,6 +65,7 @@ import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import lombok.Getter;
@@ -72,6 +73,7 @@ import org.geysermc.connector.network.translators.bedrock.BedrockActionTranslato
 import org.geysermc.connector.network.translators.bedrock.BedrockAnimateTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockCommandRequestTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockMobEquipmentTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockMovePlayerTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
 import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
@@ -100,7 +102,7 @@ import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnPla
 import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
-import org.geysermc.connector.network.translators.java.world.JavaChunkDataPacket;
+import org.geysermc.connector.network.translators.java.world.JavaChunkDataTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
@@ -168,7 +170,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
-        Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataPacket());
+        Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());
         Registry.registerJava(ServerEntityDestroyPacket.class, new JavaEntityDestroyTranslator());
         Registry.registerJava(ServerWindowItemsPacket.class, new JavaWindowItemsTranslator());
         Registry.registerJava(ServerOpenWindowPacket.class, new JavaOpenWindowTranslator());
@@ -182,6 +184,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
         Registry.registerBedrock(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator());
         Registry.registerBedrock(PlayerActionPacket.class, new BedrockActionTranslator());
+        Registry.registerBedrock(MovePlayerPacket.class, new BedrockMovePlayerTranslator());
 
         itemTranslator = new ItemTranslator();
 

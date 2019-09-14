@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.session;
 
 import com.flowpowered.math.vector.Vector2f;
+import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -37,8 +38,6 @@ import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
-import com.nukkitx.network.util.DisconnectReason;
-import com.nukkitx.protocol.PlayerSession;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
@@ -47,7 +46,6 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.api.Geyser;
 import org.geysermc.api.Player;
 import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
@@ -56,22 +54,19 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.PlayerInventory;
-import org.geysermc.connector.network.session.cache.DataCache;
-import org.geysermc.connector.network.session.cache.EntityCache;
-import org.geysermc.connector.network.session.cache.InventoryCache;
-import org.geysermc.connector.network.session.cache.ScoreboardCache;
-import org.geysermc.connector.network.session.cache.WindowCache;
+import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.Toolbox;
 
+import java.net.InetSocketAddress;
 import java.util.UUID;
 
 @Getter
-public class GeyserSession implements PlayerSession, Player {
+public class GeyserSession implements Player {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
+    private final BedrockServerSession upstream;
     private RemoteServer remoteServer;
-    private BedrockServerSession upstream;
 
     private Client downstream;
 
@@ -86,6 +81,9 @@ public class GeyserSession implements PlayerSession, Player {
     private ScoreboardCache scoreboardCache;
 
     private DataCache<Packet> javaPacketCache;
+
+    @Setter
+    private Vector2i lastChunkPosition = null;
 
     private boolean loggedIn;
 
@@ -119,7 +117,7 @@ public class GeyserSession implements PlayerSession, Player {
         startGame();
 
         this.remoteServer = remoteServer;
-        if (!connector.getConfig().getRemote().isOnlineMode()) {
+        if (!(connector.getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
             connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
             authenticate(authenticationData.getName());
         }
@@ -180,7 +178,7 @@ public class GeyserSession implements PlayerSession, Player {
             if (downstream != null && downstream.getSession() != null) {
                 downstream.getSession().disconnect(reason);
             }
-            if (upstream != null) {
+            if (upstream != null && !upstream.isClosed()) {
                 upstream.disconnect(reason);
             }
         }
@@ -188,25 +186,12 @@ public class GeyserSession implements PlayerSession, Player {
         closed = true;
     }
 
-    @Override
     public boolean isClosed() {
         return closed;
     }
 
-    @Override
     public void close() {
         disconnect("Server closed.");
-    }
-
-    @Override
-    public void onDisconnect(DisconnectReason disconnectReason) {
-        downstream.getSession().disconnect("Disconnected from server. Reason: " + disconnectReason);
-    }
-
-    @Override
-    public void onDisconnect(String reason) {
-        downstream.getSession().disconnect("Disconnected from server. Reason: " + reason);
-        connector.removePlayer(this);
     }
 
     public void setAuthenticationData(AuthData authData) {
@@ -240,6 +225,11 @@ public class GeyserSession implements PlayerSession, Player {
 
     public void sendForm(FormWindow window, int id) {
         windowCache.showWindow(window, id);
+    }
+
+    @Override
+    public InetSocketAddress getSocketAddress() {
+        return this.upstream.getAddress();
     }
 
     public void sendForm(FormWindow window) {

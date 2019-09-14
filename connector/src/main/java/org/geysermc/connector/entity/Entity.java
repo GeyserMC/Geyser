@@ -29,6 +29,8 @@ import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
@@ -41,12 +43,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.AttributeUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -139,6 +136,9 @@ public class Entity {
 
 
     public EntityDataDictionary getMetadata() {
+        EntityFlags flags = new EntityFlags();
+        flags.setFlag(EntityFlag.HAS_GRAVITY, true);
+
         EntityDataDictionary dictionary = new EntityDataDictionary();
         dictionary.put(EntityData.NAMETAG, "");
         dictionary.put(EntityData.ENTITY_AGE, 0);
@@ -147,6 +147,7 @@ public class Entity {
         dictionary.put(EntityData.AIR, (short) 0);
         dictionary.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
         dictionary.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        dictionary.putFlags(flags);
         return dictionary;
     }
 

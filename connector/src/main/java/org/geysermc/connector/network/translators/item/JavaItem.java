@@ -39,7 +39,7 @@ public class JavaItem {
 
     @Override
     public int hashCode() {
-        return id & identifier.hashCode();
+        return id;
     }
 
     @Override

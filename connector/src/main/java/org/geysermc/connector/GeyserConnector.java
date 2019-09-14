@@ -43,7 +43,6 @@ import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
-import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
@@ -92,6 +91,7 @@ public class GeyserConnector implements Connector {
     }
 
     private GeyserConnector() {
+        System.out.println(UUID.randomUUID().toString());
         //Metric
         if(!(System.console() == null) && System.getProperty("os.name", "Windows 10").toLowerCase().contains("windows")) {
             AnsiConsole.systemInstall();
@@ -173,10 +173,12 @@ public class GeyserConnector implements Connector {
     public void addPlayer(Player player) {
         players.put(player.getAuthenticationData().getName(), player);
         players.put(player.getAuthenticationData().getUUID(), player);
+        players.put(player.getSocketAddress(), player);
     }
 
     public void removePlayer(Player player) {
         players.remove(player.getAuthenticationData().getName());
         players.remove(player.getAuthenticationData().getUUID());
+        players.remove(player.getSocketAddress());
     }
 }

@@ -37,6 +37,6 @@ public class RemoteConfiguration {
     private String motd1;
     private String motd2;
 
-    @JsonProperty("online-mode")
-    private boolean onlineMode;
+    @JsonProperty("auth-type")
+    private String authType;
 }
