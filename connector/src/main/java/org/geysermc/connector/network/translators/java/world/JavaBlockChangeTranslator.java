@@ -19,7 +19,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         BedrockItem i = new ItemTranslator().getBedrockBlock(record.getBlock());
 
         pack.setDataLayer(0);
-        pack.setRuntimeId(i.getId() >> 4 | i.getData());
+        pack.setRuntimeId(i.getId() << 4 | i.getData());
         pack.setBlockPosition(new Vector3i(
                 record.getPosition().getX()
                 , record.getPosition().getY()
