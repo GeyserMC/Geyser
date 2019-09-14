@@ -54,10 +54,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerU
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnPositionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.*;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
@@ -102,13 +99,10 @@ import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnPla
 import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
-import org.geysermc.connector.network.translators.java.world.JavaChunkDataTranslator;
-import org.geysermc.connector.network.translators.java.world.JavaNotifyClientTranslator;
+import org.geysermc.connector.network.translators.java.world.*;
 import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
 import org.geysermc.connector.network.translators.java.JavaTitleTranslator;
-import org.geysermc.connector.network.translators.java.world.JavaSpawnPositionTranslator;
-import org.geysermc.connector.network.translators.java.world.JavaUpdateTimeTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaWindowItemsTranslator;
 
 import java.io.ByteArrayOutputStream;
@@ -178,6 +172,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerScoreboardObjectivePacket.class, new JavaScoreboardObjectiveTranslator());
         Registry.registerJava(ServerDisplayScoreboardPacket.class, new JavaDisplayScoreboardTranslator());
         Registry.registerJava(ServerUpdateScorePacket.class, new JavaUpdateScoreTranslator());
+        Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
