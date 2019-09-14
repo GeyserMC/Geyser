@@ -9,4 +9,37 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <artifactId>plugin</artifactId>
+
+    <repositories>
+        <repository>
+            <id>bungeecord-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+        <repository>
+           <id>codemc-repo</id>
+           <url>https://repo.codemc.org/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+   <dependencies>
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-api</artifactId>
+            <version>1.14-SNAPSHOT</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-api</artifactId>
+            <version>1.14-SNAPSHOT</version>
+            <type>javadoc</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+           <groupId>com.whirvis</groupId>
+           <artifactId>jraknet</artifactId>
+           <version>2.11.8</version>
+        </dependency>
+    </dependencies>
 </project>
