@@ -53,6 +53,7 @@ import org.geysermc.connector.utils.Toolbox;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -91,17 +92,13 @@ public class GeyserConnector implements Connector {
     }
 
     private GeyserConnector() {
+        long startupTime = System.currentTimeMillis();
 
-        System.out.println(12 << 4);
-        System.out.println(2 << 2);
-        System.out.println(1 << 2 | 4);
-        System.out.println(23 << 3);
-
-        System.out.println(UUID.randomUUID().toString());
-        //Metric
+        // Metric
         if(!(System.console() == null) && System.getProperty("os.name", "Windows 10").toLowerCase().contains("windows")) {
             AnsiConsole.systemInstall();
         }
+
         instance = this;
 
         this.generalThreadPool = Executors.newScheduledThreadPool(32); //TODO: Make configurable value
@@ -147,9 +144,9 @@ public class GeyserConnector implements Connector {
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
-                logger.info("Started RakNet on " + config.getBedrock().getAddress() + ":" + config.getBedrock().getPort());
+                logger.info("Started Geyser on " + config.getBedrock().getAddress() + ":" + config.getBedrock().getPort());
             } else {
-                logger.severe("Failed to start RakNet on " + config.getBedrock().getAddress() + ":" + config.getBedrock().getPort());
+                logger.severe("Failed to start Geyser on " + config.getBedrock().getAddress() + ":" + config.getBedrock().getPort());
                 throwable.printStackTrace();
             }
         }).join();
@@ -157,6 +154,9 @@ public class GeyserConnector implements Connector {
         metrics = new Metrics("GeyserMC", config.getUUID(), true, java.util.logging.Logger.getLogger(""));
         metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
         metrics.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
+
+        double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
+        logger.info(String.format("Done (%ss)! Run /help for help!", new DecimalFormat("#.###").format(completeTime)));
     }
 
     public Collection<Player> getConnectedPlayers() {

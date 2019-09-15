@@ -107,13 +107,13 @@ public class Toolbox {
         JAVA_BLOCKS = javaBlocks;
         BEDROCK_BLOCKS = bedrockBlocks;
 
-        GeyserLogger.DEFAULT.debug("Remapping items...");
+        GeyserLogger.DEFAULT.info("Remapping items...");
         Remapper.ITEM_REMAPPER.registerConversions(bedrockItems, javaItems);
-        GeyserLogger.DEFAULT.debug("Item remap complete!");
+        GeyserLogger.DEFAULT.info("Item remap complete!");
 
-        GeyserLogger.DEFAULT.debug("Remapping blocks...");
+        GeyserLogger.DEFAULT.info("Remapping blocks...");
         Remapper.BLOCK_REMAPPER.registerConversions(bedrockBlocks, javaBlocks);
-        GeyserLogger.DEFAULT.debug("Block remap complete!");
+        GeyserLogger.DEFAULT.info("Block remap complete!");
     }
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS;
