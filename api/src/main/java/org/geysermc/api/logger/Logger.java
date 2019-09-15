@@ -35,11 +35,21 @@ public interface Logger {
     void severe(String message);
 
     /**
+     * Logs a severe message and an exception to console
+     */
+    void severe(String message, Throwable error);
+
+    /**
      * Logs an error message to console
      *
      * @param message the message to log
      */
     void error(String message);
+
+    /**
+     * Logs an error message and an exception to console
+     */
+    void error(String message, Throwable error);
 
     /**
      * Logs a warning message to console
