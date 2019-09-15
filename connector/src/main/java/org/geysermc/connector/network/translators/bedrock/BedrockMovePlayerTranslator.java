@@ -25,12 +25,14 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.item.BedrockItem;
 
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
 
@@ -40,12 +42,21 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (entity == null)
             return;
 
-        // TODO: Implement collision support
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
                 packet.isOnGround(), packet.getPosition().getX(), Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2,
                 packet.getPosition().getZ(), packet.getRotation().getY(), packet.getRotation().getX());
 
         entity.moveAbsolute(packet.getPosition(), packet.getRotation());
-        session.getDownstream().getSession().send(playerPositionRotationPacket);
+
+        boolean colliding = false;
+        Position position = new Position((int) packet.getPosition().getX(),
+                (int) Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2, (int) packet.getPosition().getZ());
+
+        BedrockItem block = session.getChunkCache().getBlockAt(position);
+        if (!block.getIdentifier().contains("air"))
+            colliding = true;
+
+        if (!colliding)
+            session.getDownstream().getSession().send(playerPositionRotationPacket);
     }
 }

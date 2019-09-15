@@ -75,10 +75,11 @@ public class GeyserSession implements Player {
     private PlayerEntity playerEntity;
     private PlayerInventory inventory;
 
+    private ChunkCache chunkCache;
     private EntityCache entityCache;
     private InventoryCache inventoryCache;
-    private WindowCache windowCache;
     private ScoreboardCache scoreboardCache;
+    private WindowCache windowCache;
 
     private DataCache<Packet> javaPacketCache;
 
@@ -96,10 +97,11 @@ public class GeyserSession implements Player {
         this.connector = connector;
         this.upstream = bedrockServerSession;
 
+        this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
-        this.windowCache = new WindowCache(this);
         this.scoreboardCache = new ScoreboardCache(this);
+        this.windowCache = new WindowCache(this);
 
         this.playerEntity = new PlayerEntity(UUID.randomUUID(), 1, 1, EntityType.PLAYER, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
         this.inventory = new PlayerInventory();

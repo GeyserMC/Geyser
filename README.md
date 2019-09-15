@@ -37,7 +37,7 @@ Links:
 - [x] Entity support
 - [ ] Chunks (Experimental)
   - [x] Block translation (may be missing mappings)
-  - [ ] Block updates
+  - [x] Block updates
   - [ ] Block entities
   - [ ] Extra data
   - [ ] Biome colors
