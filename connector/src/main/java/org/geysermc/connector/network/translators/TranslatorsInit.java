@@ -176,6 +176,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerDisplayScoreboardPacket.class, new JavaDisplayScoreboardTranslator());
         Registry.registerJava(ServerUpdateScorePacket.class, new JavaUpdateScoreTranslator());
         Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
+        Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
