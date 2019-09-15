@@ -34,7 +34,7 @@ Links:
   - [x] NBT data
   - [ ] Inventory movement (transactions)
 - [x] Player movement support
-- [x] Entity support (Experimental)
+- [x] Entity support
 - [ ] Chunks (Experimental)
   - [x] Block translation (may be missing mappings)
   - [ ] Block updates

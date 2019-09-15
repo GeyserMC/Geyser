@@ -25,19 +25,40 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityDestroyPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAnimationPacket;
+import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class JavaEntityDestroyTranslator extends PacketTranslator<ServerEntityDestroyPacket> {
+public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntityAnimationPacket> {
 
     @Override
-    public void translate(ServerEntityDestroyPacket packet, GeyserSession session) {
-        for (int entityId : packet.getEntityIds()) {
-            Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
-            session.getEntityCache().removeEntity(entity);
+    public void translate(ServerEntityAnimationPacket packet, GeyserSession session) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
+            entity = session.getPlayerEntity();
         }
+        if (entity == null)
+            return;
+
+        AnimatePacket animatePacket = new AnimatePacket();
+        animatePacket.setRuntimeEntityId(entity.getGeyserId());
+        switch (packet.getAnimation()) {
+            case SWING_ARM:
+                animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
+                break;
+            case CRITICAL_HIT:
+                animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
+                break;
+            case ENCHANTMENT_CRITICAL_HIT:
+                animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT);
+                break;
+            case LEAVE_BED:
+                animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
+                break;
+        }
+
+        session.getUpstream().sendPacket(animatePacket);
     }
 }
-

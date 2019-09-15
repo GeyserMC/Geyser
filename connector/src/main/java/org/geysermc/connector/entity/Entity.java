@@ -106,6 +106,8 @@ public class Entity {
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(geyserId);
         session.getUpstream().sendPacket(removeEntityPacket);
+
+        valid = false;
     }
 
     public void moveRelative(double relX, double relY, double relZ, float pitch, float yaw) {
@@ -113,11 +115,11 @@ public class Entity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, Vector3f rotation) {
-        if (relX == 0 && relY != 0 && relZ != 0 && position.getX() == 0 && position.getY() == 0)
+        if (relX == 0 && relY == 0 && relZ == 0 && position.getX() == 0 && position.getY() == 0)
             return;
 
         this.rotation = rotation;
-        this.position = new Vector3f(position.getX() + relX, position.getX() + relY, position.getX() + relZ);
+        this.position = new Vector3f(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
         this.movePending = true;
     }
 
@@ -126,7 +128,7 @@ public class Entity {
     }
 
     public void moveAbsolute(Vector3f position, Vector3f rotation) {
-        if (position.getX() == 0 && position.getX() != 0 && position.getX() != 0 && rotation.getX() == 0 && rotation.getY() == 0)
+        if (position.getX() == 0 && position.getX() == 0 && position.getX() == 0 && rotation.getX() == 0 && rotation.getY() == 0)
             return;
 
         this.position = position;
@@ -138,6 +140,9 @@ public class Entity {
     public EntityDataDictionary getMetadata() {
         EntityFlags flags = new EntityFlags();
         flags.setFlag(EntityFlag.HAS_GRAVITY, true);
+        flags.setFlag(EntityFlag.HAS_COLLISION, true);
+        flags.setFlag(EntityFlag.CAN_SHOW_NAME, true);
+        flags.setFlag(EntityFlag.NO_AI, false);
 
         EntityDataDictionary dictionary = new EntityDataDictionary();
         dictionary.put(EntityData.NAMETAG, "");

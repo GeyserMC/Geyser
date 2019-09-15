@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAnimationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityDestroyPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityHeadLookPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityMetadataPacket;
@@ -78,6 +79,7 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.java.JavaChatTranslator;
 import org.geysermc.connector.network.translators.java.JavaJoinGameTranslator;
 import org.geysermc.connector.network.translators.java.JavaRespawnTranslator;
+import org.geysermc.connector.network.translators.java.entity.JavaEntityAnimationTranslator;
 import org.geysermc.connector.network.translators.java.entity.JavaEntityDestroyTranslator;
 import org.geysermc.connector.network.translators.java.entity.JavaEntityHeadLookTranslator;
 import org.geysermc.connector.network.translators.java.entity.JavaEntityMetadataTranslator;
@@ -143,6 +145,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerRespawnPacket.class, new JavaRespawnTranslator());
         Registry.registerJava(ServerSpawnPositionPacket.class, new JavaSpawnPositionTranslator());
 
+        Registry.registerJava(ServerEntityAnimationPacket.class, new JavaEntityAnimationTranslator());
         Registry.registerJava(ServerEntityPositionPacket.class, new JavaEntityPositionTranslator());
         Registry.registerJava(ServerEntityPositionRotationPacket.class, new JavaEntityPositionRotationTranslator());
         Registry.registerJava(ServerEntityTeleportPacket.class, new JavaEntityTeleportTranslator());
