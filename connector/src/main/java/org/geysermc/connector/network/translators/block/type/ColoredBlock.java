@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item.block;
+package org.geysermc.connector.network.translators.block.type;
 
 public enum ColoredBlock {
 

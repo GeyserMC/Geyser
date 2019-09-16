@@ -4,11 +4,11 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.network.translators.item.BedrockItem;
 import org.geysermc.connector.network.translators.item.JavaItem;
-import org.geysermc.connector.network.translators.item.block.ColoredBlock;
-import org.geysermc.connector.network.translators.item.type.DyeColor;
-import org.geysermc.connector.network.translators.item.type.StoneType;
-import org.geysermc.connector.network.translators.item.block.WoodBlock;
-import org.geysermc.connector.network.translators.item.type.WoodType;
+import org.geysermc.connector.network.translators.block.type.ColoredBlock;
+import org.geysermc.connector.network.translators.block.type.DyeColor;
+import org.geysermc.connector.network.translators.block.type.StoneType;
+import org.geysermc.connector.network.translators.block.type.WoodBlock;
+import org.geysermc.connector.network.translators.block.type.WoodType;
 
 import java.util.HashMap;
 import java.util.Map;

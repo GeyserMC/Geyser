@@ -23,28 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item.type;
+package org.geysermc.connector.network.translators.block.type;
 
 import lombok.Getter;
 
-public enum DyeColor {
+public enum WoodType {
 
-    WHITE,
-    ORANGE,
-    MAGENTA,
-    LIGHT_BLUE,
-    YELLOW,
-    LIME,
-    PINK,
-    GRAY,
-    LIGHT_GRAY,
-    CYAN,
-    PURPLE,
-    BLUE,
-    BROWN,
-    GREEN,
-    RED,
-    BLACK;
+    OAK,
+    SPRUCE,
+    BIRCH,
+    JUNGLE,
+    ACACIA,
+    DARK_OAK;
 
     @Getter
     private final int id = ordinal();

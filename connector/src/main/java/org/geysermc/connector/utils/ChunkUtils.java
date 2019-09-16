@@ -34,7 +34,7 @@ public class ChunkUtils {
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
                         BlockState block = storage.get(x, y, z);
-                        BedrockItem bedrockBlock = TranslatorsInit.getItemTranslator().getBedrockBlock(block);
+                        BedrockItem bedrockBlock = TranslatorsInit.getBlockTranslator().getBedrockBlock(block);
 
                         section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
                                 bedrockBlock.getId() << 4 | bedrockBlock.getData());

@@ -23,23 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item.type;
+package org.geysermc.connector.network.translators.block.type;
 
-import lombok.Getter;
+public enum WoodBlock {
 
-public enum WoodType {
+    BOAT,
+    FENCE,
+    LEAVES,
+    LOG,
+    PLANKS,
+    SAPLING,
+    SLAB,
 
-    OAK,
-    SPRUCE,
-    BIRCH,
-    JUNGLE,
-    ACACIA,
-    DARK_OAK;
-
-    @Getter
-    private final int id = ordinal();
-
-    public String getName() {
-        return name().toLowerCase();
-    }
 }

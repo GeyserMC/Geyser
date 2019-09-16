@@ -23,16 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item.block;
+package org.geysermc.connector.network.translators.block.type;
 
-public enum WoodBlock {
+import lombok.Getter;
 
-    BOAT,
-    FENCE,
-    LEAVES,
-    LOG,
-    PLANKS,
-    SAPLING,
-    SLAB,
+public enum DyeColor {
 
+    WHITE,
+    ORANGE,
+    MAGENTA,
+    LIGHT_BLUE,
+    YELLOW,
+    LIME,
+    PINK,
+    GRAY,
+    LIGHT_GRAY,
+    CYAN,
+    PURPLE,
+    BLUE,
+    BROWN,
+    GREEN,
+    RED,
+    BLACK;
+
+    @Getter
+    private final int id = ordinal();
+
+    public String getName() {
+        return name().toLowerCase();
+    }
 }

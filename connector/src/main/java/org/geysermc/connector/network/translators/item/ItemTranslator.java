@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
@@ -85,7 +84,6 @@ public class ItemTranslator {
         return bedrockItem;
     }
 
-
     public JavaItem getJavaItem(ItemData data) {
         JavaItem javaItem = Remapper.ITEM_REMAPPER.convertToJava(data);
         if (javaItem == null) {
@@ -94,16 +92,6 @@ public class ItemTranslator {
         }
 
         return javaItem;
-    }
-
-    public BedrockItem getBedrockBlock(BlockState state) {
-        BedrockItem bedrockItem = Remapper.BLOCK_REMAPPER.convertToBedrockB(new ItemStack(state.getId()));
-        if (bedrockItem == null) {
-            // GeyserLogger.DEFAULT.debug("Missing mapping for java block " + state.getId());
-            return BedrockItem.AIR;
-        }
-
-        return bedrockItem;
     }
 
     private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {

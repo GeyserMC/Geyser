@@ -73,6 +73,7 @@ import org.geysermc.connector.network.translators.bedrock.BedrockCommandRequestT
 import org.geysermc.connector.network.translators.bedrock.BedrockMobEquipmentTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockMovePlayerTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
@@ -116,6 +117,9 @@ public class TranslatorsInit {
 
     @Getter
     private static ItemTranslator itemTranslator;
+
+    @Getter
+    private static BlockTranslator blockTranslator;
 
     @Getter
     private static Map<WindowType, InventoryTranslator> inventoryTranslators = new HashMap<WindowType, InventoryTranslator>();
@@ -186,6 +190,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(MovePlayerPacket.class, new BedrockMovePlayerTranslator());
 
         itemTranslator = new ItemTranslator();
+        blockTranslator = new BlockTranslator();
 
         registerInventoryTranslators();
     }
