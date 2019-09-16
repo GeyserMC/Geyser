@@ -29,7 +29,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
             if (packet.getAction() == PlayerListEntryAction.ADD_PLAYER) {
                 long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
 
-                session.getEntityCache().playerEntities.put(entry.getProfile().getId(), new PlayerEntity(
+                session.getEntityCache().addPlayerEntity(new PlayerEntity(
                         entry.getProfile(),
                         -1,
                         geyserId,
@@ -49,7 +49,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                 entry1.setXuid("");
                 entry1.setPlatformChatId("WIN10");
             } else {
-                session.getEntityCache().playerEntities.remove(entry.getProfile().getId());
+                session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
             }
             translate.getEntries().add(entry1);
         }

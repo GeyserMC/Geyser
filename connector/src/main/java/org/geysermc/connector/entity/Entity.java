@@ -97,12 +97,11 @@ public class Entity {
         valid = true;
         session.getUpstream().sendPacket(addEntityPacket);
 
-        GeyserLogger.DEFAULT.info("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+        GeyserLogger.DEFAULT.debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
 
     public void despawnEntity(GeyserSession session) {
-        if (!valid)
-            return;
+        if (!valid) return;
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(geyserId);
@@ -125,7 +124,7 @@ public class Entity {
     }
 
     public void moveAbsolute(Vector3f position, float pitch, float yaw) {
-        moveAbsolute(position, new Vector3f(pitch, yaw, yaw));
+        moveAbsolute(position, new Vector3f(pitch, yaw, 0));
     }
 
     public void moveAbsolute(Vector3f position, Vector3f rotation) {

@@ -45,7 +45,7 @@ public class EntityCache {
     @Getter
     private Map<Long, Entity> entities = new HashMap<>();
     private Map<Long, Long> entityIdTranslations = new HashMap<>();
-    public Map<UUID, PlayerEntity> playerEntities = new HashMap<>();
+    private Map<UUID, PlayerEntity> playerEntities = new HashMap<>();
 
     @Getter
     private AtomicLong nextEntityId = new AtomicLong(2L);
@@ -74,5 +74,17 @@ public class EntityCache {
 
     public Entity getEntityByJavaId(long javaId) {
         return entities.get(entityIdTranslations.get(javaId));
+    }
+
+    public void addPlayerEntity(PlayerEntity entity) {
+        playerEntities.put(entity.getUuid(), entity);
+    }
+
+    public PlayerEntity getPlayerEntity(UUID uuid) {
+        return playerEntities.get(uuid);
+    }
+
+    public void removePlayerEntity(UUID uuid) {
+        playerEntities.remove(uuid);
     }
 }

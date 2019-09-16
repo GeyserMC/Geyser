@@ -39,7 +39,7 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
         Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), packet.getYaw());
 
-        PlayerEntity entity = session.getEntityCache().playerEntities.get(packet.getUUID());
+        PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUUID());
         if (entity == null) {
             Geyser.getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player");
             return;
