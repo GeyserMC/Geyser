@@ -101,8 +101,7 @@ public class Entity {
     }
 
     public void despawnEntity(GeyserSession session) {
-        if (!valid)
-            return;
+        if (!valid) return;
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(geyserId);
@@ -129,7 +128,7 @@ public class Entity {
     }
 
     public void moveAbsolute(Vector3f position, Vector3f rotation) {
-        if (position.getX() == 0 && position.getX() == 0 && position.getX() == 0 && rotation.getX() == 0 && rotation.getY() == 0)
+        if (position.getX() == 0 && position.getY() == 0 && position.getZ() == 0 && rotation.getX() == 0 && rotation.getY() == 0)
             return;
 
         this.position = position;

@@ -27,10 +27,12 @@ package org.geysermc.connector.network.session.cache;
 
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -38,13 +40,12 @@ import java.util.concurrent.atomic.AtomicLong;
  * for that player (e.g. seeing vanished players from /vanish)
  */
 public class EntityCache {
-
     private GeyserSession session;
 
     @Getter
-    private Map<Long, Entity> entities = new HashMap<Long, Entity>();
-
-    private Map<Long, Long> entityIdTranslations = new HashMap<Long, Long>();
+    private Map<Long, Entity> entities = new HashMap<>();
+    private Map<Long, Long> entityIdTranslations = new HashMap<>();
+    private Map<UUID, PlayerEntity> playerEntities = new HashMap<>();
 
     @Getter
     private AtomicLong nextEntityId = new AtomicLong(2L);
@@ -61,10 +62,9 @@ public class EntityCache {
     }
 
     public void removeEntity(Entity entity) {
-        if (entity == null)
-            return;
+        if (entity == null) return;
 
-        entityIdTranslations.remove(entity.getGeyserId());
+        entityIdTranslations.remove(entity.getEntityId());
         entity.despawnEntity(session);
     }
 
@@ -74,5 +74,17 @@ public class EntityCache {
 
     public Entity getEntityByJavaId(long javaId) {
         return entities.get(entityIdTranslations.get(javaId));
+    }
+
+    public void addPlayerEntity(PlayerEntity entity) {
+        playerEntities.put(entity.getUuid(), entity);
+    }
+
+    public PlayerEntity getPlayerEntity(UUID uuid) {
+        return playerEntities.get(uuid);
+    }
+
+    public void removePlayerEntity(UUID uuid) {
+        playerEntities.remove(uuid);
     }
 }

@@ -27,9 +27,8 @@ package org.geysermc.connector.network.translators.java.entity.spawn;
 
 import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
-import org.geysermc.connector.entity.Entity;
+import org.geysermc.api.Geyser;
 import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -38,12 +37,17 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
     @Override
     public void translate(ServerSpawnPlayerPacket packet, GeyserSession session) {
         Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), 0);
-        Entity entity = new PlayerEntity(packet.getUUID(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.PLAYER, position, new Vector3f(0, 0, 0), rotation);
+        Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), packet.getYaw());
 
-        if (entity == null)
+        PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUUID());
+        if (entity == null) {
+            Geyser.getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player");
             return;
+        }
+
+        entity.setEntityId(packet.getEntityId());
+        entity.setPosition(position);
+        entity.setRotation(rotation);
 
         session.getEntityCache().spawnEntity(entity);
     }
