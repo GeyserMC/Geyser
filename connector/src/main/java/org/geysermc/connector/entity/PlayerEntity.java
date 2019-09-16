@@ -26,9 +26,7 @@
 package org.geysermc.connector.entity;
 
 import com.flowpowered.math.vector.Vector3f;
-import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
+import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
@@ -37,14 +35,12 @@ import lombok.Setter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.Random;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Getter @Setter
 public class PlayerEntity extends Entity {
-
     private UUID uuid;
+    private String username;
 
     private ItemData hand;
 
@@ -53,10 +49,11 @@ public class PlayerEntity extends Entity {
     private ItemData leggings;
     private ItemData boots;
 
-    public PlayerEntity(UUID uuid, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
-        this.uuid = uuid;
+        uuid = gameProfile.getId();
+        username = gameProfile.getName();
     }
 
     // TODO: Break this into an EquippableEntity class
@@ -77,10 +74,10 @@ public class PlayerEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
-        addPlayerPacket.setUniqueEntityId(geyserId);
+        addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
         addPlayerPacket.setUuid(uuid);
-        addPlayerPacket.setUsername("Player" + new Random().nextInt(1000) + 1); // TODO: Cache player list values and set it here
+        addPlayerPacket.setUsername(username);
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.setPosition(position);
         addPlayerPacket.setMotion(motion);
@@ -92,8 +89,7 @@ public class PlayerEntity extends Entity {
         addPlayerPacket.setWorldFlags(0);
         addPlayerPacket.setPlayerPermission(0);
         addPlayerPacket.setCustomFlags(0);
-        addPlayerPacket.setDeviceId("WIN10"); // TODO: Find this value
-        addPlayerPacket.getMetadata().putAll(getMetadata());
+        addPlayerPacket.setDeviceId("WIN10");
 
         valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);

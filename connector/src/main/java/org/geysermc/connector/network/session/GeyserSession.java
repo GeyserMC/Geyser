@@ -29,6 +29,7 @@ import com.flowpowered.math.vector.Vector2f;
 import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector3i;
+import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.packetlib.Client;
@@ -103,7 +104,7 @@ public class GeyserSession implements Player {
         this.scoreboardCache = new ScoreboardCache(this);
         this.windowCache = new WindowCache(this);
 
-        this.playerEntity = new PlayerEntity(UUID.randomUUID(), 1, 1, EntityType.PLAYER, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
+        this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "Unknown"), 1, 1, EntityType.PLAYER, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
         this.inventory = new PlayerInventory();
 
         this.javaPacketCache = new DataCache<Packet>();
@@ -152,6 +153,7 @@ public class GeyserSession implements Player {
                     loggedIn = true;
                     connector.getLogger().info(authenticationData.getName() + " (logged in as: " + protocol.getProfile().getName() + ")" + " has connected to remote java server on address " + remoteServer.getAddress());
                     playerEntity.setUuid(protocol.getProfile().getId());
+                    playerEntity.setUsername(protocol.getProfile().getName());
                 }
 
                 @Override
