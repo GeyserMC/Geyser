@@ -27,12 +27,9 @@ package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -51,30 +48,18 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             return;
 
         if (!session.isSpawned()) {
-            ServerJoinGamePacket javaJoinPacket = (ServerJoinGamePacket) session.getJavaPacketCache().getCachedValues().remove("java_join_packet");
-
-            PlayStatusPacket playStatus = new PlayStatusPacket();
-            playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-            session.getUpstream().sendPacketImmediately(playStatus);
-
             entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getPitch(), packet.getYaw());
-
-            SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-            playerGameTypePacket.setGamemode(javaJoinPacket.getGameMode().ordinal());
-            session.getUpstream().sendPacket(playerGameTypePacket);
 
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
             entityDataPacket.getMetadata().putAll(entity.getMetadata());
-
             session.getUpstream().sendPacket(entityDataPacket);
-            session.getPlayerEntity().setEntityId(javaJoinPacket.getEntityId());
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
             movePlayerPacket.setPosition(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()));
             movePlayerPacket.setRotation(new Vector3f(packet.getPitch(), packet.getYaw(), 0));
-            movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+            movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
             movePlayerPacket.setOnGround(true);
             entity.setMovePending(false);
 
@@ -82,6 +67,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             session.setSpawned(true);
 
             GeyserLogger.DEFAULT.info("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
+            return;
         }
 
         entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getPitch(), packet.getYaw());

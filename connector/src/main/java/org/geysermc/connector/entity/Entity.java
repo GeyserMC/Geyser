@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import lombok.Getter;
 import lombok.Setter;
@@ -136,7 +137,6 @@ public class Entity {
         this.movePending = true;
     }
 
-
     public EntityDataDictionary getMetadata() {
         EntityFlags flags = new EntityFlags();
         flags.setFlag(EntityFlag.HAS_GRAVITY, true);
@@ -169,6 +169,11 @@ public class Entity {
         updateAttributesPacket.setRuntimeEntityId(geyserId);
         updateAttributesPacket.setAttributes(attributes);
         session.getUpstream().sendPacket(updateAttributesPacket);
+
+        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+        entityDataPacket.setRuntimeEntityId(geyserId);
+        entityDataPacket.getMetadata().putAll(getMetadata());
+        session.getUpstream().sendPacket(entityDataPacket);
     }
 
     // To be used at a later date

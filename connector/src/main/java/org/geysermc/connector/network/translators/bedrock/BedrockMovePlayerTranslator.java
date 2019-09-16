@@ -25,9 +25,11 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -41,6 +43,15 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         Entity entity = session.getPlayerEntity();
         if (entity == null)
             return;
+
+        if (!session.isLoggedIn())
+            return;
+
+        if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
+            session.getConnector().getLogger().info("Recalculating position...");
+            recalculatePosition(session, entity, entity.getPosition());
+            return;
+        }
 
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
                 packet.isOnGround(), packet.getPosition().getX(), Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2,
@@ -58,5 +69,47 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         if (!colliding)
             session.getDownstream().getSession().send(playerPositionRotationPacket);
+    }
+
+    public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
+        if (mode != MovePlayerPacket.Mode.NORMAL)
+            return true;
+
+        double xRange = newPosition.getX() - currentPosition.getX();
+        double yRange = newPosition.getY() - currentPosition.getY();
+        double zRange = newPosition.getZ() - currentPosition.getZ();
+
+        if (xRange < 0)
+            xRange = -xRange;
+        if (yRange < 0)
+            yRange = -yRange;
+        if (zRange < 0)
+            zRange = -zRange;
+
+        if (xRange > 10 || yRange > 10 || zRange > 10) {
+            session.getConnector().getLogger().warning(session.getName() + " moved too quickly." +
+                    " current position: " + currentPosition + ", new position: " + newPosition);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public void recalculatePosition(GeyserSession session, Entity entity, Vector3f currentPosition) {
+        // Gravity might need to be reset...
+        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
+        entityDataPacket.getMetadata().putAll(entity.getMetadata());
+        session.getUpstream().sendPacket(entityDataPacket);
+
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+        movePlayerPacket.setPosition(entity.getPosition());
+        movePlayerPacket.setRotation(entity.getRotation());
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+        movePlayerPacket.setOnGround(true);
+        entity.setMovePending(false);
+        session.getUpstream().sendPacket(movePlayerPacket);
     }
 }

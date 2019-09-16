@@ -30,7 +30,13 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
@@ -42,11 +48,6 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         session.getUpstream().sendPacketImmediately(bedrockPacket);
-
-        int gamemode = packet.getGameMode().ordinal();
-        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        playerGameTypePacket.setGamemode(gamemode);
-        session.getUpstream().sendPacket(playerGameTypePacket);
 
         Vector3f pos = new Vector3f(0, 0, 0);
         int chunkX = pos.getFloorX() >> 4;
@@ -64,6 +65,25 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
             }
         }
 
-        session.getJavaPacketCache().getCachedValues().put("java_join_packet", packet);
+        PlayStatusPacket playStatus = new PlayStatusPacket();
+        playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
+        session.getUpstream().sendPacketImmediately(playStatus);
+
+        Entity entity = session.getPlayerEntity();
+        if (entity == null)
+            return;
+
+        session.getPlayerEntity().setEntityId(packet.getEntityId());
+
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
+        session.getUpstream().sendPacket(playerGameTypePacket);
+
+        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
+        entityDataPacket.getMetadata().putAll(entity.getMetadata());
+        session.getUpstream().sendPacket(entityDataPacket);
+
+        // session.setSpawned(true);
     }
 }
