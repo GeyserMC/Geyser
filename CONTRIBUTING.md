@@ -1,0 +1,1 @@
+When contributing, please remember to read wiki about the api. Learn Steivice10's library and the nukkit protocol library if you are editing any core classes. Keep your code clean and readable, and please be mindful of fil conflicts. If you need help, join our discord. Other than that, you're all set!
