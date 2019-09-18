@@ -2,6 +2,7 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.protocol.bedrock.data.ItemData;
+import org.geysermc.connector.network.translators.block.JavaBlock;
 import org.geysermc.connector.network.translators.item.BedrockItem;
 import org.geysermc.connector.network.translators.item.JavaItem;
 import org.geysermc.connector.network.translators.block.type.ColoredBlock;
@@ -29,7 +30,7 @@ public class Remapper {
     }
 
     // Registers the conversions for bedrock <-> java
-    public void registerConversions(Map<String, BedrockItem> bedrockItems, Map<String, JavaItem> javaItems) {
+    public void registerConversions(Map<String, BedrockItem> bedrockItems, Map<Integer, ? extends JavaItem> javaItems) {
         for (Map.Entry<String, BedrockItem> bedrockItemEntry : bedrockItems.entrySet()) {
             BedrockItem bedrockItem = bedrockItemEntry.getValue();
             String identifier = bedrockItem.getIdentifier();
@@ -96,8 +97,8 @@ public class Remapper {
                     identifier = MINECRAFT + "coarse_dirt";
             }
 
-            for (Map.Entry<String, JavaItem> javaItemEntry : javaItems.entrySet()) {
-                if (identifier.equalsIgnoreCase(javaItemEntry.getKey())) {
+            for (Map.Entry<Integer, ? extends JavaItem> javaItemEntry : javaItems.entrySet()) {
+                if (identifier.equalsIgnoreCase(javaItemEntry.getValue().getIdentifier())) {
                     bedrockToJava.put(bedrockItemEntry.getValue(), javaItemEntry.getValue());
                     javaToBedrock.put(javaItemEntry.getValue(), bedrockItemEntry.getValue());
                 }
@@ -117,7 +118,7 @@ public class Remapper {
     }
 
     public BedrockItem convertToBedrock(ItemStack item) {
-        for (Map.Entry<String, JavaItem> javaItem : Toolbox.JAVA_ITEMS.entrySet()) {
+        for (Map.Entry<Integer, JavaItem> javaItem : Toolbox.JAVA_ITEMS.entrySet()) {
             if (javaItem.getValue().getId() != item.getId())
                 continue;
 
@@ -128,7 +129,7 @@ public class Remapper {
     }
 
     public BedrockItem convertToBedrockB(ItemStack block) {
-        for (Map.Entry<String, JavaItem> javaItem : Toolbox.JAVA_BLOCKS.entrySet()) {
+        for (Map.Entry<Integer, JavaBlock> javaItem : Toolbox.JAVA_BLOCKS.entrySet()) {
             if (javaItem.getValue().getId() != block.getId())
                 continue;
 

@@ -8,6 +8,7 @@ import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.connector.network.translators.block.JavaBlock;
 import org.geysermc.connector.network.translators.item.BedrockItem;
 import org.geysermc.connector.network.translators.item.JavaItem;
 import org.geysermc.connector.world.GlobalBlockPalette;
@@ -35,8 +36,8 @@ public class Toolbox {
         VarInts.writeUnsignedInt(b, entries.size());
         for (Map<String, Object> e : entries) {
             BedrockItem bedrockItem = new BedrockItem((String) e.get("name"), (int) e.get("id"), (int) e.get("data"));
-            bedrockItems.put(bedrockItem.getIdentifier() + ":" + bedrockItem.getData(), bedrockItem);
-            bedrockBlocks.put(bedrockItem.getIdentifier() + ":" + bedrockItem.getData(), bedrockItem);
+            bedrockItems.put(bedrockItem.getId() + ":" + bedrockItem.getData(), bedrockItem);
+            bedrockBlocks.put(bedrockItem.getId() + ":" + bedrockItem.getData(), bedrockItem);
 
             GlobalBlockPalette.registerMapping((int) e.get("id") << 4 | (int) e.get("data"));
             BedrockUtils.writeString(b, (String) e.get("name"));
@@ -62,9 +63,9 @@ public class Toolbox {
         List<StartGamePacket.ItemEntry> l = new ArrayList<>();
         for (HashMap e : s) {
             l.add(new StartGamePacket.ItemEntry((String) e.get("name"), (short) ((int) e.get("id"))));
-            if (!bedrockItems.containsKey(e.get("name"))) {
+            if (!bedrockItems.containsKey(e.get("id"))) {
                 BedrockItem bedrockItem = new BedrockItem((String) e.get("name"), ((int) e.get("id")), 0);
-                bedrockItems.put(bedrockItem.getIdentifier(), bedrockItem);
+                bedrockItems.put(String.valueOf(bedrockItem.getId()), bedrockItem);
             }
         }
 
@@ -81,10 +82,10 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        Map<String, JavaItem> javaItems = new HashMap<String, JavaItem>();
+        Map<Integer, JavaItem> javaItems = new HashMap<>();
 
         for (String str : javaItemList.keySet()) {
-            javaItems.put(str, new JavaItem(str, (int) javaItemList.get(str).get("protocol_id")));
+            javaItems.put(Integer.parseInt(str), new JavaItem((String) javaItemList.get(str).get("identifier"), Integer.parseInt(str)));
         }
 
         JAVA_ITEMS = javaItems;
@@ -98,10 +99,11 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        Map<String, JavaItem> javaBlocks = new HashMap<String, JavaItem>();
+        Map<Integer, JavaBlock> javaBlocks = new HashMap<>();
 
         for (String str : javaItemList2.keySet()) {
-            javaBlocks.put(str, new JavaItem(str, (int) javaItemList2.get(str).get("protocol_id")));
+            javaBlocks.put(Integer.parseInt(str), new JavaBlock((String) javaItemList2.get(str).get("identifier"),
+                    (String) javaItemList2.get(str).get("data"), Integer.parseInt(str)));
         }
 
         JAVA_BLOCKS = javaBlocks;
@@ -111,6 +113,7 @@ public class Toolbox {
         Remapper.ITEM_REMAPPER.registerConversions(bedrockItems, javaItems);
         GeyserLogger.DEFAULT.info("Item remap complete!");
 
+        // TODO: Implement support for block data
         GeyserLogger.DEFAULT.info("Remapping blocks...");
         Remapper.BLOCK_REMAPPER.registerConversions(bedrockBlocks, javaBlocks);
         GeyserLogger.DEFAULT.info("Block remap complete!");
@@ -121,10 +124,8 @@ public class Toolbox {
     public static final ByteBuf CACHED_PALLETE;
 
     public static final Map<String, BedrockItem> BEDROCK_ITEMS;
-    public static final Map<String, JavaItem> JAVA_ITEMS;
+    public static final Map<Integer, JavaItem> JAVA_ITEMS;
 
     public static final Map<String, BedrockItem> BEDROCK_BLOCKS;
-    public static final Map<String, JavaItem> JAVA_BLOCKS;
-
-    //public static final byte[] EMPTY_CHUNK;
+    public static final Map<Integer, JavaBlock> JAVA_BLOCKS;
 }

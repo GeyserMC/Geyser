@@ -23,30 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item;
+package org.geysermc.connector.network.translators.block;
 
 import lombok.Getter;
+import org.geysermc.connector.network.translators.item.JavaItem;
 
 @Getter
-public class JavaItem {
+public class JavaBlock extends JavaItem {
 
-    public static JavaItem AIR = new JavaItem("minecraft:air", 0);
+    private String data;
 
-    protected String identifier;
-    protected int id;
+    public JavaBlock(String identifier, String data, int id) {
+        super(identifier, id);
 
-    public JavaItem(String identifier, int id) {
-        this.identifier = identifier;
-        this.id = id;
-    }
-
-    @Override
-    public int hashCode() {
-        return id;
+        this.data = data;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj == this || (obj instanceof JavaItem && ((JavaItem) obj).id == this.id && ((JavaItem) obj).identifier.equals(this.identifier));
+        return obj == this || (obj instanceof JavaBlock && ((JavaBlock) obj).id == this.id && ((JavaBlock) obj).identifier.equals(this.identifier));
     }
 }
