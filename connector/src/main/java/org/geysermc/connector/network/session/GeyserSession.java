@@ -39,19 +39,25 @@ import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
+import com.nukkitx.network.raknet.*;
+import com.nukkitx.network.util.DisconnectReason;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.api.Geyser;
 import org.geysermc.api.Player;
 import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.configuration.RemoteConfiguration;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.PlayerInventory;
@@ -60,6 +66,7 @@ import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.util.UUID;
 
 @Getter
@@ -94,6 +101,26 @@ public class GeyserSession implements Player {
 
     private boolean closed;
 
+    private static RakNetClient client = new RakNetClient(new InetSocketAddress("localhost", 1234));
+
+    private static RakNetClientSession session;
+
+    static {
+        client.bind().whenComplete((x, y) -> {
+            System.out.println("abcdef");
+
+            if(y != null) {
+                y.printStackTrace();
+            }
+
+            RemoteConfiguration configuration = ((GeyserConnector) Geyser.getConnector()).getConfig().getRemote();
+
+            session = client.create(new InetSocketAddress("localhost", Short.MAX_VALUE));
+
+            session.connect();
+        });
+    }
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = bedrockServerSession;
@@ -120,15 +147,84 @@ public class GeyserSession implements Player {
         startGame();
 
         this.remoteServer = remoteServer;
-        if (!(connector.getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
+
+        if (connector.getConfig().getRemote().getAuthType().equalsIgnoreCase("offline")) {
             connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
             authenticate(authenticationData.getName());
+
+        } else if (connector.getConfig().getRemote().getAuthType().equalsIgnoreCase("hybrid")) {
+            connector.getLogger().info("Attempting to login using hybrid mode.");
+
+            authenticateHybrid(authenticationData.getName() + "*");
+
+        } else if (connector.getConfig().getRemote().getAuthType().equalsIgnoreCase("online")) {
+
+        } else {
+            throw new RuntimeException("Invalid Authentication type!");
         }
+
     }
 
     public void authenticate(String username) {
         authenticate(username, "");
         connector.addPlayer(this);
+    }
+
+    public void authenticateHybrid(String username) {
+        RemoteConfiguration config = connector.getConfig().getRemote();
+
+        ByteBuf buffer = Unpooled.buffer();
+
+        buffer.writeShort(160).writeCharSequence(username + "~~~" + authenticationData.getXboxUUID(), Charset.defaultCharset());
+
+        session.sendImmediate(buffer);
+
+        GeyserSession s = this;
+
+        session.setListener(new RakNetSessionListener() {
+            @Override
+            public void onSessionChangeState(RakNetState rakNetState) {
+
+            }
+
+            @Override
+            public void onDisconnect(DisconnectReason disconnectReason) {
+
+            }
+
+            @Override
+            public void onEncapsulated(EncapsulatedPacket encapsulatedPacket) {
+
+            }
+
+            @Override
+            public void onDirect(ByteBuf byteBuf) {
+                authenticate(username);
+                connector.addPlayer(s);
+
+                session.setListener(new RakNetSessionListener() {
+                    @Override
+                    public void onSessionChangeState(RakNetState rakNetState) {
+
+                    }
+
+                    @Override
+                    public void onDisconnect(DisconnectReason disconnectReason) {
+
+                    }
+
+                    @Override
+                    public void onEncapsulated(EncapsulatedPacket encapsulatedPacket) {
+
+                    }
+
+                    @Override
+                    public void onDirect(ByteBuf byteBuf) {
+
+                    }
+                });
+            }
+        });
     }
 
     public void authenticate(String username, String password) {

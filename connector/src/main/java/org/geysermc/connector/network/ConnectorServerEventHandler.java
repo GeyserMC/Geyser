@@ -26,6 +26,7 @@
 package org.geysermc.connector.network;
 
 import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
+import com.nukkitx.network.raknet.RakNetClient;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
@@ -42,6 +43,8 @@ import java.net.InetSocketAddress;
 public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     private GeyserConnector connector;
+
+    private RakNetClient client;
 
     public ConnectorServerEventHandler(GeyserConnector connector) {
         this.connector = connector;

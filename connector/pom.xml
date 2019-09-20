@@ -38,6 +38,12 @@
             <version>1.7.0</version>
         </dependency>
         <dependency>
+            <groupId>com.whirvis</groupId>
+            <artifactId>jraknet</artifactId>
+            <version>2.11.8</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>net.minecrell</groupId>
             <artifactId>terminalconsoleappender</artifactId>
             <version>1.0.0</version>
