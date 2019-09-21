@@ -51,6 +51,7 @@ import org.geysermc.connector.network.translators.inventory.GenericInventoryTran
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.java.JavaChatTranslator;
+import org.geysermc.connector.network.translators.java.JavaDifficultyTranslator;
 import org.geysermc.connector.network.translators.java.JavaJoinGameTranslator;
 import org.geysermc.connector.network.translators.java.JavaRespawnTranslator;
 import org.geysermc.connector.network.translators.java.JavaTitleTranslator;
@@ -107,6 +108,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerUpdateTimePacket.class, new JavaUpdateTimeTranslator());
         Registry.registerJava(ServerRespawnPacket.class, new JavaRespawnTranslator());
         Registry.registerJava(ServerSpawnPositionPacket.class, new JavaSpawnPositionTranslator());
+        Registry.registerJava(ServerDifficultyPacket.class, new JavaDifficultyTranslator());
 
         Registry.registerJava(ServerEntityAnimationPacket.class, new JavaEntityAnimationTranslator());
         Registry.registerJava(ServerEntityPositionPacket.class, new JavaEntityPositionTranslator());
