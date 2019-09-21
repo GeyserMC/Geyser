@@ -39,6 +39,10 @@
 
     <repositories>
         <repository>
+            <id>dosse-repo</id>
+            <url>https://raw.github.com/JRakNet/WaifUPnP/master/</url>
+        </repository>
+        <repository>
             <id>CodeMC-repo</id>
             <url>https://repo.codemc.org/repository/maven-public</url>
             <releases>
