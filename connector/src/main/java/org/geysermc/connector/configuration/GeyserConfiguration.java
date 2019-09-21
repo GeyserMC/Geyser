@@ -47,6 +47,5 @@ public class GeyserConfiguration {
     @JsonProperty("debug-mode")
     private boolean debugMode;
 
-    @JsonProperty("uuid")
-    private String UUID;
+    private MetricInfo metrics;
 }

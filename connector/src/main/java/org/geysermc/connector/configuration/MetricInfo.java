@@ -25,14 +25,14 @@
 
 package org.geysermc.connector.configuration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 @Getter
-public class BedrockConfiguration {
+public class MetricInfo {
 
-    private String address;
-    private int port;
+    private boolean enabled;
 
-    private String motd1;
-    private String motd2;
+    @JsonProperty("uuid")
+    private String UUID;
 }

@@ -54,7 +54,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -64,8 +68,8 @@ public class GeyserConnector implements Connector {
 
     public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v361.V361_CODEC;
 
-    private static final String NAME = "Geyser";
-    private static final String VERSION = "1.0-SNAPSHOT";
+    public static final String NAME = "Geyser";
+    public static final String VERSION = "1.0-SNAPSHOT";
 
     private final Map<Object, Player> players = new HashMap<>();
 
@@ -114,7 +118,7 @@ public class GeyserConnector implements Connector {
         logger.info("******************************************");
 
         try {
-            File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("UUIDTESTUUIDTEST", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
 
             config = FileUtils.loadConfig(configFile, GeyserConfiguration.class);
         } catch (IOException ex) {
@@ -151,9 +155,11 @@ public class GeyserConnector implements Connector {
             }
         }).join();
 
-        metrics = new Metrics("GeyserMC", config.getUUID(), true, java.util.logging.Logger.getLogger(""));
-        metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
-        metrics.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
+        if (config.getMetrics().isEnabled()) {
+            metrics = new Metrics("GeyserMC", config.getMetrics().getUUID(), true, java.util.logging.Logger.getLogger(""));
+            metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
+            metrics.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
+        }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         logger.info(String.format("Done (%ss)! Run /help for help!", new DecimalFormat("#.###").format(completeTime)));
