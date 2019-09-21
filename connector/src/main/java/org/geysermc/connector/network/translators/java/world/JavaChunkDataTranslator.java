@@ -9,7 +9,6 @@ import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.geysermc.api.Geyser;
-import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
@@ -28,7 +27,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             if (chunkPos == null || !chunkPos.equals(newChunkPos)) {
                 NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
                 chunkPublisherUpdatePacket.setPosition(position.toInt());
-                chunkPublisherUpdatePacket.setRadius(8 << 4);
+                chunkPublisherUpdatePacket.setRadius(session.getRenderDistance() << 4);
                 session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
 
                 session.setLastChunkPosition(newChunkPos);

@@ -49,8 +49,8 @@ public class PlayerEntity extends Entity {
     private ItemData leggings;
     private ItemData boots;
 
-    public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
 
         uuid = gameProfile.getId();
         username = gameProfile.getName();
@@ -58,8 +58,7 @@ public class PlayerEntity extends Entity {
 
     // TODO: Break this into an EquippableEntity class
     public void updateEquipment(GeyserSession session) {
-        if (hand != null && helmet != null && chestplate != null && leggings != null )
-            return;
+        if (!valid) return;
 
         MobArmorEquipmentPacket armorEquipmentPacket = new MobArmorEquipmentPacket();
         armorEquipmentPacket.setRuntimeEntityId(geyserId);

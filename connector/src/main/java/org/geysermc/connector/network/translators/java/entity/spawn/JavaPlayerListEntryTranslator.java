@@ -6,7 +6,6 @@ import com.github.steveice10.mc.protocol.data.game.PlayerListEntryAction;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListEntryPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.ProvidedSkin;
@@ -33,7 +32,6 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                         entry.getProfile(),
                         -1,
                         geyserId,
-                        EntityType.PLAYER,
                         Vector3f.ZERO,
                         Vector3f.ZERO,
                         Vector3f.ZERO
