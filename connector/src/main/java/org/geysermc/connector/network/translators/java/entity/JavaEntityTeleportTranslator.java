@@ -40,8 +40,7 @@ public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityT
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
         }
-        if (entity == null)
-            return;
+        if (entity == null) return;
 
         entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getPitch(), packet.getYaw());
 

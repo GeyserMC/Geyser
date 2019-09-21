@@ -27,10 +27,11 @@ package org.geysermc.connector.network.translators.java.entity.spawn;
 
 import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPaintingPacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.api.Geyser;
+import org.geysermc.connector.entity.PaintingEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.utils.PaintingType;
 
 public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPaintingPacket> {
 
@@ -38,12 +39,16 @@ public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPai
     public void translate(ServerSpawnPaintingPacket packet, GeyserSession session) {
         Vector3f position = new Vector3f(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
 
-        Entity entity = new Entity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.PAINTING, position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
+        Geyser.getGeneralThreadPool().execute(() -> { // #slowdownbrother, just don't execute it directly
+            PaintingEntity entity = new PaintingEntity(
+                    packet.getEntityId(),
+                    session.getEntityCache().getNextEntityId().incrementAndGet(),
+                    position
+            )
+                    .setPaintingName(PaintingType.getByPaintingType(packet.getPaintingType()))
+                    .setDirection(packet.getDirection().ordinal());
 
-        if (entity == null)
-            return;
-
-        session.getEntityCache().spawnEntity(entity);
+            session.getEntityCache().spawnEntity(entity);
+        });
     }
 }

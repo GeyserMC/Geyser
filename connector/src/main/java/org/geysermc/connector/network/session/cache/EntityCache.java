@@ -64,7 +64,13 @@ public class EntityCache {
     public void removeEntity(Entity entity) {
         if (entity == null) return;
 
-        entityIdTranslations.remove(entity.getEntityId());
+        Long geyserId = entityIdTranslations.remove(entity.getEntityId());
+        if (geyserId != null) {
+            entities.remove(geyserId);
+            if (entity instanceof PlayerEntity) {
+                playerEntities.remove(((PlayerEntity) entity).getUuid());
+            }
+        }
         entity.despawnEntity(session);
     }
 

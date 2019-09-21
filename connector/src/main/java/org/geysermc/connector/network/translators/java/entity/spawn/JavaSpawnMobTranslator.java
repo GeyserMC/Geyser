@@ -51,9 +51,6 @@ public class JavaSpawnMobTranslator extends PacketTranslator<ServerSpawnMobPacke
         Entity entity = new Entity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                 type, position, motion, rotation);
 
-        if (entity == null)
-            return;
-
         session.getEntityCache().spawnEntity(entity);
     }
 }
