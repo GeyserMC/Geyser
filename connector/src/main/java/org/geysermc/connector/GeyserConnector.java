@@ -105,7 +105,6 @@ public class GeyserConnector implements Connector {
 
         instance = this;
 
-        this.generalThreadPool = Executors.newScheduledThreadPool(32);
         this.logger = GeyserLogger.DEFAULT;
 
         logger.info("******************************************");
@@ -123,6 +122,7 @@ public class GeyserConnector implements Connector {
             shutdown();
         }
 
+        this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
         ConsoleCommandReader consoleReader = new ConsoleCommandReader(this);
         consoleReader.startConsole();
 
