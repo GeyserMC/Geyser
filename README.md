@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://ci.nukkitx.com/job/Geyser/job/master/badge/icon)](https://ci.nukkitx.com/job/Geyser/job/master/)
-[![Discord](https://img.shields.io/discord/597838753859633172.svg?color=%237289da&label=discord)](https://discord.gg/GPMF8E2)
+[![Discord](https://img.shields.io/discord/597838753859633172.svg?color=%237289da&label=discord)](http://discord.geysermc.org/)
 [![HitCount](http://hits.dwyl.io/Geyser/GeyserMC.svg)](http://hits.dwyl.io/Geyser/GeyserMC)
 
 Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition, closing the gap from those wanting to play true cross-platform.
@@ -19,7 +19,7 @@ Links:
 - Website: https://geysermc.org
 - Docs: https://geysermc.org/docs
 - Download: http://ci.geysermc.org
-- Discord: https://discord.gg/GPMF8E
+- Discord: http://discord.geysermc.org/
 
 ## What's Completed
 - [x] Server recognized in server list 
@@ -49,7 +49,7 @@ Links:
 3. Navigate to the Geyser root directory and run `mvn clean install`
 
 ## Contributing
-Any contributions are appreciated. Please feel free to reach out to us on [Discord](https://discord.gg/GPMF8E) if
+Any contributions are appreciated. Please feel free to reach out to us on [Discord](http://discord.geysermc.org/) if
 you're interested in helping out with Geyser.
 
 ## Libraries Used:
