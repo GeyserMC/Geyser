@@ -7,13 +7,13 @@
 [![Discord](https://img.shields.io/discord/597838753859633172.svg?color=%237289da&label=discord)](https://discord.gg/GPMF8E2)
 [![HitCount](http://hits.dwyl.io/Geyser/GeyserMC.svg)](http://hits.dwyl.io/Geyser/GeyserMC)
 
-A bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition, closing the gap from those wanting to play together.
+Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition, closing the gap from those wanting to play true cross-platform.
 
 ## What is Geyser?
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
-The ultimate goal for this project is to allow those to join Minecraft: Java Edition servers using the Bedrock Edition.
+The ultimate goal of this project is to allow Minecraft: Bedrock Edition users to join Minecraft: Java Edition servers as seamlessly as possible.
 
-### Please note, this project is still a work in progress and should not be used on production yet.
+### Please note, this project is still a work in progress and should not be used on production.
 
 Links:
 - Website: https://geysermc.org
@@ -44,11 +44,13 @@ Links:
 - [ ] Block break/place support
 
 ## Compiling
-Clone the repo to your computer, and run `mvn clean install`.
+1. Clone the repo to your computer
+2. [Install Maven](https://maven.apache.org/install.html)
+3. Navigate to the Geyser root directory and run `mvn clean install`
 
 ## Contributing
-Any contributions are appreciated. Please feel free to reach out to us on Discord if
-you're interested in helping this project come along.
+Any contributions are appreciated. Please feel free to reach out to us on [Discord](https://discord.gg/GPMF8E) if
+you're interested in helping out with Geyser.
 
 ## Libraries Used:
 - [NukkitX Bedrock Protocol Library](https://github.com/NukkitX/Protocol)
