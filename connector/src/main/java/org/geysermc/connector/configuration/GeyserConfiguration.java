@@ -47,5 +47,8 @@ public class GeyserConfiguration {
     @JsonProperty("debug-mode")
     private boolean debugMode;
 
+    @JsonProperty("general-thread-pool")
+    private int generalThreadPool;
+
     private MetricInfo metrics;
 }

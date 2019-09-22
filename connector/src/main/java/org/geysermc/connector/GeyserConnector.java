@@ -99,17 +99,13 @@ public class GeyserConnector implements Connector {
         long startupTime = System.currentTimeMillis();
 
         // Metric
-        if(!(System.console() == null) && System.getProperty("os.name", "Windows 10").toLowerCase().contains("windows")) {
+        if (!(System.console() == null) && System.getProperty("os.name", "Windows 10").toLowerCase().contains("windows")) {
             AnsiConsole.systemInstall();
         }
 
         instance = this;
 
-        this.generalThreadPool = Executors.newScheduledThreadPool(32); //TODO: Make configurable value
         this.logger = GeyserLogger.DEFAULT;
-
-        ConsoleCommandReader consoleReader = new ConsoleCommandReader(this);
-        consoleReader.startConsole();
 
         logger.info("******************************************");
         logger.info("");
@@ -125,6 +121,10 @@ public class GeyserConnector implements Connector {
             logger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
             shutdown();
         }
+
+        this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
+        ConsoleCommandReader consoleReader = new ConsoleCommandReader(this);
+        consoleReader.startConsole();
 
         logger.setDebug(config.isDebugMode());
 
