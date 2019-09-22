@@ -19,7 +19,7 @@ Links:
 - Website: https://geysermc.org
 - Docs: https://geysermc.org/docs
 - Download: http://ci.geysermc.org
-- Discord: https://discord.gg/mRjbCsS
+- Discord: https://discord.gg/GPMF8E
 
 ## What's Completed
 - [x] Server recognized in server list 
