@@ -26,11 +26,18 @@
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
 import com.flowpowered.math.vector.Vector3f;
+import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
+import com.google.gson.JsonObject;
+import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
+import org.apache.commons.codec.Charsets;
 import org.geysermc.api.Geyser;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.utils.SkinProvider;
+
+import java.util.Base64;
 
 public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlayerPacket> {
 
@@ -41,7 +48,7 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
 
         PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUUID());
         if (entity == null) {
-            Geyser.getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player");
+            Geyser.getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player " + packet.getUUID());
             return;
         }
 
@@ -50,5 +57,57 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         entity.setRotation(rotation);
 
         session.getEntityCache().spawnEntity(entity);
+
+        // request skin and cape
+
+        Geyser.getGeneralThreadPool().execute(() -> {
+            GameProfile.Property skinProperty = entity.getProfile().getProperty("textures");
+
+            JsonObject skinObject = SkinProvider.getGson().fromJson(new String(Base64.getDecoder().decode(skinProperty.getValue()), Charsets.UTF_8), JsonObject.class);
+            JsonObject textures = skinObject.getAsJsonObject("textures");
+
+            JsonObject skinTexture = textures.getAsJsonObject("SKIN");
+            String skinUrl = skinTexture.get("url").getAsString();
+
+            boolean isAlex = skinTexture.has("metadata");
+
+            String capeUrl = null;
+            if (textures.has("CAPE")) {
+                JsonObject capeTexture = textures.getAsJsonObject("CAPE");
+                capeUrl = capeTexture.get("url").getAsString();
+            }
+
+            SkinProvider.requestAndHandleSkinAndCape(entity.getUuid(), skinUrl, capeUrl)
+                    .whenCompleteAsync((skinAndCape, throwable) -> {
+                        SkinProvider.Skin skin = skinAndCape.getSkin();
+                        SkinProvider.Cape cape = skinAndCape.getCape();
+
+                        if (entity.getLastSkinUpdate() < skin.getRequestedOn()) {
+                            Geyser.getLogger().debug("Received Skin for " + entity.getUuid() + ", updating player..");
+                            entity.setLastSkinUpdate(skin.getRequestedOn());
+
+                            PlayerListPacket.Entry updatedEntry = new PlayerListPacket.Entry(skin.getSkinOwner());
+                            updatedEntry.setName(entity.getUsername());
+                            updatedEntry.setEntityId(entity.getGeyserId());
+                            updatedEntry.setSkinId(entity.getUuid().toString());
+                            updatedEntry.setSkinData(skin.getSkinData());
+                            updatedEntry.setCapeData(cape.getCapeData());
+                            updatedEntry.setGeometryName("geometry.humanoid.custom" + (isAlex ? "Slim" : ""));
+                            updatedEntry.setGeometryData("");
+                            updatedEntry.setXuid("");
+                            updatedEntry.setPlatformChatId("");
+
+                            PlayerListPacket playerRemovePacket = new PlayerListPacket();
+                            playerRemovePacket.setType(PlayerListPacket.Type.REMOVE);
+                            playerRemovePacket.getEntries().add(updatedEntry);
+                            session.getUpstream().sendPacket(playerRemovePacket);
+
+                            PlayerListPacket playerAddPacket = new PlayerListPacket();
+                            playerAddPacket.setType(PlayerListPacket.Type.ADD);
+                            playerAddPacket.getEntries().add(updatedEntry);
+                            session.getUpstream().sendPacket(playerAddPacket);
+                        }
+                    }).isCompletedExceptionally();
+        });
     }
 }

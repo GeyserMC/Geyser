@@ -30,7 +30,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.ScoreboardCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.scoreboard.Scoreboard;
-import org.geysermc.connector.scoreboard.ScoreboardObjective;
+import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.utils.MessageUtils;
 
 public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerScoreboardObjectivePacket> {
@@ -39,18 +39,21 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
     public void translate(ServerScoreboardObjectivePacket packet, GeyserSession session) {
         try {
             ScoreboardCache cache = session.getScoreboardCache();
-            Scoreboard scoreboard = new Scoreboard(session);
-            if (cache.getScoreboard() != null)
-                scoreboard = cache.getScoreboard();
+            Scoreboard scoreboard = cache.getScoreboard();
+
+            if (scoreboard.getObjective(packet.getName()) == null) {
+                // whoops sent objective to early, ignore it
+                return;
+            }
 
             switch (packet.getAction()) {
                 case ADD:
-                    ScoreboardObjective objective = scoreboard.registerNewObjective(packet.getName());
-                    objective.setDisplaySlot(ScoreboardObjective.DisplaySlot.SIDEBAR);
+                    Objective objective = scoreboard.getObjective(packet.getName());
                     objective.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
+                    objective.setType(packet.getType().ordinal());
                     break;
                 case UPDATE:
-                    ScoreboardObjective updateObj = scoreboard.getObjective(packet.getName());
+                    Objective updateObj = scoreboard.getObjective(packet.getName());
                     updateObj.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
                     break;
                 case REMOVE:
@@ -59,7 +62,6 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
             }
 
             scoreboard.onUpdate();
-            cache.setScoreboard(scoreboard);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

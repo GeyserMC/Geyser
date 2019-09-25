@@ -40,8 +40,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean translateAndDefault(BedrockPacket packet) {
-        Registry.BEDROCK.translate(packet.getClass(), packet, session);
-        return defaultHandler(packet);
+        return Registry.BEDROCK.translate(packet.getClass(), packet, session);
     }
 
     @Override
@@ -66,7 +65,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ResourcePackClientResponsePacket textPacket) {
-        connector.getLogger().debug("Handled " + textPacket.getClass().getSimpleName());
         switch (textPacket.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
@@ -88,7 +86,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormData());
     }
 
@@ -111,7 +108,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
-        connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         if (!session.isLoggedIn() && !session.isLoggingIn()) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthenticationData().getName())) {
@@ -119,7 +115,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             }
             // else we were able to log the user in
             return true;
-        } else if (session.isLoggingIn()) {
+        }
+        if (session.isLoggingIn()) {
             session.sendMessage("Please wait until you are logged in...");
         }
 
@@ -127,27 +124,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    public boolean handle(AnimatePacket packet) {
-        return translateAndDefault(packet);
-    }
-
-    @Override
-    public boolean handle(CommandRequestPacket packet) {
-        return translateAndDefault(packet);
-    }
-
-    @Override
-    public boolean handle(TextPacket packet) {
-        return translateAndDefault(packet);
-    }
-
-    @Override
-    public boolean handle(MobEquipmentPacket packet) {
-        return translateAndDefault(packet);
-    }
-
-    @Override
-    public boolean handle(PlayerActionPacket packet) {
+    boolean defaultHandler(BedrockPacket packet) {
         return translateAndDefault(packet);
     }
 }

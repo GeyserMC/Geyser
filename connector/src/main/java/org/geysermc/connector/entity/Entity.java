@@ -49,7 +49,6 @@ import java.util.*;
 @Getter
 @Setter
 public class Entity {
-
     protected long entityId;
     protected long geyserId;
 
@@ -111,24 +110,21 @@ public class Entity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float pitch, float yaw) {
-        moveRelative(relX, relY, relZ, new Vector3f(pitch, yaw, 0));
+        moveRelative(relX, relY, relZ, new Vector3f(pitch, yaw, yaw));
     }
 
     public void moveRelative(double relX, double relY, double relZ, Vector3f rotation) {
-        if (relX == 0 && relY == 0 && relZ == 0 && position.getX() == 0 && position.getY() == 0)
-            return;
-
         this.rotation = rotation;
         this.position = new Vector3f(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
         this.movePending = true;
     }
 
     public void moveAbsolute(Vector3f position, float pitch, float yaw) {
-        moveAbsolute(position, new Vector3f(pitch, yaw, 0));
+        moveAbsolute(position, new Vector3f(pitch, yaw, yaw));
     }
 
     public void moveAbsolute(Vector3f position, Vector3f rotation) {
-        this.position = position;
+        setPosition(position);
         this.rotation = rotation;
         this.movePending = true;
     }
@@ -138,14 +134,13 @@ public class Entity {
         flags.setFlag(EntityFlag.HAS_GRAVITY, true);
         flags.setFlag(EntityFlag.HAS_COLLISION, true);
         flags.setFlag(EntityFlag.CAN_SHOW_NAME, true);
-        flags.setFlag(EntityFlag.NO_AI, false);
+        flags.setFlag(EntityFlag.CAN_CLIMB, true);
 
         EntityDataDictionary dictionary = new EntityDataDictionary();
-        dictionary.put(EntityData.NAMETAG, "");
-        dictionary.put(EntityData.ENTITY_AGE, 0);
         dictionary.put(EntityData.SCALE, 1f);
         dictionary.put(EntityData.MAX_AIR, (short) 400);
         dictionary.put(EntityData.AIR, (short) 0);
+        dictionary.put(EntityData.LEAD_HOLDER_EID, -1L);
         dictionary.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
         dictionary.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         dictionary.putFlags(flags);
@@ -184,5 +179,22 @@ public class Entity {
 
         ServerEntityPropertiesPacket entityPropertiesPacket = new ServerEntityPropertiesPacket((int) entityId, attributes);
         session.getDownstream().getSession().send(entityPropertiesPacket);
+    }
+
+    public void setPosition(Vector3f position) {
+        if (is(PlayerEntity.class)) {
+            this.position = position.add(0, entityType.getOffset(), 0);
+            return;
+        }
+        this.position = position;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <I extends Entity> I as(Class<I> entityClass) {
+        return entityClass.isInstance(this) ? (I) this : null;
+    }
+
+    public <I extends Entity> boolean is(Class<I> entityClass) {
+        return entityClass.isInstance(this);
     }
 }

@@ -27,20 +27,14 @@ package org.geysermc.connector.network.translators.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.ScoreboardCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.scoreboard.Scoreboard;
 
 public class JavaDisplayScoreboardTranslator extends PacketTranslator<ServerDisplayScoreboardPacket> {
 
     @Override
     public void translate(ServerDisplayScoreboardPacket packet, GeyserSession session) {
-        try {
-            ScoreboardCache cache = session.getScoreboardCache();
-            Scoreboard scoreboard = new Scoreboard(session);
-            cache.setScoreboard(scoreboard);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        session.getScoreboardCache().getScoreboard().registerNewObjective(
+                packet.getScoreboardName(), packet.getPosition()
+        );
     }
 }
