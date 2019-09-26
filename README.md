@@ -15,6 +15,9 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 ### Please note, this project is still a work in progress and should not be used on production.
 
+## Setting Up
+Please note, Geyser is **not** a plugin. Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set it up.
+
 Links:
 - Website: https://geysermc.org
 - Docs: https://geysermc.org/docs
