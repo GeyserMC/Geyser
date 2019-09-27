@@ -37,6 +37,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
     public void translate(ServerJoinGamePacket packet, GeyserSession session) {
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
+        bedrockPacket.setPlayerPermission(1);
         session.getUpstream().sendPacketImmediately(bedrockPacket);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
