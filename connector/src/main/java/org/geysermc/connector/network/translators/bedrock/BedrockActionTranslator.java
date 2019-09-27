@@ -90,18 +90,19 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                         Hand.MAIN_HAND, 0, 0, 0, false);
 
                 session.getDownstream().getSession().send(blockPacket);
+                break;
             case START_BREAK:
                 ClientPlayerActionPacket actionPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, position, BlockFace.values()[packet.getFace()]);
                 session.getDownstream().getSession().send(actionPacket);
-
+                break;
             case ABORT_BREAK:
                 ClientPlayerActionPacket actionPacket2 = new ClientPlayerActionPacket(PlayerAction.CANCEL_DIGGING, position, BlockFace.values()[packet.getFace()]);
                 session.getDownstream().getSession().send(actionPacket2);
+                break;
             case STOP_BREAK:
                 ClientPlayerActionPacket actionPacket3 = new ClientPlayerActionPacket(PlayerAction.FINISH_DIGGING, position, BlockFace.values()[packet.getFace()]);
                 session.getDownstream().getSession().send(actionPacket3);
-
-
+                break;
         }
     }
 }
