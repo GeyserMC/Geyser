@@ -44,7 +44,7 @@ Links:
   - [ ] Block entities
   - [ ] Extra data
   - [ ] Biome colors
-- [ ] Block break/place support
+- [x] Block break/place support
 
 ## Compiling
 1. Clone the repo to your computer
