@@ -114,11 +114,11 @@ public class GeyserConnector implements Connector {
         logger.info("******************************************");
 
         try {
-            File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource("setup.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
 
             config = FileUtils.loadConfig(configFile, GeyserConfiguration.class);
         } catch (IOException ex) {
-            logger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+            logger.severe("Failed to read/create setup.yml! Make sure it's up to date and/or readable+writable!", ex);
             shutdown();
         }
 
