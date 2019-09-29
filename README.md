@@ -22,7 +22,7 @@ Please note, Geyser is **not** a plugin. Watch the video below or take a look [h
 
 Links:
 - Website: https://geysermc.org
-- Docs: https://geysermc.org/docs
+- Docs: https://github.com/GeyserMC/Geyser/wiki
 - Download: http://ci.geysermc.org
 - Discord: http://discord.geysermc.org/
 
