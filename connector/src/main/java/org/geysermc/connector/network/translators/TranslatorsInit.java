@@ -150,6 +150,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator());
         Registry.registerBedrock(PlayerActionPacket.class, new BedrockActionTranslator());
         Registry.registerBedrock(MovePlayerPacket.class, new BedrockMovePlayerTranslator());
+        Registry.registerBedrock(InventoryTransactionPacket.class, new BedrockInventoryTransactionTranslator());
 
         itemTranslator = new ItemTranslator();
         blockTranslator = new BlockTranslator();
