@@ -32,6 +32,7 @@ import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.event.session.ConnectedEvent;
 import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
@@ -64,13 +65,6 @@ import java.util.UUID;
 
 @Getter
 public class GeyserSession implements Player {
-    @Getter
-    @Setter
-    private volatile boolean breaking;
-
-    @Getter
-    @Setter
-    private volatile boolean threadStop;
 
     private final GeyserConnector connector;
     private final BedrockServerSession upstream;
@@ -101,9 +95,10 @@ public class GeyserSession implements Player {
     private boolean spawned;
     private boolean closed;
 
-    @Getter
     @Setter
-    private Thread breakThread;
+    private Vector3i blockDiggingPos = Vector3i.ZERO;
+    @Setter
+    private BlockFace blockDiggingFace = BlockFace.DOWN;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
