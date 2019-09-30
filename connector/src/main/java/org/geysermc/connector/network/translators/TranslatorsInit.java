@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerSetExperiencePacket;
@@ -56,6 +57,7 @@ import org.geysermc.connector.network.translators.java.JavaJoinGameTranslator;
 import org.geysermc.connector.network.translators.java.JavaRespawnTranslator;
 import org.geysermc.connector.network.translators.java.JavaTitleTranslator;
 import org.geysermc.connector.network.translators.java.entity.*;
+import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerActionAckTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerHealthTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerPositionRotationTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerSetExperienceTranslator;
@@ -131,6 +133,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerPositionRotationPacket.class, new JavaPlayerPositionRotationTranslator());
         Registry.registerJava(ServerPlayerSetExperiencePacket.class, new JavaPlayerSetExperienceTranslator());
         Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
+        Registry.registerJava(ServerPlayerActionAckPacket.class, new JavaPlayerActionAckTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
         Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());
