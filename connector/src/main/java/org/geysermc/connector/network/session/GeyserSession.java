@@ -64,6 +64,14 @@ import java.util.UUID;
 
 @Getter
 public class GeyserSession implements Player {
+    @Getter
+    @Setter
+    private volatile boolean breaking;
+
+    @Getter
+    @Setter
+    private volatile boolean threadStop;
+
     private final GeyserConnector connector;
     private final BedrockServerSession upstream;
     private RemoteServer remoteServer;
@@ -92,6 +100,10 @@ public class GeyserSession implements Player {
     @Setter
     private boolean spawned;
     private boolean closed;
+
+    @Getter
+    @Setter
+    private Thread breakThread;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;

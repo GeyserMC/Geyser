@@ -80,10 +80,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 ClientPlayerActionPacket dropItemPacket = new ClientPlayerActionPacket(PlayerAction.DROP_ITEM, position, BlockFace.values()[packet.getFace()]);
                 session.getDownstream().getSession().send(dropItemPacket);
                 break;
+
             case STOP_SLEEP:
                 ClientPlayerStatePacket stopSleepingPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.LEAVE_BED);
                 session.getDownstream().getSession().send(stopSleepingPacket);
                 break;
+
             case BLOCK_INTERACT:
                 ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(position,
                         BlockFace.values()[packet.getFace()],
@@ -91,17 +93,56 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
                 session.getDownstream().getSession().send(blockPacket);
                 break;
+
             case START_BREAK:
-                ClientPlayerActionPacket actionPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, position, BlockFace.values()[packet.getFace()]);
+                System.out.println("a");
+                ClientPlayerActionPacket actionPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, position, BlockFace.values()[1]);
                 session.getDownstream().getSession().send(actionPacket);
-                break;
-            case ABORT_BREAK:
-                ClientPlayerActionPacket actionPacket2 = new ClientPlayerActionPacket(PlayerAction.CANCEL_DIGGING, position, BlockFace.values()[packet.getFace()]);
-                session.getDownstream().getSession().send(actionPacket2);
-                break;
+
+                session.setThreadStop(false);
+                session.setBreaking(true);
+
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        while (session.isThreadStop()) {
+                            try {
+                                Thread.sleep(1);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            if(session.isBreaking()) {
+                                session.setBreaking(false);
+                            } else {
+                                ClientPlayerActionPacket actionPacket = new ClientPlayerActionPacket(PlayerAction.CANCEL_DIGGING, position, BlockFace.values()[1]);
+                                session.getDownstream().getSession().send(actionPacket);
+                            }
+                        }
+                    }
+                };
+
+                session.setBreakThread(thread);
+
+                thread.start();
+
             case STOP_BREAK:
-                ClientPlayerActionPacket actionPacket3 = new ClientPlayerActionPacket(PlayerAction.FINISH_DIGGING, position, BlockFace.values()[packet.getFace()]);
-                session.getDownstream().getSession().send(actionPacket3);
+                System.out.println("b");
+                session.getBreakThread().stop();
+                break;
+
+            case ABORT_BREAK:
+                System.out.println("c");
+                //ClientPlayerActionPacket actionPacket3 = new ClientPlayerActionPacket(PlayerAction.CANCEL_DIGGING, position, BlockFace.values()[1]);
+
+                //session.getDownstream().getSession().send(actionPacket3);
+                break;
+
+            case CONTINUE_BREAK:
+                System.out.println("d");
+
+                session.setBreaking(true);
+
                 break;
         }
     }
