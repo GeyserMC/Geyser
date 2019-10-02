@@ -39,11 +39,10 @@ public class JavaSpawnGlobalEntityTranslator extends PacketTranslator<ServerSpaw
         Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
 
         // Currently GlobalEntityType only has a lightning bolt
-        Entity entity = new Entity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.LIGHTNING_BOLT, position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
-
-        if (entity == null)
-            return;
+        Entity entity = new Entity(
+                packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                EntityType.LIGHTNING_BOLT, position, Vector3f.ZERO, Vector3f.ZERO
+        );
 
         session.getEntityCache().spawnEntity(entity);
     }

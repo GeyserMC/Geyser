@@ -12,7 +12,7 @@ public class BlockTranslator {
     public BedrockItem getBedrockBlock(BlockState state) {
         BedrockItem bedrockItem = Remapper.BLOCK_REMAPPER.convertToBedrockB(new ItemStack(state.getId()));
         if (bedrockItem == null) {
-            GeyserLogger.DEFAULT.debug("Missing mapping for java block " + state.getId() + "/nPlease report this to Geyser.");
+            GeyserLogger.DEFAULT.debug("Missing mapping for java block " + state.getId() + "\nPlease report this to Geyser.");
             return BedrockItem.DIRT; // so we can walk and not getting stuck x)
         }
 

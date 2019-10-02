@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.flowpowered.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
@@ -34,7 +33,6 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.utils.InventoryUtils;
 
 public class GenericInventoryTranslator extends InventoryTranslator {
 
@@ -54,29 +52,21 @@ public class GenericInventoryTranslator extends InventoryTranslator {
 
     @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
-        ContainerId containerId = InventoryUtils.getContainerId(inventory.getId());
-        if (containerId == null)
-            return;
-
         ItemData[] bedrockItems = new ItemData[inventory.getItems().length];
         for (int i = 0; i < bedrockItems.length; i++) {
             bedrockItems[i] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
         }
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
-        contentPacket.setContainerId(containerId);
+        contentPacket.setContainerId(inventory.getId());
         contentPacket.setContents(bedrockItems);
         session.getUpstream().sendPacket(contentPacket);
     }
 
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        ContainerId containerId = InventoryUtils.getContainerId(inventory.getId());
-        if (containerId == null)
-            return;
-
         InventorySlotPacket slotPacket = new InventorySlotPacket();
-        slotPacket.setContainerId(containerId);
+        slotPacket.setContainerId(inventory.getId());
         slotPacket.setSlot(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[slot]));
         slotPacket.setInventorySlot(slot);
         session.getUpstream().sendPacket(slotPacket);

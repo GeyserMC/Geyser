@@ -38,7 +38,7 @@ public class JavaEntityDestroyTranslator extends PacketTranslator<ServerEntityDe
             Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
 
             if (entity != null) {
-                session.getEntityCache().removeEntity(entity);
+                session.getEntityCache().removeEntity(entity, false);
             }
         }
     }

@@ -62,17 +62,18 @@ public class EntityCache {
         entity.spawnEntity(session);
     }
 
-    public void removeEntity(Entity entity) {
-        if (entity == null || !entity.isValid()) return;
-
-        Long geyserId = entityIdTranslations.remove(entity.getEntityId());
-        if (geyserId != null) {
-            entities.remove(geyserId);
-            if (entity.is(PlayerEntity.class)) {
-                playerEntities.remove(entity.as(PlayerEntity.class).getUuid());
+    public boolean removeEntity(Entity entity, boolean force) {
+        if (entity != null && entity.isValid() && (force || entity.despawnEntity(session))) {
+            Long geyserId = entityIdTranslations.remove(entity.getEntityId());
+            if (geyserId != null) {
+                entities.remove(geyserId);
+                if (entity.is(PlayerEntity.class)) {
+                    playerEntities.remove(entity.as(PlayerEntity.class).getUuid());
+                }
             }
+            return true;
         }
-        entity.despawnEntity(session);
+        return false;
     }
 
     public Entity getEntityByGeyserId(long geyserId) {

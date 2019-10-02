@@ -110,13 +110,4 @@ public class InventoryUtils {
         items[packet.getSlot()] = packet.getItem();
         translator.updateSlot(session, openInventory, packet.getSlot());
     }
-
-    public static ContainerId getContainerId(int id) {
-        for (ContainerId value : ContainerId.values()) {
-            if (value.id() == id)
-                return value;
-        }
-
-        return null;
-    }
 }

@@ -42,13 +42,13 @@ public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityT
         }
         if (entity == null) return;
 
-        entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getPitch(), packet.getYaw());
+        entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch());
 
         if (entity.isMovePending()) {
             MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
             moveEntityPacket.setRuntimeEntityId(entity.getGeyserId());
             moveEntityPacket.setPosition(entity.getPosition());
-            moveEntityPacket.setRotation(entity.getRotation());
+            moveEntityPacket.setRotation(entity.getBedrockRotation());
             moveEntityPacket.setOnGround(packet.isOnGround());
             moveEntityPacket.setTeleported(true);
             entity.setMovePending(false);

@@ -48,7 +48,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             return;
 
         if (!session.isSpawned()) {
-            entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getPitch(), packet.getYaw());
+            entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getYaw(), packet.getPitch());
 
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -70,7 +70,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             return;
         }
 
-        entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getPitch(), packet.getYaw());
+        entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getYaw(), packet.getPitch());
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());

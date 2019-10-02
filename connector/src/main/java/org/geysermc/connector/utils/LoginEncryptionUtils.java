@@ -112,7 +112,7 @@ public class LoginEncryptionUtils {
 
         byte[] token = EncryptionUtils.generateRandomToken();
         SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
-        session.getUpstream().enableEncryption(encryptionKey);
+        session.getUpstream().getSession().enableEncryption(encryptionKey);
 
         ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
         packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token).serialize());

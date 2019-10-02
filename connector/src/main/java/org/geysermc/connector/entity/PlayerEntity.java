@@ -43,13 +43,13 @@ public class PlayerEntity extends Entity {
     private UUID uuid;
     private String username;
     private long lastSkinUpdate = -1;
-
-    private ItemData hand = ItemData.of(0, (short) 0, 0);
+    private boolean playerList = true;
 
     private ItemData helmet;
     private ItemData chestplate;
     private ItemData leggings;
     private ItemData boots;
+    private ItemData hand = ItemData.of(0, (short) 0, 0);
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
@@ -75,6 +75,12 @@ public class PlayerEntity extends Entity {
     }
 
     @Override
+    public boolean despawnEntity(GeyserSession session) {
+        super.despawnEntity(session);
+        return !playerList; // don't remove from cache when still on playerlist
+    }
+
+    @Override
     public void spawnEntity(GeyserSession session) {
         if (geyserId == 1) return;
 
@@ -84,7 +90,7 @@ public class PlayerEntity extends Entity {
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
         addPlayerPacket.setPosition(position);
-        addPlayerPacket.setRotation(rotation);
+        addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
         addPlayerPacket.setPlayerFlags(0);
@@ -98,6 +104,5 @@ public class PlayerEntity extends Entity {
 
         valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);
-//        System.out.println("Spawned player "+uuid+" "+username+" "+geyserId);
     }
 }

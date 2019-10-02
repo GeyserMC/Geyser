@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import org.apache.commons.codec.Charsets;
 import org.geysermc.api.Geyser;
 import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.SkinProvider;
@@ -43,8 +44,8 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
 
     @Override
     public void translate(ServerSpawnPlayerPacket packet, GeyserSession session) {
-        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), packet.getYaw());
+        Vector3f position = new Vector3f(packet.getX(), packet.getY() - EntityType.PLAYER.getOffset(), packet.getZ());
+        Vector3f rotation = new Vector3f(packet.getYaw(), packet.getPitch(), packet.getYaw());
 
         PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUUID());
         if (entity == null) {
@@ -63,7 +64,7 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         Geyser.getGeneralThreadPool().execute(() -> {
             GameProfile.Property skinProperty = entity.getProfile().getProperty("textures");
 
-            JsonObject skinObject = SkinProvider.getGson().fromJson(new String(Base64.getDecoder().decode(skinProperty.getValue()), Charsets.UTF_8), JsonObject.class);
+            JsonObject skinObject = SkinProvider.GSON.fromJson(new String(Base64.getDecoder().decode(skinProperty.getValue()), Charsets.UTF_8), JsonObject.class);
             JsonObject textures = skinObject.getAsJsonObject("textures");
 
             JsonObject skinTexture = textures.getAsJsonObject("SKIN");
@@ -82,8 +83,14 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
                         SkinProvider.Skin skin = skinAndCape.getSkin();
                         SkinProvider.Cape cape = skinAndCape.getCape();
 
+                        if (cape.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_CAPES) {
+                            cape = SkinProvider.getOrDefault(SkinProvider.requestAndHandleUnofficialCape(
+                                    cape, entity.getUuid(),
+                                    entity.getUsername(), false
+                            ), SkinProvider.EMPTY_CAPE, SkinProvider.UnofficalCape.VALUES.length * 3);
+                        }
+
                         if (entity.getLastSkinUpdate() < skin.getRequestedOn()) {
-                            Geyser.getLogger().debug("Received Skin for " + entity.getUuid() + ", updating player..");
                             entity.setLastSkinUpdate(skin.getRequestedOn());
 
                             PlayerListPacket.Entry updatedEntry = new PlayerListPacket.Entry(skin.getSkinOwner());

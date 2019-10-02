@@ -25,10 +25,11 @@
 
 package org.geysermc.connector.console;
 
-import org.geysermc.api.ChatColor;
 import io.sentry.Sentry;
+import org.geysermc.api.ChatColor;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.logging.*;
 
@@ -108,7 +109,7 @@ public class GeyserLogger implements org.geysermc.api.logger.Logger {
     @Override
     public void error(String message, Throwable error) {
         waitFor();
-        System.out.println(printConsole(ChatColor.RED + message + "\n" + error.getMessage(), colored));
+        System.out.println(printConsole(ChatColor.RED + message + "\n" + error, colored));
     }
 
     @Override

@@ -146,10 +146,11 @@ public class TranslatorsInit {
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
-        Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
         Registry.registerBedrock(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator());
-        Registry.registerBedrock(PlayerActionPacket.class, new BedrockActionTranslator());
         Registry.registerBedrock(MovePlayerPacket.class, new BedrockMovePlayerTranslator());
+        Registry.registerBedrock(PlayerActionPacket.class, new BedrockActionTranslator());
+        Registry.registerBedrock(SetLocalPlayerAsInitializedPacket.class, new BedrockPlayerInitialized());
+        Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
 
         itemTranslator = new ItemTranslator();
         blockTranslator = new BlockTranslator();

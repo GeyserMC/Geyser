@@ -44,7 +44,7 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
 
         Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
-        Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), 0);
+        Vector3f rotation = new Vector3f(packet.getYaw(), packet.getPitch(), 0);
 
         EntityType type = EntityUtils.toBedrockEntity(packet.getType());
         if (type == null) {
@@ -52,11 +52,10 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
             return;
         }
 
-        Entity entity = new Entity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                type, position, motion, rotation);
-
-        if (entity == null)
-            return;
+        Entity entity = new Entity(
+                packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                type, position, motion, rotation
+        );
 
         session.getEntityCache().spawnEntity(entity);
     }

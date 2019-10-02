@@ -48,13 +48,16 @@ public class Registry<T> {
     }
 
     public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
-        try {
-            if (MAP.containsKey(clazz)) {
-                ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
-                return true;
+        if (!session.getUpstream().isClosed() && !session.isClosed()) {
+            try {
+                if (MAP.containsKey(clazz)) {
+                    ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
+                    return true;
+                }
+            } catch (Throwable ex) {
+                GeyserLogger.DEFAULT.error("Could not translate packet " + packet.getClass().getSimpleName(), ex);
+                ex.printStackTrace();
             }
-        } catch (NullPointerException ex) {
-            GeyserLogger.DEFAULT.error("Could not translate packet " + packet.getClass().getSimpleName(), ex);
         }
         return false;
     }

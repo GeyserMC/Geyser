@@ -53,7 +53,6 @@ import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
@@ -65,7 +64,7 @@ import java.util.UUID;
 @Getter
 public class GeyserSession implements Player {
     private final GeyserConnector connector;
-    private final BedrockServerSession upstream;
+    private final UpstreamSession upstream;
     private RemoteServer remoteServer;
     private Client downstream;
     private AuthData authenticationData;
@@ -95,7 +94,7 @@ public class GeyserSession implements Player {
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
-        this.upstream = bedrockServerSession;
+        this.upstream = new UpstreamSession(bedrockServerSession);
 
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
@@ -169,8 +168,9 @@ public class GeyserSession implements Player {
 
                     @Override
                     public void packetReceived(PacketReceivedEvent event) {
-                        if (!closed)
+                        if (!closed) {
                             Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                        }
                     }
                 });
 
@@ -297,5 +297,7 @@ public class GeyserSession implements Player {
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
+
+        upstream.setFrozen(true); // will freeze until the client decides it is ready
     }
 }

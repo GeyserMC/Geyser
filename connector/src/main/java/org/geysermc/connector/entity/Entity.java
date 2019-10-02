@@ -57,7 +57,9 @@ public class Entity {
     protected Vector3f position;
     protected Vector3f motion;
 
-    // 1 - pitch, 2 - yaw, 3 - roll (head yaw)
+    /**
+     * x = Yaw, y = Pitch, z = HeadYaw
+     */
     protected Vector3f rotation;
 
     protected int scale = 1;
@@ -89,7 +91,7 @@ public class Entity {
         addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
         addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(rotation);
+        addEntityPacket.setRotation(getBedrockRotation());
         addEntityPacket.setEntityType(entityType.getType());
         addEntityPacket.getMetadata().putAll(getMetadata());
 
@@ -99,33 +101,37 @@ public class Entity {
         GeyserLogger.DEFAULT.debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
 
-    public void despawnEntity(GeyserSession session) {
-        if (!valid) return;
+    /**
+     * @return can be deleted
+     */
+    public boolean despawnEntity(GeyserSession session) {
+        if (!valid) return true;
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(geyserId);
         session.getUpstream().sendPacket(removeEntityPacket);
 
         valid = false;
+        return true;
     }
 
-    public void moveRelative(double relX, double relY, double relZ, float pitch, float yaw) {
-        moveRelative(relX, relY, relZ, new Vector3f(pitch, yaw, yaw));
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch) {
+        moveRelative(relX, relY, relZ, new Vector3f(yaw, pitch, yaw));
     }
 
     public void moveRelative(double relX, double relY, double relZ, Vector3f rotation) {
-        this.rotation = rotation;
+        setRotation(rotation);
         this.position = new Vector3f(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
         this.movePending = true;
     }
 
-    public void moveAbsolute(Vector3f position, float pitch, float yaw) {
-        moveAbsolute(position, new Vector3f(pitch, yaw, yaw));
+    public void moveAbsolute(Vector3f position, float yaw, float pitch) {
+        moveAbsolute(position, new Vector3f(yaw, pitch, yaw));
     }
 
     public void moveAbsolute(Vector3f position, Vector3f rotation) {
         setPosition(position);
-        this.rotation = rotation;
+        setRotation(rotation);
         this.movePending = true;
     }
 
@@ -187,6 +193,13 @@ public class Entity {
             return;
         }
         this.position = position;
+    }
+
+    /**
+     * x = Pitch, y = HeadYaw, z = Yaw
+     */
+    public Vector3f getBedrockRotation() {
+        return new Vector3f(rotation.getY(), rotation.getZ(), rotation.getX());
     }
 
     @SuppressWarnings("unchecked")

@@ -47,8 +47,8 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
 
         MoveEntityAbsolutePacket moveEntityAbsolutePacket = new MoveEntityAbsolutePacket();
         moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
-        moveEntityAbsolutePacket.setRotation(entity.getRotation());
         moveEntityAbsolutePacket.setPosition(entity.getPosition());
+        moveEntityAbsolutePacket.setRotation(entity.getBedrockRotation());
         moveEntityAbsolutePacket.setOnGround(true);
 
         session.getUpstream().sendPacket(moveEntityAbsolutePacket);
