@@ -49,15 +49,17 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
-                packet.isOnGround(), packet.getPosition().getX(), Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2,
-                packet.getPosition().getZ(), packet.getRotation().getY(), packet.getRotation().getX());
+        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
 
-        entity.moveAbsolute(packet.getPosition(), packet.getRotation());
+        ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
+                packet.isOnGround(), packet.getPosition().getX(), Math.ceil(javaY * 2) / 2,
+                packet.getPosition().getZ(), packet.getRotation().getX(), packet.getRotation().getY());
+
+        entity.moveAbsolute(packet.getPosition().sub(0, javaY, 0), packet.getRotation());
 
         boolean colliding = false;
         Position position = new Position((int) packet.getPosition().getX(),
-                (int) Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2, (int) packet.getPosition().getZ());
+                (int) Math.ceil(javaY * 2) / 2, (int) packet.getPosition().getZ());
 
         BedrockItem block = session.getChunkCache().getBlockAt(position);
         if (!block.getIdentifier().contains("air"))

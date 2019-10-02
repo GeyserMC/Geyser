@@ -39,10 +39,12 @@ import java.util.UUID;
 
 @Getter @Setter
 public class PlayerEntity extends Entity {
+    private GameProfile profile;
     private UUID uuid;
     private String username;
+    private long lastSkinUpdate = -1;
 
-    private ItemData hand;
+    private ItemData hand = ItemData.of(0, (short) 0, 0);
 
     private ItemData helmet;
     private ItemData chestplate;
@@ -52,8 +54,10 @@ public class PlayerEntity extends Entity {
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
 
+        profile = gameProfile;
         uuid = gameProfile.getId();
         username = gameProfile.getName();
+        if (geyserId == 1) valid = true;
     }
 
     // TODO: Break this into an EquippableEntity class
@@ -72,25 +76,28 @@ public class PlayerEntity extends Entity {
 
     @Override
     public void spawnEntity(GeyserSession session) {
+        if (geyserId == 1) return;
+
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
-        addPlayerPacket.setRuntimeEntityId(geyserId);
-        addPlayerPacket.setUniqueEntityId(geyserId);
         addPlayerPacket.setUuid(uuid);
         addPlayerPacket.setUsername(username);
-        addPlayerPacket.setPlatformChatId("");
+        addPlayerPacket.setRuntimeEntityId(geyserId);
+        addPlayerPacket.setUniqueEntityId(geyserId);
         addPlayerPacket.setPosition(position);
-        addPlayerPacket.setMotion(motion);
         addPlayerPacket.setRotation(rotation);
+        addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
-        addPlayerPacket.getMetadata().putAll(getMetadata());
         addPlayerPacket.setPlayerFlags(0);
         addPlayerPacket.setCommandPermission(0);
         addPlayerPacket.setWorldFlags(0);
         addPlayerPacket.setPlayerPermission(0);
         addPlayerPacket.setCustomFlags(0);
-        addPlayerPacket.setDeviceId("WIN10");
+        addPlayerPacket.setDeviceId("");
+        addPlayerPacket.setPlatformChatId("");
+        addPlayerPacket.getMetadata().putAll(getMetadata());
 
         valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);
+//        System.out.println("Spawned player "+uuid+" "+username+" "+geyserId);
     }
 }

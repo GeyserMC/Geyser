@@ -26,13 +26,52 @@
 package org.geysermc.connector.network.translators.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
+import org.geysermc.api.Geyser;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.scoreboard.UpdateType;
+import org.geysermc.connector.utils.MessageUtils;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
 
     @Override
     public void translate(ServerTeamPacket packet, GeyserSession session) {
+        Geyser.getLogger().debug("Team packet " + packet.getTeamName() + " " + packet.getAction()+" "+ Arrays.toString(packet.getPlayers()));
 
+        Scoreboard scoreboard = session.getScoreboardCache().getScoreboard();
+        switch (packet.getAction()) {
+            case CREATE:
+                scoreboard.registerNewTeam(packet.getTeamName(), toPlayerSet(packet.getPlayers()))
+                        .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                        .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
+                        .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()));
+                break;
+            case UPDATE:
+                scoreboard.getTeam(packet.getTeamName())
+                        .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                        .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
+                        .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()))
+                        .setUpdateType(UpdateType.UPDATE);
+                break;
+            case ADD_PLAYER:
+                scoreboard.getTeam(packet.getTeamName()).addEntities(packet.getPlayers());
+                break;
+            case REMOVE_PLAYER:
+                scoreboard.getTeam(packet.getTeamName()).removeEntities(packet.getPlayers());
+                break;
+            case REMOVE:
+               scoreboard.removeTeam(packet.getTeamName());
+               break;
+        }
+        scoreboard.onUpdate();
+    }
+
+    private Set<String> toPlayerSet(String[] players) {
+        return new HashSet<>(Arrays.asList(players));
     }
 }

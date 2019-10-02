@@ -40,8 +40,8 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
         }
-        if (entity == null)
-            return;
+
+        if (entity == null) return;
 
         entity.setRotation(new Vector3f(entity.getRotation().getX(), entity.getRotation().getY(), packet.getHeadYaw()));
 

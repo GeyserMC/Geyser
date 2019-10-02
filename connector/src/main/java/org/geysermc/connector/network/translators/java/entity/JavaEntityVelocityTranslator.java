@@ -40,8 +40,7 @@ public class JavaEntityVelocityTranslator extends PacketTranslator<ServerEntityV
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
         }
-        if (entity == null)
-            return;
+        if (entity == null) return;
 
         entity.setMotion(new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
 

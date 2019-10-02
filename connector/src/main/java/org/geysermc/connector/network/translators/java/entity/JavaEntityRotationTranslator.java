@@ -40,8 +40,7 @@ public class JavaEntityRotationTranslator extends PacketTranslator<ServerEntityR
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
         }
-        if (entity == null)
-            return;
+        if (entity == null) return;
 
         entity.moveRelative(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ(), packet.getPitch(), packet.getYaw());
 
