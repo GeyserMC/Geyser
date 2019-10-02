@@ -39,8 +39,7 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
         }
-        if (entity == null)
-            return;
+        if (entity == null) return;
 
         if (entity.isValid()) {
             // TODO: Make this actually useful lol

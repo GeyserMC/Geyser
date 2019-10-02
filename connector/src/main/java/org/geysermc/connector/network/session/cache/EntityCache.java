@@ -46,6 +46,7 @@ public class EntityCache {
     private Map<Long, Entity> entities = new HashMap<>();
     private Map<Long, Long> entityIdTranslations = new HashMap<>();
     private Map<UUID, PlayerEntity> playerEntities = new HashMap<>();
+    private Map<UUID, Long> bossbars = new HashMap<>();
 
     @Getter
     private AtomicLong nextEntityId = new AtomicLong(2L);
@@ -62,13 +63,13 @@ public class EntityCache {
     }
 
     public void removeEntity(Entity entity) {
-        if (entity == null) return;
+        if (entity == null || !entity.isValid()) return;
 
         Long geyserId = entityIdTranslations.remove(entity.getEntityId());
         if (geyserId != null) {
             entities.remove(geyserId);
-            if (entity instanceof PlayerEntity) {
-                playerEntities.remove(((PlayerEntity) entity).getUuid());
+            if (entity.is(PlayerEntity.class)) {
+                playerEntities.remove(entity.as(PlayerEntity.class).getUuid());
             }
         }
         entity.despawnEntity(session);
@@ -92,5 +93,19 @@ public class EntityCache {
 
     public void removePlayerEntity(UUID uuid) {
         playerEntities.remove(uuid);
+    }
+
+    public long addBossBar(UUID uuid) {
+        long entityId = getNextEntityId().incrementAndGet();
+        bossbars.put(uuid, entityId);
+        return entityId;
+    }
+
+    public long getBossBar(UUID uuid) {
+        return bossbars.containsKey(uuid) ? bossbars.get(uuid) : -1;
+    }
+
+    public long removeBossBar(UUID uuid) {
+        return bossbars.remove(uuid);
     }
 }
