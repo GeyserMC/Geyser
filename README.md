@@ -1,4 +1,4 @@
-<img src="https://geysermc.org/img/oss_logo.png" alt="Geyser" width="600"  height="170"/>
+<img src="https://geysermc.org/img/geyserlogo.png" alt="Geyser" width="600"  height="170"/>
 
 [![forthebadge made-with-java](http://ForTheBadge.com/images/badges/made-with-java.svg)](https://java.com/)
 
@@ -22,7 +22,7 @@ Please note, Geyser is **not** a plugin. Watch the video below or take a look [h
 
 Links:
 - Website: https://geysermc.org
-- Docs: https://geysermc.org/docs
+- Docs: https://github.com/GeyserMC/Geyser/wiki
 - Download: http://ci.geysermc.org
 - Discord: http://discord.geysermc.org/
 
