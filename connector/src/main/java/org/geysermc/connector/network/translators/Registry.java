@@ -54,7 +54,7 @@ public class Registry<T> {
                 ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
             }
         } catch (Throwable ex) {
-            GeyserLogger.DEFAULT.debug("Could not translate packet " + packet.getClass().getSimpleName(), ex);
+            GeyserLogger.DEFAULT.error("Could not translate packet " + packet.getClass().getSimpleName(), ex);
             ex.printStackTrace();
         }
         return false;
