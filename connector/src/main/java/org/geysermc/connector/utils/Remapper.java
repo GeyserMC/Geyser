@@ -88,6 +88,24 @@ public class Remapper {
             if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("tallgrass")) {
                 identifier = MINECRAFT + "grass";
             }
+			
+
+            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("oak_sign")) {
+                identifier = MINECRAFT + "wall_sign";
+            }
+			
+            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("oak_pressure_plate")) {
+                identifier = MINECRAFT + "wooden_pressure_plate";
+            }
+			
+            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("smooth_stone_slab")) {
+                identifier = MINECRAFT + "stone_slab";
+            }
+			
+            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("snow")) {
+                identifier = MINECRAFT + "snow_layer";
+            }
+
 
             // Dirt remapping
             if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("dirt")) {
