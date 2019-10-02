@@ -53,9 +53,10 @@ public class Registry<T> {
             if (MAP.containsKey(clazz)) {
                 ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
             }
-        } catch (NullPointerException ex) {
-            GeyserLogger.DEFAULT.debug("Could not translate packet " + packet.getClass().getSimpleName());
+        } catch (Throwable ex) {
+            GeyserLogger.DEFAULT.debug("Could not translate packet " + packet.getClass().getSimpleName(), ex);
             ex.printStackTrace();
         }
+        return false;
     }
 }
