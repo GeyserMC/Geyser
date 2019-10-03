@@ -51,7 +51,7 @@ public enum EntityType {
     POLAR_BEAR(28, 1.4f, 1.3f),
     LLAMA(29, 1.87f, 0.9f),
     PARROT(30, 0.9f, 0.5f),
-    DOLPHIN(31, 0f), //TODO
+    DOLPHIN(31, 0.6f, 0.9f),
     ZOMBIE(32, 1.8f, 0.6f, 0.6f, 1.62f),
     CREEPER(33, 1.7f, 0.6f, 0.6f, 1.62f),
     SKELETON(34, 1.8f, 0.6f, 0.6f, 1.62f),
@@ -96,6 +96,8 @@ public enum EntityType {
     ENDER_CRYSTAL(71, 0f),
     FIREWORK_ROCKET(72, 0f),
     TRIDENT(73, 0f),
+    TURTLE(74, 0.4f, 1.2f),
+    // TODO CAT (need to figure out how to deal with baby cats) https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/entity/passive/EntityCat.java
 
     SHULKER_BULLET(76, 0f),
     FISHING_HOOK(77, 0f),
@@ -130,8 +132,10 @@ public enum EntityType {
     BALLOON(107, 0f), //TODO
     PUFFERFISH(108, 0.7f, 0.7f),
     SALMON(109, 0.5f, 0.7f),
+    DROWNED(110, 1.95f, 0.6f),
     TROPICAL_FISH(111, 0.6f, 0.6f),
-    COD(112, 0.25f, 0.5f);
+    COD(112, 0.25f, 0.5f),
+    PANDA(113, 1.25f, 1.125f, 1.825f);
 
     private final int type;
     private final float height;

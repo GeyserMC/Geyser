@@ -1,4 +1,4 @@
-<img src="https://geysermc.org/img/oss_logo.png" alt="Geyser" width="600"  height="170"/>
+<img src="https://geysermc.org/img/geyserlogo.png" alt="Geyser" width="600"  height="170"/>
 
 [![forthebadge made-with-java](http://ForTheBadge.com/images/badges/made-with-java.svg)](https://java.com/)
 
@@ -15,9 +15,14 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 ### Please note, this project is still a work in progress and should not be used on production.
 
+## Setting Up
+Please note, Geyser is **not** a plugin. Watch the video below or take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set it up.
+
+[![YouTube Video](https://img.youtube.com/vi/OmLxwl7_UzQ/0.jpg)](https://www.youtube.com/watch?v=OmLxwl7_UzQ)
+
 Links:
 - Website: https://geysermc.org
-- Docs: https://geysermc.org/docs
+- Docs: https://github.com/GeyserMC/Geyser/wiki
 - Download: http://ci.geysermc.org
 - Discord: http://discord.geysermc.org/
 
@@ -41,7 +46,7 @@ Links:
   - [ ] Block entities
   - [ ] Extra data
   - [ ] Biome colors
-- [ ] Block break/place support
+- [x] Block break/place support
 
 ## Compiling
 1. Clone the repo to your computer

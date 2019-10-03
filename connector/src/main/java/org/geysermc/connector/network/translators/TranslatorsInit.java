@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerSetExperiencePacket;
@@ -53,6 +54,7 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.java.*;
 import org.geysermc.connector.network.translators.java.entity.*;
+import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerActionAckTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerHealthTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerPositionRotationTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerSetExperienceTranslator;
@@ -130,6 +132,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerPositionRotationPacket.class, new JavaPlayerPositionRotationTranslator());
         Registry.registerJava(ServerPlayerSetExperiencePacket.class, new JavaPlayerSetExperienceTranslator());
         Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
+        Registry.registerJava(ServerPlayerActionAckPacket.class, new JavaPlayerActionAckTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
         Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());
@@ -146,6 +149,7 @@ public class TranslatorsInit {
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
+        Registry.registerBedrock(InventoryTransactionPacket.class, new BedrockInventoryTransactionTranslator());
         Registry.registerBedrock(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator());
         Registry.registerBedrock(MovePlayerPacket.class, new BedrockMovePlayerTranslator());
         Registry.registerBedrock(PlayerActionPacket.class, new BedrockActionTranslator());

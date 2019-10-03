@@ -127,4 +127,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     boolean defaultHandler(BedrockPacket packet) {
         return translateAndDefault(packet);
     }
+
+    @Override
+    public boolean handle(InventoryTransactionPacket packet) {
+        return translateAndDefault(packet);
+    }
 }

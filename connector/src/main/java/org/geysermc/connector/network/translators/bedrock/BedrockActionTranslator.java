@@ -25,11 +25,14 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import org.geysermc.connector.entity.Entity;
@@ -43,6 +46,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
         Entity entity = session.getPlayerEntity();
         if (entity == null)
             return;
+
+        Vector3i vector = packet.getBlockPosition();
+        Position position = new Position(vector.getX(), vector.getY(), vector.getZ());
 
         switch (packet.getAction()) {
             case RESPAWN:
@@ -71,13 +77,39 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getDownstream().getSession().send(stopSprintPacket);
                 break;
             case DROP_ITEM:
-                ClientPlayerActionPacket dropItemPacket = new ClientPlayerActionPacket(PlayerAction.DROP_ITEM, new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(),
-                                packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
+                ClientPlayerActionPacket dropItemPacket = new ClientPlayerActionPacket(PlayerAction.DROP_ITEM, position, BlockFace.values()[packet.getFace()]);
                 session.getDownstream().getSession().send(dropItemPacket);
                 break;
             case STOP_SLEEP:
                 ClientPlayerStatePacket stopSleepingPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.LEAVE_BED);
                 session.getDownstream().getSession().send(stopSleepingPacket);
+                break;
+            case BLOCK_INTERACT:
+                ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(position,
+                        BlockFace.values()[packet.getFace()],
+                        Hand.MAIN_HAND, 0, 0, 0, false);
+                session.getDownstream().getSession().send(blockPacket);
+                break;
+            case START_BREAK:
+                ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
+                        packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
+                session.setBlockDiggingPos(packet.getBlockPosition());
+                session.setBlockDiggingFace(BlockFace.values()[packet.getFace()]);
+                session.getDownstream().getSession().send(startBreakingPacket);
+                break;
+            case CONTINUE_BREAK:
+                session.setBlockDiggingFace(BlockFace.values()[packet.getFace()]);
+                break;
+            case ABORT_BREAK:
+                ClientPlayerActionPacket abortBreakingPacket = new ClientPlayerActionPacket(PlayerAction.CANCEL_DIGGING, new Position(packet.getBlockPosition().getX(),
+                        packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.DOWN);
+                session.getDownstream().getSession().send(abortBreakingPacket);
+                break;
+            case STOP_BREAK:
+                Vector3i pos = session.getBlockDiggingPos();
+                ClientPlayerActionPacket stopBreakingPacket = new ClientPlayerActionPacket(PlayerAction.FINISH_DIGGING, new Position(pos.getX(),
+                        pos.getY(), pos.getZ()), session.getBlockDiggingFace());
+                session.getDownstream().getSession().send(stopBreakingPacket);
                 break;
         }
     }
