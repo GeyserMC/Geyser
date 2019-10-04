@@ -142,7 +142,7 @@ public class Scoreboard {
                 boolean teamAdd = team != null && (team.getUpdateType() == ADD || team.getUpdateType() == UPDATE);
                 boolean teamRemove = team != null && (team.getUpdateType() == REMOVE || team.getUpdateType() == UPDATE);
 
-                if (team != null && (team.getUpdateType() == REMOVE || inTeam)) score.setTeam(null);
+                if (team != null && (team.getUpdateType() == REMOVE || !inTeam)) score.setTeam(null);
 
                 boolean add = (hasUpdate || globalAdd || teamAdd || teamRemove || score.getUpdateType() == ADD || score.getUpdateType() == UPDATE) && (score.getUpdateType() != REMOVE);
                 boolean remove = hasUpdate || globalRemove || teamAdd || teamRemove || score.getUpdateType() == REMOVE || score.getUpdateType() == UPDATE;

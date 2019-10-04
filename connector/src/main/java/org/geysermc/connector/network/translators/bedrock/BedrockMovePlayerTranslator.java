@@ -31,17 +31,23 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.item.BedrockItem;
 
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
-
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
+        PlayerEntity entity = session.getPlayerEntity();
         if (entity == null || !session.isSpawned()) return;
+
+        // can cause invalid moves when packet queue is not empty
+        if (session.getUpstream().hasQueue()) return;
+        if (session.getUpstream().isQueueCleared()) {
+            entity.enableGravity(session);
+        }
 
         if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
             session.getConnector().getLogger().info("Recalculating position...");

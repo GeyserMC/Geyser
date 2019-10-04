@@ -16,6 +16,7 @@ public class UpstreamSession {
     @Getter private final BedrockServerSession session;
     private Queue<BedrockPacket> packets = new ConcurrentLinkedQueue<>();
     @Getter private boolean frozen = false;
+    private boolean queueCleared = true;
 
     public void sendPacket(@NonNull BedrockPacket packet) {
         if (frozen || !packets.isEmpty()) {
@@ -54,5 +55,21 @@ public class UpstreamSession {
 
     public InetSocketAddress getAddress() {
         return session.getAddress();
+    }
+
+    public boolean hasQueue() {
+        return !packets.isEmpty();
+    }
+
+    /**
+     * @return true the first time this method is called after the queue is empty.<br>
+     * This will enable gravity because now the client is ready to explore
+     */
+    public boolean isQueueCleared() {
+        if (!hasQueue() && queueCleared) {
+            queueCleared = false;
+            return true;
+        }
+        return false;
     }
 }

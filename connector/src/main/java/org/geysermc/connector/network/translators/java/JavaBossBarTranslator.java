@@ -34,7 +34,7 @@ public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket>
                 bossEventPacket.setTitle(MessageUtils.getBedrockMessage(packet.getTitle()));
                 break;
             case UPDATE_HEALTH:
-            bossEventPacket.setType(BossEventPacket.Type.HEALTH_PERCENTAGE);
+                bossEventPacket.setType(BossEventPacket.Type.HEALTH_PERCENTAGE);
                 bossEventPacket.setHealthPercentage(packet.getHealth());
                 break;
             case REMOVE:

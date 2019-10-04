@@ -4,7 +4,7 @@ import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class BedrockPlayerInitialized extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
+public class BedrockPlayerInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
     @Override
     public void translate(SetLocalPlayerAsInitializedPacket packet, GeyserSession session) {
         if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {

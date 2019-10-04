@@ -30,6 +30,7 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.type.EntityType;
@@ -44,6 +45,7 @@ public class PlayerEntity extends Entity {
     private String username;
     private long lastSkinUpdate = -1;
     private boolean playerList = true;
+    private boolean gravity = false;
 
     private ItemData helmet;
     private ItemData chestplate;
@@ -72,6 +74,17 @@ public class PlayerEntity extends Entity {
         armorEquipmentPacket.setBoots(boots);
 
         session.getUpstream().sendPacket(armorEquipmentPacket);
+    }
+
+    public void enableGravity(GeyserSession session) {
+        if (!gravity && session.getPlayerEntity().getGeyserId() == getGeyserId()) {
+            gravity = true;
+
+            SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+            entityDataPacket.setRuntimeEntityId(geyserId);
+            entityDataPacket.getMetadata().putAll(getMetadata());
+            session.getUpstream().sendPacket(entityDataPacket);
+        }
     }
 
     @Override

@@ -137,7 +137,7 @@ public class Entity {
 
     public EntityDataDictionary getMetadata() {
         EntityFlags flags = new EntityFlags();
-        flags.setFlag(EntityFlag.HAS_GRAVITY, true);
+        flags.setFlag(EntityFlag.HAS_GRAVITY, !is(PlayerEntity.class) || as(PlayerEntity.class).isGravity());
         flags.setFlag(EntityFlag.HAS_COLLISION, true);
         flags.setFlag(EntityFlag.CAN_SHOW_NAME, true);
         flags.setFlag(EntityFlag.CAN_CLIMB, true);
