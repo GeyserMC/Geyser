@@ -25,12 +25,13 @@
 
 package org.geysermc.connector.network.translators.java.scoreboard;
 
+import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardAction;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
 import org.geysermc.api.Geyser;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.Objective;
+import org.geysermc.connector.scoreboard.Scoreboard;
 
 public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScorePacket> {
 
@@ -40,17 +41,23 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
             Scoreboard scoreboard = session.getScoreboardCache().getScoreboard();
 
             Objective objective = scoreboard.getObjective(packet.getObjective());
-            if (objective == null) {
-                Geyser.getLogger().info("Tried to update score without the existence of its requested objective");
+            if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
+                Geyser.getLogger().info("Tried to update score without the existence of its requested objective '" + packet.getObjective() + '\'');
                 return;
             }
 
             switch (packet.getAction()) {
-                case REMOVE:
-                    objective.resetScore(packet.getEntry());
-                    break;
                 case ADD_OR_UPDATE:
                     objective.setScore(packet.getEntry(), packet.getValue());
+                    break;
+                case REMOVE:
+                    if (objective != null) {
+                        objective.resetScore(packet.getEntry());
+                    } else {
+                        for (Objective objective1 : scoreboard.getObjectives().values()) {
+                            objective1.resetScore(packet.getEntry());
+                        }
+                    }
                     break;
             }
             scoreboard.onUpdate();

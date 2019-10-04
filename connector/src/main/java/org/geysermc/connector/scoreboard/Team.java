@@ -36,29 +36,20 @@ public class Team {
                 added.add(name);
             }
         }
+        setUpdateType(UpdateType.UPDATE);
         for (Objective objective : scoreboard.getObjectives().values()) {
             for (Score score : objective.getScores().values()) {
                 if (added.contains(score.getName())) {
-                    score.setTeam(this).setUpdateType(UpdateType.ADD);
+                    score.setTeam(this);
                 }
             }
         }
     }
 
     public void removeEntities(String... names) {
-        List<String> removed = new ArrayList<>();
         for (String name : names) {
-            if (entities.contains(name)) {
-                entities.remove(name);
-                removed.add(name);
-            }
+            entities.remove(name);
         }
-        for (Objective objective : scoreboard.getObjectives().values()) {
-            for (Score score : objective.getScores().values()) {
-                if (removed.contains(score.getName())) {
-                    score.setTeam(null).setUpdateType(UpdateType.ADD);
-                }
-            }
-        }
+        setUpdateType(UpdateType.UPDATE);
     }
 }

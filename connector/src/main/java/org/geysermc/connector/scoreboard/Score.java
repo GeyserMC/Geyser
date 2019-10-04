@@ -39,7 +39,7 @@ public class Score {
     private String name;
     private Team team;
     private int score;
-
+    private int oldScore = Integer.MIN_VALUE;
 
     public Score(Objective objective, String name) {
         this.id = objective.getScoreboard().getNextId().getAndIncrement();
@@ -48,9 +48,17 @@ public class Score {
     }
 
     public String getDisplayName() {
-        if (team != null) {
+        if (team != null && team.getUpdateType() != UpdateType.REMOVE) {
             return team.getPrefix() + name + team.getSuffix();
         }
         return name;
+    }
+
+    public Score setScore(int score) {
+        if (oldScore == Integer.MIN_VALUE) {
+            this.oldScore = score;
+        }
+        this.score = score;
+        return this;
     }
 }

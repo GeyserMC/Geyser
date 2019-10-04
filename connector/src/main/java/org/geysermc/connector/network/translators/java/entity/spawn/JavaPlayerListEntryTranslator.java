@@ -22,7 +22,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
             PlayerListPacket.Entry entry1 = new PlayerListPacket.Entry(entry.getProfile().getId());
 
             if (packet.getAction() == PlayerListEntryAction.ADD_PLAYER) {
-                boolean self = session.getPlayerEntity().getUuid().equals(entry.getProfile().getId());
+                boolean self = entry.getProfile().getId().equals(session.getPlayerEntity().getUuid());
 
                 PlayerEntity playerEntity = session.getPlayerEntity();
                 if (!self) {

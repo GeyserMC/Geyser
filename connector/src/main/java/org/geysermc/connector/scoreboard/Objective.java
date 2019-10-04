@@ -36,23 +36,37 @@ import java.util.Map;
 public class Objective {
     private Scoreboard scoreboard;
     private long id;
+    private boolean temp;
 
     @Setter
     private UpdateType updateType = UpdateType.ADD;
     private String objectiveName;
     private String displaySlot;
-    private String displayName;
-    private int type; // 0 = integer, 1 = heart
+    private String displayName = "unknown";
+    private int type = 0; // 0 = integer, 1 = heart
 
     private Map<String, Score> scores = new HashMap<>();
+
+    private Objective(Scoreboard scoreboard) {
+        this.id = scoreboard.getNextId().getAndIncrement();
+        this.scoreboard = scoreboard;
+    }
+
+    /**
+     * /!\ This method is made for temporary objectives until the real objective is received
+     */
+    public Objective(Scoreboard scoreboard, String objectiveName) {
+        this(scoreboard);
+        this.objectiveName = objectiveName;
+        this.temp = true;
+    }
 
     public Objective(Scoreboard scoreboard, String objectiveName, ScoreboardPosition displaySlot, String displayName, int type) {
         this(scoreboard, objectiveName, displaySlot.name().toLowerCase(), displayName, type);
     }
 
     public Objective(Scoreboard scoreboard, String objectiveName, String displaySlot, String displayName, int type) {
-        this.scoreboard = scoreboard;
-        this.id = scoreboard.getNextId().getAndIncrement();
+        this(scoreboard);
         this.objectiveName = objectiveName;
         this.displaySlot = displaySlot;
         this.displayName = displayName;
@@ -61,9 +75,9 @@ public class Objective {
 
     public void registerScore(String id, int score) {
         if (!scores.containsKey(id)) {
-            Score score1 = new Score(this, id).setScore(score);
-            Team team = scoreboard.getTeamFor(id);
-            if (team != null) score1.setTeam(team);
+            Score score1 = new Score(this, id)
+                    .setScore(score)
+                    .setTeam(scoreboard.getTeamFor(id));
             scores.put(id, score1);
         }
     }
@@ -80,9 +94,9 @@ public class Objective {
         if (!scores.containsKey(oldText) || oldText.equals(newText)) return;
         Score oldScore = scores.get(oldText);
 
-        Score newScore = new Score(this, newText).setScore(oldScore.getScore());
-        Team team = scoreboard.getTeamFor(newText);
-        if (team != null) newScore.setTeam(team);
+        Score newScore = new Score(this, newText)
+                .setScore(oldScore.getScore())
+                .setTeam(scoreboard.getTeamFor(newText));
 
         scores.put(newText, newScore);
         oldScore.setUpdateType(UpdateType.REMOVE);
@@ -122,5 +136,12 @@ public class Objective {
         this.type = type;
         if (updateType == UpdateType.NOTHING) updateType = UpdateType.UPDATE;
         return this;
+    }
+
+    public void removeTemp(ScoreboardPosition displaySlot) {
+        if (temp) {
+            temp = false;
+            this.displaySlot = displaySlot.name().toLowerCase();
+        }
     }
 }
