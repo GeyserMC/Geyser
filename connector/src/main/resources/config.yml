@@ -47,7 +47,9 @@ max-players: 100
 debug-mode: false
 
 # Thread pool size
-general-thread-pool: 32
+# The amount of threads that will be used.
+# Only change if you know what you are doing
+general-thread-pool: 2
 
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
