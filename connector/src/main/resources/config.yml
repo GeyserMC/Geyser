@@ -49,7 +49,7 @@ debug-mode: false
 # Thread pool size
 # The amount of threads that will be used.
 # Only change if you know what you are doing
-general-thread-pool: 2
+general-thread-pool: -1
 
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
