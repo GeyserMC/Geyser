@@ -49,7 +49,7 @@ public class InventoryUtils {
         session.getInventoryCache().getInventories().put(packet.getWindowId(), inventory);
         session.getInventoryCache().setOpenInventory(inventory);
 
-        InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
+        InventoryTranslator translator = TranslatorsInit.getInventoryTranslator();
         translator.prepareInventory(session, inventory);
         Geyser.getGeneralThreadPool().schedule(() -> {
             List<Packet> packets = session.getInventoryCache().getCachedPackets().get(inventory.getId());
@@ -74,7 +74,7 @@ public class InventoryUtils {
         if (packet.getWindowId() != openInventory.getId())
             return;
 
-        InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(openInventory.getWindowType());
+        InventoryTranslator translator = TranslatorsInit.getInventoryTranslator();
         if (translator == null) {
             session.getDownstream().getSession().send(new ClientCloseWindowPacket(packet.getWindowId()));
             return;
@@ -95,7 +95,7 @@ public class InventoryUtils {
         if (packet.getWindowId() != openInventory.getId())
             return;
 
-        InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(openInventory.getWindowType());
+        InventoryTranslator translator = TranslatorsInit.getInventoryTranslator();
         if (translator == null) {
             session.getDownstream().getSession().send(new ClientCloseWindowPacket(packet.getWindowId()));
             return;

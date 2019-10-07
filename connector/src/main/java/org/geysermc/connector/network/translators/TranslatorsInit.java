@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
@@ -51,17 +50,14 @@ import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.java.JavaChatTranslator;
-import org.geysermc.connector.network.translators.java.JavaDifficultyTranslator;
-import org.geysermc.connector.network.translators.java.JavaJoinGameTranslator;
-import org.geysermc.connector.network.translators.java.JavaRespawnTranslator;
-import org.geysermc.connector.network.translators.java.JavaTitleTranslator;
+import org.geysermc.connector.network.translators.java.*;
 import org.geysermc.connector.network.translators.java.entity.*;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerActionAckTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerHealthTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerPositionRotationTranslator;
 import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerSetExperienceTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.*;
+import org.geysermc.connector.network.translators.java.inventory.OpenWindowPacketTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
@@ -72,8 +68,6 @@ import org.geysermc.connector.network.translators.java.world.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TranslatorsInit {
 
@@ -84,7 +78,7 @@ public class TranslatorsInit {
     private static BlockTranslator blockTranslator;
 
     @Getter
-    private static Map<WindowType, InventoryTranslator> inventoryTranslators = new HashMap<WindowType, InventoryTranslator>();
+    private static InventoryTranslator inventoryTranslator = new GenericInventoryTranslator();
 
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
@@ -147,6 +141,9 @@ public class TranslatorsInit {
         Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
 
+
+        Registry.registerJava(ServerOpenWindowPacket.class, new OpenWindowPacketTranslator());
+
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
         Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
@@ -162,11 +159,11 @@ public class TranslatorsInit {
     }
 
     private static void registerInventoryTranslators() {
-        inventoryTranslators.put(WindowType.GENERIC_9X1, new GenericInventoryTranslator());
+        /*inventoryTranslators.put(WindowType.GENERIC_9X1, new GenericInventoryTranslator());
         inventoryTranslators.put(WindowType.GENERIC_9X2, new GenericInventoryTranslator());
         inventoryTranslators.put(WindowType.GENERIC_9X3, new GenericInventoryTranslator());
         inventoryTranslators.put(WindowType.GENERIC_9X4, new GenericInventoryTranslator());
         inventoryTranslators.put(WindowType.GENERIC_9X5, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X6, new GenericInventoryTranslator());
+        inventoryTranslators.put(WindowType.GENERIC_9X6, new GenericInventoryTranslator());*/
     }
 }
