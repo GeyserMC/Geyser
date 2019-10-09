@@ -25,11 +25,16 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityMetadataPacket;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.utils.MessageUtils;
 
 public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityMetadataPacket> {
 
@@ -47,6 +52,17 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
             entityDataPacket.getMetadata().putAll(entity.getMetadata());
+
+            //Translate Java nametag to Bedrock
+            for(EntityMetadata meta : packet.getMetadata()) {
+                switch(meta.getType()) {
+                    case OPTIONAL_CHAT:
+                        if(meta.getValue() != null) {
+                            Message nametag = (Message) meta.getValue();
+                            entityDataPacket.getMetadata().put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(nametag));
+                        }
+                }
+            }
 
             session.getUpstream().sendPacket(entityDataPacket);
         } else {

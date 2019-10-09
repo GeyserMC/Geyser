@@ -141,7 +141,6 @@ public class Entity {
         flags.setFlag(EntityFlag.NO_AI, false);
 
         EntityDataDictionary dictionary = new EntityDataDictionary();
-        dictionary.put(EntityData.NAMETAG, "");
         dictionary.put(EntityData.ENTITY_AGE, 0);
         dictionary.put(EntityData.SCALE, 1f);
         dictionary.put(EntityData.MAX_AIR, (short) 400);
