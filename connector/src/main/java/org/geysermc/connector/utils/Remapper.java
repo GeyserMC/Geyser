@@ -99,8 +99,10 @@ public class Remapper {
 
             for (Map.Entry<Integer, ? extends JavaItem> javaItemEntry : javaItems.entrySet()) {
                 if (identifier.equalsIgnoreCase(javaItemEntry.getValue().getIdentifier())) {
-                    bedrockToJava.put(bedrockItemEntry.getValue(), javaItemEntry.getValue());
-                    javaToBedrock.put(javaItemEntry.getValue(), bedrockItemEntry.getValue());
+                    if(!(javaToBedrock.containsKey(javaItemEntry.getValue()) && javaToBedrock.containsKey(javaItemEntry.getValue()))) {
+                        bedrockToJava.put(bedrockItemEntry.getValue(), javaItemEntry.getValue());
+                        javaToBedrock.put(javaItemEntry.getValue(), bedrockItemEntry.getValue());
+                    }
                 }
             }
         }
