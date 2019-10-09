@@ -49,13 +49,13 @@ public class SkinProvider {
         return cachedCapes.get(capeUrl);
     }
 
-    public static CompletableFuture<SkinAndCape> requestAndHandleSkinAndCape(UUID playerId, String skinUrl, String capeUrl) {
+    public static CompletableFuture<SkinAndCape> requestSkinAndCape(UUID playerId, String skinUrl, String capeUrl) {
         return CompletableFuture.supplyAsync(() -> {
             long time = System.currentTimeMillis();
 
             SkinAndCape skinAndCape = new SkinAndCape(
-                    getOrDefault(requestAndHandleSkin(playerId, skinUrl, false), EMPTY_SKIN, 5),
-                    getOrDefault(requestAndHandleCape(capeUrl, false), EMPTY_CAPE, 5)
+                    getOrDefault(requestSkin(playerId, skinUrl, false), EMPTY_SKIN, 5),
+                    getOrDefault(requestCape(capeUrl, false), EMPTY_CAPE, 5)
             );
 
             Geyser.getLogger().debug("Took " + (System.currentTimeMillis() - time) + "ms for " + playerId);
@@ -63,7 +63,7 @@ public class SkinProvider {
         }, EXECUTOR_SERVICE);
     }
 
-    public static CompletableFuture<Skin> requestAndHandleSkin(UUID playerId, String textureUrl, boolean newThread) {
+    public static CompletableFuture<Skin> requestSkin(UUID playerId, String textureUrl, boolean newThread) {
         if (textureUrl == null || textureUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_SKIN);
         if (requestedSkins.containsKey(playerId)) return requestedSkins.get(playerId); // already requested
 
@@ -91,7 +91,7 @@ public class SkinProvider {
         return future;
     }
 
-    public static CompletableFuture<Cape> requestAndHandleCape(String capeUrl, boolean newThread) {
+    public static CompletableFuture<Cape> requestCape(String capeUrl, boolean newThread) {
         if (capeUrl == null || capeUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_CAPE);
         if (requestedCapes.containsKey(capeUrl)) return requestedCapes.get(capeUrl); // already requested
 
@@ -119,12 +119,12 @@ public class SkinProvider {
         return future;
     }
 
-    public static CompletableFuture<Cape> requestAndHandleUnofficialCape(Cape officialCape, UUID playerId,
-                                                                         String username, boolean newThread) {
+    public static CompletableFuture<Cape> requestUnofficialCape(Cape officialCape, UUID playerId,
+                                                                String username, boolean newThread) {
         if (officialCape.isFailed() && ALLOW_THIRD_PARTY_CAPES) {
             for (UnofficalCape cape : UnofficalCape.VALUES) {
                 Cape cape1 = getOrDefault(
-                        requestAndHandleCape(cape.getUrlFor(playerId, username), newThread),
+                        requestCape(cape.getUrlFor(playerId, username), newThread),
                         EMPTY_CAPE, 4
                 );
                 if (!cape1.isFailed()) {

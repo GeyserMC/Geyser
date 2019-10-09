@@ -30,9 +30,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -82,6 +80,16 @@ public class EntityCache {
 
     public Entity getEntityByJavaId(long javaId) {
         return entities.get(entityIdTranslations.get(javaId));
+    }
+
+    public <T extends Entity> Set<T> getEntitiesByType(Class<T> entityType) {
+        Set<T> entitiesOfType = new HashSet<>();
+        for (Entity entity : (entityType == PlayerEntity.class ? playerEntities : entities).values()) {
+            if (entity.is(entityType)) {
+                entitiesOfType.add(entity.as(entityType));
+            }
+        }
+        return entitiesOfType;
     }
 
     public void addPlayerEntity(PlayerEntity entity) {

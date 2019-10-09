@@ -25,9 +25,9 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
@@ -46,14 +46,14 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 LevelEventPacket startRainPacket = new LevelEventPacket();
                 startRainPacket.setEvent(LevelEventPacket.Event.START_RAIN);
                 startRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
-                startRainPacket.setPosition(new Vector3f(0, 0, 0));
+                startRainPacket.setPosition(Vector3f.ZERO);
                 session.getUpstream().sendPacket(startRainPacket);
                 break;
             case STOP_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
                 stopRainPacket.setEvent(LevelEventPacket.Event.STOP_RAIN);
                 stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
-                stopRainPacket.setPosition(new Vector3f(0, 0, 0));
+                stopRainPacket.setPosition(Vector3f.ZERO);
                 session.getUpstream().sendPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:

@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -42,7 +42,7 @@ public class JavaEntityVelocityTranslator extends PacketTranslator<ServerEntityV
         }
         if (entity == null) return;
 
-        entity.setMotion(new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
+        entity.setMotion(Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
 
         SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
         entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());

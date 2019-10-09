@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnExpOrbPacket;
+import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ExpOrbEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -37,7 +37,7 @@ public class JavaSpawnExpOrbTranslator extends PacketTranslator<ServerSpawnExpOr
 
     @Override
     public void translate(ServerSpawnExpOrbPacket packet, GeyserSession session) {
-        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
+        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
 
         Entity entity = new ExpOrbEntity(
                 packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),

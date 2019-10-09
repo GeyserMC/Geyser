@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.flowpowered.math.vector.Vector3i;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
@@ -46,7 +46,7 @@ public class GenericInventoryTranslator extends InventoryTranslator {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setWindowId((byte) inventory.getId());
         containerOpenPacket.setType((byte) 0);
-        containerOpenPacket.setBlockPosition(new Vector3i(0, 0, 0));
+        containerOpenPacket.setBlockPosition(Vector3i.ZERO);
         session.getUpstream().sendPacket(containerOpenPacket);
     }
 

@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.entity;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
@@ -116,17 +116,17 @@ public class Entity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch) {
-        moveRelative(relX, relY, relZ, new Vector3f(yaw, pitch, yaw));
+        moveRelative(relX, relY, relZ, Vector3f.from(yaw, pitch, yaw));
     }
 
     public void moveRelative(double relX, double relY, double relZ, Vector3f rotation) {
         setRotation(rotation);
-        this.position = new Vector3f(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
         this.movePending = true;
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch) {
-        moveAbsolute(position, new Vector3f(yaw, pitch, yaw));
+        moveAbsolute(position, Vector3f.from(yaw, pitch, yaw));
     }
 
     public void moveAbsolute(Vector3f position, Vector3f rotation) {
@@ -137,7 +137,7 @@ public class Entity {
 
     public EntityDataDictionary getMetadata() {
         EntityFlags flags = new EntityFlags();
-        flags.setFlag(EntityFlag.HAS_GRAVITY, !is(PlayerEntity.class) || as(PlayerEntity.class).isGravity());
+        flags.setFlag(EntityFlag.HAS_GRAVITY, true);
         flags.setFlag(EntityFlag.HAS_COLLISION, true);
         flags.setFlag(EntityFlag.CAN_SHOW_NAME, true);
         flags.setFlag(EntityFlag.CAN_CLIMB, true);
@@ -199,7 +199,7 @@ public class Entity {
      * x = Pitch, y = HeadYaw, z = Yaw
      */
     public Vector3f getBedrockRotation() {
-        return new Vector3f(rotation.getY(), rotation.getZ(), rotation.getX());
+        return Vector3f.from(rotation.getY(), rotation.getZ(), rotation.getX());
     }
 
     @SuppressWarnings("unchecked")

@@ -25,16 +25,18 @@
 
 package org.geysermc.connector.entity;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.api.Geyser;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.UUID;
 
@@ -45,7 +47,6 @@ public class PlayerEntity extends Entity {
     private String username;
     private long lastSkinUpdate = -1;
     private boolean playerList = true;
-    private boolean gravity = false;
 
     private ItemData helmet;
     private ItemData chestplate;
@@ -74,17 +75,6 @@ public class PlayerEntity extends Entity {
         armorEquipmentPacket.setBoots(boots);
 
         session.getUpstream().sendPacket(armorEquipmentPacket);
-    }
-
-    public void enableGravity(GeyserSession session) {
-        if (!gravity && session.getPlayerEntity().getGeyserId() == getGeyserId()) {
-            gravity = true;
-
-            SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-            entityDataPacket.setRuntimeEntityId(geyserId);
-            entityDataPacket.getMetadata().putAll(getMetadata());
-            session.getUpstream().sendPacket(entityDataPacket);
-        }
     }
 
     @Override
@@ -117,5 +107,32 @@ public class PlayerEntity extends Entity {
 
         valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);
+    }
+
+    public void sendPlayer(GeyserSession session) {
+        if (getLastSkinUpdate() == -1) {
+            if (playerList) {
+                PlayerListPacket playerList = new PlayerListPacket();
+                playerList.setType(PlayerListPacket.Type.ADD);
+                playerList.getEntries().add(SkinUtils.buildDefaultEntry(profile, geyserId));
+                session.getUpstream().sendPacket(playerList);
+            }
+        }
+
+        if (session.getUpstream().isInitialized() && session.getEntityCache().getEntityByGeyserId(geyserId) == null) {
+            session.getEntityCache().spawnEntity(this);
+        } else {
+            spawnEntity(session);
+        }
+
+        if (!playerList) {
+            // remove from playerlist if player isn't on playerlist
+            Geyser.getGeneralThreadPool().execute(() -> {
+                PlayerListPacket playerList = new PlayerListPacket();
+                playerList.setType(PlayerListPacket.Type.REMOVE);
+                playerList.getEntries().add(new PlayerListPacket.Entry(uuid));
+                session.getUpstream().sendPacket(playerList);
+            });
+        }
     }
 }

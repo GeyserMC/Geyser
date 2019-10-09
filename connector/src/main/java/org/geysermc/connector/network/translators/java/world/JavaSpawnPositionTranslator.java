@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnPositionPacket;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.SetSpawnPositionPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -36,7 +36,7 @@ public class JavaSpawnPositionTranslator extends PacketTranslator<ServerSpawnPos
     @Override
     public void translate(ServerSpawnPositionPacket packet, GeyserSession session) {
         SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
-        spawnPositionPacket.setBlockPosition(new Vector3i(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
+        spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
         spawnPositionPacket.setSpawnForced(true);
         spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.PLAYER_SPAWN);
         session.getUpstream().sendPacket(spawnPositionPacket);

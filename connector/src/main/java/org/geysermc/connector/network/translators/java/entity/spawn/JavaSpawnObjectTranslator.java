@@ -25,9 +25,9 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.entity.type.object.ObjectType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnObjectPacket;
+import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -42,9 +42,9 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
         if (packet.getType() == ObjectType.ITEM_FRAME)
             return;
 
-        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f motion = new Vector3f(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
-        Vector3f rotation = new Vector3f(packet.getYaw(), packet.getPitch(), 0);
+        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
+        Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
+        Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), 0);
 
         EntityType type = EntityUtils.toBedrockEntity(packet.getType());
         if (type == null) {

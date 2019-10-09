@@ -25,9 +25,10 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
@@ -44,9 +45,15 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (entity == null || !session.isSpawned()) return;
 
         // can cause invalid moves when packet queue is not empty
-        if (session.getUpstream().hasQueue()) return;
-        if (session.getUpstream().isQueueCleared()) {
-            entity.enableGravity(session);
+        if (!session.getUpstream().isInitialized()) {
+            MoveEntityAbsolutePacket moveEntityBack = new MoveEntityAbsolutePacket();
+            moveEntityBack.setRuntimeEntityId(entity.getGeyserId());
+            moveEntityBack.setPosition(entity.getPosition());
+            moveEntityBack.setRotation(entity.getBedrockRotation());
+            moveEntityBack.setTeleported(true);
+            moveEntityBack.setOnGround(true);
+            session.getUpstream().sendPacketImmediately(moveEntityBack);
+            return;
         }
 
         if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
@@ -62,7 +69,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                 packet.getPosition().getZ(), packet.getRotation().getY(), packet.getRotation().getX()
         );
 
-        entity.moveAbsolute(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0), packet.getRotation());
+        // head yaw, pitch, head yaw
+        Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
+
+        entity.moveAbsolute(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0), rotation);
 
         boolean colliding = false;
         Position position = new Position((int) packet.getPosition().getX(),

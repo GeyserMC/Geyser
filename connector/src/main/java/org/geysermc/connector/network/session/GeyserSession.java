@@ -25,10 +25,6 @@
 
 package org.geysermc.connector.network.session;
 
-import com.flowpowered.math.vector.Vector2f;
-import com.flowpowered.math.vector.Vector2i;
-import com.flowpowered.math.vector.Vector3f;
-import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
@@ -40,6 +36,10 @@ import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
+import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector2i;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
@@ -257,15 +257,15 @@ public class GeyserSession implements Player {
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
         startGamePacket.setPlayerGamemode(0);
-        startGamePacket.setPlayerPosition(new Vector3f(0, 69, 0));
-        startGamePacket.setRotation(new Vector2f(1, 1));
+        startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
+        startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(0);
         startGamePacket.setDimensionId(playerEntity.getDimension());
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGamemode(0);
         startGamePacket.setDifficulty(1);
-        startGamePacket.setDefaultSpawn(new Vector3i(0, 0, 0));
+        startGamePacket.setDefaultSpawn(Vector3i.ZERO);
         startGamePacket.setAcheivementsDisabled(true);
         startGamePacket.setTime(0);
         startGamePacket.setEduLevel(false);
@@ -304,7 +304,5 @@ public class GeyserSession implements Player {
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
-
-        upstream.setFrozen(true); // will freeze until the client decides it is ready
     }
 }
