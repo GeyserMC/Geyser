@@ -42,11 +42,11 @@ public class SkinProvider {
     }
 
     public static Skin getCachedSkin(UUID uuid) {
-        return cachedSkins.get(uuid);
+        return cachedSkins.getOrDefault(uuid, EMPTY_SKIN);
     }
 
     public static Cape getCachedCape(String capeUrl) {
-        return cachedCapes.get(capeUrl);
+        return capeUrl != null ? cachedCapes.getOrDefault(capeUrl, EMPTY_CAPE) : EMPTY_CAPE;
     }
 
     public static CompletableFuture<SkinAndCape> requestSkinAndCape(UUID playerId, String skinUrl, String capeUrl) {
