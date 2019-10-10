@@ -24,6 +24,8 @@ public class Remapper {
     private final Map<BedrockItem, JavaItem> bedrockToJava;
     private final Map<JavaItem, BedrockItem> javaToBedrock;
 
+    public final Map<Integer, BedrockItem> intJavaToBedrock = new HashMap<>();
+
     public Remapper() {
         bedrockToJava = new HashMap<>();
         javaToBedrock = new HashMap<>();
@@ -102,6 +104,8 @@ public class Remapper {
                     if(!(javaToBedrock.containsKey(javaItemEntry.getValue()) && javaToBedrock.containsKey(javaItemEntry.getValue()))) {
                         bedrockToJava.put(bedrockItemEntry.getValue(), javaItemEntry.getValue());
                         javaToBedrock.put(javaItemEntry.getValue(), bedrockItemEntry.getValue());
+
+                        intJavaToBedrock.put(javaItemEntry.getValue().getId(), bedrockItemEntry.getValue());
                     }
                 }
             }
@@ -131,14 +135,7 @@ public class Remapper {
     }
 
     public BedrockItem convertToBedrockB(ItemStack block) {
-        for (Map.Entry<Integer, JavaBlock> javaItem : Toolbox.JAVA_BLOCKS.entrySet()) {
-            if (javaItem.getValue().getId() != block.getId())
-                continue;
-
-            return javaToBedrock.get(javaItem.getValue());
-        }
-
-        return null;
+        return intJavaToBedrock.get(block.getId());
     }
 
 
