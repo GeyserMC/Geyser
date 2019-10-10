@@ -3,20 +3,15 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.network.translators.block.JavaBlock;
+import org.geysermc.connector.network.translators.block.type.*;
 import org.geysermc.connector.network.translators.item.BedrockItem;
 import org.geysermc.connector.network.translators.item.JavaItem;
-import org.geysermc.connector.network.translators.block.type.ColoredBlock;
-import org.geysermc.connector.network.translators.block.type.DyeColor;
-import org.geysermc.connector.network.translators.block.type.StoneType;
-import org.geysermc.connector.network.translators.block.type.WoodBlock;
-import org.geysermc.connector.network.translators.block.type.WoodType;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Remapper {
-
-    public static final String MINECRAFT = "minecraft:";
+    public static final String MINECRAFT_PREFIX = "minecraft:";
 
     public static final Remapper ITEM_REMAPPER = new Remapper();
     public static final Remapper BLOCK_REMAPPER = new Remapper();
@@ -37,7 +32,7 @@ public class Remapper {
 
             // Colorable block remapping
             for (ColoredBlock coloredBlock : ColoredBlock.values()) {
-                if (!getBedrockIdentifier(coloredBlock.name()).equalsIgnoreCase(bedrockItem.getIdentifier().replace(MINECRAFT, "")))
+                if (!getBedrockIdentifier(coloredBlock.name()).equalsIgnoreCase(bedrockItem.getIdentifier().replace(MINECRAFT_PREFIX, "")))
                     continue;
 
                 // The item must be colorable
@@ -46,13 +41,13 @@ public class Remapper {
                         continue;
 
                     // Add the color to the identifier
-                    identifier = MINECRAFT + color.name().toLowerCase() + "_" + coloredBlock.name().toLowerCase();
+                    identifier = MINECRAFT_PREFIX + color.name().toLowerCase() + "_" + coloredBlock.name().toLowerCase();
                 }
             }
 
             // Wood remapping
             for (WoodBlock woodBlock : WoodBlock.values()) {
-                if (!getBedrockIdentifier(woodBlock.name()).equalsIgnoreCase(bedrockItem.getIdentifier().replace(MINECRAFT, "")))
+                if (!getBedrockIdentifier(woodBlock.name()).equalsIgnoreCase(bedrockItem.getIdentifier().replace(MINECRAFT_PREFIX, "")))
                     continue;
 
                 if (isTool(bedrockItem.getIdentifier()))
@@ -65,36 +60,36 @@ public class Remapper {
                     if (woodType.getId() != bedrockItem.getData())
                         continue;
 
-                    identifier = MINECRAFT + woodType.name().toLowerCase() + "_" + woodBlock.name().toLowerCase();
+                    identifier = MINECRAFT_PREFIX + woodType.name().toLowerCase() + "_" + woodBlock.name().toLowerCase();
                 }
             }
 
             // Stone remapping
-            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("stone") && !isTool(bedrockItem.getIdentifier())) {
+            if (bedrockItem.getIdentifier().replace(MINECRAFT_PREFIX, "").equalsIgnoreCase("stone") && !isTool(bedrockItem.getIdentifier())) {
                 for (StoneType stoneType : StoneType.values()) {
                     if (stoneType.getId() != bedrockItem.getData())
                         continue;
 
                     // Set the identifier to stone
-                    identifier = MINECRAFT + stoneType.name().toLowerCase();
+                    identifier = MINECRAFT_PREFIX + stoneType.name().toLowerCase();
                 }
             }
 
             // Grass remapping
-            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("grass")) {
-                identifier = MINECRAFT + "grass_block";
+            if (bedrockItem.getIdentifier().replace(MINECRAFT_PREFIX, "").equalsIgnoreCase("grass")) {
+                identifier = MINECRAFT_PREFIX + "grass_block";
             }
 
-            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("tallgrass")) {
-                identifier = MINECRAFT + "grass";
+            if (bedrockItem.getIdentifier().replace(MINECRAFT_PREFIX, "").equalsIgnoreCase("tallgrass")) {
+                identifier = MINECRAFT_PREFIX + "grass";
             }
 
             // Dirt remapping
-            if (bedrockItem.getIdentifier().replace(MINECRAFT, "").equalsIgnoreCase("dirt")) {
+            if (bedrockItem.getIdentifier().replace(MINECRAFT_PREFIX, "").equalsIgnoreCase("dirt")) {
                 if (bedrockItem.getData() == 0)
-                    identifier = MINECRAFT + "dirt";
+                    identifier = MINECRAFT_PREFIX + "dirt";
                 else
-                    identifier = MINECRAFT + "coarse_dirt";
+                    identifier = MINECRAFT_PREFIX + "coarse_dirt";
             }
 
             for (Map.Entry<Integer, ? extends JavaItem> javaItemEntry : javaItems.entrySet()) {
@@ -113,33 +108,18 @@ public class Remapper {
 
             return bedrockToJava.get(bedrockItem.getValue());
         }
-
         return null;
     }
 
     public BedrockItem convertToBedrock(ItemStack item) {
-        for (Map.Entry<Integer, JavaItem> javaItem : Toolbox.JAVA_ITEMS.entrySet()) {
-            if (javaItem.getValue().getId() != item.getId())
-                continue;
-
-            return javaToBedrock.get(javaItem.getValue());
-        }
-
-        return null;
+        JavaItem javaItem = Toolbox.JAVA_ITEMS.get(item.getId());
+        return javaItem != null ? javaToBedrock.get(javaItem) : null;
     }
 
     public BedrockItem convertToBedrockB(ItemStack block) {
-        for (Map.Entry<Integer, JavaBlock> javaItem : Toolbox.JAVA_BLOCKS.entrySet()) {
-            if (javaItem.getValue().getId() != block.getId())
-                continue;
-
-            return javaToBedrock.get(javaItem.getValue());
-        }
-
-        return null;
+        JavaBlock javaBlock = Toolbox.JAVA_BLOCKS.get(block.getId());
+        return javaBlock != null ? javaToBedrock.get(javaBlock) : null;
     }
-
-
 
     private static String getBedrockIdentifier(String javaIdentifier) {
         javaIdentifier = javaIdentifier.toLowerCase();
