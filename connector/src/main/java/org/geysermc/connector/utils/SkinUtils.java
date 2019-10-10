@@ -67,23 +67,29 @@ public class SkinUtils {
         private boolean alex;
 
         public static GameProfileData from(GameProfile profile) {
-            GameProfile.Property skinProperty = profile.getProperty("textures");
+            try {
+                GameProfile.Property skinProperty = profile.getProperty("textures");
 
-            JsonObject skinObject = SkinProvider.GSON.fromJson(new String(Base64.getDecoder().decode(skinProperty.getValue()), Charsets.UTF_8), JsonObject.class);
-            JsonObject textures = skinObject.getAsJsonObject("textures");
+                JsonObject skinObject = SkinProvider.GSON.fromJson(new String(Base64.getDecoder().decode(skinProperty.getValue()), Charsets.UTF_8), JsonObject.class);
+                JsonObject textures = skinObject.getAsJsonObject("textures");
 
-            JsonObject skinTexture = textures.getAsJsonObject("SKIN");
-            String skinUrl = skinTexture.get("url").getAsString();
+                JsonObject skinTexture = textures.getAsJsonObject("SKIN");
+                String skinUrl = skinTexture.get("url").getAsString();
 
-            boolean isAlex = skinTexture.has("metadata");
+                boolean isAlex = skinTexture.has("metadata");
 
-            String capeUrl = null;
-            if (textures.has("CAPE")) {
-                JsonObject capeTexture = textures.getAsJsonObject("CAPE");
-                capeUrl = capeTexture.get("url").getAsString();
+                String capeUrl = null;
+                if (textures.has("CAPE")) {
+                    JsonObject capeTexture = textures.getAsJsonObject("CAPE");
+                    capeUrl = capeTexture.get("url").getAsString();
+                }
+
+                return new GameProfileData(skinUrl, capeUrl, isAlex);
+            } catch (Exception exception) {
+                // return default skin with default cape when texture data is invalid
+                Geyser.getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
+                return new GameProfileData("", "", false);
             }
-
-            return new GameProfileData(skinUrl, capeUrl, isAlex);
         }
     }
 
