@@ -81,6 +81,9 @@ public class GeyserSession implements Player {
     private ScoreboardCache scoreboardCache;
     private WindowCache windowCache;
 
+    //TODO: add dimension change support
+    private int dimensionID = 0;
+
     private DataCache<Packet> javaPacketCache;
 
     @Setter

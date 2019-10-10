@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators;
 
+import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
@@ -68,6 +69,8 @@ import org.geysermc.connector.network.translators.java.world.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TranslatorsInit {
 
@@ -82,6 +85,9 @@ public class TranslatorsInit {
 
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
+
+    @Getter
+    private static Map<Object, String> particles = new HashMap<>();
 
     static {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -141,7 +147,6 @@ public class TranslatorsInit {
         Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
 
-
         Registry.registerJava(ServerOpenWindowPacket.class, new OpenWindowPacketTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
@@ -156,6 +161,7 @@ public class TranslatorsInit {
         blockTranslator = new BlockTranslator();
 
         registerInventoryTranslators();
+        registerParticles();
     }
 
     private static void registerInventoryTranslators() {
@@ -165,5 +171,54 @@ public class TranslatorsInit {
         inventoryTranslators.put(WindowType.GENERIC_9X4, new GenericInventoryTranslator());
         inventoryTranslators.put(WindowType.GENERIC_9X5, new GenericInventoryTranslator());
         inventoryTranslators.put(WindowType.GENERIC_9X6, new GenericInventoryTranslator());*/
+    }
+
+    private static void registerParticles() {
+        particles.put(ParticleType.AMBIENT_ENTITY_EFFECT, "mobspellambient");
+        particles.put(ParticleType.ANGRY_VILLAGER, "villagerangry");
+        particles.put(ParticleType.BLOCK, "blockbreak");
+        particles.put(ParticleType.BUBBLE, "bubble");
+        particles.put(ParticleType.BUBBLE_COLUMN_UP, "bubble");
+        particles.put(ParticleType.BUBBLE_POP, "bubble");
+        particles.put(ParticleType.CAMPFIRE_COSY_SMOKE, "mobspellambient");
+        particles.put(ParticleType.CAMPFIRE_SIGNAL_SMOKE, "mobspellambient");
+        particles.put(ParticleType.CLOUD, "evaporation");
+        particles.put(ParticleType.CRIT, "crit");
+        particles.put(ParticleType.CURRENT_DOWN, "bubble");
+        particles.put(ParticleType.DRAGON_BREATH, "dragonbreath");
+        particles.put(ParticleType.DRIPPING_LAVA, "driplava");
+        particles.put(ParticleType.DRIPPING_WATER, "dripwater");
+        particles.put(ParticleType.DUST, "reddust");
+        particles.put(ParticleType.EFFECT, "spell");
+        particles.put(ParticleType.ENCHANT, "enchantingtable");
+        particles.put(ParticleType.ENCHANTED_HIT, "crit");
+        particles.put(ParticleType.END_ROD, "endrod");
+        particles.put(ParticleType.ENTITY_EFFECT, "mobspell");
+        particles.put(ParticleType.EXPLOSION, "largeexplosion");
+        particles.put(ParticleType.EXPLOSION_EMITTER, "hugeexplosion");
+        particles.put(ParticleType.FALLING_DUST, "fallingdust");
+        particles.put(ParticleType.FISHING, "waterwake");
+        particles.put(ParticleType.FLAME, "flame");
+        particles.put(ParticleType.HAPPY_VILLAGER, "villagerhappy");
+        particles.put(ParticleType.HEART, "heart");
+        particles.put(ParticleType.INSTANT_EFFECT, "mobspellinstantaneous");
+        particles.put(ParticleType.ITEM, "iconcrack");
+        particles.put(ParticleType.ITEM_SLIME, "slime");
+        particles.put(ParticleType.ITEM_SNOWBALL, "snowballpoof");
+        particles.put(ParticleType.NAUTILUS, "nautilus");
+        particles.put(ParticleType.MYCELIUM, "townaura");
+        particles.put(ParticleType.LAVA, "lava");
+        particles.put(ParticleType.LARGE_SMOKE, "largesmoke");
+        particles.put(ParticleType.NOTE, "note");
+        particles.put(ParticleType.POOF, "explode");
+        particles.put(ParticleType.PORTAL, "portal");
+        particles.put(ParticleType.RAIN, "rainsplash");
+        particles.put(ParticleType.SMOKE, "smoke");
+        particles.put(ParticleType.SPIT, "explode");
+        particles.put(ParticleType.SNEEZE, "explode");
+        particles.put(ParticleType.SPLASH, "watersplash");
+        particles.put(ParticleType.SQUID_INK, "ink");
+        particles.put(ParticleType.TOTEM_OF_UNDYING, "totem");
+        particles.put(ParticleType.WITCH, "witchspell");
     }
 }
