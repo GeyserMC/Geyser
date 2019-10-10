@@ -30,8 +30,10 @@ import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityMetadataPacket;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.MessageUtils;
@@ -41,6 +43,8 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
     @Override
     public void translate(ServerEntityMetadataPacket packet, GeyserSession session) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        EntityFlags entityflags = new EntityFlags();
+        //EntityType entitytype = entity.getEntityType();
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
         }
@@ -48,22 +52,51 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
             return;
 
         if (entity.isValid()) {
-            // TODO: Make this actually useful lol
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
             entityDataPacket.getMetadata().putAll(entity.getMetadata());
 
-            //Translate Java nametag to Bedrock
             for(EntityMetadata meta : packet.getMetadata()) {
-                switch(meta.getType()) {
-                    case OPTIONAL_CHAT:
+                switch(meta.getId()) {
+                    case 0: //Entity Flags
+                        entityflags.setFlag(EntityFlag.ON_FIRE, ((byte) meta.getValue() & 0x01) > 0);
+                        entityflags.setFlag(EntityFlag.SNEAKING, ((byte) meta.getValue() & 0x02) > 0);
+                        entityflags.setFlag(EntityFlag.SPRINTING, ((byte) meta.getValue() & 0x08) > 0);
+                        entityflags.setFlag(EntityFlag.SWIMMING, ((byte) meta.getValue() & 0x10) > 0);
+                        entityflags.setFlag(EntityFlag.INVISIBLE, ((byte) meta.getValue() & 0x20) > 0);
+                        //entityflags.setFlag(EntityFlag.GLOWING, ((byte) meta.getValue() & 0x40) > 0); <- Future proof for when bedrock adds glowing effect
+                        entityflags.setFlag(EntityFlag.GLIDING, ((byte) meta.getValue() & 0x80) > 0);
+                        break;
+
+                    case 1: //Air
+                        entityDataPacket.getMetadata().put(EntityData.AIR, meta.getValue());
+                        break;
+
+                    case 2: //Custom Name
                         if(meta.getValue() != null) {
-                            Message nametag = (Message) meta.getValue();
-                            entityDataPacket.getMetadata().put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(nametag));
+                            entityDataPacket.getMetadata().put(EntityData.NAMETAG, MessageUtils.getBedrockMessage((Message) meta.getValue()));
                         }
+                        break;
+
+                    case 3: //Custom Name Visible
+                        if((boolean) meta.getValue() == true) {
+                            entityDataPacket.getMetadata().put(EntityData.ALWAYS_SHOW_NAMETAG, (byte) 1);
+                        }
+                        else
+                            entityDataPacket.getMetadata().put(EntityData.ALWAYS_SHOW_NAMETAG, (byte) 0);
+                        break;
+
+                    case 4: //Silent
+                        entityflags.setFlag(EntityFlag.SILENT, (boolean) meta.getValue());
+                        break;
+
+                    case 5: //No gravity
+                        entityflags.setFlag(EntityFlag.HAS_GRAVITY, !(boolean) meta.getValue());
+                        break;
                 }
             }
 
+            entityDataPacket.getMetadata().putFlags(entityflags);
             session.getUpstream().sendPacket(entityDataPacket);
         } else {
             entity.spawnEntity(session);
