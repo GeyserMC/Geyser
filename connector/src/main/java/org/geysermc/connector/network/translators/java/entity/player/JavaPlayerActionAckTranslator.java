@@ -41,9 +41,16 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
         switch (packet.getAction()) {
             case FINISH_DIGGING:
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                BlockEntry bedrockItem = TranslatorsInit.getBlockTranslator().getBedrockBlock(packet.getNewState());
-                updateBlockPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-                updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(bedrockItem.hashCode()));
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(new Vector3i(
+                        packet.getPosition().getX(),
+                        packet.getPosition().getY(),
+                        packet.getPosition().getZ()));
+
+                BlockEntry itemEntry = TranslatorsInit.getBlockTranslator().getBedrockBlock(packet.getNewState());
+                updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(itemEntry.getBedrockId() << 4 | itemEntry.getBedrockData()));
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+
                 session.getUpstream().sendPacket(updateBlockPacket);
                 break;
         }
