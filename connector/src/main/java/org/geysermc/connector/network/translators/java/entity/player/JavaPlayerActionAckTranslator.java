@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.network.translators.item.BedrockItem;
+import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.GlobalBlockPalette;
 
 public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayerActionAckPacket> {
@@ -41,7 +41,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
         switch (packet.getAction()) {
             case FINISH_DIGGING:
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                BedrockItem bedrockItem = TranslatorsInit.getBlockTranslator().getBedrockBlock(packet.getNewState());
+                BlockEntry bedrockItem = TranslatorsInit.getBlockTranslator().getBedrockBlock(packet.getNewState());
                 updateBlockPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
                 updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(bedrockItem.hashCode()));
                 session.getUpstream().sendPacket(updateBlockPacket);

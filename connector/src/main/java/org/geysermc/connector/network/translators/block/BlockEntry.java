@@ -23,33 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.block.type;
+package org.geysermc.connector.network.translators.block;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-public enum DyeColor {
+@Getter
+@AllArgsConstructor
+public class BlockEntry {
 
-    WHITE,
-    ORANGE,
-    MAGENTA,
-    LIGHT_BLUE,
-    YELLOW,
-    LIME,
-    PINK,
-    GRAY,
-    LIGHT_GRAY,
-    CYAN,
-    PURPLE,
-    BLUE,
-    BROWN,
-    GREEN,
-    RED,
-    BLACK;
+    public static BlockEntry AIR = new BlockEntry("minecraft:air", 0, 0, 0);
 
-    @Getter
-    private final int id = ordinal();
+    private String javaIdentifier;
+    private int javaId;
 
-    public String getName() {
-        return name().toLowerCase();
+    private int bedrockId;
+    private int bedrockData;
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this || (obj instanceof BlockEntry && ((BlockEntry) obj).getBedrockId() == this.getBedrockId() && ((BlockEntry) obj).getJavaIdentifier().equals(this.getJavaIdentifier()));
     }
 }
