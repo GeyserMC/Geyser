@@ -21,8 +21,9 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
                 record.getPosition().getY(),
                 record.getPosition().getZ()));
 
-        BlockEntry bedrockItem = TranslatorsInit.getBlockTranslator().getBedrockBlock(record.getBlock());
-        updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(bedrockItem.hashCode()));
+        BlockEntry itemEntry = TranslatorsInit.getBlockTranslator().getBedrockBlock(record.getBlock());
+        updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(itemEntry.getBedrockId() << 4 | itemEntry.getBedrockData()));
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
 
         session.getUpstream().sendPacket(updateBlockPacket);
     }

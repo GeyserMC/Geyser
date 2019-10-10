@@ -47,8 +47,9 @@ public class JavaMultiBlockChangeTranslator extends PacketTranslator<ServerMulti
                     record.getPosition().getY(),
                     record.getPosition().getZ()));
 
-            BlockEntry bedrockItem = TranslatorsInit.getBlockTranslator().getBedrockBlock(record.getBlock());
-            updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(bedrockItem.hashCode()));
+            BlockEntry blockEntry = TranslatorsInit.getBlockTranslator().getBedrockBlock(record.getBlock());
+            updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(blockEntry.getBedrockId() << 4 | blockEntry.getBedrockData()));
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
 
             session.getUpstream().sendPacket(updateBlockPacket);
         }
