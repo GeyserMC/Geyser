@@ -29304,7 +29304,7 @@
     "bedrock_data": 3
   },
   "minecraft:sea_lantern": {
-    "bedrock_identifier": "minecraft:sealantern",
+    "bedrock_identifier": "minecraft:seaLantern",
     "bedrock_data": 0
   },
   "minecraft:hay_block[axis=x]": {
