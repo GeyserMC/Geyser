@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -42,13 +42,13 @@ public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityT
         }
         if (entity == null) return;
 
-        entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY(), packet.getZ()), packet.getPitch(), packet.getYaw());
+        entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch());
 
         if (entity.isMovePending()) {
             MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
             moveEntityPacket.setRuntimeEntityId(entity.getGeyserId());
             moveEntityPacket.setPosition(entity.getPosition());
-            moveEntityPacket.setRotation(entity.getRotation());
+            moveEntityPacket.setRotation(entity.getBedrockRotation());
             moveEntityPacket.setOnGround(packet.isOnGround());
             moveEntityPacket.setTeleported(true);
             entity.setMovePending(false);

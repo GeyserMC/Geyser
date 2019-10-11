@@ -34,7 +34,6 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 public class GeyserConfiguration {
-
     private BedrockConfiguration bedrock;
     private RemoteConfiguration remote;
 
@@ -51,6 +50,9 @@ public class GeyserConfiguration {
 
     @JsonProperty("general-thread-pool")
     private int generalThreadPool;
+
+    @JsonProperty("allow-third-party-capes")
+    private boolean allowThirdPartyCapes;
 
     private MetricInfo metrics;
 }

@@ -40,11 +40,7 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
         }
-        if (entity == null)
-            return;
-
-        if (!entity.isValid())
-            return;
+        if (entity == null || !entity.isValid()) return;
 
         for (Attribute attribute : packet.getAttributes()) {
             switch (attribute.getType()) {

@@ -25,23 +25,36 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.item.BedrockItem;
 
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
-
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
+        PlayerEntity entity = session.getPlayerEntity();
         if (entity == null || !session.isSpawned()) return;
+
+        // can cause invalid moves when packet queue is not empty
+        if (!session.getUpstream().isInitialized()) {
+            MoveEntityAbsolutePacket moveEntityBack = new MoveEntityAbsolutePacket();
+            moveEntityBack.setRuntimeEntityId(entity.getGeyserId());
+            moveEntityBack.setPosition(entity.getPosition());
+            moveEntityBack.setRotation(entity.getBedrockRotation());
+            moveEntityBack.setTeleported(true);
+            moveEntityBack.setOnGround(true);
+            session.getUpstream().sendPacketImmediately(moveEntityBack);
+            return;
+        }
 
         if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
             session.getConnector().getLogger().info("Recalculating position...");
@@ -49,15 +62,21 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
-                packet.isOnGround(), packet.getPosition().getX(), Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2,
-                packet.getPosition().getZ(), packet.getRotation().getY(), packet.getRotation().getX());
+        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
 
-        entity.moveAbsolute(packet.getPosition(), packet.getRotation());
+        ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
+                packet.isOnGround(), packet.getPosition().getX(), Math.ceil(javaY * 2) / 2,
+                packet.getPosition().getZ(), packet.getRotation().getY(), packet.getRotation().getX()
+        );
+
+        // head yaw, pitch, head yaw
+        Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
+
+        entity.moveAbsolute(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0), rotation);
 
         boolean colliding = false;
         Position position = new Position((int) packet.getPosition().getX(),
-                (int) Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2, (int) packet.getPosition().getZ());
+                (int) Math.ceil(javaY * 2) / 2, (int) packet.getPosition().getZ());
 
         BedrockItem block = session.getChunkCache().getBlockAt(position);
         if (!block.getIdentifier().contains("air"))
@@ -82,7 +101,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (zRange < 0)
             zRange = -zRange;
 
-        if (xRange > 10 || yRange > 10 || zRange > 10) {
+        if ((xRange + yRange + zRange) > 100) {
             session.getConnector().getLogger().warning(session.getName() + " moved too quickly." +
                     " current position: " + currentPosition + ", new position: " + newPosition);
 
@@ -102,7 +121,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
         movePlayerPacket.setPosition(entity.getPosition());
-        movePlayerPacket.setRotation(entity.getRotation());
+        movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
         movePlayerPacket.setOnGround(true);
         entity.setMovePending(false);

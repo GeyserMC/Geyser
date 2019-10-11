@@ -25,9 +25,9 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.console.GeyserLogger;
@@ -48,7 +48,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             return;
 
         if (!session.isSpawned()) {
-            entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getPitch(), packet.getYaw());
+            entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getYaw(), packet.getPitch());
 
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -57,8 +57,8 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-            movePlayerPacket.setPosition(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()));
-            movePlayerPacket.setRotation(new Vector3f(packet.getPitch(), packet.getYaw(), 0));
+            movePlayerPacket.setPosition(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()));
+            movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
             movePlayerPacket.setOnGround(true);
             entity.setMovePending(false);
@@ -70,12 +70,12 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             return;
         }
 
-        entity.moveAbsolute(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getPitch(), packet.getYaw());
+        entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getYaw(), packet.getPitch());
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-        movePlayerPacket.setPosition(new Vector3f(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.01f, packet.getZ()));
-        movePlayerPacket.setRotation(new Vector3f(packet.getPitch(), packet.getYaw(), 0));
+        movePlayerPacket.setPosition(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.01f, packet.getZ()));
+        movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
         movePlayerPacket.setOnGround(true);
         entity.setMovePending(false);

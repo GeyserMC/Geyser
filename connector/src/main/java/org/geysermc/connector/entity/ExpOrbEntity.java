@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.entity;
 
-import com.flowpowered.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;

@@ -36,7 +36,10 @@ public class JavaEntityDestroyTranslator extends PacketTranslator<ServerEntityDe
     public void translate(ServerEntityDestroyPacket packet, GeyserSession session) {
         for (int entityId : packet.getEntityIds()) {
             Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
-            session.getEntityCache().removeEntity(entity);
+
+            if (entity != null) {
+                session.getEntityCache().removeEntity(entity, false);
+            }
         }
     }
 }

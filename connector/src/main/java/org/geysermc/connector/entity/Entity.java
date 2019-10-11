@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.entity;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
@@ -49,7 +49,6 @@ import java.util.*;
 @Getter
 @Setter
 public class Entity {
-
     protected long entityId;
     protected long geyserId;
 
@@ -58,7 +57,9 @@ public class Entity {
     protected Vector3f position;
     protected Vector3f motion;
 
-    // 1 - pitch, 2 - yaw, 3 - roll (head yaw)
+    /**
+     * x = Yaw, y = Pitch, z = HeadYaw
+     */
     protected Vector3f rotation;
 
     protected int scale = 1;
@@ -90,7 +91,7 @@ public class Entity {
         addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
         addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(rotation);
+        addEntityPacket.setRotation(getBedrockRotation());
         addEntityPacket.setEntityType(entityType.getType());
         addEntityPacket.getMetadata().putAll(getMetadata());
 
@@ -100,36 +101,37 @@ public class Entity {
         GeyserLogger.DEFAULT.debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
 
-    public void despawnEntity(GeyserSession session) {
-        if (!valid) return;
+    /**
+     * @return can be deleted
+     */
+    public boolean despawnEntity(GeyserSession session) {
+        if (!valid) return true;
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(geyserId);
         session.getUpstream().sendPacket(removeEntityPacket);
 
         valid = false;
+        return true;
     }
 
-    public void moveRelative(double relX, double relY, double relZ, float pitch, float yaw) {
-        moveRelative(relX, relY, relZ, new Vector3f(pitch, yaw, 0));
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch) {
+        moveRelative(relX, relY, relZ, Vector3f.from(yaw, pitch, yaw));
     }
 
     public void moveRelative(double relX, double relY, double relZ, Vector3f rotation) {
-        if (relX == 0 && relY == 0 && relZ == 0 && position.getX() == 0 && position.getY() == 0)
-            return;
-
-        this.rotation = rotation;
-        this.position = new Vector3f(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        setRotation(rotation);
+        this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
         this.movePending = true;
     }
 
-    public void moveAbsolute(Vector3f position, float pitch, float yaw) {
-        moveAbsolute(position, new Vector3f(pitch, yaw, 0));
+    public void moveAbsolute(Vector3f position, float yaw, float pitch) {
+        moveAbsolute(position, Vector3f.from(yaw, pitch, yaw));
     }
 
     public void moveAbsolute(Vector3f position, Vector3f rotation) {
-        this.position = position;
-        this.rotation = rotation;
+        setPosition(position);
+        setRotation(rotation);
         this.movePending = true;
     }
 
@@ -138,14 +140,13 @@ public class Entity {
         flags.setFlag(EntityFlag.HAS_GRAVITY, true);
         flags.setFlag(EntityFlag.HAS_COLLISION, true);
         flags.setFlag(EntityFlag.CAN_SHOW_NAME, true);
-        flags.setFlag(EntityFlag.NO_AI, false);
+        flags.setFlag(EntityFlag.CAN_CLIMB, true);
 
         EntityDataDictionary dictionary = new EntityDataDictionary();
-        dictionary.put(EntityData.NAMETAG, "");
-        dictionary.put(EntityData.ENTITY_AGE, 0);
         dictionary.put(EntityData.SCALE, 1f);
         dictionary.put(EntityData.MAX_AIR, (short) 400);
         dictionary.put(EntityData.AIR, (short) 0);
+        dictionary.put(EntityData.LEAD_HOLDER_EID, -1L);
         dictionary.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
         dictionary.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         dictionary.putFlags(flags);
@@ -184,5 +185,29 @@ public class Entity {
 
         ServerEntityPropertiesPacket entityPropertiesPacket = new ServerEntityPropertiesPacket((int) entityId, attributes);
         session.getDownstream().getSession().send(entityPropertiesPacket);
+    }
+
+    public void setPosition(Vector3f position) {
+        if (is(PlayerEntity.class)) {
+            this.position = position.add(0, entityType.getOffset(), 0);
+            return;
+        }
+        this.position = position;
+    }
+
+    /**
+     * x = Pitch, y = HeadYaw, z = Yaw
+     */
+    public Vector3f getBedrockRotation() {
+        return Vector3f.from(rotation.getY(), rotation.getZ(), rotation.getX());
+    }
+
+    @SuppressWarnings("unchecked")
+    public <I extends Entity> I as(Class<I> entityClass) {
+        return entityClass.isInstance(this) ? (I) this : null;
+    }
+
+    public <I extends Entity> boolean is(Class<I> entityClass) {
+        return entityClass.isInstance(this);
     }
 }

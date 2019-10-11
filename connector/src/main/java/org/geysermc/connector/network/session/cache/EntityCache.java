@@ -30,9 +30,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -46,6 +44,7 @@ public class EntityCache {
     private Map<Long, Entity> entities = new HashMap<>();
     private Map<Long, Long> entityIdTranslations = new HashMap<>();
     private Map<UUID, PlayerEntity> playerEntities = new HashMap<>();
+    private Map<UUID, Long> bossbars = new HashMap<>();
 
     @Getter
     private AtomicLong nextEntityId = new AtomicLong(2L);
@@ -61,17 +60,18 @@ public class EntityCache {
         entity.spawnEntity(session);
     }
 
-    public void removeEntity(Entity entity) {
-        if (entity == null) return;
-
-        Long geyserId = entityIdTranslations.remove(entity.getEntityId());
-        if (geyserId != null) {
-            entities.remove(geyserId);
-            if (entity instanceof PlayerEntity) {
-                playerEntities.remove(((PlayerEntity) entity).getUuid());
+    public boolean removeEntity(Entity entity, boolean force) {
+        if (entity != null && entity.isValid() && (force || entity.despawnEntity(session))) {
+            Long geyserId = entityIdTranslations.remove(entity.getEntityId());
+            if (geyserId != null) {
+                entities.remove(geyserId);
+                if (entity.is(PlayerEntity.class)) {
+                    playerEntities.remove(entity.as(PlayerEntity.class).getUuid());
+                }
             }
+            return true;
         }
-        entity.despawnEntity(session);
+        return false;
     }
 
     public Entity getEntityByGeyserId(long geyserId) {
@@ -80,6 +80,16 @@ public class EntityCache {
 
     public Entity getEntityByJavaId(long javaId) {
         return entities.get(entityIdTranslations.get(javaId));
+    }
+
+    public <T extends Entity> Set<T> getEntitiesByType(Class<T> entityType) {
+        Set<T> entitiesOfType = new HashSet<>();
+        for (Entity entity : (entityType == PlayerEntity.class ? playerEntities : entities).values()) {
+            if (entity.is(entityType)) {
+                entitiesOfType.add(entity.as(entityType));
+            }
+        }
+        return entitiesOfType;
     }
 
     public void addPlayerEntity(PlayerEntity entity) {
@@ -92,5 +102,19 @@ public class EntityCache {
 
     public void removePlayerEntity(UUID uuid) {
         playerEntities.remove(uuid);
+    }
+
+    public long addBossBar(UUID uuid) {
+        long entityId = getNextEntityId().incrementAndGet();
+        bossbars.put(uuid, entityId);
+        return entityId;
+    }
+
+    public long getBossBar(UUID uuid) {
+        return bossbars.containsKey(uuid) ? bossbars.get(uuid) : -1;
+    }
+
+    public long removeBossBar(UUID uuid) {
+        return bossbars.remove(uuid);
     }
 }

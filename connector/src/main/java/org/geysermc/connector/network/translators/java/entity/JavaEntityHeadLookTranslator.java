@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityHeadLookPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,15 +40,15 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
         }
-        if (entity == null)
-            return;
 
-        entity.setRotation(new Vector3f(entity.getRotation().getX(), entity.getRotation().getY(), packet.getHeadYaw()));
+        if (entity == null) return;
+
+        entity.setRotation(Vector3f.from(entity.getRotation().getX(), entity.getRotation().getY(), packet.getHeadYaw()));
 
         MoveEntityAbsolutePacket moveEntityAbsolutePacket = new MoveEntityAbsolutePacket();
         moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
-        moveEntityAbsolutePacket.setRotation(entity.getRotation());
         moveEntityAbsolutePacket.setPosition(entity.getPosition());
+        moveEntityAbsolutePacket.setRotation(entity.getBedrockRotation());
         moveEntityAbsolutePacket.setOnGround(true);
 
         session.getUpstream().sendPacket(moveEntityAbsolutePacket);

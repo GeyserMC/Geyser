@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnGlobalEntityPacket;
+import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -36,14 +36,13 @@ public class JavaSpawnGlobalEntityTranslator extends PacketTranslator<ServerSpaw
 
     @Override
     public void translate(ServerSpawnGlobalEntityPacket packet, GeyserSession session) {
-        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
+        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
 
         // Currently GlobalEntityType only has a lightning bolt
-        Entity entity = new Entity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.LIGHTNING_BOLT, position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
-
-        if (entity == null)
-            return;
+        Entity entity = new Entity(
+                packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                EntityType.LIGHTNING_BOLT, position, Vector3f.ZERO, Vector3f.ZERO
+        );
 
         session.getEntityCache().spawnEntity(entity);
     }

@@ -34,6 +34,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.Serv
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
@@ -52,14 +53,12 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.java.*;
 import org.geysermc.connector.network.translators.java.entity.*;
-import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerActionAckTranslator;
-import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerHealthTranslator;
-import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerPositionRotationTranslator;
-import org.geysermc.connector.network.translators.java.entity.player.JavaPlayerSetExperienceTranslator;
+import org.geysermc.connector.network.translators.java.entity.player.*;
 import org.geysermc.connector.network.translators.java.entity.spawn.*;
 import org.geysermc.connector.network.translators.java.inventory.OpenWindowPacketTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
+import org.geysermc.connector.network.translators.java.scoreboard.JavaTeamTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
@@ -115,6 +114,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerEntityRotationPacket.class, new JavaEntityRotationTranslator());
         Registry.registerJava(ServerEntityHeadLookPacket.class, new JavaEntityHeadLookTranslator());
         Registry.registerJava(ServerEntityMetadataPacket.class, new JavaEntityMetadataTranslator());
+        Registry.registerJava(ServerBossBarPacket.class, new JavaBossBarTranslator());
 
         Registry.registerJava(ServerSpawnExpOrbPacket.class, new JavaSpawnExpOrbTranslator());
         Registry.registerJava(ServerSpawnGlobalEntityPacket.class, new JavaSpawnGlobalEntityTranslator());
@@ -138,6 +138,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerScoreboardObjectivePacket.class, new JavaScoreboardObjectiveTranslator());
         Registry.registerJava(ServerDisplayScoreboardPacket.class, new JavaDisplayScoreboardTranslator());
         Registry.registerJava(ServerUpdateScorePacket.class, new JavaUpdateScoreTranslator());
+        Registry.registerJava(ServerTeamPacket.class, new JavaTeamTranslator());
         Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
 
@@ -146,11 +147,12 @@ public class TranslatorsInit {
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
-        Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
-        Registry.registerBedrock(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator());
-        Registry.registerBedrock(PlayerActionPacket.class, new BedrockActionTranslator());
-        Registry.registerBedrock(MovePlayerPacket.class, new BedrockMovePlayerTranslator());
         Registry.registerBedrock(InventoryTransactionPacket.class, new BedrockInventoryTransactionTranslator());
+        Registry.registerBedrock(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator());
+        Registry.registerBedrock(MovePlayerPacket.class, new BedrockMovePlayerTranslator());
+        Registry.registerBedrock(PlayerActionPacket.class, new BedrockActionTranslator());
+        Registry.registerBedrock(SetLocalPlayerAsInitializedPacket.class, new BedrockPlayerInitializedTranslator());
+        Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
 
         itemTranslator = new ItemTranslator();
         blockTranslator = new BlockTranslator();

@@ -25,38 +25,41 @@
 
 package org.geysermc.connector.network.translators.java.scoreboard;
 
+import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardAction;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
-import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
+import org.geysermc.api.Geyser;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.ScoreboardCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
-import org.geysermc.connector.scoreboard.ScoreboardObjective;
 
 public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScorePacket> {
 
     @Override
     public void translate(ServerUpdateScorePacket packet, GeyserSession session) {
         try {
-            ScoreboardCache cache = session.getScoreboardCache();
-            Scoreboard scoreboard = new Scoreboard(session);
-            if (cache.getScoreboard() != null)
-                scoreboard = cache.getScoreboard();
+            Scoreboard scoreboard = session.getScoreboardCache().getScoreboard();
 
-            ScoreboardObjective objective = scoreboard.getObjective(packet.getObjective());
-            if (objective == null) {
-                objective = scoreboard.registerNewObjective(packet.getObjective());
+            Objective objective = scoreboard.getObjective(packet.getObjective());
+            if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
+                Geyser.getLogger().info("Tried to update score without the existence of its requested objective '" + packet.getObjective() + '\'');
+                return;
             }
 
             switch (packet.getAction()) {
-                case REMOVE:
-                    objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.REMOVE);
-                    break;
                 case ADD_OR_UPDATE:
-                    objective.registerScore(packet.getEntry(), packet.getEntry(), packet.getValue(), SetScorePacket.Action.SET);
+                    objective.setScore(packet.getEntry(), packet.getValue());
+                    break;
+                case REMOVE:
+                    if (objective != null) {
+                        objective.resetScore(packet.getEntry());
+                    } else {
+                        for (Objective objective1 : scoreboard.getObjectives().values()) {
+                            objective1.resetScore(packet.getEntry());
+                        }
+                    }
                     break;
             }
-            cache.setScoreboard(scoreboard);
             scoreboard.onUpdate();
         } catch (Exception ex) {
             ex.printStackTrace();

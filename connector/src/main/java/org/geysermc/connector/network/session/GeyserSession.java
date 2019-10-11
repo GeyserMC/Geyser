@@ -25,10 +25,6 @@
 
 package org.geysermc.connector.network.session;
 
-import com.flowpowered.math.vector.Vector2f;
-import com.flowpowered.math.vector.Vector2i;
-import com.flowpowered.math.vector.Vector3f;
-import com.flowpowered.math.vector.Vector3i;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
@@ -40,6 +36,10 @@ import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
+import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector2i;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
@@ -54,7 +54,6 @@ import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
@@ -67,7 +66,7 @@ import java.util.UUID;
 public class GeyserSession implements Player {
 
     private final GeyserConnector connector;
-    private final BedrockServerSession upstream;
+    private final UpstreamSession upstream;
     private RemoteServer remoteServer;
     private Client downstream;
     private AuthData authenticationData;
@@ -102,7 +101,7 @@ public class GeyserSession implements Player {
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
-        this.upstream = bedrockServerSession;
+        this.upstream = new UpstreamSession(bedrockServerSession);
 
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
@@ -110,7 +109,7 @@ public class GeyserSession implements Player {
         this.scoreboardCache = new ScoreboardCache(this);
         this.windowCache = new WindowCache(this);
 
-        this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), -1, 1, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
+        this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
         this.inventory = new PlayerInventory();
 
         this.javaPacketCache = new DataCache<>();
@@ -176,8 +175,9 @@ public class GeyserSession implements Player {
 
                     @Override
                     public void packetReceived(PacketReceivedEvent event) {
-                        if (!closed)
+                        if (!closed) {
                             Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                        }
                     }
                 });
 
@@ -257,15 +257,15 @@ public class GeyserSession implements Player {
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
         startGamePacket.setPlayerGamemode(0);
-        startGamePacket.setPlayerPosition(new Vector3f(0, 69, 0));
-        startGamePacket.setRotation(new Vector2f(1, 1));
+        startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
+        startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(0);
         startGamePacket.setDimensionId(playerEntity.getDimension());
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGamemode(0);
         startGamePacket.setDifficulty(1);
-        startGamePacket.setDefaultSpawn(new Vector3i(0, 0, 0));
+        startGamePacket.setDefaultSpawn(Vector3i.ZERO);
         startGamePacket.setAcheivementsDisabled(true);
         startGamePacket.setTime(0);
         startGamePacket.setEduLevel(false);
@@ -297,7 +297,7 @@ public class GeyserSession implements Player {
         startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setCachedPalette(Toolbox.CACHED_PALLETE.copy());
+        startGamePacket.setCachedPalette(Toolbox.CACHED_PALLETE.retainedDuplicate());
         startGamePacket.setItemEntries(Toolbox.ITEMS);
         upstream.sendPacket(startGamePacket);
 

@@ -25,23 +25,25 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
+import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.api.Geyser;
 import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.utils.SkinUtils;
 
 public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlayerPacket> {
 
     @Override
     public void translate(ServerSpawnPlayerPacket packet, GeyserSession session) {
-        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f rotation = new Vector3f(packet.getPitch(), packet.getYaw(), packet.getYaw());
+        Vector3f position = Vector3f.from(packet.getX(), packet.getY() - EntityType.PLAYER.getOffset(), packet.getZ());
+        Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw());
 
         PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUUID());
         if (entity == null) {
-            Geyser.getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player");
+            Geyser.getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player " + packet.getUUID());
             return;
         }
 
@@ -49,6 +51,8 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         entity.setPosition(position);
         entity.setRotation(rotation);
 
-        session.getEntityCache().spawnEntity(entity);
+        entity.sendPlayer(session);
+        // async skin loading
+        SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
     }
 }

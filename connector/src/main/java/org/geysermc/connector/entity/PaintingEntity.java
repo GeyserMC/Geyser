@@ -1,6 +1,6 @@
 package org.geysermc.connector.entity;
 
-import com.flowpowered.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
 import lombok.Getter;
 import lombok.Setter;

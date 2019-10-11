@@ -25,26 +25,24 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnExpOrbPacket;
-import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
+import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ExpOrbEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.utils.EntityUtils;
 
 public class JavaSpawnExpOrbTranslator extends PacketTranslator<ServerSpawnExpOrbPacket> {
 
     @Override
     public void translate(ServerSpawnExpOrbPacket packet, GeyserSession session) {
-        Vector3f position = new Vector3f(packet.getX(), packet.getY(), packet.getZ());
-        Entity entity = new ExpOrbEntity(packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.EXPERIENCE_ORB, position, new Vector3f(0, 0, 0), new Vector3f(0, 0, 0));
+        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
 
-        if (entity == null)
-            return;
+        Entity entity = new ExpOrbEntity(
+                packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                EntityType.EXPERIENCE_ORB, position, Vector3f.ZERO, Vector3f.ZERO
+        );
 
         session.getEntityCache().spawnEntity(entity);
     }

@@ -25,43 +25,40 @@
 
 package org.geysermc.connector.scoreboard;
 
-import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import java.util.Random;
-
-/**
- * Adapted from: https://github.com/Ragnok123/GTScoreboard
- */
+@Getter @Setter
+@Accessors(chain = true)
 public class Score {
+    private Objective objective;
+    private long id;
 
-    @Getter
-    @Setter
+    private UpdateType updateType = UpdateType.ADD;
+    private String name;
+    private Team team;
     private int score;
+    private int oldScore = Integer.MIN_VALUE;
 
-    @Getter
-    private long scoreboardId;
-
-    private ScoreboardObjective objective;
-
-    @Getter
-    @Setter
-    private String fakePlayer;
-
-    @Getter
-    @Setter
-    private SetScorePacket.Action action = SetScorePacket.Action.SET;
-
-    private boolean modified = false;
-
-    @Getter
-    @Setter
-    private String fakeId;
-
-    public Score(ScoreboardObjective objective, String fakePlayer) {
-        this.scoreboardId = -new Random().nextLong();
+    public Score(Objective objective, String name) {
+        this.id = objective.getScoreboard().getNextId().getAndIncrement();
         this.objective = objective;
-        this.fakePlayer = fakePlayer;
+        this.name = name;
+    }
+
+    public String getDisplayName() {
+        if (team != null && team.getUpdateType() != UpdateType.REMOVE) {
+            return team.getPrefix() + name + team.getSuffix();
+        }
+        return name;
+    }
+
+    public Score setScore(int score) {
+        if (oldScore == Integer.MIN_VALUE) {
+            this.oldScore = score;
+        }
+        this.score = score;
+        return this;
     }
 }

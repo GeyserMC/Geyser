@@ -25,10 +25,10 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
-import com.flowpowered.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetHealthPacket;
 import org.geysermc.connector.entity.Entity;
@@ -61,7 +61,7 @@ public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHea
 
         if (packet.getHealth() <= 0) {
             RespawnPacket respawnPacket = new RespawnPacket();
-            respawnPacket.setPosition(new Vector3f(0, 72, 0));
+            respawnPacket.setPosition(Vector3f.from(0, 72, 0));
             session.getUpstream().sendPacket(new RespawnPacket());
 
             ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
