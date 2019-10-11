@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.geysermc.connector.console.GeyserLogger;
@@ -19,8 +21,8 @@ public class Toolbox {
     public static final Collection<StartGamePacket.ItemEntry> ITEMS;
     public static final ByteBuf CACHED_PALLETE;
 
-    public static final Map<Integer, ItemEntry> ITEM_ENTRIES;
-    public static final Map<Integer, BlockEntry> BLOCK_ENTRIES;
+    public static final TIntObjectMap<ItemEntry> ITEM_ENTRIES;
+    public static final TIntObjectMap<BlockEntry> BLOCK_ENTRIES;
 
     static {
         InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/cached_palette.json");
@@ -79,7 +81,7 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        Map<Integer, ItemEntry> itemEntries = new HashMap<>();
+        TIntObjectMap<ItemEntry> itemEntries = new TIntObjectHashMap<>();
         int itemIndex = 0;
 
         for (Map.Entry<String, Map<String, Object>> itemEntry : items.entrySet()) {
@@ -87,7 +89,7 @@ public class Toolbox {
             itemIndex++;
         }
 
-        ITEM_ENTRIES = Collections.unmodifiableMap(itemEntries);
+        ITEM_ENTRIES = itemEntries;
 
         InputStream blockStream = Toolbox.class.getClassLoader().getResourceAsStream("blocks.json");
         ObjectMapper blockMapper = new ObjectMapper();
@@ -99,7 +101,7 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        Map<Integer, BlockEntry> blockEntries = new HashMap<>();
+        TIntObjectMap<BlockEntry> blockEntries = new TIntObjectHashMap<>();
         int blockIndex = 0;
 
         for (Map.Entry<String, Map<String, Object>> itemEntry : blocks.entrySet()) {
@@ -113,6 +115,6 @@ public class Toolbox {
             blockIndex++;
         }
 
-        BLOCK_ENTRIES = Collections.unmodifiableMap(blockEntries);
+        BLOCK_ENTRIES = blockEntries;
     }
 }

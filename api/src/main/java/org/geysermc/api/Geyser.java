@@ -30,10 +30,6 @@ import org.geysermc.api.logger.Logger;
 import org.geysermc.api.plugin.PluginManager;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class Geyser {
