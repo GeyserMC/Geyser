@@ -31,20 +31,19 @@ Links:
 - [x] Join detection from remote
 - [x] Online mode/auth support
 - [x] Chat/command support
-- [ ] Scoreboard
-  - [x] Objective-based scoreboards
-  - [ ] Team-based scoreboards
+- [x] Scoreboard
 - [ ] Inventory support
   - [x] Inventory viewing
   - [x] NBT data
   - [ ] Inventory movement (transactions)
 - [x] Player movement support
 - [x] Entity support
-- [ ] Chunks (Experimental)
+- Player support
+- [ ] Chunks
   - [x] Block translation (may be missing mappings)
   - [x] Block updates
   - [ ] Block entities
-  - [ ] Extra data
+  - [x] Extra data
   - [ ] Biome colors
 - [x] Block break/place support
 
