@@ -38,7 +38,7 @@ Links:
   - [ ] Inventory movement (transactions)
 - [x] Player movement support
 - [x] Entity support
-- Player support
+- [x] Player support
 - [ ] Chunks
   - [x] Block translation (may be missing mappings)
   - [x] Block updates
