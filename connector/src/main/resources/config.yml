@@ -53,6 +53,10 @@ general-thread-pool: 32
 # OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
 allow-third-party-capes: true
 
+# If Geyser should verify player movement speed. Default: true
+# Disabling this might cause issues with players being thrown in the air while logging in.
+movement-check: true
+
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
 # what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.

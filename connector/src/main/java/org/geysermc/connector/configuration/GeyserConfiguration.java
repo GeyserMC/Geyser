@@ -54,5 +54,9 @@ public class GeyserConfiguration {
     @JsonProperty("allow-third-party-capes")
     private boolean allowThirdPartyCapes;
 
+    @JsonProperty("movement-check")
+    private boolean movementCheck;
+
     private MetricInfo metrics;
+
 }

@@ -31,6 +31,8 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.api.Geyser;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -38,7 +40,9 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 
+
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
+
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
@@ -55,11 +59,12 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             session.getUpstream().sendPacketImmediately(moveEntityBack);
             return;
         }
-
-        if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
-            session.getConnector().getLogger().info("Recalculating position...");
-            recalculatePosition(session, entity, entity.getPosition());
-            return;
+        if (((GeyserConnector)Geyser.getConnector()).getConfig().isMovementCheck()) {
+            if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
+                session.getConnector().getLogger().info("Recalculating position...");
+                recalculatePosition(session, entity, entity.getPosition());
+                return;
+            }
         }
 
         double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
