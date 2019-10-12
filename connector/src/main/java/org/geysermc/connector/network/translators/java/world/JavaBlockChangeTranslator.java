@@ -7,7 +7,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.network.translators.item.BedrockItem;
+import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.GlobalBlockPalette;
 
 public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChangePacket> {
@@ -22,8 +22,9 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
                 record.getPosition().getZ()
         ));
 
-        BedrockItem bedrockItem = TranslatorsInit.getBlockTranslator().getBedrockBlock(record.getBlock());
-        updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(bedrockItem.hashCode()));
+        BlockEntry itemEntry = TranslatorsInit.getBlockTranslator().getBedrockBlock(record.getBlock());
+        updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(itemEntry.getBedrockId() << 4 | itemEntry.getBedrockData()));
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
 
         session.getUpstream().sendPacket(updateBlockPacket);
     }

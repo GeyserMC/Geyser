@@ -36,7 +36,7 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.item.BedrockItem;
+import org.geysermc.connector.network.translators.block.BlockEntry;
 
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
     @Override
@@ -78,8 +78,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         Position position = new Position((int) packet.getPosition().getX(),
                 (int) Math.ceil(javaY * 2) / 2, (int) packet.getPosition().getZ());
 
-        BedrockItem block = session.getChunkCache().getBlockAt(position);
-        if (!block.getIdentifier().contains("air"))
+        BlockEntry block = session.getChunkCache().getBlockAt(position);
+        if (!block.getJavaIdentifier().contains("air"))
             colliding = true;
 
         if (!colliding)

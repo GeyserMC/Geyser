@@ -42,8 +42,8 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.console.GeyserLogger;
-import org.geysermc.connector.utils.Remapper;
 import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.utils.Toolbox;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,12 +53,12 @@ import java.util.Map;
 public class ItemTranslator {
 
     public ItemStack translateToJava(ItemData data) {
-        JavaItem javaItem = getJavaItem(data);
+        ItemEntry javaItem = getItem(data);
 
         if (data.getTag() == null) {
-            return new ItemStack(javaItem.getId(), data.getCount());
+            return new ItemStack(javaItem.getJavaId(), data.getCount());
         }
-        return new ItemStack(javaItem.getId(), data.getCount(), translateToJavaNBT(data.getTag()));
+        return new ItemStack(javaItem.getJavaId(), data.getCount(), translateToJavaNBT(data.getTag()));
     }
 
     public ItemData translateToBedrock(ItemStack stack) {
@@ -67,31 +67,32 @@ public class ItemTranslator {
             return ItemData.of(3, (short)0, 0);
         }
 
-        BedrockItem bedrockItem = getBedrockItem(stack);
+        ItemEntry bedrockItem = getItem(stack);
         if (stack.getNBT() == null) {
-           return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount());
+           return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount());
         }
-        return ItemData.of(bedrockItem.getId(), (short) bedrockItem.getData(), stack.getAmount(), translateToBedrockNBT(stack.getNBT()));
+        return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(stack.getNBT()));
     }
 
-    public BedrockItem getBedrockItem(ItemStack stack) {
-        BedrockItem bedrockItem = Remapper.ITEM_REMAPPER.convertToBedrock(stack);
-        if (bedrockItem == null) {
+    public ItemEntry getItem(ItemStack stack) {
+        ItemEntry item = Toolbox.ITEM_ENTRIES.get(stack.getId());
+        if (item == null) {
             GeyserLogger.DEFAULT.debug("Missing mapping for java item " + stack.getId());
-            return BedrockItem.AIR;
+            return ItemEntry.AIR;
         }
 
-        return bedrockItem;
+        return item;
     }
 
-    public JavaItem getJavaItem(ItemData data) {
-        JavaItem javaItem = Remapper.ITEM_REMAPPER.convertToJava(data);
-        if (javaItem == null) {
-            GeyserLogger.DEFAULT.debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
-            return JavaItem.AIR;
+    public ItemEntry getItem(ItemData data) {
+        for (ItemEntry itemEntry : Toolbox.ITEM_ENTRIES.valueCollection()) {
+            if (itemEntry.getBedrockId() == data.getId() && itemEntry.getBedrockData() == data.getDamage()) {
+                return itemEntry;
+            }
         }
 
-        return javaItem;
+        GeyserLogger.DEFAULT.debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        return ItemEntry.AIR;
     }
 
     private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
@@ -165,7 +166,7 @@ public class ItemTranslator {
         if (tag instanceof com.nukkitx.nbt.tag.ListTag) {
             com.nukkitx.nbt.tag.ListTag listTag = (com.nukkitx.nbt.tag.ListTag) tag;
 
-            List<Tag> tags = new ArrayList<Tag>();
+            List<Tag> tags = new ArrayList<>();
             for (Object value : listTag.getValue()) {
                 if (!(value instanceof com.nukkitx.nbt.tag.Tag))
                     continue;

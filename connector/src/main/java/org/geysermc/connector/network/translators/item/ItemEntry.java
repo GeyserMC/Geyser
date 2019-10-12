@@ -25,28 +25,23 @@
 
 package org.geysermc.connector.network.translators.item;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-public class JavaItem {
+@AllArgsConstructor
+public class ItemEntry {
 
-    public static JavaItem AIR = new JavaItem("minecraft:air", 0);
+    public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0);
 
-    protected String identifier;
-    protected int id;
+    private String javaIdentifier;
+    private int javaId;
 
-    public JavaItem(String identifier, int id) {
-        this.identifier = identifier;
-        this.id = id;
-    }
-
-    @Override
-    public int hashCode() {
-        return id;
-    }
+    private int bedrockId;
+    private int bedrockData;
 
     @Override
     public boolean equals(Object obj) {
-        return obj == this || (obj instanceof JavaItem && ((JavaItem) obj).id == this.id && ((JavaItem) obj).identifier.equals(this.identifier));
+        return obj == this || (obj instanceof ItemEntry && ((ItemEntry) obj).getBedrockId() == this.getBedrockId() && ((ItemEntry) obj).getJavaIdentifier().equals(this.getJavaIdentifier()));
     }
 }

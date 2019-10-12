@@ -5,9 +5,8 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.network.translators.item.BedrockItem;
+import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.chunk.ChunkSection;
-import org.geysermc.connector.world.chunk.bitarray.BitArrayVersion;
 
 public class ChunkUtils {
 
@@ -33,11 +32,16 @@ public class ChunkUtils {
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
-                        BlockState block = storage.get(x, y, z);
-                        BedrockItem bedrockBlock = TranslatorsInit.getBlockTranslator().getBedrockBlock(block);
+                        BlockState blockState = storage.get(x, y, z);
+                        BlockEntry block = TranslatorsInit.getBlockTranslator().getBedrockBlock(blockState);
 
                         section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
-                                bedrockBlock.getId() << 4 | bedrockBlock.getData());
+                                block.getBedrockId() << 4 | block.getBedrockData());
+
+                        if (block.getJavaIdentifier().contains("waterlogged=true")) {
+                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z),
+                                    9 << 4); // water id
+                        }
                     }
                 }
             }
