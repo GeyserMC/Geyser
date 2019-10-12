@@ -59,7 +59,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             session.getUpstream().sendPacketImmediately(moveEntityBack);
             return;
         }
-        if (((GeyserConnector)Geyser.getConnector()).getConfig().isMovementCheck()) {
+        if (session.getConnector().getConfig().isMovementCheck()) {
             if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
                 session.getConnector().getLogger().info("Recalculating position...");
                 recalculatePosition(session, entity, entity.getPosition());
