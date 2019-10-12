@@ -20,31 +20,41 @@ public class ChunkUtils {
             chunkData.sections[i] = new ChunkSection();
         }
 
-        for (int chunkY = 0; chunkY < chunkSectionCount; chunkY++) {
-            Chunk chunk = chunks[chunkY];
+        try {
+            for (int chunkY = 0; chunkY < chunkSectionCount; chunkY++) {
+                Chunk chunk = chunks[chunkY];
 
-            if (chunk == null || chunk.isEmpty())
-                continue;
+                if (chunk == null || chunk.isEmpty())
+                    continue;
 
-            BlockStorage storage = chunk.getBlocks();
-            ChunkSection section = chunkData.sections[chunkY];
+                BlockStorage storage = chunk.getBlocks();
+                ChunkSection section = chunkData.sections[chunkY];
 
-            for (int x = 0; x < 16; x++) {
-                for (int y = 0; y < 16; y++) {
-                    for (int z = 0; z < 16; z++) {
-                        BlockState blockState = storage.get(x, y, z);
-                        BlockEntry block = TranslatorsInit.getBlockTranslator().getBedrockBlock(blockState);
+                for (int x = 0; x < 16; x++) {
+                    for (int y = 0; y < 16; y++) {
+                        for (int z = 0; z < 16; z++) {
+                            BlockState blockState = storage.get(x, y, z);
+                            BlockEntry block = TranslatorsInit.getBlockTranslator().getBedrockBlock(blockState);
 
-                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
-                                block.getBedrockId() << 4 | block.getBedrockData());
+                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
+                                    block.getBedrockId() << 4 | block.getBedrockData());
 
-                        if (block.getJavaIdentifier().contains("waterlogged=true")) {
-                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z),
-                                    9 << 4); // water id
+                            if (block.getJavaIdentifier().contains("waterlogged=true")) {
+                                section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z),
+                                        9 << 4); // water id
+                            }
                         }
+
+                        Thread.sleep(0, 3000);
                     }
+
+                    Thread.sleep(0, 15000);
                 }
+
+                Thread.sleep(0, 30000);
             }
+        } catch (InterruptedException e) {
+            //Shouldn't happen
         }
         return chunkData;
     }

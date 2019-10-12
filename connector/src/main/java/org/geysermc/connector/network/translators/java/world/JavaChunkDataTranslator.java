@@ -62,7 +62,11 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 levelChunkPacket.setChunkX(packet.getColumn().getX());
                 levelChunkPacket.setChunkZ(packet.getColumn().getZ());
                 levelChunkPacket.setData(payload);
-                session.getUpstream().sendPacket(levelChunkPacket);
+                try {
+                    session.getUpstream().sendPacket(levelChunkPacket);
+                } catch (Exception e) {
+                    //Usually a connection has been closed.
+                }
                 session.getChunkCache().addToCache(packet.getColumn());
             } catch (Exception ex) {
                 ex.printStackTrace();
