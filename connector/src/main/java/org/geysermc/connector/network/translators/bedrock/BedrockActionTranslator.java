@@ -68,13 +68,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 ClientPlayerStatePacket stopSneakPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.STOP_SNEAKING);
                 session.getDownstream().getSession().send(stopSneakPacket);
                 break;
+            // Apparently the code below breaks sprinting...
             case START_SPRINT:
-                ClientPlayerStatePacket startSprintPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.START_SPRINTING);
-                session.getDownstream().getSession().send(startSprintPacket);
+                // ClientPlayerStatePacket startSprintPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.START_SPRINTING);
+                // session.getDownstream().getSession().send(startSprintPacket);
                 break;
             case STOP_SPRINT:
-                ClientPlayerStatePacket stopSprintPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.STOP_SPRINTING);
-                session.getDownstream().getSession().send(stopSprintPacket);
+                // ClientPlayerStatePacket stopSprintPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.STOP_SPRINTING);
+                // session.getDownstream().getSession().send(stopSprintPacket);
                 break;
             case DROP_ITEM:
                 ClientPlayerActionPacket dropItemPacket = new ClientPlayerActionPacket(PlayerAction.DROP_ITEM, position, BlockFace.values()[packet.getFace()]);
