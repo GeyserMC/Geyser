@@ -41,7 +41,7 @@ public class JavaEntityPositionRotationTranslator extends PacketTranslator<Serve
         }
         if (entity == null) return;
 
-        entity.moveRelative(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ(), packet.getYaw(), packet.getPitch());
+        entity.moveRelative(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), packet.getYaw(), packet.getPitch());
 
         if (entity.isMovePending()) {
             MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();

@@ -43,7 +43,7 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
                 break;
             case SUBTITLE:
                 titlePacket.setType(SetTitlePacket.Type.SET_SUBTITLE);
-                titlePacket.setText(packet.getSubtitle().getFullText());
+                titlePacket.setText(packet.getTitle().getFullText());
                 break;
             case CLEAR:
             case RESET:
@@ -52,7 +52,7 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
                 break;
             case ACTION_BAR:
                 titlePacket.setType(SetTitlePacket.Type.SET_ACTIONBAR_MESSAGE);
-                titlePacket.setText(packet.getActionBar().getFullText());
+                titlePacket.setText(packet.getTitle().getFullText());
                 break;
             case TIMES:
                 titlePacket.setFadeInTime(packet.getFadeIn());

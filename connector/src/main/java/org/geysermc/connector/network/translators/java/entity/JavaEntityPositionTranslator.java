@@ -41,7 +41,7 @@ public class JavaEntityPositionTranslator extends PacketTranslator<ServerEntityP
         }
         if (entity == null) return;
 
-        entity.moveRelative(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ(), entity.getRotation());
+        entity.moveRelative(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), entity.getRotation());
 
         if (entity.isMovePending()) {
             MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();

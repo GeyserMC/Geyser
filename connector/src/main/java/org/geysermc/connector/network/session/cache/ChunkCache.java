@@ -65,7 +65,7 @@ public class ChunkCache {
         Chunk chunk = column.getChunks()[position.getY() >> 4];
         Position blockPosition = chunkPosition.getChunkBlock(position.getX(), position.getY(), position.getZ());
         if (chunk != null) {
-            chunk.getBlocks().set(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), block);
+            chunk.set(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), block);
         }
     }
 
@@ -78,7 +78,7 @@ public class ChunkCache {
         Chunk chunk = column.getChunks()[position.getY() >> 4];
         Position blockPosition = chunkPosition.getChunkBlock(position.getX(), position.getY(), position.getZ());
         if (chunk != null) {
-            BlockState blockState = chunk.getBlocks().get(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
+            BlockState blockState = chunk.get(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
             return TranslatorsInit.getBlockTranslator().getBedrockBlock(blockState);
         }
 

@@ -68,10 +68,10 @@ public class ItemTranslator {
         }
 
         ItemEntry bedrockItem = getItem(stack);
-        if (stack.getNBT() == null) {
+        if (stack.getNbt() == null) {
            return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount());
         }
-        return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(stack.getNBT()));
+        return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(stack.getNbt()));
     }
 
     public ItemEntry getItem(ItemStack stack) {
