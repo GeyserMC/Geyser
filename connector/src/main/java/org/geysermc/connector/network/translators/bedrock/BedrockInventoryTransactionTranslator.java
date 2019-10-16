@@ -35,6 +35,8 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -56,19 +58,16 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 }
                 break;
             case ITEM_USE_ON_ENTITY:
+                Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+                if (entity == null)
+                    return;
+
                 Vector3f vector = packet.getClickPosition();
-                InteractAction action;
-
-                if(packet.getActionType() == 1) {
-                    action = InteractAction.ATTACK;
-                } else {
-                    action = InteractAction.INTERACT;
-                }
-
-                ClientPlayerInteractEntityPacket entityPacket = new ClientPlayerInteractEntityPacket((int) packet.getRuntimeEntityId(),
-                        action, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
+                ClientPlayerInteractEntityPacket entityPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                        InteractAction.values()[packet.getActionType()], vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
 
                 session.getDownstream().getSession().send(entityPacket);
+                break;
         }
     }
 }

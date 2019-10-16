@@ -43,7 +43,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
     @Override
     public void translate(PlayerActionPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
+        Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
         if (entity == null)
             return;
 
@@ -57,32 +57,31 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case START_GLIDE:
             case STOP_GLIDE:
-                ClientPlayerStatePacket glidePacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.START_ELYTRA_FLYING);
+                ClientPlayerStatePacket glidePacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
                 session.getDownstream().getSession().send(glidePacket);
                 break;
             case START_SNEAK:
-                ClientPlayerStatePacket startSneakPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.START_SNEAKING);
+                ClientPlayerStatePacket startSneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.getDownstream().getSession().send(startSneakPacket);
                 break;
             case STOP_SNEAK:
-                ClientPlayerStatePacket stopSneakPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.STOP_SNEAKING);
+                ClientPlayerStatePacket stopSneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SNEAKING);
                 session.getDownstream().getSession().send(stopSneakPacket);
                 break;
-            // Apparently the code below breaks sprinting...
             case START_SPRINT:
-                // ClientPlayerStatePacket startSprintPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.START_SPRINTING);
-                // session.getDownstream().getSession().send(startSprintPacket);
+                ClientPlayerStatePacket startSprintPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
+                session.getDownstream().getSession().send(startSprintPacket);
                 break;
             case STOP_SPRINT:
-                // ClientPlayerStatePacket stopSprintPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.STOP_SPRINTING);
-                // session.getDownstream().getSession().send(stopSprintPacket);
+                ClientPlayerStatePacket stopSprintPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                session.getDownstream().getSession().send(stopSprintPacket);
                 break;
             case DROP_ITEM:
                 ClientPlayerActionPacket dropItemPacket = new ClientPlayerActionPacket(PlayerAction.DROP_ITEM, position, BlockFace.values()[packet.getFace()]);
                 session.getDownstream().getSession().send(dropItemPacket);
                 break;
             case STOP_SLEEP:
-                ClientPlayerStatePacket stopSleepingPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.LEAVE_BED);
+                ClientPlayerStatePacket stopSleepingPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.LEAVE_BED);
                 session.getDownstream().getSession().send(stopSleepingPacket);
                 break;
             case BLOCK_INTERACT:

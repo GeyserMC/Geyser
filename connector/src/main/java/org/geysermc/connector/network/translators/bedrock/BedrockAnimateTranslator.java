@@ -39,6 +39,7 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             case SWING_ARM:
                 ClientPlayerSwingArmPacket swingArmPacket = new ClientPlayerSwingArmPacket(Hand.MAIN_HAND);
                 session.getDownstream().getSession().send(swingArmPacket);
+                break;
         }
     }
 }
