@@ -133,7 +133,6 @@ public class GeyserSession implements Player {
 
     public void authenticate(String username) {
         authenticate(username, "");
-        connector.addPlayer(this);
     }
 
     public void authenticate(String username, String password) {
@@ -182,6 +181,7 @@ public class GeyserSession implements Player {
                 });
 
                 downstream.getSession().connect();
+                connector.addPlayer(this);
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }

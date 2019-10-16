@@ -97,7 +97,7 @@ public class Geyser {
      *
      * @return a collection of the connected players
      */
-    public static Collection<Player> getConnectedPlayers() {
+    public static Collection<? extends Player> getConnectedPlayers() {
         return connector.getConnectedPlayers();
     }
 }

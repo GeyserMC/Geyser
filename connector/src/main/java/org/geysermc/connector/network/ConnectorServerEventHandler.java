@@ -106,10 +106,15 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             GeyserLogger.DEFAULT.info("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + disconnectReason);
 
-            Player player = connector.getPlayers().get(bedrockServerSession.getAddress());
+            GeyserSession player = connector.getPlayers().get(bedrockServerSession.getAddress());
             if (player != null) {
                 player.disconnect(disconnectReason.name());
                 connector.removePlayer(player);
+
+                player.getEntityCache().clear();
+                player.getInventoryCache().getInventories().clear();
+                player.getWindowCache().getWindows().clear();
+                player.getScoreboardCache().removeScoreboard();
             }
         });
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);

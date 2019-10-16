@@ -43,6 +43,7 @@ import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
@@ -71,7 +72,7 @@ public class GeyserConnector implements Connector {
     public static final String NAME = "Geyser";
     public static final String VERSION = "1.0-SNAPSHOT";
 
-    private final Map<Object, Player> players = new HashMap<>();
+    private final Map<Object, GeyserSession> players = new HashMap<>();
 
     private static GeyserConnector instance;
 
@@ -165,8 +166,9 @@ public class GeyserConnector implements Connector {
         logger.info(String.format("Done (%ss)! Run /help for help!", new DecimalFormat("#.###").format(completeTime)));
     }
 
-    public Collection<Player> getConnectedPlayers() {
-        return new ArrayList<>(players.values());
+    @Override
+    public Collection<? extends Player> getConnectedPlayers() {
+        return players.values();
     }
 
     public void shutdown() {
@@ -182,13 +184,13 @@ public class GeyserConnector implements Connector {
         System.exit(0);
     }
 
-    public void addPlayer(Player player) {
+    public void addPlayer(GeyserSession player) {
         players.put(player.getAuthenticationData().getName(), player);
         players.put(player.getAuthenticationData().getUUID(), player);
         players.put(player.getSocketAddress(), player);
     }
 
-    public void removePlayer(Player player) {
+    public void removePlayer(GeyserSession player) {
         players.remove(player.getAuthenticationData().getName());
         players.remove(player.getAuthenticationData().getUUID());
         players.remove(player.getSocketAddress());

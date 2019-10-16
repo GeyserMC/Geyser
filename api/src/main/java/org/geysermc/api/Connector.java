@@ -67,7 +67,7 @@ public interface Connector {
      *
      * @return a collection of the connected players
      */
-    Collection<Player> getConnectedPlayers();
+    Collection<? extends Player> getConnectedPlayers();
 
     /**
      * Shuts down the connector
