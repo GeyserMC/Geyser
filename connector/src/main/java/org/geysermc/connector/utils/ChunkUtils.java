@@ -15,11 +15,9 @@ public class ChunkUtils {
         Chunk[] chunks = column.getChunks();
         int chunkSectionCount = chunks.length;
         chunkData.sections = new ChunkSection[chunkSectionCount];
-        for (int i = 0; i < chunkSectionCount; i++) {
-            chunkData.sections[i] = new ChunkSection();
-        }
 
         for (int chunkY = 0; chunkY < chunkSectionCount; chunkY++) {
+            chunkData.sections[chunkY] = new ChunkSection();
             Chunk chunk = chunks[chunkY];
 
             if (chunk == null || chunk.isEmpty())

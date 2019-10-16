@@ -75,13 +75,7 @@ public class ItemTranslator {
     }
 
     public ItemEntry getItem(ItemStack stack) {
-        ItemEntry item = Toolbox.ITEM_ENTRIES.get(stack.getId());
-        if (item == null) {
-            GeyserLogger.DEFAULT.debug("Missing mapping for java item " + stack.getId());
-            return ItemEntry.AIR;
-        }
-
-        return item;
+        return Toolbox.ITEM_ENTRIES.get(stack.getId());
     }
 
     public ItemEntry getItem(ItemData data) {
