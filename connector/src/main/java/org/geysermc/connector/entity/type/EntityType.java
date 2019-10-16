@@ -100,7 +100,7 @@ public enum EntityType {
     // TODO CAT (need to figure out how to deal with baby cats) https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/entity/passive/EntityCat.java
 
     SHULKER_BULLET(76, 0f),
-    FISHING_HOOK(77, 0f),
+    FISHING_BOBBER(77, 0f),
     CHALKBOARD(78, 0f),
     DRAGON_FIREBALL(79, 0f),
     ARROW(80, 0.25f, 0.25f),
