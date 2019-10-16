@@ -82,6 +82,7 @@ public class Entity {
 
         this.valid = false;
         this.movePending = false;
+        this.dimension = 0;
     }
 
     public void spawnEntity(GeyserSession session) {
@@ -132,6 +133,7 @@ public class Entity {
     public void moveAbsolute(Vector3f position, Vector3f rotation) {
         setPosition(position);
         setRotation(rotation);
+
         this.movePending = true;
     }
 

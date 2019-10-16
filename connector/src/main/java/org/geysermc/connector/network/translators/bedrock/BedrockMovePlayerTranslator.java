@@ -31,6 +31,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.api.ChatColor;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -39,12 +40,12 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
+
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
         if (entity == null || !session.isSpawned()) return;
 
-        // can cause invalid moves when packet queue is not empty
         if (!session.getUpstream().isInitialized()) {
             MoveEntityAbsolutePacket moveEntityBack = new MoveEntityAbsolutePacket();
             moveEntityBack.setRuntimeEntityId(entity.getGeyserId());
@@ -57,7 +58,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
 
         if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
-            session.getConnector().getLogger().info("Recalculating position...");
+            session.getConnector().getLogger().debug("Recalculating position...");
             recalculatePosition(session, entity, entity.getPosition());
             return;
         }
@@ -102,7 +103,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             zRange = -zRange;
 
         if ((xRange + yRange + zRange) > 100) {
-            session.getConnector().getLogger().warning(session.getName() + " moved too quickly." +
+            session.getConnector().getLogger().debug(ChatColor.RED + session.getName() + " moved too quickly." +
                     " current position: " + currentPosition + ", new position: " + newPosition);
 
             return false;
@@ -122,7 +123,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
         movePlayerPacket.setOnGround(true);
         entity.setMovePending(false);
         session.getUpstream().sendPacket(movePlayerPacket);

@@ -59,7 +59,6 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         session.getUpstream().sendPacket(entityDataPacket);
 
         session.setRenderDistance(packet.getViewDistance() + 1); // +1 to be sure it includes every chunk
-        System.out.println(session.getRenderDistance());
         if (session.getRenderDistance() > 32) session.setRenderDistance(32); // <3 u ViaVersion but I don't like crashing clients x)
 
         ChunkRadiusUpdatedPacket packet1 = new ChunkRadiusUpdatedPacket();
