@@ -71,6 +71,7 @@ public class Entity {
 
     protected Set<Long> passengers = new HashSet<>();
     protected Map<AttributeType, Attribute> attributes = new HashMap<>();
+    protected EntityDataDictionary metadata = new EntityDataDictionary();
 
     public Entity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         this.entityId = entityId;
@@ -83,6 +84,19 @@ public class Entity {
         this.valid = false;
         this.movePending = false;
         this.dimension = 0;
+
+        metadata.put(EntityData.SCALE, 1f);
+        metadata.put(EntityData.MAX_AIR, (short) 400);
+        metadata.put(EntityData.AIR, (short) 0);
+        metadata.put(EntityData.LEAD_HOLDER_EID, -1L);
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        EntityFlags flags = new EntityFlags();
+        flags.setFlag(EntityFlag.HAS_GRAVITY, true);
+        flags.setFlag(EntityFlag.HAS_COLLISION, true);
+        flags.setFlag(EntityFlag.CAN_SHOW_NAME, true);
+        flags.setFlag(EntityFlag.CAN_CLIMB, true);
+        metadata.putFlags(flags);
     }
 
     public void spawnEntity(GeyserSession session) {
@@ -94,7 +108,7 @@ public class Entity {
         addEntityPacket.setMotion(motion);
         addEntityPacket.setRotation(getBedrockRotation());
         addEntityPacket.setEntityType(entityType.getType());
-        addEntityPacket.getMetadata().putAll(getMetadata());
+        addEntityPacket.getMetadata().putAll(metadata);
 
         valid = true;
         session.getUpstream().sendPacket(addEntityPacket);
@@ -137,24 +151,6 @@ public class Entity {
         this.movePending = true;
     }
 
-    public EntityDataDictionary getMetadata() {
-        EntityFlags flags = new EntityFlags();
-        flags.setFlag(EntityFlag.HAS_GRAVITY, true);
-        flags.setFlag(EntityFlag.HAS_COLLISION, true);
-        flags.setFlag(EntityFlag.CAN_SHOW_NAME, true);
-        flags.setFlag(EntityFlag.CAN_CLIMB, true);
-
-        EntityDataDictionary dictionary = new EntityDataDictionary();
-        dictionary.put(EntityData.SCALE, 1f);
-        dictionary.put(EntityData.MAX_AIR, (short) 400);
-        dictionary.put(EntityData.AIR, (short) 0);
-        dictionary.put(EntityData.LEAD_HOLDER_EID, -1L);
-        dictionary.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
-        dictionary.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
-        dictionary.putFlags(flags);
-        return dictionary;
-    }
-
     public void updateBedrockAttributes(GeyserSession session) {
         List<com.nukkitx.protocol.bedrock.data.Attribute> attributes = new ArrayList<>();
         for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
@@ -171,7 +167,7 @@ public class Entity {
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(geyserId);
-        entityDataPacket.getMetadata().putAll(getMetadata());
+        entityDataPacket.getMetadata().putAll(metadata);
         session.getUpstream().sendPacket(entityDataPacket);
     }
 

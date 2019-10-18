@@ -43,7 +43,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
     @Override
     public void translate(PlayerActionPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+        Entity entity = session.getPlayerEntity();
         if (entity == null)
             return;
 

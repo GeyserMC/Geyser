@@ -25,7 +25,10 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityMetadataPacket;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -42,6 +45,15 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
         if (entity == null) return;
 
         if (entity.isValid()) {
+            //temp sprint/sneak fix
+            for (EntityMetadata metadata : packet.getMetadata()) {
+                if (metadata.getId() == 0 && metadata.getType() == MetadataType.BYTE) {
+                    byte xd = (byte)metadata.getValue();
+                    entity.getMetadata().getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
+                    entity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
+                }
+            }
+
             // TODO: Make this actually useful lol
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
