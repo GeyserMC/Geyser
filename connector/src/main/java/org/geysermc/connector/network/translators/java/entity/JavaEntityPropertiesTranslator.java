@@ -31,6 +31,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.utils.AttributeUtils;
 
 public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntityPropertiesPacket> {
 
@@ -45,23 +46,23 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
         for (Attribute attribute : packet.getAttributes()) {
             switch (attribute.getType()) {
                 case GENERIC_MAX_HEALTH:
-                    entity.getAttributes().put(AttributeType.MAX_HEALTH, AttributeType.MAX_HEALTH.getAttribute((float) attribute.getValue()));
+                    entity.getAttributes().put(AttributeType.MAX_HEALTH, AttributeType.MAX_HEALTH.getAttribute((float) AttributeUtils.calculateValue(attribute)));
                     break;
                 case GENERIC_ATTACK_DAMAGE:
-                    entity.getAttributes().put(AttributeType.ATTACK_DAMAGE, AttributeType.ATTACK_DAMAGE.getAttribute((float) attribute.getValue()));
+                    entity.getAttributes().put(AttributeType.ATTACK_DAMAGE, AttributeType.ATTACK_DAMAGE.getAttribute((float) AttributeUtils.calculateValue(attribute)));
                     break;
                 case GENERIC_FLYING_SPEED:
-                    entity.getAttributes().put(AttributeType.FLYING_SPEED, AttributeType.FLYING_SPEED.getAttribute((float) attribute.getValue()));
-                    entity.getAttributes().put(AttributeType.MOVEMENT_SPEED, AttributeType.MOVEMENT_SPEED.getAttribute((float) attribute.getValue()));
+                    entity.getAttributes().put(AttributeType.FLYING_SPEED, AttributeType.FLYING_SPEED.getAttribute((float) AttributeUtils.calculateValue(attribute)));
+                    entity.getAttributes().put(AttributeType.MOVEMENT_SPEED, AttributeType.MOVEMENT_SPEED.getAttribute((float) AttributeUtils.calculateValue(attribute)));
                     break;
                 case GENERIC_MOVEMENT_SPEED:
-                    entity.getAttributes().put(AttributeType.MOVEMENT_SPEED, AttributeType.MOVEMENT_SPEED.getAttribute((float) attribute.getValue()));
+                    entity.getAttributes().put(AttributeType.MOVEMENT_SPEED, AttributeType.MOVEMENT_SPEED.getAttribute((float) AttributeUtils.calculateValue(attribute)));
                     break;
                 case GENERIC_FOLLOW_RANGE:
-                    entity.getAttributes().put(AttributeType.FOLLOW_RANGE, AttributeType.FOLLOW_RANGE.getAttribute((float) attribute.getValue()));
+                    entity.getAttributes().put(AttributeType.FOLLOW_RANGE, AttributeType.FOLLOW_RANGE.getAttribute((float) AttributeUtils.calculateValue(attribute)));
                     break;
                 case GENERIC_KNOCKBACK_RESISTANCE:
-                    entity.getAttributes().put(AttributeType.KNOCKBACK_RESISTANCE, AttributeType.KNOCKBACK_RESISTANCE.getAttribute((float) attribute.getValue()));
+                    entity.getAttributes().put(AttributeType.KNOCKBACK_RESISTANCE, AttributeType.KNOCKBACK_RESISTANCE.getAttribute((float) AttributeUtils.calculateValue(attribute)));
                     break;
             }
         }
