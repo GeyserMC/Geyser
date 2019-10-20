@@ -140,7 +140,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         javaSlot, null, WindowAction.FILL_STACK, FillStackParam.FILL);
                                 session.getDownstream().getSession().send(fillStackPacket);
                                 translator.updateInventory(session, inventory); //bedrock fill stack can sometimes differ from java version, refresh and let server change slots
-                                System.out.println(fillStackPacket);
                                 return;
                             } else {
                                 //left/right click
@@ -157,7 +156,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         inventory.getNextTransactionId(), javaSlot,
                                         refresh ? new ItemStack(1, 127, new CompoundTag("")) : InventoryUtils.fixNbt(TranslatorsInit.getItemTranslator().translateToJava(containerAction.getFromItem())), //send invalid item stack to refresh slot
                                         WindowAction.CLICK_ITEM, rightClick ? ClickItemParam.RIGHT_CLICK : ClickItemParam.LEFT_CLICK);
-                                System.out.println(clickPacket);
                                 session.getDownstream().getSession().send(clickPacket);
                                 inventory.getItems()[javaSlot] = TranslatorsInit.getItemTranslator().translateToJava(containerAction.getToItem());
                                 translator.updateSlot(session, inventory, javaSlot);
@@ -196,13 +194,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     fromSlot, InventoryUtils.fixNbt(TranslatorsInit.getItemTranslator().translateToJava(fromAction.getFromItem())), WindowAction.CLICK_ITEM,
                                     ClickItemParam.LEFT_CLICK);
                             session.getDownstream().getSession().send(leftClick1Packet);
-                            System.out.println(leftClick1Packet);
                             //release fromAction item into toAction slot
                             ClientWindowActionPacket leftClick2Packet = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
                                     toSlot, InventoryUtils.fixNbt(TranslatorsInit.getItemTranslator().translateToJava(toAction.getFromItem())), WindowAction.CLICK_ITEM,
                                     ClickItemParam.LEFT_CLICK);
                             session.getDownstream().getSession().send(leftClick2Packet);
-                            System.out.println(leftClick2Packet);
                             //test if swapping two items or moving one item
                             //if swapping then complete it
                             if (fromAction.getToItem().getId() != 0) {
