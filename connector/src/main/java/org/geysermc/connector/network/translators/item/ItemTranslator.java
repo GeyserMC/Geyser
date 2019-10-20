@@ -91,7 +91,6 @@ public class ItemTranslator {
 
     private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
         CompoundTag javaTag = new CompoundTag(tag.getName());
-        Map<String, Tag> javaValue = javaTag.getValue();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
                 com.nukkitx.nbt.tag.Tag bedrockTag = tag.get(str);
@@ -99,7 +98,7 @@ public class ItemTranslator {
                 if (translatedTag == null)
                     continue;
 
-                javaValue.put(str, translatedTag);
+                javaTag.getValue().put(str, translatedTag);
             }
         }
 

@@ -99,6 +99,14 @@ public class GeyserSession implements Player {
     @Setter
     private BlockFace blockDiggingFace = BlockFace.DOWN;
 
+    @Getter
+    @Setter
+    private int lastClickedSlot;
+
+    @Getter
+    @Setter
+    private int reopeningWindow = -1;
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);

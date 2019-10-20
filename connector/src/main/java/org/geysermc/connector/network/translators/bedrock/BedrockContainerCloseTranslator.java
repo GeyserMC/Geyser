@@ -23,29 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
+import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.InventoryCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
-public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItemsPacket> {
+public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerClosePacket> {
 
     @Override
-    public void translate(ServerWindowItemsPacket packet, GeyserSession session) {
-        Inventory inventory = session.getInventoryCache().getInventories().get(packet.getWindowId());
-        if (inventory == null || (packet.getWindowId() != 0 && inventory.getWindowType() == null))
-            return;
-
-        inventory.setItems(packet.getItems());
-        InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
-        if (translator != null) {
-            translator.updateInventory(session, inventory);
+    public void translate(ContainerClosePacket packet, GeyserSession session) {
+        byte windowId = packet.getWindowId() == -1 ? 0 : packet.getWindowId(); //player inventory
+        if (session.getReopeningWindow() != -1) {
+            Inventory inventory = session.getInventoryCache().getInventories().get(session.getReopeningWindow());
+            session.setReopeningWindow(-1);
+            if (inventory != null) {
+                InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
+                translator.openInventory(session, inventory);
+                translator.updateInventory(session, inventory);
+                return;
+            }
         }
+        ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
+        session.getDownstream().getSession().send(closeWindowPacket);
+        InventoryUtils.closeInventory(session, windowId);
     }
 }

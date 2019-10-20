@@ -25,44 +25,57 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
+import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.InventoryCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+
+import java.util.Objects;
 
 public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
 
     @Override
     public void translate(ServerSetSlotPacket packet, GeyserSession session) {
-        InventoryCache inventoryCache = session.getInventoryCache();
-        if (!inventoryCache.getInventories().containsKey(packet.getWindowId())) {
-            inventoryCache.cachePacket(packet.getWindowId(), packet);
+        if (packet.getWindowId() == 255 && packet.getSlot() == -1) { //cursor
+            if (Objects.equals(session.getInventory().getCursor(), packet.getItem()))
+                return;
+
+            //bedrock client is bugged when changing the cursor. reopen inventory after changing it
+            if (packet.getItem() == null && session.getInventory().getCursor() != null) {
+                InventorySlotPacket cursorPacket = new InventorySlotPacket();
+                cursorPacket.setContainerId(ContainerId.CURSOR);
+                cursorPacket.setSlot(ItemData.AIR);
+                session.getUpstream().sendPacket(cursorPacket);
+
+                Inventory inventory = session.getInventoryCache().getOpenInventory();
+                if (inventory != null) {
+                    session.setReopeningWindow(inventory.getId());
+                } else {
+                    inventory = session.getInventory();
+                }
+                ContainerClosePacket closePacket = new ContainerClosePacket();
+                closePacket.setWindowId((byte)inventory.getId());
+                session.getUpstream().sendPacket(closePacket);
+            }
+
+            session.getInventory().setCursor(packet.getItem());
             return;
         }
 
-        Inventory inventory = inventoryCache.getInventories().get(packet.getWindowId());
-        if (packet.getWindowId() != 0 && inventory.getWindowType() == null)
+        Inventory inventory = session.getInventoryCache().getInventories().get(packet.getWindowId());
+        if (inventory == null || (packet.getWindowId() != 0 && inventory.getWindowType() == null))
             return;
 
-        // Player inventory
-        if (packet.getWindowId() == 0) {
-            if (packet.getSlot() >= inventory.getItems().length)
-                return; // Most likely not a player inventory
-
-            ItemStack[] items = inventory.getItems();
-            items[packet.getSlot()] = packet.getItem();
-            inventory.setItems(items);
-
-            InventoryUtils.refreshPlayerInventory(session, inventory);
-
-            if (inventory.isOpen()) {
-                InventoryUtils.updateSlot(session, packet);
-            } else {
-                inventoryCache.cachePacket(packet.getWindowId(), packet);
-            }
+        InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
+        if (translator != null) {
+            inventory.getItems()[packet.getSlot()] = packet.getItem();
+            translator.updateSlot(session, inventory, packet.getSlot());
         }
     }
 }

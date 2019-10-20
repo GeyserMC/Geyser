@@ -23,59 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.inventory;
+package org.geysermc.connector.network.translators.java.window;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.nukkitx.math.vector.Vector3i;
-import lombok.Getter;
-import lombok.Setter;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientConfirmTransactionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerConfirmTransactionPacket;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.utils.InventoryUtils;
 
-public class Inventory {
+public class JavaConfirmTransactionTranslator extends PacketTranslator<ServerConfirmTransactionPacket> {
 
-    @Getter
-    protected int id;
-
-    @Getter
-    @Setter
-    protected boolean open;
-
-    @Getter
-    protected WindowType windowType;
-
-    @Getter
-    @Setter
-    protected String title;
-
-    @Getter
-    @Setter
-    protected ItemStack[] items;
-
-    @Getter
-    @Setter
-    protected Vector3i holderPosition = Vector3i.ZERO;
-
-    @Getter
-    @Setter
-    protected long holderId = -1;
-
-    protected short transactionId = 1;
-
-    public Inventory(int id, WindowType windowType) {
-        this("Inventory", id, windowType);
-    }
-
-    public Inventory(String title, int id, WindowType windowType) {
-        this.title = title;
-        this.id = id;
-        this.windowType = windowType;
-    }
-
-    public ItemStack getItem(int slot) {
-        return items[slot];
-    }
-
-    public short getNextTransactionId() {
-        return transactionId++;
+    @Override
+    public void translate(ServerConfirmTransactionPacket packet, GeyserSession session) {
+        System.out.println(packet);
+        if (!packet.isAccepted()) {
+            ClientConfirmTransactionPacket confirmPacket = new ClientConfirmTransactionPacket(packet.getWindowId(), packet.getActionId(), true);
+            session.getDownstream().getSession().send(confirmPacket);
+        }
     }
 }
