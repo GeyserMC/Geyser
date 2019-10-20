@@ -55,17 +55,15 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 cursorPacket.setSlot(ItemData.AIR);
                 session.getUpstream().sendPacket(cursorPacket);
 
-                Geyser.getGeneralThreadPool().schedule(() -> {
-                    Inventory inventory = session.getInventoryCache().getOpenInventory();
-                    if (inventory != null) {
-                        session.setReopeningWindow(inventory.getId());
-                    } else {
-                        inventory = session.getInventory();
-                    }
-                    ContainerClosePacket closePacket = new ContainerClosePacket();
-                    closePacket.setWindowId((byte) inventory.getId());
-                    session.getUpstream().sendPacket(closePacket);
-                }, 150, TimeUnit.MILLISECONDS);
+                Inventory inventory = session.getInventoryCache().getOpenInventory();
+                if (inventory != null) {
+                    session.setReopeningWindow(inventory.getId());
+                } else {
+                    inventory = session.getInventory();
+                }
+                ContainerClosePacket closePacket = new ContainerClosePacket();
+                closePacket.setWindowId((byte) inventory.getId());
+                Geyser.getGeneralThreadPool().schedule(() -> session.getUpstream().sendPacket(closePacket), 150, TimeUnit.MILLISECONDS);
             }
 
             session.getInventory().setCursor(packet.getItem());
