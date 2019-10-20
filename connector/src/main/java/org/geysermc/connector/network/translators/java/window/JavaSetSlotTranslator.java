@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import org.geysermc.api.Geyser;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -37,6 +38,7 @@ import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
 
@@ -53,15 +55,17 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 cursorPacket.setSlot(ItemData.AIR);
                 session.getUpstream().sendPacket(cursorPacket);
 
-                Inventory inventory = session.getInventoryCache().getOpenInventory();
-                if (inventory != null) {
-                    session.setReopeningWindow(inventory.getId());
-                } else {
-                    inventory = session.getInventory();
-                }
-                ContainerClosePacket closePacket = new ContainerClosePacket();
-                closePacket.setWindowId((byte)inventory.getId());
-                session.getUpstream().sendPacket(closePacket);
+                Geyser.getGeneralThreadPool().schedule(() -> {
+                    Inventory inventory = session.getInventoryCache().getOpenInventory();
+                    if (inventory != null) {
+                        session.setReopeningWindow(inventory.getId());
+                    } else {
+                        inventory = session.getInventory();
+                    }
+                    ContainerClosePacket closePacket = new ContainerClosePacket();
+                    closePacket.setWindowId((byte) inventory.getId());
+                    session.getUpstream().sendPacket(closePacket);
+                }, 150, TimeUnit.MILLISECONDS);
             }
 
             session.getInventory().setCursor(packet.getItem());
