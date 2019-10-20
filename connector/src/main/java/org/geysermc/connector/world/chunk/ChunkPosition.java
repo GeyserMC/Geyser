@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -18,17 +20,27 @@ public class ChunkPosition {
     }
 
     public Position getChunkBlock(int x, int y, int z) {
-        int chunkX = x % 16;
-        int chunkY = y % 16;
-        int chunkZ = z % 16;
-
-        if (chunkX < 0)
-            chunkX = -chunkX;
-        if (chunkY < 0)
-            chunkY = -chunkY;
-        if (chunkZ < 0)
-            chunkZ = -chunkZ;
+        int chunkX = x & 15;
+        int chunkY = y & 15;
+        int chunkZ = z & 15;
 
         return new Position(chunkX, chunkY, chunkZ);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (obj == null)
+            return false;
+        if (!(obj instanceof ChunkPosition))
+            return false;
+        ChunkPosition other = (ChunkPosition)obj;
+        return x == other.x && z == other.z;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, z);
     }
 }

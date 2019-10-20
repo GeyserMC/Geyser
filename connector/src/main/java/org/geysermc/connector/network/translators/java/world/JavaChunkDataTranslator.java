@@ -18,6 +18,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
+        session.getChunkCache().addToCache(packet.getColumn());
         // Not sure if this is safe or not, however without this the client usually times out
         Geyser.getConnector().getGeneralThreadPool().execute(() -> {
             Vector2i chunkPos = session.getLastChunkPosition();

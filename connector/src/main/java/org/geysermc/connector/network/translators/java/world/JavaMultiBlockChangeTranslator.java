@@ -40,6 +40,7 @@ public class JavaMultiBlockChangeTranslator extends PacketTranslator<ServerMulti
     @Override
     public void translate(ServerMultiBlockChangePacket packet, GeyserSession session) {
         for (BlockChangeRecord record : packet.getRecords()) {
+            session.getChunkCache().updateBlock(record.getPosition(), record.getBlock());
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
             updateBlockPacket.setDataLayer(0);
             updateBlockPacket.setBlockPosition(Vector3i.from(
