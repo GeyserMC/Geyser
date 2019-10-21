@@ -9,6 +9,7 @@ import org.geysermc.api.Geyser;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 import java.util.Objects;
@@ -16,21 +17,20 @@ import java.util.concurrent.TimeUnit;
 
 public class InventoryUtils {
 
-    public static void openInventory(GeyserSession session, ServerOpenWindowPacket packet) {
-        Inventory inventory = new Inventory(packet.getWindowId(), packet.getType());
+    public static void openInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
         if (translator != null) {
-            session.getInventoryCache().cacheInventory(inventory);
             session.getInventoryCache().setOpenInventory(inventory);
             translator.prepareInventory(session, inventory);
             //TODO: find better way to handle double chest delay
-            if (inventory.getWindowType() == WindowType.GENERIC_9X4 || inventory.getWindowType() == WindowType.GENERIC_9X5 || inventory.getWindowType() == WindowType.GENERIC_9X6) {
+            if (translator instanceof DoubleChestInventoryTranslator) {
                 Geyser.getGeneralThreadPool().schedule(() -> {
                     translator.openInventory(session, inventory);
                     translator.updateInventory(session, inventory);
                 }, 200, TimeUnit.MILLISECONDS);
             } else {
                 translator.openInventory(session, inventory);
+                translator.updateInventory(session, inventory);
             }
         }
     }

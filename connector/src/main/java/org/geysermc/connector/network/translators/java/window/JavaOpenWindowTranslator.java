@@ -25,15 +25,42 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
+import org.geysermc.api.Geyser;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.concurrent.TimeUnit;
 
 public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
 
     @Override
     public void translate(ServerOpenWindowPacket packet, GeyserSession session) {
-        InventoryUtils.openInventory(session, packet);
+        InventoryTranslator newTranslator = TranslatorsInit.getInventoryTranslators().get(packet.getType());
+        if (newTranslator == null) {
+            ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
+            session.getDownstream().getSession().send(closeWindowPacket);
+            return;
+        }
+        Inventory openInventory = session.getInventoryCache().getOpenInventory();
+        Inventory newInventory = new Inventory(packet.getWindowId(), packet.getType());
+        newInventory.setItems(new ItemStack[newTranslator.size + 36]);
+        session.getInventoryCache().cacheInventory(newInventory);
+        if (openInventory != null) {
+            InventoryTranslator openTranslator = TranslatorsInit.getInventoryTranslators().get(openInventory.getWindowType());
+            if (!openTranslator.getClass().equals(newTranslator.getClass())) {
+                InventoryUtils.closeInventory(session, openInventory.getId());
+                Geyser.getGeneralThreadPool().schedule(() -> InventoryUtils.openInventory(session, newInventory), 350, TimeUnit.MILLISECONDS);
+                return;
+            }
+        }
+
+        InventoryUtils.openInventory(session, newInventory);
     }
 }

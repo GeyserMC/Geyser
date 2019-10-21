@@ -162,12 +162,12 @@ public class TranslatorsInit {
 
     private static void registerInventoryTranslators() {
         inventoryTranslators.put(null, new PlayerInventoryTranslator()); //player inventory
-        inventoryTranslators.put(WindowType.GENERIC_9X1, new ChestInventoryTranslator(9));
-        inventoryTranslators.put(WindowType.GENERIC_9X2, new ChestInventoryTranslator(18));
-        inventoryTranslators.put(WindowType.GENERIC_9X3, new ChestInventoryTranslator(27));
-        inventoryTranslators.put(WindowType.GENERIC_9X4, new ChestInventoryTranslator(36));
-        inventoryTranslators.put(WindowType.GENERIC_9X5, new ChestInventoryTranslator(45));
-        inventoryTranslators.put(WindowType.GENERIC_9X6, new ChestInventoryTranslator(54));
+        inventoryTranslators.put(WindowType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
+        inventoryTranslators.put(WindowType.GENERIC_9X2, new SingleChestInventoryTranslator(18));
+        inventoryTranslators.put(WindowType.GENERIC_9X3, new SingleChestInventoryTranslator(27));
+        inventoryTranslators.put(WindowType.GENERIC_9X4, new DoubleChestInventoryTranslator(36));
+        inventoryTranslators.put(WindowType.GENERIC_9X5, new DoubleChestInventoryTranslator(45));
+        inventoryTranslators.put(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
         inventoryTranslators.put(WindowType.GENERIC_3X3, new DispenserInventoryTranslator());
         inventoryTranslators.put(WindowType.HOPPER, new HopperInventoryTranslator());
         inventoryTranslators.put(WindowType.FURNACE, new FurnaceInventoryTranslator());

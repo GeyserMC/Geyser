@@ -28,65 +28,66 @@ package org.geysermc.connector.network.translators.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryAction;
 import com.nukkitx.protocol.bedrock.data.ItemData;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.GlobalBlockPalette;
 
-public class ChestInventoryTranslator extends InventoryTranslator {
-    public ChestInventoryTranslator(int size) {
+public class DoubleChestInventoryTranslator extends InventoryTranslator {
+    public DoubleChestInventoryTranslator(int size) {
         super(size);
     }
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
-        Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        position = position.add(Vector3i.UP);
+        Vector3i position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
+        Vector3i pairPosition = position.add(Vector3i.UNIT_X);
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
         blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(54 << 4)); //chest
         blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
-        if (size > 27) {
-            Vector3i pairPosition = position.add(Vector3i.UNIT_X);
-            blockPacket = new UpdateBlockPacket();
-            blockPacket.setDataLayer(0);
-            blockPacket.setBlockPosition(pairPosition);
-            blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(54 << 4));
-            blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-            session.getUpstream().sendPacket(blockPacket);
 
-            CompoundTag tag = CompoundTag.EMPTY.toBuilder()
-                    .stringTag("id", "Chest")
-                    .intTag("x", position.getX())
-                    .intTag("y", position.getY())
-                    .intTag("z", position.getZ())
-                    .intTag("pairx", pairPosition.getX())
-                    .intTag("pairz", pairPosition.getZ()).buildRootTag();
-            BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
-            dataPacket.setData(tag);
-            dataPacket.setBlockPosition(position);
-            session.getUpstream().sendPacket(dataPacket);
+        CompoundTag tag = CompoundTag.EMPTY.toBuilder()
+                .stringTag("id", "Chest")
+                .intTag("x", position.getX())
+                .intTag("y", position.getY())
+                .intTag("z", position.getZ())
+                .intTag("pairx", pairPosition.getX())
+                .intTag("pairz", pairPosition.getZ()).buildRootTag();
+        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+        dataPacket.setData(tag);
+        dataPacket.setBlockPosition(position);
+        session.getUpstream().sendPacket(dataPacket);
 
-            tag = CompoundTag.EMPTY.toBuilder()
-                    .stringTag("id", "Chest")
-                    .intTag("x", pairPosition.getX())
-                    .intTag("y", pairPosition.getY())
-                    .intTag("z", pairPosition.getZ())
-                    .intTag("pairx", position.getX())
-                    .intTag("pairz", position.getZ()).buildRootTag();
-            dataPacket = new BlockEntityDataPacket();
-            dataPacket.setData(tag);
-            dataPacket.setBlockPosition(pairPosition);
-            session.getUpstream().sendPacket(dataPacket);
-        }
+        blockPacket = new UpdateBlockPacket();
+        blockPacket.setDataLayer(0);
+        blockPacket.setBlockPosition(pairPosition);
+        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(54 << 4));
+        blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+        session.getUpstream().sendPacket(blockPacket);
+
+        tag = CompoundTag.EMPTY.toBuilder()
+                .stringTag("id", "Chest")
+                .intTag("x", pairPosition.getX())
+                .intTag("y", pairPosition.getY())
+                .intTag("z", pairPosition.getZ())
+                .intTag("pairx", position.getX())
+                .intTag("pairz", position.getZ()).buildRootTag();
+        dataPacket = new BlockEntityDataPacket();
+        dataPacket.setData(tag);
+        dataPacket.setBlockPosition(pairPosition);
+        session.getUpstream().sendPacket(dataPacket);
+
         inventory.setHolderPosition(position);
     }
 
@@ -111,16 +112,14 @@ public class ChestInventoryTranslator extends InventoryTranslator {
         blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(realBlock.getBedrockId() << 4 | realBlock.getBedrockData()));
         session.getUpstream().sendPacket(blockPacket);
 
-        if (this.size > 27) {
-            holderPos = holderPos.add(Vector3i.UNIT_X);
-            pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-            realBlock = session.getChunkCache().getBlockAt(pos);
-            blockPacket = new UpdateBlockPacket();
-            blockPacket.setDataLayer(0);
-            blockPacket.setBlockPosition(holderPos);
-            blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(realBlock.getBedrockId() << 4 | realBlock.getBedrockData()));
-            session.getUpstream().sendPacket(blockPacket);
-        }
+        holderPos = holderPos.add(Vector3i.UNIT_X);
+        pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
+        realBlock = session.getChunkCache().getBlockAt(pos);
+        blockPacket = new UpdateBlockPacket();
+        blockPacket.setDataLayer(0);
+        blockPacket.setBlockPosition(holderPos);
+        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(realBlock.getBedrockId() << 4 | realBlock.getBedrockData()));
+        session.getUpstream().sendPacket(blockPacket);
     }
 
     @Override
@@ -129,13 +128,8 @@ public class ChestInventoryTranslator extends InventoryTranslator {
 
     @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
-        //need to pad empty slots for 1x9, 2x9, 4x9, and 5x9
-        int paddedSize;
-        if (this.size > 27) {
-            paddedSize = 54;
-        } else {
-            paddedSize = 27;
-        }
+        //need to pad empty slots for 4x9, and 5x9
+        final int paddedSize = 54;
         ItemData[] bedrockItems = new ItemData[paddedSize];
         for (int i = 0; i < bedrockItems.length; i++) {
             if (i <= this.size) {
