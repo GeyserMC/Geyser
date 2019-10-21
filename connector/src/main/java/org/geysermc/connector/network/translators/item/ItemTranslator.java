@@ -91,6 +91,7 @@ public class ItemTranslator {
 
     private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
         CompoundTag javaTag = new CompoundTag(tag.getName());
+        Map<String, Tag> javaValue = javaTag.getValue();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
                 com.nukkitx.nbt.tag.Tag bedrockTag = tag.get(str);
@@ -98,10 +99,11 @@ public class ItemTranslator {
                 if (translatedTag == null)
                     continue;
 
-                javaTag.getValue().put(str, translatedTag);
+                javaValue.put(str, translatedTag);
             }
         }
 
+        javaTag.setValue(javaValue);
         return javaTag;
     }
 
@@ -153,7 +155,7 @@ public class ItemTranslator {
 
         if (tag instanceof com.nukkitx.nbt.tag.StringTag) {
             com.nukkitx.nbt.tag.StringTag stringTag = (com.nukkitx.nbt.tag.StringTag) tag;
-            return new StringTag(stringTag.getName(), stringTag.getValue());
+            return new StringTag(stringTag.getName(), '"' + stringTag.getValue() + '"');
         }
 
         if (tag instanceof com.nukkitx.nbt.tag.ListTag) {
