@@ -40,7 +40,6 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
     public void translate(ServerPlayerActionAckPacket packet, GeyserSession session) {
         switch (packet.getAction()) {
             case FINISH_DIGGING:
-                session.getChunkCache().updateBlock(packet.getPosition(), packet.getNewState());
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
                 updateBlockPacket.setDataLayer(0);
                 updateBlockPacket.setBlockPosition(Vector3i.from(

@@ -1,6 +1,5 @@
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockChangeRecord;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockChangePacket;
 import com.nukkitx.math.vector.Vector3i;
@@ -15,7 +14,6 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
     @Override
     public void translate(ServerBlockChangePacket packet, GeyserSession session) {
         BlockChangeRecord record = packet.getRecord();
-        session.getChunkCache().updateBlock(record.getPosition(), record.getBlock());
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(Vector3i.from(
