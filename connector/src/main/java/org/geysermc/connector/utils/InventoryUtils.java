@@ -42,8 +42,8 @@ public class InventoryUtils {
                 InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
                 translator.closeInventory(session, inventory);
                 session.getInventoryCache().uncacheInventory(windowId);
+                session.getInventoryCache().setOpenInventory(null);
             }
-            session.getInventoryCache().setOpenInventory(null);
         }
     }
 
@@ -55,8 +55,8 @@ public class InventoryUtils {
     }
 
     //NPE if nbt tag is null
-    public static ItemStack fixNbt(ItemStack stack) {
-        if (stack == null)
+    public static ItemStack fixStack(ItemStack stack) {
+        if (stack == null || stack.getId() == 0)
             return null;
         return new ItemStack(stack.getId(), stack.getAmount(), stack.getNbt() == null ? new CompoundTag("") : stack.getNbt());
     }

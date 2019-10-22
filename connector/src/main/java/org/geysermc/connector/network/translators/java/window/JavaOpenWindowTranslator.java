@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java.window;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
+import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.api.Geyser;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -42,15 +43,23 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
 
     @Override
     public void translate(ServerOpenWindowPacket packet, GeyserSession session) {
+        if (packet.getWindowId() == 0) {
+            return;
+        }
         InventoryTranslator newTranslator = TranslatorsInit.getInventoryTranslators().get(packet.getType());
+        Inventory openInventory = session.getInventoryCache().getOpenInventory();
         if (newTranslator == null) {
+            if (openInventory != null) {
+                ContainerClosePacket closePacket = new ContainerClosePacket();
+                closePacket.setWindowId((byte)openInventory.getId());
+                session.getUpstream().sendPacket(closePacket);
+                TranslatorsInit.getInventoryTranslators().get(openInventory.getWindowType()).closeInventory(session, openInventory);
+            }
             ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
             session.getDownstream().getSession().send(closeWindowPacket);
             return;
         }
-        Inventory openInventory = session.getInventoryCache().getOpenInventory();
-        Inventory newInventory = new Inventory(packet.getWindowId(), packet.getType());
-        newInventory.setItems(new ItemStack[newTranslator.size + 36]);
+        Inventory newInventory = new Inventory(packet.getWindowId(), packet.getType(), newTranslator.size + 36);
         session.getInventoryCache().cacheInventory(newInventory);
         if (openInventory != null) {
             InventoryTranslator openTranslator = TranslatorsInit.getInventoryTranslators().get(openInventory.getWindowType());

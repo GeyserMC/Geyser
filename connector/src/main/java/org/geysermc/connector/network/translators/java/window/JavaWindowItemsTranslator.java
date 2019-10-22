@@ -28,11 +28,11 @@ package org.geysermc.connector.network.translators.java.window;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.InventoryCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.Arrays;
 
 public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItemsPacket> {
 
@@ -42,7 +42,12 @@ public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItem
         if (inventory == null || (packet.getWindowId() != 0 && inventory.getWindowType() == null))
             return;
 
-        inventory.setItems(packet.getItems());
+        if (packet.getItems().length < inventory.getSize()) {
+            inventory.setItems(Arrays.copyOf(packet.getItems(), inventory.getSize()));
+        } else {
+            inventory.setItems(packet.getItems());
+        }
+
         InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
         if (translator != null) {
             translator.updateInventory(session, inventory);

@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.TranslatorsInit;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
     public PlayerInventoryTranslator() {
-        super(45);
+        super(46);
     }
 
     @Override
@@ -65,6 +65,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         }
         armorContentPacket.setContents(contents);
         session.getUpstream().sendPacket(armorContentPacket);
+
+        // Offhand
+        InventoryContentPacket offhandPacket = new InventoryContentPacket();
+        offhandPacket.setContainerId(ContainerId.OFFHAND);
+        offhandPacket.setContents(new ItemData[]{TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(45))});
+        session.getUpstream().sendPacket(offhandPacket);
     }
 
     @Override
@@ -86,6 +92,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             session.getUpstream().sendPacket(slotPacket);
         } else if (slot == 0) {
             //TODO: crafting output
+        } else if (slot == 45) {
+            InventoryContentPacket offhandPacket = new InventoryContentPacket();
+            offhandPacket.setContainerId(ContainerId.OFFHAND);
+            offhandPacket.setContents(new ItemData[]{TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(slot))});
+            session.getUpstream().sendPacket(offhandPacket);
         }
     }
 
@@ -108,6 +119,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     return slotnum + 5;
                 }
                 break;
+            case ContainerId.OFFHAND:
+                return 45;
             case ContainerId.CRAFTING_ADD_INGREDIENT:
             case ContainerId.CRAFTING_REMOVE_INGREDIENT:
                 return slotnum + 1;

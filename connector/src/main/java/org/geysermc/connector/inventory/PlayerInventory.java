@@ -39,9 +39,7 @@ public class PlayerInventory extends Inventory {
     private ItemStack cursor;
 
     public PlayerInventory() {
-        super(0, null);
-
-        items = new ItemStack[45];
+        super(0, null, 46);
         heldItemSlot = 0;
     }
 

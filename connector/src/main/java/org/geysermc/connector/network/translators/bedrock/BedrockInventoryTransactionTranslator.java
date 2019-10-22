@@ -45,7 +45,6 @@ import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -110,13 +109,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             boolean leftClick = containerAction.getToItem().getCount() == 0;
                             if (containerAction.getSource().getContainerId() != ContainerId.CURSOR) { //dropping directly from inventory
                                 int javaSlot = translator.bedrockSlotToJava(containerAction);
-                                ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
+                                ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
                                         javaSlot, null, WindowAction.DROP_ITEM,
                                         leftClick ? DropItemParam.DROP_SELECTED_STACK : DropItemParam.DROP_FROM_SELECTED);
                                 session.getDownstream().getSession().send(dropPacket);
                                 return;
                             } else { //clicking outside of inventory
-                                ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
+                                ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
                                         -999, null, WindowAction.CLICK_ITEM,
                                         leftClick ? ClickItemParam.LEFT_CLICK : ClickItemParam.RIGHT_CLICK);
                                 session.getDownstream().getSession().send(dropPacket);
@@ -136,7 +135,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             if (InventoryUtils.canCombine(cursorAction.getFromItem(), cursorAction.getToItem())
                                     && cursorAction.getToItem().getCount() > cursorAction.getFromItem().getCount()) { //fill stack
                                 int javaSlot = session.getLastClickedSlot();
-                                ClientWindowActionPacket fillStackPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
+                                ClientWindowActionPacket fillStackPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
                                         javaSlot, null, WindowAction.FILL_STACK, FillStackParam.FILL);
                                 session.getDownstream().getSession().send(fillStackPacket);
                                 translator.updateInventory(session, inventory); //bedrock fill stack can sometimes differ from java version, refresh and let server change slots
@@ -153,8 +152,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 ItemStack translatedCursor = TranslatorsInit.getItemTranslator().translateToJava(cursorAction.getFromItem());
                                 boolean refresh = !Objects.equals(session.getInventory().getCursor(), translatedCursor.getId() == 0 ? null : translatedCursor); //refresh slot if there is a cursor mismatch
                                 ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(inventory.getId(),
-                                        inventory.getNextTransactionId(), javaSlot,
-                                        refresh ? new ItemStack(1, 127, new CompoundTag("")) : InventoryUtils.fixNbt(TranslatorsInit.getItemTranslator().translateToJava(containerAction.getFromItem())), //send invalid item stack to refresh slot
+                                        inventory.getTransactionId().getAndIncrement(), javaSlot,
+                                        refresh ? new ItemStack(1, 127, new CompoundTag("")) : InventoryUtils.fixStack(TranslatorsInit.getItemTranslator().translateToJava(containerAction.getFromItem())), //send invalid item stack to refresh slot
                                         WindowAction.CLICK_ITEM, rightClick ? ClickItemParam.RIGHT_CLICK : ClickItemParam.LEFT_CLICK);
                                 session.getDownstream().getSession().send(clickPacket);
                                 inventory.getItems()[javaSlot] = TranslatorsInit.getItemTranslator().translateToJava(containerAction.getToItem());
@@ -182,27 +181,27 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         //check if dealing with output only slot like furnace. this is to handle a situation where the output slot was partially emptied without right clicking (touchscreen or full inventory)
                         //this is only possible by shift clicking
                         if (translator.isOutputSlot(fromAction) && fromAction.getToItem().getCount() != 0) {
-                            ClientWindowActionPacket shiftClickPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
-                                    fromSlot, InventoryUtils.fixNbt(inventory.getItem(fromSlot)), WindowAction.SHIFT_CLICK_ITEM, ShiftClickItemParam.LEFT_CLICK);
+                            ClientWindowActionPacket shiftClickPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
+                                    fromSlot, InventoryUtils.fixStack(inventory.getItem(fromSlot)), WindowAction.SHIFT_CLICK_ITEM, ShiftClickItemParam.LEFT_CLICK);
                             session.getDownstream().getSession().send(shiftClickPacket);
                             inventory.getItems()[toSlot] = TranslatorsInit.getItemTranslator().translateToJava(toAction.getToItem());
                             inventory.getItems()[fromSlot] = TranslatorsInit.getItemTranslator().translateToJava(fromAction.getToItem());
                             return;
                         } else {
                             //pickup fromAction item
-                            ClientWindowActionPacket leftClick1Packet = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
-                                    fromSlot, InventoryUtils.fixNbt(TranslatorsInit.getItemTranslator().translateToJava(fromAction.getFromItem())), WindowAction.CLICK_ITEM,
+                            ClientWindowActionPacket leftClick1Packet = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
+                                    fromSlot, InventoryUtils.fixStack(TranslatorsInit.getItemTranslator().translateToJava(fromAction.getFromItem())), WindowAction.CLICK_ITEM,
                                     ClickItemParam.LEFT_CLICK);
                             session.getDownstream().getSession().send(leftClick1Packet);
                             //release fromAction item into toAction slot
-                            ClientWindowActionPacket leftClick2Packet = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
-                                    toSlot, InventoryUtils.fixNbt(TranslatorsInit.getItemTranslator().translateToJava(toAction.getFromItem())), WindowAction.CLICK_ITEM,
+                            ClientWindowActionPacket leftClick2Packet = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
+                                    toSlot, InventoryUtils.fixStack(TranslatorsInit.getItemTranslator().translateToJava(toAction.getFromItem())), WindowAction.CLICK_ITEM,
                                     ClickItemParam.LEFT_CLICK);
                             session.getDownstream().getSession().send(leftClick2Packet);
                             //test if swapping two items or moving one item
                             //if swapping then complete it
                             if (fromAction.getToItem().getId() != 0) {
-                                ClientWindowActionPacket leftClick3Packet = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
+                                ClientWindowActionPacket leftClick3Packet = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
                                         fromSlot, null, WindowAction.CLICK_ITEM,
                                         ClickItemParam.LEFT_CLICK);
                                 session.getDownstream().getSession().send(leftClick3Packet);
@@ -250,8 +249,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 }
                             }
                             int javaSlot = translator.bedrockSlotToJava(sourceAction);
-                            ClientWindowActionPacket shiftClickPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
-                                    javaSlot, InventoryUtils.fixNbt(inventory.getItem(javaSlot)), WindowAction.SHIFT_CLICK_ITEM, ShiftClickItemParam.LEFT_CLICK);
+                            ClientWindowActionPacket shiftClickPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
+                                    javaSlot, InventoryUtils.fixStack(inventory.getItem(javaSlot)), WindowAction.SHIFT_CLICK_ITEM, ShiftClickItemParam.LEFT_CLICK);
                             session.getDownstream().getSession().send(shiftClickPacket);
                             return;
                         } else if (destActions.size() == 1) { //fill stack
@@ -259,17 +258,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             int javaSlot;
                             if (destAction != cursorAction) { //if touchscreen
                                 javaSlot = translator.bedrockSlotToJava(destAction);
-                                ClientWindowActionPacket leftClickPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
-                                        javaSlot, InventoryUtils.fixNbt(inventory.getItem(javaSlot)), WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK);
+                                ClientWindowActionPacket leftClickPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
+                                        javaSlot, InventoryUtils.fixStack(inventory.getItem(javaSlot)), WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK);
                                 session.getDownstream().getSession().send(leftClickPacket);
                             } else {
                                 javaSlot = session.getLastClickedSlot();
                             }
-                            ClientWindowActionPacket fillStackPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
+                            ClientWindowActionPacket fillStackPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
                                     javaSlot, null, WindowAction.FILL_STACK, FillStackParam.FILL);
                             session.getDownstream().getSession().send(fillStackPacket);
                             if (destAction != cursorAction) { //if touchscreen
-                                ClientWindowActionPacket leftClickPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getNextTransactionId(),
+                                ClientWindowActionPacket leftClickPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
                                         javaSlot, null, WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK);
                                 session.getDownstream().getSession().send(leftClickPacket);
                                 inventory.getItems()[javaSlot] = TranslatorsInit.getItemTranslator().translateToJava(destAction.getToItem());

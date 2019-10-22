@@ -31,6 +31,8 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Inventory {
 
     @Getter
@@ -42,6 +44,9 @@ public class Inventory {
 
     @Getter
     protected WindowType windowType;
+
+    @Getter
+    protected final int size;
 
     @Getter
     @Setter
@@ -59,23 +64,22 @@ public class Inventory {
     @Setter
     protected long holderId = -1;
 
-    protected short transactionId = 1;
+    @Getter
+    protected AtomicInteger transactionId = new AtomicInteger(1);
 
-    public Inventory(int id, WindowType windowType) {
-        this("Inventory", id, windowType);
+    public Inventory(int id, WindowType windowType, int size) {
+        this("Inventory", id, windowType, size);
     }
 
-    public Inventory(String title, int id, WindowType windowType) {
+    public Inventory(String title, int id, WindowType windowType, int size) {
         this.title = title;
         this.id = id;
         this.windowType = windowType;
+        this.size = size;
+        this.items = new ItemStack[size];
     }
 
     public ItemStack getItem(int slot) {
         return items[slot];
-    }
-
-    public short getNextTransactionId() {
-        return transactionId++;
     }
 }
