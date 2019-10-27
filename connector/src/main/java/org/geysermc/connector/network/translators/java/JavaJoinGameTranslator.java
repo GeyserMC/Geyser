@@ -52,6 +52,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
         session.getUpstream().sendPacket(playerGameTypePacket);
+        session.setGameMode(packet.getGameMode());
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());

@@ -93,12 +93,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case START_BREAK:
                 ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
                         packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
-                session.setBlockDiggingPos(packet.getBlockPosition());
-                session.setBlockDiggingFace(BlockFace.values()[packet.getFace()]);
                 session.getDownstream().getSession().send(startBreakingPacket);
                 break;
             case CONTINUE_BREAK:
-                session.setBlockDiggingFace(BlockFace.values()[packet.getFace()]);
                 break;
             case ABORT_BREAK:
                 ClientPlayerActionPacket abortBreakingPacket = new ClientPlayerActionPacket(PlayerAction.CANCEL_DIGGING, new Position(packet.getBlockPosition().getX(),
@@ -106,10 +103,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getDownstream().getSession().send(abortBreakingPacket);
                 break;
             case STOP_BREAK:
-                Vector3i pos = session.getBlockDiggingPos();
-                ClientPlayerActionPacket stopBreakingPacket = new ClientPlayerActionPacket(PlayerAction.FINISH_DIGGING, new Position(pos.getX(),
-                        pos.getY(), pos.getZ()), session.getBlockDiggingFace());
-                session.getDownstream().getSession().send(stopBreakingPacket);
+                // Handled in BedrockInventoryTransactionTranslator
                 break;
         }
     }
