@@ -52,6 +52,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 byteBuf.writeBytes(chunkData.biomes); // Biomes - 256 bytes
                 byteBuf.writeByte(0); // Border blocks - Edu edition only
                 VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
+                byteBuf.writeBytes(chunkData.blockEntities);
 
                 byte[] payload = new byte[byteBuf.writerIndex()];
                 byteBuf.readBytes(payload);

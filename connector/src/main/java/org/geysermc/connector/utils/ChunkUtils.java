@@ -3,6 +3,7 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.chunk.ChunkSection;
@@ -13,8 +14,23 @@ public class ChunkUtils {
         ChunkData chunkData = new ChunkData();
 
         Chunk[] chunks = column.getChunks();
+
         int chunkSectionCount = chunks.length;
+
         chunkData.sections = new ChunkSection[chunkSectionCount];
+
+        for(int biome = 0; biome < 256; biome++) {
+            if (column.getBiomeData()[biome] <= Byte.MAX_VALUE) {
+                chunkData.biomes[biome] = (byte) (column.getBiomeData()[biome]);
+            } else {
+                chunkData.biomes[biome] = (byte) (column.getBiomeData()[biome] - 255);
+            }
+        }
+        
+
+        for(CompoundTag tag : column.getTileEntities()) {
+            System.out.println(tag.toString());
+        }
 
         for (int chunkY = 0; chunkY < chunkSectionCount; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
