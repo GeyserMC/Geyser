@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
@@ -37,7 +38,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -50,6 +50,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 if (packet.getActionType() == 1) {
                     ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                     session.getDownstream().getSession().send(useItemPacket);
+                } else if (packet.getActionType() == 2) {
+                    PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
+                    Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
+                    ClientPlayerActionPacket breakPacket = new ClientPlayerActionPacket(action, pos, BlockFace.values()[packet.getFace()]);
+                    session.getDownstream().getSession().send(breakPacket);
                 }
                 break;
             case ITEM_RELEASE:
