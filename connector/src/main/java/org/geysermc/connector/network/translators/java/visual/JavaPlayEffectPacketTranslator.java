@@ -24,7 +24,7 @@ public class JavaPlayEffectPacketTranslator extends PacketTranslator<ServerPlayE
             Position pos = packet.getPosition();
 
             levelEventPacket.setPosition(Vector3f.from(pos.getX(), pos.getY(), pos.getZ()));
-            System.out.println(particleEffect);
+            //System.out.println(particleEffect);
 
 
             //TODO: Not hard coded
