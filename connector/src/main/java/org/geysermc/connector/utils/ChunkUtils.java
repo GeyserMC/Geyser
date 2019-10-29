@@ -6,6 +6,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockEntry;
+import org.geysermc.connector.world.BiomePalette;
 import org.geysermc.connector.world.chunk.ChunkSection;
 
 public class ChunkUtils {
@@ -19,17 +20,27 @@ public class ChunkUtils {
 
         chunkData.sections = new ChunkSection[chunkSectionCount];
 
-        for(int biome = 0; biome < 256; biome++) {
-            if (column.getBiomeData()[biome] <= Byte.MAX_VALUE) {
-                chunkData.biomes[biome] = (byte) (column.getBiomeData()[biome]);
-            } else {
-                chunkData.biomes[biome] = (byte) (column.getBiomeData()[biome] - 255);
+        int[] biomesConverted = new int[256];
+
+        try {
+            for (int biomeX = 0; biomeX < 16; biomeX++) {
+                for (int biomeZ = 0; biomeZ < 16; biomeZ++) {
+                    biomesConverted[(biomeX << 4) | biomeZ] = column.getBiomeData()[(biomeZ * 4) | biomeX];
+                }
             }
-        }
-        
+
+            BiomePalette palette = new BiomePalette(biomesConverted);
+
+            for (int biomeX = 0; biomeX < 16; biomeX++) {
+                for (int biomeZ = 0; biomeZ < 16; biomeZ++) {
+                    chunkData.biomes[(biomeX << 4) | biomeZ] = (byte) (palette.get(biomeX, biomeZ));
+                }
+            }
+        } catch (Exception e) {}
 
         for(CompoundTag tag : column.getTileEntities()) {
-            System.out.println(tag.toString());
+            //TODO: Tiles
+            //System.out.println(tag.toString());
         }
 
         for (int chunkY = 0; chunkY < chunkSectionCount; chunkY++) {
