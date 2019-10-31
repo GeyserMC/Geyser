@@ -1,13 +1,15 @@
 package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nukkitx.network.VarInts;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTInputStream;
+import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.tag.ListTag;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
+
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.network.translators.item.ItemEntry;
@@ -19,38 +21,42 @@ import java.util.*;
 public class Toolbox {
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS;
-    public static final ByteBuf CACHED_PALLETE;
+    public static ListTag<CompoundTag> CACHED_PALLETE;
 
     public static final TIntObjectMap<ItemEntry> ITEM_ENTRIES;
     public static final TIntObjectMap<BlockEntry> BLOCK_ENTRIES;
 
     static {
-        InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/cached_palette.json");
-        ObjectMapper mapper = new ObjectMapper();
-        List<LinkedHashMap<String, Object>> entries = new ArrayList<>();
-
-        try {
-            entries = mapper.readValue(stream, ArrayList.class);
-        } catch (Exception e) {
-            e.printStackTrace();
+        InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/cached_palette.dat");
+        if (stream == null) {
+            throw new AssertionError("Unable to find cached_palette.dat");
         }
-
-        ByteBuf cachedPalette = Unpooled.buffer();
-        VarInts.writeUnsignedInt(cachedPalette, entries.size());
 
         Map<String, Integer> blockIdToIdentifier = new HashMap<>();
+        CompoundTag tag;
 
-        for (Map<String, Object> entry : entries) {
-            blockIdToIdentifier.put((String) entry.get("name"), (int) entry.get("id"));
-
-            GlobalBlockPalette.registerMapping((int) entry.get("id") << 4 | (int) entry.get("data"));
-            BedrockUtils.writeString(cachedPalette, (String) entry.get("name"));
-            cachedPalette.writeShortLE((int) entry.get("data"));
-            cachedPalette.writeShortLE((int) entry.get("id"));
+        NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream);
+        try {
+            tag = (CompoundTag) nbtInputStream.readTag();
+            System.out.println(tag.getValue().values());
+            System.out.println(tag.getAsList("Palette", CompoundTag.class));
+            nbtInputStream.close();
+        } catch (Exception ex) {
+            GeyserLogger.DEFAULT.warning("Failed to get blocks from cached palette, please report this error!");
+            throw new AssertionError(ex);
         }
 
-        CACHED_PALLETE = cachedPalette;
+        List<CompoundTag> entries = tag.getAsList("Palette", CompoundTag.class);
+        for (CompoundTag entry : entries) {
+            String name = entry.getAsString("name");
+            int id = entry.getAsShort("id");
+            int data = entry.getAsShort("meta");
 
+            blockIdToIdentifier.put(name, id);
+            GlobalBlockPalette.registerMapping(id << 4 | data);
+        }
+
+        CACHED_PALLETE = new ListTag<>("Palette", CompoundTag.class, tag.getAsList("Palette", CompoundTag.class));
         InputStream stream2 = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/items.json");
         if (stream2 == null) {
             throw new AssertionError("Items Table not found");

@@ -2,6 +2,8 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.google.gson.JsonObject;
+import com.nukkitx.protocol.bedrock.data.ImageData;
+import com.nukkitx.protocol.bedrock.data.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,14 +48,12 @@ public class SkinUtils {
     public static PlayerListPacket.Entry buildEntryManually(UUID uuid, String username, long geyserId,
                                                             String skinId, byte[] skinData, byte[] capeData,
                                                             String geometryName, String geometryData) {
+        SerializedSkin serializedSkin = SerializedSkin.of(skinId, ImageData.of(skinData), ImageData.of(capeData), geometryName, geometryData, true);
+
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
         entry.setName(username);
         entry.setEntityId(geyserId);
-        entry.setSkinId(skinId);
-        entry.setSkinData(skinData != null ? skinData : SkinProvider.STEVE_SKIN);
-        entry.setCapeData(capeData);
-        entry.setGeometryName(geometryName);
-        entry.setGeometryData(geometryData);
+        entry.setSkin(serializedSkin);
         entry.setXuid("");
         entry.setPlatformChatId("");
         return entry;

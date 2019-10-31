@@ -27,7 +27,8 @@ package org.geysermc.connector;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
+import com.nukkitx.protocol.bedrock.v388.Bedrock_v388;
+
 import lombok.Getter;
 import org.fusesource.jansi.AnsiConsole;
 import org.geysermc.api.Connector;
@@ -55,7 +56,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,7 +67,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector implements Connector {
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v361.V361_CODEC;
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v388.V388_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "1.0-SNAPSHOT";
@@ -130,6 +130,7 @@ public class GeyserConnector implements Connector {
 
         logger.setDebug(config.isDebugMode());
 
+        Toolbox.init();
         TranslatorsInit.start();
 
         commandMap = new GeyserCommandMap(this);

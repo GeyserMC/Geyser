@@ -296,8 +296,9 @@ public class GeyserSession implements Player {
         startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setCachedPalette(Toolbox.CACHED_PALLETE.retainedDuplicate());
+        startGamePacket.setBlockPalette(Toolbox.CACHED_PALLETE);
         startGamePacket.setItemEntries(Toolbox.ITEMS);
+        startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacket(startGamePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
