@@ -130,7 +130,6 @@ public class GeyserConnector implements Connector {
 
         logger.setDebug(config.isDebugMode());
 
-        Toolbox.init();
         TranslatorsInit.start();
 
         commandMap = new GeyserCommandMap(this);
