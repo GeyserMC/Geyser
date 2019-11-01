@@ -27,8 +27,10 @@ package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryAction;
+import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.inventory.Inventory;
@@ -52,6 +54,16 @@ public class DispenserInventoryTranslator extends InventoryTranslator {
         blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
         inventory.setHolderPosition(position);
+
+        CompoundTag tag = CompoundTag.EMPTY.toBuilder()
+                .intTag("x", position.getX())
+                .intTag("y", position.getY())
+                .intTag("z", position.getZ())
+                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
+        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+        dataPacket.setData(tag);
+        dataPacket.setBlockPosition(position);
+        session.getUpstream().sendPacket(dataPacket);
     }
 
     @Override

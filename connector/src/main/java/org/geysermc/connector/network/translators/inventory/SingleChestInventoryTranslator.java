@@ -55,6 +55,16 @@ public class SingleChestInventoryTranslator extends InventoryTranslator {
         blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
         inventory.setHolderPosition(position);
+
+        CompoundTag tag = CompoundTag.EMPTY.toBuilder()
+                .intTag("x", position.getX())
+                .intTag("y", position.getY())
+                .intTag("z", position.getZ())
+                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
+        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+        dataPacket.setData(tag);
+        dataPacket.setBlockPosition(position);
+        session.getUpstream().sendPacket(dataPacket);
     }
 
     @Override

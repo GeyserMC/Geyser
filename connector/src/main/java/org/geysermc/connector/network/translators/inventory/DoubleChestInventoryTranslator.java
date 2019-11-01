@@ -63,7 +63,8 @@ public class DoubleChestInventoryTranslator extends InventoryTranslator {
                 .intTag("y", position.getY())
                 .intTag("z", position.getZ())
                 .intTag("pairx", pairPosition.getX())
-                .intTag("pairz", pairPosition.getZ()).buildRootTag();
+                .intTag("pairz", pairPosition.getZ())
+                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(position);
@@ -82,7 +83,8 @@ public class DoubleChestInventoryTranslator extends InventoryTranslator {
                 .intTag("y", pairPosition.getY())
                 .intTag("z", pairPosition.getZ())
                 .intTag("pairx", position.getX())
-                .intTag("pairz", position.getZ()).buildRootTag();
+                .intTag("pairz", position.getZ())
+                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
         dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(pairPosition);
