@@ -297,7 +297,7 @@ public class GeyserSession implements Player {
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setBlockPalette(Toolbox.BLOCKS);
         startGamePacket.setItemEntries(Toolbox.ITEMS);
-        startGamePacket.setMovementServerAuthoritative(true);
+        startGamePacket.setVanillaVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
         upstream.sendPacket(startGamePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
