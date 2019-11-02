@@ -21,34 +21,31 @@ import java.util.*;
 public class Toolbox {
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS;
-    public static ListTag<CompoundTag> CACHED_PALLETE;
+    public static ListTag<CompoundTag> BLOCKS;
 
     public static final TIntObjectMap<ItemEntry> ITEM_ENTRIES;
     public static final TIntObjectMap<BlockEntry> BLOCK_ENTRIES;
 
     static {
-        InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/cached_palette.dat");
+        InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/runtime_block_states.dat");
         if (stream == null) {
-            throw new AssertionError("Unable to find cached_palette.dat");
+            throw new AssertionError("Unable to find bedrock/runtime_block_states.dat");
         }
 
         Map<String, Integer> blockIdToIdentifier = new HashMap<>();
-        CompoundTag tag;
+        ListTag<CompoundTag> blocksTag;
 
-        NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream);
+        NBTInputStream nbtInputStream = NbtUtils.createReader(stream);
         try {
-            tag = (CompoundTag) nbtInputStream.readTag();
-            System.out.println(tag.getValue().values());
-            System.out.println(tag.getAsList("Palette", CompoundTag.class));
+            blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
             nbtInputStream.close();
         } catch (Exception ex) {
-            GeyserLogger.DEFAULT.warning("Failed to get blocks from cached palette, please report this error!");
+            GeyserLogger.DEFAULT.warning("Failed to get blocks from runtime block states, please report this error!");
             throw new AssertionError(ex);
         }
 
-        List<CompoundTag> entries = tag.getAsList("Palette", CompoundTag.class);
-        for (CompoundTag entry : entries) {
-            String name = entry.getAsString("name");
+        for (CompoundTag entry : blocksTag.getValue()) {
+            String name = entry.getAsCompound("block").getAsString("name");
             int id = entry.getAsShort("id");
             int data = entry.getAsShort("meta");
 
@@ -56,7 +53,7 @@ public class Toolbox {
             GlobalBlockPalette.registerMapping(id << 4 | data);
         }
 
-        CACHED_PALLETE = new ListTag<>("Palette", CompoundTag.class, tag.getAsList("Palette", CompoundTag.class));
+        BLOCKS = blocksTag;
         InputStream stream2 = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/items.json");
         if (stream2 == null) {
             throw new AssertionError("Items Table not found");
@@ -112,7 +109,7 @@ public class Toolbox {
 
         for (Map.Entry<String, Map<String, Object>> itemEntry : blocks.entrySet()) {
             if (!blockIdToIdentifier.containsKey(itemEntry.getValue().get("bedrock_identifier"))) {
-                GeyserLogger.DEFAULT.debug("Mapping " + itemEntry.getValue().get("bedrock_identifier") + " does not exist on bedrock edition!");
+                GeyserLogger.DEFAULT.debug("Mapping " + itemEntry.getValue().get("bedrock_identifier") + " was not found for bedrock edition!");
                 blockEntries.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, 248, 0)); // update block
             } else {
                 blockEntries.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, blockIdToIdentifier.get(itemEntry.getValue().get("bedrock_identifier")), (int) itemEntry.getValue().get("bedrock_data")));

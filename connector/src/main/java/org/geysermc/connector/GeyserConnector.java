@@ -50,7 +50,6 @@ import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
 import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.Toolbox;
 
 import java.io.File;
 import java.io.IOException;
@@ -117,7 +116,6 @@ public class GeyserConnector implements Connector {
 
         try {
             File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
-
             config = FileUtils.loadConfig(configFile, GeyserConfiguration.class);
         } catch (IOException ex) {
             logger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
