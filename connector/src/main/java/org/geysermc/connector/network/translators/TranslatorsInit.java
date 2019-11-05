@@ -43,6 +43,7 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import org.geysermc.connector.network.translators.bedrock.*;
@@ -169,10 +170,19 @@ public class TranslatorsInit {
         inventoryTranslators.put(WindowType.GENERIC_9X4, new DoubleChestInventoryTranslator(36));
         inventoryTranslators.put(WindowType.GENERIC_9X5, new DoubleChestInventoryTranslator(45));
         inventoryTranslators.put(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
-        inventoryTranslators.put(WindowType.GENERIC_3X3, new DispenserInventoryTranslator());
-        inventoryTranslators.put(WindowType.HOPPER, new HopperInventoryTranslator());
-        inventoryTranslators.put(WindowType.FURNACE, new FurnaceInventoryTranslator());
-        inventoryTranslators.put(WindowType.BLAST_FURNACE, new FurnaceInventoryTranslator());
-        inventoryTranslators.put(WindowType.SMOKER, new FurnaceInventoryTranslator());
+        inventoryTranslators.put(WindowType.BREWING_STAND, new BrewingStandInventoryTranslator());
+        inventoryTranslators.put(WindowType.ANVIL, new AnvilInventoryTranslator());
+        //inventoryTranslators.put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
+
+        InventoryTranslator furnace = new FurnaceInventoryTranslator();
+        inventoryTranslators.put(WindowType.FURNACE, furnace);
+        inventoryTranslators.put(WindowType.BLAST_FURNACE, furnace);
+        inventoryTranslators.put(WindowType.SMOKER, furnace);
+
+        inventoryTranslators.put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, 23 << 4, ContainerType.DISPENSER));
+        inventoryTranslators.put(WindowType.HOPPER, new BlockInventoryTranslator(5, 154 << 4, ContainerType.HOPPER));
+        inventoryTranslators.put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(36, 205 << 4, ContainerType.CONTAINER));
+        inventoryTranslators.put(WindowType.CRAFTING, new BlockInventoryTranslator(10, 58 << 4, ContainerType.WORKBENCH));
+        //inventoryTranslators.put(WindowType.BEACON, new BlockInventoryTranslator(1, 138 << 4, ContainerType.BEACON)); //TODO
     }
 }

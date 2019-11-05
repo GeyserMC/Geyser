@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.window.*;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
@@ -65,32 +66,60 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 Inventory inventory = session.getInventoryCache().getOpenInventory();
                 if (inventory == null)
                     inventory = session.getInventory();
-                InventoryTranslator translator;
-                translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
-                //find the world interaction and/or cursor action if present
+                InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
+
                 InventoryAction worldAction = null;
                 InventoryAction cursorAction = null;
                 for (InventoryAction action : packet.getActions()) {
                     if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION) {
-                        if (worldAction == null) {
-                            worldAction = action;
-                        } else {
-                            return;
-                        }
+                        worldAction = action;
                     } else if (action.getSource().getContainerId() == ContainerId.CURSOR) {
-                        if (cursorAction == null) {
-                            cursorAction = action;
-                        } else {
-                            return;
-                        }
+                        cursorAction = action;
                     }
                 }
-                if (packet.getActions().size() == 2) {
+
+                List<InventoryAction> actions = packet.getActions();
+                if (inventory.getWindowType() == WindowType.ANVIL) {
+                    InventoryAction anvilResult = null;
+                    InventoryAction anvilInput = null;
+                    for (InventoryAction action : packet.getActions()) {
+                        if (action.getSource().getContainerId() == ContainerId.ANVIL_RESULT) {
+                            anvilResult = action;
+                        } else if (action.getSource().getContainerId() == ContainerId.CONTAINER_INPUT) {
+                            anvilInput = action;
+                        }
+                    }
+                    ItemData itemName = null;
+                    if (anvilResult != null) {
+                        itemName = anvilResult.getFromItem();
+                        actions = new ArrayList<>(2);
+                        for (InventoryAction action : packet.getActions()) { //packet sent by client when grabbing anvil output needs useless actions stripped
+                            if (!(action.getSource().getContainerId() == ContainerId.CONTAINER_INPUT || action.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL)) {
+                                actions.add(action);
+                            }
+                        }
+                    } else if (anvilInput != null) {
+                        itemName = anvilInput.getToItem();
+                    }
+                    if (itemName != null) {
+                        String rename;
+                        com.nukkitx.nbt.tag.CompoundTag tag = itemName.getTag();
+                        if (tag != null) {
+                            rename = tag.getAsCompound("display").getAsString("Name");
+                        } else {
+                            rename = "";
+                        }
+                        ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
+                        session.getDownstream().getSession().send(renameItemPacket);
+                    }
+                }
+
+                if (actions.size() == 2) {
                     if (worldAction != null && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
                         //find container action
                         InventoryAction containerAction = null;
-                        for (InventoryAction action : packet.getActions()) {
-                            if (action.getSource().getType() == InventorySource.Type.CONTAINER || action.getSource().getType() == InventorySource.Type.UNTRACKED_INTERACTION_UI) {
+                        for (InventoryAction action : actions) {
+                            if (action != worldAction) {
                                 containerAction = action;
                                 break;
                             }
@@ -125,8 +154,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     } else if (cursorAction != null) {
                         //find container action
                         InventoryAction containerAction = null;
-                        for (InventoryAction action : packet.getActions()) {
-                            if (action != cursorAction && (action.getSource().getType() == InventorySource.Type.CONTAINER || action.getSource().getType() == InventorySource.Type.UNTRACKED_INTERACTION_UI)) {
+                        for (InventoryAction action : actions) {
+                            if (action != cursorAction) {
                                 containerAction = action;
                                 break;
                             }
@@ -163,17 +192,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 return;
                             }
                         }
-                    } else if (packet.getActions().stream().allMatch(p -> p.getSource().getType() == InventorySource.Type.CONTAINER || p.getSource().getType() == InventorySource.Type.UNTRACKED_INTERACTION_UI)) {
+                    } else {
                         //either moving 1 item or swapping 2 slots (touchscreen or one slot shift click)
                         InventoryAction fromAction;
                         InventoryAction toAction;
                         //find source slot
-                        if (packet.getActions().get(0).getFromItem().getCount() > packet.getActions().get(0).getToItem().getCount()) {
-                            fromAction = packet.getActions().get(0);
-                            toAction = packet.getActions().get(1);
+                        if (actions.get(0).getFromItem().getCount() > actions.get(0).getToItem().getCount()) {
+                            fromAction = actions.get(0);
+                            toAction = actions.get(1);
                         } else {
-                            fromAction = packet.getActions().get(1);
-                            toAction = packet.getActions().get(0);
+                            fromAction = actions.get(1);
+                            toAction = actions.get(0);
                         }
                         int fromSlot = translator.bedrockSlotToJava(fromAction);
                         int toSlot = translator.bedrockSlotToJava(toAction);
@@ -211,18 +240,18 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             return;
                         }
                     }
-                } else if (packet.getActions().size() > 2) {
+                } else if (actions.size() > 2) {
                     //shift click or fill stack?
                     ItemData firstItem;
-                    if (packet.getActions().get(0).getFromItem().getId() != 0) {
-                        firstItem = packet.getActions().get(0).getFromItem();
+                    if (actions.get(0).getFromItem().getId() != 0) {
+                        firstItem = actions.get(0).getFromItem();
                     } else {
-                        firstItem = packet.getActions().get(0).getToItem();
+                        firstItem = actions.get(0).getToItem();
                     }
-                    List<InventoryAction> sourceActions = new ArrayList<>(packet.getActions().size());
-                    List<InventoryAction> destActions = new ArrayList<>(packet.getActions().size());
+                    List<InventoryAction> sourceActions = new ArrayList<>(actions.size());
+                    List<InventoryAction> destActions = new ArrayList<>(actions.size());
                     boolean sameItems = true;
-                    for (InventoryAction action : packet.getActions()) {
+                    for (InventoryAction action : actions) {
                         if (action.getFromItem().getCount() > action.getToItem().getCount()) {
                             if (!InventoryUtils.canCombine(action.getFromItem(), firstItem))
                                 sameItems = false;
@@ -238,7 +267,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             InventoryAction sourceAction = sourceActions.get(0);
                             //in java edition, shift clicked item must move across hotbar and main inventory
                             if (sourceAction.getSource().getContainerId() == ContainerId.INVENTORY) {
-                                for (InventoryAction action : packet.getActions()) {
+                                for (InventoryAction action : actions) {
                                     if (action != sourceAction && action.getSource().getContainerId() == ContainerId.INVENTORY) {
                                         if ((sourceAction.getSlot() < 9 && action.getSlot() < 9) || (sourceAction.getSlot() >= 9 && action.getSlot() >= 9)) {
                                             //shift click not compatible with java edition. refresh inventory and abort

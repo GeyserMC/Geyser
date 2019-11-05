@@ -29,10 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryAction;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.inventory.Inventory;
@@ -41,9 +39,9 @@ import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.GlobalBlockPalette;
 
-public class DoubleChestInventoryTranslator extends InventoryTranslator {
+public class DoubleChestInventoryTranslator extends BlockInventoryTranslator {
     public DoubleChestInventoryTranslator(int size) {
-        super(size);
+        super(size, 54 << 4, ContainerType.CONTAINER);
     }
 
     @Override
@@ -53,7 +51,7 @@ public class DoubleChestInventoryTranslator extends InventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(54 << 4)); //chest
+        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(blockId));
         blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
 
@@ -73,7 +71,7 @@ public class DoubleChestInventoryTranslator extends InventoryTranslator {
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(pairPosition);
-        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(54 << 4));
+        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(blockId));
         blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
 
@@ -91,16 +89,6 @@ public class DoubleChestInventoryTranslator extends InventoryTranslator {
         session.getUpstream().sendPacket(dataPacket);
 
         inventory.setHolderPosition(position);
-    }
-
-    @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) ContainerType.CONTAINER.id());
-        containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
-        containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        session.getUpstream().sendPacket(containerOpenPacket);
     }
 
     @Override
@@ -125,14 +113,9 @@ public class DoubleChestInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
-    }
-
-    @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
-        //need to pad empty slots for 4x9, and 5x9
-        final int paddedSize = 54;
-        ItemData[] bedrockItems = new ItemData[paddedSize];
+        //need to pad empty slots for 4x9 and 5x9
+        ItemData[] bedrockItems = new ItemData[54];
         for (int i = 0; i < bedrockItems.length; i++) {
             if (i <= this.size) {
                 bedrockItems[i] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
@@ -150,10 +133,5 @@ public class DoubleChestInventoryTranslator extends InventoryTranslator {
             playerInventory.getItems()[i + 9] = inventory.getItems()[i + this.size];
         }
         TranslatorsInit.getInventoryTranslators().get(playerInventory.getWindowType()).updateInventory(session, playerInventory);
-    }
-
-    @Override
-    public boolean isOutputSlot(InventoryAction action) {
-        return false;
     }
 }

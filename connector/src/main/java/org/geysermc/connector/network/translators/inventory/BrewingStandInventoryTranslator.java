@@ -25,31 +25,29 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
+import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryAction;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
-    public FurnaceInventoryTranslator() {
-        super(3, 61 << 4, ContainerType.FURNACE);
+public class BrewingStandInventoryTranslator extends BlockInventoryTranslator {
+    public BrewingStandInventoryTranslator() {
+        super(5, 117 << 4, ContainerType.BREWING_STAND);
     }
 
     @Override
     public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
-        //bedrock protocol library is currently missing property mappings for windows. only the furnace arrow will update for now
+        //bedrock protocol library is currently missing property mappings for windows.
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
         dataPacket.setWindowId((byte) inventory.getId());
         switch (key) {
             case 0:
-                dataPacket.setProperty(ContainerSetDataPacket.Property.FURNACE_LIT_TIME);
+                dataPacket.setProperty(ContainerSetDataPacket.Property.BREWING_STAND_BREW_TIME);
                 break;
             case 1:
-                dataPacket.setProperty(ContainerSetDataPacket.Property.FURNACE_LIT_DURATION);
-                break;
-            case 2:
-                dataPacket.setProperty(ContainerSetDataPacket.Property.FURNACE_TICK_COUNT);
+                dataPacket.setProperty(ContainerSetDataPacket.Property.BREWING_STAND_FUEL_AMOUNT);
                 break;
             default:
                 return;
@@ -59,7 +57,44 @@ public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public boolean isOutputSlot(InventoryAction action) {
-        return action.getSlot() == 2;
+    public int bedrockSlotToJava(InventoryAction action) {
+        int slotnum = action.getSlot();
+        if (action.getSource().getContainerId() == ContainerId.INVENTORY) {
+            //hotbar
+            if (slotnum >= 9) {
+                return slotnum + this.size - 9;
+            } else {
+                return slotnum + this.size + 27;
+            }
+        } else {
+            switch (slotnum) {
+                case 0:
+                    return 3;
+                case 1:
+                    return 0;
+                case 2:
+                    return 1;
+                case 3:
+                    return 2;
+                default:
+                    return slotnum;
+            }
+        }
+    }
+
+    @Override
+    public int javaSlotToBedrock(int slotnum) {
+        switch (slotnum) {
+            case 0:
+                return 1;
+            case 1:
+                return 2;
+            case 2:
+                return 3;
+            case 3:
+                return 0;
+            default:
+                return slotnum;
+        }
     }
 }

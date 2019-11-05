@@ -25,24 +25,36 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
+import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryAction;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
 
-public abstract class InventoryTranslator {
-    public final int size;
-
-    InventoryTranslator(int size) {
-        this.size = size;
+public class AnvilInventoryTranslator extends BlockInventoryTranslator {
+    public AnvilInventoryTranslator() {
+        super(3, 145 << 4, ContainerType.ANVIL);
     }
 
-    public abstract void prepareInventory(GeyserSession session, Inventory inventory);
-    public abstract void openInventory(GeyserSession session, Inventory inventory);
-    public abstract void closeInventory(GeyserSession session, Inventory inventory);
-    public abstract void updateProperty(GeyserSession session, Inventory inventory, int key, int value);
-    public abstract void updateInventory(GeyserSession session, Inventory inventory);
-    public abstract void updateSlot(GeyserSession session, Inventory inventory, int slot);
-    public abstract int bedrockSlotToJava(InventoryAction action);
-    public abstract int javaSlotToBedrock(int slot);
-    public abstract boolean isOutputSlot(InventoryAction action);
+    @Override
+    public int bedrockSlotToJava(InventoryAction action) {
+        int slotnum = action.getSlot();
+        if (action.getSource().getContainerId() == ContainerId.INVENTORY) {
+            //hotbar
+            if (slotnum >= 9) {
+                return slotnum + this.size - 9;
+            } else {
+                return slotnum + this.size + 27;
+            }
+        } else {
+            if (action.getSource().getContainerId() == ContainerId.ANVIL_RESULT) {
+                return 2;
+            } else {
+                return slotnum;
+            }
+        }
+    }
+
+    @Override
+    public boolean isOutputSlot(InventoryAction action) {
+        return action.getSource().getContainerId() == ContainerId.ANVIL_RESULT;
+    }
 }

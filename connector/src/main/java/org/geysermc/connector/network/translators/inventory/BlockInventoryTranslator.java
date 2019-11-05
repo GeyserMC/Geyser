@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryAction;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -38,9 +37,14 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.GlobalBlockPalette;
 
-public class DispenserInventoryTranslator extends InventoryTranslator {
-    public DispenserInventoryTranslator() {
-        super(9);
+public class BlockInventoryTranslator extends ContainerInventoryTranslator {
+    protected final int blockId;
+    protected final ContainerType containerType;
+
+    public BlockInventoryTranslator(int size, int blockId, ContainerType containerType) {
+        super(size);
+        this.blockId = blockId;
+        this.containerType = containerType;
     }
 
     @Override
@@ -50,7 +54,7 @@ public class DispenserInventoryTranslator extends InventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(23 << 4)); //dispenser
+        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(blockId));
         blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
         inventory.setHolderPosition(position);
@@ -70,7 +74,7 @@ public class DispenserInventoryTranslator extends InventoryTranslator {
     public void openInventory(GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) ContainerType.DISPENSER.id());
+        containerOpenPacket.setType((byte) containerType.id());
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
         session.getUpstream().sendPacket(containerOpenPacket);
@@ -86,14 +90,5 @@ public class DispenserInventoryTranslator extends InventoryTranslator {
         blockPacket.setBlockPosition(holderPos);
         blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(realBlock.getBedrockId() << 4 | realBlock.getBedrockData()));
         session.getUpstream().sendPacket(blockPacket);
-    }
-
-    @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
-    }
-
-    @Override
-    public boolean isOutputSlot(InventoryAction action) {
-        return false;
     }
 }

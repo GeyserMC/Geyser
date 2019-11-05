@@ -129,6 +129,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
+    public int javaSlotToBedrock(int slot) {
+        return slot;
+    }
+
+    @Override
     public boolean isOutputSlot(InventoryAction action) {
         return false;
     }
