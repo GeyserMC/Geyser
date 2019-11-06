@@ -43,6 +43,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
+import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
@@ -57,7 +58,9 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
+import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.utils.Toolbox;
+import org.geysermc.connector.world.chunk.ChunkPosition;
 
 import java.net.InetSocketAddress;
 import java.util.UUID;
@@ -119,14 +122,33 @@ public class GeyserSession implements Player {
     }
 
     public void connect(RemoteServer remoteServer) {
-        // This has to be sent first so the player actually joins
         startGame();
-
         this.remoteServer = remoteServer;
         if (!(connector.getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
             connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
             authenticate(authenticationData.getName());
         }
+
+        Vector3f pos = Vector3f.ZERO;
+        int chunkX = pos.getFloorX() >> 4;
+        int chunkZ = pos.getFloorZ() >> 4;
+        for (int x = -3; x < 3; x++) {
+            for (int z = -3; z < 3; z++) {
+                LevelChunkPacket data = new LevelChunkPacket();
+                data.setChunkX(chunkX + x);
+                data.setChunkZ(chunkZ + z);
+                data.setSubChunksLength(0);
+                data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
+                upstream.sendPacket(data);
+            }
+        }
+
+        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+        upstream.sendPacket(playStatusPacket);
+
+        System.out.println("play status sent");
+        System.out.println(playerEntity.getPosition());
     }
 
     public void authenticate(String username) {
@@ -299,9 +321,5 @@ public class GeyserSession implements Player {
         startGamePacket.setItemEntries(Toolbox.ITEMS);
         startGamePacket.setVanillaVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
         upstream.sendPacket(startGamePacket);
-
-        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-        upstream.sendPacket(playStatusPacket);
     }
 }

@@ -20,13 +20,13 @@ import java.util.*;
 
 public class Toolbox {
 
-    public static final Collection<StartGamePacket.ItemEntry> ITEMS;
+    public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
     public static ListTag<CompoundTag> BLOCKS;
 
-    public static final TIntObjectMap<ItemEntry> ITEM_ENTRIES;
-    public static final TIntObjectMap<BlockEntry> BLOCK_ENTRIES;
+    public static final TIntObjectMap<ItemEntry> ITEM_ENTRIES = new TIntObjectHashMap<>();
+    public static final TIntObjectMap<BlockEntry> BLOCK_ENTRIES = new TIntObjectHashMap<>();
 
-    static {
+    public static void init() {
         InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/runtime_block_states.dat");
         if (stream == null) {
             throw new AssertionError("Unable to find bedrock/runtime_block_states.dat");
@@ -67,12 +67,9 @@ public class Toolbox {
             e.printStackTrace();
         }
 
-        List<StartGamePacket.ItemEntry> startGameEntries = new ArrayList<>();
         for (Map entry : startGameItems) {
-            startGameEntries.add(new StartGamePacket.ItemEntry((String) entry.get("name"), (short) ((int) entry.get("id"))));
+            ITEMS.add(new StartGamePacket.ItemEntry((String) entry.get("name"), (short) ((int) entry.get("id"))));
         }
-
-        ITEMS = startGameEntries;
 
         InputStream itemStream = Toolbox.class.getClassLoader().getResourceAsStream("items.json");
         ObjectMapper itemMapper = new ObjectMapper();
@@ -84,15 +81,11 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        TIntObjectMap<ItemEntry> itemEntries = new TIntObjectHashMap<>();
         int itemIndex = 0;
-
         for (Map.Entry<String, Map<String, Object>> itemEntry : items.entrySet()) {
-            itemEntries.put(itemIndex, new ItemEntry(itemEntry.getKey(), itemIndex, (int) itemEntry.getValue().get("bedrock_id"), (int) itemEntry.getValue().get("bedrock_data")));
+            ITEM_ENTRIES.put(itemIndex, new ItemEntry(itemEntry.getKey(), itemIndex, (int) itemEntry.getValue().get("bedrock_id"), (int) itemEntry.getValue().get("bedrock_data")));
             itemIndex++;
         }
-
-        ITEM_ENTRIES = itemEntries;
 
         InputStream blockStream = Toolbox.class.getClassLoader().getResourceAsStream("blocks.json");
         ObjectMapper blockMapper = new ObjectMapper();
@@ -104,20 +97,16 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        TIntObjectMap<BlockEntry> blockEntries = new TIntObjectHashMap<>();
         int blockIndex = 0;
-
         for (Map.Entry<String, Map<String, Object>> itemEntry : blocks.entrySet()) {
             if (!blockIdToIdentifier.containsKey(itemEntry.getValue().get("bedrock_identifier"))) {
                 GeyserLogger.DEFAULT.debug("Mapping " + itemEntry.getValue().get("bedrock_identifier") + " was not found for bedrock edition!");
-                blockEntries.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, 248, 0)); // update block
+                BLOCK_ENTRIES.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, 248, 0)); // update block
             } else {
-                blockEntries.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, blockIdToIdentifier.get(itemEntry.getValue().get("bedrock_identifier")), (int) itemEntry.getValue().get("bedrock_data")));
+                BLOCK_ENTRIES.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, blockIdToIdentifier.get(itemEntry.getValue().get("bedrock_identifier")), (int) itemEntry.getValue().get("bedrock_data")));
             }
 
             blockIndex++;
         }
-
-        BLOCK_ENTRIES = blockEntries;
     }
 }

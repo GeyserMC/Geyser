@@ -50,6 +50,7 @@ import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
 import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.Toolbox;
 
 import java.io.File;
 import java.io.IOException;
@@ -128,6 +129,7 @@ public class GeyserConnector implements Connector {
 
         logger.setDebug(config.isDebugMode());
 
+        Toolbox.init();
         TranslatorsInit.start();
 
         commandMap = new GeyserCommandMap(this);
