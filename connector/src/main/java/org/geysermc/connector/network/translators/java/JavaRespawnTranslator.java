@@ -57,6 +57,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
         session.getUpstream().sendPacket(playerGameTypePacket);
+        session.setGameMode(packet.getGamemode());
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);

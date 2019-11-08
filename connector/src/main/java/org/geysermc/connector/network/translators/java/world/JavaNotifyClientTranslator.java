@@ -57,10 +57,11 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.getUpstream().sendPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:
-                int gamemode = ((GameMode) packet.getValue()).ordinal();
+                GameMode gameMode = (GameMode) packet.getValue();
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-                playerGameTypePacket.setGamemode(gamemode);
+                playerGameTypePacket.setGamemode(gameMode.ordinal());
                 session.getUpstream().sendPacket(playerGameTypePacket);
+                session.setGameMode(gameMode);
                 break;
             case ENTER_CREDITS:
                 Entity entity = session.getPlayerEntity();
