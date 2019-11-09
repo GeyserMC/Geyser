@@ -35,7 +35,7 @@ public class Toolbox {
         Map<String, Integer> blockIdToIdentifier = new HashMap<>();
         ListTag<CompoundTag> blocksTag;
 
-        NBTInputStream nbtInputStream = NbtUtils.createReader(stream);
+        NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream);
         try {
             blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
             nbtInputStream.close();

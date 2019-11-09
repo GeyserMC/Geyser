@@ -60,7 +60,6 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.utils.Toolbox;
-import org.geysermc.connector.world.chunk.ChunkPosition;
 
 import java.net.InetSocketAddress;
 import java.util.UUID;
