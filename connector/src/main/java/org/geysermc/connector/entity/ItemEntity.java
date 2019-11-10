@@ -8,9 +8,9 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.console.GeyserLogger;
 
 public class ItemEntity extends Entity {
-	
-  public ItemEntity(int amount, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-    super(entityId, geyserId, EntityType.ITEM, position, motion, rotation);
+
+  public ItemEntity(long entityId, long geyserId, Vector3f position) {
+    super(entityId, geyserId, position);
     }
 	
    @Override

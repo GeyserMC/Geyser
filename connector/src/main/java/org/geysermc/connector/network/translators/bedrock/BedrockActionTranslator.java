@@ -38,6 +38,7 @@ import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import  org.geysermc.connector.entity.ItemEntity;
 
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
 

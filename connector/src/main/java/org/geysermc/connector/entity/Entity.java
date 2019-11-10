@@ -99,6 +99,9 @@ public class Entity {
         metadata.putFlags(flags);
     }
 
+    public Entity(long entityId, long geyserId, Vector3f position) {
+    }
+
     public void spawnEntity(GeyserSession session) {
         AddEntityPacket addEntityPacket = new AddEntityPacket();
         addEntityPacket.setIdentifier("minecraft:" + entityType.name().toLowerCase());
