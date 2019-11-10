@@ -172,6 +172,7 @@ public class TranslatorsInit {
         inventoryTranslators.put(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
         inventoryTranslators.put(WindowType.BREWING_STAND, new BrewingStandInventoryTranslator());
         inventoryTranslators.put(WindowType.ANVIL, new AnvilInventoryTranslator());
+        inventoryTranslators.put(WindowType.CRAFTING, new CraftingTableInventoryTranslator());
         //inventoryTranslators.put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
 
         InventoryTranslator furnace = new FurnaceInventoryTranslator();
@@ -182,7 +183,6 @@ public class TranslatorsInit {
         inventoryTranslators.put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, 23 << 4, ContainerType.DISPENSER));
         inventoryTranslators.put(WindowType.HOPPER, new BlockInventoryTranslator(5, 154 << 4, ContainerType.HOPPER));
         inventoryTranslators.put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(36, 205 << 4, ContainerType.CONTAINER));
-        inventoryTranslators.put(WindowType.CRAFTING, new BlockInventoryTranslator(10, 58 << 4, ContainerType.WORKBENCH));
         //inventoryTranslators.put(WindowType.BEACON, new BlockInventoryTranslator(1, 138 << 4, ContainerType.BEACON)); //TODO
     }
 }

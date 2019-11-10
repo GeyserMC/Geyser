@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.window.*;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
@@ -68,6 +69,42 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 if (inventory == null)
                     inventory = session.getInventory();
                 InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
+
+                if (session.getGameMode() == GameMode.CREATIVE && inventory.getId() == 0) {
+                    ItemStack javaItem;
+                    for (InventoryAction action : packet.getActions()) {
+                        switch (action.getSource().getContainerId()) {
+                            case ContainerId.INVENTORY:
+                            case ContainerId.ARMOR:
+                            case ContainerId.OFFHAND:
+                                int javaSlot = translator.bedrockSlotToJava(action);
+                                if (action.getToItem().getId() == 0) {
+                                    javaItem = new ItemStack(-1, 0, null);
+                                } else {
+                                    javaItem = TranslatorsInit.getItemTranslator().translateToJava(action.getToItem());
+                                    if (javaItem.getId() == 0) { //item missing mapping
+                                        translator.updateInventory(session, inventory);
+                                        break;
+                                    }
+                                }
+                                ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(javaSlot, InventoryUtils.fixStack(javaItem));
+                                session.getDownstream().getSession().send(creativePacket);
+                                inventory.getItems()[javaSlot] = javaItem;
+                                break;
+                            case ContainerId.NONE:
+                                if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION && action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
+                                    javaItem = TranslatorsInit.getItemTranslator().translateToJava(action.getToItem());
+                                    if (javaItem.getId() == 0) { //item missing mapping
+                                        break;
+                                    }
+                                    ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, InventoryUtils.fixStack(javaItem));
+                                    session.getDownstream().getSession().send(creativeDropPacket);
+                                }
+                                break;
+                        }
+                    }
+                    return;
+                }
 
                 InventoryAction worldAction = null;
                 InventoryAction cursorAction = null;
