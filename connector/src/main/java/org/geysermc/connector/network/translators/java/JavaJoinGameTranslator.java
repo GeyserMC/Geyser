@@ -49,7 +49,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        session.getUpstream().sendPacket(playStatus);
+        // session.getUpstream().sendPacket(playStatus);
 
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());

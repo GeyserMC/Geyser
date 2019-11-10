@@ -57,9 +57,11 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         session.getUpstream().sendPacket(playerGameTypePacket);
         session.setGameMode(packet.getGamemode());
 
+        /*
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         session.getUpstream().sendPacket(playStatusPacket);
+        */
     }
 
     private int getDimension(int javaDimension) {

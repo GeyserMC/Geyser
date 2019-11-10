@@ -48,7 +48,7 @@ public class SkinUtils {
     public static PlayerListPacket.Entry buildEntryManually(UUID uuid, String username, long geyserId,
                                                             String skinId, byte[] skinData, byte[] capeData,
                                                             String geometryName, String geometryData) {
-        SerializedSkin serializedSkin = SerializedSkin.of(skinId, ImageData.of(32, 64, skinData), ImageData.of(32, 64, capeData), geometryName, geometryData, true);
+        SerializedSkin serializedSkin = SerializedSkin.of(skinId, ImageData.of(64, 64, skinData), ImageData.of(64, 32, capeData), geometryName, geometryData, true);
 
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
         entry.setName(username);

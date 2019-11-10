@@ -43,7 +43,10 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
+import com.nukkitx.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
@@ -131,8 +134,13 @@ public class GeyserSession implements Player {
         Vector3f pos = Vector3f.ZERO;
         int chunkX = pos.getFloorX() >> 4;
         int chunkZ = pos.getFloorZ() >> 4;
-        for (int x = -3; x < 3; x++) {
-            for (int z = -3; z < 3; z++) {
+        for (int x = -5; x < 5; x++) {
+            for (int z = -5; z < 5; z++) {
+                NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
+                chunkPublisherUpdatePacket.setPosition(pos.toInt());
+                chunkPublisherUpdatePacket.setRadius(renderDistance << 4);
+                upstream.sendPacket(chunkPublisherUpdatePacket);
+
                 LevelChunkPacket data = new LevelChunkPacket();
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
@@ -141,6 +149,9 @@ public class GeyserSession implements Player {
                 upstream.sendPacket(data);
             }
         }
+
+        upstream.sendPacket(new BiomeDefinitionListPacket());
+        upstream.sendPacket(new AvailableEntityIdentifiersPacket());
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
@@ -279,15 +290,15 @@ public class GeyserSession implements Player {
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
-        startGamePacket.setSeed(0);
+        startGamePacket.setSeed(-1);
         startGamePacket.setDimensionId(playerEntity.getDimension());
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGamemode(0);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
         startGamePacket.setAcheivementsDisabled(true);
-        startGamePacket.setTime(0);
-        startGamePacket.setEduLevel(false);
+        startGamePacket.setTime(-1);
+        startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
         startGamePacket.setRainLevel(0);
         startGamePacket.setLightningLevel(0);
@@ -313,12 +324,13 @@ public class GeyserSession implements Player {
         startGamePacket.setLevelId("world");
         startGamePacket.setWorldName("world");
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
-        startGamePacket.setCurrentTick(0);
+        // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setBlockPalette(Toolbox.BLOCKS);
         startGamePacket.setItemEntries(Toolbox.ITEMS);
         startGamePacket.setVanillaVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+        // startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacket(startGamePacket);
     }
 }
