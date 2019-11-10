@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators;
 
 import com.github.steveice10.mc.protocol.data.game.world.effect.SoundEffect;
+import com.github.steveice10.mc.protocol.data.game.world.sound.BuiltinSound;
 import com.github.steveice10.mc.protocol.packet.ingame.server.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
@@ -49,6 +50,8 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import org.geysermc.connector.network.translators.bedrock.*;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.effect.Sound;
+import org.geysermc.connector.network.translators.effect.SoundTranslator;
 import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
@@ -62,6 +65,7 @@ import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboard
 import org.geysermc.connector.network.translators.java.scoreboard.JavaTeamTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
 import org.geysermc.connector.network.translators.java.visual.JavaBlockBreakAnimationPacketTranslator;
+import org.geysermc.connector.network.translators.java.visual.JavaBuiltinSoundPacketTranslator;
 import org.geysermc.connector.network.translators.java.visual.JavaPlayEffectPacketTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
 import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
@@ -70,6 +74,7 @@ import org.geysermc.connector.network.translators.java.world.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -87,7 +92,7 @@ public class TranslatorsInit {
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
 
-    public static final Map<SoundEffect, LevelEventPacket.Event> SOUNDS = new HashMap<>();
+    public static final Map<BuiltinSound, Sound> SOUNDS = new HashMap<>();
 
     static {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -104,6 +109,7 @@ public class TranslatorsInit {
     }
 
     public static void start() {
+        //Packets
         Registry.registerJava(ServerJoinGamePacket.class, new JavaJoinGameTranslator());
         Registry.registerJava(ServerChatPacket.class, new JavaChatTranslator());
         Registry.registerJava(ServerTitlePacket.class, new JavaTitleTranslator());
@@ -153,6 +159,7 @@ public class TranslatorsInit {
 
         Registry.registerJava(ServerPlayEffectPacket.class, new JavaPlayEffectPacketTranslator());
         Registry.registerJava(ServerBlockBreakAnimPacket.class, new JavaBlockBreakAnimationPacketTranslator());
+        Registry.registerJava(ServerPlayBuiltinSoundPacket.class, new JavaBuiltinSoundPacketTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
@@ -168,7 +175,19 @@ public class TranslatorsInit {
         blockTranslator = new BlockTranslator();
 
         registerInventoryTranslators();
-        registerVisuals();
+
+        SoundTranslator.translate();
+
+        /*System.out.println(SOUNDS.toString());
+        System.out.println(SOUNDS.size());
+        System.out.println(Sound.values().length);
+        System.out.println(BuiltinSound.values().length);
+
+        for(Sound sound : Sound.values()) {
+            if(!SOUNDS.containsValue(sound)) {
+                System.out.println(sound);
+            }
+        }*/
     }
 
     private static void registerInventoryTranslators() {
@@ -178,20 +197,5 @@ public class TranslatorsInit {
         inventoryTranslators.put(WindowType.GENERIC_9X4, new GenericInventoryTranslator());
         inventoryTranslators.put(WindowType.GENERIC_9X5, new GenericInventoryTranslator());
         inventoryTranslators.put(WindowType.GENERIC_9X6, new GenericInventoryTranslator());*/
-    }
-
-    private static void registerVisuals() {
-        //TODO: add more sounds
-        SOUNDS.put(SoundEffect.BLOCK_ANVIL_DESTROY, LevelEventPacket.Event.SOUND_ANVIL_BREAK);
-        SOUNDS.put(SoundEffect.BLOCK_ANVIL_LAND, LevelEventPacket.Event.SOUND_ANVIL_FALL);
-        SOUNDS.put(SoundEffect.BLOCK_ANVIL_USE, LevelEventPacket.Event.SOUND_ANVIL_USE);
-        SOUNDS.put(SoundEffect.BLOCK_DISPENSER_DISPENSE, LevelEventPacket.Event.SOUND_CLICK);
-        SOUNDS.put(SoundEffect.BLOCK_DISPENSER_FAIL, LevelEventPacket.Event.SOUND_CLICK_FAIL);
-        SOUNDS.put(SoundEffect.BLOCK_DISPENSER_LAUNCH, LevelEventPacket.Event.SOUND_SHOOT);
-        SOUNDS.put(SoundEffect.ENTITY_GHAST_WARN, LevelEventPacket.Event.SOUND_GHAST);
-        SOUNDS.put(SoundEffect.ENTITY_GHAST_SHOOT, LevelEventPacket.Event.SOUND_GHAST_SHOOT);
-        SOUNDS.put(SoundEffect.BLOCK_BREWING_STAND_BREW, LevelEventPacket.Event.SOUND_FIZZ);
-
-        //TODO: not hard coded particles
     }
 }

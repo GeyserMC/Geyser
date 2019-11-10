@@ -17,12 +17,9 @@ public class JavaBlockBreakAnimationPacketTranslator extends PacketTranslator<Se
 
         levelEventPacket.setPosition(Vector3f.from(position.getX(), position.getY(), position.getZ()));
 
-        System.out.println(packet.getStage());
-
         switch (packet.getStage()) {
             case STAGE_1:
                 levelEventPacket.setEvent(LevelEventPacket.Event.BLOCK_START_BREAK);
-
                 break;
 
             case RESET:
@@ -33,11 +30,9 @@ public class JavaBlockBreakAnimationPacketTranslator extends PacketTranslator<Se
                 levelEventPacket.setEvent(LevelEventPacket.Event.BLOCK_CONTINUE_BREAK);
                 break;
         }
-
         if(packet.getStage() != BlockBreakStage.RESET) {
             levelEventPacket.setData(packet.getStage().ordinal());
         }
-
 
         session.getUpstream().sendPacket(levelEventPacket);
     }

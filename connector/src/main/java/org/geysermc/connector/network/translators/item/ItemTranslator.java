@@ -51,6 +51,18 @@ import java.util.List;
 import java.util.Map;
 
 public class ItemTranslator {
+    public static final byte TAG_End = 0;
+    public static final byte TAG_Byte = 1;
+    public static final byte TAG_Short = 2;
+    public static final byte TAG_Int = 3;
+    public static final byte TAG_Long = 4;
+    public static final byte TAG_Float = 5;
+    public static final byte TAG_Double = 6;
+    public static final byte TAG_Byte_Array = 7;
+    public static final byte TAG_String = 8;
+    public static final byte TAG_List = 9;
+    public static final byte TAG_Compound = 10;
+    public static final byte TAG_Int_Array = 11;
 
     public ItemStack translateToJava(ItemData data) {
         ItemEntry javaItem = getItem(data);
@@ -89,7 +101,7 @@ public class ItemTranslator {
         return ItemEntry.AIR;
     }
 
-    private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
+    public CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
         CompoundTag javaTag = new CompoundTag(tag.getName());
         Map<String, Tag> javaValue = javaTag.getValue();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
@@ -106,7 +118,7 @@ public class ItemTranslator {
         return javaTag;
     }
 
-    private Tag translateToJavaNBT(com.nukkitx.nbt.tag.Tag tag) {
+    public Tag translateToJavaNBT(com.nukkitx.nbt.tag.Tag tag) {
         if (tag instanceof com.nukkitx.nbt.tag.ByteArrayTag) {
             com.nukkitx.nbt.tag.ByteArrayTag byteArrayTag = (com.nukkitx.nbt.tag.ByteArrayTag) tag;
             return new ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
@@ -180,7 +192,7 @@ public class ItemTranslator {
         return null;
     }
 
-    private com.nukkitx.nbt.tag.CompoundTag translateToBedrockNBT(CompoundTag tag) {
+    public com.nukkitx.nbt.tag.CompoundTag translateToBedrockNBT(CompoundTag tag) {
         Map<String, com.nukkitx.nbt.tag.Tag<?>> javaValue = new HashMap<String, com.nukkitx.nbt.tag.Tag<?>>();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
@@ -197,7 +209,7 @@ public class ItemTranslator {
         return bedrockTag;
     }
 
-    private com.nukkitx.nbt.tag.Tag translateToBedrockNBT(Tag tag) {
+    public com.nukkitx.nbt.tag.Tag translateToBedrockNBT(Tag tag) {
         if (tag instanceof ByteArrayTag) {
             ByteArrayTag byteArrayTag = (ByteArrayTag) tag;
             return new com.nukkitx.nbt.tag.ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
@@ -269,5 +281,42 @@ public class ItemTranslator {
         }
 
         return null;
+    }
+
+    public byte getType(com.nukkitx.nbt.tag.Tag tag) {
+        if (tag instanceof com.nukkitx.nbt.tag.ByteArrayTag) {
+            return TAG_Byte_Array;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.ByteTag) {
+            return TAG_Byte;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.DoubleTag) {
+            return TAG_Double;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.FloatTag) {
+            return TAG_Float;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.IntArrayTag) {
+            return TAG_Int_Array;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.IntTag) {
+            return TAG_Int;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.LongTag) {
+            return TAG_Long;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.ShortTag) {
+            return TAG_Short;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.StringTag) {
+            return TAG_String;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.ListTag) {
+            return TAG_List;
+        }
+        if (tag instanceof com.nukkitx.nbt.tag.CompoundTag) {
+            return TAG_Compound;
+        }
+        return 0;
     }
 }
