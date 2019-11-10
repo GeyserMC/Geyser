@@ -79,6 +79,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case DROP_ITEM:
                 ClientPlayerActionPacket dropItemPacket = new ClientPlayerActionPacket(PlayerAction.DROP_ITEM, position, BlockFace.values()[packet.getFace()]);
                 session.getDownstream().getSession().send(dropItemPacket);
+    
+                ItemEntity itemEntity = new ItemEntity(packet.getRuntimeEntityId(), packet.getRuntimeEntityId(), packet.getBlockPosition().toFloat());
+                session.getEntityCache().spawnEntity(itemEntity);
                 break;
             case STOP_SLEEP:
                 ClientPlayerStatePacket stopSleepingPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.LEAVE_BED);
