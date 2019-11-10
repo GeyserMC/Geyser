@@ -26,13 +26,17 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityMetadataPacket;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.TranslatorsInit;
 
 public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityMetadataPacket> {
 
@@ -51,6 +55,17 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
                     byte xd = (byte)metadata.getValue();
                     entity.getMetadata().getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
                     entity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
+                } else if (entity.getEntityType() == EntityType.ITEM && metadata.getId() == 7) {
+                    AddItemEntityPacket itemPacket = new AddItemEntityPacket();
+                    itemPacket.setRuntimeEntityId(entity.getGeyserId());
+                    itemPacket.setPosition(entity.getPosition());
+                    itemPacket.setMotion(entity.getMotion());
+                    itemPacket.setUniqueEntityId(entity.getGeyserId());
+                    itemPacket.setFromFishing(false);
+                    itemPacket.getMetadata().putAll(entity.getMetadata());
+                    itemPacket.setItemInHand(TranslatorsInit.getItemTranslator().translateToBedrock((ItemStack) metadata.getValue()));
+                    session.getUpstream().sendPacket(itemPacket);
+                    return;
                 }
             }
 
