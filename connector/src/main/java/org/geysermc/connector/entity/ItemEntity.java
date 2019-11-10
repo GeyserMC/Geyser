@@ -9,11 +9,11 @@ import org.geysermc.connector.console.GeyserLogger;
 
 public class ItemEntity extends Entity {
 
-  public ItemEntity(long entityId, long geyserId, Vector3f position) {
-    super(entityId, geyserId, position);
-    }
-	
-   @Override
+  public ItemEntity(long runtimeEntityId, long runtimeEntityId1, Vector3f toFloat) {
+    super(EntityType.ITEM);
+  }
+
+  @Override
   public void spawnEntity(GeyserSession session) {
     AddItemEntityPacket AddItemEntity = new AddItemEntityPacket();
     AddItemEntity.setPosition(position);
