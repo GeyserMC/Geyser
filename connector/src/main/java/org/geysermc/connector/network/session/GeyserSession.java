@@ -157,8 +157,7 @@ public class GeyserSession implements Player {
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
 
-        System.out.println("play status sent");
-        System.out.println(playerEntity.getPosition());
+        connector.getLogger().debug("play status sent");
     }
 
     public void authenticate(String username) {

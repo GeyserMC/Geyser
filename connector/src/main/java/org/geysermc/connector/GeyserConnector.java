@@ -97,7 +97,6 @@ public class GeyserConnector implements Connector {
     }
 
     private GeyserConnector() {
-
         long startupTime = System.currentTimeMillis();
 
         // Metric
