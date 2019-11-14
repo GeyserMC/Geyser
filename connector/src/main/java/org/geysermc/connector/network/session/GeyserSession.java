@@ -40,6 +40,7 @@ import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
@@ -150,8 +151,12 @@ public class GeyserSession implements Player {
             }
         }
 
-        upstream.sendPacket(new BiomeDefinitionListPacket());
-        upstream.sendPacket(new AvailableEntityIdentifiersPacket());
+        BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
+        biomePacket.setTag(CompoundTag.EMPTY);
+        upstream.sendPacket(biomePacket);
+        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
+        entityPacket.setTag(CompoundTag.EMPTY);
+        upstream.sendPacket(entityPacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
