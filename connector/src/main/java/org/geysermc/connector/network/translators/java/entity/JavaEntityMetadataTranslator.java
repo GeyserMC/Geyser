@@ -53,11 +53,11 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
             for (EntityMetadata metadata : packet.getMetadata()) {
                 if (metadata.getId() == 0 && metadata.getType() == MetadataType.BYTE) {
                     byte xd = (byte)metadata.getValue();
-		    entity.getMetadata().getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
+                    entity.getMetadata().getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
                     entity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
                     entity.getMetadata().getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
-	            entity.getMetadata().getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
-		    entity.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
+                    entity.getMetadata().getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
+                    entity.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
                 } else if (entity.getEntityType() == EntityType.ITEM && metadata.getId() == 7) {
                     AddItemEntityPacket itemPacket = new AddItemEntityPacket();
                     itemPacket.setRuntimeEntityId(entity.getGeyserId());
