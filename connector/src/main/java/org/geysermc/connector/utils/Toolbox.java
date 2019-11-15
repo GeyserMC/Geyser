@@ -2,14 +2,15 @@ package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.network.VarInts;
+import com.nukkitx.nbt.stream.NBTInputStream;
+import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.tag.ListTag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v361.BedrockUtils;
+
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.network.translators.item.ItemEntry;
@@ -21,40 +22,41 @@ import java.util.*;
 
 public class Toolbox {
 
-    public static final Collection<StartGamePacket.ItemEntry> ITEMS;
-    public static final ByteBuf CACHED_PALLETE;
-    public static final ItemData[] CREATIVE_ITEMS;
+    public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
+    public static ListTag<CompoundTag> BLOCKS;
+    public static ItemData[] CREATIVE_ITEMS;
 
-    public static final TIntObjectMap<ItemEntry> ITEM_ENTRIES;
-    public static final TIntObjectMap<BlockEntry> BLOCK_ENTRIES;
+    public static final TIntObjectMap<ItemEntry> ITEM_ENTRIES = new TIntObjectHashMap<>();
+    public static final TIntObjectMap<BlockEntry> BLOCK_ENTRIES = new TIntObjectHashMap<>();
 
-    static {
-        InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/cached_palette.json");
-        ObjectMapper mapper = new ObjectMapper();
-        List<LinkedHashMap<String, Object>> entries = new ArrayList<>();
-
-        try {
-            entries = mapper.readValue(stream, ArrayList.class);
-        } catch (Exception e) {
-            e.printStackTrace();
+    public static void init() {
+        InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/runtime_block_states.dat");
+        if (stream == null) {
+            throw new AssertionError("Unable to find bedrock/runtime_block_states.dat");
         }
-
-        ByteBuf cachedPalette = Unpooled.buffer();
-        VarInts.writeUnsignedInt(cachedPalette, entries.size());
 
         Map<String, Integer> blockIdToIdentifier = new HashMap<>();
+        ListTag<CompoundTag> blocksTag;
 
-        for (Map<String, Object> entry : entries) {
-            blockIdToIdentifier.put((String) entry.get("name"), (int) entry.get("id"));
-
-            GlobalBlockPalette.registerMapping((int) entry.get("id") << 4 | (int) entry.get("data"));
-            BedrockUtils.writeString(cachedPalette, (String) entry.get("name"));
-            cachedPalette.writeShortLE((int) entry.get("data"));
-            cachedPalette.writeShortLE((int) entry.get("id"));
+        NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream);
+        try {
+            blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
+            nbtInputStream.close();
+        } catch (Exception ex) {
+            GeyserLogger.DEFAULT.warning("Failed to get blocks from runtime block states, please report this error!");
+            throw new AssertionError(ex);
         }
 
-        CACHED_PALLETE = cachedPalette;
+        for (CompoundTag entry : blocksTag.getValue()) {
+            String name = entry.getAsCompound("block").getAsString("name");
+            int id = entry.getAsShort("id");
+            int data = entry.getAsShort("meta");
 
+            blockIdToIdentifier.put(name, id);
+            GlobalBlockPalette.registerMapping(id << 4 | data);
+        }
+
+        BLOCKS = blocksTag;
         InputStream stream2 = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/items.json");
         if (stream2 == null) {
             throw new AssertionError("Items Table not found");
@@ -68,12 +70,9 @@ public class Toolbox {
             e.printStackTrace();
         }
 
-        List<StartGamePacket.ItemEntry> startGameEntries = new ArrayList<>();
         for (Map entry : startGameItems) {
-            startGameEntries.add(new StartGamePacket.ItemEntry((String) entry.get("name"), (short) ((int) entry.get("id"))));
+            ITEMS.add(new StartGamePacket.ItemEntry((String) entry.get("name"), (short) ((int) entry.get("id"))));
         }
-
-        ITEMS = startGameEntries;
 
         InputStream itemStream = Toolbox.class.getClassLoader().getResourceAsStream("items.json");
         ObjectMapper itemMapper = new ObjectMapper();
@@ -85,15 +84,11 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        TIntObjectMap<ItemEntry> itemEntries = new TIntObjectHashMap<>();
         int itemIndex = 0;
-
         for (Map.Entry<String, Map<String, Object>> itemEntry : items.entrySet()) {
-            itemEntries.put(itemIndex, new ItemEntry(itemEntry.getKey(), itemIndex, (int) itemEntry.getValue().get("bedrock_id"), (int) itemEntry.getValue().get("bedrock_data")));
+            ITEM_ENTRIES.put(itemIndex, new ItemEntry(itemEntry.getKey(), itemIndex, (int) itemEntry.getValue().get("bedrock_id"), (int) itemEntry.getValue().get("bedrock_data")));
             itemIndex++;
         }
-
-        ITEM_ENTRIES = itemEntries;
 
         InputStream blockStream = Toolbox.class.getClassLoader().getResourceAsStream("blocks.json");
         ObjectMapper blockMapper = new ObjectMapper();
@@ -105,21 +100,17 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        TIntObjectMap<BlockEntry> blockEntries = new TIntObjectHashMap<>();
         int blockIndex = 0;
-
         for (Map.Entry<String, Map<String, Object>> itemEntry : blocks.entrySet()) {
             if (!blockIdToIdentifier.containsKey(itemEntry.getValue().get("bedrock_identifier"))) {
-                GeyserLogger.DEFAULT.debug("Mapping " + itemEntry.getValue().get("bedrock_identifier") + " does not exist on bedrock edition!");
-                blockEntries.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, 248, 0)); // update block
+                GeyserLogger.DEFAULT.debug("Mapping " + itemEntry.getValue().get("bedrock_identifier") + " was not found for bedrock edition!");
+                BLOCK_ENTRIES.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, 248, 0)); // update block
             } else {
-                blockEntries.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, blockIdToIdentifier.get(itemEntry.getValue().get("bedrock_identifier")), (int) itemEntry.getValue().get("bedrock_data")));
+                BLOCK_ENTRIES.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, blockIdToIdentifier.get(itemEntry.getValue().get("bedrock_identifier")), (int) itemEntry.getValue().get("bedrock_data")));
             }
 
             blockIndex++;
         }
-
-        BLOCK_ENTRIES = blockEntries;
 
         InputStream creativeItemStream = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/creative_items.json");
         ObjectMapper creativeItemMapper = new ObjectMapper();

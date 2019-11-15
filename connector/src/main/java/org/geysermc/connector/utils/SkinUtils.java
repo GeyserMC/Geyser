@@ -2,6 +2,8 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.google.gson.JsonObject;
+import com.nukkitx.protocol.bedrock.data.ImageData;
+import com.nukkitx.protocol.bedrock.data.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,7 +27,7 @@ public class SkinUtils {
                 profile.getIdAsString(),
                 SkinProvider.getCachedSkin(profile.getId()).getSkinData(),
                 SkinProvider.getCachedCape(data.getCapeUrl()).getCapeData(),
-                "geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""),
+                getLegacySkinGeometry("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : "")),
                 ""
         );
     }
@@ -38,7 +40,7 @@ public class SkinUtils {
                 profile.getIdAsString(),
                 SkinProvider.STEVE_SKIN,
                 SkinProvider.EMPTY_CAPE.getCapeData(),
-                "geometry.humanoid",
+                getLegacySkinGeometry("geometry.humanoid"),
                 ""
         );
     }
@@ -46,16 +48,15 @@ public class SkinUtils {
     public static PlayerListPacket.Entry buildEntryManually(UUID uuid, String username, long geyserId,
                                                             String skinId, byte[] skinData, byte[] capeData,
                                                             String geometryName, String geometryData) {
+        SerializedSkin serializedSkin = SerializedSkin.of(skinId, ImageData.of(64, 64, skinData), ImageData.of(64, 32, capeData), geometryName, geometryData, true);
+
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
         entry.setName(username);
         entry.setEntityId(geyserId);
-        entry.setSkinId(skinId);
-        entry.setSkinData(skinData != null ? skinData : SkinProvider.STEVE_SKIN);
-        entry.setCapeData(capeData);
-        entry.setGeometryName(geometryName);
-        entry.setGeometryData(geometryData);
+        entry.setSkin(serializedSkin);
         entry.setXuid("");
         entry.setPlatformChatId("");
+        entry.setTeacher(false);
         return entry;
     }
 
@@ -122,7 +123,7 @@ public class SkinUtils {
                                             entity.getUuid().toString(),
                                             skin.getSkinData(),
                                             cape.getCapeData(),
-                                            "geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""),
+                                            getLegacySkinGeometry("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : "")),
                                             ""
                                     );
 
@@ -144,5 +145,9 @@ public class SkinUtils {
                         if (skinAndCapeConsumer != null) skinAndCapeConsumer.accept(skinAndCape);
                     });
         });
+    }
+
+    private static String getLegacySkinGeometry(String geometryName) {
+        return "{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}";
     }
 }

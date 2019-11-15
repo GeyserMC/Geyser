@@ -40,10 +40,15 @@ import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
+import com.nukkitx.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
@@ -59,6 +64,7 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
+import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.net.InetSocketAddress;
@@ -129,14 +135,49 @@ public class GeyserSession implements Player {
     }
 
     public void connect(RemoteServer remoteServer) {
-        // This has to be sent first so the player actually joins
         startGame();
-
         this.remoteServer = remoteServer;
         if (!(connector.getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
             connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
             authenticate(authenticationData.getName());
         }
+
+        Vector3f pos = Vector3f.ZERO;
+        int chunkX = pos.getFloorX() >> 4;
+        int chunkZ = pos.getFloorZ() >> 4;
+        for (int x = -5; x < 5; x++) {
+            for (int z = -5; z < 5; z++) {
+                NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
+                chunkPublisherUpdatePacket.setPosition(pos.toInt());
+                chunkPublisherUpdatePacket.setRadius(renderDistance << 4);
+                upstream.sendPacket(chunkPublisherUpdatePacket);
+
+                LevelChunkPacket data = new LevelChunkPacket();
+                data.setChunkX(chunkX + x);
+                data.setChunkZ(chunkZ + z);
+                data.setSubChunksLength(0);
+                data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
+                upstream.sendPacket(data);
+            }
+        }
+
+        BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
+        biomePacket.setTag(CompoundTag.EMPTY);
+        upstream.sendPacket(biomePacket);
+        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
+        entityPacket.setTag(CompoundTag.EMPTY);
+        upstream.sendPacket(entityPacket);
+
+        InventoryContentPacket creativePacket = new InventoryContentPacket();
+        creativePacket.setContainerId(ContainerId.CREATIVE);
+        creativePacket.setContents(Toolbox.CREATIVE_ITEMS);
+        upstream.sendPacket(creativePacket);
+
+        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+        upstream.sendPacket(playStatusPacket);
+
+        connector.getLogger().debug("play status sent");
     }
 
     public void authenticate(String username) {
@@ -268,15 +309,15 @@ public class GeyserSession implements Player {
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
-        startGamePacket.setSeed(0);
+        startGamePacket.setSeed(-1);
         startGamePacket.setDimensionId(playerEntity.getDimension());
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGamemode(0);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
         startGamePacket.setAcheivementsDisabled(true);
-        startGamePacket.setTime(0);
-        startGamePacket.setEduLevel(false);
+        startGamePacket.setTime(-1);
+        startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
         startGamePacket.setRainLevel(0);
         startGamePacket.setLightningLevel(0);
@@ -302,20 +343,13 @@ public class GeyserSession implements Player {
         startGamePacket.setLevelId("world");
         startGamePacket.setWorldName("world");
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
-        startGamePacket.setCurrentTick(0);
+        // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setCachedPalette(Toolbox.CACHED_PALLETE.retainedDuplicate());
+        startGamePacket.setBlockPalette(Toolbox.BLOCKS);
         startGamePacket.setItemEntries(Toolbox.ITEMS);
+        startGamePacket.setVanillaVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+        // startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacket(startGamePacket);
-
-        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-        upstream.sendPacket(playStatusPacket);
-
-        InventoryContentPacket creativePacket = new InventoryContentPacket();
-        creativePacket.setContainerId(ContainerId.CREATIVE);
-        creativePacket.setContents(Toolbox.CREATIVE_ITEMS);
-        upstream.sendPacket(creativePacket);
     }
 }

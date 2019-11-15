@@ -90,53 +90,38 @@ public class GeyserLogger implements org.geysermc.api.logger.Logger {
 
     @Override
     public void severe(String message) {
-        waitFor();
         System.out.println(printConsole(ChatColor.DARK_RED + message, colored));
     }
 
     @Override
     public void severe(String message, Throwable error) {
-        waitFor();
         System.out.println(printConsole(ChatColor.DARK_RED + message + "\n" + error.getMessage(), colored));
     }
 
     @Override
     public void error(String message) {
-        waitFor();
         System.out.println(printConsole(ChatColor.RED + message, colored));
     }
 
     @Override
     public void error(String message, Throwable error) {
-        waitFor();
         System.out.println(printConsole(ChatColor.RED + message + "\n" + error, colored));
     }
 
     @Override
     public void warning(String message) {
-        waitFor();
         System.out.println(printConsole(ChatColor.YELLOW + message, colored));
     }
 
     @Override
     public void info(String message) {
-        waitFor();
         System.out.println(printConsole(ChatColor.WHITE + message, colored));
     }
 
     @Override
     public void debug(String message) {
-        waitFor();
-
         if (debug)
             System.out.println(printConsole(ChatColor.GRAY + message, colored));
-    }
-
-    private synchronized void waitFor() {
-
-    }
-
-    public void stop() {
     }
 
     public static String printConsole(String message, boolean colors) {

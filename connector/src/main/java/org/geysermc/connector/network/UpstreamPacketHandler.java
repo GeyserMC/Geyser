@@ -45,7 +45,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
-        // TODO: Implement support for multiple protocols
         if (loginPacket.getProtocolVersion() != GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
             connector.getLogger().debug("unsupported");
             session.getUpstream().disconnect("Unsupported Bedrock version. Are you running an outdated version?");
@@ -56,16 +55,16 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        session.getUpstream().sendPacketImmediately(playStatus);
+        session.getUpstream().sendPacket(playStatus);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
-        session.getUpstream().sendPacketImmediately(resourcePacksInfo);
+        session.getUpstream().sendPacket(resourcePacksInfo);
         return true;
     }
 
     @Override
-    public boolean handle(ResourcePackClientResponsePacket textPacket) {
-        switch (textPacket.getStatus()) {
+    public boolean handle(ResourcePackClientResponsePacket packet) {
+        switch (packet.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
                 connector.getLogger().info("Player connected with username " + session.getAuthenticationData().getName());
@@ -74,7 +73,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 ResourcePackStackPacket stack = new ResourcePackStackPacket();
                 stack.setExperimental(false);
                 stack.setForcedToAccept(false);
-                session.getUpstream().sendPacketImmediately(stack);
+                stack.setGameVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+                session.getUpstream().sendPacket(stack);
                 break;
             default:
                 session.getUpstream().disconnect("disconnectionScreen.resourcePack");
