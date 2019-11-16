@@ -1,9 +1,17 @@
-package org.geysermc.connector.utils;
+package org.geysermc.connector.network.translators;
 
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.tag.IntTag;
+import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class BlockEntityUtils {
+    static final Map<String, ExtraDataMapper> MAPPINGS = new HashMap<>();
+
     public static final String CHEST = "Chest";
     public static final String ENDER_CHEST = "EnderChest";
     public static final String FURNACE = "Furnace";
@@ -75,5 +83,29 @@ public class BlockEntityUtils {
         return null;
     }
 
-    //public static Tag<?> getExtraData(CompoundTag tag)
+    public static List<Tag<?>> getExtraTags(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
+        List<Tag<?>> list = new ArrayList<>();
+
+        try {
+            MAPPINGS.get(tag.get("id").getValue()).getExtraTags(tag);
+        } catch (Exception e) {
+            int x = ((Number) tag.getValue().get("x").getValue()).intValue();
+            int y = ((Number) tag.getValue().get("y").getValue()).intValue();
+            int z = ((Number) tag.getValue().get("z").getValue()).intValue();
+
+            String id = BlockEntityUtils.getBedrockID((String) tag.get("id").getValue());
+
+            list.add(new IntTag("x", x));
+            list.add(new IntTag("y", y));
+            list.add(new IntTag("z", z));
+
+            list.add(new StringTag("id", id));
+        }
+
+        return list;
+    }
+
+    public static abstract class ExtraDataMapper {
+        public abstract List<Tag<?>> getExtraTags(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag);
+    }
 }

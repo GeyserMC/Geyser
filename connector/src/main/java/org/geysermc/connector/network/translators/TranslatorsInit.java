@@ -48,6 +48,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import org.geysermc.connector.network.translators.bedrock.*;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.blockentity.SignDataMapper;
 import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
@@ -141,6 +142,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerTeamPacket.class, new JavaTeamTranslator());
         Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
+        Registry.registerJava(ServerUpdateTileEntityPacket.class, new JavaUpdateTileEntityPacketTranslator());
 
         Registry.registerJava(ServerOpenWindowPacket.class, new OpenWindowPacketTranslator());
 
@@ -153,6 +155,8 @@ public class TranslatorsInit {
         Registry.registerBedrock(SetLocalPlayerAsInitializedPacket.class, new BedrockPlayerInitializedTranslator());
         Registry.registerBedrock(InteractPacket.class, new BedrockInteractTranslator());
         Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
+
+        BlockEntityUtils.MAPPINGS.put("minecraft:sign", new SignDataMapper());
 
         itemTranslator = new ItemTranslator();
         blockTranslator = new BlockTranslator();

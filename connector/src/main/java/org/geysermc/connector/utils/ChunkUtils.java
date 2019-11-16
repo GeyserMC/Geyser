@@ -9,6 +9,7 @@ import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.IntTag;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
+import org.geysermc.connector.network.translators.BlockEntityUtils;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.chunk.ChunkSection;
@@ -38,19 +39,9 @@ public class ChunkUtils {
             for (CompoundTag tag : column.getTileEntities()) {
                 Map<String, Tag<?>> map = new HashMap<>();
 
-                int x = ((Number) tag.getValue().get("x").getValue()).intValue();
-                int y = ((Number) tag.getValue().get("y").getValue()).intValue();
-                int z = ((Number) tag.getValue().get("z").getValue()).intValue();
-
-                String id = BlockEntityUtils.getBedrockID((String) tag.get("id").getValue());
-
-                System.out.println(id);
-
-                map.put("x", new IntTag("x", x));
-                map.put("y", new IntTag("y", y));
-                map.put("z", new IntTag("z", z));
-
-                map.put("id", new StringTag("id", id));
+                for(Tag<?> extra : BlockEntityUtils.getExtraTags(tag)) {
+                    map.put(extra.getName(), extra);
+                }
 
                 nbtStream.write(new com.nukkitx.nbt.tag.CompoundTag("", map));
             }
