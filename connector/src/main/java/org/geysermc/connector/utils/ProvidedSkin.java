@@ -3,6 +3,7 @@ package org.geysermc.connector.utils;
 import lombok.Getter;
 
 import javax.imageio.ImageIO;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,11 +19,11 @@ public class ProvidedSkin {
             try {
                 for (int y = 0; y < image.getHeight(); y++) {
                     for (int x = 0; x < image.getWidth(); x++) {
-                        int rgba = image.getRGB(x, y);
-                        outputStream.write((rgba >> 16) & 0xFF);
-                        outputStream.write((rgba >> 8) & 0xFF);
-                        outputStream.write(rgba & 0xFF);
-                        outputStream.write((rgba >> 24) & 0xFF);
+                        Color color = new Color(image.getRGB(x, y), true);
+                        outputStream.write(color.getRed());
+                        outputStream.write(color.getGreen());
+                        outputStream.write(color.getBlue());
+                        outputStream.write(color.getAlpha());
                     }
                 }
                 image.flush();

@@ -13,6 +13,7 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Base64;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -48,7 +49,16 @@ public class SkinUtils {
     public static PlayerListPacket.Entry buildEntryManually(UUID uuid, String username, long geyserId,
                                                             String skinId, byte[] skinData, byte[] capeData,
                                                             String geometryName, String geometryData) {
-        SerializedSkin serializedSkin = SerializedSkin.of(skinId, ImageData.of(64, 64, skinData), ImageData.of(64, 32, capeData), geometryName, geometryData, true);
+        if (skinData == null || skinData.length == 0) {
+            skinData = SkinProvider.EMPTY_SKIN.getSkinData();
+        }
+
+        if (capeData == null || capeData.length == 0) {
+            capeData = SkinProvider.EMPTY_CAPE.getCapeData();
+        }
+
+        SerializedSkin serializedSkin = SerializedSkin.of(skinId, geometryName, ImageData.of(64, 64, skinData),
+                Collections.emptyList(), ImageData.of(64, 32, capeData), geometryData, "", true, false, false, "", "");
 
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
         entry.setName(username);
