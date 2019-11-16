@@ -135,7 +135,8 @@ public enum EntityType {
     DROWNED(110, 1.95f, 0.6f),
     TROPICAL_FISH(111, 0.6f, 0.6f),
     COD(112, 0.25f, 0.5f),
-    PANDA(113, 1.25f, 1.125f, 1.825f);
+    PANDA(113, 1.25f, 1.125f, 1.825f),
+    FOX(121, 0.5f, 1.25f);
 
     private final int type;
     private final float height;
