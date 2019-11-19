@@ -11,9 +11,22 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MessageUtils {
+    static {
+        Map<String, ChatFormat> pre = new HashMap<>();
+
+        for(ChatFormat format : ChatFormat.values()) {
+            pre.put(format.name().toLowerCase(), format);
+        }
+
+        FORMATS = pre;
+    }
+
+    private static final Map<String, ChatFormat> FORMATS;
 
     public static List<String> getTranslationParams(Message[] messages) {
         List<String> strings = new ArrayList<String>();
@@ -75,6 +88,43 @@ public class MessageUtils {
         }
 
         return builder.toString();
+    }
+
+    public static String getBedrockMessage(String message) {
+        JsonParser parser = new JsonParser();
+        JsonObject object = parser.parse(message).getAsJsonObject();
+
+        String ret = "";
+
+        if(object.has("color")) {
+            ret+=ChatColor.valueOf(object.getAsJsonObject().get("color").getAsString().toUpperCase());
+        }
+        for(String string : FORMATS.keySet()) {
+            if(object.has(string) && object.get(string).getAsBoolean()) {
+                ret+=getFormat(FORMATS.get(string));
+            }
+        }
+
+        if(object.has("extra")) {
+            for(JsonElement element : object.get("extra").getAsJsonArray()) {
+                if(element.isJsonObject()) {
+                    if(object.has("color")) {
+                        ret+=ChatColor.valueOf(object.getAsJsonObject().get("color").getAsString().toUpperCase());
+                    }
+                    for(String string : FORMATS.keySet()) {
+                        if(object.has(string) && object.get(string).getAsBoolean()) {
+                            ret+=getFormat(FORMATS.get(string));
+                        }
+                    }
+                } else {
+                    ret+=element.getAsString();
+                }
+            }
+        }
+
+        ret+=object.get("text").getAsString();
+
+        return ret;
     }
 
     private static String getColor(ChatColor color) {
@@ -141,28 +191,7 @@ public class MessageUtils {
     private static String getFormat(List<ChatFormat> formats) {
         String str = "";
         for (ChatFormat cf : formats) {
-            String base = "\u00a7";
-            switch (cf) {
-                case OBFUSCATED:
-                    base += "k";
-                    break;
-                case BOLD:
-                    base += "l";
-                    break;
-                case STRIKETHROUGH:
-                    base += "m";
-                    break;
-                case UNDERLINED:
-                    base += "n";
-                    break;
-                case ITALIC:
-                    base += "o";
-                    break;
-                default:
-                    break;
-            }
-
-            str += base;
+            str += getFormat(cf);
         }
 
         return str;
@@ -207,5 +236,30 @@ public class MessageUtils {
         }
 
         return object;
+    }
+
+    public static final String getFormat(ChatFormat cf) {
+        String base = "\u00a7";
+        switch (cf) {
+            case OBFUSCATED:
+                base += "k";
+                break;
+            case BOLD:
+                base += "l";
+                break;
+            case STRIKETHROUGH:
+                base += "m";
+                break;
+            case UNDERLINED:
+                base += "n";
+                break;
+            case ITALIC:
+                base += "o";
+                break;
+            default:
+                break;
+        }
+
+        return base;
     }
 }

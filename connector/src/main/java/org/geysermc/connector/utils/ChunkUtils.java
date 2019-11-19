@@ -2,8 +2,11 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.IntTag;
@@ -15,8 +18,7 @@ import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.chunk.ChunkSection;
 
 import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ChunkUtils {
 
@@ -27,30 +29,7 @@ public class ChunkUtils {
         int chunkSectionCount = chunks.length;
         chunkData.sections = new ChunkSection[chunkSectionCount];
 
-
-        for(CompoundTag tag : column.getTileEntities()) {
-            System.out.println(tag.get("id").getValue());
-        }
-        //Start work on block entities
-        try {
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
-
-            for (CompoundTag tag : column.getTileEntities()) {
-                Map<String, Tag<?>> map = new HashMap<>();
-
-                for(Tag<?> extra : BlockEntityUtils.getExtraTags(tag)) {
-                    map.put(extra.getName(), extra);
-                }
-
-                nbtStream.write(new com.nukkitx.nbt.tag.CompoundTag("", map));
-            }
-
-            chunkData.blockEntities = stream.toByteArray();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        List<CompoundTag> tiles = new ArrayList<>(Arrays.asList(column.getTileEntities()));
 
         for (int chunkY = 0; chunkY < chunkSectionCount; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
@@ -78,6 +57,26 @@ public class ChunkUtils {
                 }
             }
         }
+
+        //Start work on block entities
+        try {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
+
+            for (CompoundTag tag : tiles) {
+                try {
+                    nbtStream.write(BlockEntityUtils.getExtraTags(tag));
+                } catch (Exception e) {
+                    System.out.println(tag);
+                }
+            }
+
+            chunkData.blockEntities = stream.toByteArray();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return chunkData;
     }
 
