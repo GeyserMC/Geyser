@@ -15,7 +15,6 @@ public class BedrockPlayerInitializedTranslator extends PacketTranslator<SetLoca
 
                 for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
                     if (!entity.isValid()) {
-                        entity.sendPlayer(session);
                         // async skin loading
                         SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
                     }
