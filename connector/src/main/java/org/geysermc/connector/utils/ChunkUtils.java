@@ -67,7 +67,7 @@ public class ChunkUtils {
                 try {
                     nbtStream.write(BlockEntityUtils.getExtraTags(tag));
                 } catch (Exception e) {
-                    System.out.println(tag);
+                    //
                 }
             }
 
