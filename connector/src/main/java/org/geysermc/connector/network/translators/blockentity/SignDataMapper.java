@@ -27,6 +27,7 @@ public class SignDataMapper extends BlockEntityUtils.ExtraDataMapper {
                 .intTag("x", x)
                 .intTag("y", y)
                 .intTag("z", z)
+                .byteTag("isMovable", (byte) 0)
                 .build("");
     }
 

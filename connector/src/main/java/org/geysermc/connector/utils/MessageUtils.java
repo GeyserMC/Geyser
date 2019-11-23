@@ -104,6 +104,7 @@ public class MessageUtils {
                 ret+=getFormat(FORMATS.get(string));
             }
         }
+        ret+=object.get("text").getAsString();
 
         if(object.has("extra")) {
             for(JsonElement element : object.get("extra").getAsJsonArray()) {
@@ -116,13 +117,12 @@ public class MessageUtils {
                             ret+=getFormat(FORMATS.get(string));
                         }
                     }
+                    ret+=element.getAsJsonObject().get("text").getAsString();
                 } else {
                     ret+=element.getAsString();
                 }
             }
         }
-
-        ret+=object.get("text").getAsString();
 
         return ret;
     }

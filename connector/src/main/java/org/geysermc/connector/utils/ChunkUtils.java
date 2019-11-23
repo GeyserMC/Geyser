@@ -29,6 +29,7 @@ public class ChunkUtils {
         int chunkSectionCount = chunks.length;
         chunkData.sections = new ChunkSection[chunkSectionCount];
 
+        //Will be useful later
         List<CompoundTag> tiles = new ArrayList<>(Arrays.asList(column.getTileEntities()));
 
         for (int chunkY = 0; chunkY < chunkSectionCount; chunkY++) {
@@ -46,12 +47,17 @@ public class ChunkUtils {
                         BlockState blockState = chunk.get(x, y, z);
                         BlockEntry block = TranslatorsInit.getBlockTranslator().getBedrockBlock(blockState);
 
-                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
-                                block.getBedrockId() << 4 | block.getBedrockData());
+                        if(!block.getJavaIdentifier().contains("sign")) {
+                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
+                                    block.getBedrockId() << 4 | block.getBedrockData());
 
-                        if (block.getJavaIdentifier().contains("waterlogged=true")) {
+                            if (block.getJavaIdentifier().contains("waterlogged=true")) {
+                                section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z),
+                                        9 << 4); // water id
+                            }
+                        } else {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z),
-                                    9 << 4); // water id
+                                    0);
                         }
                     }
                 }
@@ -64,6 +70,7 @@ public class ChunkUtils {
             NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
 
             for (CompoundTag tag : tiles) {
+                if(tag.get("id").getValue().toString().contains("sign")) continue;
                 try {
                     nbtStream.write(BlockEntityUtils.getExtraTags(tag));
                 } catch (Exception e) {

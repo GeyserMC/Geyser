@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
+import static com.nukkitx.math.vector.Vector2f.from;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -36,6 +37,8 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+
+import static java.lang.Math.abs;
 
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
 
@@ -91,18 +94,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (mode != MovePlayerPacket.Mode.NORMAL)
             return true;
 
-        double xRange = newPosition.getX() - currentPosition.getX();
-        double yRange = newPosition.getY() - currentPosition.getY();
-        double zRange = newPosition.getZ() - currentPosition.getZ();
+        double yRange = abs(newPosition.getY() - currentPosition.getY());
 
-        if (xRange < 0)
-            xRange = -xRange;
-        if (yRange < 0)
-            yRange = -yRange;
-        if (zRange < 0)
-            zRange = -zRange;
-
-        if ((xRange + yRange + zRange) > 100) {
+        if (yRange > 30 || dist(newPosition, currentPosition) > 10) {
             session.getConnector().getLogger().debug(ChatColor.RED + session.getName() + " moved too quickly." +
                     " current position: " + currentPosition + ", new position: " + newPosition);
 
@@ -110,6 +104,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
 
         return true;
+    }
+
+    private double dist(Vector3f a, Vector3f b) {
+        return from(a.getX(), a.getZ()).distance(from(b.getX(), b.getZ()));
     }
 
     public void recalculatePosition(GeyserSession session, Entity entity, Vector3f currentPosition) {
