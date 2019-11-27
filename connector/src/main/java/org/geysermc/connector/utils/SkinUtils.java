@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.codec.Charsets;
 import org.geysermc.api.Geyser;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -97,8 +98,10 @@ public class SkinUtils {
 
                 return new GameProfileData(skinUrl, capeUrl, isAlex);
             } catch (Exception exception) {
+                if (!((GeyserConnector) Geyser.getConnector()).getConfig().getRemote().getAuthType().equals("offline")) {
+                    Geyser.getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
+                }
                 // return default skin with default cape when texture data is invalid
-                Geyser.getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
                 return new GameProfileData("", "", false);
             }
         }
