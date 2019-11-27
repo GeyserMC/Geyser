@@ -93,7 +93,7 @@ public enum EntityType {
     EXPERIENCE_BOTTLE(68, 0.25f, 0.25f),
     EXPERIENCE_ORB(69, 0f),
     EYE_OF_ENDER(70, 0f),
-    ENDER_CRYSTAL(71, 0f),
+    END_CRYSTAL(71, 0f),
     FIREWORK_ROCKET(72, 0f),
     TRIDENT(73, 0f),
     TURTLE(74, 0.4f, 1.2f),
