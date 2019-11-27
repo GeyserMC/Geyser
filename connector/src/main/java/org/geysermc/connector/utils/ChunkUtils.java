@@ -20,6 +20,8 @@ import org.geysermc.connector.world.chunk.ChunkSection;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
+import static org.geysermc.connector.network.translators.BlockEntityUtils.MINECRAFT;
+
 public class ChunkUtils {
 
     public static ChunkData translateToBedrock(Column column) {
@@ -47,17 +49,28 @@ public class ChunkUtils {
                         BlockState blockState = chunk.get(x, y, z);
                         BlockEntry block = TranslatorsInit.getBlockTranslator().getBedrockBlock(blockState);
 
-                        if(!block.getJavaIdentifier().contains("sign")) {
-                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
-                                    block.getBedrockId() << 4 | block.getBedrockData());
+                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
+                                block.getBedrockId() << 4 | block.getBedrockData());
 
-                            if (block.getJavaIdentifier().contains("waterlogged=true")) {
-                                section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z),
-                                        9 << 4); // water id
-                            }
-                        } else {
+                        if (block.getJavaIdentifier().contains("waterlogged=true")) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z),
-                                    0);
+                                    9 << 4); // water id
+                        }
+
+                        //Signs are special
+                        if(block.getJavaIdentifier().contains("sign")) {
+                            CompoundTag tag = new CompoundTag("");
+
+                            tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("id", MINECRAFT + "sign"));
+                            tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text1", "\"text\":\"\""));
+                            tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text2", "\"text\":\"\""));
+                            tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text3", "\"text\":\"\""));
+                            tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text4", "\"text\":\"\""));
+                            tag.put(new com.github.steveice10.opennbt.tag.builtin.IntTag("x", x));
+                            tag.put(new com.github.steveice10.opennbt.tag.builtin.IntTag("y", y));
+                            tag.put(new com.github.steveice10.opennbt.tag.builtin.IntTag("z", z));
+
+                            tiles.add(tag);
                         }
                     }
                 }
@@ -70,11 +83,10 @@ public class ChunkUtils {
             NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
 
             for (CompoundTag tag : tiles) {
-                if(tag.get("id").getValue().toString().contains("sign")) continue;
                 try {
                     nbtStream.write(BlockEntityUtils.getExtraTags(tag));
                 } catch (Exception e) {
-                    //
+                    //The close method of the streams doesn't do anything anyway
                 }
             }
 

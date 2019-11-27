@@ -89,6 +89,7 @@ public class BlockEntityUtils {
         try {
             return MAPPINGS.get(tag.get("id").getValue()).getExtraTags(tag);
         } catch (Exception e) {
+            System.out.println(tag);
             int x = ((Number) tag.getValue().get("x").getValue()).intValue();
             int y = ((Number) tag.getValue().get("y").getValue()).intValue();
             int z = ((Number) tag.getValue().get("z").getValue()).intValue();
