@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 public class SkinUtils {
     public static PlayerListPacket.Entry buildCachedEntry(GameProfile profile, long geyserId) {
         GameProfileData data = GameProfileData.from(profile);
+        SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
 
         return buildEntryManually(
                 profile.getId(),
@@ -28,7 +29,8 @@ public class SkinUtils {
                 geyserId,
                 profile.getIdAsString(),
                 SkinProvider.getCachedSkin(profile.getId()).getSkinData(),
-                SkinProvider.getCachedCape(data.getCapeUrl()).getCapeData(),
+                cape.getCapeId(),
+                cape.getCapeData(),
                 getLegacySkinGeometry("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : "")),
                 ""
         );
@@ -41,6 +43,7 @@ public class SkinUtils {
                 geyserId,
                 profile.getIdAsString(),
                 SkinProvider.STEVE_SKIN,
+                SkinProvider.EMPTY_CAPE.getCapeId(),
                 SkinProvider.EMPTY_CAPE.getCapeData(),
                 getLegacySkinGeometry("geometry.humanoid"),
                 ""
@@ -48,18 +51,13 @@ public class SkinUtils {
     }
 
     public static PlayerListPacket.Entry buildEntryManually(UUID uuid, String username, long geyserId,
-                                                            String skinId, byte[] skinData, byte[] capeData,
+                                                            String skinId, byte[] skinData,
+                                                            String capeId, byte[] capeData,
                                                             String geometryName, String geometryData) {
-        if (skinData == null || skinData.length == 0) {
-            skinData = SkinProvider.EMPTY_SKIN.getSkinData();
-        }
-
-        if (capeData == null || capeData.length == 0) {
-            capeData = SkinProvider.EMPTY_CAPE.getCapeData();
-        }
-
-        SerializedSkin serializedSkin = SerializedSkin.of(skinId, geometryName, ImageData.of(64, 64, skinData),
-                Collections.emptyList(), ImageData.of(64, 32, capeData), geometryData, "", true, false, false, "", "");
+        SerializedSkin serializedSkin = SerializedSkin.of(
+                skinId, geometryName, ImageData.of(skinData), Collections.emptyList(),
+                ImageData.of(capeData), geometryData, "", true, false, false, capeId, uuid.toString()
+        );
 
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
         entry.setName(username);
@@ -110,7 +108,7 @@ public class SkinUtils {
     public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
         Geyser.getGeneralThreadPool().execute(() -> {
-            SkinUtils.GameProfileData data = SkinUtils.GameProfileData.from(entity.getProfile());
+            GameProfileData data = GameProfileData.from(entity.getProfile());
 
             SkinProvider.requestSkinAndCape(entity.getUuid(), data.getSkinUrl(), data.getCapeUrl())
                     .whenCompleteAsync((skinAndCape, throwable) -> {
@@ -129,12 +127,13 @@ public class SkinUtils {
                                 entity.setLastSkinUpdate(skin.getRequestedOn());
 
                                 if (session.getUpstream().isInitialized()) {
-                                    PlayerListPacket.Entry updatedEntry = SkinUtils.buildEntryManually(
+                                    PlayerListPacket.Entry updatedEntry = buildEntryManually(
                                             entity.getUuid(),
                                             entity.getUsername(),
                                             entity.getGeyserId(),
                                             entity.getUuid().toString(),
                                             skin.getSkinData(),
+                                            cape.getCapeId(),
                                             cape.getCapeData(),
                                             getLegacySkinGeometry("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : "")),
                                             ""
