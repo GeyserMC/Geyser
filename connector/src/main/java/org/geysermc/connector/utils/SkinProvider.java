@@ -22,12 +22,12 @@ public class SkinProvider {
     public static final boolean ALLOW_THIRD_PARTY_CAPES = ((GeyserConnector)Geyser.getConnector()).getConfig().isAllowThirdPartyCapes();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
 
-    public static final Skin EMPTY_SKIN = new Skin(-1, "");
     public static final byte[] STEVE_SKIN = new ProvidedSkin("bedrock/skin/skin_steve.png").getSkin();
+    public static final Skin EMPTY_SKIN = new Skin(-1, "steve", STEVE_SKIN);
     private static Map<UUID, Skin> cachedSkins = new ConcurrentHashMap<>();
     private static Map<UUID, CompletableFuture<Skin>> requestedSkins = new ConcurrentHashMap<>();
 
-    public static final Cape EMPTY_CAPE = new Cape("", new byte[0], -1, true);
+    public static final Cape EMPTY_CAPE = new Cape("", "no-cape", new byte[0], -1, true);
     private static Map<String, Cape> cachedCapes = new ConcurrentHashMap<>();
     private static Map<String, CompletableFuture<Cape>> requestedCapes = new ConcurrentHashMap<>();
 
@@ -149,8 +149,11 @@ public class SkinProvider {
             cape = requestImage(capeUrl, true);
         } catch (Exception ignored) {} // just ignore I guess
 
+        String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
+
         return new Cape(
                 capeUrl,
+                urlSection[urlSection.length - 1], // get the texture id and use it as cape id
                 cape.length > 0 ? cape : EMPTY_CAPE.getCapeData(),
                 System.currentTimeMillis(),
                 cape.length == 0
@@ -209,13 +212,14 @@ public class SkinProvider {
     public static class Skin {
         private UUID skinOwner;
         private String textureUrl;
-        private byte[] skinData = STEVE_SKIN;
+        private byte[] skinData;
         private long requestedOn;
         private boolean updated;
 
-        private Skin(long requestedOn, String textureUrl) {
+        private Skin(long requestedOn, String textureUrl, byte[] skinData) {
             this.requestedOn = requestedOn;
             this.textureUrl = textureUrl;
+            this.skinData = skinData;
         }
     }
 
@@ -223,6 +227,7 @@ public class SkinProvider {
     @Getter
     public static class Cape {
         private String textureUrl;
+        private String capeId;
         private byte[] capeData;
         private long requestedOn;
         private boolean failed;
