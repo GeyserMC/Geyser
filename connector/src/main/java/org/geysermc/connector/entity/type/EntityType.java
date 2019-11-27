@@ -87,13 +87,13 @@ public enum EntityType {
     TRIPOD_CAMERA(62, 0f),
     PLAYER(63, 1.8f, 0.6f, 0.6f, 1.62f),
     ITEM(64, 0.25f, 0.25f),
-    PRIMED_TNT(65, 0.98f, 0.98f),
+    TNT(65, 0.98f, 0.98f),
     FALLING_BLOCK(66, 0.98f, 0.98f),
     MOVING_BLOCK(67, 0f),
     EXPERIENCE_BOTTLE(68, 0.25f, 0.25f),
     EXPERIENCE_ORB(69, 0f),
     EYE_OF_ENDER(70, 0f),
-    ENDER_CRYSTAL(71, 0f),
+    END_CRYSTAL(71, 0f),
     FIREWORK_ROCKET(72, 0f),
     TRIDENT(73, 0f),
     TURTLE(74, 0.4f, 1.2f),
@@ -108,7 +108,7 @@ public enum EntityType {
     EGG(82, 0f),
     PAINTING(83, 0f),
     MINECART(84, 0f),
-    LARGE_FIREBALL(85, 0f),
+    FIREBALL(85, 0f),
     SPLASH_POTION(86, 0f),
     ENDER_PEARL(87, 0f),
     LEASH_KNOT(88, 0f),
@@ -135,7 +135,8 @@ public enum EntityType {
     DROWNED(110, 1.95f, 0.6f),
     TROPICAL_FISH(111, 0.6f, 0.6f),
     COD(112, 0.25f, 0.5f),
-    PANDA(113, 1.25f, 1.125f, 1.825f);
+    PANDA(113, 1.25f, 1.125f, 1.825f),
+    FOX(121, 0.5f, 1.25f);
 
     private final int type;
     private final float height;

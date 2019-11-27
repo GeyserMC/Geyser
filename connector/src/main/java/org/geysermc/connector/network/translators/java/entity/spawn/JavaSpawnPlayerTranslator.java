@@ -51,8 +51,9 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         entity.setPosition(position);
         entity.setRotation(rotation);
 
-        entity.sendPlayer(session);
         // async skin loading
-        SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
+        if (session.getUpstream().isInitialized()) {
+            SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
+        }
     }
 }
