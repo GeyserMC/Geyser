@@ -1,0 +1,30 @@
+image: "ubuntu:latest"
+
+before_script:
+  - apt-get update -qq && apt-get install -y maven git build-essential gcc g++
+
+geyser:
+  script:
+    - cd /builds/td512/geyser
+    - git clone https://github.com/NukkitX/Protocol
+    - cd Protocol
+    - git checkout feature/bedrock-1.13
+    - git pull
+    - mvn clean install
+    - cd /builds/td512/geyser
+    - git checkout feature/1.13-bedrock
+    - git pull
+    - mvn clean install
+  artifacts:
+    paths:
+    - target/Geyser.jar
+    - target/Geyser-noshade.jar
+    - Protocol/bedrock/bedrock-common/target/bedrock-common-2.4.0-SNAPSHOT.jar
+    - Protocol/bedrock/bedrock-v291/target/bedrock-v291-2.4.0-SNAPSHOT.jar
+    - Protocol/bedrock/bedrock-v313/target/bedrock-v313-2.4.0-SNAPSHOT.jar
+    - Protocol/bedrock/bedrock-v332/target/bedrock-v332-2.4.0-SNAPSHOT.jar
+    - Protocol/bedrock/bedrock-v340/target/bedrock-v340-2.4.0-SNAPSHOT.jar
+    - Protocol/bedrock/bedrock-v354/target/bedrock-v354-2.4.0-SNAPSHOT.jar
+    - Protocol/bedrock/bedrock-v361/target/bedrock-v361-2.4.0-SNAPSHOT.jar
+    - Protocol/bedrock/bedrock-v388/target/bedrock-v388-2.4.0-SNAPSHOT.jar    
+    - Protocol/common/target/common-2.4.0-SNAPSHOT.jar
