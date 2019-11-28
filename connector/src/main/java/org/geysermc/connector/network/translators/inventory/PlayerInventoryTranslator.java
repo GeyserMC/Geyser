@@ -45,12 +45,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         ItemData[] contents = new ItemData[36];
         // Inventory
         for (int i = 9; i < 36; i++) {
-            contents[i] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
+            contents[i] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(i));
         }
 
         // Hotbar
         for (int i = 36; i < 45; i++) {
-            contents[i - 36] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
+            contents[i - 36] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(i));
         }
 
         inventoryContentPacket.setContents(contents);
@@ -61,7 +61,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         armorContentPacket.setContainerId(ContainerId.ARMOR);
         contents = new ItemData[4];
         for (int i = 5; i < 9; i++) {
-            contents[i - 5] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
+            contents[i - 5] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(i));
         }
         armorContentPacket.setContents(contents);
         session.getUpstream().sendPacket(armorContentPacket);
@@ -124,6 +124,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             case ContainerId.CRAFTING_ADD_INGREDIENT:
             case ContainerId.CRAFTING_REMOVE_INGREDIENT:
                 return slotnum + 1;
+            case ContainerId.CURSOR:
+                if (slotnum >= 28 && 31 >= slotnum) {
+                    return slotnum - 27;
+                } else if (slotnum == 50) {
+                    return 0;
+                }
         }
         return slotnum;
     }
@@ -134,7 +140,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public boolean isOutputSlot(InventoryAction action) {
+    public boolean isOutputSlot(int slot) {
         return false;
     }
 

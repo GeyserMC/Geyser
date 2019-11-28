@@ -59,7 +59,7 @@ public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public boolean isOutputSlot(InventoryAction action) {
-        return action.getSlot() == 2;
+    public boolean isOutputSlot(int slot) {
+        return slot == 2;
     }
 }

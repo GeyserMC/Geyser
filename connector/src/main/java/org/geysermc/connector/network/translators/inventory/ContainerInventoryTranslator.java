@@ -43,7 +43,7 @@ public abstract class ContainerInventoryTranslator extends InventoryTranslator {
     public void updateInventory(GeyserSession session, Inventory inventory) {
         ItemData[] bedrockItems = new ItemData[this.size];
         for (int i = 0; i < bedrockItems.length; i++) {
-            bedrockItems[javaSlotToBedrock(i)] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
+            bedrockItems[javaSlotToBedrock(i)] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(i));
         }
         InventoryContentPacket contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(inventory.getId());
@@ -52,7 +52,7 @@ public abstract class ContainerInventoryTranslator extends InventoryTranslator {
 
         Inventory playerInventory = session.getInventory();
         for (int i = 0; i < 36; i++) {
-            playerInventory.getItems()[i + 9] = inventory.getItems()[i + this.size];
+            playerInventory.setItem(i + 9, inventory.getItem(i + this.size));
         }
         TranslatorsInit.getInventoryTranslators().get(playerInventory.getWindowType()).updateInventory(session, playerInventory);
     }
@@ -61,13 +61,13 @@ public abstract class ContainerInventoryTranslator extends InventoryTranslator {
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         if (slot >= this.size) {
             Inventory playerInventory = session.getInventory();
-            playerInventory.getItems()[(slot + 9) - this.size] = inventory.getItem(slot);
+            playerInventory.setItem((slot + 9) - this.size, inventory.getItem(slot));
             TranslatorsInit.getInventoryTranslators().get(playerInventory.getWindowType()).updateSlot(session, playerInventory, (slot + 9) - this.size);
         } else {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(inventory.getId());
             slotPacket.setInventorySlot(javaSlotToBedrock(slot));
-            slotPacket.setSlot(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[slot]));
+            slotPacket.setSlot(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(slot)));
             session.getUpstream().sendPacket(slotPacket);
         }
     }
@@ -97,7 +97,7 @@ public abstract class ContainerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public boolean isOutputSlot(InventoryAction action) {
+    public boolean isOutputSlot(int slot) {
         return false;
     }
 }

@@ -99,6 +99,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerRespawnPacket.class, new JavaRespawnTranslator());
         Registry.registerJava(ServerSpawnPositionPacket.class, new JavaSpawnPositionTranslator());
         Registry.registerJava(ServerDifficultyPacket.class, new JavaDifficultyTranslator());
+        Registry.registerJava(ServerDeclareRecipesPacket.class, new JavaDeclareRecipesTranslator());
 
         Registry.registerJava(ServerEntityAnimationPacket.class, new JavaEntityAnimationTranslator());
         Registry.registerJava(ServerEntityPositionPacket.class, new JavaEntityPositionTranslator());
@@ -181,7 +182,7 @@ public class TranslatorsInit {
 
         inventoryTranslators.put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, 23 << 4, ContainerType.DISPENSER));
         inventoryTranslators.put(WindowType.HOPPER, new BlockInventoryTranslator(5, 154 << 4, ContainerType.HOPPER));
-        inventoryTranslators.put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(36, 205 << 4, ContainerType.CONTAINER));
+        inventoryTranslators.put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(27, 205 << 4, ContainerType.CONTAINER));
         //inventoryTranslators.put(WindowType.BEACON, new BlockInventoryTranslator(1, 138 << 4, ContainerType.BEACON)); //TODO
     }
 }

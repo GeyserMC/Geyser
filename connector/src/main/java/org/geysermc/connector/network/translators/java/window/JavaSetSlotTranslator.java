@@ -47,9 +47,12 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
         if (packet.getWindowId() == 255 && packet.getSlot() == -1) { //cursor
             if (Objects.equals(session.getInventory().getCursor(), packet.getItem()))
                 return;
+            if (session.getCraftSlot() != 0)
+                return;
 
             //bedrock client is bugged when changing the cursor. reopen inventory after changing it
-            if (packet.getItem() == null && session.getInventory().getCursor() != null) {
+            //TODO: fix this. too buggy rn
+            /*if (packet.getItem() == null && session.getInventory().getCursor() != null) {
                 InventorySlotPacket cursorPacket = new InventorySlotPacket();
                 cursorPacket.setContainerId(ContainerId.CURSOR);
                 cursorPacket.setSlot(ItemData.AIR);
@@ -64,7 +67,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 ContainerClosePacket closePacket = new ContainerClosePacket();
                 closePacket.setWindowId((byte) inventory.getId());
                 Geyser.getGeneralThreadPool().schedule(() -> session.getUpstream().sendPacket(closePacket), 150, TimeUnit.MILLISECONDS);
-            }
+            }*/
 
             session.getInventory().setCursor(packet.getItem());
             return;
@@ -76,7 +79,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
         InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
         if (translator != null) {
-            inventory.getItems()[packet.getSlot()] = packet.getItem();
+            inventory.setItem(packet.getSlot(), packet.getItem());
             translator.updateSlot(session, inventory, packet.getSlot());
         }
     }

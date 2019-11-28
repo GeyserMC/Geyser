@@ -105,11 +105,9 @@ public class GeyserSession implements Player {
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
 
-    @Getter
     @Setter
-    private int lastClickedSlot;
+    private int craftSlot = 0;
 
-    @Getter
     @Setter
     private int reopeningWindow = -1;
 

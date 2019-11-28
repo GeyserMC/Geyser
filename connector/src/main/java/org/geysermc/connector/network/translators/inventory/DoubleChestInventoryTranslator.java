@@ -118,7 +118,7 @@ public class DoubleChestInventoryTranslator extends BlockInventoryTranslator {
         ItemData[] bedrockItems = new ItemData[54];
         for (int i = 0; i < bedrockItems.length; i++) {
             if (i <= this.size) {
-                bedrockItems[i] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
+                bedrockItems[i] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(i));
             } else {
                 bedrockItems[i] = ItemData.AIR;
             }
@@ -130,7 +130,7 @@ public class DoubleChestInventoryTranslator extends BlockInventoryTranslator {
 
         Inventory playerInventory = session.getInventory();
         for (int i = 0; i < 36; i++) {
-            playerInventory.getItems()[i + 9] = inventory.getItems()[i + this.size];
+            playerInventory.setItem(i + 9, inventory.getItem(i + this.size));
         }
         TranslatorsInit.getInventoryTranslators().get(playerInventory.getWindowType()).updateInventory(session, playerInventory);
     }

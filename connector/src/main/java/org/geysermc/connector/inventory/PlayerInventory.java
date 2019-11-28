@@ -44,7 +44,7 @@ public class PlayerInventory extends Inventory {
     }
 
     public void setCursor(ItemStack stack) {
-        if (stack != null && stack.getId() == 0)
+        if (stack != null && (stack.getId() == 0 || stack.getAmount() < 1))
             stack = null;
         cursor = stack;
     }

@@ -52,7 +52,6 @@ public class Inventory {
     @Setter
     protected String title;
 
-    @Getter
     @Setter
     protected ItemStack[] items;
 
@@ -81,5 +80,11 @@ public class Inventory {
 
     public ItemStack getItem(int slot) {
         return items[slot];
+    }
+
+    public void setItem(int slot, ItemStack item) {
+        if (item != null && (item.getId() == 0 || item.getAmount() < 1))
+            item = null;
+        items[slot] = item;
     }
 }

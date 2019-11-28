@@ -44,14 +44,13 @@ public class InventoryUtils {
                 session.getInventoryCache().uncacheInventory(windowId);
                 session.getInventoryCache().setOpenInventory(null);
             }
+        } else {
+            Inventory inventory = session.getInventory();
+            InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
+            translator.updateInventory(session, inventory);
         }
-    }
-
-    //currently, ItemStack.equals() does not check the item id
-    public static boolean canCombine(ItemData stack1, ItemData stack2) {
-        if (stack1 == null || stack2 == null)
-            return false;
-        return stack1.getId() == stack2.getId() && stack1.equals(stack2, false, true, true);
+        session.setCraftSlot(0);
+        session.getInventory().setCursor(null);
     }
 
     //NPE if nbt tag is null

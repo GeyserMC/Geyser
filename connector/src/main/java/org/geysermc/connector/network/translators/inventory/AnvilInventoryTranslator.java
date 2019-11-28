@@ -54,7 +54,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public boolean isOutputSlot(InventoryAction action) {
-        return action.getSource().getContainerId() == ContainerId.ANVIL_RESULT;
+    public boolean isOutputSlot(int slot) {
+        return slot == 2;
     }
 }

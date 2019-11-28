@@ -44,5 +44,5 @@ public abstract class InventoryTranslator {
     public abstract void updateSlot(GeyserSession session, Inventory inventory, int slot);
     public abstract int bedrockSlotToJava(InventoryAction action);
     public abstract int javaSlotToBedrock(int slot);
-    public abstract boolean isOutputSlot(InventoryAction action);
+    public abstract boolean isOutputSlot(int slot);
 }
