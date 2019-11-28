@@ -28,10 +28,7 @@ package org.geysermc.connector.network.translators;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerSetExperiencePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
@@ -112,6 +109,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerEntityRotationPacket.class, new JavaEntityRotationTranslator());
         Registry.registerJava(ServerEntityHeadLookPacket.class, new JavaEntityHeadLookTranslator());
         Registry.registerJava(ServerEntityMetadataPacket.class, new JavaEntityMetadataTranslator());
+        Registry.registerJava(ServerEntityStatusPacket.class, new JavaEntityStatusTranslator());
         Registry.registerJava(ServerBossBarPacket.class, new JavaBossBarTranslator());
 
         Registry.registerJava(ServerSpawnExpOrbPacket.class, new JavaSpawnExpOrbTranslator());
@@ -126,6 +124,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerSetExperiencePacket.class, new JavaPlayerSetExperienceTranslator());
         Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
         Registry.registerJava(ServerPlayerActionAckPacket.class, new JavaPlayerActionAckTranslator());
+        Registry.registerJava(ServerPlayerAbilitiesPacket.class, new JavaPlayerAbilitiesTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
         Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());

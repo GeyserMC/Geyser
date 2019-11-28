@@ -19,10 +19,10 @@ public class ProvidedSkin {
                 for (int y = 0; y < image.getHeight(); y++) {
                     for (int x = 0; x < image.getWidth(); x++) {
                         int rgba = image.getRGB(x, y);
-                        outputStream.write((rgba >> 16) & 0xFF);
-                        outputStream.write((rgba >> 8) & 0xFF);
-                        outputStream.write(rgba & 0xFF);
-                        outputStream.write((rgba >> 24) & 0xFF);
+                        outputStream.write((rgba >> 16) & 0xFF); // Red
+                        outputStream.write((rgba >> 8) & 0xFF); // Green
+                        outputStream.write(rgba & 0xFF); // Blue
+                        outputStream.write((rgba >> 24) & 0xFF); // Alpha
                     }
                 }
                 image.flush();

@@ -145,25 +145,22 @@ public class GeyserSession implements Player {
         Vector3f pos = Vector3f.ZERO;
         int chunkX = pos.getFloorX() >> 4;
         int chunkZ = pos.getFloorZ() >> 4;
-        for (int x = -5; x < 5; x++) {
-            for (int z = -5; z < 5; z++) {
-                NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
-                chunkPublisherUpdatePacket.setPosition(pos.toInt());
-                chunkPublisherUpdatePacket.setRadius(renderDistance << 4);
-                upstream.sendPacket(chunkPublisherUpdatePacket);
+        NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
+        chunkPublisherUpdatePacket.setPosition(pos.toInt());
+        chunkPublisherUpdatePacket.setRadius(renderDistance << 4);
+        upstream.sendPacket(chunkPublisherUpdatePacket);
 
-                LevelChunkPacket data = new LevelChunkPacket();
-                data.setChunkX(chunkX + x);
-                data.setChunkZ(chunkZ + z);
-                data.setSubChunksLength(0);
-                data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
-                upstream.sendPacket(data);
-            }
-        }
+        LevelChunkPacket data = new LevelChunkPacket();
+        data.setChunkX(chunkX);
+        data.setChunkZ(chunkZ);
+        data.setSubChunksLength(0);
+        data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
+        upstream.sendPacket(data);
 
         BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
         biomePacket.setTag(CompoundTag.EMPTY);
         upstream.sendPacket(biomePacket);
+
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
         entityPacket.setTag(CompoundTag.EMPTY);
         upstream.sendPacket(entityPacket);
@@ -176,8 +173,6 @@ public class GeyserSession implements Player {
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
-
-        connector.getLogger().debug("play status sent");
     }
 
     public void authenticate(String username) {

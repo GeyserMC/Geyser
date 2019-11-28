@@ -25,16 +25,15 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
+import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.EntityFlags;
-import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.console.GeyserLogger;
@@ -43,6 +42,7 @@ import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.AttributeUtils;
+import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.*;
 
@@ -164,25 +164,41 @@ public class Entity {
         updateAttributesPacket.setRuntimeEntityId(geyserId);
         updateAttributesPacket.setAttributes(attributes);
         session.getUpstream().sendPacket(updateAttributesPacket);
+    }
+
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        switch (entityMetadata.getId()) {
+            case 0:
+                if (entityMetadata.getType() == MetadataType.BYTE) {
+                    byte xd = (byte) entityMetadata.getValue();
+                    metadata.getFlags().setFlag(EntityFlag.ON_FIRE, (xd & 0x01) == 0x01);
+                    metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
+                    metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
+                    metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
+                    metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
+                    metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
+                }
+                break;
+            case 2: // custom name
+                TextMessage name = (TextMessage) entityMetadata.getValue();
+                if (name != null)
+                    metadata.put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(name));
+                break;
+            case 3: // is custom name visible
+                metadata.getFlags().setFlag(EntityFlag.ALWAYS_SHOW_NAME, (boolean) entityMetadata.getValue());
+                break;
+            case 4: // silent
+                metadata.getFlags().setFlag(EntityFlag.SILENT, (boolean) entityMetadata.getValue());
+                break;
+            case 5: // no gravity
+                metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
+                break;
+        }
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
         session.getUpstream().sendPacket(entityDataPacket);
-    }
-
-    // To be used at a later date
-    public void updateJavaAttributes(GeyserSession session) {
-        List<com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute> attributes = new ArrayList<>();
-        for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
-            if (!entry.getValue().getType().isBedrockAttribute())
-                continue;
-
-            attributes.add(AttributeUtils.getJavaAttribute(entry.getValue()));
-        }
-
-        ServerEntityPropertiesPacket entityPropertiesPacket = new ServerEntityPropertiesPacket((int) entityId, attributes);
-        session.getDownstream().getSession().send(entityPropertiesPacket);
     }
 
     public void setPosition(Vector3f position) {
