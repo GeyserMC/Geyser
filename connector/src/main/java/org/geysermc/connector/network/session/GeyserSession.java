@@ -28,7 +28,7 @@ package org.geysermc.connector.network.session;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.event.session.ConnectedEvent;
 import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
@@ -40,9 +40,14 @@ import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
+import com.nukkitx.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
@@ -57,6 +62,7 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
+import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.net.InetSocketAddress;
@@ -95,9 +101,7 @@ public class GeyserSession implements Player {
     private boolean closed;
 
     @Setter
-    private Vector3i blockDiggingPos = Vector3i.ZERO;
-    @Setter
-    private BlockFace blockDiggingFace = BlockFace.DOWN;
+    private GameMode gameMode = GameMode.SURVIVAL;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
@@ -121,19 +125,43 @@ public class GeyserSession implements Player {
     }
 
     public void connect(RemoteServer remoteServer) {
-        // This has to be sent first so the player actually joins
         startGame();
-
         this.remoteServer = remoteServer;
         if (!(connector.getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
             connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
             authenticate(authenticationData.getName());
         }
+
+        Vector3f pos = Vector3f.ZERO;
+        int chunkX = pos.getFloorX() >> 4;
+        int chunkZ = pos.getFloorZ() >> 4;
+        NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
+        chunkPublisherUpdatePacket.setPosition(pos.toInt());
+        chunkPublisherUpdatePacket.setRadius(renderDistance << 4);
+        upstream.sendPacket(chunkPublisherUpdatePacket);
+
+        LevelChunkPacket data = new LevelChunkPacket();
+        data.setChunkX(chunkX);
+        data.setChunkZ(chunkZ);
+        data.setSubChunksLength(0);
+        data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
+        upstream.sendPacket(data);
+
+        BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
+        biomePacket.setTag(CompoundTag.EMPTY);
+        upstream.sendPacket(biomePacket);
+
+        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
+        entityPacket.setTag(CompoundTag.EMPTY);
+        upstream.sendPacket(entityPacket);
+
+        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+        upstream.sendPacket(playStatusPacket);
     }
 
     public void authenticate(String username) {
         authenticate(username, "");
-        connector.addPlayer(this);
     }
 
     public void authenticate(String username, String password) {
@@ -182,6 +210,7 @@ public class GeyserSession implements Player {
                 });
 
                 downstream.getSession().connect();
+                connector.addPlayer(this);
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
@@ -260,15 +289,15 @@ public class GeyserSession implements Player {
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
-        startGamePacket.setSeed(0);
+        startGamePacket.setSeed(-1);
         startGamePacket.setDimensionId(playerEntity.getDimension());
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGamemode(0);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
         startGamePacket.setAcheivementsDisabled(true);
-        startGamePacket.setTime(0);
-        startGamePacket.setEduLevel(false);
+        startGamePacket.setTime(-1);
+        startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
         startGamePacket.setRainLevel(0);
         startGamePacket.setLightningLevel(0);
@@ -294,15 +323,13 @@ public class GeyserSession implements Player {
         startGamePacket.setLevelId("world");
         startGamePacket.setWorldName("world");
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
-        startGamePacket.setCurrentTick(0);
+        // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setCachedPalette(Toolbox.CACHED_PALLETE.retainedDuplicate());
+        startGamePacket.setBlockPalette(Toolbox.BLOCKS);
         startGamePacket.setItemEntries(Toolbox.ITEMS);
+        startGamePacket.setVanillaVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+        // startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacket(startGamePacket);
-
-        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-        upstream.sendPacket(playStatusPacket);
     }
 }

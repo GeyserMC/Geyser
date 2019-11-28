@@ -26,10 +26,17 @@
 package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
+import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.world.chunk.ChunkPosition;
 
 public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacket> {
 
@@ -38,20 +45,19 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         bedrockPacket.setPlayerPermission(1);
-        session.getUpstream().sendPacketImmediately(bedrockPacket);
+        session.getUpstream().sendPacket(bedrockPacket);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        session.getUpstream().sendPacketImmediately(playStatus);
+        // session.getUpstream().sendPacket(playStatus);
 
         PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null) return;
-
-        session.getPlayerEntity().setEntityId(packet.getEntityId());
+        entity.setEntityId(packet.getEntityId());
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
         session.getUpstream().sendPacket(playerGameTypePacket);
+        session.setGameMode(packet.getGameMode());
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -59,12 +65,11 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         session.getUpstream().sendPacket(entityDataPacket);
 
         session.setRenderDistance(packet.getViewDistance() + 1); // +1 to be sure it includes every chunk
-        System.out.println(session.getRenderDistance());
         if (session.getRenderDistance() > 32) session.setRenderDistance(32); // <3 u ViaVersion but I don't like crashing clients x)
 
-        ChunkRadiusUpdatedPacket packet1 = new ChunkRadiusUpdatedPacket();
-        packet1.setRadius(session.getRenderDistance());
-        session.getUpstream().sendPacket(packet1);
+        ChunkRadiusUpdatedPacket chunkRadiusPacket = new ChunkRadiusUpdatedPacket();
+        chunkRadiusPacket.setRadius(session.getRenderDistance());
+        session.getUpstream().sendPacket(chunkRadiusPacket);
 
         session.setSpawned(true);
     }

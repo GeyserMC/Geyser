@@ -39,7 +39,7 @@ public class JavaPlayerSetExperienceTranslator extends PacketTranslator<ServerPl
         if (entity == null)
             return;
 
-        entity.getAttributes().put(AttributeType.EXPERIENCE, AttributeType.EXPERIENCE.getAttribute(packet.getSlot()));
+        entity.getAttributes().put(AttributeType.EXPERIENCE, AttributeType.EXPERIENCE.getAttribute(packet.getExperience()));
         entity.getAttributes().put(AttributeType.EXPERIENCE_LEVEL, AttributeType.EXPERIENCE_LEVEL.getAttribute(packet.getLevel()));
         entity.updateBedrockAttributes(session);
     }

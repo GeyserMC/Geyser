@@ -716,4 +716,49 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     public boolean handle(VideoStreamConnectPacket packet) {
         return defaultHandler(packet);
     }
+
+    @Override
+    public boolean handle(EmotePacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(TickSyncPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(AnvilDamagePacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(NetworkSettingsPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(PlayerAuthInputPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(SettingsCommandPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(EducationSettingsPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(CompletedUsingItemPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(MultiplayerSettingsPacket packet) {
+        return defaultHandler(packet);
+    }
 }

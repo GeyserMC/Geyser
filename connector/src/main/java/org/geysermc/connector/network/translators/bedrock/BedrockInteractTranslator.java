@@ -30,6 +30,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -37,18 +39,21 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
     @Override
     public void translate(InteractPacket packet, GeyserSession session) {
-        Vector3f vector = packet.getMousePosition();
-        InteractAction action;
+        Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+        if (entity == null)
+            return;
 
-        if(packet.getAction() == 1) {
-            action = InteractAction.ATTACK;
-        } else {
-            action = InteractAction.INTERACT;
+        switch (packet.getAction()) {
+            case 1:
+                ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                        InteractAction.INTERACT, Hand.MAIN_HAND);
+                session.getDownstream().getSession().send(interactPacket);
+                break;
+            case 2:
+                ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                        InteractAction.ATTACK, Hand.MAIN_HAND);
+                session.getDownstream().getSession().send(attackPacket);
+                break;
         }
-
-        ClientPlayerInteractEntityPacket entityPacket = new ClientPlayerInteractEntityPacket((int) packet.getRuntimeEntityId(),
-                action, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
-
-        session.getDownstream().getSession().send(entityPacket);
     }
 }

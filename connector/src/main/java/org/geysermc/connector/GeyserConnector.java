@@ -27,7 +27,8 @@ package org.geysermc.connector;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v361.Bedrock_v361;
+import com.nukkitx.protocol.bedrock.v388.Bedrock_v388;
+
 import lombok.Getter;
 import org.fusesource.jansi.AnsiConsole;
 import org.geysermc.api.Connector;
@@ -43,6 +44,7 @@ import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteJavaServer;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.plugin.GeyserPluginLoader;
 import org.geysermc.connector.plugin.GeyserPluginManager;
@@ -54,7 +56,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,12 +67,12 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector implements Connector {
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v361.V361_CODEC;
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v388.V388_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "1.0-SNAPSHOT";
 
-    private final Map<Object, Player> players = new HashMap<>();
+    private final Map<Object, GeyserSession> players = new HashMap<>();
 
     private static GeyserConnector instance;
 
@@ -96,7 +97,6 @@ public class GeyserConnector implements Connector {
     }
 
     private GeyserConnector() {
-
         long startupTime = System.currentTimeMillis();
 
         // Metric
@@ -110,13 +110,12 @@ public class GeyserConnector implements Connector {
 
         logger.info("******************************************");
         logger.info("");
-        logger.info("Loading " + NAME + " vesion " + VERSION);
+        logger.info("Loading " + NAME + " version " + VERSION);
         logger.info("");
         logger.info("******************************************");
 
         try {
             File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
-
             config = FileUtils.loadConfig(configFile, GeyserConfiguration.class);
         } catch (IOException ex) {
             logger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
@@ -129,6 +128,7 @@ public class GeyserConnector implements Connector {
 
         logger.setDebug(config.isDebugMode());
 
+        Toolbox.init();
         TranslatorsInit.start();
 
         commandMap = new GeyserCommandMap(this);
@@ -165,8 +165,9 @@ public class GeyserConnector implements Connector {
         logger.info(String.format("Done (%ss)! Run /help for help!", new DecimalFormat("#.###").format(completeTime)));
     }
 
-    public Collection<Player> getConnectedPlayers() {
-        return new ArrayList<>(players.values());
+    @Override
+    public Collection<? extends Player> getConnectedPlayers() {
+        return players.values();
     }
 
     public void shutdown() {
@@ -182,13 +183,13 @@ public class GeyserConnector implements Connector {
         System.exit(0);
     }
 
-    public void addPlayer(Player player) {
+    public void addPlayer(GeyserSession player) {
         players.put(player.getAuthenticationData().getName(), player);
         players.put(player.getAuthenticationData().getUUID(), player);
         players.put(player.getSocketAddress(), player);
     }
 
-    public void removePlayer(Player player) {
+    public void removePlayer(GeyserSession player) {
         players.remove(player.getAuthenticationData().getName());
         players.remove(player.getAuthenticationData().getUUID());
         players.remove(player.getSocketAddress());

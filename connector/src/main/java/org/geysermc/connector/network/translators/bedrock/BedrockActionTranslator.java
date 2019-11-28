@@ -57,23 +57,23 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case START_GLIDE:
             case STOP_GLIDE:
-                ClientPlayerStatePacket glidePacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.START_ELYTRA_FLYING);
+                ClientPlayerStatePacket glidePacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
                 session.getDownstream().getSession().send(glidePacket);
                 break;
             case START_SNEAK:
-                ClientPlayerStatePacket startSneakPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.START_SNEAKING);
+                ClientPlayerStatePacket startSneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.getDownstream().getSession().send(startSneakPacket);
                 break;
             case STOP_SNEAK:
-                ClientPlayerStatePacket stopSneakPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.STOP_SNEAKING);
+                ClientPlayerStatePacket stopSneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SNEAKING);
                 session.getDownstream().getSession().send(stopSneakPacket);
                 break;
             case START_SPRINT:
-                ClientPlayerStatePacket startSprintPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.START_SPRINTING);
+                ClientPlayerStatePacket startSprintPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
                 session.getDownstream().getSession().send(startSprintPacket);
                 break;
             case STOP_SPRINT:
-                ClientPlayerStatePacket stopSprintPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.STOP_SPRINTING);
+                ClientPlayerStatePacket stopSprintPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
                 session.getDownstream().getSession().send(stopSprintPacket);
                 break;
             case DROP_ITEM:
@@ -81,7 +81,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getDownstream().getSession().send(dropItemPacket);
                 break;
             case STOP_SLEEP:
-                ClientPlayerStatePacket stopSleepingPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getGeyserId(), PlayerState.LEAVE_BED);
+                ClientPlayerStatePacket stopSleepingPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.LEAVE_BED);
                 session.getDownstream().getSession().send(stopSleepingPacket);
                 break;
             case BLOCK_INTERACT:
@@ -93,12 +93,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case START_BREAK:
                 ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
                         packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
-                session.setBlockDiggingPos(packet.getBlockPosition());
-                session.setBlockDiggingFace(BlockFace.values()[packet.getFace()]);
                 session.getDownstream().getSession().send(startBreakingPacket);
                 break;
             case CONTINUE_BREAK:
-                session.setBlockDiggingFace(BlockFace.values()[packet.getFace()]);
                 break;
             case ABORT_BREAK:
                 ClientPlayerActionPacket abortBreakingPacket = new ClientPlayerActionPacket(PlayerAction.CANCEL_DIGGING, new Position(packet.getBlockPosition().getX(),
@@ -106,10 +103,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getDownstream().getSession().send(abortBreakingPacket);
                 break;
             case STOP_BREAK:
-                Vector3i pos = session.getBlockDiggingPos();
-                ClientPlayerActionPacket stopBreakingPacket = new ClientPlayerActionPacket(PlayerAction.FINISH_DIGGING, new Position(pos.getX(),
-                        pos.getY(), pos.getZ()), session.getBlockDiggingFace());
-                session.getDownstream().getSession().send(stopBreakingPacket);
+                // Handled in BedrockInventoryTransactionTranslator
                 break;
         }
     }

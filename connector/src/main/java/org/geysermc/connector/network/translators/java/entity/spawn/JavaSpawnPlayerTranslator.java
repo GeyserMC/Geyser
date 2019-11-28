@@ -41,9 +41,9 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         Vector3f position = Vector3f.from(packet.getX(), packet.getY() - EntityType.PLAYER.getOffset(), packet.getZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw());
 
-        PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUUID());
+        PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
         if (entity == null) {
-            Geyser.getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player " + packet.getUUID());
+            Geyser.getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player " + packet.getUuid());
             return;
         }
 
@@ -51,8 +51,9 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         entity.setPosition(position);
         entity.setRotation(rotation);
 
-        entity.sendPlayer(session);
         // async skin loading
-        SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
+        if (session.getUpstream().isInitialized()) {
+            SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
+        }
     }
 }

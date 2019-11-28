@@ -27,7 +27,7 @@ If applicable, add screenshots to help explain your problem.
 run /version
 
 **Geyser version**
-Not yet
+Jenkins
 
 **Bedrock version**
 The version of your Minecraft pe

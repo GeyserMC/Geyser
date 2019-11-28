@@ -27,10 +27,7 @@ package org.geysermc.connector.network.translators;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerSetExperiencePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
@@ -114,6 +111,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerEntityRotationPacket.class, new JavaEntityRotationTranslator());
         Registry.registerJava(ServerEntityHeadLookPacket.class, new JavaEntityHeadLookTranslator());
         Registry.registerJava(ServerEntityMetadataPacket.class, new JavaEntityMetadataTranslator());
+        Registry.registerJava(ServerEntityStatusPacket.class, new JavaEntityStatusTranslator());
         Registry.registerJava(ServerBossBarPacket.class, new JavaBossBarTranslator());
 
         Registry.registerJava(ServerSpawnExpOrbPacket.class, new JavaSpawnExpOrbTranslator());
@@ -129,6 +127,9 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
         Registry.registerJava(ServerPlayerActionAckPacket.class, new JavaPlayerActionAckTranslator());
 
+        // FIXME: This translator messes with allowing flight in creative mode. Will need to be addressed later
+        // Registry.registerJava(ServerPlayerAbilitiesPacket.class, new JavaPlayerAbilitiesTranslator());
+
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
         Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());
         Registry.registerJava(ServerEntityDestroyPacket.class, new JavaEntityDestroyTranslator());
@@ -141,6 +142,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerTeamPacket.class, new JavaTeamTranslator());
         Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
+        Registry.registerJava(ServerUnloadChunkPacket.class, new JavaUnloadChunkTranslator());
 
         Registry.registerJava(ServerOpenWindowPacket.class, new OpenWindowPacketTranslator());
 
@@ -151,6 +153,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(MovePlayerPacket.class, new BedrockMovePlayerTranslator());
         Registry.registerBedrock(PlayerActionPacket.class, new BedrockActionTranslator());
         Registry.registerBedrock(SetLocalPlayerAsInitializedPacket.class, new BedrockPlayerInitializedTranslator());
+        Registry.registerBedrock(InteractPacket.class, new BedrockInteractTranslator());
         Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
 
         itemTranslator = new ItemTranslator();

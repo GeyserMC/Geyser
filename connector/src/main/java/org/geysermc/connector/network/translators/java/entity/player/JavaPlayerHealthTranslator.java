@@ -61,8 +61,10 @@ public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHea
 
         if (packet.getHealth() <= 0) {
             RespawnPacket respawnPacket = new RespawnPacket();
+            respawnPacket.setRuntimeEntityId(entity.getGeyserId());
             respawnPacket.setPosition(Vector3f.from(0, 72, 0));
-            session.getUpstream().sendPacket(new RespawnPacket());
+            respawnPacket.setSpawnState(RespawnPacket.State.SERVER_SEARCHING);
+            session.getUpstream().sendPacket(respawnPacket);
 
             ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
             session.getDownstream().getSession().send(javaRespawnPacket);

@@ -117,4 +117,11 @@ public class EntityCache {
     public long removeBossBar(UUID uuid) {
         return bossbars.remove(uuid);
     }
+
+    public void clear() {
+        entities = null;
+        entityIdTranslations = null;
+        playerEntities = null;
+        bossbars = null;
+    }
 }

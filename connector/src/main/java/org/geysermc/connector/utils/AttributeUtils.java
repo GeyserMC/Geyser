@@ -1,5 +1,7 @@
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeModifier;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
 
@@ -41,5 +43,27 @@ public class AttributeUtils {
             return null;
 
         return new com.nukkitx.protocol.bedrock.data.Attribute(type.getBedrockIdentifier(), attribute.getMinimum(), attribute.getMaximum(), attribute.getValue(), attribute.getDefaultValue());
+    }
+
+    //https://minecraft.gamepedia.com/Attribute#Modifiers
+    public static double calculateValue(com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute attribute) {
+        double base = attribute.getValue();
+        for (AttributeModifier modifier : attribute.getModifiers()) {
+            if (modifier.getOperation() == ModifierOperation.ADD) {
+                base += modifier.getAmount();
+            }
+        }
+        double value = base;
+        for (AttributeModifier modifier : attribute.getModifiers()) {
+            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED) {
+                value += base * modifier.getAmount();
+            }
+        }
+        for (AttributeModifier modifier : attribute.getModifiers()) {
+            if (modifier.getOperation() == ModifierOperation.MULTIPLY) {
+                value *= 1.0D + modifier.getAmount();
+            }
+        }
+        return value;
     }
 }

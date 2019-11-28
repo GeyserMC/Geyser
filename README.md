@@ -1,4 +1,4 @@
-<img src="https://geysermc.org/img/geyserlogo.png" alt="Geyser" width="600"  height="170"/>
+<img src="https://geysermc.org/img/geyserlogo.png" alt="Geyser" width="600"/>
 
 [![forthebadge made-with-java](http://ForTheBadge.com/images/badges/made-with-java.svg)](https://java.com/)
 

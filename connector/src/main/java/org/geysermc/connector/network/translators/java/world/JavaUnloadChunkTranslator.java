@@ -23,23 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUnloadChunkPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.world.chunk.ChunkPosition;
 
-public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
+public class JavaUnloadChunkTranslator extends PacketTranslator<ServerUnloadChunkPacket> {
 
     @Override
-    public void translate(AnimatePacket packet, GeyserSession session) {
-        switch (packet.getAction()) {
-            case SWING_ARM:
-                ClientPlayerSwingArmPacket swingArmPacket = new ClientPlayerSwingArmPacket(Hand.MAIN_HAND);
-                session.getDownstream().getSession().send(swingArmPacket);
-                break;
-        }
+    public void translate(ServerUnloadChunkPacket packet, GeyserSession session) {
+        session.getChunkCache().removeChunk(new ChunkPosition(packet.getX(), packet.getZ()));
     }
 }

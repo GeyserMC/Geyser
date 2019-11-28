@@ -14,11 +14,11 @@ public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket>
     @Override
     public void translate(ServerBossBarPacket packet, GeyserSession session) {
         BossEventPacket bossEventPacket = new BossEventPacket();
-        bossEventPacket.setBossUniqueEntityId(session.getEntityCache().getBossBar(packet.getUUID()));
+        bossEventPacket.setBossUniqueEntityId(session.getEntityCache().getBossBar(packet.getUuid()));
 
         switch (packet.getAction()) {
             case ADD:
-                long entityId = session.getEntityCache().addBossBar(packet.getUUID());
+                long entityId = session.getEntityCache().addBossBar(packet.getUuid());
                 addBossEntity(session, entityId);
 
                 bossEventPacket.setType(BossEventPacket.Type.SHOW);
@@ -39,7 +39,7 @@ public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket>
                 break;
             case REMOVE:
                 bossEventPacket.setType(BossEventPacket.Type.HIDE);
-                removeBossEntity(session, session.getEntityCache().removeBossBar(packet.getUUID()));
+                removeBossEntity(session, session.getEntityCache().removeBossBar(packet.getUuid()));
                 break;
             case UPDATE_STYLE:
             case UPDATE_FLAGS:

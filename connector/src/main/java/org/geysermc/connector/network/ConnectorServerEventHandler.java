@@ -55,48 +55,45 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        PingEvent pong = new PingEvent(inetSocketAddress);
         GeyserLogger.DEFAULT.debug(inetSocketAddress + " has pinged you!");
         GeyserConfiguration config = connector.getConfig();
-        pong.setEdition("MCPE");
-        pong.setGameType("Default");
-        pong.setNintendoLimited(false);
-        pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
-        pong.setVersion("1.12.0");
+        PingEvent pongEvent = new PingEvent(inetSocketAddress);
+        pongEvent.setEdition("MCPE");
+        pongEvent.setGameType("Default");
+        pongEvent.setNintendoLimited(false);
+        pongEvent.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
+        pongEvent.setVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
 
-        connector.getPluginManager().runEvent(pong);
+        connector.getPluginManager().runEvent(pongEvent);
         if (connector.getConfig().isPingPassthrough()) {
             ServerStatusInfo serverInfo = connector.getPassthroughThread().getInfo();
 
             if (serverInfo != null) {
-                pong.setMotd(MessageUtils.getBedrockMessage(serverInfo.getDescription()));
-                pong.setSubMotd(config.getBedrock().getMotd2());
-                pong.setPlayerCount(serverInfo.getPlayerInfo().getOnlinePlayers());
-                pong.setMaximumPlayerCount(serverInfo.getPlayerInfo().getMaxPlayers());
+                pongEvent.setMotd(MessageUtils.getBedrockMessage(serverInfo.getDescription()));
+                pongEvent.setSubMotd(config.getBedrock().getMotd2());
+                pongEvent.setPlayerCount(serverInfo.getPlayerInfo().getOnlinePlayers());
+                pongEvent.setMaximumPlayerCount(serverInfo.getPlayerInfo().getMaxPlayers());
             }
         } else {
-            pong.setPlayerCount(1);
-            pong.setMaximumPlayerCount(config.getMaxPlayers());
-            pong.setMotd(config.getBedrock().getMotd1());
-            pong.setSubMotd(config.getBedrock().getMotd2());
+            pongEvent.setPlayerCount(1);
+            pongEvent.setMaximumPlayerCount(config.getMaxPlayers());
+            pongEvent.setMotd(config.getBedrock().getMotd1());
+            pongEvent.setSubMotd(config.getBedrock().getMotd2());
         }
 
-        BedrockPong c = new BedrockPong();
+        BedrockPong pong = new BedrockPong();
+        pong.setEdition(pongEvent.getEdition());
+        pong.setGameType(pongEvent.getGameType());
+        pong.setNintendoLimited(pongEvent.isNintendoLimited());
+        pong.setProtocolVersion(pongEvent.getProtocolVersion());
+        pong.setVersion(pongEvent.getVersion());
+        pong.setMotd(pongEvent.getMotd());
+        pong.setSubMotd(pongEvent.getSubMotd());
+        pong.setPlayerCount(pongEvent.getPlayerCount());
+        pong.setMaximumPlayerCount(pongEvent.getMaximumPlayerCount());
+        pong.setIpv4Port(config.getBedrock().getPort());
 
-        c.setEdition(pong.getEdition());
-        c.setGameType(pong.getGameType());
-        c.setNintendoLimited(pong.isNintendoLimited());
-        c.setProtocolVersion(pong.getProtocolVersion());
-        c.setVersion(pong.getVersion());
-
-        c.setMotd(pong.getMotd());
-        c.setSubMotd(pong.getSubMotd());
-        c.setPlayerCount(pong.getPlayerCount());
-        c.setMaximumPlayerCount(pong.getMaximumPlayerCount());
-        c.setIpv4Port(config.getBedrock().getPort());
-
-        return c;
-
+        return pong;
     }
 
     @Override
@@ -106,10 +103,15 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             GeyserLogger.DEFAULT.info("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + disconnectReason);
 
-            Player player = connector.getPlayers().get(bedrockServerSession.getAddress());
+            GeyserSession player = connector.getPlayers().get(bedrockServerSession.getAddress());
             if (player != null) {
                 player.disconnect(disconnectReason.name());
                 connector.removePlayer(player);
+
+                player.getEntityCache().clear();
+                player.getInventoryCache().getInventories().clear();
+                player.getWindowCache().getWindows().clear();
+                player.getScoreboardCache().removeScoreboard();
             }
         });
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);

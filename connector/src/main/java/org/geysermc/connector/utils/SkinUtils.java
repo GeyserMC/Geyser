@@ -2,21 +2,26 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.google.gson.JsonObject;
+import com.nukkitx.protocol.bedrock.data.ImageData;
+import com.nukkitx.protocol.bedrock.data.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.codec.Charsets;
 import org.geysermc.api.Geyser;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Base64;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public class SkinUtils {
     public static PlayerListPacket.Entry buildCachedEntry(GameProfile profile, long geyserId) {
         GameProfileData data = GameProfileData.from(profile);
+        SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
 
         return buildEntryManually(
                 profile.getId(),
@@ -24,8 +29,9 @@ public class SkinUtils {
                 geyserId,
                 profile.getIdAsString(),
                 SkinProvider.getCachedSkin(profile.getId()).getSkinData(),
-                SkinProvider.getCachedCape(data.getCapeUrl()).getCapeData(),
-                "geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""),
+                cape.getCapeId(),
+                cape.getCapeData(),
+                getLegacySkinGeometry("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : "")),
                 ""
         );
     }
@@ -37,25 +43,29 @@ public class SkinUtils {
                 geyserId,
                 profile.getIdAsString(),
                 SkinProvider.STEVE_SKIN,
+                SkinProvider.EMPTY_CAPE.getCapeId(),
                 SkinProvider.EMPTY_CAPE.getCapeData(),
-                "geometry.humanoid",
+                getLegacySkinGeometry("geometry.humanoid"),
                 ""
         );
     }
 
     public static PlayerListPacket.Entry buildEntryManually(UUID uuid, String username, long geyserId,
-                                                            String skinId, byte[] skinData, byte[] capeData,
+                                                            String skinId, byte[] skinData,
+                                                            String capeId, byte[] capeData,
                                                             String geometryName, String geometryData) {
+        SerializedSkin serializedSkin = SerializedSkin.of(
+                skinId, geometryName, ImageData.of(skinData), Collections.emptyList(),
+                ImageData.of(capeData), geometryData, "", true, false, false, capeId, uuid.toString()
+        );
+
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
         entry.setName(username);
         entry.setEntityId(geyserId);
-        entry.setSkinId(skinId);
-        entry.setSkinData(skinData != null ? skinData : SkinProvider.STEVE_SKIN);
-        entry.setCapeData(capeData);
-        entry.setGeometryName(geometryName);
-        entry.setGeometryData(geometryData);
+        entry.setSkin(serializedSkin);
         entry.setXuid("");
         entry.setPlatformChatId("");
+        entry.setTeacher(false);
         return entry;
     }
 
@@ -86,9 +96,11 @@ public class SkinUtils {
 
                 return new GameProfileData(skinUrl, capeUrl, isAlex);
             } catch (Exception exception) {
+                if (!((GeyserConnector) Geyser.getConnector()).getConfig().getRemote().getAuthType().equals("offline")) {
+                    Geyser.getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
+                }
                 // return default skin with default cape when texture data is invalid
-                Geyser.getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
-                return new GameProfileData("", "", false);
+                return new GameProfileData(SkinProvider.EMPTY_SKIN.getTextureUrl(), SkinProvider.EMPTY_CAPE.getTextureUrl(), false);
             }
         }
     }
@@ -96,7 +108,7 @@ public class SkinUtils {
     public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
         Geyser.getGeneralThreadPool().execute(() -> {
-            SkinUtils.GameProfileData data = SkinUtils.GameProfileData.from(entity.getProfile());
+            GameProfileData data = GameProfileData.from(entity.getProfile());
 
             SkinProvider.requestSkinAndCape(entity.getUuid(), data.getSkinUrl(), data.getCapeUrl())
                     .whenCompleteAsync((skinAndCape, throwable) -> {
@@ -115,14 +127,15 @@ public class SkinUtils {
                                 entity.setLastSkinUpdate(skin.getRequestedOn());
 
                                 if (session.getUpstream().isInitialized()) {
-                                    PlayerListPacket.Entry updatedEntry = SkinUtils.buildEntryManually(
+                                    PlayerListPacket.Entry updatedEntry = buildEntryManually(
                                             entity.getUuid(),
                                             entity.getUsername(),
                                             entity.getGeyserId(),
                                             entity.getUuid().toString(),
                                             skin.getSkinData(),
+                                            cape.getCapeId(),
                                             cape.getCapeData(),
-                                            "geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""),
+                                            getLegacySkinGeometry("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : "")),
                                             ""
                                     );
 
@@ -144,5 +157,9 @@ public class SkinUtils {
                         if (skinAndCapeConsumer != null) skinAndCapeConsumer.accept(skinAndCape);
                     });
         });
+    }
+
+    private static String getLegacySkinGeometry(String geometryName) {
+        return "{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}";
     }
 }

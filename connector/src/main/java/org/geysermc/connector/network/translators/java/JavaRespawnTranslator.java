@@ -26,7 +26,9 @@
 package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
+import com.nukkitx.protocol.bedrock.packet.ChangeDimensionPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -39,10 +41,37 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         if (entity == null)
             return;
 
-        if (entity.getDimension() == packet.getDimension()) {
-            PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-            playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-            session.getUpstream().sendPacket(playStatusPacket);
+        if (entity.getDimension() == getDimension(packet.getDimension()))
+            return;
+
+        entity.setDimension(getDimension(packet.getDimension()));
+
+        ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
+        changeDimensionPacket.setDimension(getDimension(packet.getDimension()));
+        changeDimensionPacket.setRespawn(false);
+        changeDimensionPacket.setPosition(entity.getPosition());
+        session.getUpstream().sendPacket(changeDimensionPacket);
+
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
+        session.getUpstream().sendPacket(playerGameTypePacket);
+        session.setGameMode(packet.getGamemode());
+
+        /*
+        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+        session.getUpstream().sendPacket(playStatusPacket);
+        */
+    }
+
+    private int getDimension(int javaDimension) {
+        switch (javaDimension) {
+            case -1:
+                return 1;
+            case 1:
+                return 2;
         }
+
+        return javaDimension;
     }
 }
