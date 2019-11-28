@@ -110,7 +110,7 @@ public class GeyserConnector implements Connector {
 
         logger.info("******************************************");
         logger.info("");
-        logger.info("Loading " + NAME + " vesion " + VERSION);
+        logger.info("Loading " + NAME + " version " + VERSION);
         logger.info("");
         logger.info("******************************************");
 
