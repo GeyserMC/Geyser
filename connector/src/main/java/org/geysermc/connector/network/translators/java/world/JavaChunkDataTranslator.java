@@ -3,10 +3,14 @@ package org.geysermc.connector.network.translators.java.world;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTOutputStream;
+import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import org.geysermc.api.Geyser;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -52,6 +56,14 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 byteBuf.writeBytes(chunkData.biomes); // Biomes - 256 bytes
                 byteBuf.writeByte(0); // Border blocks - Edu edition only
                 VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
+
+                ByteBufOutputStream stream = new ByteBufOutputStream(Unpooled.buffer());
+                NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
+                for (CompoundTag blockEntity : chunkData.blockEntities) {
+                    nbtStream.write(blockEntity);
+                }
+
+                byteBuf.writeBytes(stream.buffer());
 
                 byte[] payload = new byte[byteBuf.writerIndex()];
                 byteBuf.readBytes(payload);

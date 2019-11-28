@@ -48,6 +48,9 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import org.geysermc.connector.network.translators.bedrock.*;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.block.entity.EmptyBlockEntityTranslator;
+import org.geysermc.connector.network.translators.block.entity.SignBlockEntityTranslator;
 import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
@@ -67,6 +70,8 @@ import org.geysermc.connector.network.translators.java.world.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TranslatorsInit {
 
@@ -78,6 +83,9 @@ public class TranslatorsInit {
 
     @Getter
     private static InventoryTranslator inventoryTranslator = new GenericInventoryTranslator();
+
+    @Getter
+    private static Map<String, BlockEntityTranslator> blockEntityTranslators = new HashMap<>();
 
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
@@ -143,6 +151,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
         Registry.registerJava(ServerUnloadChunkPacket.class, new JavaUnloadChunkTranslator());
+        Registry.registerJava(ServerUpdateTileEntityPacket.class, new JavaUpdateTileEntityTranslator());
 
         Registry.registerJava(ServerOpenWindowPacket.class, new OpenWindowPacketTranslator());
 
@@ -159,7 +168,13 @@ public class TranslatorsInit {
         itemTranslator = new ItemTranslator();
         blockTranslator = new BlockTranslator();
 
+        registerBlockEntityTranslators();
         registerInventoryTranslators();
+    }
+
+    private static void registerBlockEntityTranslators() {
+        blockEntityTranslators.put("Empty", new EmptyBlockEntityTranslator());
+        blockEntityTranslators.put("Sign", new SignBlockEntityTranslator());
     }
 
     private static void registerInventoryTranslators() {
