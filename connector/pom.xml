@@ -11,7 +11,6 @@
     <artifactId>connector</artifactId>
     <dependencies>
         <dependency>
-
             <groupId>org.geysermc</groupId>
             <artifactId>api</artifactId>
             <version>1.0-SNAPSHOT</version>
@@ -95,6 +94,12 @@
             <artifactId>packetlib</artifactId>
             <version>1.4-SNAPSHOT</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.steveice10</groupId>
