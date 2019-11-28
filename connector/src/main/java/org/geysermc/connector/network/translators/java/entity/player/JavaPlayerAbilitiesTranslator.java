@@ -57,6 +57,7 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
         playerFlags = setPlayerFlag(0x200, packet.isFlying(), playerFlags); // is flying
 
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+        adventureSettingsPacket.setPlayerPermission(1);
         adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
         adventureSettingsPacket.setPlayerFlags(playerFlags);
         session.getUpstream().sendPacket(adventureSettingsPacket);
