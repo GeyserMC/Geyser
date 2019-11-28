@@ -23,30 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity;
+package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityMetadataPacket;
-import org.geysermc.connector.entity.Entity;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.TranslatorsInit;
 
-public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityMetadataPacket> {
+public class ItemEntity extends Entity {
+
+    public ItemEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
+    }
 
     @Override
-    public void translate(ServerEntityMetadataPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 7) {
+            AddItemEntityPacket itemPacket = new AddItemEntityPacket();
+            itemPacket.setRuntimeEntityId(geyserId);
+            itemPacket.setPosition(position);
+            itemPacket.setMotion(motion);
+            itemPacket.setUniqueEntityId(geyserId);
+            itemPacket.setFromFishing(false);
+            itemPacket.getMetadata().putAll(metadata);
+            itemPacket.setItemInHand(TranslatorsInit.getItemTranslator().translateToBedrock((ItemStack) entityMetadata.getValue()));
+            session.getUpstream().sendPacket(itemPacket);
         }
-        if (entity == null) return;
 
-        if (entity.isValid()) {
-            for (EntityMetadata metadata : packet.getMetadata()) {
-                entity.updateBedrockMetadata(metadata, session);
-            }
-        } else {
-            entity.spawnEntity(session);
-        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }
