@@ -295,7 +295,7 @@ public class GeyserSession implements Player {
         startGamePacket.setLevelGamemode(0);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
-        startGamePacket.setAcheivementsDisabled(true);
+        startGamePacket.setAchievementsDisabled(true);
         startGamePacket.setTime(-1);
         startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
