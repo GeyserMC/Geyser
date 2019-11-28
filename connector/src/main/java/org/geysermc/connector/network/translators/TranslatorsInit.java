@@ -126,7 +126,9 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerSetExperiencePacket.class, new JavaPlayerSetExperienceTranslator());
         Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
         Registry.registerJava(ServerPlayerActionAckPacket.class, new JavaPlayerActionAckTranslator());
-        Registry.registerJava(ServerPlayerAbilitiesPacket.class, new JavaPlayerAbilitiesTranslator());
+
+        // FIXME: This translator messes with allowing flight in creative mode. Will need to be addressed later
+        // Registry.registerJava(ServerPlayerAbilitiesPacket.class, new JavaPlayerAbilitiesTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
         Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());
