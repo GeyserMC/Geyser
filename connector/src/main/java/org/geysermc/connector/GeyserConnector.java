@@ -110,7 +110,7 @@ public class GeyserConnector implements Connector {
 
         logger.info("******************************************");
         logger.info("");
-        logger.info("Loading " + NAME + " vesion " + VERSION);
+        logger.info("Loading " + NAME + " version " + VERSION);
         logger.info("");
         logger.info("******************************************");
 
@@ -155,7 +155,7 @@ public class GeyserConnector implements Connector {
         }).join();
 
         if (config.getMetrics().isEnabled()) {
-            metrics = new Metrics("GeyserMC", config.getMetrics().getUUID(), true, java.util.logging.Logger.getLogger(""));
+            metrics = new Metrics("GeyserMC", config.getMetrics().getUUID(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
             metrics.addCustomChart(new Metrics.SimplePie("authMode", config.getRemote()::getAuthType));

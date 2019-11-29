@@ -100,7 +100,7 @@ public class SkinUtils {
                     Geyser.getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
                 }
                 // return default skin with default cape when texture data is invalid
-                return new GameProfileData("", "", false);
+                return new GameProfileData(SkinProvider.EMPTY_SKIN.getTextureUrl(), SkinProvider.EMPTY_CAPE.getTextureUrl(), false);
             }
         }
     }

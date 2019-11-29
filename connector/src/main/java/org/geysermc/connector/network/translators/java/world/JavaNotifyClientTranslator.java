@@ -28,9 +28,9 @@ package org.geysermc.connector.network.translators.java.world;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
-import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
+import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -41,6 +41,10 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
 
     @Override
     public void translate(ServerNotifyClientPacket packet, GeyserSession session) {
+        Entity entity = session.getPlayerEntity();
+        if (entity == null)
+            return;
+
         switch (packet.getNotification()) {
             case START_RAIN:
                 LevelEventPacket startRainPacket = new LevelEventPacket();
@@ -57,17 +61,35 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.getUpstream().sendPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:
+                int playerFlags = 0;
+
                 GameMode gameMode = (GameMode) packet.getValue();
+                playerFlags = setPlayerFlag(0x01, gameMode == GameMode.ADVENTURE, playerFlags); // world immutable
+                playerFlags = setPlayerFlag(0x20, true, playerFlags); // auto jump
+                playerFlags = setPlayerFlag(0x40, gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR, playerFlags); // can fly
+                playerFlags = setPlayerFlag(0x80, gameMode == GameMode.SPECTATOR, playerFlags); // no clip
+                playerFlags = setPlayerFlag(0x200, gameMode == GameMode.SPECTATOR, playerFlags); // is flying
+
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
                 session.getUpstream().sendPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
+
+                AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+                adventureSettingsPacket.setPlayerPermission(1);
+                adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
+                adventureSettingsPacket.setPlayerFlags(playerFlags);
+                session.getUpstream().sendPacket(adventureSettingsPacket);
+
+                EntityDataDictionary metadata = entity.getMetadata();
+                metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR);
+
+                SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+                entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
+                entityDataPacket.getMetadata().putAll(metadata);
+                session.getUpstream().sendPacket(entityDataPacket);
                 break;
             case ENTER_CREDITS:
-                Entity entity = session.getPlayerEntity();
-                if (entity == null)
-                    return;
-
                 ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
                 showCreditsPacket.setStatus(ShowCreditsPacket.Status.START_CREDITS);
                 showCreditsPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -75,6 +97,14 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 break;
             default:
                 break;
+        }
+    }
+
+    private int setPlayerFlag(int flag, boolean value, int playerFlags) {
+        if (value) {
+            return playerFlags | flag;
+        } else {
+            return playerFlags & ~flag;
         }
     }
 }
