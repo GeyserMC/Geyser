@@ -39,6 +39,8 @@ import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.utils.Toolbox;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,8 +56,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 case CRAFTING_SHAPELESS: {
                     ShapelessRecipeData shapelessRecipeData = (ShapelessRecipeData) recipe.getData();
                     ItemData output = TranslatorsInit.getItemTranslator().translateToBedrock(shapelessRecipeData.getResult());
-                    List<ItemData[]> inputList = combinations(shapelessRecipeData.getIngredients());
-                    for (ItemData[] inputs : inputList) {
+                    ItemData[][] inputCombinations = combinations(shapelessRecipeData.getIngredients());
+                    for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
                                 inputs, new ItemData[]{output}, uuid, "crafting_table", 0));
@@ -65,8 +67,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 case CRAFTING_SHAPED: {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
                     ItemData output = TranslatorsInit.getItemTranslator().translateToBedrock(shapedRecipeData.getResult());
-                    List<ItemData[]> inputList = combinations(shapedRecipeData.getIngredients());
-                    for (ItemData[] inputs : inputList) {
+                    ItemData[][] inputCombinations = combinations(shapedRecipeData.getIngredients());
+                    for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), inputs,
@@ -79,37 +81,45 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
         session.getUpstream().sendPacket(craftingDataPacket);
     }
 
-    private List<ItemData[]> combinations(Ingredient[] ingredients) {
-        ItemData[][] squashed = new ItemData[ingredients.length][];
+    private ItemData[][] combinations(Ingredient[] ingredients) {
+        Map<Set<ItemData>, Set<Integer>> squashedOptions = new HashMap<>();
         for (int i = 0; i < ingredients.length; i++) {
             if (ingredients[i].getOptions().length == 0) {
-                squashed[i] = new ItemData[]{ItemData.AIR};
+                squashedOptions.computeIfAbsent(Collections.singleton(ItemData.AIR), k -> new HashSet<>()).add(i);
                 continue;
             }
             Ingredient ingredient = ingredients[i];
             Map<GroupedItem, List<ItemData>> groupedByIds = Arrays.stream(ingredient.getOptions())
                     .map(item -> TranslatorsInit.getItemTranslator().translateToBedrock(item))
                     .collect(Collectors.groupingBy(item -> new GroupedItem(item.getId(), item.getCount(), item.getTag())));
-            squashed[i] = new ItemData[groupedByIds.size()];
-            int index = 0;
+            Set<ItemData> optionSet = new HashSet<>(groupedByIds.size());
             for (Map.Entry<GroupedItem, List<ItemData>> entry : groupedByIds.entrySet()) {
                 if (entry.getValue().size() > 1) {
                     GroupedItem groupedItem = entry.getKey();
-                    squashed[i][index++] = ItemData.of(groupedItem.id, (short) -1, groupedItem.count, groupedItem.tag);
+                    int idCount = 0;
+                    //not optimal
+                    for (ItemEntry itemEntry : Toolbox.ITEM_ENTRIES.valueCollection()) {
+                        if (itemEntry.getBedrockId() == groupedItem.id) {
+                            idCount++;
+                        }
+                    }
+                    if (entry.getValue().size() < idCount) {
+                        optionSet.addAll(entry.getValue());
+                    } else {
+                        optionSet.add(ItemData.of(groupedItem.id, (short) -1, groupedItem.count, groupedItem.tag));
+                    }
                 } else {
                     ItemData item = entry.getValue().get(0);
-                    squashed[i][index++] = item;
+                    optionSet.add(item);
                 }
             }
+            squashedOptions.computeIfAbsent(optionSet, k -> new HashSet<>()).add(i);
         }
-        int[] sizeArray = new int[squashed.length];
-        int[] counterArray = new int[squashed.length];
-        int totalCombinationCount = 1;
-        for(int i = 0; i < squashed.length; i++) {
-            sizeArray[i] = squashed[i].length;
-            totalCombinationCount *= squashed[i].length;
+        int totalCombinations = 1;
+        for (Set optionSet : squashedOptions.keySet()) {
+            totalCombinations *= optionSet.size();
         }
-        if (totalCombinationCount > 10000) {
+        if (totalCombinations > 500) {
             ItemData[] translatedItems = new ItemData[ingredients.length];
             for (int i = 0; i < ingredients.length; i++) {
                 if (ingredients[i].getOptions().length > 0) {
@@ -118,25 +128,27 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     translatedItems[i] = ItemData.AIR;
                 }
             }
-            return Collections.singletonList(translatedItems);
+            return new ItemData[][]{translatedItems};
         }
-        List<ItemData[]> combinationList = new ArrayList<>(totalCombinationCount);
-        for (int countdown = totalCombinationCount; countdown > 0; --countdown) {
-            ItemData[] translatedItems = new ItemData[squashed.length];
-            for(int i = 0; i < squashed.length; ++i) {
-                if (squashed[i].length > 0)
-                    translatedItems[i] = squashed[i][counterArray[i]];
-            }
-            combinationList.add(translatedItems);
-            for(int incIndex = squashed.length - 1; incIndex >= 0; --incIndex) {
-                if(counterArray[incIndex] + 1 < sizeArray[incIndex]) {
-                    ++counterArray[incIndex];
-                    break;
+        List<Set<ItemData>> sortedSets = new ArrayList<>(squashedOptions.keySet());
+        sortedSets.sort(Comparator.comparing(Set::size, Comparator.reverseOrder()));
+        ItemData[][] combinations = new ItemData[totalCombinations][ingredients.length];
+        int x = 1;
+        for (Set<ItemData> set : sortedSets) {
+            Set<Integer> slotSet = squashedOptions.get(set);
+            int i = 0;
+            for (ItemData item : set) {
+                for (int j = 0; j < totalCombinations / set.size(); j++) {
+                    final int comboIndex = (i * x) + (j % x) + ((j / x) * set.size() * x);
+                    for (int slot : slotSet) {
+                        combinations[comboIndex][slot] = item;
+                    }
                 }
-                counterArray[incIndex] = 0;
+                i++;
             }
+            x *= set.size();
         }
-        return combinationList;
+        return combinations;
     }
 
     @EqualsAndHashCode
