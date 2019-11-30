@@ -158,7 +158,7 @@ public class GeyserConnector implements Connector {
             metrics = new Metrics("GeyserMC", config.getMetrics().getUUID(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", getAuthType()::getName));
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", getAuthType()::name));
         }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;

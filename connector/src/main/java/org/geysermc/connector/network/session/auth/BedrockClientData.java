@@ -37,7 +37,7 @@ public class BedrockClientData {
     private boolean premiumSkin;
 
     @JsonProperty(value = "DeviceId")
-    private UUID deviceId;
+    private String deviceId;
     @JsonProperty(value = "DeviceModel")
     private String deviceModel;
     @JsonProperty(value = "DeviceOS")

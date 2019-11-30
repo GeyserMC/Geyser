@@ -198,6 +198,10 @@ public class GeyserSession implements Player {
                     publicKey = key;
                 } else publicKey = null;
 
+                if (publicKey != null) {
+                    connector.getLogger().info("Loaded Floodgate key!");
+                }
+
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
                 downstream.getSession().addListener(new SessionAdapter() {
                     @Override

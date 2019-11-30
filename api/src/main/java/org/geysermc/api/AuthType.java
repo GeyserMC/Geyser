@@ -1,27 +1,23 @@
 package org.geysermc.api;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor
 @Getter
 public enum AuthType {
-    OFFLINE("offline"),
-    ONLINE("online"),
-    FLOODGATE("floodgate");
+    OFFLINE,
+    ONLINE,
+    FLOODGATE;
 
     public static final AuthType[] VALUES = values();
-
-    private String name;
 
     public static AuthType getById(int id) {
         return id < VALUES.length ? VALUES[id] : OFFLINE;
     }
 
     public static AuthType getByName(String name) {
-        String lowerCase = name.toLowerCase();
+        String upperCase = name.toUpperCase();
         for (AuthType type : VALUES) {
-            if (type.getName().equals(lowerCase)) {
+            if (type.name().equals(upperCase)) {
                 return type;
             }
         }
