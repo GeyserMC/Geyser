@@ -11,6 +11,12 @@
     <artifactId>common</artifactId>
     <dependencies>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.4</version>
+            <scope>providec</scope>
+        </dependency>
+        <dependency>
             <groupId>com.github.steveice10</groupId>
             <artifactId>opennbt</artifactId>
             <version>1.3-SNAPSHOT</version>
