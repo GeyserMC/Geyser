@@ -1,0 +1,3 @@
+[submodule "connector/src/main/resources/mappings"]
+	path = connector/src/main/resources/mappings
+	url = https://github.com/GeyserMC/mappings.git

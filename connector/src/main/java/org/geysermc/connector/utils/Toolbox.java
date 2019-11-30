@@ -71,7 +71,7 @@ public class Toolbox {
             ITEMS.add(new StartGamePacket.ItemEntry((String) entry.get("name"), (short) ((int) entry.get("id"))));
         }
 
-        InputStream itemStream = Toolbox.class.getClassLoader().getResourceAsStream("items.json");
+        InputStream itemStream = Toolbox.class.getClassLoader().getResourceAsStream("mappings/items.json");
         ObjectMapper itemMapper = new ObjectMapper();
         Map<String, Map<String, Object>> items = new HashMap<>();
 
@@ -87,7 +87,7 @@ public class Toolbox {
             itemIndex++;
         }
 
-        InputStream blockStream = Toolbox.class.getClassLoader().getResourceAsStream("blocks.json");
+        InputStream blockStream = Toolbox.class.getClassLoader().getResourceAsStream("mappings/blocks.json");
         ObjectMapper blockMapper = new ObjectMapper();
         Map<String, Map<String, Object>> blocks = new HashMap<>();
 
