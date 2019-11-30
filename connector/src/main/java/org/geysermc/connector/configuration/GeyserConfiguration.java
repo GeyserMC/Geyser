@@ -37,6 +37,9 @@ public class GeyserConfiguration {
     private BedrockConfiguration bedrock;
     private RemoteConfiguration remote;
 
+    @JsonProperty("floodgate-key-file")
+    private String floodgateKeyFile;
+
     private Map<String, UserAuthenticationInfo> userAuths;
 
     @JsonProperty("ping-passthrough")

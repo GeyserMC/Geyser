@@ -73,4 +73,9 @@ public interface Connector {
      * Shuts down the connector
      */
     void shutdown();
+
+    /**
+     * The auth type for the remote server
+     */
+    AuthType getAuthType();
 }

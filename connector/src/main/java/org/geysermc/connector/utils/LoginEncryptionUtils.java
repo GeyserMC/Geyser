@@ -9,7 +9,6 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-import net.minidev.json.JSONObject;
 import org.geysermc.api.events.player.PlayerFormResponseEvent;
 import org.geysermc.api.window.CustomFormBuilder;
 import org.geysermc.api.window.CustomFormWindow;
@@ -20,6 +19,7 @@ import org.geysermc.api.window.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockAuthData;
+import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.connector.network.session.cache.WindowCache;
 
 import javax.crypto.SecretKey;
@@ -72,7 +72,7 @@ public class LoginEncryptionUtils {
         encryptConnectionWithCert(connector, session, loginPacket.getSkinData().toString(), certChainData);
     }
 
-    private static void encryptConnectionWithCert(GeyserConnector connector, GeyserSession session, String playerSkin, JsonNode certChainData) {
+    private static void encryptConnectionWithCert(GeyserConnector connector, GeyserSession session, String clientData, JsonNode certChainData) {
         try {
             boolean validChain = validateChainData(certChainData);
 
@@ -85,16 +85,22 @@ public class LoginEncryptionUtils {
                 throw new RuntimeException("AuthData was not found!");
             }
 
-            JSONObject extraData = (JSONObject) jwt.getPayload().toJSONObject().get("extraData");
-            session.setAuthenticationData(new BedrockAuthData(extraData.getAsString("displayName"), UUID.fromString(extraData.getAsString("identity")), extraData.getAsString("XUID")));
+            JsonNode extraData = payload.get("extraData");
+            session.setAuthenticationData(new BedrockAuthData(
+                    extraData.get("displayName").asText(),
+                    UUID.fromString(extraData.get("identity").asText()),
+                    extraData.get("XUID").asText()
+            ));
 
             if (payload.get("identityPublicKey").getNodeType() != JsonNodeType.STRING) {
                 throw new RuntimeException("Identity Public Key was not found!");
             }
 
             ECPublicKey identityPublicKey = EncryptionUtils.generateKey(payload.get("identityPublicKey").textValue());
-            JWSObject clientJwt = JWSObject.parse(playerSkin);
+            JWSObject clientJwt = JWSObject.parse(clientData);
             EncryptionUtils.verifyJwt(clientJwt, identityPublicKey);
+
+            session.setClientData(JSON_MAPPER.convertValue(JSON_MAPPER.readTree(clientJwt.getPayload().toBytes()), BedrockClientData.class));
 
             if (EncryptionUtils.canUseEncryption()) {
                 LoginEncryptionUtils.startEncryptionHandshake(session, identityPublicKey);

@@ -28,9 +28,9 @@ package org.geysermc.connector;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v388.Bedrock_v388;
-
 import lombok.Getter;
 import org.fusesource.jansi.AnsiConsole;
+import org.geysermc.api.AuthType;
 import org.geysermc.api.Connector;
 import org.geysermc.api.Geyser;
 import org.geysermc.api.Player;
@@ -66,17 +66,16 @@ import java.util.concurrent.TimeUnit;
 
 @Getter
 public class GeyserConnector implements Connector {
-
     public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v388.V388_CODEC;
-
     public static final String NAME = "Geyser";
     public static final String VERSION = "1.0-SNAPSHOT";
 
-    private final Map<Object, GeyserSession> players = new HashMap<>();
-
     private static GeyserConnector instance;
 
+    private final Map<Object, GeyserSession> players = new HashMap<>();
+
     private RemoteJavaServer remoteServer;
+    private AuthType authType;
 
     private Logger logger;
 
@@ -133,6 +132,7 @@ public class GeyserConnector implements Connector {
 
         commandMap = new GeyserCommandMap(this);
         remoteServer = new RemoteJavaServer(config.getRemote().getAddress(), config.getRemote().getPort());
+        authType = AuthType.getByName(config.getRemote().getAuthType());
 
         Geyser.setConnector(this);
 
@@ -158,7 +158,7 @@ public class GeyserConnector implements Connector {
             metrics = new Metrics("GeyserMC", config.getMetrics().getUUID(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", config.getRemote()::getAuthType));
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", getAuthType()::getName));
         }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
