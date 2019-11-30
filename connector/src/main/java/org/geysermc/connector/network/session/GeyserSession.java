@@ -206,7 +206,7 @@ public class GeyserSession implements Player {
                         if (event.getPacket() instanceof HandshakePacket && floodgate) {
                             String encrypted = "";
                             try {
-                                encrypted = EncryptionUtil.encryptFromInstance(publicKey, new BedrockData(
+                                encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
                                         clientData.getGameVersion(),
                                         authenticationData.getName(),
                                         authenticationData.getXboxUUID(),
