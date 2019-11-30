@@ -7,8 +7,8 @@ import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.ListTag;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.translators.block.BlockEntry;
@@ -23,8 +23,8 @@ public class Toolbox {
     public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
     public static ListTag<CompoundTag> BLOCKS;
 
-    public static final TIntObjectMap<ItemEntry> ITEM_ENTRIES = new TIntObjectHashMap<>();
-    public static final TIntObjectMap<BlockEntry> BLOCK_ENTRIES = new TIntObjectHashMap<>();
+    public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
+    public static final Int2ObjectMap<BlockEntry> BLOCK_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     public static void init() {
         InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/runtime_block_states.dat");

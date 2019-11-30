@@ -1,11 +1,14 @@
 package org.geysermc.connector.world.chunk;
 
 import com.nukkitx.network.VarInts;
-import gnu.trove.list.array.TIntArrayList;
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.connector.world.GlobalBlockPalette;
 import org.geysermc.connector.world.chunk.bitarray.BitArray;
 import org.geysermc.connector.world.chunk.bitarray.BitArrayVersion;
+
+import java.util.function.IntConsumer;
 
 /**
  * Adapted from NukkitX: https://github.com/NukkitX/Nukkit
@@ -14,7 +17,7 @@ public class BlockStorage {
 
     private static final int SIZE = 4096;
 
-    private final TIntArrayList palette;
+    private final IntList palette;
     private BitArray bitArray;
 
     public BlockStorage() {
@@ -23,11 +26,11 @@ public class BlockStorage {
 
     public BlockStorage(BitArrayVersion version) {
         this.bitArray = version.createPalette(SIZE);
-        this.palette = new TIntArrayList(16, -1);
+        this.palette = new IntArrayList(16);
         this.palette.add(0); // Air is at the start of every palette.
     }
 
-    private BlockStorage(BitArray bitArray, TIntArrayList palette) {
+    private BlockStorage(BitArray bitArray, IntArrayList palette) {
         this.palette = palette;
         this.bitArray = bitArray;
     }
@@ -57,10 +60,7 @@ public class BlockStorage {
         }
 
         VarInts.writeInt(buffer, palette.size());
-        palette.forEach(id -> {
-            VarInts.writeInt(buffer, id);
-            return true;
-        });
+        palette.forEach((IntConsumer) id -> VarInts.writeInt(buffer, id));
     }
 
     private void onResize(BitArrayVersion version) {
@@ -109,6 +109,6 @@ public class BlockStorage {
     }
 
     public BlockStorage copy() {
-        return new BlockStorage(this.bitArray.copy(), new TIntArrayList(this.palette));
+        return new BlockStorage(this.bitArray.copy(), new IntArrayList(this.palette));
     }
 }
