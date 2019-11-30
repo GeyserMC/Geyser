@@ -128,8 +128,13 @@ public class GeyserSession implements Player {
     public void connect(RemoteServer remoteServer) {
         startGame();
         this.remoteServer = remoteServer;
-        if (connector.getAuthType() == AuthType.OFFLINE) {
-            connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
+        if (connector.getAuthType() != AuthType.ONLINE) {
+            connector.getLogger().info(
+                    "Attempting to login using " + connector.getAuthType().name().toLowerCase() + " mode... " +
+                    (connector.getAuthType() == AuthType.OFFLINE ?
+                            "authentication is disabled." : "authentication will be encrypted"
+                    )
+            );
             authenticate(authenticationData.getName());
         }
 
