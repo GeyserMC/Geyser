@@ -44777,19 +44777,19 @@
   },
   "minecraft:stonecutter[facing=north]": {
     "bedrock_identifier": "minecraft:stonecutter_block",
-    "bedrock_data": 7
+    "bedrock_data": 2
   },
   "minecraft:stonecutter[facing=south]": {
     "bedrock_identifier": "minecraft:stonecutter_block",
-    "bedrock_data": 6
+    "bedrock_data": 3
   },
   "minecraft:stonecutter[facing=west]": {
     "bedrock_identifier": "minecraft:stonecutter_block",
-    "bedrock_data": 5
+    "bedrock_data": 4
   },
   "minecraft:stonecutter[facing=east]": {
     "bedrock_identifier": "minecraft:stonecutter_block",
-    "bedrock_data": 4
+    "bedrock_data": 5
   },
   "minecraft:bell[attachment=floor,facing=north]": {
     "bedrock_identifier": "minecraft:bell",
