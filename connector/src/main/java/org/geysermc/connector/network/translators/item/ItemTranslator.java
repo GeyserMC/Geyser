@@ -155,7 +155,7 @@ public class ItemTranslator {
 
         if (tag instanceof com.nukkitx.nbt.tag.StringTag) {
             com.nukkitx.nbt.tag.StringTag stringTag = (com.nukkitx.nbt.tag.StringTag) tag;
-            return new StringTag(stringTag.getName(), '"' + stringTag.getValue() + '"');
+            return new StringTag(stringTag.getName(), stringTag.getValue());
         }
 
         if (tag instanceof com.nukkitx.nbt.tag.ListTag) {

@@ -26,11 +26,6 @@
 package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ItemData;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
-import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import org.geysermc.api.Geyser;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -38,7 +33,6 @@ import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
 
@@ -49,26 +43,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 return;
             if (session.getCraftSlot() != 0)
                 return;
-
-            //bedrock client is bugged when changing the cursor. reopen inventory after changing it
-            //TODO: fix this. too buggy rn
-            /*if (packet.getItem() == null && session.getInventory().getCursor() != null) {
-                InventorySlotPacket cursorPacket = new InventorySlotPacket();
-                cursorPacket.setContainerId(ContainerId.CURSOR);
-                cursorPacket.setSlot(ItemData.AIR);
-                session.getUpstream().sendPacket(cursorPacket);
-
-                Inventory inventory = session.getInventoryCache().getOpenInventory();
-                if (inventory != null) {
-                    session.setReopeningWindow(inventory.getId());
-                } else {
-                    inventory = session.getInventory();
-                }
-                ContainerClosePacket closePacket = new ContainerClosePacket();
-                closePacket.setWindowId((byte) inventory.getId());
-                Geyser.getGeneralThreadPool().schedule(() -> session.getUpstream().sendPacket(closePacket), 150, TimeUnit.MILLISECONDS);
-            }*/
-
+            //bedrock client is bugged when changing the cursor. do not send slot update packet
             session.getInventory().setCursor(packet.getItem());
             return;
         }

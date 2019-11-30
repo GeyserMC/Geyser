@@ -47,17 +47,6 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                 windowId = 0;
             }
         }
-
-        if (session.getReopeningWindow() != -1) {
-            Inventory inventory = session.getInventoryCache().getInventories().get(session.getReopeningWindow());
-            session.setReopeningWindow(-1);
-            if (inventory != null) {
-                InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
-                translator.openInventory(session, inventory);
-                translator.updateInventory(session, inventory);
-                return;
-            }
-        }
         ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
         session.getDownstream().getSession().send(closeWindowPacket);
         InventoryUtils.closeInventory(session, windowId);

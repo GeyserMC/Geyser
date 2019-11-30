@@ -90,8 +90,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             }
             slotPacket.setSlot(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(slot)));
             session.getUpstream().sendPacket(slotPacket);
-        } else if (slot == 0) {
-            //TODO: crafting output
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);

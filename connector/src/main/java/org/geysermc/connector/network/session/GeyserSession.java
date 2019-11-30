@@ -108,9 +108,6 @@ public class GeyserSession implements Player {
     @Setter
     private int craftSlot = 0;
 
-    @Setter
-    private int reopeningWindow = -1;
-
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
