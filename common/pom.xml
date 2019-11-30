@@ -14,7 +14,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.4</version>
-            <scope>providec</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.steveice10</groupId>
