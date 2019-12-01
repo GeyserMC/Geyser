@@ -34,6 +34,8 @@ import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.CraftingData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -82,10 +84,10 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
     }
 
     private ItemData[][] combinations(Ingredient[] ingredients) {
-        Map<Set<ItemData>, Set<Integer>> squashedOptions = new HashMap<>();
+        Map<Set<ItemData>, IntSet> squashedOptions = new HashMap<>();
         for (int i = 0; i < ingredients.length; i++) {
             if (ingredients[i].getOptions().length == 0) {
-                squashedOptions.computeIfAbsent(Collections.singleton(ItemData.AIR), k -> new HashSet<>()).add(i);
+                squashedOptions.computeIfAbsent(Collections.singleton(ItemData.AIR), k -> new IntOpenHashSet()).add(i);
                 continue;
             }
             Ingredient ingredient = ingredients[i];
@@ -98,7 +100,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     GroupedItem groupedItem = entry.getKey();
                     int idCount = 0;
                     //not optimal
-                    for (ItemEntry itemEntry : Toolbox.ITEM_ENTRIES.valueCollection()) {
+                    for (ItemEntry itemEntry : Toolbox.ITEM_ENTRIES.values()) {
                         if (itemEntry.getBedrockId() == groupedItem.id) {
                             idCount++;
                         }
@@ -113,7 +115,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     optionSet.add(item);
                 }
             }
-            squashedOptions.computeIfAbsent(optionSet, k -> new HashSet<>()).add(i);
+            squashedOptions.computeIfAbsent(optionSet, k -> new IntOpenHashSet()).add(i);
         }
         int totalCombinations = 1;
         for (Set optionSet : squashedOptions.keySet()) {
@@ -135,7 +137,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
         ItemData[][] combinations = new ItemData[totalCombinations][ingredients.length];
         int x = 1;
         for (Set<ItemData> set : sortedSets) {
-            Set<Integer> slotSet = squashedOptions.get(set);
+            IntSet slotSet = squashedOptions.get(set);
             int i = 0;
             for (ItemData item : set) {
                 for (int j = 0; j < totalCombinations / set.size(); j++) {
