@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.Serve
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.ItemEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -52,10 +53,16 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
             return;
         }
 
-        Entity entity = new Entity(
-                packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                type, position, motion, rotation
-        );
+        long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
+        Entity entity;
+        switch (type) {
+            case ITEM:
+                entity = new ItemEntity(packet.getEntityId(), geyserId, type, position, motion, rotation);
+                break;
+            default:
+                entity = new Entity(packet.getEntityId(), geyserId, type, position, motion, rotation);
+                break;
+        }
 
         session.getEntityCache().spawnEntity(entity);
     }

@@ -79,7 +79,7 @@ public class ItemTranslator {
     }
 
     public ItemEntry getItem(ItemData data) {
-        for (ItemEntry itemEntry : Toolbox.ITEM_ENTRIES.valueCollection()) {
+        for (ItemEntry itemEntry : Toolbox.ITEM_ENTRIES.values()) {
             if (itemEntry.getBedrockId() == data.getId() && itemEntry.getBedrockData() == data.getDamage()) {
                 return itemEntry;
             }

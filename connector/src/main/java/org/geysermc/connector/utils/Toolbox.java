@@ -8,8 +8,8 @@ import com.nukkitx.nbt.tag.ListTag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.translators.block.BlockEntry;
@@ -26,8 +26,8 @@ public class Toolbox {
     public static ListTag<CompoundTag> BLOCKS;
     public static ItemData[] CREATIVE_ITEMS;
 
-    public static final TIntObjectMap<ItemEntry> ITEM_ENTRIES = new TIntObjectHashMap<>();
-    public static final TIntObjectMap<BlockEntry> BLOCK_ENTRIES = new TIntObjectHashMap<>();
+    public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
+    public static final Int2ObjectMap<BlockEntry> BLOCK_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     public static void init() {
         InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/runtime_block_states.dat");
@@ -74,7 +74,7 @@ public class Toolbox {
             ITEMS.add(new StartGamePacket.ItemEntry((String) entry.get("name"), (short) ((int) entry.get("id"))));
         }
 
-        InputStream itemStream = Toolbox.class.getClassLoader().getResourceAsStream("items.json");
+        InputStream itemStream = Toolbox.class.getClassLoader().getResourceAsStream("mappings/items.json");
         ObjectMapper itemMapper = new ObjectMapper();
         Map<String, Map<String, Object>> items = new HashMap<>();
 
@@ -90,7 +90,7 @@ public class Toolbox {
             itemIndex++;
         }
 
-        InputStream blockStream = Toolbox.class.getClassLoader().getResourceAsStream("blocks.json");
+        InputStream blockStream = Toolbox.class.getClassLoader().getResourceAsStream("mappings/blocks.json");
         ObjectMapper blockMapper = new ObjectMapper();
         Map<String, Map<String, Object>> blocks = new HashMap<>();
 

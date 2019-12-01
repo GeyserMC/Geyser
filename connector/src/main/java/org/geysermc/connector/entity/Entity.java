@@ -34,6 +34,8 @@ import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.*;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.console.GeyserLogger;
@@ -69,7 +71,7 @@ public class Entity {
 
     protected boolean valid;
 
-    protected Set<Long> passengers = new HashSet<>();
+    protected LongSet passengers = new LongOpenHashSet();
     protected Map<AttributeType, Attribute> attributes = new HashMap<>();
     protected EntityDataDictionary metadata = new EntityDataDictionary();
 
