@@ -26,137 +26,143 @@
 package org.geysermc.connector.entity.type;
 
 import lombok.Getter;
+import org.geysermc.connector.entity.*;
+import org.geysermc.connector.entity.living.*;
+import org.geysermc.connector.entity.living.monster.GuardianEntity;
+import org.geysermc.connector.entity.living.monster.ZombieEntity;
 
 @Getter
 public enum EntityType {
 
-    CHICKEN(10, 0.7f, 0.4f),
-    COW(11, 1.4f, 0.9f),
-    PIG(12, 0.9f),
-    SHEEP(13, 1.3f, 0.9f),
-    WOLF(14, 0.85f, 0.6f),
-    VILLAGER(15, 1.8f, 0.6f, 0.6f, 1.62f),
-    MOOSHROOM(16, 1.4f, 0.9f),
-    SQUID(17, 0.8f),
-    RABBIT(18, 0.5f, 0.4f),
-    BAT(19, 0.9f, 0.5f),
-    IRON_GOLEM(20, 2.7f, 1.4f),
-    SNOW_GOLEM(21, 1.9f, 0.7f),
-    OCELOT(22, 0.35f, 0.3f),
-    HORSE(23, 1.6f, 1.3965f),
-    DONKEY(24, 1.6f, 1.3965f),
-    MULE(25, 1.6f, 1.3965f),
-    SKELETON_HORSE(26, 1.6f, 1.3965f),
-    ZOMBIE_HORSE(27, 1.6f, 1.3965f),
-    POLAR_BEAR(28, 1.4f, 1.3f),
-    LLAMA(29, 1.87f, 0.9f),
-    PARROT(30, 0.9f, 0.5f),
-    DOLPHIN(31, 0.6f, 0.9f),
-    ZOMBIE(32, 1.8f, 0.6f, 0.6f, 1.62f),
-    CREEPER(33, 1.7f, 0.6f, 0.6f, 1.62f),
-    SKELETON(34, 1.8f, 0.6f, 0.6f, 1.62f),
-    SPIDER(35, 0.9f, 1.4f, 1.4f, 1f),
-    ZOMBIE_PIGMAN(36, 1.8f, 0.6f, 0.6f, 1.62f),
-    SLIME(37, 0.51f),
-    ENDERMAN(38, 2.9f, 0.6f),
-    SILVERFISH(39, 0.3f, 0.4f),
-    CAVE_SPIDER(40, 0.5f, 0.7f),
-    GHAST(41, 4.0f),
-    MAGMA_CUBE(42, 0.51f),
-    BLAZE(43, 1.8f, 0.6f),
-    ZOMBIE_VILLAGER(44, 1.8f, 0.6f, 0.6f, 1.62f),
-    WITCH(45, 1.8f, 0.6f, 0.6f, 1.62f),
-    STRAY(46, 1.8f, 0.6f, 0.6f, 1.62f),
-    HUSK(47, 1.8f, 0.6f, 0.6f, 1.62f),
-    WITHER_SKELETON(48, 2.4f, 0.7f),
-    GUARDIAN(49, 0.85f),
-    ELDER_GUARDIAN(50, 1.9975f),
-    NPC(51, 1.8f, 0.6f, 0.6f, 1.62f),
-    WITHER(52, 3.5f, 0.9f),
-    ENDER_DRAGON(53, 4f, 13f),
-    SHULKER(54, 1f, 1f),
-    ENDERMITE(55, 0.3f, 0.4f),
-    AGENT(56, 0f),
-    VINDICATOR(57, 1.8f, 0.6f, 0.6f, 1.62f),
-    PILLAGER(114, 1.8f, 0.6f, 0.6f, 1.62f),
-    WANDERING_TRADER(118, 1.8f, 0.6f, 0.6f, 1.62f),
-    PHANTOM(58, 0.5f, 0.9f, 0.9f, 0.6f),
-    RAVAGER(59, 1.9f, 1.2f),
+    CHICKEN(AnimalEntity.class, 10, 0.7f, 0.4f),
+    COW(AnimalEntity.class, 11, 1.4f, 0.9f),
+    PIG(AnimalEntity.class, 12, 0.9f),
+    SHEEP(AnimalEntity.class, 13, 1.3f, 0.9f),
+    WOLF(AnimalEntity.class, 14, 0.85f, 0.6f),
+    VILLAGER(AbstractMerchantEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f),
+    MOOSHROOM(AnimalEntity.class, 16, 1.4f, 0.9f),
+    SQUID(WaterEntity.class, 17, 0.8f),
+    RABBIT(AnimalEntity.class, 18, 0.5f, 0.4f),
+    BAT(AmbientEntity.class, 19, 0.9f, 0.5f),
+    IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
+    SNOW_GOLEM(GolemEntity.class, 21, 1.9f, 0.7f),
+    OCELOT(TameableEntity.class, 22, 0.35f, 0.3f),
+    HORSE(AbstractHorseEntity.class, 23, 1.6f, 1.3965f),
+    DONKEY(ChestedHorseEntity.class, 24, 1.6f, 1.3965f),
+    MULE(ChestedHorseEntity.class, 25, 1.6f, 1.3965f),
+    SKELETON_HORSE(AbstractHorseEntity.class, 26, 1.6f, 1.3965f),
+    ZOMBIE_HORSE(AbstractHorseEntity.class, 27, 1.6f, 1.3965f),
+    POLAR_BEAR(AnimalEntity.class, 28, 1.4f, 1.3f),
+    LLAMA(ChestedHorseEntity.class, 29, 1.87f, 0.9f),
+    PARROT(TameableEntity.class, 30, 0.9f, 0.5f),
+    DOLPHIN(WaterEntity.class, 31, 0.6f, 0.9f),
+    ZOMBIE(ZombieEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f),
+    CREEPER(MonsterEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
+    SKELETON(AbstractSkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
+    SPIDER(MonsterEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
+    ZOMBIE_PIGMAN(MonsterEntity.class, 36, 1.8f, 0.6f, 0.6f, 1.62f),
+    SLIME(InsentientEntity.class, 37, 0.51f),
+    ENDERMAN(MonsterEntity.class, 38, 2.9f, 0.6f),
+    SILVERFISH(MonsterEntity.class, 39, 0.3f, 0.4f),
+    CAVE_SPIDER(MonsterEntity.class, 40, 0.5f, 0.7f),
+    GHAST(FlyingEntity.class, 41, 4.0f),
+    MAGMA_CUBE(InsentientEntity.class, 42, 0.51f),
+    BLAZE(MonsterEntity.class, 43, 1.8f, 0.6f),
+    ZOMBIE_VILLAGER(ZombieEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f),
+    WITCH(RaidParticipantEntity.class, 45, 1.8f, 0.6f, 0.6f, 1.62f),
+    STRAY(AbstractSkeletonEntity.class, 46, 1.8f, 0.6f, 0.6f, 1.62f),
+    HUSK(ZombieEntity.class, 47, 1.8f, 0.6f, 0.6f, 1.62f),
+    WITHER_SKELETON(AbstractSkeletonEntity.class, 48, 2.4f, 0.7f),
+    GUARDIAN(MonsterEntity.class, 49, 0.85f),
+    ELDER_GUARDIAN(GuardianEntity.class, 50, 1.9975f),
+    NPC(PlayerEntity.class, 51, 1.8f, 0.6f, 0.6f, 1.62f),
+    WITHER(MonsterEntity.class, 52, 3.5f, 0.9f),
+    ENDER_DRAGON(InsentientEntity.class, 53, 4f, 13f),
+    SHULKER(GolemEntity.class, 54, 1f, 1f),
+    ENDERMITE(MonsterEntity.class, 55, 0.3f, 0.4f),
+    AGENT(Entity.class, 56, 0f),
+    VINDICATOR(AbstractIllagerEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f),
+    PILLAGER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f),
+    WANDERING_TRADER(AbstractMerchantEntity.class, 118, 1.8f, 0.6f, 0.6f, 1.62f),
+    PHANTOM(FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
+    RAVAGER(RaidParticipantEntity.class, 59, 1.9f, 1.2f),
 
-    ARMOR_STAND(61, 0f),
-    TRIPOD_CAMERA(62, 0f),
-    PLAYER(63, 1.8f, 0.6f, 0.6f, 1.62f),
-    ITEM(64, 0.25f, 0.25f),
-    TNT(65, 0.98f, 0.98f),
-    FALLING_BLOCK(66, 0.98f, 0.98f),
-    MOVING_BLOCK(67, 0f),
-    EXPERIENCE_BOTTLE(68, 0.25f, 0.25f),
-    EXPERIENCE_ORB(69, 0f),
-    EYE_OF_ENDER(70, 0f),
-    END_CRYSTAL(71, 0f),
-    FIREWORK_ROCKET(72, 0f),
-    TRIDENT(73, 0f),
-    TURTLE(74, 0.4f, 1.2f),
+    ARMOR_STAND(LivingEntity.class, 61, 0f),
+    TRIPOD_CAMERA(Entity.class, 62, 0f),
+    PLAYER(PlayerEntity.class, 63, 1.8f, 0.6f, 0.6f, 1.62f),
+    ITEM(ItemEntity.class, 64, 0.25f, 0.25f),
+    TNT(Entity.class, 65, 0.98f, 0.98f),
+    FALLING_BLOCK(Entity.class, 66, 0.98f, 0.98f),
+    MOVING_BLOCK(Entity.class, 67, 0f),
+    EXPERIENCE_BOTTLE(ThrowableEntity.class, 68, 0.25f, 0.25f),
+    EXPERIENCE_ORB(ExpOrbEntity.class, 69, 0f),
+    EYE_OF_ENDER(Entity.class, 70, 0f),
+    END_CRYSTAL(Entity.class, 71, 0f),
+    FIREWORK_ROCKET(Entity.class, 72, 0f),
+    TRIDENT(ArrowEntity.class, 73, 0f),
+    TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
     // TODO CAT (need to figure out how to deal with baby cats) https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/entity/passive/EntityCat.java
 
-    SHULKER_BULLET(76, 0f),
-    FISHING_BOBBER(77, 0f),
-    CHALKBOARD(78, 0f),
-    DRAGON_FIREBALL(79, 0f),
-    ARROW(80, 0.25f, 0.25f),
-    SNOWBALL(81, 0f),
-    EGG(82, 0f),
-    PAINTING(83, 0f),
-    MINECART(84, 0f),
-    FIREBALL(85, 0f),
-    SPLASH_POTION(86, 0f),
-    ENDER_PEARL(87, 0f),
-    LEASH_KNOT(88, 0f),
-    WITHER_SKULL(89, 0f),
-    BOAT(90, 0.7f, 1.6f, 1.6f, 0.35f),
-    WITHER_SKULL_DANGEROUS(91, 0f),
-    LIGHTNING_BOLT(93, 0f),
-    SMALL_FIREBALL(94, 0f),
-    AREA_EFFECT_CLOUD(95, 0f),
-    HOPPER_MINECART(96, 0f),
-    TNT_MINECART(97, 0f),
-    CHEST_MINECART(98, 0f),
+    SHULKER_BULLET(Entity.class, 76, 0f),
+    FISHING_BOBBER(Entity.class, 77, 0f),
+    CHALKBOARD(Entity.class, 78, 0f),
+    DRAGON_FIREBALL(ItemedFireballEntity.class, 79, 0f),
+    ARROW(ArrowEntity.class, 80, 0.25f, 0.25f),
+    SNOWBALL(ThrowableEntity.class, 81, 0f),
+    EGG(ThrowableEntity.class, 82, 0f),
+    PAINTING(PaintingEntity.class, 83, 0f),
+    MINECART(MinecartEntity.class, 84, 0f),
+    FIREBALL(ItemedFireballEntity.class, 85, 0f),
+    SPLASH_POTION(ThrowableEntity.class, 86, 0f),
+    ENDER_PEARL(ThrowableEntity.class, 87, 0f),
+    LEASH_KNOT(Entity.class, 88, 0f),
+    WITHER_SKULL(Entity.class, 89, 0f),
+    BOAT(Entity.class, 90, 0.7f, 1.6f, 1.6f, 0.35f),
+    WITHER_SKULL_DANGEROUS(Entity.class, 91, 0f),
+    LIGHTNING_BOLT(Entity.class, 93, 0f),
+    SMALL_FIREBALL(ItemedFireballEntity.class, 94, 0f),
+    AREA_EFFECT_CLOUD(Entity.class, 95, 0f),
+    HOPPER_MINECART(MinecartEntity.class, 96, 0f),
+    TNT_MINECART(MinecartEntity.class, 97, 0f),
+    CHEST_MINECART(MinecartEntity.class, 98, 0f),
 
-    COMMAND_BLOCK_MINECART(100, 0f),
-    LINGERING_POTION(101, 0f),
-    LLAMA_SPIT(102, 0f),
-    EVOKER_FANGS(103, 0f),
-    EVOKER(104, 0f),
-    VEX(105, 0f),
-    ICE_BOMB(106, 0f),
-    BALLOON(107, 0f), //TODO
-    PUFFERFISH(108, 0.7f, 0.7f),
-    SALMON(109, 0.5f, 0.7f),
-    DROWNED(110, 1.95f, 0.6f),
-    TROPICAL_FISH(111, 0.6f, 0.6f),
-    COD(112, 0.25f, 0.5f),
-    PANDA(113, 1.25f, 1.125f, 1.825f),
-    FOX(121, 0.5f, 1.25f);
+    COMMAND_BLOCK_MINECART(MinecartEntity.class, 100, 0f),
+    LINGERING_POTION(ThrowableEntity.class, 101, 0f),
+    LLAMA_SPIT(Entity.class, 102, 0f),
+    EVOKER_FANGS(Entity.class, 103, 0f),
+    EVOKER(SpellcasterIllagerEntity.class, 104, 0f),
+    VEX(MonsterEntity.class, 105, 0f),
+    ICE_BOMB(Entity.class, 106, 0f),
+    BALLOON(Entity.class, 107, 0f), //TODO
+    PUFFERFISH(AbstractFishEntity.class, 108, 0.7f, 0.7f),
+    SALMON(AbstractFishEntity.class, 109, 0.5f, 0.7f),
+    DROWNED(ZombieEntity.class, 110, 1.95f, 0.6f),
+    TROPICAL_FISH(AbstractFishEntity.class, 111, 0.6f, 0.6f),
+    COD(AbstractFishEntity.class, 112, 0.25f, 0.5f),
+    PANDA(AnimalEntity.class, 113, 1.25f, 1.125f, 1.825f),
+    FOX(AnimalEntity.class, 121, 0.5f, 1.25f);
 
+    private Class<? extends Entity> entityClass;
     private final int type;
     private final float height;
     private final float width;
     private final float length;
     private final float offset;
 
-    EntityType(int type, float height) {
-        this(type, height, 0f);
+    EntityType(Class<? extends Entity> entityClass, int type, float height) {
+        this(entityClass, type, height, 0f);
     }
 
-    EntityType(int type, float height, float width) {
-        this(type, height, width, width);
+    EntityType(Class<? extends Entity> entityClass, int type, float height, float width) {
+        this(entityClass, type, height, width, width);
     }
 
-    EntityType(int type, float height, float width, float length) {
-        this(type, height, width, length, 0f);
+    EntityType(Class<? extends Entity> entityClass, int type, float height, float width, float length) {
+        this(entityClass, type, height, width, length, 0f);
     }
 
-    EntityType(int type, float height, float width, float length, float offset) {
+    EntityType(Class<? extends Entity> entityClass, int type, float height, float width, float length, float offset) {
+        this.entityClass = entityClass;
         this.type = type;
         this.height = height;
         this.width = width;

@@ -27,9 +27,7 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,18 +39,12 @@ import org.geysermc.connector.utils.SkinUtils;
 import java.util.UUID;
 
 @Getter @Setter
-public class PlayerEntity extends Entity {
+public class PlayerEntity extends LivingEntity {
     private GameProfile profile;
     private UUID uuid;
     private String username;
     private long lastSkinUpdate = -1;
     private boolean playerList = true;
-
-    private ItemData helmet;
-    private ItemData chestplate;
-    private ItemData leggings;
-    private ItemData boots;
-    private ItemData hand = ItemData.of(0, (short) 0, 0);
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
@@ -61,20 +53,6 @@ public class PlayerEntity extends Entity {
         uuid = gameProfile.getId();
         username = gameProfile.getName();
         if (geyserId == 1) valid = true;
-    }
-
-    // TODO: Break this into an EquippableEntity class
-    public void updateEquipment(GeyserSession session) {
-        if (!valid) return;
-
-        MobArmorEquipmentPacket armorEquipmentPacket = new MobArmorEquipmentPacket();
-        armorEquipmentPacket.setRuntimeEntityId(geyserId);
-        armorEquipmentPacket.setHelmet(helmet);
-        armorEquipmentPacket.setChestplate(chestplate);
-        armorEquipmentPacket.setLeggings(leggings);
-        armorEquipmentPacket.setBoots(boots);
-
-        session.getUpstream().sendPacket(armorEquipmentPacket);
     }
 
     @Override
