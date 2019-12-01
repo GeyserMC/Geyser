@@ -131,22 +131,18 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     InventoryAction anvilResult = null;
                     InventoryAction anvilInput = null;
                     for (InventoryAction action : packet.getActions()) {
-                        if (action.getSource().getContainerId() == ContainerId.ANVIL_RESULT) {
+                        if (action.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL) {
+                            //useless packet
+                            return;
+                        } else if (action.getSource().getContainerId() == ContainerId.ANVIL_RESULT) {
                             anvilResult = action;
-                        } else if (action.getSource().getContainerId() == ContainerId.CONTAINER_INPUT) {
+                        } else if (translator.bedrockSlotToJava(action) == 0) {
                             anvilInput = action;
                         }
                     }
                     ItemData itemName = null;
                     if (anvilResult != null) {
                         itemName = anvilResult.getFromItem();
-                        actions = new ArrayList<>(2);
-                        for (InventoryAction action : packet.getActions()) { //packet sent by client when grabbing anvil output needs useless actions stripped
-                            if (!(action.getSource().getContainerId() == ContainerId.CONTAINER_INPUT ||
-                                    action.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL)) {
-                                actions.add(action);
-                            }
-                        }
                     } else if (anvilInput != null) {
                         itemName = anvilInput.getToItem();
                     }
@@ -160,6 +156,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
                         ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
                         session.getDownstream().getSession().send(renameItemPacket);
+                    }
+                    if (anvilResult != null) {
+                        //client will send another packet to grab anvil output
+                        //this packet was only used to send rename packet
+                        return;
                     }
                 }
 
@@ -494,7 +495,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             ItemStack clickedItem = inventory.getItem(action.slot);
             short actionId = (short) inventory.getTransactionId().getAndIncrement();
             boolean craftingOutput = (inventory.getId() == 0 || inventory.getWindowType() == WindowType.CRAFTING) && action.slot == 0;
-            if (craftingOutput)
+            if (craftingOutput || translator.isOutputSlot(action.slot))
                 refresh = true;
             ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(inventory.getId(),
                     actionId, action.slot, !planIter.hasNext() && refresh ? refreshItem : fixStack(clickedItem),
