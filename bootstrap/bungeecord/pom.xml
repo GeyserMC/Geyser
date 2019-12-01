@@ -25,7 +25,8 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>${outputName}-BungeeCord-noshade</finalName>
+        <finalName>${outputName}-BungeeCord</finalName>
+        <directory>../../target</directory>
         <defaultGoal>clean install</defaultGoal>
         <resources>
             <resource>
@@ -37,7 +38,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -47,7 +48,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <finalName>${outputName}-BungeeCord</finalName>
                     <minimizeJar>true</minimizeJar>
                 </configuration>
             </plugin>

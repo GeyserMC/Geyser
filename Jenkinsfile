@@ -15,7 +15,7 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'target/Geyser.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
