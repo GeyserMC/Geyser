@@ -55,6 +55,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.SlotType;
 
 import java.util.*;
 
@@ -237,8 +238,19 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (containerAction != null) {
                             //left/right click
                             List<ClickAction> plan = new ArrayList<>();
-                            ItemStack translatedCursor = TranslatorsInit.getItemTranslator().translateToJava(cursorAction.getFromItem());
-                            boolean refresh = !Objects.equals(session.getInventory().getCursor(), translatedCursor.getId() == 0 ? null : translatedCursor); //refresh slot if there is a cursor mismatch
+                            ItemStack translatedCursor = cursorAction.getFromItem().isValid() ?
+                                    TranslatorsInit.getItemTranslator().translateToJava(cursorAction.getFromItem()) : null;
+                            ItemStack currentCursor = session.getInventory().getCursor();
+                            boolean refresh = false;
+                            if (currentCursor != null) {
+                                if (translatedCursor != null) {
+                                    refresh = !(currentCursor.getId() == translatedCursor.getId() &&
+                                            currentCursor.getAmount() == translatedCursor.getAmount());
+                                } else {
+                                    refresh = true;
+                                }
+                            }
+
                             int javaSlot = translator.bedrockSlotToJava(containerAction);
                             if (cursorAction.getFromItem().equals(containerAction.getToItem()) &&
                                     containerAction.getFromItem().equals(cursorAction.getToItem()) &&
@@ -258,7 +270,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     if (containerAction.getToItem().getCount() == 0) { //pickup all
                                         Click.LEFT.onSlot(javaSlot, plan);
                                     } else { //pickup some
-                                        if (translator.isOutputSlot(javaSlot) ||
+                                        if (translator.getSlotType(javaSlot) == SlotType.FURNACE_OUTPUT ||
                                                 containerAction.getToItem().getCount() == containerAction.getFromItem().getCount() / 2) { //right click
                                             Click.RIGHT.onSlot(javaSlot, plan);
                                         } else {
@@ -270,7 +282,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         }
                                     }
                                 } else { //pickup into non-empty cursor
-                                    if (translator.isOutputSlot(javaSlot)) {
+                                    if (translator.getSlotType(javaSlot) == SlotType.FURNACE_OUTPUT) {
                                         if (containerAction.getToItem().getCount() == 0) {
                                             Click.LEFT.onSlot(javaSlot, plan);
                                         } else {
@@ -282,7 +294,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             translator.updateInventory(session, inventory);
                                             return;
                                         }
-                                    } else if ((inventory.getId() == 0 || inventory.getWindowType() == WindowType.CRAFTING) && javaSlot == 0) { //crafting output
+                                    } else if (translator.getSlotType(javaSlot) == SlotType.OUTPUT) {
                                         Click.LEFT.onSlot(javaSlot, plan);
                                     } else {
                                         int cursorSlot = findTempSlot(inventory, session.getInventory().getCursor(), Collections.singletonList(javaSlot));
@@ -319,7 +331,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         int fromSlot = translator.bedrockSlotToJava(fromAction);
                         int toSlot = translator.bedrockSlotToJava(toAction);
 
-                        if ((inventory.getId() == 0 || inventory.getWindowType() == WindowType.CRAFTING) && fromSlot == 0) {
+                        if (translator.getSlotType(fromSlot) == SlotType.OUTPUT) {
                             if ((craftSlot != 0 && craftSlot != -2) && (inventory.getItem(toSlot) == null ||
                                     canStack(session.getInventory().getCursor(), inventory.getItem(toSlot)))) {
                                 boolean refresh = false;
@@ -360,7 +372,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 Click.LEFT.onSlot(fromSlot, plan);
                             }
                         } else if (canStack(fromAction.getFromItem(), toAction.getToItem())) { //partial item move
-                            if (translator.isOutputSlot(fromSlot)) {
+                            if (translator.getSlotType(fromSlot) == SlotType.FURNACE_OUTPUT) {
                                 ClientWindowActionPacket shiftClickPacket = new ClientWindowActionPacket(inventory.getId(),
                                         inventory.getTransactionId().getAndIncrement(),
                                         fromSlot, refreshItem, WindowAction.SHIFT_CLICK_ITEM,
@@ -368,7 +380,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 session.getDownstream().getSession().send(shiftClickPacket);
                                 translator.updateInventory(session, inventory);
                                 return;
-                            } else if ((inventory.getId() == 0 || inventory.getWindowType() == WindowType.CRAFTING) && fromSlot == 0) {
+                            } else if (translator.getSlotType(fromSlot) == SlotType.OUTPUT) {
                                 session.setCraftSlot(cursorSlot);
                                 Click.LEFT.onSlot(fromSlot, plan);
                                 int difference = toAction.getToItem().getCount() - toAction.getFromItem().getCount();
@@ -477,7 +489,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     private boolean canStack(ItemStack item1, ItemStack item2) {
         if (item1 == null || item2 == null)
             return false;
-        return item1.getId() == item2.getId() && item1.getNbt() == item2.getNbt();
+        return item1.getId() == item2.getId() && Objects.equals(item1.getNbt(), item2.getNbt());
     }
 
     private boolean canStack(ItemData item1, ItemData item2) {
@@ -494,13 +506,15 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             ItemStack cursorItem = playerInventory.getCursor();
             ItemStack clickedItem = inventory.getItem(action.slot);
             short actionId = (short) inventory.getTransactionId().getAndIncrement();
-            boolean craftingOutput = (inventory.getId() == 0 || inventory.getWindowType() == WindowType.CRAFTING) && action.slot == 0;
-            if (craftingOutput || translator.isOutputSlot(action.slot))
+            boolean isOutput = translator.getSlotType(action.slot) == SlotType.OUTPUT;
+
+            if (isOutput || translator.getSlotType(action.slot) == SlotType.FURNACE_OUTPUT)
                 refresh = true;
             ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(inventory.getId(),
                     actionId, action.slot, !planIter.hasNext() && refresh ? refreshItem : fixStack(clickedItem),
                     WindowAction.CLICK_ITEM, action.click.actionParam);
-            if (craftingOutput) { //crafting output
+
+            if (isOutput) {
                 if (cursorItem == null && clickedItem != null) {
                     playerInventory.setCursor(clickedItem);
                 } else if (canStack(cursorItem, clickedItem)) {

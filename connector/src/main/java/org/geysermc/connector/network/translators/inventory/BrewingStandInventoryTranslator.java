@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryAction;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
@@ -58,27 +57,18 @@ public class BrewingStandInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryAction action) {
-        int slotnum = action.getSlot();
-        if (action.getSource().getContainerId() == ContainerId.INVENTORY) {
-            //hotbar
-            if (slotnum >= 9) {
-                return slotnum + this.size - 9;
-            } else {
-                return slotnum + this.size + 27;
-            }
-        } else {
-            switch (slotnum) {
-                case 0:
-                    return 3;
-                case 1:
-                    return 0;
-                case 2:
-                    return 1;
-                case 3:
-                    return 2;
-                default:
-                    return slotnum;
-            }
+        int slotnum = super.bedrockSlotToJava(action);
+        switch (slotnum) {
+            case 0:
+                return 3;
+            case 1:
+                return 0;
+            case 2:
+                return 1;
+            case 3:
+                return 2;
+            default:
+                return slotnum;
         }
     }
 

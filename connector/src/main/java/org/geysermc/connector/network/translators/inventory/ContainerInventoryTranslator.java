@@ -35,7 +35,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 
 public abstract class ContainerInventoryTranslator extends InventoryTranslator {
-    public ContainerInventoryTranslator(int size) {
+    ContainerInventoryTranslator(int size) {
         super(size);
     }
 
@@ -97,7 +97,7 @@ public abstract class ContainerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public boolean isOutputSlot(int slot) {
-        return false;
+    public SlotType getSlotType(int javaSlot) {
+        return SlotType.NORMAL;
     }
 }

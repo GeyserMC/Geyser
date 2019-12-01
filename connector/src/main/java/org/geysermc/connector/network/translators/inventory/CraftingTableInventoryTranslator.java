@@ -59,21 +59,21 @@ public class CraftingTableInventoryTranslator extends ContainerInventoryTranslat
 
     @Override
     public int bedrockSlotToJava(InventoryAction action) {
-        int slotnum = action.getSlot();
-        if (action.getSource().getContainerId() == ContainerId.INVENTORY) {
-            //hotbar
-            if (slotnum >= 9) {
-                return slotnum + this.size - 9;
-            } else {
-                return slotnum + this.size + 27;
-            }
-        } else {
+        if (action.getSource().getContainerId() == ContainerId.CURSOR) {
+            int slotnum = action.getSlot();
             if (slotnum >= 32 && 42 >= slotnum) {
                 return slotnum - 31;
             } else if (slotnum == 50) {
                 return 0;
             }
-            return slotnum;
         }
+        return super.bedrockSlotToJava(action);
+    }
+
+    @Override
+    public SlotType getSlotType(int javaSlot) {
+        if (javaSlot == 0)
+            return SlotType.OUTPUT;
+        return SlotType.NORMAL;
     }
 }

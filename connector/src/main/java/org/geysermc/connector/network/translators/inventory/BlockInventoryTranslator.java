@@ -38,8 +38,8 @@ import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.world.GlobalBlockPalette;
 
 public class BlockInventoryTranslator extends ContainerInventoryTranslator {
-    protected final int blockId;
-    protected final ContainerType containerType;
+    final int blockId;
+    private final ContainerType containerType;
 
     public BlockInventoryTranslator(int size, int blockId, ContainerType containerType) {
         super(size);

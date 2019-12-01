@@ -119,15 +119,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 break;
             case ContainerId.OFFHAND:
                 return 45;
-            case ContainerId.CRAFTING_ADD_INGREDIENT:
-            case ContainerId.CRAFTING_REMOVE_INGREDIENT:
-                return slotnum + 1;
             case ContainerId.CURSOR:
                 if (slotnum >= 28 && 31 >= slotnum) {
                     return slotnum - 27;
                 } else if (slotnum == 50) {
                     return 0;
                 }
+                break;
         }
         return slotnum;
     }
@@ -138,8 +136,10 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public boolean isOutputSlot(int slot) {
-        return false;
+    public SlotType getSlotType(int javaSlot) {
+        if (javaSlot == 0)
+            return SlotType.OUTPUT;
+        return SlotType.NORMAL;
     }
 
     @Override
