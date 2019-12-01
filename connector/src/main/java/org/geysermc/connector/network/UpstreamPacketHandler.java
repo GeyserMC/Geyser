@@ -27,8 +27,8 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.configuration.UserAuthenticationInfo;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
@@ -91,11 +91,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean couldLoginUserByName(String bedrockUsername) {
         if (connector.getConfig().getUserAuths() != null) {
-            UserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
+            IGeyserConfiguration.IUserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
 
             if (info != null) {
                 connector.getLogger().info("using stored credentials for bedrock user " + session.getAuthenticationData().getName());
-                session.authenticate(info.email, info.password);
+                session.authenticate(info.getEmail(), info.getPassword());
 
                 // TODO send a message to bedrock user telling them they are connected (if nothing like a motd
                 //      somes from the Java server w/in a few seconds)

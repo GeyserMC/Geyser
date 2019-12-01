@@ -29,10 +29,9 @@ import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import org.geysermc.api.Player;
 import org.geysermc.api.events.PingEvent;
+import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.MessageUtils;
@@ -56,7 +55,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
         GeyserLogger.DEFAULT.debug(inetSocketAddress + " has pinged you!");
-        GeyserConfiguration config = connector.getConfig();
+        IGeyserConfiguration config = connector.getConfig();
         PingEvent pongEvent = new PingEvent(inetSocketAddress);
         pongEvent.setEdition("MCPE");
         pongEvent.setGameType("Default");

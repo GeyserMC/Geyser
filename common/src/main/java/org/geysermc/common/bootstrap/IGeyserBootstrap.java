@@ -23,16 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.configuration;
+package org.geysermc.common.bootstrap;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
+import org.geysermc.api.logger.Logger;
+import org.geysermc.common.IGeyserConfiguration;
 
-@Getter
-public class MetricInfo {
+public interface IGeyserBootstrap {
 
-    private boolean enabled;
+    void onEnable();
 
-    @JsonProperty("uuid")
-    private String UUID;
+    void onDisable();
+
+    IGeyserConfiguration getGeyserConfig();
+
+    Logger getGeyserLogger();
 }

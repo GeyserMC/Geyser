@@ -23,26 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.console;
+package org.geysermc.platform.standalone;
 
 import io.sentry.Sentry;
 import org.geysermc.api.ChatColor;
-import org.geysermc.api.logger.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.*;
 
-public class GeyserLogger {
+public class GeyserLogger implements org.geysermc.api.logger.Logger {
 
-    public static Logger DEFAULT;
-
-    /*
     private boolean colored = true;
     private boolean debug = false;
 
-    private GeyserLogger() {
+    public GeyserLogger() {
         ConsoleHandler consoleHandler = new ConsoleHandler();
         consoleHandler.setLevel(Level.INFO);
         consoleHandler.setFormatter(new SimpleFormatter() {
@@ -133,15 +129,5 @@ public class GeyserLogger {
     @Override
     public void setDebug(boolean debug) {
         this.debug = debug;
-    }
-
-     */
-
-    public static String printConsole(String message, boolean colors) {
-        return colors ? ChatColor.toANSI(message + ChatColor.RESET) : ChatColor.stripColors(message + ChatColor.RESET);
-    }
-
-    public static void setLogger(Logger logger) {
-        DEFAULT = logger;
     }
 }

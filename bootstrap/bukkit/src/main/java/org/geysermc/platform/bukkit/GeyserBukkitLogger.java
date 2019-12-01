@@ -23,20 +23,59 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.configuration;
+package org.geysermc.platform.bukkit;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-@Getter
-public class RemoteConfiguration {
+public class GeyserBukkitLogger implements org.geysermc.api.logger.Logger {
 
-    private String address;
-    private int port;
+    private Logger logger;
+    private boolean debugMode;
 
-    private String motd1;
-    private String motd2;
+    public GeyserBukkitLogger(Logger logger, boolean debugMode) {
+        this.logger = logger;
+        this.debugMode = debugMode;
+    }
 
-    @JsonProperty("auth-type")
-    private String authType;
+    @Override
+    public void severe(String message) {
+        logger.severe(message);
+    }
+
+    @Override
+    public void severe(String message, Throwable error) {
+        logger.log(Level.SEVERE, message, error);
+    }
+
+    @Override
+    public void error(String message) {
+        logger.warning(message);
+    }
+
+    @Override
+    public void error(String message, Throwable error) {
+        logger.log(Level.WARNING, message, error);
+    }
+
+    @Override
+    public void warning(String message) {
+        error(message);
+    }
+
+    @Override
+    public void info(String message) {
+        logger.info(message);
+    }
+
+    @Override
+    public void debug(String message) {
+        if (debugMode)
+            info(message);
+    }
+
+    @Override
+    public void setDebug(boolean debug) {
+        debugMode = debug;
+    }
 }

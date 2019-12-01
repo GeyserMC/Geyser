@@ -23,36 +23,47 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.configuration;
+package org.geysermc.platform.bukkit;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.common.bootstrap.IGeyserBootstrap;
 
-import java.util.Map;
+import java.util.UUID;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-public class GeyserConfiguration {
-    private BedrockConfiguration bedrock;
-    private RemoteConfiguration remote;
+public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
 
-    private Map<String, UserAuthenticationInfo> userAuths;
+    private GeyserBukkitConfiguration geyserConfig;
+    private GeyserBukkitLogger geyserLogger;
 
-    @JsonProperty("ping-passthrough")
-    private boolean pingPassthrough;
+    @Override
+    public void onEnable() {
+        saveDefaultConfig();
 
-    @JsonProperty("max-players")
-    private int maxPlayers;
+        geyserConfig = new GeyserBukkitConfiguration(getConfig());
 
-    @JsonProperty("debug-mode")
-    private boolean debugMode;
+        if (geyserConfig.getMetrics().getUniqueId().equals("generateduuid")) {
+            getConfig().set("metrics.uuid", UUID.randomUUID().toString());
+            saveConfig();
+        }
 
-    @JsonProperty("general-thread-pool")
-    private int generalThreadPool;
+        geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
 
-    @JsonProperty("allow-third-party-capes")
-    private boolean allowThirdPartyCapes;
+        GeyserConnector.start(this, false);
+    }
 
-    private MetricInfo metrics;
+    @Override
+    public void onDisable() {
+        GeyserConnector.stop();
+    }
+
+    @Override
+    public GeyserBukkitConfiguration getGeyserConfig() {
+        return geyserConfig;
+    }
+
+    @Override
+    public GeyserBukkitLogger getGeyserLogger() {
+        return geyserLogger;
+    }
 }

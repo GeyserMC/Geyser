@@ -23,16 +23,60 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.configuration;
+package org.geysermc.common;
 
-import lombok.Getter;
+import java.util.Map;
 
-@Getter
-public class BedrockConfiguration {
+public interface IGeyserConfiguration {
 
-    private String address;
-    private int port;
+    IBedrockConfiguration getBedrock();
 
-    private String motd1;
-    private String motd2;
+    IRemoteConfiguration getRemote();
+
+    Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
+
+    boolean isPingPassthrough();
+
+    int getMaxPlayers();
+
+    boolean isDebugMode();
+
+    int getGeneralThreadPool();
+
+    boolean isAllowThirdPartyCapes();
+
+    IMetricsInfo getMetrics();
+
+    interface IBedrockConfiguration {
+
+        String getAddress();
+
+        int getPort();
+
+        String getMotd1();
+
+        String getMotd2();
+    }
+
+    interface IRemoteConfiguration {
+
+        String getAddress();
+
+        int getPort();
+
+        String getAuthType();
+    }
+
+    interface IUserAuthenticationInfo {
+        String getEmail();
+
+        String getPassword();
+    }
+
+    interface IMetricsInfo {
+
+        boolean isEnabled();
+
+        String getUniqueId();
+    }
 }
