@@ -64,7 +64,7 @@ public class Entity {
      */
     protected Vector3f rotation;
 
-    protected int scale = 1;
+    protected float scale = 1;
     protected boolean movePending;
 
     protected EntityType entityType;
@@ -178,7 +178,11 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
-                    metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
+                    // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
+                    if ((xd & 0x20) == 0x20)
+                        metadata.put(EntityData.SCALE, 0.01f);
+                    else
+                        metadata.put(EntityData.SCALE, scale);
                 }
                 break;
             case 2: // custom name

@@ -34,6 +34,9 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.EntityUtils;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 public class JavaSpawnMobTranslator extends PacketTranslator<ServerSpawnMobPacket> {
 
     @Override
@@ -48,11 +51,17 @@ public class JavaSpawnMobTranslator extends PacketTranslator<ServerSpawnMobPacke
             return;
         }
 
-        Entity entity = new Entity(
-                packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                type, position, motion, rotation
-        );
+        Class<? extends Entity> entityClass = type.getEntityClass();
+        try {
+            Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, EntityType.class,
+                    Vector3f.class, Vector3f.class, Vector3f.class);
 
-        session.getEntityCache().spawnEntity(entity);
+            Entity entity = entityConstructor.newInstance(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                    type, position, motion, rotation
+            );
+            session.getEntityCache().spawnEntity(entity);
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+            ex.printStackTrace();
+        }
     }
 }
