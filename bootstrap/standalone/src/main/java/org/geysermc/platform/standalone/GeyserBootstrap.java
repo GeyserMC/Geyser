@@ -56,7 +56,7 @@ public class GeyserBootstrap implements IGeyserBootstrap {
             File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserConfiguration.class);
         } catch (IOException ex) {
-            getGeyserLogger().severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+            geyserLogger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
             System.exit(0);
         }
 

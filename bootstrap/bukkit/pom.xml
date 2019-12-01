@@ -13,12 +13,6 @@
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
-            <artifactId>common</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
@@ -54,7 +48,6 @@
                 </executions>
                 <configuration>
                     <finalName>${outputName}-Bukkit</finalName>
-                    <createDependencyReducedPom>false</createDependencyReducedPom>
                     <minimizeJar>true</minimizeJar>
                 </configuration>
             </plugin>

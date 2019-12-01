@@ -14,12 +14,6 @@
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
-            <artifactId>api</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
@@ -47,18 +41,6 @@
             <artifactId>terminalconsoleappender</artifactId>
             <version>1.0.0</version>
             <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.6.4</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -146,7 +128,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <shadedArtifactAttached>true</shadedArtifactAttached>
                     <minimizeJar>true</minimizeJar>
                 </configuration>
             </plugin>

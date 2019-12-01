@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
-    <artifactId>bootstrap-standalone</artifactId>
+    <artifactId>bootstrap-bungeecord</artifactId>
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
@@ -17,23 +17,23 @@
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-api</artifactId>
+            <version>1.14-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     <build>
-        <finalName>${outputName}-noshade</finalName>
+        <finalName>${outputName}-BungeeCord-noshade</finalName>
         <defaultGoal>clean install</defaultGoal>
+        <resources>
+            <resource>
+                <directory>src/main/resources/</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Main-Class>org.geysermc.platform.standalone.GeyserBootstrap</Main-Class>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -47,7 +47,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <finalName>${outputName}</finalName>
+                    <finalName>${outputName}-BungeeCord</finalName>
                     <minimizeJar>true</minimizeJar>
                 </configuration>
             </plugin>
