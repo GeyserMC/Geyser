@@ -26,9 +26,7 @@
 package org.geysermc.common;
 
 import java.util.Map;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public interface IGeyserConfiguration {
 
     IBedrockConfiguration getBedrock();
