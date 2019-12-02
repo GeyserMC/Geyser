@@ -30,7 +30,9 @@ import org.geysermc.common.IGeyserConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserBukkitConfiguration implements IGeyserConfiguration {
 
     private FileConfiguration config;
