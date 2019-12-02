@@ -41,6 +41,7 @@ import com.github.steveice10.opennbt.tag.builtin.ShortTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
+import org.geysermc.api.Geyser;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
@@ -70,6 +71,15 @@ public class ItemTranslator {
         ItemEntry bedrockItem = getItem(stack);
         if (stack.getNbt() == null) {
            return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount());
+        } else if (bedrockItem.getJavaIdentifier().endsWith("potion")) {
+            Tag potionTag = stack.getNbt().get("Potion");
+            if (potionTag instanceof StringTag) {
+                Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+                if (potion != null) {
+                    return ItemData.of(bedrockItem.getBedrockId(), potion.getBedrockId(), stack.getAmount(), translateToBedrockNBT(stack.getNbt()));
+                }
+                Geyser.getLogger().debug("Unknown java potion: " + potionTag.getValue());
+            }
         }
         return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(stack.getNbt()));
     }
@@ -80,7 +90,7 @@ public class ItemTranslator {
 
     public ItemEntry getItem(ItemData data) {
         for (ItemEntry itemEntry : Toolbox.ITEM_ENTRIES.values()) {
-            if (itemEntry.getBedrockId() == data.getId() && itemEntry.getBedrockData() == data.getDamage()) {
+            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() || itemEntry.getJavaIdentifier().endsWith("potion"))) {
                 return itemEntry;
             }
         }
@@ -251,7 +261,33 @@ public class ItemTranslator {
 
         if (tag instanceof ListTag) {
             ListTag listTag = (ListTag) tag;
-            if (listTag.getName().equalsIgnoreCase("Lore")) {
+            if (listTag.getName().equalsIgnoreCase("Enchantments") || listTag.getName().equalsIgnoreCase("StoredEnchantments")) {
+                List<com.nukkitx.nbt.tag.CompoundTag> tags = new ArrayList<>();
+                for (Object value : listTag.getValue()) {
+                    if (!(value instanceof CompoundTag))
+                        continue;
+
+                    Tag javaEnchLvl = ((CompoundTag) value).get("lvl");
+                    if (!(javaEnchLvl instanceof ShortTag))
+                        continue;
+
+                    Tag javaEnchId = ((CompoundTag) value).get("id");
+                    if (!(javaEnchId instanceof StringTag))
+                        continue;
+
+                    Enchantment enchantment = Enchantment.getByJavaIdentifier(((StringTag) javaEnchId).getValue());
+                    if (enchantment == null) {
+                        Geyser.getLogger().debug("Unknown java enchantment: " + javaEnchId.getValue());
+                        continue;
+                    }
+
+                    com.nukkitx.nbt.CompoundTagBuilder builder = com.nukkitx.nbt.tag.CompoundTag.EMPTY.toBuilder();
+                    builder.shortTag("lvl", ((ShortTag) javaEnchLvl).getValue());
+                    builder.shortTag("id", (short) enchantment.ordinal());
+                    tags.add(builder.buildRootTag());
+                }
+                return new com.nukkitx.nbt.tag.ListTag<>("ench", com.nukkitx.nbt.tag.CompoundTag.class, tags);
+            } else if (listTag.getName().equalsIgnoreCase("Lore")) {
                 List<com.nukkitx.nbt.tag.StringTag> tags = new ArrayList<>();
                 for (Object value : listTag.getValue()) {
                     if (!(value instanceof Tag))
