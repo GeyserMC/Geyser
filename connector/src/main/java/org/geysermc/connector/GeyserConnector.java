@@ -38,7 +38,6 @@ import org.geysermc.api.logger.Logger;
 import org.geysermc.api.plugin.Plugin;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.command.GeyserCommandMap;
-import org.geysermc.connector.console.ConsoleCommandReader;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
@@ -105,8 +104,6 @@ public class GeyserConnector implements Connector {
         this.config = config;
 
         this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
-        ConsoleCommandReader consoleReader = new ConsoleCommandReader(this);
-        consoleReader.startConsole();
 
         logger.setDebug(config.isDebugMode());
 
@@ -177,8 +174,8 @@ public class GeyserConnector implements Connector {
         players.remove(player.getSocketAddress());
     }
 
-    public static void start(IGeyserBootstrap bootstrap, boolean loadPlugins) {
-        instance = new GeyserConnector(bootstrap.getGeyserConfig(), bootstrap.getGeyserLogger(), loadPlugins);
+    public static GeyserConnector start(IGeyserBootstrap bootstrap, boolean loadPlugins) {
+        return new GeyserConnector(bootstrap.getGeyserConfig(), bootstrap.getGeyserLogger(), loadPlugins);
     }
 
     public static void stop() {

@@ -23,12 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.console;
+package org.geysermc.platform.standalone.console;
 
+import net.minecrell.terminalconsole.TerminalConsoleAppender;
 import org.geysermc.api.command.ConsoleCommandSender;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserConsoleCommandSender;
-import net.minecrell.terminalconsole.TerminalConsoleAppender;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -45,7 +45,6 @@ public class ConsoleCommandReader {
 
     private GeyserConnector connector;
     private Terminal terminal;
-    private Thread thread;
 
     public ConsoleCommandReader(GeyserConnector connector) {
         this.connector = connector;
@@ -53,7 +52,7 @@ public class ConsoleCommandReader {
     }
 
     public void startConsole() {
-        thread = new Thread(() -> {
+        Thread thread = new Thread(() -> {
             if (terminal != null) {
                 LineReader lineReader = LineReaderBuilder.builder()
                         .appName("Geyser")
@@ -74,8 +73,8 @@ public class ConsoleCommandReader {
                         if (line == null)
                             break;
                     }
-                } catch (UserInterruptException e /* do nothing */) {
-                    //
+                } catch (UserInterruptException ignore) {
+                    /* do nothing */
                 } finally {
                     TerminalConsoleAppender.setReader(null);
                 }
@@ -93,6 +92,5 @@ public class ConsoleCommandReader {
         });
 
         thread.setName("ConsoleCommandThread");
-        connector.getGeneralThreadPool().execute(thread);
     }
 }

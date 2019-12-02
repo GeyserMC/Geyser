@@ -29,6 +29,8 @@ import org.fusesource.jansi.AnsiConsole;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.platform.standalone.console.ConsoleCommandReader;
+import org.geysermc.platform.standalone.console.GeyserLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +62,10 @@ public class GeyserBootstrap implements IGeyserBootstrap {
             System.exit(0);
         }
 
-        GeyserConnector.start(this, false);
+        GeyserConnector connector = GeyserConnector.start(this, false);
+
+        ConsoleCommandReader consoleReader = new ConsoleCommandReader(connector);
+        consoleReader.startConsole();
     }
 
     @Override

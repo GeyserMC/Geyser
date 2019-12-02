@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.standalone;
+package org.geysermc.platform.standalone.console;
 
 import io.sentry.Sentry;
 import org.geysermc.api.ChatColor;
