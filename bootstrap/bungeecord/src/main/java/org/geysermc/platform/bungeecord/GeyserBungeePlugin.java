@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
 
@@ -57,7 +58,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
                 Files.copy(in, file.toPath());
                 configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
             } catch (IOException ex) {
-                getLogger().severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+                getLogger().log(Level.SEVERE, "Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
                 return;
             }
         }
@@ -74,7 +75,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
             try {
                 ConfigurationProvider.getProvider(YamlConfiguration.class).save(configuration, new File(getDataFolder(), "config.yml"));
             } catch (IOException ex) {
-                getLogger().severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+                getLogger().log(Level.SEVERE, "Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
                 return;
             }
         }
