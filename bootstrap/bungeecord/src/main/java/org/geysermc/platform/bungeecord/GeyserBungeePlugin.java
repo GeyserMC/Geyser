@@ -57,13 +57,13 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
                 Files.copy(in, file.toPath());
                 configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
             } catch (IOException ex) {
-                geyserLogger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+                getLogger().severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
                 return;
             }
         }
 
         if (configuration == null) {
-            geyserLogger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!");
+            getLogger().severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!");
             return;
         }
 
@@ -74,7 +74,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
             try {
                 ConfigurationProvider.getProvider(YamlConfiguration.class).save(configuration, new File(getDataFolder(), "config.yml"));
             } catch (IOException ex) {
-                geyserLogger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+                getLogger().severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
                 return;
             }
         }
