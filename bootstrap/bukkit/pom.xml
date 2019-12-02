@@ -48,6 +48,7 @@
                     </execution>
                 </executions>
                 <configuration>
+				    <finalName>${outputName}-BungeeCord</finalName>
                     <minimizeJar>true</minimizeJar>
                 </configuration>
             </plugin>
