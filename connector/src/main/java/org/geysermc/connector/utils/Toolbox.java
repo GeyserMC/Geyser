@@ -16,7 +16,6 @@ import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.world.GlobalBlockPalette;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.util.*;
 
@@ -129,7 +128,7 @@ public class Toolbox {
                 damage = (short)(int) map.get("damage");
             }
             if (map.containsKey("nbt_b64")) {
-                byte[] bytes = DatatypeConverter.parseBase64Binary((String) map.get("nbt_b64"));
+                byte[] bytes = Base64.getDecoder().decode((String) map.get("nbt_b64"));
                 ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
                 try {
                     com.nukkitx.nbt.tag.CompoundTag tag = (com.nukkitx.nbt.tag.CompoundTag) NbtUtils.createReaderLE(bais).readTag();
