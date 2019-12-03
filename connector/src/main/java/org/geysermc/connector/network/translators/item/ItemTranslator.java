@@ -196,7 +196,7 @@ public class ItemTranslator {
                         CompoundTag javaTag = new CompoundTag("");
                         Map<String, Tag> javaValue = javaTag.getValue();
                         javaValue.put("id", new StringTag("id", enchantment.getJavaIdentifier()));
-                        javaValue.put("lvl", new IntTag("lvl", tagValue.getAsShort("lvl")));
+                        javaValue.put("lvl", new IntTag("lvl", tagValue.getAsShort("lvl", (short) 1)));
                         javaTag.setValue(javaValue);
                         tags.add(javaTag);
                     } else {
