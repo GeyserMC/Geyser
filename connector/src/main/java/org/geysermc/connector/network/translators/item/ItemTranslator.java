@@ -58,6 +58,17 @@ public class ItemTranslator {
 
         if (data.getTag() == null) {
             return new ItemStack(javaItem.getJavaId(), data.getCount());
+        } else if (javaItem.getJavaIdentifier().equals("minecraft:enchanted_book")) {
+            CompoundTag javaTag = translateToJavaNBT(data.getTag());
+            Map<String, Tag> javaValue = javaTag.getValue();
+            Tag enchTag = javaValue.get("Enchantments");
+            if (enchTag instanceof ListTag) {
+                enchTag = new ListTag("StoredEnchantments", ((ListTag) enchTag).getValue());
+                javaValue.remove("Enchantments");
+                javaValue.put("StoredEnchantments", enchTag);
+                javaTag.setValue(javaValue);
+            }
+            return new ItemStack(javaItem.getJavaId(), data.getCount(), javaTag);
         }
         return new ItemStack(javaItem.getJavaId(), data.getCount(), translateToJavaNBT(data.getTag()));
     }
@@ -109,7 +120,7 @@ public class ItemTranslator {
                 if (translatedTag == null)
                     continue;
 
-                javaValue.put(str, translatedTag);
+                javaValue.put(translatedTag.getName(), translatedTag);
             }
         }
 
@@ -172,6 +183,29 @@ public class ItemTranslator {
             com.nukkitx.nbt.tag.ListTag listTag = (com.nukkitx.nbt.tag.ListTag) tag;
 
             List<Tag> tags = new ArrayList<>();
+
+            if (tag.getName().equals("ench")) {
+                for (Object value : listTag.getValue()) {
+                    if (!(value instanceof com.nukkitx.nbt.tag.CompoundTag))
+                        continue;
+
+                    com.nukkitx.nbt.tag.CompoundTag tagValue = (com.nukkitx.nbt.tag.CompoundTag) value;
+                    int bedrockId = tagValue.getAsShort("id", (short) -1);
+                    Enchantment enchantment = Enchantment.getByBedrockId(bedrockId);
+                    if (enchantment != null) {
+                        CompoundTag javaTag = new CompoundTag("");
+                        Map<String, Tag> javaValue = javaTag.getValue();
+                        javaValue.put("id", new StringTag("id", enchantment.getJavaIdentifier()));
+                        javaValue.put("lvl", new IntTag("lvl", tagValue.getAsShort("lvl")));
+                        javaTag.setValue(javaValue);
+                        tags.add(javaTag);
+                    } else {
+                        Geyser.getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
+                    }
+                }
+                return new ListTag("Enchantments", tags);
+            }
+
             for (Object value : listTag.getValue()) {
                 if (!(value instanceof com.nukkitx.nbt.tag.Tag))
                     continue;
@@ -200,7 +234,7 @@ public class ItemTranslator {
                 if (translatedTag == null)
                     continue;
 
-                javaValue.put(str, translatedTag);
+                javaValue.put(translatedTag.getName(), translatedTag);
             }
         }
 

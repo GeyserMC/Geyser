@@ -82,4 +82,11 @@ enum Enchantment {
         }
         return null;
     }
+
+    public static Enchantment getByBedrockId(int bedrockId) {
+        if (bedrockId >= 0 && bedrockId < Enchantment.values().length) {
+            return Enchantment.values()[bedrockId];
+        }
+        return null;
+    }
 }
