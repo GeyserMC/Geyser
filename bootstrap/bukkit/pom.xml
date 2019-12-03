@@ -25,7 +25,7 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>${outputName}-Bukkit-noshade</finalName>
+        <finalName>${outputName}-Bukkit</finalName>
         <defaultGoal>clean install</defaultGoal>
         <resources>
             <resource>
@@ -37,7 +37,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
