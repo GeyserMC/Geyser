@@ -26,6 +26,7 @@
     </dependencies>
     <build>
         <finalName>${outputName}-Bukkit</finalName>
+        <directory>../target</directory>
         <defaultGoal>clean install</defaultGoal>
         <resources>
             <resource>
@@ -47,7 +48,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <finalName>${outputName}-Bukkit</finalName>
                     <minimizeJar>true</minimizeJar>
                 </configuration>
             </plugin>
