@@ -45,7 +45,7 @@
     </dependencies>
     <build>
         <finalName>${outputName}</finalName>
-        <directory>../../target</directory>
+        <directory>../target</directory>
         <defaultGoal>clean install</defaultGoal>
         <plugins>
             <plugin>
