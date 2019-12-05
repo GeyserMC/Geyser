@@ -102,8 +102,7 @@ public enum EntityType {
     FIREWORK_ROCKET(Entity.class, 72, 0f),
     TRIDENT(ArrowEntity.class, 73, 0f),
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
-    // TODO CAT (need to figure out how to deal with baby cats) https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/entity/passive/EntityCat.java
-
+    CAT(TameableEntity.class, 75, 0.35f, 0.3f),
     SHULKER_BULLET(Entity.class, 76, 0f),
     FISHING_BOBBER(Entity.class, 77, 0f),
     CHALKBOARD(Entity.class, 78, 0f),
