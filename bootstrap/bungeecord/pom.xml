@@ -48,6 +48,12 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <relocations>
+                        <relocation>
+                            <pattern>net.md_5.bungee.jni</pattern>
+                            <shadedPattern>org.geysermc.platform.bungeecord.shaded.jni</shadedPattern>
+                        </relocation>
+                    </relocations>
                     <minimizeJar>true</minimizeJar>
                 </configuration>
             </plugin>
