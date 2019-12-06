@@ -42,10 +42,10 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
     public List<Tag<?>> translateTag(CompoundTag tag) {
         List<Tag<?>> tags = new ArrayList<>();
 
-        String line1 = (String) tag.getValue().get("Text1").getValue();
-        String line2 = (String) tag.getValue().get("Text2").getValue();
-        String line3 = (String) tag.getValue().get("Text3").getValue();
-        String line4 = (String) tag.getValue().get("Text4").getValue();
+        String line1 = getOrDefault(tag.getValue().get("Text1"), "");
+        String line2 = getOrDefault(tag.getValue().get("Text2"), "");
+        String line3 = getOrDefault(tag.getValue().get("Text3"), "");
+        String line4 = getOrDefault(tag.getValue().get("Text4"), "");
 
         tags.add(new StringTag("Text", MessageUtils.getBedrockMessage(Message.fromString(line1))
                 + "\n" + MessageUtils.getBedrockMessage(Message.fromString(line2))
@@ -60,10 +60,10 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public CompoundTag getDefaultJavaTag(int x, int y, int z) {
         CompoundTag tag = getConstantJavaTag("minecraft:sign", x, y, z);
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text1", "\"text\":\"\""));
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text2", "\"text\":\"\""));
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text3", "\"text\":\"\""));
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text4", "\"text\":\"\""));
+        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text1", "{\"text\":\"\"}"));
+        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text2", "{\"text\":\"\"}"));
+        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text3", "{\"text\":\"\"}"));
+        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text4", "{\"text\":\"\"}"));
         return tag;
     }
 

@@ -41,19 +41,22 @@ public class ChunkUtils {
                         BlockState blockState = chunk.get(x, y, z);
                         BlockEntry block = TranslatorsInit.getBlockTranslator().getBedrockBlock(blockState);
 
+                        // Block entity data for signs is not sent in this packet, which is needed
+                        // for bedrock, so we need to check the block itself
+//                        if (block.getJavaIdentifier().contains("sign")) {
+////                            SignBlockEntityTranslator sign = (SignBlockEntityTranslator) BlockEntityUtils.getBlockEntityTranslator("Sign");
+////                            blockEntities.add(sign.getDefaultJavaTag(x, y, z));
+//                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), 0);
+////                            System.out.println("Found sign at " + x + " " + y + " " + z);
+//                            continue;
+//                        }
+
                         section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
                                 block.getBedrockId() << 4 | block.getBedrockData());
 
                         if (block.getJavaIdentifier().contains("waterlogged=true")) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z),
                                     9 << 4); // water id
-                        }
-
-                        // Block entity data for signs is not sent in this packet, which is needed
-                        // for bedrock, so we need to check the block itself
-                        if (block.getJavaIdentifier().contains("sign")) {
-                            SignBlockEntityTranslator sign = (SignBlockEntityTranslator) BlockEntityUtils.getBlockEntityTranslator("Sign");
-                            blockEntities.add(sign.getDefaultJavaTag(x, y, z));
                         }
                     }
                 }
@@ -63,14 +66,14 @@ public class ChunkUtils {
         List<com.nukkitx.nbt.tag.CompoundTag> bedrockBlockEntities = new ArrayList<>();
         for (CompoundTag tag : blockEntities) {
             Tag idTag = tag.get("id");
-            if (idTag == null) {
+            if (idTag == null && !tag.contains("Sign")) {
                 GeyserLogger.DEFAULT.debug("Got tag with no id: " + tag.getValue());
                 continue;
             }
 
-            String id = BlockEntityUtils.getBedrockBlockEntityId((String) tag.get("id").getValue());
+            String id = idTag == null ? "Sign" : BlockEntityUtils.getBedrockBlockEntityId((String) idTag.getValue());
             BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
-            bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(tag));
+            bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(tag, id));
         }
 
         chunkData.blockEntities = bedrockBlockEntities;

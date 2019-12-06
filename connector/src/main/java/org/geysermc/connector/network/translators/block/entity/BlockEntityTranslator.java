@@ -42,8 +42,7 @@ public abstract class BlockEntityTranslator {
 
     public abstract com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z);
 
-    public com.nukkitx.nbt.tag.CompoundTag getBlockEntityTag(CompoundTag tag) {
-        String id = BlockEntityUtils.getBedrockBlockEntityId((String) tag.get("id").getValue());
+    public com.nukkitx.nbt.tag.CompoundTag getBlockEntityTag(CompoundTag tag, String id) {
         int x = Integer.parseInt(String.valueOf(tag.getValue().get("x").getValue()));
         int y = Integer.parseInt(String.valueOf(tag.getValue().get("y").getValue()));
         int z = Integer.parseInt(String.valueOf(tag.getValue().get("z").getValue()));
@@ -69,5 +68,10 @@ public abstract class BlockEntityTranslator {
                 .intTag("z", z)
                 .stringTag("id", id);
         return tagBuilder.buildRootTag();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T> T getOrDefault(com.github.steveice10.opennbt.tag.builtin.Tag tag, T defaultValue) {
+        return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
     }
 }
