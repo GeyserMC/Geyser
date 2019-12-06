@@ -44,7 +44,6 @@
             <groupId>net.minecrell</groupId>
             <artifactId>terminalconsoleappender</artifactId>
             <version>1.0.0</version>
-            <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -58,12 +57,6 @@
             <artifactId>slf4j-simple</artifactId>
             <version>1.6.4</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.4</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.fusesource.jansi</groupId>
@@ -129,7 +122,7 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>${outputName}-noshade</finalName>
+        <finalName>${project.parent.name}</finalName>
         <directory>../target</directory>
         <plugins>
             <plugin>
@@ -146,9 +139,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <finalName>${outputName}</finalName>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -162,7 +152,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <finalName>${outputName}</finalName>
                     <shadedArtifactAttached>true</shadedArtifactAttached>
                     <minimizeJar>true</minimizeJar>
                 </configuration>
