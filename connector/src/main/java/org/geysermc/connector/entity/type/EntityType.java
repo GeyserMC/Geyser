@@ -28,6 +28,7 @@ package org.geysermc.connector.entity.type;
 import lombok.Getter;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
+import org.geysermc.connector.entity.living.horse.HorseEntity;
 import org.geysermc.connector.entity.living.monster.GuardianEntity;
 import org.geysermc.connector.entity.living.monster.ZombieEntity;
 
@@ -47,7 +48,7 @@ public enum EntityType {
     IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
     SNOW_GOLEM(GolemEntity.class, 21, 1.9f, 0.7f),
     OCELOT(TameableEntity.class, 22, 0.35f, 0.3f),
-    HORSE(AbstractHorseEntity.class, 23, 1.6f, 1.3965f),
+    HORSE(HorseEntity.class, 23, 1.6f, 1.3965f),
     DONKEY(ChestedHorseEntity.class, 24, 1.6f, 1.3965f),
     MULE(ChestedHorseEntity.class, 25, 1.6f, 1.3965f),
     SKELETON_HORSE(AbstractHorseEntity.class, 26, 1.6f, 1.3965f),
@@ -101,8 +102,7 @@ public enum EntityType {
     FIREWORK_ROCKET(Entity.class, 72, 0f),
     TRIDENT(ArrowEntity.class, 73, 0f),
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
-    // TODO CAT (need to figure out how to deal with baby cats) https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/entity/passive/EntityCat.java
-
+    CAT(TameableEntity.class, 75, 0.35f, 0.3f),
     SHULKER_BULLET(Entity.class, 76, 0f),
     FISHING_BOBBER(Entity.class, 77, 0f),
     CHALKBOARD(Entity.class, 78, 0f),
