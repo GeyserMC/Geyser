@@ -104,7 +104,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case STOP_BREAK:
                 // Handled in BedrockInventoryTransactionTranslator
-                break;
+				break;
+	//		case START_BLOCKING:
+	//		    break;
+    //        case STOP_BLOCKING:
+    //            break;
         }
     }
 }
