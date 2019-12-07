@@ -37,21 +37,30 @@ public class BrewingStandInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
+    public void openInventory(GeyserSession session, Inventory inventory) {
+        super.openInventory(session, inventory);
+        ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
+        dataPacket.setWindowId((byte) inventory.getId());
+        dataPacket.setProperty(ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL);
+        dataPacket.setValue(20);
+        session.getUpstream().sendPacket(dataPacket);
+    }
+
+    @Override
     public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
-        //bedrock protocol library is currently missing property mappings for windows.
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
         dataPacket.setWindowId((byte) inventory.getId());
         switch (key) {
             case 0:
-                dataPacket.setProperty(ContainerSetDataPacket.Property.BREWING_STAND_BREW_TIME);
+                dataPacket.setProperty(ContainerSetDataPacket.BREWING_STAND_BREW_TIME);
                 break;
             case 1:
-                dataPacket.setProperty(ContainerSetDataPacket.Property.BREWING_STAND_FUEL_AMOUNT);
+                dataPacket.setProperty(ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT);
                 break;
             default:
                 return;
         }
-        dataPacket.setValue((short) value);
+        dataPacket.setValue(value);
         session.getUpstream().sendPacket(dataPacket);
     }
 

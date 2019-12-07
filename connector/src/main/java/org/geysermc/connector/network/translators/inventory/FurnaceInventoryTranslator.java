@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.geysermc.connector.inventory.Inventory;
@@ -37,23 +38,25 @@ public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
-        //bedrock protocol library is currently missing property mappings for windows. only the furnace arrow will update for now
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
         dataPacket.setWindowId((byte) inventory.getId());
         switch (key) {
             case 0:
-                dataPacket.setProperty(ContainerSetDataPacket.Property.FURNACE_LIT_TIME);
+                dataPacket.setProperty(ContainerSetDataPacket.FURNACE_LIT_TIME);
                 break;
             case 1:
-                dataPacket.setProperty(ContainerSetDataPacket.Property.FURNACE_LIT_DURATION);
+                dataPacket.setProperty(ContainerSetDataPacket.FURNACE_LIT_DURATION);
                 break;
             case 2:
-                dataPacket.setProperty(ContainerSetDataPacket.Property.FURNACE_TICK_COUNT);
+                dataPacket.setProperty(ContainerSetDataPacket.FURNACE_TICK_COUNT);
+                if (inventory.getWindowType() == WindowType.BLAST_FURNACE || inventory.getWindowType() == WindowType.SMOKER) {
+                    value *= 2;
+                }
                 break;
             default:
                 return;
         }
-        dataPacket.setValue((short) value);
+        dataPacket.setValue(value);
         session.getUpstream().sendPacket(dataPacket);
     }
 
