@@ -175,15 +175,15 @@ public class Entity {
                     byte xd = (byte) entityMetadata.getValue();
                     metadata.getFlags().setFlag(EntityFlag.ON_FIRE, (xd & 0x00) == 0x00);
                     metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x01) == 0x01);
-					metadata.getFlags().setFlag(EntityFlag.RIDING, (xd & 0x02) == 0x02);
+		    metadata.getFlags().setFlag(EntityFlag.RIDING, (xd & 0x02) == 0x02);
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x03) == 0x03);
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x56) == 0x56);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x32) == 0x32);
-					metadata.getFlags().setFlag(EntityFlag.BLOCKING, (xd & 0x71) == 0x71);
-					metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, (xd & 0x72) == 0x72);
-					metadata.getFlags().setFlag(EntityFlag.RIDING, (xd & 0x02) == 0x02);
-					metadata.getFlags().setFlag(EntityFlag.BREATHING, (xd & 0x35) == 0x35);
-					metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x05) == 0x05);
+		    metadata.getFlags().setFlag(EntityFlag.BLOCKING, (xd & 0x71) == 0x71);
+		    metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, (xd & 0x72) == 0x72);
+		    metadata.getFlags().setFlag(EntityFlag.RIDING, (xd & 0x02) == 0x02);
+		    metadata.getFlags().setFlag(EntityFlag.BREATHING, (xd & 0x35) == 0x35);
+		    metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x05) == 0x05);
                     if ((xd & 0x05) == 0x05)
                         metadata.put(EntityData.SCALE, 0.01f);
                     else
