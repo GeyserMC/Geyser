@@ -175,7 +175,7 @@ public class Entity {
                     byte xd = (byte) entityMetadata.getValue();
                     metadata.getFlags().setFlag(EntityFlag.ON_FIRE, (xd & 0x00) == 0x00);
                     metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x01) == 0x01);
-					metadata.getFlags().setFlag(EntityFlag.RIDING, (xd & 0x02) == 0x02);
+		    metadata.getFlags().setFlag(EntityFlag.RIDING, (xd & 0x02) == 0x02);
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x03) == 0x03);
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x56) == 0x56);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x32) == 0x32);
