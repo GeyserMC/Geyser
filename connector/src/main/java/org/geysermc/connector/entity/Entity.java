@@ -182,8 +182,9 @@ public class Entity {
 					metadata.getFlags().setFlag(EntityFlag.BLOCKING, (xd & 0x71) == 0x71);
 					metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, (xd & 0x72) == 0x72);
 					metadata.getFlags().setFlag(EntityFlag.RIDING, (xd & 0x02) == 0x02);
-					metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    if ((xd & 0x20) == 0x20)
+					metadata.getFlags().setFlag(EntityFlag.BREATHING, (xd & 0x35) == 0x35);
+					metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x05) == 0x05);
+                    if ((xd & 0x05) == 0x05)
                         metadata.put(EntityData.SCALE, 0.01f);
                     else
                         metadata.put(EntityData.SCALE, scale);
