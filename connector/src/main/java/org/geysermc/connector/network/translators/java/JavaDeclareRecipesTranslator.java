@@ -33,6 +33,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareRecip
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.CraftingData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.PotionMixData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -48,6 +49,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclareRecipesPacket> {
+
+    private final int[] brewingIngredients = new int[]{372, 331, 348, 376, 289, 437, 353, 414, 382, 375, 462, 378, 396, 377, 370, 469, 470};
 
     @Override
     public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
@@ -79,6 +82,9 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     break;
                 }
             }
+        }
+        for (int brewingIngredient : brewingIngredients) {
+            craftingDataPacket.getPotionMixData().add(new PotionMixData(0, brewingIngredient, 0));
         }
         session.getUpstream().sendPacket(craftingDataPacket);
     }
