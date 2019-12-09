@@ -46,7 +46,6 @@
     <build>
         <finalName>${outputName}</finalName>
         <directory>../../target</directory>
-        <defaultGoal>clean install</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -70,11 +69,11 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <minimizeJar>true</minimizeJar>
-                </configuration>
             </plugin>
         </plugins>
     </build>
