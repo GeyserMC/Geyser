@@ -26,6 +26,8 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.nukkitx.protocol.bedrock.packet.ModalFormRequestPacket;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.api.window.FormWindow;
@@ -38,7 +40,7 @@ public class WindowCache {
     private GeyserSession session;
 
     @Getter
-    private Map<Integer, FormWindow> windows = new HashMap<Integer, FormWindow>();
+    private Int2ObjectMap<FormWindow> windows = new Int2ObjectOpenHashMap<>();
 
     public WindowCache(GeyserSession session) {
         this.session = session;

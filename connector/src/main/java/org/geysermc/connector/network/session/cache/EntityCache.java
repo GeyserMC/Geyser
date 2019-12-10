@@ -25,6 +25,10 @@
 
 package org.geysermc.connector.network.session.cache;
 
+import it.unimi.dsi.fastutil.longs.Long2LongMap;
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
@@ -41,8 +45,8 @@ public class EntityCache {
     private GeyserSession session;
 
     @Getter
-    private Map<Long, Entity> entities = new HashMap<>();
-    private Map<Long, Long> entityIdTranslations = new HashMap<>();
+    private Long2ObjectMap<Entity> entities = new Long2ObjectOpenHashMap<>();
+    private Long2LongMap entityIdTranslations = new Long2LongOpenHashMap();
     private Map<UUID, PlayerEntity> playerEntities = new HashMap<>();
     private Map<UUID, Long> bossbars = new HashMap<>();
 
@@ -62,12 +66,10 @@ public class EntityCache {
 
     public boolean removeEntity(Entity entity, boolean force) {
         if (entity != null && entity.isValid() && (force || entity.despawnEntity(session))) {
-            Long geyserId = entityIdTranslations.remove(entity.getEntityId());
-            if (geyserId != null) {
-                entities.remove(geyserId);
-                if (entity.is(PlayerEntity.class)) {
-                    playerEntities.remove(entity.as(PlayerEntity.class).getUuid());
-                }
+            long geyserId = entityIdTranslations.remove(entity.getEntityId());
+            entities.remove(geyserId);
+            if (entity.is(PlayerEntity.class)) {
+                playerEntities.remove(entity.as(PlayerEntity.class).getUuid());
             }
             return true;
         }

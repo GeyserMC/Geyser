@@ -30,11 +30,13 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.Serve
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.ItemEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.EntityUtils;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjectPacket> {
 
@@ -53,17 +55,17 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
             return;
         }
 
-        long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
-        Entity entity;
-        switch (type) {
-            case ITEM:
-                entity = new ItemEntity(packet.getEntityId(), geyserId, type, position, motion, rotation);
-                break;
-            default:
-                entity = new Entity(packet.getEntityId(), geyserId, type, position, motion, rotation);
-                break;
-        }
+        Class<? extends Entity> entityClass = type.getEntityClass();
+        try {
+            Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, EntityType.class,
+                    Vector3f.class, Vector3f.class, Vector3f.class);
 
-        session.getEntityCache().spawnEntity(entity);
+            Entity entity = entityConstructor.newInstance(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                    type, position, motion, rotation
+            );
+            session.getEntityCache().spawnEntity(entity);
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+            ex.printStackTrace();
+        }
     }
 }

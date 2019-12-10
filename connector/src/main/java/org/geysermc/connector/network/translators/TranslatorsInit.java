@@ -112,6 +112,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerEntityHeadLookPacket.class, new JavaEntityHeadLookTranslator());
         Registry.registerJava(ServerEntityMetadataPacket.class, new JavaEntityMetadataTranslator());
         Registry.registerJava(ServerEntityStatusPacket.class, new JavaEntityStatusTranslator());
+        Registry.registerJava(ServerEntityEquipmentPacket.class, new JavaEntityEquipmentTranslator());
         Registry.registerJava(ServerBossBarPacket.class, new JavaBossBarTranslator());
 
         Registry.registerJava(ServerSpawnExpOrbPacket.class, new JavaSpawnExpOrbTranslator());

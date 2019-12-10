@@ -34,6 +34,8 @@ import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.*;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.console.GeyserLogger;
@@ -62,14 +64,14 @@ public class Entity {
      */
     protected Vector3f rotation;
 
-    protected int scale = 1;
+    protected float scale = 1;
     protected boolean movePending;
 
     protected EntityType entityType;
 
     protected boolean valid;
 
-    protected Set<Long> passengers = new HashSet<>();
+    protected LongSet passengers = new LongOpenHashSet();
     protected Map<AttributeType, Attribute> attributes = new HashMap<>();
     protected EntityDataDictionary metadata = new EntityDataDictionary();
 
@@ -176,7 +178,11 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
-                    metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
+                    // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
+                    if ((xd & 0x20) == 0x20)
+                        metadata.put(EntityData.SCALE, 0.01f);
+                    else
+                        metadata.put(EntityData.SCALE, scale);
                 }
                 break;
             case 2: // custom name
