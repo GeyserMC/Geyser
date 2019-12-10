@@ -41,7 +41,7 @@ public class GuardianEntity extends MonsterEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             Entity entity = session.getEntityCache().getEntityByJavaId((int) entityMetadata.getValue());
             if (entity != null) {
                 metadata.put(EntityData.TARGET_EID, entity.getGeyserId());

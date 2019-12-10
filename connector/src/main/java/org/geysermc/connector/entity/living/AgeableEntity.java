@@ -26,6 +26,7 @@
 package org.geysermc.connector.entity.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
@@ -39,8 +40,14 @@ public class AgeableEntity extends CreatureEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 14) {
-            metadata.getFlags().setFlag(EntityFlag.BABY, (boolean) entityMetadata.getValue());
+        if (entityMetadata.getId() == 15) {
+            // TODO: Figure out why this value sometimes returns an integer
+            // At the time of writing this, the value here sometimes returns as an int
+            // rather than a boolean for donkeys. The wiki.vg documentation is lacking at the
+            // time of writing this, but once this value is known, the bug will be fixed accordingly.
+            if (entityMetadata.getType() == MetadataType.BOOLEAN) {
+                metadata.getFlags().setFlag(EntityFlag.BABY, (boolean) entityMetadata.getValue());
+            }
         }
 
         super.updateBedrockMetadata(entityMetadata, session);

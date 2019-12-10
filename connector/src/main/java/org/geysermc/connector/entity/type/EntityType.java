@@ -47,7 +47,7 @@ public enum EntityType {
     BAT(AmbientEntity.class, 19, 0.9f, 0.5f),
     IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
     SNOW_GOLEM(GolemEntity.class, 21, 1.9f, 0.7f),
-    OCELOT(TameableEntity.class, 22, 0.35f, 0.3f),
+    OCELOT(AgeableEntity.class, 22, 0.35f, 0.3f),
     HORSE(HorseEntity.class, 23, 1.6f, 1.3965f),
     DONKEY(ChestedHorseEntity.class, 24, 1.6f, 1.3965f),
     MULE(ChestedHorseEntity.class, 25, 1.6f, 1.3965f),
