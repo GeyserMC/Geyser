@@ -140,7 +140,8 @@ public enum EntityType {
     TROPICAL_FISH(AbstractFishEntity.class, 111, 0.6f, 0.6f),
     COD(AbstractFishEntity.class, 112, 0.25f, 0.5f),
     PANDA(AnimalEntity.class, 113, 1.25f, 1.125f, 1.825f),
-    FOX(AnimalEntity.class, 121, 0.5f, 1.25f);
+    FOX(AnimalEntity.class, 121, 0.5f, 1.25f),
+    BEE(InsentientEntity.class, 122, 0.6f, 0.6f);
 
     private Class<? extends Entity> entityClass;
     private final int type;
