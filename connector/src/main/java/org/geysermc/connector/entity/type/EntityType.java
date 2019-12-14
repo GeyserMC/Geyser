@@ -29,6 +29,7 @@ import lombok.Getter;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
 import org.geysermc.connector.entity.living.horse.HorseEntity;
+import org.geysermc.connector.entity.living.horse.LlamaEntity;
 import org.geysermc.connector.entity.living.monster.GuardianEntity;
 import org.geysermc.connector.entity.living.monster.ZombieEntity;
 
@@ -54,7 +55,8 @@ public enum EntityType {
     SKELETON_HORSE(AbstractHorseEntity.class, 26, 1.6f, 1.3965f),
     ZOMBIE_HORSE(AbstractHorseEntity.class, 27, 1.6f, 1.3965f),
     POLAR_BEAR(AnimalEntity.class, 28, 1.4f, 1.3f),
-    LLAMA(ChestedHorseEntity.class, 29, 1.87f, 0.9f),
+    LLAMA(LlamaEntity.class, 29, 1.87f, 0.9f),
+    TRADER_LLAMA(LlamaEntity.class, 29, 1.187f, 0.9f),
     PARROT(TameableEntity.class, 30, 0.9f, 0.5f),
     DOLPHIN(WaterEntity.class, 31, 0.6f, 0.9f),
     ZOMBIE(ZombieEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f),
