@@ -162,20 +162,13 @@ public class SkinProvider {
 
     private static byte[] requestImage(String imageUrl, boolean cape) throws Exception {
         BufferedImage image = ImageIO.read(new URL(imageUrl));
-        BufferedImage scale = scale(image);
         Geyser.getLogger().debug("Downloaded " + imageUrl);
 
-        if (cape && image.getWidth() <= 64) {
+        if (cape) {
+            image = image.getWidth() > 64 ? scale(image) : image;
             BufferedImage newImage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_RGB);
             Graphics g = newImage.createGraphics();
             g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
-            g.dispose();
-            image = newImage;
-        }
-        else if(cape && image.getWidth() >= 64 && image.getWidth() <= 128) {
-            BufferedImage newImage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_RGB);
-            Graphics g = newImage.createGraphics();
-            g.drawImage(scale, 0, 0, scale.getWidth(), scale.getHeight(), null);
             g.dispose();
             image = newImage;
         }
