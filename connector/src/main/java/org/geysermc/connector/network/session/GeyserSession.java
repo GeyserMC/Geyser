@@ -221,7 +221,8 @@ public class GeyserSession implements Player {
                                         authenticationData.getXboxUUID(),
                                         clientData.getDeviceOS().ordinal(),
                                         clientData.getLanguageCode(),
-                                        clientData.getCurrentInputMode().ordinal()
+                                        clientData.getCurrentInputMode().ordinal(),
+                                        upstream.getSession().getAddress().getAddress().getHostAddress()
                                 ));
                             } catch (Exception e) {
                                 connector.getLogger().error("Failed to encrypt message", e);
@@ -230,7 +231,7 @@ public class GeyserSession implements Player {
                             HandshakePacket handshakePacket = event.getPacket();
                             event.setPacket(new HandshakePacket(
                                     handshakePacket.getProtocolVersion(),
-                                    handshakePacket.getHostname() + '\0' + "Geyser-Floodgate" + '\0' + encrypted,
+                                    handshakePacket.getHostname() + '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted,
                                     handshakePacket.getPort(),
                                     handshakePacket.getIntent()
                             ));

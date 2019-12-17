@@ -92,7 +92,7 @@ public class BlockStorage {
     }
 
     private int legacyIdFor(int index) {
-        int runtimeId = this.palette.get(index);
+        int runtimeId = this.palette.getInt(index);
         return GlobalBlockPalette.getLegacyId(runtimeId);
     }
 
