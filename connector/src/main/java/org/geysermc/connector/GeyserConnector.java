@@ -68,6 +68,7 @@ import java.util.concurrent.TimeUnit;
 public class GeyserConnector implements Connector {
 
     public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v388.V388_CODEC;
+    public static final int BEDROCK_1_14_PROTOCOL_VERSION = 389;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "1.0-SNAPSHOT";
