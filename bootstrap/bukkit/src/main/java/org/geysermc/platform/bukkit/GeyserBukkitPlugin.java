@@ -26,6 +26,7 @@
 package org.geysermc.platform.bukkit;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 
@@ -49,7 +50,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
 
         geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
 
-        GeyserConnector.start(this);
+        GeyserConnector.start(PlatformType.BUKKIT, this);
     }
 
     @Override

@@ -30,6 +30,7 @@ import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
 
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 
@@ -86,7 +87,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
 
         geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
 
-        GeyserConnector.start(this);
+        GeyserConnector.start(PlatformType.BUNGEECORD, this);
     }
 
     @Override

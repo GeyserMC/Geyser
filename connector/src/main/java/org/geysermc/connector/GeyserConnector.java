@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.v388.Bedrock_v388;
 
 import lombok.Getter;
 
+import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.common.logger.IGeyserLogger;
 import org.geysermc.connector.command.GeyserCommandMap;
@@ -77,15 +78,17 @@ public class GeyserConnector {
     private PingPassthroughThread passthroughThread;
 
     private BedrockServer bedrockServer;
+    private PlatformType platformType;
 
     private Metrics metrics;
 
-    private GeyserConnector(IGeyserConfiguration config, IGeyserLogger logger) {
+    private GeyserConnector(PlatformType platformType, IGeyserConfiguration config, IGeyserLogger logger) {
         long startupTime = System.currentTimeMillis();
 
         instance = this;
 
         this.logger = logger;
+        this.platformType = platformType;
 
         logger.info("******************************************");
         logger.info("");
@@ -124,6 +127,7 @@ public class GeyserConnector {
             metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
             metrics.addCustomChart(new Metrics.SimplePie("authMode", config.getRemote()::getAuthType));
+            metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
         }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
@@ -150,8 +154,8 @@ public class GeyserConnector {
         players.remove(player.getSocketAddress());
     }
 
-    public static GeyserConnector start(IGeyserBootstrap bootstrap) {
-        return new GeyserConnector(bootstrap.getGeyserConfig(), bootstrap.getGeyserLogger());
+    public static GeyserConnector start(PlatformType platformType, IGeyserBootstrap bootstrap) {
+        return new GeyserConnector(platformType, bootstrap.getGeyserConfig(), bootstrap.getGeyserLogger());
     }
 
     public static void stop() {

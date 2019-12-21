@@ -26,6 +26,7 @@
 package org.geysermc.platform.standalone;
 
 import org.fusesource.jansi.AnsiConsole;
+import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
@@ -62,7 +63,7 @@ public class GeyserBootstrap implements IGeyserBootstrap {
             System.exit(0);
         }
 
-        GeyserConnector connector = GeyserConnector.start(this);
+        GeyserConnector connector = GeyserConnector.start(PlatformType.STANDALONE, this);
 
         ConsoleCommandReader consoleReader = new ConsoleCommandReader(connector);
         consoleReader.startConsole();
