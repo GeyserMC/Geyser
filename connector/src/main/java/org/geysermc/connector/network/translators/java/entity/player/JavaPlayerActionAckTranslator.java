@@ -26,13 +26,9 @@
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.network.translators.block.BlockEntry;
-import org.geysermc.connector.world.GlobalBlockPalette;
+import org.geysermc.connector.utils.ChunkUtils;
 
 public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayerActionAckPacket> {
 
@@ -40,18 +36,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
     public void translate(ServerPlayerActionAckPacket packet, GeyserSession session) {
         switch (packet.getAction()) {
             case FINISH_DIGGING:
-                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                updateBlockPacket.setDataLayer(0);
-                updateBlockPacket.setBlockPosition(Vector3i.from(
-                        packet.getPosition().getX(),
-                        packet.getPosition().getY(),
-                        packet.getPosition().getZ()));
-
-                BlockEntry itemEntry = TranslatorsInit.getBlockTranslator().getBedrockBlock(packet.getNewState());
-                updateBlockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(itemEntry.getBedrockId() << 4 | itemEntry.getBedrockData()));
-                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-
-                session.getUpstream().sendPacket(updateBlockPacket);
+                ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
                 break;
         }
     }

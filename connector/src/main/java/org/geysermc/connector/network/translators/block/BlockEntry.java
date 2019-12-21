@@ -32,16 +32,15 @@ import lombok.Getter;
 @AllArgsConstructor
 public class BlockEntry {
 
-    public static BlockEntry AIR = new BlockEntry("minecraft:air", 0, 0, 0);
+    public static BlockEntry AIR = new BlockEntry("minecraft:air", 0, 0);
 
     private String javaIdentifier;
     private int javaId;
 
-    private int bedrockId;
-    private int bedrockData;
+    private int bedrockRuntimeId;
 
     @Override
     public boolean equals(Object obj) {
-        return obj == this || (obj instanceof BlockEntry && ((BlockEntry) obj).getBedrockId() == this.getBedrockId() && ((BlockEntry) obj).getJavaIdentifier().equals(this.getJavaIdentifier()));
+        return obj == this || (obj instanceof BlockEntry && ((BlockEntry) obj).getBedrockRuntimeId() == this.getBedrockRuntimeId() && ((BlockEntry) obj).getJavaIdentifier().equals(this.getJavaIdentifier()));
     }
 }
