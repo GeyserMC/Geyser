@@ -116,7 +116,7 @@ public class Toolbox {
         List<LinkedHashMap<String, Object>> creativeItemEntries = new ArrayList<>();
 
         try {
-            creativeItemEntries = creativeItemMapper.readValue(creativeItemStream, ArrayList.class);
+            creativeItemEntries = (ArrayList<LinkedHashMap<String, Object>>) creativeItemMapper.readValue(creativeItemStream, HashMap.class).get("items");
         } catch (Exception e) {
             e.printStackTrace();
         }
