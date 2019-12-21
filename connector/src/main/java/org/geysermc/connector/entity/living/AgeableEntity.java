@@ -26,6 +26,7 @@
 package org.geysermc.connector.entity.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
@@ -39,7 +40,7 @@ public class AgeableEntity extends CreatureEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 14) {
+        if (entityMetadata.getId() == 15) {
             metadata.getFlags().setFlag(EntityFlag.BABY, (boolean) entityMetadata.getValue());
         }
 
