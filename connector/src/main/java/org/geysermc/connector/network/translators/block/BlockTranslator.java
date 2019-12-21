@@ -19,6 +19,9 @@ public class BlockTranslator {
     }
 
     public boolean isWaterLogged(BlockEntry entry) {
-        return (entry.getJavaIdentifier().contains("waterlogged=true") || entry.getJavaIdentifier().startsWith("minecraft:kelp") || entry.getJavaIdentifier().contains("seagrass"));
+        return (entry.getJavaIdentifier().contains("waterlogged=true")
+                || entry.getJavaIdentifier().startsWith("minecraft:kelp")
+                || entry.getJavaIdentifier().contains("seagrass")
+                || entry.getJavaIdentifier().startsWith("minecraft:bubble_column"));
     }
 }
