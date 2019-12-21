@@ -25,20 +25,18 @@
 
 package org.geysermc.platform.bukkit;
 
+import lombok.AllArgsConstructor;
+
 import org.geysermc.common.logger.IGeyserLogger;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@AllArgsConstructor
 public class GeyserBukkitLogger implements IGeyserLogger {
 
     private Logger logger;
     private boolean debugMode;
-
-    public GeyserBukkitLogger(Logger logger, boolean debugMode) {
-        this.logger = logger;
-        this.debugMode = debugMode;
-    }
 
     @Override
     public void severe(String message) {

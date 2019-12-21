@@ -33,7 +33,7 @@
     <modules>
         <module>bukkit</module>
         <module>bungeecord</module>
-        <!-- <module>sponge</module> -->
+        <module>sponge</module>
         <module>standalone</module>
         <!-- <module>velocity</module> -->
     </modules>
