@@ -131,7 +131,7 @@ public class GeyserConnector {
         }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        logger.info(String.format("Done (%ss)! Run /help for help!", new DecimalFormat("#.###").format(completeTime)));
+        logger.info(String.format("Done (%ss)! Run /geyser help for help!", new DecimalFormat("#.###").format(completeTime)));
     }
 
     public void shutdown() {
