@@ -62,7 +62,7 @@ public class GeyserBootstrap implements IGeyserBootstrap {
             System.exit(0);
         }
 
-        GeyserConnector connector = GeyserConnector.start(this, false);
+        GeyserConnector connector = GeyserConnector.start(this);
 
         ConsoleCommandReader consoleReader = new ConsoleCommandReader(connector);
         consoleReader.startConsole();

@@ -25,11 +25,11 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.api.command.CommandSender;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 public class StopCommand extends GeyserCommand {
 
@@ -39,7 +39,7 @@ public class StopCommand extends GeyserCommand {
         super(name, description);
         this.connector = connector;
 
-        this.setAliases(Arrays.asList("shutdown"));
+        this.setAliases(Collections.singletonList("shutdown"));
     }
 
     @Override

@@ -27,7 +27,8 @@ package org.geysermc.connector.network.translators.java.entity.spawn;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.api.Geyser;
+
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -43,7 +44,7 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
 
         PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
         if (entity == null) {
-            Geyser.getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player " + packet.getUuid());
+            GeyserConnector.getInstance().getLogger().error("Haven't received PlayerListEntry packet before spawning player! We ignore the player " + packet.getUuid());
             return;
         }
 

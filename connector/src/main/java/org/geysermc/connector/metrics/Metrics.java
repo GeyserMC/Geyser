@@ -2,7 +2,6 @@ package org.geysermc.connector.metrics;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.geysermc.api.Geyser;
 import org.geysermc.connector.GeyserConnector;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -47,15 +46,19 @@ public class Metrics {
     // A list with all custom charts
     private final List<CustomChart> charts = new ArrayList<>();
 
+    private GeyserConnector connector;
+
     /**
      * Class constructor.
      *
+     * @param connector The GeyserConnector instance
      * @param name The name of the server software.
      * @param serverUUID The uuid of the server.
      * @param logFailedRequests Whether failed requests should be logged or not.
      * @param logger The logger for the failed requests.
      */
-    public Metrics(String name, String serverUUID, boolean logFailedRequests, Logger logger) {
+    public Metrics(GeyserConnector connector, String name, String serverUUID, boolean logFailedRequests, Logger logger) {
+        this.connector = connector;
         this.name = name;
         this.serverUUID = serverUUID;
         Metrics.logFailedRequests = logFailedRequests;
@@ -81,7 +84,7 @@ public class Metrics {
      * Starts the Scheduler which submits our data every 30 minutes.
      */
     private void startSubmitting() {
-        Geyser.getGeneralThreadPool().scheduleAtFixedRate(this::submitData, 1, 30, TimeUnit.MINUTES);
+        connector.getGeneralThreadPool().scheduleAtFixedRate(this::submitData, 1, 30, TimeUnit.MINUTES);
         // Submit the data every 30 minutes, first time after 5 minutes to give other plugins enough time to start
         // WARNING: Changing the frequency has no effect but your plugin WILL be blocked/deleted!
         // WARNING: Just don't do it!
@@ -119,7 +122,7 @@ public class Metrics {
      */
     private JsonObject getServerData() {
         // OS specific data
-        int playerAmount = Geyser.getPlayerCount();
+        int playerAmount = connector.getPlayers().size();
 
         String osName = System.getProperty("os.name");
         String osArch = System.getProperty("os.arch");

@@ -26,7 +26,7 @@
 package org.geysermc.platform.standalone.console;
 
 import net.minecrell.terminalconsole.TerminalConsoleAppender;
-import org.geysermc.api.command.ConsoleCommandSender;
+
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserConsoleCommandSender;
 import org.jline.reader.EndOfFileException;
@@ -82,7 +82,7 @@ public class ConsoleCommandReader {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        ConsoleCommandSender sender = new GeyserConsoleCommandSender();
+                        GeyserConsoleCommandSender sender = new GeyserConsoleCommandSender();
                         connector.getCommandMap().runCommand(sender, line);
                     }
                 } catch (IOException ex) {

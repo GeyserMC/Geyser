@@ -30,29 +30,21 @@ import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v388.Bedrock_v388;
 
 import lombok.Getter;
-import org.geysermc.api.Connector;
-import org.geysermc.api.Geyser;
-import org.geysermc.api.Player;
-import org.geysermc.api.command.CommandMap;
-import org.geysermc.api.logger.Logger;
-import org.geysermc.api.plugin.Plugin;
+
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.common.logger.IGeyserLogger;
 import org.geysermc.connector.command.GeyserCommandMap;
-import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
-import org.geysermc.connector.network.remote.RemoteJavaServer;
+import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.plugin.GeyserPluginLoader;
-import org.geysermc.connector.plugin.GeyserPluginManager;
 import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.Toolbox;
 import org.geysermc.common.IGeyserConfiguration;
 
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -60,7 +52,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Getter
-public class GeyserConnector implements Connector {
+public class GeyserConnector {
 
     public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v388.V388_CODEC;
     public static final int BEDROCK_1_14_PROTOCOL_VERSION = 389;
@@ -72,14 +64,12 @@ public class GeyserConnector implements Connector {
 
     private static GeyserConnector instance;
 
-    private RemoteJavaServer remoteServer;
+    private RemoteServer remoteServer;
 
-    private Logger logger;
-
-    private CommandMap commandMap;
-
+    private IGeyserLogger logger;
     private IGeyserConfiguration config;
-    private GeyserPluginManager pluginManager;
+
+    private GeyserCommandMap commandMap;
 
     private boolean shuttingDown = false;
 
@@ -88,13 +78,12 @@ public class GeyserConnector implements Connector {
 
     private Metrics metrics;
 
-    private GeyserConnector(IGeyserConfiguration config, Logger logger, boolean loadPlugins) {
+    private GeyserConnector(IGeyserConfiguration config, IGeyserLogger logger) {
         long startupTime = System.currentTimeMillis();
 
         instance = this;
 
         this.logger = logger;
-        GeyserLogger.setLogger(logger);
 
         logger.info("******************************************");
         logger.info("");
@@ -103,7 +92,6 @@ public class GeyserConnector implements Connector {
         logger.info("******************************************");
 
         this.config = config;
-
         this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
 
         logger.setDebug(config.isDebugMode());
@@ -112,13 +100,7 @@ public class GeyserConnector implements Connector {
         TranslatorsInit.start();
 
         commandMap = new GeyserCommandMap(this);
-        remoteServer = new RemoteJavaServer(config.getRemote().getAddress(), config.getRemote().getPort());
-
-        Geyser.setConnector(this);
-
-        pluginManager = new GeyserPluginManager(new GeyserPluginLoader(this));
-        if (loadPlugins)
-            pluginManager.getLoader().loadPlugins();
+        remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
 
         passthroughThread = new PingPassthroughThread(this);
         if (config.isPingPassthrough())
@@ -136,9 +118,9 @@ public class GeyserConnector implements Connector {
         }).join();
 
         if (config.getMetrics().isEnabled()) {
-            metrics = new Metrics("GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
+            metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
-            metrics.addCustomChart(new Metrics.SingleLineChart("players", Geyser::getPlayerCount));
+            metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
             metrics.addCustomChart(new Metrics.SimplePie("authMode", config.getRemote()::getAuthType));
         }
 
@@ -146,40 +128,34 @@ public class GeyserConnector implements Connector {
         logger.info(String.format("Done (%ss)! Run /help for help!", new DecimalFormat("#.###").format(completeTime)));
     }
 
-    @Override
-    public Collection<? extends Player> getConnectedPlayers() {
-        return players.values();
-    }
-
     public void shutdown() {
         logger.info("Shutting down connector.");
-        for (Plugin plugin : pluginManager.getPlugins()) {
-            pluginManager.disablePlugin(plugin);
-            pluginManager.unloadPlugin(plugin);
-        }
-
         shuttingDown = true;
 
         generalThreadPool.shutdown();
     }
 
     public void addPlayer(GeyserSession player) {
-        players.put(player.getAuthenticationData().getName(), player);
-        players.put(player.getAuthenticationData().getUUID(), player);
+        players.put(player.getAuthData().getName(), player);
+        players.put(player.getAuthData().getUUID(), player);
         players.put(player.getSocketAddress(), player);
     }
 
     public void removePlayer(GeyserSession player) {
-        players.remove(player.getAuthenticationData().getName());
-        players.remove(player.getAuthenticationData().getUUID());
+        players.remove(player.getAuthData().getName());
+        players.remove(player.getAuthData().getUUID());
         players.remove(player.getSocketAddress());
     }
 
-    public static GeyserConnector start(IGeyserBootstrap bootstrap, boolean loadPlugins) {
-        return new GeyserConnector(bootstrap.getGeyserConfig(), bootstrap.getGeyserLogger(), loadPlugins);
+    public static GeyserConnector start(IGeyserBootstrap bootstrap) {
+        return new GeyserConnector(bootstrap.getGeyserConfig(), bootstrap.getGeyserLogger());
     }
 
     public static void stop() {
         instance.shutdown();
+    }
+
+    public static GeyserConnector getInstance() {
+        return instance;
     }
 }

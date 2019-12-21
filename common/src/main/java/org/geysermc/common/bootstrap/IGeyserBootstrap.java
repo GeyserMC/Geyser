@@ -25,8 +25,8 @@
 
 package org.geysermc.common.bootstrap;
 
-import org.geysermc.api.logger.Logger;
 import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.common.logger.IGeyserLogger;
 
 public interface IGeyserBootstrap {
 
@@ -36,5 +36,5 @@ public interface IGeyserBootstrap {
 
     IGeyserConfiguration getGeyserConfig();
 
-    Logger getGeyserLogger();
+    IGeyserLogger getGeyserLogger();
 }

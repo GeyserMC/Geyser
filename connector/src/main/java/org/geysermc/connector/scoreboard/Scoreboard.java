@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
-import org.geysermc.api.Geyser;
+
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.*;
@@ -77,7 +77,7 @@ public class Scoreboard {
 
     public Team registerNewTeam(String teamName, Set<String> players) {
         if (teams.containsKey(teamName)) {
-            Geyser.getLogger().info("Ignoring team " + teamName + ". It overrides without removing old team.");
+            session.getConnector().getLogger().info("Ignoring team " + teamName + ". It overrides without removing old team.");
             return getTeam(teamName);
         }
 
@@ -120,7 +120,7 @@ public class Scoreboard {
         for (String objectiveId : new ArrayList<>(objectives.keySet())) {
             Objective objective = objectives.get(objectiveId);
             if (objective.isTemp()) {
-                Geyser.getLogger().debug("Ignoring temp Scoreboard Objective '"+ objectiveId +'\'');
+                session.getConnector().getLogger().debug("Ignoring temp Scoreboard Objective '"+ objectiveId +'\'');
                 continue;
             }
 

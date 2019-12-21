@@ -49,7 +49,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
 
         geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
 
-        GeyserConnector.start(this, false);
+        GeyserConnector.start(this);
     }
 
     @Override

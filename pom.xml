@@ -31,7 +31,6 @@
     </scm>
 
     <modules>
-        <module>api</module>
         <module>bootstrap</module>
         <module>common</module>
         <module>connector</module>

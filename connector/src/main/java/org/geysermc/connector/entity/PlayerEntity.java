@@ -29,9 +29,11 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
+
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.api.Geyser;
+
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.SkinUtils;
@@ -105,7 +107,7 @@ public class PlayerEntity extends LivingEntity {
 
         if (!playerList) {
             // remove from playerlist if player isn't on playerlist
-            Geyser.getGeneralThreadPool().execute(() -> {
+            GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
                 PlayerListPacket playerList = new PlayerListPacket();
                 playerList.setType(PlayerListPacket.Type.REMOVE);
                 playerList.getEntries().add(new PlayerListPacket.Entry(uuid));

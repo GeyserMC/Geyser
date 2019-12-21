@@ -66,7 +66,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         switch (packet.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
-                connector.getLogger().info("Player connected with username " + session.getAuthenticationData().getName());
+                connector.getLogger().info("Player connected with username " + session.getAuthData().getName());
                 break;
             case HAVE_ALL_PACKS:
                 ResourcePackStackPacket stack = new ResourcePackStackPacket();
@@ -93,7 +93,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             IGeyserConfiguration.IUserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
 
             if (info != null) {
-                connector.getLogger().info("using stored credentials for bedrock user " + session.getAuthenticationData().getName());
+                connector.getLogger().info("using stored credentials for bedrock user " + session.getAuthData().getName());
                 session.authenticate(info.getEmail(), info.getPassword());
 
                 // TODO send a message to bedrock user telling them they are connected (if nothing like a motd
@@ -109,7 +109,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(MovePlayerPacket packet) {
         if (!session.isLoggedIn() && !session.isLoggingIn()) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
-            if (!couldLoginUserByName(session.getAuthenticationData().getName())) {
+            if (!couldLoginUserByName(session.getAuthData().getName())) {
                 LoginEncryptionUtils.showLoginWindow(session);
             }
             // else we were able to log the user in

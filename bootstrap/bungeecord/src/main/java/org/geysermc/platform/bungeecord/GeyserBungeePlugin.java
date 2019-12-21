@@ -86,7 +86,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
 
         geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
 
-        GeyserConnector.start(this, false);
+        GeyserConnector.start(this);
     }
 
     @Override

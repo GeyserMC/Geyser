@@ -9,17 +9,18 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
+
 import net.minidev.json.JSONObject;
-import org.geysermc.api.events.player.PlayerFormResponseEvent;
-import org.geysermc.api.window.CustomFormBuilder;
-import org.geysermc.api.window.CustomFormWindow;
-import org.geysermc.api.window.FormWindow;
-import org.geysermc.api.window.component.InputComponent;
-import org.geysermc.api.window.component.LabelComponent;
-import org.geysermc.api.window.response.CustomFormResponse;
+
+import org.geysermc.common.window.CustomFormBuilder;
+import org.geysermc.common.window.CustomFormWindow;
+import org.geysermc.common.window.FormWindow;
+import org.geysermc.common.window.component.InputComponent;
+import org.geysermc.common.window.component.LabelComponent;
+import org.geysermc.common.window.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.auth.BedrockAuthData;
+import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.cache.WindowCache;
 
 import javax.crypto.SecretKey;
@@ -86,7 +87,7 @@ public class LoginEncryptionUtils {
             }
 
             JSONObject extraData = (JSONObject) jwt.getPayload().toJSONObject().get("extraData");
-            session.setAuthenticationData(new BedrockAuthData(extraData.getAsString("displayName"), UUID.fromString(extraData.getAsString("identity")), extraData.getAsString("XUID")));
+            session.setAuthenticationData(new AuthData(extraData.getAsString("displayName"), UUID.fromString(extraData.getAsString("identity")), extraData.getAsString("XUID")));
 
             if (payload.get("identityPublicKey").getNodeType() != JsonNodeType.STRING) {
                 throw new RuntimeException("Identity Public Key was not found!");
@@ -140,17 +141,13 @@ public class LoginEncryptionUtils {
         FormWindow window = windowCache.getWindows().remove(AUTH_FORM_ID);
         window.setResponse(formData.trim());
 
-        if (session.isLoggedIn()) {
-            PlayerFormResponseEvent event = new PlayerFormResponseEvent(session, AUTH_FORM_ID, window);
-            connector.getPluginManager().runEvent(event);
-        } else {
+        if (!session.isLoggedIn()) {
             if (window instanceof CustomFormWindow) {
                 CustomFormWindow customFormWindow = (CustomFormWindow) window;
                 if (!customFormWindow.getTitle().equals("Login"))
                     return false;
 
                 CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
-
                 if (response != null) {
                     String email = response.getInputResponses().get(2);
                     String password = response.getInputResponses().get(3);
@@ -158,7 +155,6 @@ public class LoginEncryptionUtils {
                     session.authenticate(email, password);
                 }
 
-                // TODO should we clear the window cache in all cases or just if not already logged in?
                 // Clear windows so authentication data isn't accidentally cached
                 windowCache.getWindows().clear();
             }

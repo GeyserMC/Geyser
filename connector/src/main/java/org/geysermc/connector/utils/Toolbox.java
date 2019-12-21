@@ -9,8 +9,8 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.world.GlobalBlockPalette;
@@ -40,7 +40,7 @@ public class Toolbox {
             blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
             nbtInputStream.close();
         } catch (Exception ex) {
-            GeyserLogger.DEFAULT.warning("Failed to get blocks from runtime block states, please report this error!");
+            GeyserConnector.getInstance().getLogger().warning("Failed to get blocks from runtime block states, please report this error!");
             throw new AssertionError(ex);
         }
 
@@ -100,7 +100,7 @@ public class Toolbox {
         int blockIndex = 0;
         for (Map.Entry<String, Map<String, Object>> itemEntry : blocks.entrySet()) {
             if (!blockIdToIdentifier.containsKey(itemEntry.getValue().get("bedrock_identifier"))) {
-                GeyserLogger.DEFAULT.debug("Mapping " + itemEntry.getValue().get("bedrock_identifier") + " was not found for bedrock edition!");
+                GeyserConnector.getInstance().getLogger().debug("Mapping " + itemEntry.getValue().get("bedrock_identifier") + " was not found for bedrock edition!");
                 BLOCK_ENTRIES.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, 248, 0)); // update block
             } else {
                 BLOCK_ENTRIES.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, blockIdToIdentifier.get(itemEntry.getValue().get("bedrock_identifier")), (int) itemEntry.getValue().get("bedrock_data")));

@@ -9,7 +9,7 @@ import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
-import org.geysermc.api.Geyser;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
@@ -51,7 +51,7 @@ public class InventoryUtils {
 
         InventoryTranslator translator = TranslatorsInit.getInventoryTranslator();
         translator.prepareInventory(session, inventory);
-        Geyser.getGeneralThreadPool().schedule(() -> {
+        GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
             List<Packet> packets = session.getInventoryCache().getCachedPackets().get(inventory.getId());
             packets.forEach(itemPacket -> {
                 if (itemPacket != null) {

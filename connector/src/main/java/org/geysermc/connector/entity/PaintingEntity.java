@@ -27,10 +27,11 @@ package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.geysermc.connector.console.GeyserLogger;
+
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.PaintingType;
@@ -58,7 +59,7 @@ public class PaintingEntity extends Entity {
 
         valid = true;
 
-        GeyserLogger.DEFAULT.debug("Spawned painting on " + position);
+        session.getConnector().getLogger().debug("Spawned painting on " + position);
     }
 
     public Vector3f fixOffset(boolean toBedrock) {

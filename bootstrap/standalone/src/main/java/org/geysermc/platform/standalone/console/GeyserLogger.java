@@ -26,14 +26,16 @@
 package org.geysermc.platform.standalone.console;
 
 import io.sentry.Sentry;
-import org.geysermc.api.ChatColor;
+
+import org.geysermc.common.ChatColor;
+import org.geysermc.common.logger.IGeyserLogger;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.*;
 
-public class GeyserLogger implements org.geysermc.api.logger.Logger {
+public class GeyserLogger implements IGeyserLogger {
 
     private boolean colored = true;
     private boolean debug = false;

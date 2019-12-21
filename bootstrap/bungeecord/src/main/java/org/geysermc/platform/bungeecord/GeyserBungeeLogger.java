@@ -25,10 +25,12 @@
 
 package org.geysermc.platform.bungeecord;
 
+import org.geysermc.common.logger.IGeyserLogger;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class GeyserBungeeLogger implements org.geysermc.api.logger.Logger {
+public class GeyserBungeeLogger implements IGeyserLogger {
 
     private Logger logger;
     private boolean debugMode;

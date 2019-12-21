@@ -25,10 +25,9 @@
 
 package org.geysermc.connector.command;
 
-import org.geysermc.api.command.ConsoleCommandSender;
-import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.common.ChatColor;
 
-public class GeyserConsoleCommandSender implements ConsoleCommandSender {
+public class GeyserConsoleCommandSender implements CommandSender {
 
     @Override
     public String getName() {
@@ -37,13 +36,6 @@ public class GeyserConsoleCommandSender implements ConsoleCommandSender {
 
     @Override
     public void sendMessage(String message) {
-        System.out.println(GeyserLogger.printConsole(message, true));
-    }
-
-    @Override
-    public void sendMessage(String[] messages) {
-        for (String message : messages) {
-            sendMessage(message);
-        }
+        System.out.println(ChatColor.toANSI(message + ChatColor.RESET));
     }
 }

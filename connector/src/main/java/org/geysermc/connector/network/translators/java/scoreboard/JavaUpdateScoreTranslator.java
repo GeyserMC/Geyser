@@ -27,7 +27,8 @@ package org.geysermc.connector.network.translators.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardAction;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
-import org.geysermc.api.Geyser;
+
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.scoreboard.Objective;
@@ -42,7 +43,7 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
 
             Objective objective = scoreboard.getObjective(packet.getObjective());
             if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
-                Geyser.getLogger().info("Tried to update score without the existence of its requested objective '" + packet.getObjective() + '\'');
+                GeyserConnector.getInstance().getLogger().info("Tried to update score without the existence of its requested objective '" + packet.getObjective() + '\'');
                 return;
             }
 

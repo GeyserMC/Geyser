@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
+
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.MessageUtils;
@@ -39,7 +40,7 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
-        textPacket.setXuid(session.getAuthenticationData().getXboxUUID());
+        textPacket.setXuid(session.getAuthData().getXboxUUID());
         switch (packet.getType()) {
             case CHAT:
                 textPacket.setType(TextPacket.Type.CHAT);
