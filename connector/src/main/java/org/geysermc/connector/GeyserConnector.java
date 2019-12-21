@@ -76,6 +76,8 @@ public class GeyserConnector {
     private final ScheduledExecutorService generalThreadPool;
     private PingPassthroughThread passthroughThread;
 
+    private BedrockServer bedrockServer;
+
     private Metrics metrics;
 
     private GeyserConnector(IGeyserConfiguration config, IGeyserLogger logger) {
@@ -106,7 +108,7 @@ public class GeyserConnector {
         if (config.isPingPassthrough())
             generalThreadPool.scheduleAtFixedRate(passthroughThread, 1, 1, TimeUnit.SECONDS);
 
-        BedrockServer bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
+        bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
@@ -129,10 +131,11 @@ public class GeyserConnector {
     }
 
     public void shutdown() {
-        logger.info("Shutting down connector.");
+        logger.info("Shutting down Geyser.");
         shuttingDown = true;
 
         generalThreadPool.shutdown();
+        bedrockServer.close();
     }
 
     public void addPlayer(GeyserSession player) {
