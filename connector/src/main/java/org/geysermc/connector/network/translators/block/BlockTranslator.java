@@ -17,11 +17,4 @@ public class BlockTranslator {
         return javaIdentifierMap.computeIfAbsent(javaIdentifier, key -> Toolbox.BLOCK_ENTRIES.values()
                 .stream().filter(blockEntry -> blockEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
     }
-
-    public boolean isWaterLogged(BlockEntry entry) {
-        return (entry.getJavaIdentifier().contains("waterlogged=true")
-                || entry.getJavaIdentifier().startsWith("minecraft:kelp")
-                || entry.getJavaIdentifier().contains("seagrass")
-                || entry.getJavaIdentifier().startsWith("minecraft:bubble_column"));
-    }
 }

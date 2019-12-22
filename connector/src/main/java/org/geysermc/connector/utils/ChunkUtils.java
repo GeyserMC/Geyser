@@ -38,7 +38,7 @@ public class ChunkUtils {
                         section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
                                 block.getBedrockRuntimeId());
 
-                        if (TranslatorsInit.getBlockTranslator().isWaterLogged(block)) {
+                        if (block.isWaterlogged()) {
                             BlockEntry water = TranslatorsInit.getBlockTranslator().getBlockEntry("minecraft:water[level=0]");
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), water.getBedrockRuntimeId());
                         }
@@ -63,7 +63,7 @@ public class ChunkUtils {
         UpdateBlockPacket waterPacket = new UpdateBlockPacket();
         waterPacket.setDataLayer(1);
         waterPacket.setBlockPosition(pos);
-        if (TranslatorsInit.getBlockTranslator().isWaterLogged(blockEntry)) {
+        if (blockEntry.isWaterlogged()) {
             BlockEntry water = TranslatorsInit.getBlockTranslator().getBlockEntry("minecraft:water[level=0]");
             waterPacket.setRuntimeId(water.getBedrockRuntimeId());
         } else {
