@@ -5,6 +5,7 @@ import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.ListTag;
+import com.nukkitx.nbt.tag.Tag;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -13,7 +14,6 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.world.GlobalBlockPalette;
 
 import java.io.InputStream;
 import java.util.*;
@@ -32,7 +32,6 @@ public class Toolbox {
             throw new AssertionError("Unable to find bedrock/runtime_block_states.dat");
         }
 
-        Map<String, Integer> blockIdToIdentifier = new HashMap<>();
         ListTag<CompoundTag> blocksTag;
 
         NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream);
@@ -42,15 +41,6 @@ public class Toolbox {
         } catch (Exception ex) {
             GeyserLogger.DEFAULT.warning("Failed to get blocks from runtime block states, please report this error!");
             throw new AssertionError(ex);
-        }
-
-        for (CompoundTag entry : blocksTag.getValue()) {
-            String name = entry.getAsCompound("block").getAsString("name");
-            int id = entry.getAsShort("id");
-            int data = entry.getAsShort("meta");
-
-            blockIdToIdentifier.put(name, id);
-            GlobalBlockPalette.registerMapping(id << 4 | data);
         }
 
         BLOCKS = blocksTag;
@@ -97,16 +87,38 @@ public class Toolbox {
             ex.printStackTrace();
         }
 
-        int blockIndex = 0;
-        for (Map.Entry<String, Map<String, Object>> itemEntry : blocks.entrySet()) {
-            if (!blockIdToIdentifier.containsKey(itemEntry.getValue().get("bedrock_identifier"))) {
-                GeyserLogger.DEFAULT.debug("Mapping " + itemEntry.getValue().get("bedrock_identifier") + " was not found for bedrock edition!");
-                BLOCK_ENTRIES.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, 248, 0)); // update block
-            } else {
-                BLOCK_ENTRIES.put(blockIndex, new BlockEntry(itemEntry.getKey(), blockIndex, blockIdToIdentifier.get(itemEntry.getValue().get("bedrock_identifier")), (int) itemEntry.getValue().get("bedrock_data")));
-            }
+        int javaIndex = -1;
+        javaLoop:
+        for (Map.Entry<String, Map<String, Object>> javaEntry : blocks.entrySet()) {
+            javaIndex++;
+            String wantedIdentifier = (String) javaEntry.getValue().get("bedrock_identifier");
+            Map<String, Object> wantedStates = (Map<String, Object>) javaEntry.getValue().get("bedrock_states");
 
-            blockIndex++;
+            int bedrockIndex = -1;
+            bedrockLoop:
+            for (CompoundTag bedrockEntry : BLOCKS.getValue()) {
+                bedrockIndex++;
+                CompoundTag blockTag = bedrockEntry.getAsCompound("block");
+                if (blockTag.getAsString("name").equals(wantedIdentifier)) {
+                    if (wantedStates != null) {
+                        Map<String, Tag<?>> bedrockStates = blockTag.getAsCompound("states").getValue();
+                        for (Map.Entry<String, Object> stateEntry : wantedStates.entrySet()) {
+                            Tag<?> bedrockStateTag = bedrockStates.get(stateEntry.getKey());
+                            if (bedrockStateTag == null)
+                                continue bedrockLoop;
+                            Object bedrockStateValue = bedrockStateTag.getValue();
+                            if (bedrockStateValue instanceof Byte)
+                                bedrockStateValue = ((Byte) bedrockStateValue).intValue();
+                            if (!stateEntry.getValue().equals(bedrockStateValue))
+                                continue bedrockLoop;
+                        }
+                    }
+                    BlockEntry blockEntry = new BlockEntry(javaEntry.getKey(), javaIndex, bedrockIndex);
+                    BLOCK_ENTRIES.put(javaIndex, blockEntry);
+                    continue javaLoop;
+                }
+            }
+            GeyserLogger.DEFAULT.debug("Mapping " + javaEntry.getKey() + " was not found for bedrock edition!");
         }
     }
 }

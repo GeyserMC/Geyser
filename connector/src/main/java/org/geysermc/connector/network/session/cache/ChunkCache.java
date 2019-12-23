@@ -79,7 +79,7 @@ public class ChunkCache {
         Position blockPosition = chunkPosition.getChunkBlock(position.getX(), position.getY(), position.getZ());
         if (chunk != null) {
             BlockState blockState = chunk.get(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
-            return TranslatorsInit.getBlockTranslator().getBedrockBlock(blockState);
+            return TranslatorsInit.getBlockTranslator().getBlockEntry(blockState);
         }
 
         return BlockEntry.AIR;
