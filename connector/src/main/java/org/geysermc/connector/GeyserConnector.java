@@ -27,7 +27,7 @@ package org.geysermc.connector;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v388.Bedrock_v388;
+import com.nukkitx.protocol.bedrock.v389.Bedrock_v389;
 
 import lombok.Getter;
 import org.fusesource.jansi.AnsiConsole;
