@@ -28,6 +28,8 @@ package org.geysermc.connector.entity.type;
 import lombok.Getter;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
+import org.geysermc.connector.entity.living.horse.HorseEntity;
+import org.geysermc.connector.entity.living.horse.LlamaEntity;
 import org.geysermc.connector.entity.living.monster.GuardianEntity;
 import org.geysermc.connector.entity.living.monster.ZombieEntity;
 
@@ -46,14 +48,15 @@ public enum EntityType {
     BAT(AmbientEntity.class, 19, 0.9f, 0.5f),
     IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
     SNOW_GOLEM(GolemEntity.class, 21, 1.9f, 0.7f),
-    OCELOT(TameableEntity.class, 22, 0.35f, 0.3f),
-    HORSE(AbstractHorseEntity.class, 23, 1.6f, 1.3965f),
+    OCELOT(AgeableEntity.class, 22, 0.35f, 0.3f),
+    HORSE(HorseEntity.class, 23, 1.6f, 1.3965f),
     DONKEY(ChestedHorseEntity.class, 24, 1.6f, 1.3965f),
     MULE(ChestedHorseEntity.class, 25, 1.6f, 1.3965f),
     SKELETON_HORSE(AbstractHorseEntity.class, 26, 1.6f, 1.3965f),
     ZOMBIE_HORSE(AbstractHorseEntity.class, 27, 1.6f, 1.3965f),
     POLAR_BEAR(AnimalEntity.class, 28, 1.4f, 1.3f),
-    LLAMA(ChestedHorseEntity.class, 29, 1.87f, 0.9f),
+    LLAMA(LlamaEntity.class, 29, 1.87f, 0.9f),
+    TRADER_LLAMA(LlamaEntity.class, 29, 1.187f, 0.9f),
     PARROT(TameableEntity.class, 30, 0.9f, 0.5f),
     DOLPHIN(WaterEntity.class, 31, 0.6f, 0.9f),
     ZOMBIE(ZombieEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f),
@@ -101,8 +104,7 @@ public enum EntityType {
     FIREWORK_ROCKET(Entity.class, 72, 0f),
     TRIDENT(ArrowEntity.class, 73, 0f),
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
-    // TODO CAT (need to figure out how to deal with baby cats) https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/entity/passive/EntityCat.java
-
+    CAT(TameableEntity.class, 75, 0.35f, 0.3f),
     SHULKER_BULLET(Entity.class, 76, 0f),
     FISHING_BOBBER(Entity.class, 77, 0f),
     CHALKBOARD(Entity.class, 78, 0f),
@@ -140,7 +142,8 @@ public enum EntityType {
     TROPICAL_FISH(AbstractFishEntity.class, 111, 0.6f, 0.6f),
     COD(AbstractFishEntity.class, 112, 0.25f, 0.5f),
     PANDA(AnimalEntity.class, 113, 1.25f, 1.125f, 1.825f),
-    FOX(AnimalEntity.class, 121, 0.5f, 1.25f);
+    FOX(AnimalEntity.class, 121, 0.5f, 1.25f),
+    BEE(InsentientEntity.class, 122, 0.6f, 0.6f);
 
     private Class<? extends Entity> entityClass;
     private final int type;

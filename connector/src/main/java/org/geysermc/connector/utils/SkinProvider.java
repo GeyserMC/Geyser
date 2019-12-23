@@ -165,10 +165,10 @@ public class SkinProvider {
         Geyser.getLogger().debug("Downloaded " + imageUrl);
 
         if (cape) {
+            image = image.getWidth() > 64 ? scale(image) : image;
             BufferedImage newImage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_RGB);
-
             Graphics g = newImage.createGraphics();
-            g.drawImage(image, 0, 0, 64, 32, null);
+            g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
             g.dispose();
             image = newImage;
         }
@@ -191,6 +191,15 @@ public class SkinProvider {
                 outputStream.close();
             } catch (IOException ignored) {}
         }
+    }
+
+    private static BufferedImage scale (BufferedImage bufferedImage) {
+        BufferedImage resized = new BufferedImage(bufferedImage.getWidth() / 2, bufferedImage.getHeight() / 2, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = resized.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.drawImage(bufferedImage, 0, 0, bufferedImage.getWidth() / 2, bufferedImage.getHeight() / 2, null);
+        g2.dispose();
+        return resized;
     }
 
     public static <T> T getOrDefault(CompletableFuture<T> future, T defaultValue, int timeoutInSeconds) {

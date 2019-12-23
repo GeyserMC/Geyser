@@ -295,7 +295,7 @@ public class GeyserSession implements Player {
         startGamePacket.setLevelGamemode(0);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
-        startGamePacket.setAcheivementsDisabled(true);
+        startGamePacket.setAchievementsDisabled(true);
         startGamePacket.setTime(-1);
         startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
@@ -328,7 +328,7 @@ public class GeyserSession implements Player {
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setBlockPalette(Toolbox.BLOCKS);
         startGamePacket.setItemEntries(Toolbox.ITEMS);
-        startGamePacket.setVanillaVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+        startGamePacket.setVanillaVersion("*");
         // startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacket(startGamePacket);
     }
