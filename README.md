@@ -25,6 +25,7 @@ Please note, Geyser is **not** (currently) a plugin. Watch the video below or ta
 - Docs: https://github.com/GeyserMC/Geyser/wiki
 - Download: http://ci.geysermc.org
 - Discord: http://discord.geysermc.org/
+- Donate: https://patreon.com/GeyserMC
 
 ## What's Left to be Added/Fixed
 - Inventories ([#67](https://github.com/GeyserMC/Geyser/pull/67))
