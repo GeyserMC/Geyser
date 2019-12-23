@@ -45,7 +45,7 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
 
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
-        blockEntityPacket.setData(translator.getBlockEntityTag(packet.getNbt()));
+        blockEntityPacket.setData(translator.getBlockEntityTag(packet.getNbt(), id));
         session.getUpstream().sendPacket(blockEntityPacket);
     }
 }
