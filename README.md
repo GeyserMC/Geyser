@@ -13,39 +13,31 @@ Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Editio
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
 The ultimate goal of this project is to allow Minecraft: Bedrock Edition users to join Minecraft: Java Edition servers as seamlessly as possible.
 
-### Please note, this project is still a work in progress and should not be used on production.
+### Please note, this project is still a work in progress and should not be used on production. Expect bugs!
 
 ## Setting Up
-Please note, Geyser is **not** a plugin. Watch the video below or take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set it up.
+Please note, Geyser is **not** (currently) a plugin. Watch the video below or take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set it up.
 
-[![YouTube Video](https://img.youtube.com/vi/OmLxwl7_UzQ/0.jpg)](https://www.youtube.com/watch?v=OmLxwl7_UzQ)
+[![YouTube Video](https://img.youtube.com/vi/U7dZZ8w7Gi4/0.jpg)](https://www.youtube.com/watch?v=U7dZZ8w7Gi4)
 
-Links:
+## Links:
 - Website: https://geysermc.org
 - Docs: https://github.com/GeyserMC/Geyser/wiki
 - Download: http://ci.geysermc.org
 - Discord: http://discord.geysermc.org/
+- Donate: https://patreon.com/GeyserMC
 
-## What's Completed
-- [x] Server recognized in server list 
-- [x] Join detection from remote
-- [x] Online mode/auth support
-- [x] Chat/command support
-- [x] Scoreboard
-- [ ] Inventory support
-  - [x] Inventory viewing
-  - [x] NBT data
-  - [ ] Inventory movement (transactions)
-- [x] Player movement support
-- [x] Entity support
-- [x] Player support
-- [ ] Chunks
-  - [x] Block translation (may be missing mappings)
-  - [x] Block updates
-  - [ ] Block entities
-  - [x] Extra data
-  - [ ] Biome colors
-- [x] Block break/place support
+## What's Left to be Added/Fixed
+- Inventories ([#67](https://github.com/GeyserMC/Geyser/pull/67))
+- Crafting ([#67](https://github.com/GeyserMC/Geyser/pull/67))
+- Creative Mode ([#67](https://github.com/GeyserMC/Geyser/pull/67))
+- Sounds
+- Block Particles
+- Block Entities ([`block-entities`](https://github.com/GeyserMC/Geyser/tree/block-entities))
+- Biome Colors
+- Some Entity Flags
+- Proper Movement
+- Support to be Ran as a Plugin ([`plugin`](https://github.com/GeyserMC/Geyser/tree/plugin))
 
 ## Compiling
 1. Clone the repo to your computer
