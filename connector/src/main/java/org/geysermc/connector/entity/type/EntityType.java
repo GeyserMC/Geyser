@@ -90,7 +90,7 @@ public enum EntityType {
     PHANTOM(FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
     RAVAGER(RaidParticipantEntity.class, 59, 1.9f, 1.2f),
 
-    ARMOR_STAND(LivingEntity.class, 61, 0f),
+    ARMOR_STAND(ArmorStandEntity.class, 61, 0f),
     TRIPOD_CAMERA(Entity.class, 62, 0f),
     PLAYER(PlayerEntity.class, 63, 1.8f, 0.6f, 0.6f, 1.62f),
     ITEM(ItemEntity.class, 64, 0.25f, 0.25f),

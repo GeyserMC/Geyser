@@ -14,17 +14,14 @@ public class RabbitEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        super.updateBedrockMetadata(entityMetadata, session);
         if (entityMetadata.getId() == 15) {
+            metadata.put(EntityData.SCALE, .55f);
             boolean isBaby = (boolean) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.BABY, isBaby);
             if(isBaby) {
                 metadata.put(EntityData.SCALE, .35f);
-            }
-            else {
-                metadata.put(EntityData.SCALE, .55f);
+                metadata.getFlags().setFlag(EntityFlag.BABY, true);
             }
         }
-
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 }
