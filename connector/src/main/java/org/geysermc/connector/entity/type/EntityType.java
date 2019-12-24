@@ -44,7 +44,7 @@ public enum EntityType {
     VILLAGER(AbstractMerchantEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f),
     MOOSHROOM(AnimalEntity.class, 16, 1.4f, 0.9f),
     SQUID(WaterEntity.class, 17, 0.8f),
-    RABBIT(AnimalEntity.class, 18, 0.5f, 0.4f),
+    RABBIT(RabbitEntity.class, 18, 0.5f, 0.4f),
     BAT(AmbientEntity.class, 19, 0.9f, 0.5f),
     IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
     SNOW_GOLEM(GolemEntity.class, 21, 1.9f, 0.7f),
@@ -90,7 +90,7 @@ public enum EntityType {
     PHANTOM(FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
     RAVAGER(RaidParticipantEntity.class, 59, 1.9f, 1.2f),
 
-    ARMOR_STAND(LivingEntity.class, 61, 0f),
+    ARMOR_STAND(ArmorStandEntity.class, 61, 0f),
     TRIPOD_CAMERA(Entity.class, 62, 0f),
     PLAYER(PlayerEntity.class, 63, 1.8f, 0.6f, 0.6f, 1.62f),
     ITEM(ItemEntity.class, 64, 0.25f, 0.25f),
