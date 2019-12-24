@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.TranslatorsInit;
 
 public class SingleChestInventoryTranslator extends BlockInventoryTranslator {
     public SingleChestInventoryTranslator(int size) {
-        super(size, 54 << 4, ContainerType.CONTAINER);
+        super(size, "minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER);
     }
 
     @Override

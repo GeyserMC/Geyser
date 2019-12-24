@@ -34,16 +34,16 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockEntry;
-import org.geysermc.connector.world.GlobalBlockPalette;
 
 public class BlockInventoryTranslator extends ContainerInventoryTranslator {
     final int blockId;
     private final ContainerType containerType;
 
-    public BlockInventoryTranslator(int size, int blockId, ContainerType containerType) {
+    public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType) {
         super(size);
-        this.blockId = blockId;
+        this.blockId = TranslatorsInit.getBlockTranslator().getBlockEntry(javaBlockIdentifier).getBedrockRuntimeId();
         this.containerType = containerType;
     }
 
@@ -54,7 +54,7 @@ public class BlockInventoryTranslator extends ContainerInventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(blockId));
+        blockPacket.setRuntimeId(blockId);
         blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
         inventory.setHolderPosition(position);
@@ -88,7 +88,7 @@ public class BlockInventoryTranslator extends ContainerInventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(realBlock.getBedrockId() << 4 | realBlock.getBedrockData()));
+        blockPacket.setRuntimeId(realBlock.getBedrockRuntimeId());
         session.getUpstream().sendPacket(blockPacket);
     }
 }

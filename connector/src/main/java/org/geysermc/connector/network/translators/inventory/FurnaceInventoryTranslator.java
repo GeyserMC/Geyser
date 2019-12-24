@@ -33,7 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
     public FurnaceInventoryTranslator() {
-        super(3, 61 << 4, ContainerType.FURNACE);
+        super(3, "minecraft:furnace[facing=north,lit=false]", ContainerType.FURNACE);
     }
 
     @Override

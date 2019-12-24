@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.InventoryAction;
 
 public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     public AnvilInventoryTranslator() {
-        super(3, 145 << 4, ContainerType.ANVIL);
+        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL);
     }
 
     @Override

@@ -31,7 +31,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
     public EnchantmentInventoryTranslator() {
-        super(2, 116 << 4, ContainerType.ENCHANTMENT);
+        super(2, "minecraft:enchanting_table", ContainerType.ENCHANTMENT);
     }
 
     @Override

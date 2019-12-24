@@ -33,7 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class BrewingStandInventoryTranslator extends BlockInventoryTranslator {
     public BrewingStandInventoryTranslator() {
-        super(5, 117 << 4, ContainerType.BREWING_STAND);
+        super(5, "minecraft:brewing_stand[has_bottle_0=false,has_bottle_1=false,has_bottle_2=false]", ContainerType.BREWING_STAND);
     }
 
     @Override

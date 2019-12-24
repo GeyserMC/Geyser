@@ -37,11 +37,10 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockEntry;
-import org.geysermc.connector.world.GlobalBlockPalette;
 
 public class DoubleChestInventoryTranslator extends BlockInventoryTranslator {
     public DoubleChestInventoryTranslator(int size) {
-        super(size, 54 << 4, ContainerType.CONTAINER);
+        super(size, "minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER);
     }
 
     @Override
@@ -51,7 +50,7 @@ public class DoubleChestInventoryTranslator extends BlockInventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(blockId));
+        blockPacket.setRuntimeId(blockId);
         blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
 
@@ -71,7 +70,7 @@ public class DoubleChestInventoryTranslator extends BlockInventoryTranslator {
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(pairPosition);
-        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(blockId));
+        blockPacket.setRuntimeId(blockId);
         blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
 
@@ -99,7 +98,7 @@ public class DoubleChestInventoryTranslator extends BlockInventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(realBlock.getBedrockId() << 4 | realBlock.getBedrockData()));
+        blockPacket.setRuntimeId(realBlock.getBedrockRuntimeId());
         session.getUpstream().sendPacket(blockPacket);
 
         holderPos = holderPos.add(Vector3i.UNIT_X);
@@ -108,7 +107,7 @@ public class DoubleChestInventoryTranslator extends BlockInventoryTranslator {
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(GlobalBlockPalette.getOrCreateRuntimeId(realBlock.getBedrockId() << 4 | realBlock.getBedrockData()));
+        blockPacket.setRuntimeId(realBlock.getBedrockRuntimeId());
         session.getUpstream().sendPacket(blockPacket);
     }
 
