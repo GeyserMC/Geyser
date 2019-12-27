@@ -6,6 +6,9 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DimensionUtils {
     public static void switchDimension(GeyserSession session, int javaDimension, boolean fake) {
         int bedrockDimension = javaToBedrock(javaDimension);
@@ -15,13 +18,9 @@ public class DimensionUtils {
 
         Vector3i pos = Vector3i.from(0, 32767, 0);
 
-        //FIXME: chance of exception while iterating
-        try {
-            for (Entity entity : session.getEntityCache().getEntities().values()) {
-                session.getEntityCache().removeEntity(entity, false);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        List<Entity> entities = new ArrayList<>(session.getEntityCache().getEntities().values());
+        for (Entity entity : entities) {
+            session.getEntityCache().removeEntity(entity, false);
         }
 
         ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
