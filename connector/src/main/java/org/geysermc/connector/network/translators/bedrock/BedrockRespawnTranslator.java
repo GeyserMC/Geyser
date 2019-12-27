@@ -23,33 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
-import com.nukkitx.protocol.bedrock.packet.*;
-import org.geysermc.connector.entity.Entity;
+import com.github.steveice10.mc.protocol.data.game.ClientRequest;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
+import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.utils.DimensionUtils;
 
-public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket> {
+public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
 
     @Override
-    public void translate(ServerRespawnPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
-
-        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
-        session.getUpstream().sendPacket(playerGameTypePacket);
-        session.setGameMode(packet.getGamemode());
-
-        if (entity.getDimension() != DimensionUtils.javaToBedrock(packet.getDimension())) {
-            DimensionUtils.switchDimension(session, packet.getDimension(), false);
-        } else {
-            // Handled in JavaPlayerPositionRotationTranslator
-            session.setSpawned(false);
+    public void translate(RespawnPacket packet, GeyserSession session) {
+        if (packet.getSpawnState() == RespawnPacket.State.CLIENT_READY) {
+            ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
+            session.getDownstream().getSession().send(javaRespawnPacket);
         }
     }
 }

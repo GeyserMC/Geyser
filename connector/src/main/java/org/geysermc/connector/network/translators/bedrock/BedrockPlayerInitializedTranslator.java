@@ -21,5 +21,9 @@ public class BedrockPlayerInitializedTranslator extends PacketTranslator<SetLoca
                 }
             }
         }
+        synchronized (session.getDimensionLock()) {
+            session.setSwitchingDim(false);
+            session.getDimensionLock().notifyAll();
+        }
     }
 }

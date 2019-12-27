@@ -29,6 +29,7 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.event.session.ConnectedEvent;
 import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
@@ -57,6 +58,7 @@ import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.net.InetSocketAddress;
@@ -96,6 +98,11 @@ public class GeyserSession implements Player {
 
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
+
+    @Setter
+    private volatile boolean switchingDim = false;
+    private final Object dimensionLock = new Object();
+    private ServerRespawnPacket lastDimPacket = null;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
@@ -198,6 +205,18 @@ public class GeyserSession implements Player {
                     @Override
                     public void packetReceived(PacketReceivedEvent event) {
                         if (!closed) {
+                            //handle consecutive respawn packets
+                            if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
+                                if (lastDimPacket != null) {
+                                    DimensionUtils.switchDimension(GeyserSession.this, lastDimPacket.getDimension(), true);
+                                }
+                                lastDimPacket = event.getPacket();
+                                return;
+                            } else if (lastDimPacket != null) {
+                                Registry.JAVA.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
+                                lastDimPacket = null;
+                            }
+
                             Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                         }
                     }
