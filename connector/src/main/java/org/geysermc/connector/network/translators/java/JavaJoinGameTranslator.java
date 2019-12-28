@@ -40,15 +40,6 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
 
-        if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
-            if (!session.getUpstream().isInitialized()) {
-                session.setSwitchingDim(true);
-                DimensionUtils.sendEmptyChunks(session, entity.getPosition().toInt());
-                DimensionUtils.waitForAck(session);
-            }
-            DimensionUtils.switchDimension(session, packet.getDimension(), false);
-        }
-
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         bedrockPacket.setPlayerPermission(1);
@@ -74,5 +65,9 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         ChunkRadiusUpdatedPacket chunkRadiusPacket = new ChunkRadiusUpdatedPacket();
         chunkRadiusPacket.setRadius(session.getRenderDistance());
         session.getUpstream().sendPacket(chunkRadiusPacket);
+
+        if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
+            DimensionUtils.switchDimension(session, packet.getDimension());
+        }
     }
 }

@@ -73,6 +73,13 @@ public class EntityCache {
         return false;
     }
 
+    public void removeAllEntities() {
+        List<Entity> entities = new ArrayList<>(session.getEntityCache().getEntities().values());
+        for (Entity entity : entities) {
+            session.getEntityCache().removeEntity(entity, false);
+        }
+    }
+
     public Entity getEntityByGeyserId(long geyserId) {
         return entities.get(geyserId);
     }

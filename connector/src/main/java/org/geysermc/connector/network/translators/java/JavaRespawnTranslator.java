@@ -46,8 +46,12 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         session.setGameMode(packet.getGamemode());
 
         if (entity.getDimension() != DimensionUtils.javaToBedrock(packet.getDimension())) {
-            DimensionUtils.switchDimension(session, packet.getDimension(), false);
+            DimensionUtils.switchDimension(session, packet.getDimension());
         } else {
+            if (session.isManyDimPackets()) { //reloading world
+                session.getEntityCache().removeAllEntities();
+                //TODO: fix lighting bug
+            }
             // Handled in JavaPlayerPositionRotationTranslator
             session.setSpawned(false);
         }

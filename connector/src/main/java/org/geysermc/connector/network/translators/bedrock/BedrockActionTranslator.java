@@ -34,9 +34,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -108,10 +106,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case DIMENSION_CHANGE_SUCCESS:
-                synchronized (session.getDimensionLock()) {
-                    session.setSwitchingDim(false);
-                    session.getDimensionLock().notifyAll();
-                }
+                session.setSwitchingDimension(false);
                 break;
         }
     }

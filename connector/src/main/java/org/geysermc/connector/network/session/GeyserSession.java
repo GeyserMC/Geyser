@@ -57,8 +57,7 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
-import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.utils.DimensionUtils;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.net.InetSocketAddress;
@@ -100,8 +99,8 @@ public class GeyserSession implements Player {
     private GameMode gameMode = GameMode.SURVIVAL;
 
     @Setter
-    private volatile boolean switchingDim = false;
-    private final Object dimensionLock = new Object();
+    private boolean switchingDimension = false;
+    private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -128,25 +127,8 @@ public class GeyserSession implements Player {
     public void connect(RemoteServer remoteServer) {
         startGame();
         this.remoteServer = remoteServer;
-        if (!(connector.getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
-            connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
-            authenticate(authenticationData.getName());
-        }
 
-        Vector3f pos = Vector3f.ZERO;
-        int chunkX = pos.getFloorX() >> 4;
-        int chunkZ = pos.getFloorZ() >> 4;
-        NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
-        chunkPublisherUpdatePacket.setPosition(pos.toInt());
-        chunkPublisherUpdatePacket.setRadius(renderDistance << 4);
-        upstream.sendPacket(chunkPublisherUpdatePacket);
-
-        LevelChunkPacket data = new LevelChunkPacket();
-        data.setChunkX(chunkX);
-        data.setChunkZ(chunkZ);
-        data.setSubChunksLength(0);
-        data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
-        upstream.sendPacket(data);
+        ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 5);
 
         BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
         biomePacket.setTag(CompoundTag.EMPTY);
@@ -207,9 +189,7 @@ public class GeyserSession implements Player {
                         if (!closed) {
                             //handle consecutive respawn packets
                             if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
-                                if (lastDimPacket != null) {
-                                    DimensionUtils.switchDimension(GeyserSession.this, lastDimPacket.getDimension(), true);
-                                }
+                                manyDimPackets = lastDimPacket != null;
                                 lastDimPacket = event.getPacket();
                                 return;
                             } else if (lastDimPacket != null) {

@@ -13,6 +13,11 @@ public class BedrockPlayerInitializedTranslator extends PacketTranslator<SetLoca
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);
 
+                if (!(session.getConnector().getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
+                    session.getConnector().getLogger().info("Attempting to login using offline mode... authentication is disabled.");
+                    session.authenticate(session.getAuthenticationData().getName());
+                }
+
                 for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
                     if (!entity.isValid()) {
                         // async skin loading
@@ -20,10 +25,6 @@ public class BedrockPlayerInitializedTranslator extends PacketTranslator<SetLoca
                     }
                 }
             }
-        }
-        synchronized (session.getDimensionLock()) {
-            session.setSwitchingDim(false);
-            session.getDimensionLock().notifyAll();
         }
     }
 }
