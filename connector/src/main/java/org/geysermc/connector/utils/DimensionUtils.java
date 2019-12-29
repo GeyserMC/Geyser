@@ -28,12 +28,6 @@ public class DimensionUtils {
         stopSoundPacket.setSoundName("");
         session.getUpstream().sendPacket(stopSoundPacket);
 
-        EntityEventPacket eventPacket = new EntityEventPacket();
-        eventPacket.setRuntimeEntityId(player.getGeyserId());
-        eventPacket.setEvent(EntityEventPacket.Event.RESPAWN);
-        eventPacket.setData(0);
-        session.getUpstream().sendPacket(eventPacket);
-
         session.setSpawned(false);
         session.setSwitchingDimension(true);
     }

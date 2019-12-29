@@ -52,12 +52,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0);
-            respawnPacket.setPosition(Vector3f.ZERO);
-            respawnPacket.setSpawnState(RespawnPacket.State.SERVER_SEARCHING);
-            session.getUpstream().sendPacket(respawnPacket);
-
-            respawnPacket = new RespawnPacket();
-            respawnPacket.setRuntimeEntityId(0);
             respawnPacket.setPosition(pos);
             respawnPacket.setSpawnState(RespawnPacket.State.SERVER_READY);
             session.getUpstream().sendPacket(respawnPacket);
