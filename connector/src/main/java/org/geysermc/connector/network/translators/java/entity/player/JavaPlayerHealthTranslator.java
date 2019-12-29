@@ -54,10 +54,5 @@ public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHea
         entity.getAttributes().put(AttributeType.HUNGER, AttributeType.HUNGER.getAttribute(packet.getFood()));
         entity.getAttributes().put(AttributeType.SATURATION, AttributeType.SATURATION.getAttribute(packet.getSaturation()));
         entity.updateBedrockAttributes(session);
-
-        if (packet.getHealth() <= 0) {
-            entity.getAttributes().remove(AttributeType.HEALTH);
-            entity.updateBedrockAttributes(session);
-        }
     }
 }
