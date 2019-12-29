@@ -67,7 +67,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         session.getUpstream().sendPacket(chunkRadiusPacket);
 
         if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
-            DimensionUtils.switchDimension(session, packet.getDimension());
+            DimensionUtils.switchDimension(session, packet.getDimension(), false);
         }
     }
 }

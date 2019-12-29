@@ -6,7 +6,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class DimensionUtils {
-    public static void switchDimension(GeyserSession session, int javaDimension) {
+    public static void switchDimension(GeyserSession session, int javaDimension, boolean fake) {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
         if (bedrockDimension == player.getDimension())
@@ -27,6 +27,10 @@ public class DimensionUtils {
         stopSoundPacket.setStoppingAllSound(true);
         stopSoundPacket.setSoundName("");
         session.getUpstream().sendPacket(stopSoundPacket);
+
+        if (fake) {
+            ChunkUtils.sendEmptyChunks(session, pos, 2, true);
+        }
 
         session.setSpawned(false);
         session.setSwitchingDimension(true);
