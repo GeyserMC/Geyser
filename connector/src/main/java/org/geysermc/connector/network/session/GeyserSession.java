@@ -128,7 +128,7 @@ public class GeyserSession implements Player {
         startGame();
         this.remoteServer = remoteServer;
 
-        ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 5);
+        ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
         biomePacket.setTag(CompoundTag.EMPTY);

@@ -73,16 +73,16 @@ public class ChunkUtils {
         session.getUpstream().sendPacket(waterPacket);
     }
 
-    public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius) {
+    public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {
         int chunkX = position.getX() >> 4;
         int chunkZ = position.getZ() >> 4;
         NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
         chunkPublisherUpdatePacket.setPosition(position);
-        chunkPublisherUpdatePacket.setRadius(radius << 4);
+        chunkPublisherUpdatePacket.setRadius(radius + 1 << 4);
         session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
         session.setLastChunkPosition(null);
-        for (int x = -radius; x < radius; x++) {
-            for (int z = -radius; z < radius; z++) {
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
                 LevelChunkPacket data = new LevelChunkPacket();
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
@@ -90,6 +90,15 @@ public class ChunkUtils {
                 data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
                 data.setCachingEnabled(false);
                 session.getUpstream().sendPacket(data);
+
+                if (forceUpdate) {
+                    Vector3i pos = Vector3i.from(chunkX + x << 4, 80, chunkZ + z << 4);
+                    UpdateBlockPacket blockPacket = new UpdateBlockPacket();
+                    blockPacket.setBlockPosition(pos);
+                    blockPacket.setDataLayer(1);
+                    blockPacket.setRuntimeId(1);
+                    session.getUpstream().sendPacket(blockPacket);
+                }
             }
         }
     }

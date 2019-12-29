@@ -26,10 +26,12 @@
 package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 
 public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket> {
@@ -48,12 +50,22 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         if (entity.getDimension() != DimensionUtils.javaToBedrock(packet.getDimension())) {
             DimensionUtils.switchDimension(session, packet.getDimension());
         } else {
-            if (session.isManyDimPackets()) { //reloading world
-                session.getEntityCache().removeAllEntities();
-                //TODO: fix lighting bug
-            }
             // Handled in JavaPlayerPositionRotationTranslator
             session.setSpawned(false);
+            if (session.isManyDimPackets()) { //reloading world
+                session.getEntityCache().removeAllEntities();
+                //lighting fix
+                ChunkUtils.sendEmptyChunks(session, entity.getPosition().toInt(), session.getRenderDistance(), false);
+                Vector3f tempPos = Vector3f.from(entity.getPosition().getX() > 0 ? -5000 : 5000, 0, 0);
+                MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+                movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                movePlayerPacket.setPosition(tempPos);
+                movePlayerPacket.setRotation(Vector3f.ZERO);
+                movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+                movePlayerPacket.setOnGround(true);
+                session.getUpstream().sendPacket(movePlayerPacket);
+                ChunkUtils.sendEmptyChunks(session, tempPos.toInt(), 5, true);
+            }
         }
     }
 }
