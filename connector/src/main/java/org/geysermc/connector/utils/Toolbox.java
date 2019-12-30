@@ -83,7 +83,7 @@ public class Toolbox {
                 if (duplicateRuntimeId == -1) {
                     GeyserLogger.DEFAULT.debug("Mapping " + javaId + " was not found for bedrock edition!");
                 } else {
-                    JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
+                    JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, duplicateRuntimeId);
                 }
                 continue;
             }
