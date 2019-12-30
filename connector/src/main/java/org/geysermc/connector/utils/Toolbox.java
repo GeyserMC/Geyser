@@ -62,7 +62,7 @@ public class Toolbox {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
-        TObjectIntMap<CompoundTag> stateRuntimeMap = new TObjectIntHashMap<>(512, 0.5f, -1);
+        TObjectIntMap<CompoundTag> addedStatesMap = new TObjectIntHashMap<>(512, 0.5f, -1);
         List<CompoundTag> paletteList = new ArrayList<>();
 
         int javaRuntimeId = -1;
@@ -76,10 +76,10 @@ public class Toolbox {
 
             CompoundTag runtimeTag = blockStateMap.remove(blockTag);
             if (runtimeTag != null) {
-                stateRuntimeMap.put(blockTag, javaRuntimeId);
+                addedStatesMap.put(blockTag, bedrockRuntimeId);
                 paletteList.add(runtimeTag);
             } else {
-                int duplicateRuntimeId = stateRuntimeMap.get(blockTag);
+                int duplicateRuntimeId = addedStatesMap.get(blockTag);
                 if (duplicateRuntimeId == -1) {
                     GeyserLogger.DEFAULT.debug("Mapping " + javaId + " was not found for bedrock edition!");
                 } else {
