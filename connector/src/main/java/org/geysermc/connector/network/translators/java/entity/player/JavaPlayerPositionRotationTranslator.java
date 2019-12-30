@@ -28,8 +28,7 @@ package org.geysermc.connector.network.translators.java.entity.player;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -48,7 +47,20 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             return;
 
         if (!session.isSpawned()) {
-            entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getYaw(), packet.getPitch());
+            Vector3f pos = Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ());
+            entity.moveAbsolute(pos, packet.getYaw(), packet.getPitch());
+
+            RespawnPacket respawnPacket = new RespawnPacket();
+            respawnPacket.setRuntimeEntityId(0);
+            respawnPacket.setPosition(pos);
+            respawnPacket.setSpawnState(RespawnPacket.State.SERVER_READY);
+            session.getUpstream().sendPacket(respawnPacket);
+
+            EntityEventPacket eventPacket = new EntityEventPacket();
+            eventPacket.setRuntimeEntityId(entity.getGeyserId());
+            eventPacket.setEvent(EntityEventPacket.Event.RESPAWN);
+            eventPacket.setData(0);
+            session.getUpstream().sendPacket(eventPacket);
 
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -57,7 +69,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-            movePlayerPacket.setPosition(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()));
+            movePlayerPacket.setPosition(pos);
             movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
             movePlayerPacket.setOnGround(true);

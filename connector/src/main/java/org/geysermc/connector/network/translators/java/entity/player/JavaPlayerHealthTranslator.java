@@ -25,11 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.ClientRequest;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetHealthPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.attribute.AttributeType;
@@ -44,8 +40,9 @@ public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHea
         if (entity == null)
             return;
 
+        int health = (int) Math.ceil(packet.getHealth());
         SetHealthPacket setHealthPacket = new SetHealthPacket();
-        setHealthPacket.setHealth((int) Math.ceil(packet.getHealth()));
+        setHealthPacket.setHealth(health);
         session.getUpstream().sendPacket(setHealthPacket);
 
         float maxHealth = entity.getAttributes().containsKey(AttributeType.MAX_HEALTH) ? entity.getAttributes().get(AttributeType.MAX_HEALTH).getValue() : 20f;
@@ -54,20 +51,9 @@ public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHea
             maxHealth += 1;
         }
 
-        entity.getAttributes().put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(packet.getHealth(), maxHealth));
+        entity.getAttributes().put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(health, maxHealth));
         entity.getAttributes().put(AttributeType.HUNGER, AttributeType.HUNGER.getAttribute(packet.getFood()));
         entity.getAttributes().put(AttributeType.SATURATION, AttributeType.SATURATION.getAttribute(packet.getSaturation()));
         entity.updateBedrockAttributes(session);
-
-        if (packet.getHealth() <= 0) {
-            RespawnPacket respawnPacket = new RespawnPacket();
-            respawnPacket.setRuntimeEntityId(entity.getGeyserId());
-            respawnPacket.setPosition(Vector3f.from(0, 72, 0));
-            respawnPacket.setSpawnState(RespawnPacket.State.SERVER_SEARCHING);
-            session.getUpstream().sendPacket(respawnPacket);
-
-            ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
-            session.getDownstream().getSession().send(javaRespawnPacket);
-        }
     }
 }
