@@ -157,6 +157,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(InteractPacket.class, new BedrockInteractTranslator());
         Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
         Registry.registerBedrock(RespawnPacket.class, new BedrockRespawnTranslator());
+        Registry.registerBedrock(ShowCreditsPacket.class, new BedrockShowCreditsTranslator());
 
         itemTranslator = new ItemTranslator();
         blockTranslator = new BlockTranslator();
