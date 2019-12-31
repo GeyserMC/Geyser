@@ -1,5 +1,10 @@
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 
@@ -10,8 +15,9 @@ public class BlockEntityUtils {
         if (id.contains("piston_head"))
             return "PistonArm";
 
-        id = id.replace("minecraft:", "");
-        id = id.replace("_", " ");
+        id = id.toLowerCase()
+            .replace("minecraft:", "")
+            .replace("_", " ");
         String[] words = id.split(" ");
         for (int i = 0; i < words.length; i++) {
             words[i] = words[i].substring(0, 1).toUpperCase() + words[i].substring(1).toLowerCase();
@@ -28,5 +34,12 @@ public class BlockEntityUtils {
         }
 
         return blockEntityTranslator;
+    }
+
+    public static void updateBlockEntity(GeyserSession session, com.nukkitx.nbt.tag.CompoundTag blockEntity, Position position) {
+        BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
+        blockEntityPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
+        blockEntityPacket.setData(blockEntity);
+        session.getUpstream().sendPacket(blockEntityPacket);
     }
 }

@@ -18,17 +18,9 @@ public class ChunkPosition {
     }
 
     public Position getChunkBlock(int x, int y, int z) {
-        int chunkX = x % 16;
-        int chunkY = y % 16;
-        int chunkZ = z % 16;
-
-        if (chunkX < 0)
-            chunkX = -chunkX;
-        if (chunkY < 0)
-            chunkY = -chunkY;
-        if (chunkZ < 0)
-            chunkZ = -chunkZ;
-
+        int chunkX = x & 15;
+        int chunkY = y & 15;
+        int chunkZ = z & 15;
         return new Position(chunkX, chunkY, chunkZ);
     }
 }

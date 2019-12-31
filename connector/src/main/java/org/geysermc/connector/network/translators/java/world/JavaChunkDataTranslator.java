@@ -1,5 +1,7 @@
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
@@ -9,9 +11,13 @@ import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+
 import org.geysermc.api.Geyser;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -22,7 +28,6 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
-        // Not sure if this is safe or not, however without this the client usually times out
         Geyser.getConnector().getGeneralThreadPool().execute(() -> {
             Vector2i chunkPos = session.getLastChunkPosition();
             Vector3f position = session.getPlayerEntity().getPosition();
@@ -33,7 +38,6 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 chunkPublisherUpdatePacket.setPosition(position.toInt());
                 chunkPublisherUpdatePacket.setRadius(session.getRenderDistance() << 4);
                 session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
-
                 session.setLastChunkPosition(newChunkPos);
             }
 
@@ -75,6 +79,16 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 levelChunkPacket.setChunkZ(packet.getColumn().getZ());
                 levelChunkPacket.setData(payload);
                 session.getUpstream().sendPacket(levelChunkPacket);
+
+                // Signs have to be sent after the chunk since in later versions they aren't included in the block entities
+                for (Int2ObjectMap.Entry<CompoundTag> blockEntityEntry : chunkData.signs.int2ObjectEntrySet()) {
+                    int x = blockEntityEntry.getValue().getAsInt("x");
+                    int y = blockEntityEntry.getValue().getAsInt("y");
+                    int z = blockEntityEntry.getValue().getAsInt("z");
+
+                    ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntKey()), new Position(x, y, z));
+                }
+                chunkData.signs.clear();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

@@ -25,55 +25,68 @@
 
 package org.geysermc.connector.network.translators.block.entity;
 
-import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.StringTag;
+import com.nukkitx.nbt.tag.IntArrayTag;
 import com.nukkitx.nbt.tag.Tag;
 
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class SignBlockEntityTranslator extends BlockEntityTranslator {
+public class ContainerBlockEntityTranslator extends BlockEntityTranslator {
 
-    public SignBlockEntityTranslator(String javaId, String bedrockId) {
+    public ContainerBlockEntityTranslator(String javaId, String bedrockId) {
         super(javaId, bedrockId);
     }
 
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
         List<Tag<?>> tags = new ArrayList<>();
+        ListTag items = tag.get("Items");
+        List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
+        for (com.github.steveice10.opennbt.tag.builtin.Tag itemTag : items.getValue()) {
+            tagsList.add(getItem((CompoundTag) itemTag));
+        }
 
-        String line1 = getOrDefault(tag.getValue().get("Text1"), "");
-        String line2 = getOrDefault(tag.getValue().get("Text2"), "");
-        String line3 = getOrDefault(tag.getValue().get("Text3"), "");
-        String line4 = getOrDefault(tag.getValue().get("Text4"), "");
+        int[] fakeCookingTime = new int[4];
+        Arrays.fill(fakeCookingTime, 3);
 
-        tags.add(new StringTag("Text", MessageUtils.getBedrockMessage(Message.fromString(line1))
-                + "\n" + MessageUtils.getBedrockMessage(Message.fromString(line2))
-                + "\n" + MessageUtils.getBedrockMessage(Message.fromString(line3))
-                + "\n" + MessageUtils.getBedrockMessage(Message.fromString(line4))
-        ));
+        com.nukkitx.nbt.tag.ListTag<com.nukkitx.nbt.tag.CompoundTag> bedrockItems =
+                new com.nukkitx.nbt.tag.ListTag<>("Items", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
+        tags.add(bedrockItems);
 
+        tags.add(new IntArrayTag("CookingTimes", fakeCookingTime));
+        tags.add(new IntArrayTag("CookingTotalTimes", fakeCookingTime));
         return tags;
     }
 
     @Override
     public CompoundTag getDefaultJavaTag(int x, int y, int z) {
         CompoundTag tag = getConstantJavaTag(x, y, z);
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text1", "{\"text\":\"\"}"));
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text2", "{\"text\":\"\"}"));
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text3", "{\"text\":\"\"}"));
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text4", "{\"text\":\"\"}"));
+        tag.put(new ListTag("Items"));
         return tag;
     }
 
     @Override
     public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z) {
         CompoundTagBuilder tagBuilder = getConstantBedrockTag(x, y, z).toBuilder();
-        tagBuilder.stringTag("Text", "");
+        tagBuilder.listTag("Items", com.nukkitx.nbt.tag.CompoundTag.class, new ArrayList<>());
+        return tagBuilder.buildRootTag();
+    }
+
+    protected com.nukkitx.nbt.tag.CompoundTag getItem(CompoundTag tag) {
+        ItemEntry entry = TranslatorsInit.getItemTranslator().getItemEntry((String) tag.get("id").getValue());
+        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
+                .shortTag("id", (short) entry.getBedrockId())
+                .byteTag("Count", (byte) tag.get("Count").getValue())
+                .shortTag("Damage", (short) entry.getBedrockData())
+                .byteTag("Slot", (byte) tag.get("Slot").getValue())
+                .tag(CompoundTagBuilder.builder().build("tag"));
         return tagBuilder.buildRootTag();
     }
 }

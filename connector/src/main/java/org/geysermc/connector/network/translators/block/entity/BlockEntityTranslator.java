@@ -30,11 +30,16 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.Tag;
-import org.geysermc.connector.utils.BlockEntityUtils;
+
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 
+@AllArgsConstructor
 public abstract class BlockEntityTranslator {
+
+    protected String javaId;
+    protected String bedrockId;
 
     public abstract List<Tag<?>> translateTag(CompoundTag tag);
 
@@ -42,31 +47,31 @@ public abstract class BlockEntityTranslator {
 
     public abstract com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z);
 
-    public com.nukkitx.nbt.tag.CompoundTag getBlockEntityTag(CompoundTag tag, String id) {
+    public com.nukkitx.nbt.tag.CompoundTag getBlockEntityTag(CompoundTag tag) {
         int x = Integer.parseInt(String.valueOf(tag.getValue().get("x").getValue()));
         int y = Integer.parseInt(String.valueOf(tag.getValue().get("y").getValue()));
         int z = Integer.parseInt(String.valueOf(tag.getValue().get("z").getValue()));
 
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(id, x, y, z).toBuilder();
+        CompoundTagBuilder tagBuilder = getConstantBedrockTag(x, y, z).toBuilder();
         translateTag(tag).forEach(tagBuilder::tag);
         return tagBuilder.buildRootTag();
     }
 
-    protected CompoundTag getConstantJavaTag(String id, int x, int y, int z) {
+    protected CompoundTag getConstantJavaTag(int x, int y, int z) {
         CompoundTag tag = new CompoundTag("");
         tag.put(new IntTag("x", x));
         tag.put(new IntTag("y", y));
         tag.put(new IntTag("z", z));
-        tag.put(new StringTag("id", id));
+        tag.put(new StringTag("id", javaId));
         return tag;
     }
 
-    protected com.nukkitx.nbt.tag.CompoundTag getConstantBedrockTag(String id, int x, int y, int z) {
+    protected com.nukkitx.nbt.tag.CompoundTag getConstantBedrockTag(int x, int y, int z) {
         CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
                 .intTag("x", x)
                 .intTag("y", y)
                 .intTag("z", z)
-                .stringTag("id", id);
+                .stringTag("id", bedrockId);
         return tagBuilder.buildRootTag();
     }
 

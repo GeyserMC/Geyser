@@ -26,26 +26,29 @@
 package org.geysermc.connector.network.translators.java.world;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTileEntityPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
+import java.util.concurrent.TimeUnit;
+
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
 
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
-        BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
-        blockEntityPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(),
-                packet.getPosition().getY(),
-                packet.getPosition().getZ())
-        );
-
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
-        blockEntityPacket.setData(translator.getBlockEntityTag(packet.getNbt(), id));
-        session.getUpstream().sendPacket(blockEntityPacket);
+        if (id.equalsIgnoreCase("Sign")) {
+            // Delay so chunks can finish sending
+            session.getConnector().getGeneralThreadPool().schedule(() ->
+                    BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(packet.getNbt()), packet.getPosition()),
+                    5,
+                    TimeUnit.SECONDS
+            );
+        } else {
+            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(packet.getNbt()), packet.getPosition());
+        }
     }
 }
