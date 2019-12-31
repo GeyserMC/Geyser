@@ -27,7 +27,10 @@ package org.geysermc.connector.network.translators;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.*;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerSetExperiencePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
@@ -69,9 +72,6 @@ public class TranslatorsInit {
 
     @Getter
     private static ItemTranslator itemTranslator;
-
-    @Getter
-    private static BlockTranslator blockTranslator;
 
     @Getter
     private static InventoryTranslator inventoryTranslator = new GenericInventoryTranslator();
@@ -159,7 +159,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(RespawnPacket.class, new BedrockRespawnTranslator());
 
         itemTranslator = new ItemTranslator();
-        blockTranslator = new BlockTranslator();
+        BlockTranslator.init();
 
         registerInventoryTranslators();
     }
