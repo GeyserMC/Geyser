@@ -28,6 +28,8 @@ public class BlockTranslator {
     private static final Int2IntMap JAVA_TO_BEDROCK_LIQUID_MAP = new Int2IntOpenHashMap();
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_LIQUID_MAP = new Int2ObjectOpenHashMap<>();
 
+    private static final int BLOCK_STATE_VERSION = 17760256;
+
     static {
         /* Load block palette */
         InputStream stream = Toolbox.getResource("bedrock/runtime_block_states.dat");
@@ -99,7 +101,10 @@ public class BlockTranslator {
 
     private static CompoundTag buildBedrockState(JsonNode node) {
         CompoundTagBuilder tagBuilder = CompoundTag.builder();
-        tagBuilder.stringTag("name", node.get("bedrock_identifier").textValue());
+        tagBuilder.stringTag("name", node.get("bedrock_identifier").textValue())
+                .intTag("version", BlockTranslator.BLOCK_STATE_VERSION);
+
+        CompoundTagBuilder statesBuilder = CompoundTag.builder();
 
         // check for states
         if (node.has("bedrock_states")) {
@@ -110,17 +115,17 @@ public class BlockTranslator {
                 JsonNode stateValue = stateEntry.getValue();
                 switch (stateValue.getNodeType()) {
                     case BOOLEAN:
-                        tagBuilder.booleanTag(stateEntry.getKey(), stateValue.booleanValue());
+                        statesBuilder.booleanTag(stateEntry.getKey(), stateValue.booleanValue());
                         continue;
                     case STRING:
-                        tagBuilder.stringTag(stateEntry.getKey(), stateValue.textValue());
+                        statesBuilder.stringTag(stateEntry.getKey(), stateValue.textValue());
                         continue;
                     case NUMBER:
-                        tagBuilder.intTag(stateEntry.getKey(), stateValue.intValue());
+                        statesBuilder.intTag(stateEntry.getKey(), stateValue.intValue());
                 }
             }
         }
-        return tagBuilder.build("block");
+        return tagBuilder.tag(statesBuilder.build("states")).build("block");
     }
 
     public static int getBedrockBlockId(BlockState state) {
