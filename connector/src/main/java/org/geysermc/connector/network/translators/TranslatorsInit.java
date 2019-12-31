@@ -151,6 +151,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
         Registry.registerJava(ServerUnloadChunkPacket.class, new JavaUnloadChunkTranslator());
         Registry.registerJava(ServerUpdateTileEntityPacket.class, new JavaUpdateTileEntityTranslator());
+        Registry.registerJava(ServerBlockValuePacket.class, new JavaBlockValueTranslator());
 
         Registry.registerJava(ServerOpenWindowPacket.class, new OpenWindowPacketTranslator());
 
