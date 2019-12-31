@@ -45,10 +45,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import org.geysermc.connector.network.translators.bedrock.*;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
-import org.geysermc.connector.network.translators.block.entity.ContainerBlockEntityTranslator;
-import org.geysermc.connector.network.translators.block.entity.EmptyBlockEntityTranslator;
-import org.geysermc.connector.network.translators.block.entity.SignBlockEntityTranslator;
+import org.geysermc.connector.network.translators.block.entity.*;
 import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
@@ -177,7 +174,7 @@ public class TranslatorsInit {
     private static void registerBlockEntityTranslators() {
         blockEntityTranslators.put("Empty", new EmptyBlockEntityTranslator("empty", "Empty"));
         blockEntityTranslators.put("Sign", new SignBlockEntityTranslator("minecraft:sign", "Sign"));
-        blockEntityTranslators.put("Campfire", new ContainerBlockEntityTranslator("minecraft:campfire", "Campfire"));
+        blockEntityTranslators.put("Campfire", new CampfireBlockEntityTranslator("minecraft:campfire", "Campfire"));
     }
 
     private static void registerInventoryTranslators() {

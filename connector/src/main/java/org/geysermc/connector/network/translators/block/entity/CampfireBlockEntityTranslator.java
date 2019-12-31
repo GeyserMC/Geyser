@@ -36,9 +36,9 @@ import org.geysermc.connector.network.translators.item.ItemEntry;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContainerBlockEntityTranslator extends BlockEntityTranslator {
+public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
 
-    public ContainerBlockEntityTranslator(String javaId, String bedrockId) {
+    public CampfireBlockEntityTranslator(String javaId, String bedrockId) {
         super(javaId, bedrockId);
     }
 
@@ -46,29 +46,22 @@ public class ContainerBlockEntityTranslator extends BlockEntityTranslator {
     public List<Tag<?>> translateTag(CompoundTag tag) {
         List<Tag<?>> tags = new ArrayList<>();
         ListTag items = tag.get("Items");
-        List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
+        int i = 1;
         for (com.github.steveice10.opennbt.tag.builtin.Tag itemTag : items.getValue()) {
-            tagsList.add(getItem((CompoundTag) itemTag));
+            tags.add(getItem((CompoundTag) itemTag).toBuilder().build("Item" + i));
+            i++;
         }
-
-        com.nukkitx.nbt.tag.ListTag<com.nukkitx.nbt.tag.CompoundTag> bedrockItems =
-                new com.nukkitx.nbt.tag.ListTag<>("Items", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
-        tags.add(bedrockItems);
         return tags;
     }
 
     @Override
     public CompoundTag getDefaultJavaTag(int x, int y, int z) {
-        CompoundTag tag = getConstantJavaTag(x, y, z);
-        tag.put(new ListTag("Items"));
-        return tag;
+        return null;
     }
 
     @Override
     public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(x, y, z).toBuilder();
-        tagBuilder.listTag("Items", com.nukkitx.nbt.tag.CompoundTag.class, new ArrayList<>());
-        return tagBuilder.buildRootTag();
+        return null;
     }
 
     protected com.nukkitx.nbt.tag.CompoundTag getItem(CompoundTag tag) {
@@ -77,7 +70,6 @@ public class ContainerBlockEntityTranslator extends BlockEntityTranslator {
                 .shortTag("id", (short) entry.getBedrockId())
                 .byteTag("Count", (byte) tag.get("Count").getValue())
                 .shortTag("Damage", (short) entry.getBedrockData())
-                .byteTag("Slot", (byte) tag.get("Slot").getValue())
                 .tag(CompoundTagBuilder.builder().build("tag"));
         return tagBuilder.buildRootTag();
     }
