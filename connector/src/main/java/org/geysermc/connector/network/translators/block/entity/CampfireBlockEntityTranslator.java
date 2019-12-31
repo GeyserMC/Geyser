@@ -34,6 +34,7 @@ import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
@@ -56,12 +57,19 @@ public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public CompoundTag getDefaultJavaTag(int x, int y, int z) {
-        return null;
+        CompoundTag tag = getConstantJavaTag(x, y, z);
+        tag.put(new ListTag("Items"));
+        return tag;
     }
 
     @Override
     public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z) {
-        return null;
+        CompoundTagBuilder tagBuilder = getConstantBedrockTag(x, y, z).toBuilder();
+        tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item1", new HashMap<>()));
+        tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item2", new HashMap<>()));
+        tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item3", new HashMap<>()));
+        tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item4", new HashMap<>()));
+        return tagBuilder.buildRootTag();
     }
 
     protected com.nukkitx.nbt.tag.CompoundTag getItem(CompoundTag tag) {
