@@ -25,7 +25,10 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValue;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
@@ -90,10 +93,18 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.getUpstream().sendPacket(entityDataPacket);
                 break;
             case ENTER_CREDITS:
-                ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
-                showCreditsPacket.setStatus(ShowCreditsPacket.Status.START_CREDITS);
-                showCreditsPacket.setRuntimeEntityId(entity.getGeyserId());
-                session.getUpstream().sendPacket(showCreditsPacket);
+                switch ((EnterCreditsValue) packet.getValue()) {
+                    case SEEN_BEFORE:
+                        ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
+                        session.getDownstream().getSession().send(javaRespawnPacket);
+                        break;
+                    case FIRST_TIME:
+                        ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
+                        showCreditsPacket.setStatus(ShowCreditsPacket.Status.START_CREDITS);
+                        showCreditsPacket.setRuntimeEntityId(entity.getGeyserId());
+                        session.getUpstream().sendPacket(showCreditsPacket);
+                        break;
+                }
                 break;
             default:
                 break;
