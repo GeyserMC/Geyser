@@ -65,7 +65,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setProtocolVersion(GeyserConnector.BEDROCK_1_14_PROTOCOL_VERSION);
         pong.setVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
         pong.setIpv4Port(config.getBedrock().getPort());
-        if (connector.getConfig().isPingPassthrough()) {
+        if (connector.getConfig().isPingPassthrough() && serverInfo != null) {
             pong.setMotd(MessageUtils.getBedrockMessage(serverInfo.getDescription()));
             pong.setSubMotd(config.getBedrock().getMotd2());
             pong.setPlayerCount(serverInfo.getPlayerInfo().getOnlinePlayers());
