@@ -62,7 +62,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setEdition("MCPE");
         pong.setGameType("Default");
         pong.setNintendoLimited(false);
-        pong.setProtocolVersion(GeyserConnector.BEDROCK_1_14_PROTOCOL_VERSION);
+        pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
         pong.setVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
         pong.setIpv4Port(config.getBedrock().getPort());
         if (connector.getConfig().isPingPassthrough() && serverInfo != null) {

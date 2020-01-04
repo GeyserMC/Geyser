@@ -38,8 +38,8 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
-            <artifactId>bedrock-v388</artifactId>
-            <version>2.4.2</version>
+            <artifactId>bedrock-v389</artifactId>
+            <version>2.4.4</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

@@ -25,23 +25,30 @@
 
 package org.geysermc.connector.network.translators.block;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public class BlockEntry {
 
-    public static BlockEntry AIR = new BlockEntry("minecraft:air", 0, 0, 0);
+    public static BlockEntry AIR = new BlockEntry("minecraft:air", 0, 0);
 
-    private String javaIdentifier;
-    private int javaId;
+    private final String javaIdentifier;
+    private final int javaId;
+    private final int bedrockRuntimeId;
+    private final boolean waterlogged;
 
-    private int bedrockId;
-    private int bedrockData;
+    public BlockEntry(String javaIdentifier, int javaId, int bedrockRuntimeId) {
+        this.javaIdentifier = javaIdentifier;
+        this.javaId = javaId;
+        this.bedrockRuntimeId = bedrockRuntimeId;
+        this.waterlogged = (javaIdentifier.contains("waterlogged=true")
+                || javaIdentifier.startsWith("minecraft:kelp")
+                || javaIdentifier.contains("seagrass")
+                || javaIdentifier.startsWith("minecraft:bubble_column"));
+    }
 
     @Override
     public boolean equals(Object obj) {
-        return obj == this || (obj instanceof BlockEntry && ((BlockEntry) obj).getBedrockId() == this.getBedrockId() && ((BlockEntry) obj).getJavaIdentifier().equals(this.getJavaIdentifier()));
+        return obj == this || (obj instanceof BlockEntry && ((BlockEntry) obj).getBedrockRuntimeId() == this.getBedrockRuntimeId() && ((BlockEntry) obj).getJavaIdentifier().equals(this.getJavaIdentifier()));
     }
 }
