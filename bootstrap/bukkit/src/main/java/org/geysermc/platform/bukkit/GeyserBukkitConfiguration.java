@@ -97,6 +97,11 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
     }
 
     @Override
+    public String getFloodgateKeyFile() {
+        return config.getString("floodgate-key-file", "public-key.pem");
+    }
+
+    @Override
     public IMetricsInfo getMetrics() {
         return metricsInfo;
     }

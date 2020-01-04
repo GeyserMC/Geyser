@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.v389.Bedrock_v389;
 
 import lombok.Getter;
 
+import org.geysermc.common.AuthType;
 import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.common.logger.IGeyserLogger;
@@ -65,6 +66,7 @@ public class GeyserConnector {
     private static GeyserConnector instance;
 
     private RemoteServer remoteServer;
+    private AuthType authType;
 
     private IGeyserLogger logger;
     private IGeyserConfiguration config;
@@ -105,6 +107,7 @@ public class GeyserConnector {
 
         commandMap = new GeyserCommandMap(this);
         remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
+        authType = AuthType.getByName(config.getRemote().getAuthType());
 
         passthroughThread = new PingPassthroughThread(this);
         if (config.isPingPassthrough())
@@ -125,7 +128,7 @@ public class GeyserConnector {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", config.getRemote()::getAuthType));
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", authType.name()::toLowerCase));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
         }
 

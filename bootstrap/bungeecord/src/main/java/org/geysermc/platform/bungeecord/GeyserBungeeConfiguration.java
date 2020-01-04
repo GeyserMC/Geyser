@@ -98,6 +98,11 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
+    public String getFloodgateKeyFile() {
+        return config.getString("floodgate-key-file", "public-key.pem");
+    }
+
+    @Override
     public BungeeMetricsInfo getMetrics() {
         return metricsInfo;
     }

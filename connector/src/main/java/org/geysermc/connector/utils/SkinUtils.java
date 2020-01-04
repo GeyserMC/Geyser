@@ -9,6 +9,7 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import org.geysermc.common.AuthType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class SkinUtils {
+
     public static PlayerListPacket.Entry buildCachedEntry(GameProfile profile, long geyserId) {
         GameProfileData data = GameProfileData.from(profile);
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
@@ -97,7 +99,7 @@ public class SkinUtils {
 
                 return new GameProfileData(skinUrl, capeUrl, isAlex);
             } catch (Exception exception) {
-                if (!GeyserConnector.getInstance().getConfig().getRemote().getAuthType().equals("offline")) {
+                if (GeyserConnector.getInstance().getAuthType() != AuthType.OFFLINE) {
                     GeyserConnector.getInstance().getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
                 }
                 // return default skin with default cape when texture data is invalid
@@ -157,6 +159,7 @@ public class SkinUtils {
 
                         if (skinAndCapeConsumer != null) skinAndCapeConsumer.accept(skinAndCape);
                     });
+
         });
     }
 

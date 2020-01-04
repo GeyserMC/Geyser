@@ -101,6 +101,11 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
+    public String getFloodgateKeyFile() {
+        return node.getNode("floodgate-key-file").getString("public-key.pem");
+    }
+
+    @Override
     public SpongeMetricsInfo getMetrics() {
         return metricsInfo;
     }

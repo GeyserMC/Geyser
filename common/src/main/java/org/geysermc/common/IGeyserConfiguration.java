@@ -45,6 +45,8 @@ public interface IGeyserConfiguration {
 
     boolean isAllowThirdPartyCapes();
 
+    String getFloodgateKeyFile();
+
     IMetricsInfo getMetrics();
 
     interface IBedrockConfiguration {
