@@ -34,6 +34,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -53,7 +54,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
         switch (packet.getAction()) {
             case RESPAWN:
                 // Don't put anything here as respawn is already handled
-                // in JavaPlayerSetHealthTranslator
+                // in BedrockRespawnTranslator
                 break;
             case START_GLIDE:
             case STOP_GLIDE:
@@ -104,6 +105,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case STOP_BREAK:
                 // Handled in BedrockInventoryTransactionTranslator
+                break;
+            case DIMENSION_CHANGE_SUCCESS:
+                session.setSwitchingDimension(false);
+                //sometimes the client doesn't feel like loading
+                PlayStatusPacket spawnPacket = new PlayStatusPacket();
+                spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+                session.getUpstream().sendPacket(spawnPacket);
+                entity.updateBedrockAttributes(session);
                 break;
         }
     }

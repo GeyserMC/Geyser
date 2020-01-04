@@ -26,22 +26,20 @@
 package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
-import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.world.chunk.ChunkPosition;
+import org.geysermc.connector.utils.DimensionUtils;
 
 public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacket> {
 
     @Override
     public void translate(ServerJoinGamePacket packet, GeyserSession session) {
+        PlayerEntity entity = session.getPlayerEntity();
+        entity.setEntityId(packet.getEntityId());
+
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         bedrockPacket.setPlayerPermission(1);
@@ -50,9 +48,6 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         // session.getUpstream().sendPacket(playStatus);
-
-        PlayerEntity entity = session.getPlayerEntity();
-        entity.setEntityId(packet.getEntityId());
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
@@ -71,6 +66,8 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         chunkRadiusPacket.setRadius(session.getRenderDistance());
         session.getUpstream().sendPacket(chunkRadiusPacket);
 
-        session.setSpawned(true);
+        if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
+            DimensionUtils.switchDimension(session, packet.getDimension(), false);
+        }
     }
 }

@@ -23,22 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnPositionPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.SetSpawnPositionPacket;
+import com.github.steveice10.mc.protocol.data.game.ClientRequest;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class JavaSpawnPositionTranslator extends PacketTranslator<ServerSpawnPositionPacket> {
+public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
 
     @Override
-    public void translate(ServerSpawnPositionPacket packet, GeyserSession session) {
-        SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
-        spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-        spawnPositionPacket.setSpawnForced(true);
-        spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
-        session.getUpstream().sendPacket(spawnPositionPacket);
+    public void translate(RespawnPacket packet, GeyserSession session) {
+        if (packet.getSpawnState() == RespawnPacket.State.CLIENT_READY) {
+            RespawnPacket respawnPacket = new RespawnPacket();
+            respawnPacket.setRuntimeEntityId(0);
+            respawnPacket.setPosition(Vector3f.ZERO);
+            respawnPacket.setSpawnState(RespawnPacket.State.SERVER_SEARCHING);
+            session.getUpstream().sendPacket(respawnPacket);
+
+            ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
+            session.getDownstream().getSession().send(javaRespawnPacket);
+        }
     }
 }

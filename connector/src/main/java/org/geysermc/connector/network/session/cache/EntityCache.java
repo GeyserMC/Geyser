@@ -25,10 +25,7 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import it.unimi.dsi.fastutil.longs.Long2LongMap;
-import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.*;
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
@@ -45,9 +42,9 @@ public class EntityCache {
     private GeyserSession session;
 
     @Getter
-    private Long2ObjectMap<Entity> entities = new Long2ObjectOpenHashMap<>();
-    private Long2LongMap entityIdTranslations = new Long2LongOpenHashMap();
-    private Map<UUID, PlayerEntity> playerEntities = new HashMap<>();
+    private Long2ObjectMap<Entity> entities = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+    private Long2LongMap entityIdTranslations = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
+    private Map<UUID, PlayerEntity> playerEntities = Collections.synchronizedMap(new HashMap<>());
     private Map<UUID, Long> bossbars = new HashMap<>();
 
     @Getter
@@ -74,6 +71,13 @@ public class EntityCache {
             return true;
         }
         return false;
+    }
+
+    public void removeAllEntities() {
+        List<Entity> entities = new ArrayList<>(session.getEntityCache().getEntities().values());
+        for (Entity entity : entities) {
+            session.getEntityCache().removeEntity(entity, false);
+        }
     }
 
     public Entity getEntityByGeyserId(long geyserId) {
