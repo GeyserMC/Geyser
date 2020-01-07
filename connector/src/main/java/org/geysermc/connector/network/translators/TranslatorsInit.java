@@ -95,6 +95,7 @@ public class TranslatorsInit {
 
     public static void start() {
         Registry.registerJava(ServerJoinGamePacket.class, new JavaJoinGameTranslator());
+        Registry.registerJava(ServerPluginMessagePacket.class, new JavaPluginMessageTranslator());
         Registry.registerJava(ServerChatPacket.class, new JavaChatTranslator());
         Registry.registerJava(ServerTitlePacket.class, new JavaTitleTranslator());
         Registry.registerJava(ServerUpdateTimePacket.class, new JavaUpdateTimeTranslator());
