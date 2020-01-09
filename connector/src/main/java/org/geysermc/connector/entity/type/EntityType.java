@@ -28,6 +28,7 @@ package org.geysermc.connector.entity.type;
 import lombok.Getter;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
+import org.geysermc.connector.entity.living.animal.SheepEntity;
 import org.geysermc.connector.entity.living.horse.HorseEntity;
 import org.geysermc.connector.entity.living.horse.LlamaEntity;
 import org.geysermc.connector.entity.living.monster.GuardianEntity;
@@ -39,7 +40,7 @@ public enum EntityType {
     CHICKEN(AnimalEntity.class, 10, 0.7f, 0.4f),
     COW(AnimalEntity.class, 11, 1.4f, 0.9f),
     PIG(AnimalEntity.class, 12, 0.9f),
-    SHEEP(AnimalEntity.class, 13, 1.3f, 0.9f),
+    SHEEP(SheepEntity.class, 13, 1.3f, 0.9f),
     WOLF(AnimalEntity.class, 14, 0.85f, 0.6f),
     VILLAGER(AbstractMerchantEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f),
     MOOSHROOM(AnimalEntity.class, 16, 1.4f, 0.9f),
