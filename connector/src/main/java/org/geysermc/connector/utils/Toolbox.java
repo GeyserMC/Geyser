@@ -133,7 +133,7 @@ public class Toolbox {
                                 continue bedrockLoop;
                             Object bedrockStateValue = bedrockStateTag.getValue();
                             if (bedrockStateValue instanceof Byte)
-                                bedrockStateValue = ((Byte) bedrockStateValue).intValue();
+                                bedrockStateValue = ((Byte) bedrockStateValue) != 0;
                             if (!stateEntry.getValue().equals(bedrockStateValue))
                                 continue bedrockLoop;
                         }
