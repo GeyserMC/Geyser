@@ -28,11 +28,18 @@ package org.geysermc.connector.entity.type;
 import lombok.Getter;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
+import org.geysermc.connector.entity.living.animal.AnimalEntity;
+import org.geysermc.connector.entity.living.animal.TameableEntity;
+import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.connector.entity.living.animal.RabbitEntity;
 import org.geysermc.connector.entity.living.animal.SheepEntity;
-import org.geysermc.connector.entity.living.horse.HorseEntity;
-import org.geysermc.connector.entity.living.horse.LlamaEntity;
-import org.geysermc.connector.entity.living.monster.GuardianEntity;
-import org.geysermc.connector.entity.living.monster.ZombieEntity;
+import org.geysermc.connector.entity.living.animal.horse.ChestedHorseEntity;
+import org.geysermc.connector.entity.living.animal.horse.HorseEntity;
+import org.geysermc.connector.entity.living.animal.horse.LlamaEntity;
+import org.geysermc.connector.entity.living.monster.*;
+import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
+import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
+import org.geysermc.connector.entity.living.monster.raid.SpellcasterIllagerEntity;
 
 @Getter
 public enum EntityType {

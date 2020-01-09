@@ -23,9 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living;
+package org.geysermc.connector.entity.living.animal;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class TameableEntity extends AnimalEntity {

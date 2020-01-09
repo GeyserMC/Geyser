@@ -23,15 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.horse;
+package org.geysermc.connector.entity.living.monster;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.living.ChestedHorseEntity;
 import org.geysermc.connector.entity.type.EntityType;
 
-public class LlamaEntity extends ChestedHorseEntity {
+public class AbstractSkeletonEntity extends MonsterEntity {
 
-    public LlamaEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public AbstractSkeletonEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 }
