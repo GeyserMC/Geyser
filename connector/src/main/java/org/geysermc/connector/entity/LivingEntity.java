@@ -30,8 +30,11 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
+import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
+
 import lombok.Getter;
 import lombok.Setter;
+
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -77,6 +80,11 @@ public class LivingEntity extends Entity {
         armorEquipmentPacket.setLeggings(leggings);
         armorEquipmentPacket.setBoots(boots);
 
+        MobEquipmentPacket mobEquipmentPacket = new MobEquipmentPacket();
+        mobEquipmentPacket.setRuntimeEntityId(geyserId);
+        mobEquipmentPacket.setItem(hand);
+
         session.getUpstream().sendPacket(armorEquipmentPacket);
+        session.getUpstream().sendPacket(mobEquipmentPacket);
     }
 }
