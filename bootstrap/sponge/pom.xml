@@ -26,7 +26,6 @@
     </dependencies>
     <build>
         <finalName>${outputName}-Sponge</finalName>
-        <directory>../../target</directory>
         <resources>
             <resource>
                 <directory>src/main/resources/</directory>
