@@ -40,7 +40,7 @@ public class BedrockPlayerInitializedTranslator extends PacketTranslator<SetLoca
 
                 if (!(session.getConnector().getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
                     session.getConnector().getLogger().info("Attempting to login using offline mode... authentication is disabled.");
-                    session.authenticate(session.getAuthenticationData().getName());
+                    session.authenticate(session.getAuthData().getName());
                 }
 
                 for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
