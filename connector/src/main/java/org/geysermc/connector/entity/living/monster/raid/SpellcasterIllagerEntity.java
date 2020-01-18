@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living;
+package org.geysermc.connector.entity.living.monster.raid;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
 
-public class ChestedHorseEntity extends AbstractHorseEntity {
+public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
 
-    public ChestedHorseEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public SpellcasterIllagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-    }
-
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // https://wiki.vg/Entity_metadata#Horse
-        metadata.getFlags().setFlag(EntityFlag.CHESTED, chestplate != null && chestplate.getId() != 0);
-
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 }
