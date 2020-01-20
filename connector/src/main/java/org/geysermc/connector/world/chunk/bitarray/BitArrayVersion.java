@@ -1,10 +1,17 @@
+/*
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ *
+ * This code in this file is derived from NukkitX and permission has
+ * been granted to us allowing the usage of it in Geyser.
+ *
+ * Copyright (C) 2020 The NukkitX Project
+ * https://github.com/NukkitX/Nukkit
+ */
+
 package org.geysermc.connector.world.chunk.bitarray;
 
 import org.geysermc.connector.utils.MathUtils;
 
-/**
- * Adapted from NukkitX: https://github.com/NukkitX/Nukkit
- */
 public enum BitArrayVersion {
     V16(16, 2, null),
     V8(8, 4, V16),

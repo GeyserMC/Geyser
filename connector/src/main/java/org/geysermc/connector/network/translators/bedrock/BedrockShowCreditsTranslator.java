@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.type.EntityType;
+import com.github.steveice10.mc.protocol.data.game.ClientRequest;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
+import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class MonsterEntity extends CreatureEntity {
+public class BedrockShowCreditsTranslator extends PacketTranslator<ShowCreditsPacket> {
 
-    public MonsterEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    @Override
+    public void translate(ShowCreditsPacket packet, GeyserSession session) {
+        if (packet.getStatus() == ShowCreditsPacket.Status.END_CREDITS) {
+            ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
+            session.getDownstream().getSession().send(javaRespawnPacket);
+        }
     }
 }
