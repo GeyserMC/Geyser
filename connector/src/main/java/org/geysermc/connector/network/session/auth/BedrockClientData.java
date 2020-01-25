@@ -78,7 +78,8 @@ public class BedrockClientData {
         WIN32,
         DEDICATED,
         ORBIS,
-        NX
+        NX,
+        SWITCH
     }
 
     public enum InputMode {
