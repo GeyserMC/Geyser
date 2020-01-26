@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.geysermc.common.IGeyserConfiguration;
 
+import java.io.File;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -60,6 +61,11 @@ public class GeyserConfiguration implements IGeyserConfiguration {
     private boolean allowThirdPartyCapes;
 
     private MetricsInfo metrics;
+
+    @Override
+    public File getFloodgateKeyFile() {
+        return new File(floodgateKeyFile);
+    }
 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
