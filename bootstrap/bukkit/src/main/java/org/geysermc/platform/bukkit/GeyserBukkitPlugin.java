@@ -41,7 +41,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
     public void onEnable() {
         saveDefaultConfig();
 
-        geyserConfig = new GeyserBukkitConfiguration(getConfig());
+        geyserConfig = new GeyserBukkitConfiguration(getDataFolder(), getConfig());
 
         if (geyserConfig.getMetrics().getUniqueId().equals("generateduuid")) {
             getConfig().set("metrics.uuid", UUID.randomUUID().toString());

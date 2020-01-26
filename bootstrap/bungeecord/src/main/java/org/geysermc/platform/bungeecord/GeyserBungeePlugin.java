@@ -73,7 +73,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
             return;
         }
 
-        geyserConfig = new GeyserBungeeConfiguration(configuration);
+        geyserConfig = new GeyserBungeeConfiguration(getDataFolder(), configuration);
 
         if (geyserConfig.getMetrics().getUniqueId().equals("generateduuid")) {
             configuration.set("metrics.uuid", UUID.randomUUID().toString());

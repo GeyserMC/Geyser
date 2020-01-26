@@ -73,7 +73,7 @@ public class GeyserSpongePlugin implements IGeyserBootstrap {
 
         ConfigurationLoader loader = YAMLConfigurationLoader.builder().setPath(configFile.toPath()).build();
         try {
-            this.geyserConfig = new GeyserSpongeConfiguration(loader.load());
+            this.geyserConfig = new GeyserSpongeConfiguration(configDir, loader.load());
         } catch (IOException ex) {
             logger.warn("Failed to load config.yml!");
             ex.printStackTrace();

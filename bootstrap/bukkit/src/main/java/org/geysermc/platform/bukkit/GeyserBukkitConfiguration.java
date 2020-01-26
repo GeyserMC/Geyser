@@ -28,12 +28,14 @@ package org.geysermc.platform.bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.geysermc.common.IGeyserConfiguration;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GeyserBukkitConfiguration implements IGeyserConfiguration {
 
     private FileConfiguration config;
+    private File dataFolder;
 
     private BukkitBedrockConfiguration bedrockConfig;
     private BukkitRemoteConfiguration remoteConfig;
@@ -41,7 +43,8 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
 
     private Map<String, BukkitUserAuthenticationInfo> userAuthInfo = new HashMap<>();
 
-    public GeyserBukkitConfiguration(FileConfiguration config) {
+    public GeyserBukkitConfiguration(File dataFolder, FileConfiguration config) {
+        this.dataFolder = dataFolder;
         this.config = config;
 
         bedrockConfig = new BukkitBedrockConfiguration();
@@ -97,8 +100,8 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public String getFloodgateKeyFile() {
-        return config.getString("floodgate-key-file", "public-key.pem");
+    public File getFloodgateKeyFile() {
+        return new File(dataFolder.toString() + config.getString("floodgate-key-file", "public-key.pem"));
     }
 
     @Override

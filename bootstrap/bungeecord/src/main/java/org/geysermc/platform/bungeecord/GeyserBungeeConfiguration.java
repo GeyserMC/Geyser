@@ -29,11 +29,13 @@ import net.md_5.bungee.config.Configuration;
 
 import org.geysermc.common.IGeyserConfiguration;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GeyserBungeeConfiguration implements IGeyserConfiguration {
 
+    private File dataFolder;
     private Configuration config;
 
     private BungeeBedrockConfiguration bedrockConfig;
@@ -42,7 +44,8 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
 
     private Map<String, BungeeUserAuthenticationInfo> userAuthInfo = new HashMap<>();
 
-    public GeyserBungeeConfiguration(Configuration config) {
+    public GeyserBungeeConfiguration(File dataFolder, Configuration config) {
+        this.dataFolder = dataFolder;
         this.config = config;
 
         bedrockConfig = new BungeeBedrockConfiguration();
@@ -98,8 +101,8 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public String getFloodgateKeyFile() {
-        return config.getString("floodgate-key-file", "public-key.pem");
+    public File getFloodgateKeyFile() {
+        return new File(dataFolder, config.getString("floodgate-key-file", "public-key.pem"));
     }
 
     @Override

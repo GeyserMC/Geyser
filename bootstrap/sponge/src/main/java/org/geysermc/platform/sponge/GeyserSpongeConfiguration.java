@@ -31,12 +31,14 @@ import ninja.leaping.configurate.ConfigurationNode;
 
 import org.geysermc.common.IGeyserConfiguration;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class GeyserSpongeConfiguration implements IGeyserConfiguration {
 
+    private File dataFolder;
     private ConfigurationNode node;
 
     private SpongeBedrockConfiguration bedrockConfig;
@@ -45,7 +47,8 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
 
     private Map<String, SpongeUserAuthenticationInfo> userAuthInfo = new HashMap<>();
 
-    public GeyserSpongeConfiguration(ConfigurationNode node) {
+    public GeyserSpongeConfiguration(File dataFolder, ConfigurationNode node) {
+        this.dataFolder = dataFolder;
         this.node = node;
 
         this.bedrockConfig = new SpongeBedrockConfiguration(node.getNode("bedrock"));
@@ -101,8 +104,8 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public String getFloodgateKeyFile() {
-        return node.getNode("floodgate-key-file").getString("public-key.pem");
+    public File getFloodgateKeyFile() {
+        return new File(dataFolder, node.getNode("floodgate-key-file").getString("public-key.pem"));
     }
 
     @Override
