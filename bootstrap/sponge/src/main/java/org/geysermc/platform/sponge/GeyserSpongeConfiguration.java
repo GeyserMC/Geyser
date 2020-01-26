@@ -32,6 +32,8 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.geysermc.common.IGeyserConfiguration;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,8 +106,8 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public File getFloodgateKeyFile() {
-        return new File(dataFolder, node.getNode("floodgate-key-file").getString("public-key.pem"));
+    public Path getFloodgateKeyFile() {
+        return Paths.get(dataFolder.toString(), node.getNode("floodgate-key-file").getString("public-key.pem"));
     }
 
     @Override

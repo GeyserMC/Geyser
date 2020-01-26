@@ -27,10 +27,13 @@ package org.geysermc.platform.standalone;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Getter;
+
 import org.geysermc.common.IGeyserConfiguration;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -63,8 +66,8 @@ public class GeyserConfiguration implements IGeyserConfiguration {
     private MetricsInfo metrics;
 
     @Override
-    public File getFloodgateKeyFile() {
-        return new File(floodgateKeyFile);
+    public Path getFloodgateKeyFile() {
+        return Paths.get(floodgateKeyFile);
     }
 
     @Getter

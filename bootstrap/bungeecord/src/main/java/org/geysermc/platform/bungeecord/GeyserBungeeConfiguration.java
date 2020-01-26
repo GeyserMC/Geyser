@@ -30,6 +30,8 @@ import net.md_5.bungee.config.Configuration;
 import org.geysermc.common.IGeyserConfiguration;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,8 +103,8 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public File getFloodgateKeyFile() {
-        return new File(dataFolder, config.getString("floodgate-key-file", "public-key.pem"));
+    public Path getFloodgateKeyFile() {
+        return Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
     }
 
     @Override

@@ -25,7 +25,7 @@
 
 package org.geysermc.common;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 
 public interface IGeyserConfiguration {
@@ -46,7 +46,7 @@ public interface IGeyserConfiguration {
 
     boolean isAllowThirdPartyCapes();
 
-    File getFloodgateKeyFile();
+    Path getFloodgateKeyFile();
 
     IMetricsInfo getMetrics();
 
