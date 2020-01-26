@@ -33,22 +33,18 @@ import java.util.List;
 
 public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
 
-    public EmptyBlockEntityTranslator(String javaId, String bedrockId) {
-        super(javaId, bedrockId);
-    }
-
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
         return new ArrayList<>();
     }
 
     @Override
-    public CompoundTag getDefaultJavaTag(int x, int y, int z) {
-        return getConstantJavaTag(x, y, z);
+    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
+        return getConstantJavaTag(javaId, x, y, z);
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z) {
-        return getConstantBedrockTag(x, y, z);
+    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        return getConstantBedrockTag(bedrockId, x, y, z);
     }
 }

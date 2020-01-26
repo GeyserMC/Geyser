@@ -36,10 +36,6 @@ import java.util.List;
 
 public class BannerBlockEntityTranslator extends BlockEntityTranslator {
 
-    public BannerBlockEntityTranslator(String javaId, String bedrockId) {
-        super(javaId, bedrockId);
-    }
-
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
         List<Tag<?>> tags = new ArrayList<>();
@@ -59,15 +55,15 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public CompoundTag getDefaultJavaTag(int x, int y, int z) {
-        CompoundTag tag = getConstantJavaTag(x, y, z);
+    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
+        CompoundTag tag = getConstantJavaTag(javaId, x, y, z);
         tag.put(new ListTag("Patterns"));
         return tag;
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(x, y, z).toBuilder();
+    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
         tagBuilder.listTag("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, new ArrayList<>());
         return tagBuilder.buildRootTag();
     }

@@ -38,10 +38,6 @@ import java.util.List;
 
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
-    public SignBlockEntityTranslator(String javaId, String bedrockId) {
-        super(javaId, bedrockId);
-    }
-
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
         List<Tag<?>> tags = new ArrayList<>();
@@ -61,8 +57,8 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public CompoundTag getDefaultJavaTag(int x, int y, int z) {
-        CompoundTag tag = getConstantJavaTag(x, y, z);
+    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
+        CompoundTag tag = getConstantJavaTag(javaId, x, y, z);
         tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text1", "{\"text\":\"\"}"));
         tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text2", "{\"text\":\"\"}"));
         tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text3", "{\"text\":\"\"}"));
@@ -71,8 +67,8 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(x, y, z).toBuilder();
+    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
         tagBuilder.stringTag("Text", "");
         return tagBuilder.buildRootTag();
     }

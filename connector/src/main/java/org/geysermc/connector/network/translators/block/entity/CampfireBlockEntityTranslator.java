@@ -39,10 +39,6 @@ import java.util.List;
 
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
 
-    public CampfireBlockEntityTranslator(String javaId, String bedrockId) {
-        super(javaId, bedrockId);
-    }
-
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
         List<Tag<?>> tags = new ArrayList<>();
@@ -56,15 +52,15 @@ public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public CompoundTag getDefaultJavaTag(int x, int y, int z) {
-        CompoundTag tag = getConstantJavaTag(x, y, z);
+    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
+        CompoundTag tag = getConstantJavaTag(javaId, x, y, z);
         tag.put(new ListTag("Items"));
         return tag;
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(x, y, z).toBuilder();
+    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
         tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item1", new HashMap<>()));
         tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item2", new HashMap<>()));
         tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item3", new HashMap<>()));

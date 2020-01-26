@@ -10,6 +10,8 @@ import org.geysermc.connector.network.translators.block.entity.BlockEntityTransl
 
 public class BlockEntityUtils {
 
+    private static final BlockEntityTranslator EMPTY_TRANSLATOR = TranslatorsInit.getBlockEntityTranslators().get("Empty");
+
     public static String getBedrockBlockEntityId(String id) {
         // This is the only exception when it comes to block entity ids
         if (id.contains("piston_head"))
@@ -30,7 +32,7 @@ public class BlockEntityUtils {
     public static BlockEntityTranslator getBlockEntityTranslator(String name) {
         BlockEntityTranslator blockEntityTranslator = TranslatorsInit.getBlockEntityTranslators().get(name);
         if (blockEntityTranslator == null) {
-            return TranslatorsInit.getBlockEntityTranslators().get("Empty");
+            return EMPTY_TRANSLATOR;
         }
 
         return blockEntityTranslator;

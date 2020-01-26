@@ -32,32 +32,30 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.Tag;
 
 import lombok.AllArgsConstructor;
+import org.geysermc.connector.utils.BlockEntityUtils;
 
 import java.util.List;
 
-@AllArgsConstructor
 public abstract class BlockEntityTranslator {
-
-    protected String javaId;
-    protected String bedrockId;
 
     public abstract List<Tag<?>> translateTag(CompoundTag tag);
 
-    public abstract CompoundTag getDefaultJavaTag(int x, int y, int z);
+    public abstract CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z);
 
-    public abstract com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(int x, int y, int z);
+    public abstract com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z);
 
     public com.nukkitx.nbt.tag.CompoundTag getBlockEntityTag(CompoundTag tag) {
         int x = Integer.parseInt(String.valueOf(tag.getValue().get("x").getValue()));
         int y = Integer.parseInt(String.valueOf(tag.getValue().get("y").getValue()));
         int z = Integer.parseInt(String.valueOf(tag.getValue().get("z").getValue()));
 
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(x, y, z).toBuilder();
+        CompoundTagBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(
+                String.valueOf(tag.get("id").getValue())), x, y, z).toBuilder();
         translateTag(tag).forEach(tagBuilder::tag);
         return tagBuilder.buildRootTag();
     }
 
-    protected CompoundTag getConstantJavaTag(int x, int y, int z) {
+    protected CompoundTag getConstantJavaTag(String javaId, int x, int y, int z) {
         CompoundTag tag = new CompoundTag("");
         tag.put(new IntTag("x", x));
         tag.put(new IntTag("y", y));
@@ -66,7 +64,7 @@ public abstract class BlockEntityTranslator {
         return tag;
     }
 
-    protected com.nukkitx.nbt.tag.CompoundTag getConstantBedrockTag(int x, int y, int z) {
+    protected com.nukkitx.nbt.tag.CompoundTag getConstantBedrockTag(String bedrockId, int x, int y, int z) {
         CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
                 .intTag("x", x)
                 .intTag("y", y)

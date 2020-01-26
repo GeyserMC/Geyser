@@ -69,7 +69,7 @@ public class ChunkUtils {
                         BlockEntry block = TranslatorsInit.getBlockTranslator().getBlockEntry(blockState);
                         if (block.getJavaIdentifier().contains("sign[")) {
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            chunkData.signs.put(block.getJavaId(), TranslatorsInit.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag(pos.getX(), pos.getY(), pos.getZ()));
+                            chunkData.signs.put(block.getJavaId(), TranslatorsInit.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag("Sign", pos.getX(), pos.getY(), pos.getZ()));
                         } else {
                             section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), block.getBedrockRuntimeId());
                         }

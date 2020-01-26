@@ -176,10 +176,10 @@ public class TranslatorsInit {
     }
 
     private static void registerBlockEntityTranslators() {
-        blockEntityTranslators.put("Empty", new EmptyBlockEntityTranslator("empty", "Empty"));
-        blockEntityTranslators.put("Sign", new SignBlockEntityTranslator("minecraft:sign", "Sign"));
-        blockEntityTranslators.put("Campfire", new CampfireBlockEntityTranslator("minecraft:campfire", "Campfire"));
-        blockEntityTranslators.put("Banner", new BannerBlockEntityTranslator("minecraft:banner", "Banner"));
+        blockEntityTranslators.put("Empty", new EmptyBlockEntityTranslator());
+        blockEntityTranslators.put("Sign", new SignBlockEntityTranslator());
+        blockEntityTranslators.put("Campfire", new CampfireBlockEntityTranslator());
+        blockEntityTranslators.put("Banner", new BannerBlockEntityTranslator());
     }
 
     private static void registerInventoryTranslators() {
