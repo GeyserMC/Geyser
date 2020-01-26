@@ -191,7 +191,7 @@ public class Entity {
                     metadata.put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(name));
                 break;
             case 3: // is custom name visible
-                metadata.getFlags().setFlag(EntityFlag.ALWAYS_SHOW_NAME, (boolean) entityMetadata.getValue());
+                metadata.put(EntityData.ALWAYS_SHOW_NAMETAG, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
                 break;
             case 4: // silent
                 metadata.getFlags().setFlag(EntityFlag.SILENT, (boolean) entityMetadata.getValue());
