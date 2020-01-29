@@ -40,11 +40,6 @@ public class BedrockPlayerInitializedTranslator extends PacketTranslator<SetLoca
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);
 
-                if (!(session.getConnector().getAuthType() == AuthType.OFFLINE)) {
-                    session.getConnector().getLogger().info("Attempting to login using offline mode... authentication is disabled.");
-                    session.authenticate(session.getAuthData().getName());
-                }
-
                 for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
                     if (!entity.isValid()) {
                         // async skin loading
