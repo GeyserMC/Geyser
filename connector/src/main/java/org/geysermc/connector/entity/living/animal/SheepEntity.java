@@ -23,30 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity;
+package org.geysermc.connector.entity.living.animal;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class ExpOrbEntity extends Entity {
+public class SheepEntity extends AnimalEntity {
 
-    private int amount;
-
-    public ExpOrbEntity(int amount, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public SheepEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-
-        this.amount = amount;
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
-        SpawnExperienceOrbPacket spawnExpOrbPacket = new SpawnExperienceOrbPacket();
-        spawnExpOrbPacket.setPosition(position);
-        spawnExpOrbPacket.setAmount(amount);
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 16) {
+            byte xd = (byte) entityMetadata.getValue();
+            metadata.getFlags().setFlag(EntityFlag.SHEARED, (xd & 0x10) == 0x10);
+            metadata.put(EntityData.COLOR, xd);
+        }
 
-        valid = true;
-        session.getUpstream().sendPacket(spawnExpOrbPacket);
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

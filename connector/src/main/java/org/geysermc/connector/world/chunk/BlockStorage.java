@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ *
+ * This code in this file is derived from NukkitX and permission has
+ * been granted to us allowing the usage of it in Geyser.
+ *
+ * Copyright (C) 2020 The NukkitX Project
+ * https://github.com/NukkitX/Nukkit
+ */
+
 package org.geysermc.connector.world.chunk;
 
 import com.nukkitx.network.VarInts;
@@ -9,9 +19,6 @@ import org.geysermc.connector.world.chunk.bitarray.BitArrayVersion;
 
 import java.util.function.IntConsumer;
 
-/**
- * Adapted from NukkitX: https://github.com/NukkitX/Nukkit
- */
 public class BlockStorage {
 
     private static final int SIZE = 4096;

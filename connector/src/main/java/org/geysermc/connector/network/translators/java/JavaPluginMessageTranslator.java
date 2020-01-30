@@ -23,30 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity;
+package org.geysermc.connector.network.translators.java;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
-import org.geysermc.connector.entity.type.EntityType;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class ExpOrbEntity extends Entity {
-
-    private int amount;
-
-    public ExpOrbEntity(int amount, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-
-        this.amount = amount;
-    }
-
+public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMessagePacket> {
     @Override
-    public void spawnEntity(GeyserSession session) {
-        SpawnExperienceOrbPacket spawnExpOrbPacket = new SpawnExperienceOrbPacket();
-        spawnExpOrbPacket.setPosition(position);
-        spawnExpOrbPacket.setAmount(amount);
-
-        valid = true;
-        session.getUpstream().sendPacket(spawnExpOrbPacket);
+    public void translate(ServerPluginMessagePacket packet, GeyserSession session) {
+        if (packet.getChannel().equals("minecraft:brand")) {
+            session.getDownstream().getSession().send(
+                    new ClientPluginMessagePacket(packet.getChannel(), GeyserConnector.NAME.getBytes())
+            );
+        }
     }
 }
