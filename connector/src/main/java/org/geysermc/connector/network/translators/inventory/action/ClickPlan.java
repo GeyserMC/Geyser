@@ -61,7 +61,7 @@ class ClickPlan {
                 refresh = true;
 
             ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(inventory.getId(),
-                    actionId, action.slot, !planIter.hasNext() && refresh ? InventoryUtils.REFRESH_ITEM : InventoryUtils.fixStack(clickedItem),
+                    actionId, action.slot, !planIter.hasNext() && refresh ? InventoryUtils.REFRESH_ITEM : clickedItem,
                     WindowAction.CLICK_ITEM, action.click.actionParam);
 
             if (translator.getSlotType(action.slot) == SlotType.OUTPUT) {

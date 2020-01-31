@@ -182,7 +182,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         } else {
                             javaItem = TranslatorsInit.getItemTranslator().translateToJava(action.getToItem());
                         }
-                        ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(javaSlot, InventoryUtils.fixStack(javaItem));
+                        ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(javaSlot, javaItem);
                         session.getDownstream().getSession().send(creativePacket);
                         inventory.setItem(javaSlot, javaItem);
                         break;
@@ -195,7 +195,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                                 && action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
                             javaItem = TranslatorsInit.getItemTranslator().translateToJava(action.getToItem());
-                            ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, InventoryUtils.fixStack(javaItem));
+                            ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, javaItem);
                             session.getDownstream().getSession().send(creativeDropPacket);
                         }
                         break;

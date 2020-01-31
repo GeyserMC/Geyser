@@ -87,13 +87,6 @@ public class InventoryUtils {
         session.getUpstream().sendPacket(cursorPacket);
     }
 
-    //NPE if compound tag is null
-    public static ItemStack fixStack(ItemStack stack) {
-        if (stack == null || stack.getId() == 0)
-            return null;
-        return new ItemStack(stack.getId(), stack.getAmount(), stack.getNbt() == null ? new CompoundTag("") : stack.getNbt());
-    }
-
     public static boolean canStack(ItemStack item1, ItemStack item2) {
         if (item1 == null || item2 == null)
             return false;
