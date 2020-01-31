@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,11 @@ package org.geysermc.connector.network.translators.inventory;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 
 public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
     public EnchantmentInventoryTranslator() {
-        super(2, "minecraft:enchanting_table", ContainerType.ENCHANTMENT);
+        super(2, "minecraft:enchanting_table", ContainerType.ENCHANTMENT, new ContainerInventoryUpdater());
     }
 
     @Override

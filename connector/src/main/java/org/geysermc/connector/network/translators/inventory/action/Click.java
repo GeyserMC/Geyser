@@ -23,10 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory;
+package org.geysermc.connector.network.translators.inventory.action;
 
-public enum SlotType {
-    NORMAL,
-    OUTPUT,
-    FURNACE_OUTPUT
+import com.github.steveice10.mc.protocol.data.game.window.ClickItemParam;
+import com.github.steveice10.mc.protocol.data.game.window.WindowActionParam;
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
+enum Click {
+    LEFT(ClickItemParam.LEFT_CLICK),
+    RIGHT(ClickItemParam.RIGHT_CLICK);
+
+    public final WindowActionParam actionParam;
 }

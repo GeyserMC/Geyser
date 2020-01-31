@@ -23,10 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory;
+package org.geysermc.connector.network.translators.java.entity.player;
 
-public enum SlotType {
-    NORMAL,
-    OUTPUT,
-    FURNACE_OUTPUT
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerChangeHeldItemPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+
+public class JavaPlayerChangeHeldItemTranslator extends PacketTranslator<ServerPlayerChangeHeldItemPacket> {
+
+    @Override
+    public void translate(ServerPlayerChangeHeldItemPacket packet, GeyserSession session) {
+        PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
+        hotbarPacket.setContainerId(0);
+        hotbarPacket.setSelectedHotbarSlot(packet.getSlot());
+        hotbarPacket.setSelectHotbarSlot(true);
+        session.getUpstream().sendPacket(hotbarPacket);
+
+        session.getInventory().setHeldItemSlot(packet.getSlot());
+    }
 }

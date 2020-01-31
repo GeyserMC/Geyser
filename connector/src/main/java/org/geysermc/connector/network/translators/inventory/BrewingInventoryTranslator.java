@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,11 @@ import com.nukkitx.protocol.bedrock.data.InventoryAction;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 
-public class BrewingStandInventoryTranslator extends BlockInventoryTranslator {
-    public BrewingStandInventoryTranslator() {
-        super(5, "minecraft:brewing_stand[has_bottle_0=false,has_bottle_1=false,has_bottle_2=false]", ContainerType.BREWING_STAND);
+public class BrewingInventoryTranslator extends BlockInventoryTranslator {
+    public BrewingInventoryTranslator() {
+        super(5, "minecraft:brewing_stand[has_bottle_0=false,has_bottle_1=false,has_bottle_2=false]", ContainerType.BREWING_STAND, new ContainerInventoryUpdater());
     }
 
     @Override
@@ -66,8 +67,8 @@ public class BrewingStandInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryAction action) {
-        int slotnum = super.bedrockSlotToJava(action);
-        switch (slotnum) {
+        final int slot = super.bedrockSlotToJava(action);
+        switch (slot) {
             case 0:
                 return 3;
             case 1:
@@ -77,13 +78,13 @@ public class BrewingStandInventoryTranslator extends BlockInventoryTranslator {
             case 3:
                 return 2;
             default:
-                return slotnum;
+                return slot;
         }
     }
 
     @Override
-    public int javaSlotToBedrock(int slotnum) {
-        switch (slotnum) {
+    public int javaSlotToBedrock(int slot) {
+        switch (slot) {
             case 0:
                 return 1;
             case 1:
@@ -92,8 +93,7 @@ public class BrewingStandInventoryTranslator extends BlockInventoryTranslator {
                 return 3;
             case 3:
                 return 0;
-            default:
-                return slotnum;
         }
+        return super.javaSlotToBedrock(slot);
     }
 }

@@ -26,37 +26,10 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.ItemData;
-import com.nukkitx.protocol.bedrock.packet.*;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
 
 public class SingleChestInventoryTranslator extends BlockInventoryTranslator {
     public SingleChestInventoryTranslator(int size) {
-        super(size, "minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER);
-    }
-
-    @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        //need to pad empty slots for 1x9 and 2x9
-        ItemData[] bedrockItems = new ItemData[27];
-        for (int i = 0; i < bedrockItems.length; i++) {
-            if (i <= this.size) {
-                bedrockItems[i] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(i));
-            } else {
-                bedrockItems[i] = ItemData.AIR;
-            }
-        }
-        InventoryContentPacket contentPacket = new InventoryContentPacket();
-        contentPacket.setContainerId(inventory.getId());
-        contentPacket.setContents(bedrockItems);
-        session.getUpstream().sendPacket(contentPacket);
-
-        Inventory playerInventory = session.getInventory();
-        for (int i = 0; i < 36; i++) {
-            playerInventory.setItem(i + 9, inventory.getItem(i + this.size));
-        }
-        TranslatorsInit.getInventoryTranslators().get(playerInventory.getWindowType()).updateInventory(session, playerInventory);
+        super(size, "minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER, new ChestInventoryUpdater(27));
     }
 }

@@ -80,7 +80,7 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             InventoryTranslator openTranslator = TranslatorsInit.getInventoryTranslators().get(openInventory.getWindowType());
             if (!openTranslator.getClass().equals(newTranslator.getClass())) {
                 InventoryUtils.closeInventory(session, openInventory.getId());
-                Geyser.getGeneralThreadPool().schedule(() -> InventoryUtils.openInventory(session, newInventory), 350, TimeUnit.MILLISECONDS);
+                Geyser.getGeneralThreadPool().schedule(() -> InventoryUtils.openInventory(session, newInventory), 500, TimeUnit.MILLISECONDS);
                 return;
             }
         }

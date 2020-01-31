@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,54 +26,57 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryAction;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.action.InventoryActionTranslator;
 
-public class CraftingTableInventoryTranslator extends ContainerInventoryTranslator {
-    public CraftingTableInventoryTranslator() {
-        super(10);
+import java.util.List;
+
+public abstract class BaseInventoryTranslator extends InventoryTranslator{
+    BaseInventoryTranslator(int size) {
+        super(size);
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-
-    }
-
-    @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) ContainerType.WORKBENCH.id());
-        containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
-        containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        session.getUpstream().sendPacket(containerOpenPacket);
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+        //
     }
 
     @Override
     public int bedrockSlotToJava(InventoryAction action) {
-        if (action.getSource().getContainerId() == ContainerId.CURSOR) {
-            int slotnum = action.getSlot();
-            if (slotnum >= 32 && 42 >= slotnum) {
-                return slotnum - 31;
-            } else if (slotnum == 50) {
-                return 0;
+        int slotnum = action.getSlot();
+        if (action.getSource().getContainerId() == ContainerId.INVENTORY) {
+            //hotbar
+            if (slotnum >= 9) {
+                return slotnum + this.size - 9;
+            } else {
+                return slotnum + this.size + 27;
             }
         }
-        return super.bedrockSlotToJava(action);
+        return slotnum;
+    }
+
+    @Override
+    public int javaSlotToBedrock(int slot) {
+        if (slot >= this.size) {
+            final int tmp = slot - this.size;
+            if (tmp < 27) {
+                return tmp + 9;
+            } else {
+                return tmp - 27;
+            }
+        }
+        return slot;
     }
 
     @Override
     public SlotType getSlotType(int javaSlot) {
-        if (javaSlot == 0)
-            return SlotType.OUTPUT;
         return SlotType.NORMAL;
+    }
+
+    @Override
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryAction> actions) {
+        InventoryActionTranslator.translate(this, session, inventory, actions);
     }
 }

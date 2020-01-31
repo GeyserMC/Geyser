@@ -25,6 +25,11 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.api.Geyser;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -32,9 +37,11 @@ import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class InventoryUtils {
+    public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag("")); //TODO: stop using this
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType());
@@ -70,5 +77,32 @@ public class InventoryUtils {
         }
         session.setCraftSlot(0);
         session.getInventory().setCursor(null);
+    }
+
+    public static void updateCursor(GeyserSession session) {
+        InventorySlotPacket cursorPacket = new InventorySlotPacket();
+        cursorPacket.setContainerId(ContainerId.CURSOR);
+        cursorPacket.setInventorySlot(0);
+        cursorPacket.setSlot(TranslatorsInit.getItemTranslator().translateToBedrock(session.getInventory().getCursor()));
+        session.getUpstream().sendPacket(cursorPacket);
+    }
+
+    //NPE if compound tag is null
+    public static ItemStack fixStack(ItemStack stack) {
+        if (stack == null || stack.getId() == 0)
+            return null;
+        return new ItemStack(stack.getId(), stack.getAmount(), stack.getNbt() == null ? new CompoundTag("") : stack.getNbt());
+    }
+
+    public static boolean canStack(ItemStack item1, ItemStack item2) {
+        if (item1 == null || item2 == null)
+            return false;
+        return item1.getId() == item2.getId() && Objects.equals(item1.getNbt(), item2.getNbt());
+    }
+
+    public static boolean canStack(ItemData item1, ItemData item2) {
+        if (item1 == null || item2 == null)
+            return false;
+        return item1.equals(item2, false, true, true);
     }
 }

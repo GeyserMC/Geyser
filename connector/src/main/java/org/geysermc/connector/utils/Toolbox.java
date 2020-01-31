@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
@@ -150,31 +151,31 @@ public class Toolbox {
 
         InputStream creativeItemStream = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/creative_items.json");
         ObjectMapper creativeItemMapper = new ObjectMapper();
-        List<LinkedHashMap<String, Object>> creativeItemEntries = new ArrayList<>();
+        JsonNode creativeItemEntries;
 
         try {
-            creativeItemEntries = (ArrayList<LinkedHashMap<String, Object>>) creativeItemMapper.readValue(creativeItemStream, HashMap.class).get("items");
+            creativeItemEntries = creativeItemMapper.readTree(creativeItemStream).get("items");
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new AssertionError("Unable to load creative items", e);
         }
 
         List<ItemData> creativeItems = new ArrayList<>();
-        for (Map<String, Object> map : creativeItemEntries) {
+        for (JsonNode itemNode : creativeItemEntries) {
             short damage = 0;
-            if (map.containsKey("damage")) {
-                damage = (short)(int) map.get("damage");
+            if (itemNode.has("damage")) {
+                damage = itemNode.get("damage").numberValue().shortValue();
             }
-            if (map.containsKey("nbt_b64")) {
-                byte[] bytes = Base64.getDecoder().decode((String) map.get("nbt_b64"));
+            if (itemNode.has("nbt_b64")) {
+                byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
                 ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
                 try {
                     com.nukkitx.nbt.tag.CompoundTag tag = (com.nukkitx.nbt.tag.CompoundTag) NbtUtils.createReaderLE(bais).readTag();
-                    creativeItems.add(ItemData.of((int) map.get("id"), damage, 1, tag));
+                    creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             } else {
-                creativeItems.add(ItemData.of((int) map.get("id"), damage, 1));
+                creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1));
             }
         }
 

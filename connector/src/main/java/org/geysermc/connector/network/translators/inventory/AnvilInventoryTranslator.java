@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +25,20 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryAction;
+import com.nukkitx.protocol.bedrock.data.ItemData;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
+
+import java.util.List;
 
 public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     public AnvilInventoryTranslator() {
-        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL);
+        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, new CursorInventoryUpdater());
     }
 
     @Override
@@ -50,9 +57,61 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
+    public int javaSlotToBedrock(int slot) {
+        switch (slot) {
+            case 0:
+                return 1;
+            case 1:
+                return 2;
+            case 2:
+                return 50;
+        }
+        return super.javaSlotToBedrock(slot);
+    }
+
+    @Override
     public SlotType getSlotType(int javaSlot) {
         if (javaSlot == 2)
             return SlotType.OUTPUT;
         return SlotType.NORMAL;
+    }
+
+    @Override
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryAction> actions) {
+        InventoryAction anvilResult = null;
+        InventoryAction anvilInput = null;
+        for (InventoryAction action : actions) {
+            if (action.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL) {
+                //useless packet
+                return;
+            } else if (action.getSource().getContainerId() == ContainerId.ANVIL_RESULT) {
+                anvilResult = action;
+            } else if (bedrockSlotToJava(action) == 0) {
+                anvilInput = action;
+            }
+        }
+        ItemData itemName = null;
+        if (anvilResult != null) {
+            itemName = anvilResult.getFromItem();
+        } else if (anvilInput != null) {
+            itemName = anvilInput.getToItem();
+        }
+        if (itemName != null) {
+            String rename;
+            com.nukkitx.nbt.tag.CompoundTag tag = itemName.getTag();
+            if (tag != null) {
+                rename = tag.getAsCompound("display").getAsString("Name");
+            } else {
+                rename = "";
+            }
+            ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
+            session.getDownstream().getSession().send(renameItemPacket);
+        }
+        if (anvilResult != null) {
+            //client will send another packet to grab anvil output
+            return;
+        }
+
+        super.translateActions(session, inventory, actions);
     }
 }

@@ -31,6 +31,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.Objects;
 
@@ -43,8 +44,9 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 return;
             if (session.getCraftSlot() != 0)
                 return;
-            //bedrock client is bugged when changing the cursor. do not send slot update packet
+
             session.getInventory().setCursor(packet.getItem());
+            InventoryUtils.updateCursor(session);
             return;
         }
 

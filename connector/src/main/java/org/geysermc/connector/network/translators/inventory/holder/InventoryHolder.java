@@ -23,10 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory;
+package org.geysermc.connector.network.translators.inventory.holder;
 
-public enum SlotType {
-    NORMAL,
-    OUTPUT,
-    FURNACE_OUTPUT
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+
+public abstract class InventoryHolder {
+    public abstract void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
+    public abstract void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
+    public abstract void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
 }

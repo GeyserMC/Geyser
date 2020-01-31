@@ -74,9 +74,8 @@ public class ItemTranslator {
     }
 
     public ItemData translateToBedrock(ItemStack stack) {
-        // Most likely dirt if null
         if (stack == null) {
-            return ItemData.of(3, (short)0, 0);
+            return ItemData.AIR;
         }
 
         ItemEntry bedrockItem = getItem(stack);

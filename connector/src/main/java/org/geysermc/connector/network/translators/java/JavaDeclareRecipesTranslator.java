@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,8 +49,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclareRecipesPacket> {
-
-    private final int[] brewingIngredients = new int[]{372, 331, 348, 376, 289, 437, 353, 414, 382, 375, 462, 378, 396, 377, 370, 469, 470};
+    private static final Collection<PotionMixData> POTION_MIXES =
+            Arrays.stream(new int[]{372, 331, 348, 376, 289, 437, 353, 414, 382, 375, 462, 378, 396, 377, 370, 469, 470})
+            .mapToObj(ingredient -> new PotionMixData(0, ingredient, 0))
+            .collect(Collectors.toList());
 
     @Override
     public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
@@ -61,6 +63,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 case CRAFTING_SHAPELESS: {
                     ShapelessRecipeData shapelessRecipeData = (ShapelessRecipeData) recipe.getData();
                     ItemData output = TranslatorsInit.getItemTranslator().translateToBedrock(shapelessRecipeData.getResult());
+                    output = ItemData.of(output.getId(), output.getDamage(), output.getCount()); //strip NBT
                     ItemData[][] inputCombinations = combinations(shapelessRecipeData.getIngredients());
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
@@ -72,6 +75,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 case CRAFTING_SHAPED: {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
                     ItemData output = TranslatorsInit.getItemTranslator().translateToBedrock(shapedRecipeData.getResult());
+                    output = ItemData.of(output.getId(), output.getDamage(), output.getCount()); //strip NBT
                     ItemData[][] inputCombinations = combinations(shapedRecipeData.getIngredients());
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
@@ -83,12 +87,11 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 }
             }
         }
-        for (int brewingIngredient : brewingIngredients) {
-            craftingDataPacket.getPotionMixData().add(new PotionMixData(0, brewingIngredient, 0));
-        }
+        craftingDataPacket.getPotionMixData().addAll(POTION_MIXES);
         session.getUpstream().sendPacket(craftingDataPacket);
     }
 
+    //TODO: rewrite
     private ItemData[][] combinations(Ingredient[] ingredients) {
         Map<Set<ItemData>, IntSet> squashedOptions = new HashMap<>();
         for (int i = 0; i < ingredients.length; i++) {

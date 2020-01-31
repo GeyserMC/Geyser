@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,11 @@ import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 
 public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
     public FurnaceInventoryTranslator() {
-        super(3, "minecraft:furnace[facing=north,lit=false]", ContainerType.FURNACE);
+        super(3, "minecraft:furnace[facing=north,lit=false]", ContainerType.FURNACE, new ContainerInventoryUpdater());
     }
 
     @Override

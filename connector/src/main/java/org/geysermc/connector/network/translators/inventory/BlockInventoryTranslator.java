@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,70 +25,47 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.network.translators.block.BlockEntry;
+import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
+import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
-public class BlockInventoryTranslator extends ContainerInventoryTranslator {
-    final int blockId;
-    private final ContainerType containerType;
+public class BlockInventoryTranslator extends BaseInventoryTranslator {
+    private final InventoryHolder holder;
+    private final InventoryUpdater updater;
 
-    public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType) {
+    public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater) {
         super(size);
-        this.blockId = TranslatorsInit.getBlockTranslator().getBlockEntry(javaBlockIdentifier).getBedrockRuntimeId();
-        this.containerType = containerType;
+        final int blockId = TranslatorsInit.getBlockTranslator().getBlockEntry(javaBlockIdentifier).getBedrockRuntimeId();
+        this.holder = new BlockInventoryHolder(blockId, containerType);
+        this.updater = updater;
     }
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
-        Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        position = position.add(Vector3i.UP);
-        UpdateBlockPacket blockPacket = new UpdateBlockPacket();
-        blockPacket.setDataLayer(0);
-        blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(blockId);
-        blockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        session.getUpstream().sendPacket(blockPacket);
-        inventory.setHolderPosition(position);
-
-        CompoundTag tag = CompoundTag.EMPTY.toBuilder()
-                .intTag("x", position.getX())
-                .intTag("y", position.getY())
-                .intTag("z", position.getZ())
-                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
-        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
-        dataPacket.setData(tag);
-        dataPacket.setBlockPosition(position);
-        session.getUpstream().sendPacket(dataPacket);
+        holder.prepareInventory(this, session, inventory);
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) containerType.id());
-        containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
-        containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        session.getUpstream().sendPacket(containerOpenPacket);
+        holder.openInventory(this, session, inventory);
     }
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        Vector3i holderPos = inventory.getHolderPosition();
-        Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        BlockEntry realBlock = session.getChunkCache().getBlockAt(pos);
-        UpdateBlockPacket blockPacket = new UpdateBlockPacket();
-        blockPacket.setDataLayer(0);
-        blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(realBlock.getBedrockRuntimeId());
-        session.getUpstream().sendPacket(blockPacket);
+        holder.closeInventory(this, session, inventory);
+    }
+
+    @Override
+    public void updateInventory(GeyserSession session, Inventory inventory) {
+        updater.updateInventory(this, session, inventory);
+    }
+
+    @Override
+    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
+        updater.updateSlot(this, session, inventory, slot);
     }
 }

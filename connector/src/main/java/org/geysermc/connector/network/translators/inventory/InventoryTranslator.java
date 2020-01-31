@@ -26,15 +26,15 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.nukkitx.protocol.bedrock.data.InventoryAction;
+import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.List;
+
+@AllArgsConstructor
 public abstract class InventoryTranslator {
     public final int size;
-
-    InventoryTranslator(int size) {
-        this.size = size;
-    }
 
     public abstract void prepareInventory(GeyserSession session, Inventory inventory);
     public abstract void openInventory(GeyserSession session, Inventory inventory);
@@ -45,4 +45,5 @@ public abstract class InventoryTranslator {
     public abstract int bedrockSlotToJava(InventoryAction action);
     public abstract int javaSlotToBedrock(int slot);
     public abstract SlotType getSlotType(int javaSlot);
+    public abstract void translateActions(GeyserSession session, Inventory inventory, List<InventoryAction> actions);
 }

@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory;
+package org.geysermc.connector.network.translators.inventory.holder;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
@@ -32,83 +32,52 @@ import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockEntry;
-import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
-import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
-public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
+@AllArgsConstructor
+public class BlockInventoryHolder extends InventoryHolder {
     private final int blockId;
-    private final InventoryUpdater updater;
-
-    public DoubleChestInventoryTranslator(int size) {
-        super(size);
-        this.blockId = TranslatorsInit.getBlockTranslator().getBlockEntry("minecraft:chest[facing=north,type=single,waterlogged=false]").getBedrockRuntimeId();
-        this.updater = new ChestInventoryUpdater(54);
-    }
+    private final ContainerType containerType;
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        Vector3i position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
-        Vector3i pairPosition = position.add(Vector3i.UNIT_X);
-
+    public void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+        Vector3i position = session.getPlayerEntity().getPosition().toInt();
+        position = position.add(Vector3i.UP);
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
         blockPacket.setRuntimeId(blockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.getUpstream().sendPacket(blockPacket);
+        inventory.setHolderPosition(position);
 
         CompoundTag tag = CompoundTag.builder()
-                .stringTag("id", "Chest")
                 .intTag("x", position.getX())
                 .intTag("y", position.getY())
                 .intTag("z", position.getZ())
-                .intTag("pairx", pairPosition.getX())
-                .intTag("pairz", pairPosition.getZ())
                 .stringTag("CustomName", inventory.getTitle()).buildRootTag();
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(position);
         session.getUpstream().sendPacket(dataPacket);
-
-        blockPacket = new UpdateBlockPacket();
-        blockPacket.setDataLayer(0);
-        blockPacket.setBlockPosition(pairPosition);
-        blockPacket.setRuntimeId(blockId);
-        blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-        session.getUpstream().sendPacket(blockPacket);
-
-        tag = CompoundTag.builder()
-                .stringTag("id", "Chest")
-                .intTag("x", pairPosition.getX())
-                .intTag("y", pairPosition.getY())
-                .intTag("z", pairPosition.getZ())
-                .intTag("pairx", position.getX())
-                .intTag("pairz", position.getZ())
-                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
-        dataPacket = new BlockEntityDataPacket();
-        dataPacket.setData(tag);
-        dataPacket.setBlockPosition(pairPosition);
-        session.getUpstream().sendPacket(dataPacket);
-
-        inventory.setHolderPosition(position);
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) ContainerType.CONTAINER.id());
+        containerOpenPacket.setType((byte) containerType.id());
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
         session.getUpstream().sendPacket(containerOpenPacket);
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
+    public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         Vector3i holderPos = inventory.getHolderPosition();
         Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
         BlockEntry realBlock = session.getChunkCache().getBlockAt(pos);
@@ -117,24 +86,5 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         blockPacket.setBlockPosition(holderPos);
         blockPacket.setRuntimeId(realBlock.getBedrockRuntimeId());
         session.getUpstream().sendPacket(blockPacket);
-
-        holderPos = holderPos.add(Vector3i.UNIT_X);
-        pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        realBlock = session.getChunkCache().getBlockAt(pos);
-        blockPacket = new UpdateBlockPacket();
-        blockPacket.setDataLayer(0);
-        blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(realBlock.getBedrockRuntimeId());
-        session.getUpstream().sendPacket(blockPacket);
-    }
-
-    @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
-    }
-
-    @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
     }
 }
