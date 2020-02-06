@@ -77,13 +77,13 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     levelChunkPacket.setData(payload);
                     session.getUpstream().sendPacket(levelChunkPacket);
                 } else {
+                    final int xOffset = packet.getColumn().getX() << 4;
+                    final int zOffset = packet.getColumn().getZ() << 4;
                     Chunk[] chunks = packet.getColumn().getChunks();
                     for (int i = 0; i < chunks.length; i++) {
                         Chunk chunk = chunks[i];
                         if (chunk == null) continue;
-                        final int xOffset = packet.getColumn().getX() << 4;
                         final int yOffset = i * 16;
-                        final int zOffset = packet.getColumn().getZ() << 4;
                         for (int x = 0; x < 16; x++) {
                             for (int y = 0; y < 16; y++) {
                                 for (int z = 0; z < 16; z++) {

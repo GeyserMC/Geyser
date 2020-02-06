@@ -50,7 +50,7 @@ public class Toolbox {
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
     public static final Int2ObjectMap<BlockEntry> BLOCK_ENTRIES = new Int2ObjectOpenHashMap<>();
-    public static final Map<String, BlockEntry> JAVA_IDENTIFIER_TO_ENTRY = new HashMap<>();
+    public static final Map<String, BlockEntry> JAVA_IDENTIFIER_TO_BLOCK_ENTRY = new HashMap<>();
 
     public static void init() {
         InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/runtime_block_states.dat");
@@ -141,7 +141,7 @@ public class Toolbox {
                     }
                     BlockEntry blockEntry = new BlockEntry(javaEntry.getKey(), javaIndex, bedrockIndex);
                     BLOCK_ENTRIES.put(javaIndex, blockEntry);
-                    JAVA_IDENTIFIER_TO_ENTRY.put(javaEntry.getKey(), blockEntry);
+                    JAVA_IDENTIFIER_TO_BLOCK_ENTRY.put(javaEntry.getKey(), blockEntry);
                     continue javaLoop;
                 }
             }

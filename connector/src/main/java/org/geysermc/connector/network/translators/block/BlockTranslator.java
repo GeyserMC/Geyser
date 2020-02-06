@@ -34,6 +34,6 @@ public class BlockTranslator {
     }
 
     public BlockEntry getBlockEntry(String javaIdentifier) {
-        return Toolbox.JAVA_IDENTIFIER_TO_ENTRY.get(javaIdentifier);
+        return Toolbox.JAVA_IDENTIFIER_TO_BLOCK_ENTRY.get(javaIdentifier);
     }
 }
