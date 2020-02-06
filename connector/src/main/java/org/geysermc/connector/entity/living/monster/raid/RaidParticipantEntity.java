@@ -23,30 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity;
+package org.geysermc.connector.entity.living.monster.raid;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
+import org.geysermc.connector.entity.living.monster.MonsterEntity;
 import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
 
-public class ExpOrbEntity extends Entity {
+public class RaidParticipantEntity extends MonsterEntity {
 
-    private int amount;
-
-    public ExpOrbEntity(int amount, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public RaidParticipantEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-
-        this.amount = amount;
-    }
-
-    @Override
-    public void spawnEntity(GeyserSession session) {
-        SpawnExperienceOrbPacket spawnExpOrbPacket = new SpawnExperienceOrbPacket();
-        spawnExpOrbPacket.setPosition(position);
-        spawnExpOrbPacket.setAmount(amount);
-
-        valid = true;
-        session.getUpstream().sendPacket(spawnExpOrbPacket);
     }
 }

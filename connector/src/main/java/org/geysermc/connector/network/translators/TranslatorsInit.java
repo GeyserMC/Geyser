@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -95,6 +95,7 @@ public class TranslatorsInit {
 
     public static void start() {
         Registry.registerJava(ServerJoinGamePacket.class, new JavaJoinGameTranslator());
+        Registry.registerJava(ServerPluginMessagePacket.class, new JavaPluginMessageTranslator());
         Registry.registerJava(ServerChatPacket.class, new JavaChatTranslator());
         Registry.registerJava(ServerTitlePacket.class, new JavaTitleTranslator());
         Registry.registerJava(ServerUpdateTimePacket.class, new JavaUpdateTimeTranslator());
@@ -157,6 +158,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(InteractPacket.class, new BedrockInteractTranslator());
         Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
         Registry.registerBedrock(RespawnPacket.class, new BedrockRespawnTranslator());
+        Registry.registerBedrock(ShowCreditsPacket.class, new BedrockShowCreditsTranslator());
 
         itemTranslator = new ItemTranslator();
         BlockTranslator.init();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living;
+package org.geysermc.connector.entity.living.monster.raid;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 
-public class AnimalEntity extends AgeableEntity {
+public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
 
-    public AnimalEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public SpellcasterIllagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 }

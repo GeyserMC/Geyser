@@ -21,7 +21,7 @@ remote:
   # The port of the remote (Java Edition) server
   port: 25565
 
-  # Authentication type. Can be offline, online, or hybrid (see the wiki).
+  # Authentication type. Can be offline, online, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).
   auth-type: online
 
 ## the Xbox/MCPE username is the key for the Java server auth-info

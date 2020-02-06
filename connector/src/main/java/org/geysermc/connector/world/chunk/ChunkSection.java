@@ -1,12 +1,19 @@
+/*
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ *
+ * This code in this file is derived from NukkitX and permission has
+ * been granted to us allowing the usage of it in Geyser.
+ *
+ * Copyright (C) 2020 The NukkitX Project
+ * https://github.com/NukkitX/Nukkit
+ */
+
 package org.geysermc.connector.world.chunk;
 
 import com.nukkitx.network.util.Preconditions;
 import io.netty.buffer.ByteBuf;
 import lombok.Synchronized;
 
-/**
- * Adapted from NukkitX: https://github.com/NukkitX/Nukkit
- */
 public class ChunkSection {
 
     private static final int CHUNK_SECTION_VERSION = 8;

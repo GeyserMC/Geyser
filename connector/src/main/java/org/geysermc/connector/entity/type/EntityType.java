@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,18 @@ package org.geysermc.connector.entity.type;
 import lombok.Getter;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
-import org.geysermc.connector.entity.living.horse.HorseEntity;
-import org.geysermc.connector.entity.living.horse.LlamaEntity;
-import org.geysermc.connector.entity.living.monster.GuardianEntity;
-import org.geysermc.connector.entity.living.monster.ZombieEntity;
+import org.geysermc.connector.entity.living.animal.AnimalEntity;
+import org.geysermc.connector.entity.living.animal.TameableEntity;
+import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.connector.entity.living.animal.RabbitEntity;
+import org.geysermc.connector.entity.living.animal.SheepEntity;
+import org.geysermc.connector.entity.living.animal.horse.ChestedHorseEntity;
+import org.geysermc.connector.entity.living.animal.horse.HorseEntity;
+import org.geysermc.connector.entity.living.animal.horse.LlamaEntity;
+import org.geysermc.connector.entity.living.monster.*;
+import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
+import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
+import org.geysermc.connector.entity.living.monster.raid.SpellcasterIllagerEntity;
 
 @Getter
 public enum EntityType {
@@ -39,7 +47,7 @@ public enum EntityType {
     CHICKEN(AnimalEntity.class, 10, 0.7f, 0.4f),
     COW(AnimalEntity.class, 11, 1.4f, 0.9f),
     PIG(AnimalEntity.class, 12, 0.9f),
-    SHEEP(AnimalEntity.class, 13, 1.3f, 0.9f),
+    SHEEP(SheepEntity.class, 13, 1.3f, 0.9f),
     WOLF(AnimalEntity.class, 14, 0.85f, 0.6f),
     VILLAGER(AbstractMerchantEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f),
     MOOSHROOM(AnimalEntity.class, 16, 1.4f, 0.9f),
