@@ -31,6 +31,7 @@ import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.ListTag;
 import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -47,11 +48,27 @@ public class Toolbox {
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
     public static ListTag<CompoundTag> BLOCKS;
+    public static CompoundTag BIOMES;
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
     public static final Int2ObjectMap<BlockEntry> BLOCK_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     public static void init() {
+        InputStream biomestream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/biome_definitions.dat");
+        if (biomestream == null) {
+            throw new AssertionError("Unable to find bedrock/biome_definitions.dat");
+        }
+
+        CompoundTag biomesTag;
+
+        try (NBTInputStream biomenbtInputStream = NbtUtils.createNetworkReader(biomestream)){
+            biomesTag = (CompoundTag) biomenbtInputStream.readTag();
+            BIOMES = biomesTag;
+        } catch (Exception ex) {
+            GeyserLogger.DEFAULT.warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
+            throw new AssertionError(ex);
+        }
+
         InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/runtime_block_states.dat");
         if (stream == null) {
             throw new AssertionError("Unable to find bedrock/runtime_block_states.dat");
@@ -69,6 +86,7 @@ public class Toolbox {
         }
 
         BLOCKS = blocksTag;
+
         InputStream stream2 = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/items.json");
         if (stream2 == null) {
             throw new AssertionError("Items Table not found");

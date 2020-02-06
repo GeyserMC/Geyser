@@ -134,24 +134,9 @@ public class GeyserSession implements Player {
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
-        BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
-        InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/biome_definitions.dat");
-        if (stream == null) {
-            throw new AssertionError("Unable to find bedrock/biome_definitions.dat");
-        }
-
-        CompoundTag biomesTag;
-
-        NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream);
-        try {
-            biomesTag = (CompoundTag) nbtInputStream.readTag();
-            biomePacket.setTag(biomesTag);
-            nbtInputStream.close();
-        } catch (Exception ex) {
-            GeyserLogger.DEFAULT.warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
-            throw new AssertionError(ex);
-        }
-        upstream.sendPacket(biomePacket);
+        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+        biomeDefinitionListPacket.setTag(Toolbox.BIOMES);
+        upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
         entityPacket.setTag(CompoundTag.EMPTY);
