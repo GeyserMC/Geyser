@@ -41,7 +41,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
         if (packet.getAction() != PlayerListEntryAction.ADD_PLAYER && packet.getAction() != PlayerListEntryAction.REMOVE_PLAYER) return;
 
         PlayerListPacket translate = new PlayerListPacket();
-        translate.setType(packet.getAction() == PlayerListEntryAction.ADD_PLAYER ? PlayerListPacket.Type.ADD : PlayerListPacket.Type.REMOVE);
+        translate.setAction(packet.getAction() == PlayerListEntryAction.ADD_PLAYER ? PlayerListPacket.Action.ADD : PlayerListPacket.Action.REMOVE);
 
         for (PlayerListEntry entry : packet.getEntries()) {
             if (packet.getAction() == PlayerListEntryAction.ADD_PLAYER) {

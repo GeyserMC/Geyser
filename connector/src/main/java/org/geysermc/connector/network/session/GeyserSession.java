@@ -45,6 +45,7 @@ import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRule;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -304,7 +305,7 @@ public class GeyserSession implements Player {
         startGamePacket.setBonusChestEnabled(false);
         startGamePacket.setStartingWithMap(false);
         startGamePacket.setTrustingPlayers(true);
-        startGamePacket.setDefaultPlayerPermission(1);
+        startGamePacket.setDefaultPlayerPermission(PlayerPermission.OPERATOR);
         startGamePacket.setServerChunkTickRange(4);
         startGamePacket.setBehaviorPackLocked(false);
         startGamePacket.setResourcePackLocked(false);

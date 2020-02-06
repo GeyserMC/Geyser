@@ -31,13 +31,16 @@ import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValu
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
+import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
@@ -64,14 +67,21 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.getUpstream().sendPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:
-                int playerFlags = 0;
-
+                Set<AdventureSettingsPacket.Flag> playerFlags = new HashSet<>();
                 GameMode gameMode = (GameMode) packet.getValue();
-                playerFlags = setPlayerFlag(0x01, gameMode == GameMode.ADVENTURE, playerFlags); // world immutable
-                playerFlags = setPlayerFlag(0x20, true, playerFlags); // auto jump
-                playerFlags = setPlayerFlag(0x40, gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR, playerFlags); // can fly
-                playerFlags = setPlayerFlag(0x80, gameMode == GameMode.SPECTATOR, playerFlags); // no clip
-                playerFlags = setPlayerFlag(0x200, gameMode == GameMode.SPECTATOR, playerFlags); // is flying
+                if (gameMode == GameMode.ADVENTURE)
+                    playerFlags.add(AdventureSettingsPacket.Flag.IMMUTABLE_WORLD);
+
+                if (gameMode == GameMode.CREATIVE)
+                    playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
+
+                if (gameMode == GameMode.SPECTATOR) {
+                    playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
+                    playerFlags.add(AdventureSettingsPacket.Flag.NO_CLIP);
+                    playerFlags.add(AdventureSettingsPacket.Flag.FLYING);
+                }
+
+                playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
@@ -79,12 +89,12 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.setGameMode(gameMode);
 
                 AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-                adventureSettingsPacket.setPlayerPermission(1);
+                adventureSettingsPacket.setPlayerPermission(PlayerPermission.OPERATOR);
                 adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
-                adventureSettingsPacket.setPlayerFlags(playerFlags);
+                adventureSettingsPacket.getFlags().addAll(playerFlags);
                 session.getUpstream().sendPacket(adventureSettingsPacket);
 
-                EntityDataDictionary metadata = entity.getMetadata();
+                EntityDataMap metadata = entity.getMetadata();
                 metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR);
 
                 SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
@@ -108,14 +118,6 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 break;
             default:
                 break;
-        }
-    }
-
-    private int setPlayerFlag(int flag, boolean value, int playerFlags) {
-        if (value) {
-            return playerFlags | flag;
-        } else {
-            return playerFlags & ~flag;
         }
     }
 }

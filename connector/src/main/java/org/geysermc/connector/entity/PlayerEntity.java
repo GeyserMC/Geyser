@@ -27,6 +27,8 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.Getter;
@@ -74,11 +76,8 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
-        addPlayerPacket.setPlayerFlags(0);
-        addPlayerPacket.setCommandPermission(0);
-        addPlayerPacket.setWorldFlags(0);
-        addPlayerPacket.setPlayerPermission(0);
-        addPlayerPacket.setCustomFlags(0);
+        addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
+        addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.VISITOR);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(getMetadata());
@@ -91,7 +90,7 @@ public class PlayerEntity extends LivingEntity {
         if (getLastSkinUpdate() == -1) {
             if (playerList) {
                 PlayerListPacket playerList = new PlayerListPacket();
-                playerList.setType(PlayerListPacket.Type.ADD);
+                playerList.setAction(PlayerListPacket.Action.ADD);
                 playerList.getEntries().add(SkinUtils.buildDefaultEntry(profile, geyserId));
                 session.getUpstream().sendPacket(playerList);
             }
@@ -107,7 +106,7 @@ public class PlayerEntity extends LivingEntity {
             // remove from playerlist if player isn't on playerlist
             Geyser.getGeneralThreadPool().execute(() -> {
                 PlayerListPacket playerList = new PlayerListPacket();
-                playerList.setType(PlayerListPacket.Type.REMOVE);
+                playerList.setAction(PlayerListPacket.Action.REMOVE);
                 playerList.getEntries().add(new PlayerListPacket.Entry(uuid));
                 session.getUpstream().sendPacket(playerList);
             });
