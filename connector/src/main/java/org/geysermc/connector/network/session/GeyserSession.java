@@ -41,6 +41,8 @@ import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
@@ -53,6 +55,7 @@ import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
@@ -60,6 +63,7 @@ import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.Toolbox;
 
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
@@ -131,7 +135,22 @@ public class GeyserSession implements Player {
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
-        biomePacket.setTag(CompoundTag.EMPTY);
+        InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/biome_definitions.dat");
+        if (stream == null) {
+            throw new AssertionError("Unable to find bedrock/biome_definitions.dat");
+        }
+
+        CompoundTag biomesTag;
+
+        NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream);
+        try {
+            biomesTag = (CompoundTag) nbtInputStream.readTag();
+            biomePacket.setTag(biomesTag);
+            nbtInputStream.close();
+        } catch (Exception ex) {
+            GeyserLogger.DEFAULT.warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
+            throw new AssertionError(ex);
+        }
         upstream.sendPacket(biomePacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
