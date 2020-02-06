@@ -107,12 +107,13 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case DIMENSION_CHANGE_SUCCESS:
-                session.setSwitchingDimension(false);
-                //sometimes the client doesn't feel like loading
-                PlayStatusPacket spawnPacket = new PlayStatusPacket();
-                spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-                session.getUpstream().sendPacket(spawnPacket);
-                entity.updateBedrockAttributes(session);
+                if (session.getPendingDimSwitches().decrementAndGet() == 0) {
+                    //sometimes the client doesn't feel like loading
+                    PlayStatusPacket spawnPacket = new PlayStatusPacket();
+                    spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+                    session.getUpstream().sendPacket(spawnPacket);
+                    entity.updateBedrockAttributes(session);
+                }
                 break;
         }
     }

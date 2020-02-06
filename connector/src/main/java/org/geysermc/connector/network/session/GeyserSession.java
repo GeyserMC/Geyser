@@ -62,6 +62,7 @@ import org.geysermc.connector.utils.Toolbox;
 
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements Player {
@@ -98,8 +99,7 @@ public class GeyserSession implements Player {
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
 
-    @Setter
-    private boolean switchingDimension = false;
+    private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
 
@@ -127,6 +127,10 @@ public class GeyserSession implements Player {
     public void connect(RemoteServer remoteServer) {
         startGame();
         this.remoteServer = remoteServer;
+        if (!(connector.getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
+            connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
+            authenticate(authenticationData.getName());
+        }
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 

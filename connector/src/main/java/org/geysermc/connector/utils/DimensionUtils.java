@@ -31,14 +31,18 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class DimensionUtils {
-    public static void switchDimension(GeyserSession session, int javaDimension, boolean fake) {
+    public static void switchDimension(GeyserSession session, int javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
         if (bedrockDimension == player.getDimension())
             return;
-        Vector3i pos = Vector3i.from(0, Short.MAX_VALUE, 0);
 
         session.getEntityCache().removeAllEntities();
+        if (session.getPendingDimSwitches().getAndIncrement() > 0) {
+            ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
+        }
+
+        Vector3i pos = Vector3i.from(0, Short.MAX_VALUE, 0);
 
         ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
         changeDimensionPacket.setDimension(bedrockDimension);
@@ -46,19 +50,14 @@ public class DimensionUtils {
         changeDimensionPacket.setPosition(pos.toFloat());
         session.getUpstream().sendPacket(changeDimensionPacket);
         player.setDimension(bedrockDimension);
+        player.setPosition(pos.toFloat());
+        session.setSpawned(false);
 
         //let java server handle portal travel sound
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
         stopSoundPacket.setStoppingAllSound(true);
         stopSoundPacket.setSoundName("");
         session.getUpstream().sendPacket(stopSoundPacket);
-
-        if (fake) {
-            ChunkUtils.sendEmptyChunks(session, pos, 2, true);
-        }
-
-        session.setSpawned(false);
-        session.setSwitchingDimension(true);
     }
 
     public static int javaToBedrock(int javaDimension) {
