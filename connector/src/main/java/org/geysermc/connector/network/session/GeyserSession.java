@@ -38,7 +38,6 @@ import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -84,10 +83,8 @@ public class GeyserSession implements Player {
 
     private DataCache<Packet> javaPacketCache;
 
-    @Setter
-    private Vector2i lastChunkPosition = null;
-    @Setter
     private int renderDistance;
+    private int chunkPublisherRadius;
 
     private boolean loggedIn;
     private boolean loggingIn;
@@ -267,6 +264,17 @@ public class GeyserSession implements Player {
 
     public void sendForm(FormWindow window, int id) {
         windowCache.showWindow(window, id);
+    }
+
+    public void setRenderDistance(int renderDistance) {
+        if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
+        this.renderDistance = renderDistance;
+
+        chunkPublisherRadius = renderDistance * 3/2 << 4; //some chunks are ignored if this isn't increased
+
+        ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
+        chunkRadiusUpdatedPacket.setRadius(renderDistance);
+        upstream.sendPacket(chunkRadiusUpdatedPacket);
     }
 
     @Override

@@ -23,17 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.block;
+package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import org.geysermc.connector.utils.Toolbox;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewDistancePacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class BlockTranslator {
-    public BlockEntry getBlockEntry(BlockState state) {
-        return Toolbox.BLOCK_ENTRIES.get(state.getId());
-    }
+public class JavaUpdateViewDistanceTranslator extends PacketTranslator<ServerUpdateViewDistancePacket> {
 
-    public BlockEntry getBlockEntry(String javaIdentifier) {
-        return Toolbox.JAVA_IDENTIFIER_TO_ENTRY.get(javaIdentifier);
+    @Override
+    public void translate(ServerUpdateViewDistancePacket packet, GeyserSession session) {
+        session.setRenderDistance(packet.getViewDistance());
     }
 }

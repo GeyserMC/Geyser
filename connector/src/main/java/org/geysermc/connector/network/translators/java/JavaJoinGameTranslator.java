@@ -60,12 +60,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         entityDataPacket.getMetadata().putAll(entity.getMetadata());
         session.getUpstream().sendPacket(entityDataPacket);
 
-        session.setRenderDistance(packet.getViewDistance() + 1); // +1 to be sure it includes every chunk
-        if (session.getRenderDistance() > 32) session.setRenderDistance(32); // <3 u ViaVersion but I don't like crashing clients x)
-
-        ChunkRadiusUpdatedPacket chunkRadiusPacket = new ChunkRadiusUpdatedPacket();
-        chunkRadiusPacket.setRadius(session.getRenderDistance());
-        session.getUpstream().sendPacket(chunkRadiusPacket);
+        session.setRenderDistance(packet.getViewDistance());
 
         if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
             ChunkUtils.sendEmptyChunks(session, entity.getPosition().toInt(), 3, true);
