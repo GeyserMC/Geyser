@@ -46,6 +46,7 @@ public class FileUtils {
 
     public static File fileOrCopiedFromResource(File file, String name, Function<String, String> s) throws IOException {
         if (!file.exists()) {
+            file.createNewFile();
             FileOutputStream fos = new FileOutputStream(file);
             InputStream input = GeyserConnector.class.getResourceAsStream("/" + name); // resources need leading "/" prefix
 

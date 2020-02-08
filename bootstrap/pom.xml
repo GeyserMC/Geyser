@@ -29,12 +29,16 @@
             <id>bungeecord-repo</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
+        <repository>
+            <id>velocity-repo</id>
+            <url>https://repo.velocitypowered.com/snapshots/</url>
+        </repository>
     </repositories>
     <modules>
         <module>bukkit</module>
         <module>bungeecord</module>
         <module>sponge</module>
         <module>standalone</module>
-        <!-- <module>velocity</module> -->
+        <module>velocity</module>
     </modules>
 </project>
