@@ -34,10 +34,7 @@ import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.ListTag;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.*;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -47,11 +44,11 @@ import java.util.*;
 public class BlockTranslator {
     public static final ListTag<CompoundTag> BLOCKS;
     public static final BlockState AIR = new BlockState(0);
+    public static final int BEDROCK_WATER_ID;
 
     private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
-    private static final Int2IntMap JAVA_TO_BEDROCK_LIQUID_MAP = new Int2IntOpenHashMap();
-    private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_LIQUID_MAP = new Int2ObjectOpenHashMap<>();
+    private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
     private static final int BLOCK_STATE_VERSION = 17760256;
 
@@ -84,6 +81,7 @@ public class BlockTranslator {
         TObjectIntMap<CompoundTag> addedStatesMap = new TObjectIntHashMap<>(512, 0.5f, -1);
         List<CompoundTag> paletteList = new ArrayList<>();
 
+        int waterRuntimeId = -1;
         int javaRuntimeId = -1;
         int bedrockRuntimeId = 0;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
@@ -92,6 +90,18 @@ public class BlockTranslator {
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
             String javaId = entry.getKey();
             CompoundTag blockTag = buildBedrockState(entry.getValue());
+
+            if ("minecraft:water[level=0]".equals(javaId)) {
+                waterRuntimeId = bedrockRuntimeId;
+            }
+            boolean waterlogged = entry.getValue().has("waterlogged") && entry.getValue().get("waterlogged").booleanValue();
+
+            if (waterlogged) {
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, new BlockState(javaRuntimeId));
+                WATERLOGGED.add(javaRuntimeId);
+            } else {
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, new BlockState(javaRuntimeId));
+            }
 
             CompoundTag runtimeTag = blockStateMap.remove(blockTag);
             if (runtimeTag != null) {
@@ -107,10 +117,14 @@ public class BlockTranslator {
                 continue;
             }
             JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
-            BEDROCK_TO_JAVA_BLOCK_MAP.put(bedrockRuntimeId, new BlockState(javaRuntimeId));
 
             bedrockRuntimeId++;
         }
+
+        if (waterRuntimeId == -1) {
+            throw new AssertionError("Unable to find water in palette");
+        }
+        BEDROCK_WATER_ID = waterRuntimeId;
 
         paletteList.addAll(blockStateMap.values()); // Add any missing mappings that could crash the client
 
@@ -161,11 +175,11 @@ public class BlockTranslator {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
     }
 
-    public static int getBedrockWaterLoggedId(BlockState state) {
-        return JAVA_TO_BEDROCK_LIQUID_MAP.getOrDefault(state.getId(), -1);
+    public static boolean isWaterlogged(BlockState state) {
+        return WATERLOGGED.contains(state.getId());
     }
 
-    public static BlockState getJavaLiquidState(int bedrockId) {
-        return BEDROCK_TO_JAVA_LIQUID_MAP.get(bedrockId);
+    public static BlockState getJavaWaterloggedState(int bedrockId) {
+        return BEDROCK_TO_JAVA_BLOCK_MAP.get(1 << 31 | bedrockId);
     }
 }

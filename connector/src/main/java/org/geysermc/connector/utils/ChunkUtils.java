@@ -38,6 +38,8 @@ import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.world.chunk.ChunkSection;
 
+import static org.geysermc.connector.network.translators.block.BlockTranslator.BEDROCK_WATER_ID;
+
 public class ChunkUtils {
     public static ChunkData translateToBedrock(Column column) {
         ChunkData chunkData = new ChunkData();
@@ -63,9 +65,8 @@ public class ChunkUtils {
 
                         section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
 
-                        int waterloggedId = BlockTranslator.getBedrockWaterLoggedId(blockState);
-                        if (waterloggedId != -1) {
-                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), waterloggedId);
+                        if (BlockTranslator.isWaterlogged(blockState)) {
+                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);
                         }
                     }
                 }
@@ -88,9 +89,8 @@ public class ChunkUtils {
         UpdateBlockPacket waterPacket = new UpdateBlockPacket();
         waterPacket.setDataLayer(1);
         waterPacket.setBlockPosition(pos);
-        int waterloggedId = BlockTranslator.getBedrockWaterLoggedId(blockState);
-        if (waterloggedId != -1) {
-            waterPacket.setRuntimeId(waterloggedId);
+        if (BlockTranslator.isWaterlogged(blockState)) {
+            waterPacket.setRuntimeId(BEDROCK_WATER_ID);
         } else {
             waterPacket.setRuntimeId(0);
         }
