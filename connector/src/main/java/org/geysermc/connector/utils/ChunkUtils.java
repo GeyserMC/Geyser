@@ -131,7 +131,6 @@ public class ChunkUtils {
     public static final class ChunkData {
         public ChunkSection[] sections;
 
-        public byte[] biomes = new byte[256];
         public byte[] blockEntities = new byte[0];
     }
 }
