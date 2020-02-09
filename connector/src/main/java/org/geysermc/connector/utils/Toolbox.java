@@ -45,7 +45,7 @@ import java.util.*;
 public class Toolbox {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
-    public static CompoundTag BIOMES;
+    public static final CompoundTag BIOMES;
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
