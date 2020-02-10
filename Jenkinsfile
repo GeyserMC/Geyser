@@ -15,7 +15,7 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'target/*.jar, bootstrap/bukkit/target/*.jar, bootstrap/bungeecord/target/*.jar, bootstrap/sponge/target/*.jar, bootstrap/standalone/target/*.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'target/*.jar, bootstrap/bukkit/target/*.jar, bootstrap/bungeecord/target/*.jar, bootstrap/sponge/target/*.jar, bootstrap/standalone/target/*.jar, bootstrap/bukkit/velocity/*.jar', fingerprint: true
                 }
             }
         }
