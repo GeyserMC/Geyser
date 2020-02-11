@@ -40,6 +40,8 @@ import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
@@ -52,13 +54,16 @@ import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.Toolbox;
 
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -131,9 +136,9 @@ public class GeyserSession implements Player {
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
-        BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
-        biomePacket.setTag(CompoundTag.EMPTY);
-        upstream.sendPacket(biomePacket);
+        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+        biomeDefinitionListPacket.setTag(Toolbox.BIOMES);
+        upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
         entityPacket.setTag(CompoundTag.EMPTY);
@@ -331,7 +336,7 @@ public class GeyserSession implements Player {
         // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setBlockPalette(Toolbox.BLOCKS);
+        startGamePacket.setBlockPalette(BlockTranslator.BLOCKS);
         startGamePacket.setItemEntries(Toolbox.ITEMS);
         startGamePacket.setVanillaVersion("*");
         // startGamePacket.setMovementServerAuthoritative(true);
