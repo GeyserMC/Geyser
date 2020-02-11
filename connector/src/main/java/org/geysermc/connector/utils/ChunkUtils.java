@@ -35,8 +35,10 @@ import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.network.translators.block.BlockEntry;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.world.chunk.ChunkSection;
+
+import static org.geysermc.connector.network.translators.block.BlockTranslator.BEDROCK_WATER_ID;
 
 public class ChunkUtils {
     public static ChunkData translateToBedrock(Column column) {
@@ -59,14 +61,12 @@ public class ChunkUtils {
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
                         BlockState blockState = chunk.get(x, y, z);
-                        BlockEntry block = TranslatorsInit.getBlockTranslator().getBlockEntry(blockState);
+                        int id = BlockTranslator.getBedrockBlockId(blockState);
 
-                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z),
-                                block.getBedrockRuntimeId());
+                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
 
-                        if (block.isWaterlogged()) {
-                            BlockEntry water = TranslatorsInit.getBlockTranslator().getBlockEntry("minecraft:water[level=0]");
-                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), water.getBedrockRuntimeId());
+                        if (BlockTranslator.isWaterlogged(blockState)) {
+                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);
                         }
                     }
                 }
@@ -76,22 +76,21 @@ public class ChunkUtils {
     }
 
     public static void updateBlock(GeyserSession session, BlockState blockState, Position position) {
-        BlockEntry blockEntry = TranslatorsInit.getBlockTranslator().getBlockEntry(blockState);
+        int blockId = BlockTranslator.getBedrockBlockId(blockState);
         Vector3i pos = Vector3i.from(position.getX(), position.getY(), position.getZ());
 
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(pos);
-        updateBlockPacket.setRuntimeId(blockEntry.getBedrockRuntimeId());
+        updateBlockPacket.setRuntimeId(blockId);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.getUpstream().sendPacket(updateBlockPacket);
 
         UpdateBlockPacket waterPacket = new UpdateBlockPacket();
         waterPacket.setDataLayer(1);
         waterPacket.setBlockPosition(pos);
-        if (blockEntry.isWaterlogged()) {
-            BlockEntry water = TranslatorsInit.getBlockTranslator().getBlockEntry("minecraft:water[level=0]");
-            waterPacket.setRuntimeId(water.getBedrockRuntimeId());
+        if (BlockTranslator.isWaterlogged(blockState)) {
+            waterPacket.setRuntimeId(BEDROCK_WATER_ID);
         } else {
             waterPacket.setRuntimeId(0);
         }

@@ -25,20 +25,18 @@
 
 package org.geysermc.connector.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.ListTag;
-import com.nukkitx.nbt.tag.Tag;
-import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.console.GeyserLogger;
-import org.geysermc.connector.network.translators.block.BlockEntry;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
 import java.io.InputStream;
@@ -46,14 +44,15 @@ import java.util.*;
 
 public class Toolbox {
 
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
+    public static final CompoundTag BIOMES;
+
     public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
-    public static ListTag<CompoundTag> BLOCKS;
-    public static CompoundTag BIOMES;
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
-    public static final Int2ObjectMap<BlockEntry> BLOCK_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    public static void init() {
+    static {
+        /* Load biomes */
         InputStream biomestream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/biome_definitions.dat");
         if (biomestream == null) {
             throw new AssertionError("Unable to find bedrock/biome_definitions.dat");
@@ -69,99 +68,51 @@ public class Toolbox {
             throw new AssertionError(ex);
         }
 
-        InputStream stream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/runtime_block_states.dat");
-        if (stream == null) {
-            throw new AssertionError("Unable to find bedrock/runtime_block_states.dat");
-        }
+        /* Load item palette */
+        InputStream stream = getResource("bedrock/items.json");
 
-        ListTag<CompoundTag> blocksTag;
+        TypeReference<List<JsonNode>> itemEntriesType = new TypeReference<List<JsonNode>>() {
+        };
 
-        NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream);
+        List<JsonNode> itemEntries;
         try {
-            blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
-            nbtInputStream.close();
-        } catch (Exception ex) {
-            GeyserLogger.DEFAULT.warning("Failed to get blocks from runtime block states, please report this error!");
-            throw new AssertionError(ex);
-        }
-
-        BLOCKS = blocksTag;
-
-        InputStream stream2 = Toolbox.class.getClassLoader().getResourceAsStream("bedrock/items.json");
-        if (stream2 == null) {
-            throw new AssertionError("Items Table not found");
-        }
-
-        ObjectMapper startGameItemMapper = new ObjectMapper();
-        List<Map> startGameItems = new ArrayList<>();
-        try {
-            startGameItems = startGameItemMapper.readValue(stream2, ArrayList.class);
+            itemEntries = JSON_MAPPER.readValue(stream, itemEntriesType);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
         }
 
-        for (Map entry : startGameItems) {
-            ITEMS.add(new StartGamePacket.ItemEntry((String) entry.get("name"), (short) ((int) entry.get("id"))));
+        for (JsonNode entry : itemEntries) {
+            ITEMS.add(new StartGamePacket.ItemEntry(entry.get("name").textValue(), (short) entry.get("id").intValue()));
         }
 
-        InputStream itemStream = Toolbox.class.getClassLoader().getResourceAsStream("mappings/items.json");
-        ObjectMapper itemMapper = new ObjectMapper();
-        Map<String, Map<String, Object>> items = new HashMap<>();
+        stream = getResource("mappings/items.json");
 
+        JsonNode items;
         try {
-            items = itemMapper.readValue(itemStream, LinkedHashMap.class);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            items = JSON_MAPPER.readTree(stream);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
 
         int itemIndex = 0;
-        for (Map.Entry<String, Map<String, Object>> itemEntry : items.entrySet()) {
-            ITEM_ENTRIES.put(itemIndex, new ItemEntry(itemEntry.getKey(), itemIndex, (int) itemEntry.getValue().get("bedrock_id"), (int) itemEntry.getValue().get("bedrock_data")));
+        Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
+        while (iterator.hasNext()) {
+            Map.Entry<String, JsonNode> entry = iterator.next();
+            ITEM_ENTRIES.put(itemIndex, new ItemEntry(entry.getKey(), itemIndex,
+                    entry.getValue().get("bedrock_id").intValue(), entry.getValue().get("bedrock_data").intValue()));
             itemIndex++;
         }
+    }
 
-        InputStream blockStream = Toolbox.class.getClassLoader().getResourceAsStream("mappings/blocks.json");
-        ObjectMapper blockMapper = new ObjectMapper();
-        Map<String, Map<String, Object>> blocks = new HashMap<>();
-
-        try {
-            blocks = blockMapper.readValue(blockStream, LinkedHashMap.class);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+    public static InputStream getResource(String resource) {
+        InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream(resource);
+        if (stream == null) {
+            throw new AssertionError("Unable to find resource: " + resource);
         }
+        return stream;
+    }
 
-        int javaIndex = -1;
-        javaLoop:
-        for (Map.Entry<String, Map<String, Object>> javaEntry : blocks.entrySet()) {
-            javaIndex++;
-            String wantedIdentifier = (String) javaEntry.getValue().get("bedrock_identifier");
-            Map<String, Object> wantedStates = (Map<String, Object>) javaEntry.getValue().get("bedrock_states");
-
-            int bedrockIndex = -1;
-            bedrockLoop:
-            for (CompoundTag bedrockEntry : BLOCKS.getValue()) {
-                bedrockIndex++;
-                CompoundTag blockTag = bedrockEntry.getAsCompound("block");
-                if (blockTag.getAsString("name").equals(wantedIdentifier)) {
-                    if (wantedStates != null) {
-                        Map<String, Tag<?>> bedrockStates = blockTag.getAsCompound("states").getValue();
-                        for (Map.Entry<String, Object> stateEntry : wantedStates.entrySet()) {
-                            Tag<?> bedrockStateTag = bedrockStates.get(stateEntry.getKey());
-                            if (bedrockStateTag == null)
-                                continue bedrockLoop;
-                            Object bedrockStateValue = bedrockStateTag.getValue();
-                            if (bedrockStateValue instanceof Byte)
-                                bedrockStateValue = ((Byte) bedrockStateValue) != 0;
-                            if (!stateEntry.getValue().equals(bedrockStateValue))
-                                continue bedrockLoop;
-                        }
-                    }
-                    BlockEntry blockEntry = new BlockEntry(javaEntry.getKey(), javaIndex, bedrockIndex);
-                    BLOCK_ENTRIES.put(javaIndex, blockEntry);
-                    continue javaLoop;
-                }
-            }
-            GeyserLogger.DEFAULT.debug("Mapping " + javaEntry.getKey() + " was not found for bedrock edition!");
-        }
+    public static void init() {
+        // no-op
     }
 }
