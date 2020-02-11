@@ -37,7 +37,7 @@ public class JavaUpdateViewPositionTranslator extends PacketTranslator<ServerUpd
     public void translate(ServerUpdateViewPositionPacket packet, GeyserSession session) {
         NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
         chunkPublisherUpdatePacket.setPosition(Vector3i.from(packet.getChunkX() << 4, 0, packet.getChunkZ() << 4));
-        chunkPublisherUpdatePacket.setRadius(session.getChunkPublisherRadius());
+        chunkPublisherUpdatePacket.setRadius(session.getRenderDistance() << 4);
         session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
     }
 }

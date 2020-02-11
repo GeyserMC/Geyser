@@ -37,11 +37,11 @@ import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
+import com.nukkitx.math.GenericMath;
+import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
@@ -54,7 +54,6 @@ import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
@@ -63,7 +62,6 @@ import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.Toolbox;
 
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -89,7 +87,6 @@ public class GeyserSession implements Player {
     private DataCache<Packet> javaPacketCache;
 
     private int renderDistance;
-    private int chunkPublisherRadius;
 
     private boolean loggedIn;
     private boolean loggingIn;
@@ -272,10 +269,9 @@ public class GeyserSession implements Player {
     }
 
     public void setRenderDistance(int renderDistance) {
+        renderDistance = GenericMath.ceil(++renderDistance * TrigMath.SQRT_OF_TWO); //square to circle
         if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
         this.renderDistance = renderDistance;
-
-        chunkPublisherRadius = renderDistance * 3/2 << 4; //some chunks are ignored if this isn't increased
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
         chunkRadiusUpdatedPacket.setRadius(renderDistance);
