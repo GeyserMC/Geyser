@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.inventory.holder;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
@@ -35,7 +36,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.BlockEntry;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 @AllArgsConstructor
@@ -80,11 +81,11 @@ public class BlockInventoryHolder extends InventoryHolder {
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         Vector3i holderPos = inventory.getHolderPosition();
         Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        BlockEntry realBlock = session.getChunkCache().getBlockAt(pos);
+        BlockState realBlock = session.getChunkCache().getBlockAt(pos);
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(realBlock.getBedrockRuntimeId());
+        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
         session.getUpstream().sendPacket(blockPacket);
     }
 }
