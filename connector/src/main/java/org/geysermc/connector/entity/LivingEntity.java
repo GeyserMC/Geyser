@@ -42,11 +42,11 @@ import org.geysermc.connector.network.session.GeyserSession;
 @Setter
 public class LivingEntity extends Entity {
 
-    protected ItemData helmet;
-    protected ItemData chestplate;
-    protected ItemData leggings;
-    protected ItemData boots;
-    protected ItemData hand = ItemData.of(0, (short) 0, 0);
+    protected ItemData helmet = ItemData.AIR;
+    protected ItemData chestplate = ItemData.AIR;
+    protected ItemData leggings = ItemData.AIR;
+    protected ItemData boots = ItemData.AIR;
+    protected ItemData hand = ItemData.AIR;
 
     public LivingEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
