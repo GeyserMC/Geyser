@@ -83,6 +83,7 @@ public class LivingEntity extends Entity {
         MobEquipmentPacket mobEquipmentPacket = new MobEquipmentPacket();
         mobEquipmentPacket.setRuntimeEntityId(geyserId);
         mobEquipmentPacket.setItem(hand);
+        mobEquipmentPacket.setHotbarSlot(-1);
 
         session.getUpstream().sendPacket(armorEquipmentPacket);
         session.getUpstream().sendPacket(mobEquipmentPacket);
