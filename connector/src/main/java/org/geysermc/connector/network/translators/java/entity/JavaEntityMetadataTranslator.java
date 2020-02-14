@@ -41,12 +41,8 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
         }
         if (entity == null) return;
 
-        if (entity.isValid()) {
-            for (EntityMetadata metadata : packet.getMetadata()) {
-                entity.updateBedrockMetadata(metadata, session);
-            }
-        } else {
-            entity.spawnEntity(session);
+        for (EntityMetadata metadata : packet.getMetadata()) {
+            entity.updateBedrockMetadata(metadata, session);
         }
     }
 }
