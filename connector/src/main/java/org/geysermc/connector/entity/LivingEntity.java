@@ -27,6 +27,7 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
@@ -42,11 +43,12 @@ import org.geysermc.connector.network.session.GeyserSession;
 @Setter
 public class LivingEntity extends Entity {
 
-    protected ItemData helmet;
-    protected ItemData chestplate;
-    protected ItemData leggings;
-    protected ItemData boots;
-    protected ItemData hand = ItemData.of(0, (short) 0, 0);
+    protected ItemData helmet = ItemData.AIR;
+    protected ItemData chestplate = ItemData.AIR;
+    protected ItemData leggings = ItemData.AIR;
+    protected ItemData boots = ItemData.AIR;
+    protected ItemData hand = ItemData.AIR;
+    protected ItemData offHand = ItemData.AIR;
 
     public LivingEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -80,11 +82,22 @@ public class LivingEntity extends Entity {
         armorEquipmentPacket.setLeggings(leggings);
         armorEquipmentPacket.setBoots(boots);
 
-        MobEquipmentPacket mobEquipmentPacket = new MobEquipmentPacket();
-        mobEquipmentPacket.setRuntimeEntityId(geyserId);
-        mobEquipmentPacket.setItem(hand);
+        MobEquipmentPacket handPacket = new MobEquipmentPacket();
+        handPacket.setRuntimeEntityId(geyserId);
+        handPacket.setItem(hand);
+        handPacket.setHotbarSlot(-1);
+        handPacket.setInventorySlot(0);
+        handPacket.setContainerId(ContainerId.INVENTORY);
+
+        MobEquipmentPacket offHandPacket = new MobEquipmentPacket();
+        offHandPacket.setRuntimeEntityId(geyserId);
+        offHandPacket.setItem(offHand);
+        offHandPacket.setHotbarSlot(-1);
+        offHandPacket.setInventorySlot(0);
+        offHandPacket.setContainerId(ContainerId.OFFHAND);
 
         session.getUpstream().sendPacket(armorEquipmentPacket);
-        session.getUpstream().sendPacket(mobEquipmentPacket);
+        session.getUpstream().sendPacket(handPacket);
+        session.getUpstream().sendPacket(offHandPacket);
     }
 }

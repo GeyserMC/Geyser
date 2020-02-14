@@ -70,7 +70,7 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
                 livingEntity.setHand(item);
                 break;
             case OFF_HAND:
-                // TODO: livingEntity.setOffHand(item);
+                livingEntity.setOffHand(item);
                 break;
         }
 
