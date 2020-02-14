@@ -154,6 +154,8 @@ public class Entity {
     }
 
     public void updateBedrockAttributes(GeyserSession session) {
+        if (!valid) return;
+
         List<com.nukkitx.protocol.bedrock.data.Attribute> attributes = new ArrayList<>();
         for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
             if (!entry.getValue().getType().isBedrockAttribute())
@@ -191,7 +193,8 @@ public class Entity {
                     metadata.put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(name));
                 break;
             case 3: // is custom name visible
-                metadata.put(EntityData.ALWAYS_SHOW_NAMETAG, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+                if (!this.is(PlayerEntity.class))
+                    metadata.put(EntityData.ALWAYS_SHOW_NAMETAG, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
                 break;
             case 4: // silent
                 metadata.getFlags().setFlag(EntityFlag.SILENT, (boolean) entityMetadata.getValue());
@@ -200,6 +203,12 @@ public class Entity {
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
                 break;
         }
+
+        updateBedrockMetadata(session);
+    }
+
+    public void updateBedrockMetadata(GeyserSession session) {
+        if (!valid) return;
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(geyserId);

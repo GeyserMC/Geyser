@@ -80,10 +80,13 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.VISITOR);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
-        addPlayerPacket.getMetadata().putAll(getMetadata());
+        addPlayerPacket.getMetadata().putAll(metadata);
 
         valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);
+
+        updateEquipment(session);
+        updateBedrockAttributes(session);
     }
 
     public void sendPlayer(GeyserSession session) {
