@@ -71,9 +71,6 @@ public class TranslatorsInit {
     private static ItemTranslator itemTranslator;
 
     @Getter
-    private static BlockTranslator blockTranslator;
-
-    @Getter
     private static InventoryTranslator inventoryTranslator = new GenericInventoryTranslator();
 
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
@@ -160,7 +157,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(ShowCreditsPacket.class, new BedrockShowCreditsTranslator());
 
         itemTranslator = new ItemTranslator();
-        blockTranslator = new BlockTranslator();
+        BlockTranslator.init();
 
         registerInventoryTranslators();
     }
