@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java.entity.player;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
@@ -53,12 +54,12 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0);
             respawnPacket.setPosition(pos);
-            respawnPacket.setSpawnState(RespawnPacket.State.SERVER_READY);
+            respawnPacket.setState(RespawnPacket.State.SERVER_READY);
             session.getUpstream().sendPacket(respawnPacket);
 
             EntityEventPacket eventPacket = new EntityEventPacket();
             eventPacket.setRuntimeEntityId(entity.getGeyserId());
-            eventPacket.setEvent(EntityEventPacket.Event.RESPAWN);
+            eventPacket.setType(EntityEventType.RESPAWN);
             eventPacket.setData(0);
             session.getUpstream().sendPacket(eventPacket);
 

@@ -123,10 +123,10 @@ public class Toolbox {
             bedrockLoop:
             for (CompoundTag bedrockEntry : BLOCKS.getValue()) {
                 bedrockIndex++;
-                CompoundTag blockTag = bedrockEntry.getAsCompound("block");
-                if (blockTag.getAsString("name").equals(wantedIdentifier)) {
+                CompoundTag blockTag = bedrockEntry.getCompound("block");
+                if (blockTag.getString("name").equals(wantedIdentifier)) {
                     if (wantedStates != null) {
-                        Map<String, Tag<?>> bedrockStates = blockTag.getAsCompound("states").getValue();
+                        Map<String, Tag<?>> bedrockStates = blockTag.getCompound("states").getValue();
                         for (Map.Entry<String, Object> stateEntry : wantedStates.entrySet()) {
                             Tag<?> bedrockStateTag = bedrockStates.get(stateEntry.getKey());
                             if (bedrockStateTag == null)

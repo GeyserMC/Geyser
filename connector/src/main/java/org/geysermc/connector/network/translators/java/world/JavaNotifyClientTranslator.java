@@ -33,6 +33,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotify
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
@@ -54,14 +55,14 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
         switch (packet.getNotification()) {
             case START_RAIN:
                 LevelEventPacket startRainPacket = new LevelEventPacket();
-                startRainPacket.setEvent(LevelEventPacket.Event.START_RAIN);
+                startRainPacket.setType(LevelEventType.START_RAIN);
                 startRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
                 startRainPacket.setPosition(Vector3f.ZERO);
                 session.getUpstream().sendPacket(startRainPacket);
                 break;
             case STOP_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
-                stopRainPacket.setEvent(LevelEventPacket.Event.STOP_RAIN);
+                stopRainPacket.setType(LevelEventType.STOP_RAIN);
                 stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
                 stopRainPacket.setPosition(Vector3f.ZERO);
                 session.getUpstream().sendPacket(stopRainPacket);

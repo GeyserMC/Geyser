@@ -67,8 +67,8 @@ public class GenericInventoryTranslator extends InventoryTranslator {
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(inventory.getId());
-        slotPacket.setSlot(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[slot]));
-        slotPacket.setInventorySlot(slot);
+        slotPacket.setItem(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[slot]));
+        slotPacket.setSlot(slot);
         session.getUpstream().sendPacket(slotPacket);
     }
 }
