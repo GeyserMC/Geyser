@@ -61,8 +61,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
-
+        double javaY = Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2;
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
                 packet.isOnGround(), packet.getPosition().getX(), javaY,
                 packet.getPosition().getZ(), packet.getRotation().getY(), packet.getRotation().getX()
@@ -70,8 +69,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
-
-        entity.moveAbsolute(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0), rotation);
+        entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
+        entity.setRotation(rotation);
 
         /*
         boolean colliding = false;
@@ -124,8 +123,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
-        movePlayerPacket.setOnGround(true);
-        entity.setMovePending(false);
         session.getUpstream().sendPacket(movePlayerPacket);
     }
 }

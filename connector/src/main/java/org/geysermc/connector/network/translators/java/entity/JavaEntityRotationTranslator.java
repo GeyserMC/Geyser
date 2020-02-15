@@ -28,7 +28,9 @@ package org.geysermc.connector.network.translators.java.entity;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityRotationPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -45,14 +47,20 @@ public class JavaEntityRotationTranslator extends PacketTranslator<ServerEntityR
         // entity.moveRelative(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ(), packet.getYaw(), packet.getPitch());
         entity.setRotation(Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw()));
 
-        if (entity.isMovePending()) {
+        if (entity.getEntityType() != EntityType.PLAYER) {
             MoveEntityAbsolutePacket moveEntityAbsolutePacket = new MoveEntityAbsolutePacket();
             moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
             moveEntityAbsolutePacket.setPosition(entity.getPosition());
             moveEntityAbsolutePacket.setRotation(entity.getBedrockRotation());
-            entity.setMovePending(false);
-
             session.getUpstream().sendPacket(moveEntityAbsolutePacket);
+        } else {
+            MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+            movePlayerPacket.setPosition(entity.getPosition());
+            movePlayerPacket.setRotation(entity.getBedrockRotation());
+            movePlayerPacket.setOnGround(packet.isOnGround());
+            movePlayerPacket.setMode(MovePlayerPacket.Mode.ROTATION);
+            session.getUpstream().sendPacket(movePlayerPacket);
         }
     }
 }

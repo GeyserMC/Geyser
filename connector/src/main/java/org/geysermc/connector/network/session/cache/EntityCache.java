@@ -55,7 +55,6 @@ public class EntityCache {
     }
 
     public void spawnEntity(Entity entity) {
-        entity.moveAbsolute(entity.getPosition(), entity.getRotation().getX(), entity.getRotation().getY());
         cacheEntity(entity);
         entity.spawnEntity(session);
     }

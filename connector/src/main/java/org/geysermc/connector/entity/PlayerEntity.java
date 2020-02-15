@@ -30,6 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.Getter;
 import lombok.Setter;
@@ -114,5 +115,39 @@ public class PlayerEntity extends LivingEntity {
                 session.getUpstream().sendPacket(playerList);
             });
         }
+    }
+
+    @Override
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
+        setPosition(position);
+        setRotation(rotation);
+
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(geyserId);
+        movePlayerPacket.setPosition(this.position);
+        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setOnGround(isOnGround);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+
+        session.getUpstream().sendPacket(movePlayerPacket);
+    }
+
+    @Override
+    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
+        setRotation(rotation);
+        this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(geyserId);
+        movePlayerPacket.setPosition(position);
+        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setOnGround(isOnGround);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+        session.getUpstream().sendPacket(movePlayerPacket);
+    }
+
+    @Override
+    public void setPosition(Vector3f position) {
+        this.position = position.add(0, entityType.getOffset(), 0);
     }
 }

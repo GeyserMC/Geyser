@@ -49,7 +49,8 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
         if (!session.isSpawned()) {
             Vector3f pos = Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ());
-            entity.moveAbsolute(pos, packet.getYaw(), packet.getPitch());
+            entity.setPosition(pos);
+            entity.setRotation(Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw()));
 
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0);
@@ -73,8 +74,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             movePlayerPacket.setPosition(pos);
             movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
-            movePlayerPacket.setOnGround(true);
-            entity.setMovePending(false);
 
             session.getUpstream().sendPacket(movePlayerPacket);
             session.setSpawned(true);
@@ -83,17 +82,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             return;
         }
 
-        entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getYaw(), packet.getPitch());
-
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-        movePlayerPacket.setPosition(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.01f, packet.getZ()));
-        movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
-        movePlayerPacket.setOnGround(true);
-        entity.setMovePending(false);
-
-        session.getUpstream().sendPacket(movePlayerPacket);
         session.setSpawned(true);
 
         ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());

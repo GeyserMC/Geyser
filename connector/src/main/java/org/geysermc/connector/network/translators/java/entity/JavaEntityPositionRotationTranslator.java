@@ -41,18 +41,6 @@ public class JavaEntityPositionRotationTranslator extends PacketTranslator<Serve
         }
         if (entity == null) return;
 
-        entity.moveRelative(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), packet.getYaw(), packet.getPitch());
-
-        if (entity.isMovePending()) {
-            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-            moveEntityPacket.setRuntimeEntityId(entity.getGeyserId());
-            moveEntityPacket.setPosition(entity.getPosition());
-            moveEntityPacket.setRotation(entity.getBedrockRotation());
-            moveEntityPacket.setOnGround(packet.isOnGround());
-            moveEntityPacket.setTeleported(false);
-            entity.setMovePending(false);
-
-            session.getUpstream().sendPacket(moveEntityPacket);
-        }
+        entity.moveRelative(session, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), packet.getYaw(), packet.getPitch(), packet.isOnGround());
     }
 }
