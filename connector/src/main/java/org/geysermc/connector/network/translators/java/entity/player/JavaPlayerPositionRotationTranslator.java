@@ -83,6 +83,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         }
 
         session.setSpawned(true);
+        entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getYaw(), packet.getPitch(), true);
 
         ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
         session.getDownstream().getSession().send(teleportConfirmPacket);
