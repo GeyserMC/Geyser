@@ -34,7 +34,6 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Sounds
 - Block Particles
 - Block Entities ([`block-entities`](https://github.com/GeyserMC/Geyser/tree/block-entities))
-- Biome Colors
 - Some Entity Flags
 - Proper Movement
 - Support to be Ran as a Plugin ([`plugin`](https://github.com/GeyserMC/Geyser/tree/plugin))

@@ -56,9 +56,13 @@ public class EntityCache {
 
     public void spawnEntity(Entity entity) {
         entity.moveAbsolute(entity.getPosition(), entity.getRotation().getX(), entity.getRotation().getY());
+        cacheEntity(entity);
+        entity.spawnEntity(session);
+    }
+
+    public void cacheEntity(Entity entity) {
         entityIdTranslations.put(entity.getEntityId(), entity.getGeyserId());
         entities.put(entity.getGeyserId(), entity);
-        entity.spawnEntity(session);
     }
 
     public boolean removeEntity(Entity entity, boolean force) {

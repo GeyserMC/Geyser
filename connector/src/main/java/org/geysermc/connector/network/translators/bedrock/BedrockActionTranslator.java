@@ -56,6 +56,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Don't put anything here as respawn is already handled
                 // in BedrockRespawnTranslator
                 break;
+            case START_SWIMMING:
+                ClientPlayerStatePacket startSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
+                session.getDownstream().getSession().send(startSwimPacket);
+                break;
+            case STOP_SWIMMING:
+                ClientPlayerStatePacket stopSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                session.getDownstream().getSession().send(stopSwimPacket);
+                break;
             case START_GLIDE:
             case STOP_GLIDE:
                 ClientPlayerStatePacket glidePacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);

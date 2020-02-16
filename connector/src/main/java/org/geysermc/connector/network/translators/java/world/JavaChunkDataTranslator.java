@@ -37,6 +37,7 @@ import io.netty.buffer.Unpooled;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.world.chunk.ChunkSection;
@@ -75,7 +76,9 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     section.writeToNetwork(byteBuf);
                 }
 
-                byteBuf.writeBytes(chunkData.biomes); // Biomes - 256 bytes
+                byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
+
+                byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
                 byteBuf.writeByte(0); // Border blocks - Edu edition only
                 VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
 
