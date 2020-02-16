@@ -44,7 +44,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
             return;
 
         switch (packet.getAction()) {
-            case UNKNOWN_1: // interact
+            case INTERACT:
                 ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                         InteractAction.INTERACT, Hand.MAIN_HAND);
                 session.getDownstream().getSession().send(interactPacket);
