@@ -40,6 +40,8 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
+import java.util.concurrent.TimeUnit;
+
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
 
     @Override
@@ -72,10 +74,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case START_SPRINT:
                 ClientPlayerStatePacket startSprintPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
                 session.getDownstream().getSession().send(startSprintPacket);
+                session.setSprinting(true);
                 break;
             case STOP_SPRINT:
                 ClientPlayerStatePacket stopSprintPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
                 session.getDownstream().getSession().send(stopSprintPacket);
+                session.setSprinting(false);
                 break;
             case DROP_ITEM:
                 ClientPlayerActionPacket dropItemPacket = new ClientPlayerActionPacket(PlayerAction.DROP_ITEM, position, BlockFace.values()[packet.getFace()]);
@@ -113,6 +117,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
                 session.getUpstream().sendPacket(spawnPacket);
                 entity.updateBedrockAttributes(session);
+                break;
+            case JUMP:
+                session.setJumping(true);
+                session.getConnector().getGeneralThreadPool().schedule(() -> {
+                    session.setJumping(false);
+                }, 1, TimeUnit.SECONDS);
                 break;
         }
     }

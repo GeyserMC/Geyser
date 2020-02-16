@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.Serv
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.*;
+
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -83,7 +84,17 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         }
 
         session.setSpawned(true);
-        entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getYaw(), packet.getPitch(), true);
+        if (!packet.getRelative().isEmpty()) {
+            entity.moveRelative(session, packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ(), packet.getYaw(), packet.getPitch(), true);
+        } else {
+            float xDis = Math.abs(entity.getPosition().getX() - (float) packet.getX());
+            float yDis = entity.getPosition().getY() - (float) packet.getY();
+            float zDis = Math.abs(entity.getPosition().getZ() - (float) packet.getZ());
+
+            if (xDis > 1.5 || (yDis < 1.45 || yDis > (session.isJumping() ? 4.3 : (session.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5) {
+                entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY() + 0.6f, packet.getZ()), packet.getYaw(), packet.getPitch(), true);
+            }
+        }
 
         ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
         session.getDownstream().getSession().send(teleportConfirmPacket);

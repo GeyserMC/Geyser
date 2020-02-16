@@ -101,6 +101,12 @@ public class GeyserSession implements Player {
     private GameMode gameMode = GameMode.SURVIVAL;
 
     @Setter
+    private boolean sprinting;
+
+    @Setter
+    private boolean jumping;
+
+    @Setter
     private boolean switchingDimension = false;
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
