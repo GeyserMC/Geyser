@@ -37,12 +37,11 @@ import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
 import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
+import com.nukkitx.math.GenericMath;
+import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
@@ -55,7 +54,6 @@ import org.geysermc.api.RemoteServer;
 import org.geysermc.api.session.AuthData;
 import org.geysermc.api.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.cache.*;
@@ -64,9 +62,9 @@ import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.Toolbox;
 
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements Player {
@@ -88,9 +86,6 @@ public class GeyserSession implements Player {
 
     private DataCache<Packet> javaPacketCache;
 
-    @Setter
-    private Vector2i lastChunkPosition = null;
-    @Setter
     private int renderDistance;
 
     private boolean loggedIn;
@@ -103,8 +98,7 @@ public class GeyserSession implements Player {
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
 
-    @Setter
-    private boolean switchingDimension = false;
+    private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
 
@@ -132,6 +126,10 @@ public class GeyserSession implements Player {
     public void connect(RemoteServer remoteServer) {
         startGame();
         this.remoteServer = remoteServer;
+        if (!(connector.getConfig().getRemote().getAuthType().hashCode() == "online".hashCode())) {
+            connector.getLogger().info("Attempting to login using offline mode... authentication is disabled.");
+            authenticate(authenticationData.getName());
+        }
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
@@ -268,6 +266,16 @@ public class GeyserSession implements Player {
 
     public void sendForm(FormWindow window, int id) {
         windowCache.showWindow(window, id);
+    }
+
+    public void setRenderDistance(int renderDistance) {
+        renderDistance = GenericMath.ceil(++renderDistance * TrigMath.SQRT_OF_TWO); //square to circle
+        if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
+        this.renderDistance = renderDistance;
+
+        ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
+        chunkRadiusUpdatedPacket.setRadius(renderDistance);
+        upstream.sendPacket(chunkRadiusUpdatedPacket);
     }
 
     @Override

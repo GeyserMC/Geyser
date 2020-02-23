@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 
 public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacket> {
@@ -59,15 +60,11 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         entityDataPacket.getMetadata().putAll(entity.getMetadata());
         session.getUpstream().sendPacket(entityDataPacket);
 
-        session.setRenderDistance(packet.getViewDistance() + 1); // +1 to be sure it includes every chunk
-        if (session.getRenderDistance() > 32) session.setRenderDistance(32); // <3 u ViaVersion but I don't like crashing clients x)
-
-        ChunkRadiusUpdatedPacket chunkRadiusPacket = new ChunkRadiusUpdatedPacket();
-        chunkRadiusPacket.setRadius(session.getRenderDistance());
-        session.getUpstream().sendPacket(chunkRadiusPacket);
+        session.setRenderDistance(packet.getViewDistance());
 
         if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
-            DimensionUtils.switchDimension(session, packet.getDimension(), false);
+            ChunkUtils.sendEmptyChunks(session, entity.getPosition().toInt(), 3, true);
+            DimensionUtils.switchDimension(session, packet.getDimension());
         }
     }
 }
