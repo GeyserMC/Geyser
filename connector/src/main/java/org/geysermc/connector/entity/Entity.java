@@ -96,7 +96,7 @@ public class Entity {
         flags.setFlag(EntityFlag.HAS_GRAVITY, true);
         flags.setFlag(EntityFlag.HAS_COLLISION, true);
         flags.setFlag(EntityFlag.CAN_SHOW_NAME, true);
-        flags.setFlag(EntityFlag.CAN_CLIMB, false);
+        flags.setFlag(EntityFlag.CAN_CLIMB, true);
         metadata.putFlags(flags);
     }
 
