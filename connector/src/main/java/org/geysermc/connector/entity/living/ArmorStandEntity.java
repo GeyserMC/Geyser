@@ -43,7 +43,7 @@ public class ArmorStandEntity extends LivingEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getType() == MetadataType.BYTE) {
             byte xd = (byte) entityMetadata.getValue();
-            if((xd & 0x01) == 0x01 && !(metadata.get(EntityData.SCALE).equals(0.0f))) {
+            if ((xd & 0x01) == 0x01 && (metadata.get(EntityData.SCALE) != null && !metadata.get(EntityData.SCALE).equals(0.0f))) {
                 metadata.put(EntityData.SCALE, .55f);
             }
         }
