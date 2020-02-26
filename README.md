@@ -8,6 +8,7 @@
 [![HitCount](http://hits.dwyl.io/Geyser/GeyserMC.svg)](http://hits.dwyl.io/Geyser/GeyserMC)
 
 ## Don't post bug reports in the Geyser discord or the Geyser repo. Use this at your own risk
+### if wand block entitys use Legacy branch tho there wont be big updates on legacy branch
 
 ## What is Geyser?
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
