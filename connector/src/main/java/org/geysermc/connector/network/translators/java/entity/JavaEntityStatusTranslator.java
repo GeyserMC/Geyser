@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.protocol.bedrock.data.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -47,48 +48,48 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
         switch (packet.getStatus()) {
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
-                entityEventPacket.setEvent(EntityEventPacket.Event.HURT_ANIMATION);
+                entityEventPacket.setType(EntityEventType.HURT_ANIMATION);
                 break;
             case LIVING_DEATH:
-                entityEventPacket.setEvent(EntityEventPacket.Event.DEATH_ANIMATION);
+                entityEventPacket.setType(EntityEventType.DEATH_ANIMATION);
                 break;
             case WOLF_SHAKE_WATER:
-                entityEventPacket.setEvent(EntityEventPacket.Event.SHAKE_WET);
+                entityEventPacket.setType(EntityEventType.SHAKE_WET);
                 break;
             case PLAYER_FINISH_USING_ITEM:
-                entityEventPacket.setEvent(EntityEventPacket.Event.USE_ITEM);
+                entityEventPacket.setType(EntityEventType.USE_ITEM);
                 break;
             case FISHING_HOOK_PULL_PLAYER:
-                entityEventPacket.setEvent(EntityEventPacket.Event.FISH_HOOK_LURED);
+                entityEventPacket.setType(EntityEventType.FISH_HOOK_LURED);
                 break;
             case TAMEABLE_TAMING_FAILED:
-                entityEventPacket.setEvent(EntityEventPacket.Event.TAME_FAIL);
+                entityEventPacket.setType(EntityEventType.TAME_FAIL);
                 break;
             case TAMEABLE_TAMING_SUCCEEDED:
-                entityEventPacket.setEvent(EntityEventPacket.Event.TAME_SUCCESS);
+                entityEventPacket.setType(EntityEventType.TAME_SUCCESS);
             case ZOMBIE_VILLAGER_CURE:
-                entityEventPacket.setEvent(EntityEventPacket.Event.ZOMBIE_VILLAGER_CURE);
+                entityEventPacket.setType(EntityEventType.ZOMBIE_VILLAGER_CURE);
                 break;
             case ANIMAL_EMIT_HEARTS:
-                entityEventPacket.setEvent(EntityEventPacket.Event.LOVE_PARTICLES);
+                entityEventPacket.setType(EntityEventType.LOVE_PARTICLES);
                 break;
             case FIREWORK_EXPLODE:
-                entityEventPacket.setEvent(EntityEventPacket.Event.FIREWORK_PARTICLES);
+                entityEventPacket.setType(EntityEventType.FIREWORK_PARTICLES);
                 break;
             case WITCH_EMIT_PARTICLES:
-                entityEventPacket.setEvent(EntityEventPacket.Event.WITCH_SPELL_PARTICLES);
+                entityEventPacket.setType(EntityEventType.WITCH_SPELL_PARTICLES);
                 break;
             case TOTEM_OF_UNDYING_MAKE_SOUND:
-                entityEventPacket.setEvent(EntityEventPacket.Event.CONSUME_TOTEM);
+                entityEventPacket.setType(EntityEventType.CONSUME_TOTEM);
                 break;
             case SHEEP_GRAZE_OR_TNT_CART_EXPLODE:
-                entityEventPacket.setEvent(EntityEventPacket.Event.MINECART_TNT_PRIME_FUSE);
+                entityEventPacket.setType(EntityEventType.MINECART_TNT_PRIME_FUSE);
                 break;
             case IRON_GOLEM_HOLD_POPPY:
-                entityEventPacket.setEvent(EntityEventPacket.Event.IRON_GOLEM_OFFER_FLOWER);
+                entityEventPacket.setType(EntityEventType.IRON_GOLEM_OFFER_FLOWER);
                 break;
             case IRON_GOLEM_EMPTY_HAND:
-                entityEventPacket.setEvent(EntityEventPacket.Event.IRON_GOLEM_WITHDRAW_FLOWER);
+                entityEventPacket.setType(EntityEventType.IRON_GOLEM_WITHDRAW_FLOWER);
                 break;
         }
 

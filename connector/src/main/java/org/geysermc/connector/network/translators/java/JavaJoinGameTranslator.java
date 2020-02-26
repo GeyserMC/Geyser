@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -43,7 +44,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
-        bedrockPacket.setPlayerPermission(1);
+        bedrockPacket.setPlayerPermission(PlayerPermission.OPERATOR);
         session.getUpstream().sendPacket(bedrockPacket);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();

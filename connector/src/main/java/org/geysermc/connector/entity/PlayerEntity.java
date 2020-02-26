@@ -27,7 +27,10 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.Getter;
 import lombok.Setter;
@@ -74,11 +77,8 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
-        addPlayerPacket.setPlayerFlags(0);
-        addPlayerPacket.setCommandPermission(0);
-        addPlayerPacket.setWorldFlags(0);
-        addPlayerPacket.setPlayerPermission(0);
-        addPlayerPacket.setCustomFlags(0);
+        addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
+        addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.VISITOR);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
@@ -94,7 +94,7 @@ public class PlayerEntity extends LivingEntity {
         if (getLastSkinUpdate() == -1) {
             if (playerList) {
                 PlayerListPacket playerList = new PlayerListPacket();
-                playerList.setType(PlayerListPacket.Type.ADD);
+                playerList.setAction(PlayerListPacket.Action.ADD);
                 playerList.getEntries().add(SkinUtils.buildDefaultEntry(profile, geyserId));
                 session.getUpstream().sendPacket(playerList);
             }
@@ -110,10 +110,44 @@ public class PlayerEntity extends LivingEntity {
             // remove from playerlist if player isn't on playerlist
             Geyser.getGeneralThreadPool().execute(() -> {
                 PlayerListPacket playerList = new PlayerListPacket();
-                playerList.setType(PlayerListPacket.Type.REMOVE);
+                playerList.setAction(PlayerListPacket.Action.REMOVE);
                 playerList.getEntries().add(new PlayerListPacket.Entry(uuid));
                 session.getUpstream().sendPacket(playerList);
             });
         }
+    }
+
+    @Override
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
+        setPosition(position);
+        setRotation(rotation);
+
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(geyserId);
+        movePlayerPacket.setPosition(this.position);
+        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setOnGround(isOnGround);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+
+        session.getUpstream().sendPacket(movePlayerPacket);
+    }
+
+    @Override
+    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
+        setRotation(rotation);
+        this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(geyserId);
+        movePlayerPacket.setPosition(position);
+        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setOnGround(isOnGround);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+        session.getUpstream().sendPacket(movePlayerPacket);
+    }
+
+    @Override
+    public void setPosition(Vector3f position) {
+        this.position = position.add(0, entityType.getOffset(), 0);
     }
 }

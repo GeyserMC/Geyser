@@ -193,11 +193,6 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public boolean handle(LevelSoundEvent3Packet packet) {
-        return defaultHandler(packet);
-    }
-
-    @Override
     public boolean handle(MapInfoRequestPacket packet) {
         return defaultHandler(packet);
     }

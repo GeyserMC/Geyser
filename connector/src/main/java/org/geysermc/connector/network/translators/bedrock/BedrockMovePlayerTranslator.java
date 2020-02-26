@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
+import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -61,17 +62,15 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
-
+        double javaY = Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2;
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
-                packet.isOnGround(), packet.getPosition().getX(), javaY,
-                packet.getPosition().getZ(), packet.getRotation().getY(), packet.getRotation().getX()
+                packet.isOnGround(), GenericMath.round(packet.getPosition().getX(), 4), javaY, GenericMath.round(packet.getPosition().getZ(), 4), packet.getRotation().getY(), packet.getRotation().getX()
         );
 
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
-
-        entity.moveAbsolute(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0), rotation);
+        entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
+        entity.setRotation(rotation);
 
         /*
         boolean colliding = false;
@@ -124,8 +123,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
-        movePlayerPacket.setOnGround(true);
-        entity.setMovePending(false);
         session.getUpstream().sendPacket(movePlayerPacket);
     }
 }
