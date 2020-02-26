@@ -87,10 +87,9 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         if (!packet.getRelative().isEmpty()) {
             entity.moveRelative(session, packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ(), packet.getYaw(), packet.getPitch(), true);
         } else {
-            float xDis = Math.abs(entity.getPosition().getX() - (float) packet.getX());
-            float yDis = entity.getPosition().getY() - (float) packet.getY();
-            float zDis = Math.abs(entity.getPosition().getZ() - (float) packet.getZ());
-
+            double xDis = Math.abs(entity.getPosition().getX() - packet.getX());
+            double yDis = entity.getPosition().getY() - packet.getY();
+            double zDis = Math.abs(entity.getPosition().getZ() - packet.getZ());
             if (xDis > 1.5 || (yDis < 1.45 || yDis > (session.isJumping() ? 4.3 : (session.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5) {
                 entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), true);
             }

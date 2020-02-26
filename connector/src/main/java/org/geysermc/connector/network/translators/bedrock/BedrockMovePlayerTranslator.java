@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
+import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -63,8 +64,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         double javaY = Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2;
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
-                packet.isOnGround(), packet.getPosition().getX(), javaY,
-                packet.getPosition().getZ(), packet.getRotation().getY(), packet.getRotation().getX()
+                packet.isOnGround(), GenericMath.round(packet.getPosition().getX(), 4), javaY, GenericMath.round(packet.getPosition().getZ(), 4), packet.getRotation().getY(), packet.getRotation().getX()
         );
 
         // head yaw, pitch, head yaw
