@@ -88,7 +88,7 @@ public class ItemTranslator {
                 if (potion != null) {
                     return ItemData.of(bedrockItem.getBedrockId(), potion.getBedrockId(), stack.getAmount(), translateToBedrockNBT(stack.getNbt()));
                 }
-                Geyser.getLogger().debug("Unknown java potion: " + potionTag.getValue());
+               // Geyser.getLogger().debug("Unknown java potion: " + potionTag.getValue());
             }
         }
         return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(stack.getNbt()));
@@ -199,7 +199,7 @@ public class ItemTranslator {
                         javaTag.setValue(javaValue);
                         tags.add(javaTag);
                     } else {
-                        Geyser.getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
+                    //    Geyser.getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
                     }
                 }
                 return new ListTag("Enchantments", tags);
@@ -310,7 +310,7 @@ public class ItemTranslator {
 
                     Enchantment enchantment = Enchantment.getByJavaIdentifier(((StringTag) javaEnchId).getValue());
                     if (enchantment == null) {
-                        Geyser.getLogger().debug("Unknown java enchantment: " + javaEnchId.getValue());
+                     //   Geyser.getLogger().debug("Unknown java enchantment: " + javaEnchId.getValue());
                         continue;
                     }
 

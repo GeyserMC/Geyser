@@ -39,14 +39,14 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
-import org.geysermc.connector.world.chunk.ChunkSection;
+import org.geysermc.connector.world.chunk.ChunkSection; //geyser
 
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
         // Not sure if this is safe or not, however without this the client usually times out
-        Geyser.getConnector().getGeneralThreadPool().execute(() -> {
+        GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
                 if (packet.getColumn().getBiomeData() != null) { //Full chunk
                     ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());

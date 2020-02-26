@@ -74,7 +74,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicInteger; //override
 
 @Getter
 public class GeyserSession implements CommandSender {
@@ -347,7 +347,7 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(chunkRadiusUpdatedPacket);
     }
 
-    @Override
+  //  @Override
     public InetSocketAddress getSocketAddress() {
         return this.upstream.getAddress();
     }
