@@ -25,9 +25,6 @@
 
 package org.geysermc.connector.command;
 
-import org.geysermc.api.command.Command;
-import org.geysermc.api.command.CommandMap;
-import org.geysermc.api.command.CommandSender;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.HelpCommand;
 import org.geysermc.connector.command.defaults.StopCommand;
@@ -36,9 +33,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserCommandMap implements CommandMap {
+public class GeyserCommandMap {
 
-    private final Map<String, Command> commandMap = Collections.synchronizedMap(new HashMap<String, Command>());
+    private final Map<String, GeyserCommand> commandMap = Collections.synchronizedMap(new HashMap<>());
     private GeyserConnector connector;
 
     public GeyserCommandMap(GeyserConnector connector) {
@@ -52,11 +49,11 @@ public class GeyserCommandMap implements CommandMap {
         registerCommand(new StopCommand(connector, "stop", "Shut down Geyser."));
     }
 
-    public void registerCommand(Command command) {
+    public void registerCommand(GeyserCommand command) {
         commandMap.put(command.getName(), command);
         connector.getLogger().debug("Registered command " + command.getName());
 
-        if (command.getAliases() == null || command.getAliases().isEmpty())
+        if (command.getAliases().isEmpty())
             return;
 
         for (String alias : command.getAliases())
@@ -64,25 +61,24 @@ public class GeyserCommandMap implements CommandMap {
     }
 
     public void runCommand(CommandSender sender, String command) {
-        String trim = command.trim();
-        String label = null;
-        String[] args = null;
+        if (!command.startsWith("/geyser "))
+            return;
 
-        if (!trim.contains(" ")) {
-            label = trim.toLowerCase();
+        command = command.trim();
+        command = command.replace("geyser ", "");
+        String label;
+        String[] args;
+
+        if (!command.contains(" ")) {
+            label = command.toLowerCase();
             args = new String[0];
         } else {
-            label = trim.substring(0, trim.indexOf(" ")).toLowerCase();
-            String argLine = trim.substring(trim.indexOf(" " + 1));
+            label = command.substring(0, command.indexOf(" ")).toLowerCase();
+            String argLine = command.substring(command.indexOf(" " + 1));
             args = argLine.contains(" ") ? argLine.split(" ") : new String[] { argLine };
         }
 
-        if (label == null) {
-            connector.getLogger().warning("Invalid Command! Try /help for a list of commands.");
-            return;
-        }
-
-        Command cmd = commandMap.get(label);
+        GeyserCommand cmd = commandMap.get(label);
         if (cmd == null) {
             connector.getLogger().warning("Invalid Command! Try /help for a list of commands.");
             return;
@@ -91,7 +87,7 @@ public class GeyserCommandMap implements CommandMap {
         cmd.execute(sender, args);
     }
 
-    public Map<String, Command> getCommands() {
+    public Map<String, GeyserCommand> getCommands() {
         return commandMap;
     }
 }

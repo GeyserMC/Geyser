@@ -224,3 +224,4 @@ nbdist/
 ### Geyser ###
 config.yml
 logs/
+public-key.pem

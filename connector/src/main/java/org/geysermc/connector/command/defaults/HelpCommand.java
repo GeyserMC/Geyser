@@ -25,17 +25,12 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.api.ChatColor;
-import org.geysermc.api.command.Command;
-import org.geysermc.api.command.CommandSender;
+import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HelpCommand extends GeyserCommand {
 
@@ -45,15 +40,15 @@ public class HelpCommand extends GeyserCommand {
         super(name, description);
         this.connector = connector;
 
-        this.setAliases(Arrays.asList("?"));
+        this.setAliases(Collections.singletonList("?"));
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         sender.sendMessage("---- Showing Help For: Geyser (Page 1/1) ----");
-        Map<String, Command> cmds = connector.getCommandMap().getCommands();
+        Map<String, GeyserCommand> cmds = connector.getCommandMap().getCommands();
 
-        List<String> commands = new ArrayList<String>(cmds.keySet());
+        List<String> commands = new ArrayList<>(cmds.keySet());
         Collections.sort(commands);
 
         for (String cmd : commands) {

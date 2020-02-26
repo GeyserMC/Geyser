@@ -27,16 +27,16 @@ package org.geysermc.connector.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.api.Geyser;
+
 import org.geysermc.connector.GeyserConnector;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
@@ -44,7 +44,7 @@ import java.util.concurrent.*;
 
 public class SkinProvider {
     public static final Gson GSON = new GsonBuilder().create();
-    public static final boolean ALLOW_THIRD_PARTY_CAPES = ((GeyserConnector)Geyser.getConnector()).getConfig().isAllowThirdPartyCapes();
+    public static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserConnector.getInstance().getConfig().isAllowThirdPartyCapes();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
 
     public static final byte[] STEVE_SKIN = new ProvidedSkin("bedrock/skin/skin_steve.png").getSkin();
@@ -83,7 +83,7 @@ public class SkinProvider {
                     getOrDefault(requestCape(capeUrl, false), EMPTY_CAPE, 5)
             );
 
-            Geyser.getLogger().debug("Took " + (System.currentTimeMillis() - time) + "ms for " + playerId);
+            GeyserConnector.getInstance().getLogger().debug("Took " + (System.currentTimeMillis() - time) + "ms for " + playerId);
             return skinAndCape;
         }, EXECUTOR_SERVICE);
     }
@@ -187,7 +187,7 @@ public class SkinProvider {
 
     private static byte[] requestImage(String imageUrl, boolean cape) throws Exception {
         BufferedImage image = ImageIO.read(new URL(imageUrl));
-        Geyser.getLogger().debug("Downloaded " + imageUrl);
+        GeyserConnector.getInstance().getLogger().debug("Downloaded " + imageUrl);
 
         if (cape) {
             image = image.getWidth() > 64 ? scale(image) : image;
@@ -198,8 +198,7 @@ public class SkinProvider {
             image = newImage;
         }
 
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(image.getWidth() * 4 + image.getHeight() * 4);
-        try {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(image.getWidth() * 4 + image.getHeight() * 4)) {
             for (int y = 0; y < image.getHeight(); y++) {
                 for (int x = 0; x < image.getWidth(); x++) {
                     int rgba = image.getRGB(x, y);
@@ -211,10 +210,6 @@ public class SkinProvider {
             }
             image.flush();
             return outputStream.toByteArray();
-        } finally {
-            try {
-                outputStream.close();
-            } catch (IOException ignored) {}
         }
     }
 

@@ -30,9 +30,11 @@ import com.google.gson.JsonObject;
 import com.nukkitx.protocol.bedrock.data.ImageData;
 import com.nukkitx.protocol.bedrock.data.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.api.Geyser;
+
+import org.geysermc.common.AuthType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -44,6 +46,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class SkinUtils {
+
     public static PlayerListPacket.Entry buildCachedEntry(GameProfile profile, long geyserId) {
         GameProfileData data = GameProfileData.from(profile);
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
@@ -121,8 +124,8 @@ public class SkinUtils {
 
                 return new GameProfileData(skinUrl, capeUrl, isAlex);
             } catch (Exception exception) {
-                if (!((GeyserConnector) Geyser.getConnector()).getConfig().getRemote().getAuthType().equals("offline")) {
-                    Geyser.getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
+                if (GeyserConnector.getInstance().getAuthType() != AuthType.OFFLINE) {
+                    GeyserConnector.getInstance().getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
                 }
                 // return default skin with default cape when texture data is invalid
                 return new GameProfileData(SkinProvider.EMPTY_SKIN.getTextureUrl(), SkinProvider.EMPTY_CAPE.getTextureUrl(), false);
@@ -132,7 +135,7 @@ public class SkinUtils {
 
     public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
-        Geyser.getGeneralThreadPool().execute(() -> {
+        GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             GameProfileData data = GameProfileData.from(entity.getProfile());
 
             SkinProvider.requestSkinAndCape(entity.getUuid(), data.getSkinUrl(), data.getCapeUrl())
@@ -176,11 +179,12 @@ public class SkinUtils {
                                 }
                             }
                         } catch (Exception e) {
-                            Geyser.getLogger().error("Failed getting skin for " + entity.getUuid(), e);
+                            GeyserConnector.getInstance().getLogger().error("Failed getting skin for " + entity.getUuid(), e);
                         }
 
                         if (skinAndCapeConsumer != null) skinAndCapeConsumer.accept(skinAndCape);
                     });
+
         });
     }
 

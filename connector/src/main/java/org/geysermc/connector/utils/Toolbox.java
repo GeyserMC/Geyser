@@ -34,10 +34,11 @@ import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
 import java.io.ByteArrayInputStream;
@@ -68,7 +69,7 @@ public class Toolbox {
             biomesTag = (CompoundTag) biomenbtInputStream.readTag();
             BIOMES = biomesTag;
         } catch (Exception ex) {
-            GeyserLogger.DEFAULT.warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
+            GeyserConnector.getInstance().getLogger().warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
             throw new AssertionError(ex);
         }
 

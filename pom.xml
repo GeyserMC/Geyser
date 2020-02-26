@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.geysermc</groupId>
     <artifactId>geyser-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>parent</version>
     <packaging>pom</packaging>
     <name>Geyser</name>
     <description>Allows for players from Minecraft Bedrock Edition to join Minecraft Java Edition servers.</description>
@@ -31,10 +31,9 @@
     </scm>
 
     <modules>
-        <module>api</module>
+        <module>bootstrap</module>
         <module>common</module>
         <module>connector</module>
-        <module>plugin</module>
     </modules>
 
     <repositories>
@@ -91,8 +90,4 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <defaultGoal>clean install</defaultGoal>
-    </build>
 </project>

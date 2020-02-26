@@ -26,7 +26,8 @@
 package org.geysermc.connector.network.translators.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
-import org.geysermc.api.Geyser;
+
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.scoreboard.Scoreboard;
@@ -41,7 +42,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
 
     @Override
     public void translate(ServerTeamPacket packet, GeyserSession session) {
-        Geyser.getLogger().debug("Team packet " + packet.getTeamName() + " " + packet.getAction()+" "+ Arrays.toString(packet.getPlayers()));
+        GeyserConnector.getInstance().getLogger().debug("Team packet " + packet.getTeamName() + " " + packet.getAction()+" "+ Arrays.toString(packet.getPlayers()));
 
         Scoreboard scoreboard = session.getScoreboardCache().getScoreboard();
         switch (packet.getAction()) {
