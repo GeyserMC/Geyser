@@ -62,7 +62,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        double javaY = Math.ceil((packet.getPosition().getY() - EntityType.PLAYER.getOffset()) * 2) / 2;
+        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
+        if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
                 packet.isOnGround(), GenericMath.round(packet.getPosition().getX(), 4), javaY, GenericMath.round(packet.getPosition().getZ(), 4), packet.getRotation().getY(), packet.getRotation().getX()
         );
