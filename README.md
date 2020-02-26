@@ -35,7 +35,6 @@ Please note, Geyser is **not** (currently) a plugin. Watch the video below or ta
 - Block Particles
 - Block Entities ([`block-entities`](https://github.com/GeyserMC/Geyser/tree/block-entities))
 - Some Entity Flags
-- Proper Movement
 - Support to be Ran as a Plugin ([`plugin`](https://github.com/GeyserMC/Geyser/tree/plugin))
 
 ## Compiling
