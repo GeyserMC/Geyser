@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionPacket;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -41,18 +41,6 @@ public class JavaEntityPositionTranslator extends PacketTranslator<ServerEntityP
         }
         if (entity == null) return;
 
-        entity.moveRelative(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), entity.getRotation());
-
-        if (entity.isMovePending()) {
-            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-            moveEntityPacket.setRuntimeEntityId(entity.getGeyserId());
-            moveEntityPacket.setPosition(entity.getPosition());
-            moveEntityPacket.setRotation(entity.getBedrockRotation());
-            moveEntityPacket.setOnGround(packet.isOnGround());
-            moveEntityPacket.setTeleported(false);
-            entity.setMovePending(false);
-
-            session.getUpstream().sendPacket(moveEntityPacket);
-        }
+        entity.moveRelative(session, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), entity.getRotation(), packet.isOnGround());
     }
 }

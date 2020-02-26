@@ -28,7 +28,9 @@ package org.geysermc.connector.network.translators.java.entity.player;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.*;
+
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -48,17 +50,18 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
         if (!session.isSpawned()) {
             Vector3f pos = Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ());
-            entity.moveAbsolute(pos, packet.getYaw(), packet.getPitch());
+            entity.setPosition(pos);
+            entity.setRotation(Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw()));
 
             RespawnPacket respawnPacket = new RespawnPacket();
-            respawnPacket.setRuntimeEntityId(0);
+            respawnPacket.setRuntimeEntityId(entity.getGeyserId());
             respawnPacket.setPosition(pos);
-            respawnPacket.setSpawnState(RespawnPacket.State.SERVER_READY);
+            respawnPacket.setState(RespawnPacket.State.SERVER_READY);
             session.getUpstream().sendPacket(respawnPacket);
 
             EntityEventPacket eventPacket = new EntityEventPacket();
             eventPacket.setRuntimeEntityId(entity.getGeyserId());
-            eventPacket.setEvent(EntityEventPacket.Event.RESPAWN);
+            eventPacket.setType(EntityEventType.RESPAWN);
             eventPacket.setData(0);
             session.getUpstream().sendPacket(eventPacket);
 
@@ -72,28 +75,28 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             movePlayerPacket.setPosition(pos);
             movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
-            movePlayerPacket.setOnGround(true);
-            entity.setMovePending(false);
 
             session.getUpstream().sendPacket(movePlayerPacket);
             session.setSpawned(true);
+
+            ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
+            session.getDownstream().getSession().send(teleportConfirmPacket);
 
             GeyserLogger.DEFAULT.info("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
             return;
         }
 
-        entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ()), packet.getYaw(), packet.getPitch());
-
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-        movePlayerPacket.setPosition(Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.01f, packet.getZ()));
-        movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
-        movePlayerPacket.setOnGround(true);
-        entity.setMovePending(false);
-
-        session.getUpstream().sendPacket(movePlayerPacket);
         session.setSpawned(true);
+        if (!packet.getRelative().isEmpty()) {
+            entity.moveRelative(session, packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ(), packet.getYaw(), packet.getPitch(), true);
+        } else {
+            double xDis = Math.abs(entity.getPosition().getX() - packet.getX());
+            double yDis = entity.getPosition().getY() - packet.getY();
+            double zDis = Math.abs(entity.getPosition().getZ() - packet.getZ());
+            if (xDis > 1.5 || (yDis < 1.45 || yDis > (session.isJumping() ? 4.3 : (session.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5) {
+                entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), true);
+            }
+        }
 
         ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
         session.getDownstream().getSession().send(teleportConfirmPacket);

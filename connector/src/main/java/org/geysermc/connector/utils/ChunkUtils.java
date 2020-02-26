@@ -31,7 +31,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
@@ -76,19 +75,23 @@ public class ChunkUtils {
     }
 
     public static void updateBlock(GeyserSession session, BlockState blockState, Position position) {
-        int blockId = BlockTranslator.getBedrockBlockId(blockState);
         Vector3i pos = Vector3i.from(position.getX(), position.getY(), position.getZ());
+        updateBlock(session, blockState, pos);
+    }
+
+    public static void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
+        int blockId = BlockTranslator.getBedrockBlockId(blockState);
 
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setBlockPosition(pos);
+        updateBlockPacket.setBlockPosition(position);
         updateBlockPacket.setRuntimeId(blockId);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.getUpstream().sendPacket(updateBlockPacket);
 
         UpdateBlockPacket waterPacket = new UpdateBlockPacket();
         waterPacket.setDataLayer(1);
-        waterPacket.setBlockPosition(pos);
+        waterPacket.setBlockPosition(position);
         if (BlockTranslator.isWaterlogged(blockState)) {
             waterPacket.setRuntimeId(BEDROCK_WATER_ID);
         } else {
@@ -100,11 +103,6 @@ public class ChunkUtils {
     public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {
         int chunkX = position.getX() >> 4;
         int chunkZ = position.getZ() >> 4;
-        NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
-        chunkPublisherUpdatePacket.setPosition(position);
-        chunkPublisherUpdatePacket.setRadius(radius + 1 << 4);
-        session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
-        session.setLastChunkPosition(null);
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
                 LevelChunkPacket data = new LevelChunkPacket();
@@ -119,7 +117,7 @@ public class ChunkUtils {
                     Vector3i pos = Vector3i.from(chunkX + x << 4, 80, chunkZ + z << 4);
                     UpdateBlockPacket blockPacket = new UpdateBlockPacket();
                     blockPacket.setBlockPosition(pos);
-                    blockPacket.setDataLayer(1);
+                    blockPacket.setDataLayer(0);
                     blockPacket.setRuntimeId(1);
                     session.getUpstream().sendPacket(blockPacket);
                 }

@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
+import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.*;
@@ -65,7 +65,6 @@ public class Entity {
     protected Vector3f rotation;
 
     protected float scale = 1;
-    protected boolean movePending;
 
     protected EntityType entityType;
 
@@ -73,19 +72,19 @@ public class Entity {
 
     protected LongSet passengers = new LongOpenHashSet();
     protected Map<AttributeType, Attribute> attributes = new HashMap<>();
-    protected EntityDataDictionary metadata = new EntityDataDictionary();
+    protected EntityDataMap metadata = new EntityDataMap();
 
     public Entity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         this.entityId = entityId;
         this.geyserId = geyserId;
         this.entityType = entityType;
-        this.position = position;
         this.motion = motion;
         this.rotation = rotation;
 
         this.valid = false;
-        this.movePending = false;
         this.dimension = 0;
+
+        setPosition(position);
 
         metadata.put(EntityData.SCALE, 1f);
         metadata.put(EntityData.MAX_AIR, (short) 400);
@@ -132,28 +131,45 @@ public class Entity {
         return true;
     }
 
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch) {
-        moveRelative(relX, relY, relZ, Vector3f.from(yaw, pitch, yaw));
+    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(session, relX, relY, relZ, Vector3f.from(yaw, pitch, yaw), isOnGround);
     }
 
-    public void moveRelative(double relX, double relY, double relZ, Vector3f rotation) {
+    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
         setRotation(rotation);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
-        this.movePending = true;
+
+        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+        moveEntityPacket.setRuntimeEntityId(geyserId);
+        moveEntityPacket.setPosition(position);
+        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setOnGround(isOnGround);
+        moveEntityPacket.setTeleported(false);
+
+        session.getUpstream().sendPacket(moveEntityPacket);
     }
 
-    public void moveAbsolute(Vector3f position, float yaw, float pitch) {
-        moveAbsolute(position, Vector3f.from(yaw, pitch, yaw));
+    public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround) {
+        moveAbsolute(session, position, Vector3f.from(yaw, pitch, yaw), isOnGround);
     }
 
-    public void moveAbsolute(Vector3f position, Vector3f rotation) {
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
         setPosition(position);
         setRotation(rotation);
 
-        this.movePending = true;
+        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+        moveEntityPacket.setRuntimeEntityId(geyserId);
+        moveEntityPacket.setPosition(position);
+        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setOnGround(isOnGround);
+        moveEntityPacket.setTeleported(false);
+
+        session.getUpstream().sendPacket(moveEntityPacket);
     }
 
     public void updateBedrockAttributes(GeyserSession session) {
+        if (!valid) return;
+
         List<com.nukkitx.protocol.bedrock.data.Attribute> attributes = new ArrayList<>();
         for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
             if (!entry.getValue().getType().isBedrockAttribute())
@@ -180,7 +196,7 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
                     // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
                     if ((xd & 0x20) == 0x20)
-                        metadata.put(EntityData.SCALE, 0.01f);
+                        metadata.put(EntityData.SCALE, 0.0f);
                     else
                         metadata.put(EntityData.SCALE, scale);
                 }
@@ -191,7 +207,8 @@ public class Entity {
                     metadata.put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(name));
                 break;
             case 3: // is custom name visible
-                metadata.put(EntityData.ALWAYS_SHOW_NAMETAG, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+                if (!this.is(PlayerEntity.class))
+                    metadata.put(EntityData.ALWAYS_SHOW_NAMETAG, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
                 break;
             case 4: // silent
                 metadata.getFlags().setFlag(EntityFlag.SILENT, (boolean) entityMetadata.getValue());
@@ -201,18 +218,16 @@ public class Entity {
                 break;
         }
 
+        updateBedrockMetadata(session);
+    }
+
+    public void updateBedrockMetadata(GeyserSession session) {
+        if (!valid) return;
+
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
         session.getUpstream().sendPacket(entityDataPacket);
-    }
-
-    public void setPosition(Vector3f position) {
-        if (is(PlayerEntity.class)) {
-            this.position = position.add(0, entityType.getOffset(), 0);
-            return;
-        }
-        this.position = position;
     }
 
     /**

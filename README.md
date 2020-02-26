@@ -11,9 +11,9 @@ Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Editio
 
 ## What is Geyser?
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
-The ultimate goal of this project is to allow Minecraft: Bedrock Edition users to join Minecraft: Java Edition servers as seamlessly as possible.
+The ultimate goal of this project is to allow Minecraft: Bedrock Edition users to join Minecraft: Java Edition servers as seamlessly as possible. **Please note, this project is still a work in progress and should not be used on production. Expect bugs!**
 
-### Please note, this project is still a work in progress and should not be used on production. Expect bugs!
+### Currently supporting Minecraft Bedrock v1.14.X and Minecraft Java v1.15.2.
 
 ## Setting Up
 Please note, Geyser is **not** (currently) a plugin. Watch the video below or take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set it up.
@@ -35,7 +35,6 @@ Please note, Geyser is **not** (currently) a plugin. Watch the video below or ta
 - Block Particles
 - Block Entities ([`block-entities`](https://github.com/GeyserMC/Geyser/tree/block-entities))
 - Some Entity Flags
-- Proper Movement
 - Support to be Ran as a Plugin ([`plugin`](https://github.com/GeyserMC/Geyser/tree/plugin))
 
 ## Compiling

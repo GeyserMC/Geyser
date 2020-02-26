@@ -128,8 +128,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerActionAckPacket.class, new JavaPlayerActionAckTranslator());
         Registry.registerJava(ServerPlayerChangeHeldItemPacket.class, new JavaPlayerChangeHeldItemTranslator());
 
-        // FIXME: This translator messes with allowing flight in creative mode. Will need to be addressed later
-        // Registry.registerJava(ServerPlayerAbilitiesPacket.class, new JavaPlayerAbilitiesTranslator());
+        Registry.registerJava(ServerPlayerAbilitiesPacket.class, new JavaPlayerAbilitiesTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
         Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());
@@ -148,6 +147,9 @@ public class TranslatorsInit {
         Registry.registerJava(ServerCloseWindowPacket.class, new JavaCloseWindowTranslator());
         Registry.registerJava(ServerConfirmTransactionPacket.class, new JavaConfirmTransactionTranslator());
         Registry.registerJava(ServerWindowPropertyPacket.class, new JavaWindowPropertyTranslator());
+
+        Registry.registerJava(ServerUpdateViewPositionPacket.class, new JavaUpdateViewPositionTranslator());
+        Registry.registerJava(ServerUpdateViewDistancePacket.class, new JavaUpdateViewDistanceTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
