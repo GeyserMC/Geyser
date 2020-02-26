@@ -28,13 +28,11 @@ package org.geysermc.connector.network.translators.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryAction;
+import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.InventorySource;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.utils.InventoryUtils;
@@ -80,7 +78,7 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public int bedrockSlotToJava(InventoryAction action) {
+    public int bedrockSlotToJava(InventoryActionData action) {
         if (action.getSource().getContainerId() == ContainerId.CURSOR) {
             int slotnum = action.getSlot();
             if (slotnum >= 32 && 42 >= slotnum) {
@@ -105,9 +103,9 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryAction> actions) {
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
         if (session.getGameMode() == GameMode.CREATIVE) {
-            for (InventoryAction action : actions) {
+            for (InventoryActionData action : actions) {
                 if (action.getSource().getType() == InventorySource.Type.CREATIVE) {
                     updateInventory(session, inventory);
                     InventoryUtils.updateCursor(session);

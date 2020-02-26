@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.inventory;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryAction;
+import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -42,7 +42,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public int bedrockSlotToJava(InventoryAction action) {
+    public int bedrockSlotToJava(InventoryActionData action) {
         if (action.getSource().getContainerId() == ContainerId.CURSOR) {
             switch (action.getSlot()) {
                 case 1:
@@ -77,10 +77,10 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryAction> actions) {
-        InventoryAction anvilResult = null;
-        InventoryAction anvilInput = null;
-        for (InventoryAction action : actions) {
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
+        InventoryActionData anvilResult = null;
+        InventoryActionData anvilInput = null;
+        for (InventoryActionData action : actions) {
             if (action.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL) {
                 //useless packet
                 return;
@@ -100,7 +100,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
             String rename;
             com.nukkitx.nbt.tag.CompoundTag tag = itemName.getTag();
             if (tag != null) {
-                rename = tag.getAsCompound("display").getAsString("Name");
+                rename = tag.getCompound("display").getString("Name");
             } else {
                 rename = "";
             }

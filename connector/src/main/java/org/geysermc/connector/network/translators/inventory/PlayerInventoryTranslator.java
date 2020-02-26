@@ -34,7 +34,7 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.network.translators.inventory.action.InventoryActionTranslator;
+import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.List;
@@ -50,8 +50,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         for (int i = 1; i < 5; i++) {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.CURSOR);
-            slotPacket.setInventorySlot(i + 27);
-            slotPacket.setSlot(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(i)));
+            slotPacket.setSlot(i + 27);
+            slotPacket.setItem(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(i)));
             session.getUpstream().sendPacket(slotPacket);
         }
 
@@ -93,18 +93,18 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             if (slot >= 9) {
                 slotPacket.setContainerId(ContainerId.INVENTORY);
                 if (slot >= 36) {
-                    slotPacket.setInventorySlot(slot - 36);
+                    slotPacket.setSlot(slot - 36);
                 } else {
-                    slotPacket.setInventorySlot(slot);
+                    slotPacket.setSlot(slot);
                 }
             } else if (slot >= 5) {
                 slotPacket.setContainerId(ContainerId.ARMOR);
-                slotPacket.setInventorySlot(slot - 5);
+                slotPacket.setSlot(slot - 5);
             } else {
                 slotPacket.setContainerId(ContainerId.CURSOR);
-                slotPacket.setInventorySlot(slot + 27);
+                slotPacket.setSlot(slot + 27);
             }
-            slotPacket.setSlot(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(slot)));
+            slotPacket.setItem(TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItem(slot)));
             session.getUpstream().sendPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
@@ -115,7 +115,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public int bedrockSlotToJava(InventoryAction action) {
+    public int bedrockSlotToJava(InventoryActionData action) {
         int slotnum = action.getSlot();
         switch (action.getSource().getContainerId()) {
             case ContainerId.INVENTORY:
@@ -159,10 +159,10 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryAction> actions) {
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
         if (session.getGameMode() == GameMode.CREATIVE) {
             //crafting grid is not visible in creative mode in java edition
-            for (InventoryAction action : actions) {
+            for (InventoryActionData action : actions) {
                 if (action.getSource().getContainerId() == ContainerId.CURSOR && (action.getSlot() >= 28 && 31 >= action.getSlot())) {
                     updateInventory(session, inventory);
                     InventoryUtils.updateCursor(session);
@@ -171,7 +171,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             }
 
             ItemStack javaItem;
-            for (InventoryAction action : actions) {
+            for (InventoryActionData action : actions) {
                 switch (action.getSource().getContainerId()) {
                     case ContainerId.INVENTORY:
                     case ContainerId.ARMOR:
@@ -204,7 +204,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             return;
         }
 
-        InventoryActionTranslator.translate(this, session, inventory, actions);
+        InventoryActionDataTranslator.translate(this, session, inventory, actions);
     }
 
     @Override

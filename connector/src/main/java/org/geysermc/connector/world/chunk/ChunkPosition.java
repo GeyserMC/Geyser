@@ -53,21 +53,4 @@ public class ChunkPosition {
 
         return new Position(chunkX, chunkY, chunkZ);
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this)
-            return true;
-        if (obj == null)
-            return false;
-        if (!(obj instanceof ChunkPosition))
-            return false;
-        ChunkPosition other = (ChunkPosition)obj;
-        return x == other.x && z == other.z;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(x, z);
-    }
 }

@@ -189,13 +189,13 @@ public class ItemTranslator {
                         continue;
 
                     com.nukkitx.nbt.tag.CompoundTag tagValue = (com.nukkitx.nbt.tag.CompoundTag) value;
-                    int bedrockId = tagValue.getAsShort("id", (short) -1);
+                    int bedrockId = tagValue.getShort("id", (short) -1);
                     Enchantment enchantment = Enchantment.getByBedrockId(bedrockId);
                     if (enchantment != null) {
                         CompoundTag javaTag = new CompoundTag("");
                         Map<String, Tag> javaValue = javaTag.getValue();
                         javaValue.put("id", new StringTag("id", enchantment.getJavaIdentifier()));
-                        javaValue.put("lvl", new IntTag("lvl", tagValue.getAsShort("lvl", (short) 1)));
+                        javaValue.put("lvl", new IntTag("lvl", tagValue.getShort("lvl", (short) 1)));
                         javaTag.setValue(javaValue);
                         tags.add(javaTag);
                     } else {

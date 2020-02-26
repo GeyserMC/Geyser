@@ -26,10 +26,10 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.InventoryAction;
+import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.action.InventoryActionTranslator;
+import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
 
 import java.util.List;
 
@@ -44,7 +44,7 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
     }
 
     @Override
-    public int bedrockSlotToJava(InventoryAction action) {
+    public int bedrockSlotToJava(InventoryActionData action) {
         int slotnum = action.getSlot();
         if (action.getSource().getContainerId() == ContainerId.INVENTORY) {
             //hotbar
@@ -76,7 +76,7 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
     }
 
     @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryAction> actions) {
-        InventoryActionTranslator.translate(this, session, inventory, actions);
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
+        InventoryActionDataTranslator.translate(this, session, inventory, actions);
     }
 }

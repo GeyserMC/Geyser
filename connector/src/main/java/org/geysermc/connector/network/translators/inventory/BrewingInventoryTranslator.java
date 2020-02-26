@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryAction;
+import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -66,7 +66,7 @@ public class BrewingInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public int bedrockSlotToJava(InventoryAction action) {
+    public int bedrockSlotToJava(InventoryActionData action) {
         final int slot = super.bedrockSlotToJava(action);
         switch (slot) {
             case 0:

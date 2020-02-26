@@ -82,8 +82,8 @@ public class InventoryUtils {
     public static void updateCursor(GeyserSession session) {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
         cursorPacket.setContainerId(ContainerId.CURSOR);
-        cursorPacket.setInventorySlot(0);
-        cursorPacket.setSlot(TranslatorsInit.getItemTranslator().translateToBedrock(session.getInventory().getCursor()));
+        cursorPacket.setSlot(0);
+        cursorPacket.setItem(TranslatorsInit.getItemTranslator().translateToBedrock(session.getInventory().getCursor()));
         session.getUpstream().sendPacket(cursorPacket);
     }
 

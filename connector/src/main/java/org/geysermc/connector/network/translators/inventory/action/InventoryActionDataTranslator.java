@@ -33,7 +33,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.InventoryAction;
+import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.InventorySource;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.inventory.Inventory;
@@ -45,16 +45,16 @@ import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
 
-public class InventoryActionTranslator {
-    public static void translate(InventoryTranslator translator, GeyserSession session, Inventory inventory, List<InventoryAction> actions) {
+public class InventoryActionDataTranslator {
+    public static void translate(InventoryTranslator translator, GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
         if (actions.size() != 2)
             return;
 
-        InventoryAction worldAction = null;
-        InventoryAction cursorAction = null;
-        InventoryAction containerAction = null;
+        InventoryActionData worldAction = null;
+        InventoryActionData cursorAction = null;
+        InventoryActionData containerAction = null;
         boolean refresh = false;
-        for (InventoryAction action : actions) {
+        for (InventoryActionData action : actions) {
             if (action.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT || action.getSource().getContainerId() == ContainerId.CRAFTING_RESULT) {
                 return;
             } else if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION) {
@@ -78,7 +78,7 @@ public class InventoryActionTranslator {
         session.setCraftSlot(0);
 
         if (worldAction != null) {
-            InventoryAction sourceAction;
+            InventoryActionData sourceAction;
             if (cursorAction != null) {
                 sourceAction = cursorAction;
             } else {
@@ -208,8 +208,8 @@ public class InventoryActionTranslator {
             return;
         } else {
             ClickPlan plan = new ClickPlan();
-            InventoryAction fromAction;
-            InventoryAction toAction;
+            InventoryActionData fromAction;
+            InventoryActionData toAction;
             if (actions.get(0).getFromItem().getCount() >= actions.get(0).getToItem().getCount()) {
                 fromAction = actions.get(0);
                 toAction = actions.get(1);
