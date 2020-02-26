@@ -23,28 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.java.world;
 
-import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
-import org.geysermc.connector.entity.PlayerEntity;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewDistancePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.utils.SkinUtils;
 
-public class BedrockPlayerInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
+public class JavaUpdateViewDistanceTranslator extends PacketTranslator<ServerUpdateViewDistancePacket> {
+
     @Override
-    public void translate(SetLocalPlayerAsInitializedPacket packet, GeyserSession session) {
-        if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {
-            if (!session.getUpstream().isInitialized()) {
-                session.getUpstream().setInitialized(true);
-
-                for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
-                    if (!entity.isValid()) {
-                        // async skin loading
-                        SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
-                    }
-                }
-            }
-        }
+    public void translate(ServerUpdateViewDistancePacket packet, GeyserSession session) {
+        session.setRenderDistance(packet.getViewDistance());
     }
 }

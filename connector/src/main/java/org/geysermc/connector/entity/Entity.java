@@ -196,7 +196,7 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
                     // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
                     if ((xd & 0x20) == 0x20)
-                        metadata.put(EntityData.SCALE, 0.01f);
+                        metadata.put(EntityData.SCALE, 0.0f);
                     else
                         metadata.put(EntityData.SCALE, scale);
                 }

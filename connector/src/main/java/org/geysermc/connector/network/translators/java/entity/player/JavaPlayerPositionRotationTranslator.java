@@ -54,7 +54,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             entity.setRotation(Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw()));
 
             RespawnPacket respawnPacket = new RespawnPacket();
-            respawnPacket.setRuntimeEntityId(0);
+            respawnPacket.setRuntimeEntityId(entity.getGeyserId());
             respawnPacket.setPosition(pos);
             respawnPacket.setState(RespawnPacket.State.SERVER_READY);
             session.getUpstream().sendPacket(respawnPacket);
@@ -78,6 +78,9 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             session.getUpstream().sendPacket(movePlayerPacket);
             session.setSpawned(true);
+
+            ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
+            session.getDownstream().getSession().send(teleportConfirmPacket);
 
             GeyserLogger.DEFAULT.info("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
             return;

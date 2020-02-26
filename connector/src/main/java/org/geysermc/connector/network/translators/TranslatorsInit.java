@@ -142,6 +142,9 @@ public class TranslatorsInit {
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
         Registry.registerJava(ServerUnloadChunkPacket.class, new JavaUnloadChunkTranslator());
 
+        Registry.registerJava(ServerUpdateViewPositionPacket.class, new JavaUpdateViewPositionTranslator());
+        Registry.registerJava(ServerUpdateViewDistancePacket.class, new JavaUpdateViewDistanceTranslator());
+
         Registry.registerJava(ServerOpenWindowPacket.class, new OpenWindowPacketTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
