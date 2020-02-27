@@ -46,7 +46,7 @@ public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket>
                 long entityId = session.getEntityCache().addBossBar(packet.getUuid());
                 addBossEntity(session, entityId);
 
-                bossEventPacket.setType(BossEventPacket.Type.SHOW);
+                bossEventPacket.setAction(BossEventPacket.Action.SHOW);
                 bossEventPacket.setBossUniqueEntityId(entityId);
                 bossEventPacket.setTitle(MessageUtils.getBedrockMessage(packet.getTitle()));
                 bossEventPacket.setHealthPercentage(packet.getHealth());
@@ -55,15 +55,15 @@ public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket>
                 bossEventPacket.setDarkenSky(0);
                 break;
             case UPDATE_TITLE:
-                bossEventPacket.setType(BossEventPacket.Type.TITLE);
+                bossEventPacket.setAction(BossEventPacket.Action.TITLE);
                 bossEventPacket.setTitle(MessageUtils.getBedrockMessage(packet.getTitle()));
                 break;
             case UPDATE_HEALTH:
-                bossEventPacket.setType(BossEventPacket.Type.HEALTH_PERCENTAGE);
+                bossEventPacket.setAction(BossEventPacket.Action.HEALTH_PERCENTAGE);
                 bossEventPacket.setHealthPercentage(packet.getHealth());
                 break;
             case REMOVE:
-                bossEventPacket.setType(BossEventPacket.Type.HIDE);
+                bossEventPacket.setAction(BossEventPacket.Action.HIDE);
                 removeBossEntity(session, session.getEntityCache().removeBossBar(packet.getUuid()));
                 break;
             case UPDATE_STYLE:

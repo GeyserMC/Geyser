@@ -35,14 +35,16 @@ import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
+import com.nukkitx.math.GenericMath;
+import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
-import com.nukkitx.protocol.bedrock.data.GameRule;
+import com.nukkitx.protocol.bedrock.data.GameRuleData;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 
 import lombok.Getter;
@@ -71,6 +73,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements CommandSender {
@@ -93,9 +96,6 @@ public class GeyserSession implements CommandSender {
 
     private DataCache<Packet> javaPacketCache;
 
-    @Setter
-    private Vector2i lastChunkPosition = null;
-    @Setter
     private int renderDistance;
 
     private boolean loggedIn;
@@ -107,6 +107,13 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
+
+    private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
+    @Setter
+    private boolean sprinting;
+
+    @Setter
+    private boolean jumping;
 
     @Setter
     private boolean switchingDimension = false;
@@ -321,6 +328,16 @@ public class GeyserSession implements CommandSender {
         windowCache.showWindow(window, id);
     }
 
+    public void setRenderDistance(int renderDistance) {
+        renderDistance = GenericMath.ceil(++renderDistance * TrigMath.SQRT_OF_TWO); //square to circle
+        if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
+        this.renderDistance = renderDistance;
+
+        ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
+        chunkRadiusUpdatedPacket.setRadius(renderDistance);
+        upstream.sendPacket(chunkRadiusUpdatedPacket);
+    }
+
     public InetSocketAddress getSocketAddress() {
         return this.upstream.getAddress();
     }
@@ -351,7 +368,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLightningLevel(0);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRule<>("showcoordinates", true));
+        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", true));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(true);
@@ -359,7 +376,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setBonusChestEnabled(false);
         startGamePacket.setStartingWithMap(false);
         startGamePacket.setTrustingPlayers(true);
-        startGamePacket.setDefaultPlayerPermission(1);
+        startGamePacket.setDefaultPlayerPermission(PlayerPermission.OPERATOR);
         startGamePacket.setServerChunkTickRange(4);
         startGamePacket.setBehaviorPackLocked(false);
         startGamePacket.setResourcePackLocked(false);

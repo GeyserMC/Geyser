@@ -66,7 +66,7 @@ public class BlockTranslator {
         Map<CompoundTag, CompoundTag> blockStateMap = new HashMap<>();
 
         for (CompoundTag tag : blocksTag.getValue()) {
-            if (blockStateMap.putIfAbsent(tag.getAsCompound("block"), tag) != null) {
+            if (blockStateMap.putIfAbsent(tag.getCompound("block"), tag) != null) {
                 throw new AssertionError("Duplicate block states in Bedrock palette");
             }
         }

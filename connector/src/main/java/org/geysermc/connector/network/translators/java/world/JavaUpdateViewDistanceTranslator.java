@@ -23,30 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living;
+package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import org.geysermc.connector.entity.LivingEntity;
-import org.geysermc.connector.entity.type.EntityType;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewDistancePacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-public class ArmorStandEntity extends LivingEntity {
-
-    public ArmorStandEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
+public class JavaUpdateViewDistanceTranslator extends PacketTranslator<ServerUpdateViewDistancePacket> {
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getType() == MetadataType.BYTE) {
-            byte xd = (byte) entityMetadata.getValue();
-            if ((xd & 0x01) == 0x01 && (metadata.get(EntityData.SCALE) != null && !metadata.get(EntityData.SCALE).equals(0.0f))) {
-                metadata.put(EntityData.SCALE, .55f);
-            }
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void translate(ServerUpdateViewDistancePacket packet, GeyserSession session) {
+        session.setRenderDistance(packet.getViewDistance());
     }
 }

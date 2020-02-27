@@ -26,13 +26,17 @@
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
-import com.nukkitx.protocol.bedrock.data.EntityDataDictionary;
+import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
 
@@ -42,7 +46,7 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
         if (entity == null)
             return;
 
-        EntityDataDictionary metadata = entity.getMetadata();
+        EntityDataMap metadata = entity.getMetadata();
         metadata.getFlags().setFlag(EntityFlag.CAN_FLY, packet.isCanFly());
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
@@ -50,24 +54,18 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
         entityDataPacket.getMetadata().putAll(metadata);
         session.getUpstream().sendPacket(entityDataPacket);
 
-        int playerFlags = 0;
+        Set<AdventureSettingsPacket.Flag> playerFlags = new HashSet<>();
+        playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
+        if (packet.isCanFly())
+            playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
 
-        playerFlags = setPlayerFlag(0x20, true, playerFlags); // auto jump
-        playerFlags = setPlayerFlag(0x40, packet.isCanFly(), playerFlags); // can fly
-        playerFlags = setPlayerFlag(0x200, packet.isFlying(), playerFlags); // is flying
+        if (packet.isFlying())
+            playerFlags.add(AdventureSettingsPacket.Flag.FLYING);
 
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-        adventureSettingsPacket.setPlayerPermission(1);
+        adventureSettingsPacket.setPlayerPermission(PlayerPermission.OPERATOR);
         adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
-        adventureSettingsPacket.setPlayerFlags(playerFlags);
+        adventureSettingsPacket.getFlags().addAll(playerFlags);
         session.getUpstream().sendPacket(adventureSettingsPacket);
-    }
-
-    private int setPlayerFlag(int flag, boolean value, int playerFlags) {
-        if (value) {
-            return playerFlags | flag;
-        } else {
-            return playerFlags & ~flag;
-        }
     }
 }

@@ -28,7 +28,9 @@ package org.geysermc.connector.network.translators.java.entity;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityHeadLookPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
@@ -45,12 +47,19 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
 
         entity.setRotation(Vector3f.from(entity.getRotation().getX(), entity.getRotation().getY(), packet.getHeadYaw()));
 
-        MoveEntityAbsolutePacket moveEntityAbsolutePacket = new MoveEntityAbsolutePacket();
-        moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
-        moveEntityAbsolutePacket.setPosition(entity.getPosition());
-        moveEntityAbsolutePacket.setRotation(entity.getBedrockRotation());
-        moveEntityAbsolutePacket.setOnGround(true);
-
-        session.getUpstream().sendPacket(moveEntityAbsolutePacket);
+        if (entity.getEntityType() != EntityType.PLAYER) {
+            MoveEntityAbsolutePacket moveEntityAbsolutePacket = new MoveEntityAbsolutePacket();
+            moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
+            moveEntityAbsolutePacket.setPosition(entity.getPosition());
+            moveEntityAbsolutePacket.setRotation(entity.getBedrockRotation());
+            session.getUpstream().sendPacket(moveEntityAbsolutePacket);
+        } else {
+            MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+            movePlayerPacket.setPosition(entity.getPosition());
+            movePlayerPacket.setRotation(entity.getBedrockRotation());
+            movePlayerPacket.setMode(MovePlayerPacket.Mode.ROTATION);
+            session.getUpstream().sendPacket(movePlayerPacket);
+        }
     }
 }
