@@ -347,7 +347,6 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(chunkRadiusUpdatedPacket);
     }
 
-  //  @Override
     public InetSocketAddress getSocketAddress() {
         return this.upstream.getAddress();
     }
