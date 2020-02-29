@@ -25,25 +25,58 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
+import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
 
 import java.util.List;
 
-@AllArgsConstructor
-public abstract class InventoryTranslator {
-    public final int size;
+public abstract class BaseInventoryTranslator extends InventoryTranslator{
+    BaseInventoryTranslator(int size) {
+        super(size);
+    }
 
-    public abstract void prepareInventory(GeyserSession session, Inventory inventory);
-    public abstract void openInventory(GeyserSession session, Inventory inventory);
-    public abstract void closeInventory(GeyserSession session, Inventory inventory);
-    public abstract void updateProperty(GeyserSession session, Inventory inventory, int key, int value);
-    public abstract void updateInventory(GeyserSession session, Inventory inventory);
-    public abstract void updateSlot(GeyserSession session, Inventory inventory, int slot);
-    public abstract int bedrockSlotToJava(InventoryActionData action);
-    public abstract int javaSlotToBedrock(int slot);
-    public abstract SlotType getSlotType(int javaSlot);
-    public abstract void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions);
+    @Override
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+        //
+    }
+
+    @Override
+    public int bedrockSlotToJava(InventoryActionData action) {
+        int slotnum = action.getSlot();
+        if (action.getSource().getContainerId() == ContainerId.INVENTORY) {
+            //hotbar
+            if (slotnum >= 9) {
+                return slotnum + this.size - 9;
+            } else {
+                return slotnum + this.size + 27;
+            }
+        }
+        return slotnum;
+    }
+
+    @Override
+    public int javaSlotToBedrock(int slot) {
+        if (slot >= this.size) {
+            final int tmp = slot - this.size;
+            if (tmp < 27) {
+                return tmp + 9;
+            } else {
+                return tmp - 27;
+            }
+        }
+        return slot;
+    }
+
+    @Override
+    public SlotType getSlotType(int javaSlot) {
+        return SlotType.NORMAL;
+    }
+
+    @Override
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
+        InventoryActionDataTranslator.translate(this, session, inventory, actions);
+    }
 }

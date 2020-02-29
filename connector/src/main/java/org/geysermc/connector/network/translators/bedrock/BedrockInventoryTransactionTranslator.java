@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.nukkitx.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
@@ -34,17 +35,32 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
-import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.*;
 
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
 
     @Override
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
         switch (packet.getTransactionType()) {
+            case NORMAL:
+                Inventory inventory = session.getInventoryCache().getOpenInventory();
+                if (inventory == null) inventory = session.getInventory();
+                TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType()).translateActions(session, inventory, packet.getActions());
+                break;
+            case INVENTORY_MISMATCH:
+                Inventory inv = session.getInventoryCache().getOpenInventory();
+                if (inv == null) inv = session.getInventory();
+                TranslatorsInit.getInventoryTranslators().get(inv.getWindowType()).updateInventory(session, inv);
+                InventoryUtils.updateCursor(session);
+                break;
             case ITEM_USE:
                 if (packet.getActionType() == 1) {
                     ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -39,6 +40,8 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.console.GeyserLogger;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -46,6 +49,7 @@ public class Toolbox {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
     public static final CompoundTag BIOMES;
+    public static final ItemData[] CREATIVE_ITEMS;
 
     public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
@@ -102,6 +106,36 @@ public class Toolbox {
                     entry.getValue().get("bedrock_id").intValue(), entry.getValue().get("bedrock_data").intValue()));
             itemIndex++;
         }
+
+        stream = getResource("bedrock/creative_items.json");
+
+        JsonNode creativeItemEntries;
+        try {
+            creativeItemEntries = JSON_MAPPER.readTree(stream).get("items");
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load creative items", e);
+        }
+
+        List<ItemData> creativeItems = new ArrayList<>();
+        for (JsonNode itemNode : creativeItemEntries) {
+            short damage = 0;
+            if (itemNode.has("damage")) {
+                damage = itemNode.get("damage").numberValue().shortValue();
+            }
+            if (itemNode.has("nbt_b64")) {
+                byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
+                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+                try {
+                    com.nukkitx.nbt.tag.CompoundTag tag = (com.nukkitx.nbt.tag.CompoundTag) NbtUtils.createReaderLE(bais).readTag();
+                    creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1));
+            }
+        }
+        CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
     }
 
     public static InputStream getResource(String resource) {

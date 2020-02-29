@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.*;
@@ -33,37 +34,36 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerD
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.window.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.*;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import org.geysermc.connector.network.translators.bedrock.*;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.*;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.java.*;
 import org.geysermc.connector.network.translators.java.entity.*;
 import org.geysermc.connector.network.translators.java.entity.player.*;
 import org.geysermc.connector.network.translators.java.entity.spawn.*;
-import org.geysermc.connector.network.translators.java.inventory.OpenWindowPacketTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaTeamTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
-import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
-import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
-import org.geysermc.connector.network.translators.java.window.JavaWindowItemsTranslator;
+import org.geysermc.connector.network.translators.java.window.*;
 import org.geysermc.connector.network.translators.java.world.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TranslatorsInit {
 
@@ -71,7 +71,7 @@ public class TranslatorsInit {
     private static ItemTranslator itemTranslator;
 
     @Getter
-    private static InventoryTranslator inventoryTranslator = new GenericInventoryTranslator();
+    private static Map<WindowType, InventoryTranslator> inventoryTranslators = new HashMap<>();
 
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
@@ -99,6 +99,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerRespawnPacket.class, new JavaRespawnTranslator());
         Registry.registerJava(ServerSpawnPositionPacket.class, new JavaSpawnPositionTranslator());
         Registry.registerJava(ServerDifficultyPacket.class, new JavaDifficultyTranslator());
+        Registry.registerJava(ServerDeclareRecipesPacket.class, new JavaDeclareRecipesTranslator());
 
         Registry.registerJava(ServerEntityAnimationPacket.class, new JavaEntityAnimationTranslator());
         Registry.registerJava(ServerEntityPositionPacket.class, new JavaEntityPositionTranslator());
@@ -125,15 +126,13 @@ public class TranslatorsInit {
         Registry.registerJava(ServerPlayerSetExperiencePacket.class, new JavaPlayerSetExperienceTranslator());
         Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
         Registry.registerJava(ServerPlayerActionAckPacket.class, new JavaPlayerActionAckTranslator());
+        Registry.registerJava(ServerPlayerChangeHeldItemPacket.class, new JavaPlayerChangeHeldItemTranslator());
 
         Registry.registerJava(ServerPlayerAbilitiesPacket.class, new JavaPlayerAbilitiesTranslator());
 
         Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
         Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());
         Registry.registerJava(ServerEntityDestroyPacket.class, new JavaEntityDestroyTranslator());
-        Registry.registerJava(ServerWindowItemsPacket.class, new JavaWindowItemsTranslator());
-        Registry.registerJava(ServerOpenWindowPacket.class, new JavaOpenWindowTranslator());
-        Registry.registerJava(ServerSetSlotPacket.class, new JavaSetSlotTranslator());
         Registry.registerJava(ServerScoreboardObjectivePacket.class, new JavaScoreboardObjectiveTranslator());
         Registry.registerJava(ServerDisplayScoreboardPacket.class, new JavaDisplayScoreboardTranslator());
         Registry.registerJava(ServerUpdateScorePacket.class, new JavaUpdateScoreTranslator());
@@ -142,10 +141,15 @@ public class TranslatorsInit {
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
         Registry.registerJava(ServerUnloadChunkPacket.class, new JavaUnloadChunkTranslator());
 
+        Registry.registerJava(ServerWindowItemsPacket.class, new JavaWindowItemsTranslator());
+        Registry.registerJava(ServerOpenWindowPacket.class, new JavaOpenWindowTranslator());
+        Registry.registerJava(ServerSetSlotPacket.class, new JavaSetSlotTranslator());
+        Registry.registerJava(ServerCloseWindowPacket.class, new JavaCloseWindowTranslator());
+        Registry.registerJava(ServerConfirmTransactionPacket.class, new JavaConfirmTransactionTranslator());
+        Registry.registerJava(ServerWindowPropertyPacket.class, new JavaWindowPropertyTranslator());
+
         Registry.registerJava(ServerUpdateViewPositionPacket.class, new JavaUpdateViewPositionTranslator());
         Registry.registerJava(ServerUpdateViewDistancePacket.class, new JavaUpdateViewDistanceTranslator());
-
-        Registry.registerJava(ServerOpenWindowPacket.class, new OpenWindowPacketTranslator());
 
         Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
         Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
@@ -156,6 +160,7 @@ public class TranslatorsInit {
         Registry.registerBedrock(SetLocalPlayerAsInitializedPacket.class, new BedrockPlayerInitializedTranslator());
         Registry.registerBedrock(InteractPacket.class, new BedrockInteractTranslator());
         Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
+        Registry.registerBedrock(ContainerClosePacket.class, new BedrockContainerCloseTranslator());
         Registry.registerBedrock(RespawnPacket.class, new BedrockRespawnTranslator());
         Registry.registerBedrock(ShowCreditsPacket.class, new BedrockShowCreditsTranslator());
 
@@ -166,11 +171,27 @@ public class TranslatorsInit {
     }
 
     private static void registerInventoryTranslators() {
-        /*inventoryTranslators.put(WindowType.GENERIC_9X1, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X2, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X3, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X4, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X5, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X6, new GenericInventoryTranslator());*/
+        inventoryTranslators.put(null, new PlayerInventoryTranslator()); //player inventory
+        inventoryTranslators.put(WindowType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
+        inventoryTranslators.put(WindowType.GENERIC_9X2, new SingleChestInventoryTranslator(18));
+        inventoryTranslators.put(WindowType.GENERIC_9X3, new SingleChestInventoryTranslator(27));
+        inventoryTranslators.put(WindowType.GENERIC_9X4, new DoubleChestInventoryTranslator(36));
+        inventoryTranslators.put(WindowType.GENERIC_9X5, new DoubleChestInventoryTranslator(45));
+        inventoryTranslators.put(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
+        inventoryTranslators.put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
+        inventoryTranslators.put(WindowType.ANVIL, new AnvilInventoryTranslator());
+        inventoryTranslators.put(WindowType.CRAFTING, new CraftingInventoryTranslator());
+        //inventoryTranslators.put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
+
+        InventoryTranslator furnace = new FurnaceInventoryTranslator();
+        inventoryTranslators.put(WindowType.FURNACE, furnace);
+        inventoryTranslators.put(WindowType.BLAST_FURNACE, furnace);
+        inventoryTranslators.put(WindowType.SMOKER, furnace);
+
+        InventoryUpdater containerUpdater = new ContainerInventoryUpdater();
+        inventoryTranslators.put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, containerUpdater));
+        inventoryTranslators.put(WindowType.HOPPER, new BlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, containerUpdater));
+        inventoryTranslators.put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, containerUpdater));
+        //inventoryTranslators.put(WindowType.BEACON, new BlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO
     }
 }

@@ -48,6 +48,7 @@ public class BlockTranslator {
 
     private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
+    private static final Map<String, BlockState> JAVA_ID_BLOCK_MAP = new HashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
     private static final int BLOCK_STATE_VERSION = 17760256;
@@ -89,7 +90,10 @@ public class BlockTranslator {
             javaRuntimeId++;
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
             String javaId = entry.getKey();
+            BlockState javaBlockState = new BlockState(javaRuntimeId);
             CompoundTag blockTag = buildBedrockState(entry.getValue());
+
+            JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
 
             if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = bedrockRuntimeId;
@@ -97,10 +101,10 @@ public class BlockTranslator {
             boolean waterlogged = entry.getValue().has("waterlogged") && entry.getValue().get("waterlogged").booleanValue();
 
             if (waterlogged) {
-                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, new BlockState(javaRuntimeId));
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, javaBlockState);
                 WATERLOGGED.add(javaRuntimeId);
             } else {
-                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, new BlockState(javaRuntimeId));
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaBlockState);
             }
 
             CompoundTag runtimeTag = blockStateMap.remove(blockTag);
@@ -173,6 +177,10 @@ public class BlockTranslator {
 
     public static BlockState getJavaBlockState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
+    }
+
+    public static BlockState getJavaBlockState(String javaId) {
+        return JAVA_ID_BLOCK_MAP.get(javaId);
     }
 
     public static boolean isWaterlogged(BlockState state) {

@@ -23,34 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.world.chunk;
+package org.geysermc.connector.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import com.nukkitx.protocol.bedrock.data.ContainerType;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 
-import java.util.Objects;
-
-@Getter
-@Setter
-@AllArgsConstructor
-@EqualsAndHashCode
-public class ChunkPosition {
-
-    private int x;
-    private int z;
-
-    public Position getBlock(int x, int y, int z) {
-        return new Position((this.x << 4) + x, y, (this.z << 4) + z);
+public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
+    public EnchantmentInventoryTranslator() {
+        super(2, "minecraft:enchanting_table", ContainerType.ENCHANTMENT, new ContainerInventoryUpdater());
     }
 
-    public Position getChunkBlock(int x, int y, int z) {
-        int chunkX = x & 15;
-        int chunkY = y & 15;
-        int chunkZ = z & 15;
+    @Override
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
 
-        return new Position(chunkX, chunkY, chunkZ);
     }
 }

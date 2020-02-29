@@ -23,34 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.world.chunk;
+package org.geysermc.connector.network.translators.java.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerChangeHeldItemPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
 
-import java.util.Objects;
+public class JavaPlayerChangeHeldItemTranslator extends PacketTranslator<ServerPlayerChangeHeldItemPacket> {
 
-@Getter
-@Setter
-@AllArgsConstructor
-@EqualsAndHashCode
-public class ChunkPosition {
+    @Override
+    public void translate(ServerPlayerChangeHeldItemPacket packet, GeyserSession session) {
+        PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
+        hotbarPacket.setContainerId(0);
+        hotbarPacket.setSelectedHotbarSlot(packet.getSlot());
+        hotbarPacket.setSelectHotbarSlot(true);
+        session.getUpstream().sendPacket(hotbarPacket);
 
-    private int x;
-    private int z;
-
-    public Position getBlock(int x, int y, int z) {
-        return new Position((this.x << 4) + x, y, (this.z << 4) + z);
-    }
-
-    public Position getChunkBlock(int x, int y, int z) {
-        int chunkX = x & 15;
-        int chunkY = y & 15;
-        int chunkZ = z & 15;
-
-        return new Position(chunkX, chunkY, chunkZ);
+        session.getInventory().setHeldItemSlot(packet.getSlot());
     }
 }
