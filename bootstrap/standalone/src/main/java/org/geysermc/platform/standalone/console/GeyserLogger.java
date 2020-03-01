@@ -27,15 +27,22 @@ package org.geysermc.platform.standalone.console;
 
 import io.sentry.Sentry;
 
+import lombok.extern.log4j.Log4j2;
+
+import net.minecrell.terminalconsole.SimpleTerminalConsole;
+
 import org.geysermc.common.ChatColor;
 import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.GeyserConsoleCommandSender;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.*;
 
-public class GeyserLogger implements IGeyserLogger {
+@Log4j2
+public class GeyserLogger extends SimpleTerminalConsole implements IGeyserLogger {
 
     private boolean colored = true;
     private boolean debug = false;
@@ -89,39 +96,55 @@ public class GeyserLogger implements IGeyserLogger {
     }
 
     @Override
+    protected boolean isRunning() {
+        return !GeyserConnector.getInstance().isShuttingDown();
+    }
+
+    @Override
+    protected void runCommand(String line) {
+        GeyserConsoleCommandSender sender = new GeyserConsoleCommandSender();
+        GeyserConnector.getInstance().getCommandMap().runCommand(sender, line);
+    }
+
+    @Override
+    protected void shutdown() {
+        GeyserConnector.getInstance().shutdown();
+    }
+
+    @Override
     public void severe(String message) {
-        System.out.println(printConsole(ChatColor.DARK_RED + message, colored));
+        log.fatal(printConsole(ChatColor.DARK_RED + message, colored));
     }
 
     @Override
     public void severe(String message, Throwable error) {
-        System.out.println(printConsole(ChatColor.DARK_RED + message + "\n" + error.getMessage(), colored));
+        log.fatal(printConsole(ChatColor.DARK_RED + message, colored), error);
     }
 
     @Override
     public void error(String message) {
-        System.out.println(printConsole(ChatColor.RED + message, colored));
+        log.error(printConsole(ChatColor.RED + message, colored));
     }
 
     @Override
     public void error(String message, Throwable error) {
-        System.out.println(printConsole(ChatColor.RED + message + "\n" + error, colored));
+        log.error(printConsole(ChatColor.RED + message, colored), error);
     }
 
     @Override
     public void warning(String message) {
-        System.out.println(printConsole(ChatColor.YELLOW + message, colored));
+        log.warn(printConsole(ChatColor.YELLOW + message, colored));
     }
 
     @Override
     public void info(String message) {
-        System.out.println(printConsole(ChatColor.WHITE + message, colored));
+        log.info(printConsole(ChatColor.WHITE + message, colored));
     }
 
     @Override
     public void debug(String message) {
         if (debug)
-            System.out.println(printConsole(ChatColor.GRAY + message, colored));
+            log.info(printConsole(ChatColor.GRAY + message, colored));
     }
 
     public static String printConsole(String message, boolean colors) {
