@@ -35,7 +35,6 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Block Particles
 - Block Entities ([`block-entities`](https://github.com/GeyserMC/Geyser/tree/block-entities))
 - Some Entity Flags
-- Support to be Ran as a Plugin ([`plugin`](https://github.com/GeyserMC/Geyser/tree/plugin))
 
 ## Compiling
 1. Clone the repo to your computer
