@@ -25,12 +25,10 @@
 
 package org.geysermc.platform.standalone;
 
-import org.fusesource.jansi.AnsiConsole;
 import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.platform.standalone.console.ConsoleCommandReader;
 import org.geysermc.platform.standalone.console.GeyserLogger;
 
 import java.io.File;
@@ -48,11 +46,6 @@ public class GeyserBootstrap implements IGeyserBootstrap {
 
     @Override
     public void onEnable() {
-        // Metric
-        if (!(System.console() == null) && System.getProperty("os.name", "Windows 10").toLowerCase().contains("windows")) {
-            AnsiConsole.systemInstall();
-        }
-
         geyserLogger = new GeyserLogger();
 
         try {
@@ -63,10 +56,8 @@ public class GeyserBootstrap implements IGeyserBootstrap {
             System.exit(0);
         }
 
-        GeyserConnector connector = GeyserConnector.start(PlatformType.STANDALONE, this);
-
-        ConsoleCommandReader consoleReader = new ConsoleCommandReader(connector);
-        consoleReader.startConsole();
+        GeyserConnector.start(PlatformType.STANDALONE, this);
+        geyserLogger.start();
     }
 
     @Override

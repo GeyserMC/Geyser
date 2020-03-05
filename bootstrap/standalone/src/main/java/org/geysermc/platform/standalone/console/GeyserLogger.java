@@ -25,103 +25,69 @@
 
 package org.geysermc.platform.standalone.console;
 
-import io.sentry.Sentry;
+import lombok.extern.log4j.Log4j2;
 
+import net.minecrell.terminalconsole.SimpleTerminalConsole;
+
+import org.apache.logging.log4j.core.config.Configurator;
 import org.geysermc.common.ChatColor;
 import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandSender;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
-import java.util.logging.*;
-
-public class GeyserLogger implements IGeyserLogger {
+@Log4j2
+public class GeyserLogger extends SimpleTerminalConsole implements IGeyserLogger, CommandSender {
 
     private boolean colored = true;
-    private boolean debug = false;
 
-    public GeyserLogger() {
-        ConsoleHandler consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(Level.INFO);
-        consoleHandler.setFormatter(new SimpleFormatter() {
-            private static final String format = "[%1$tT][%2$-5s] %3$s %n";
+    @Override
+    protected boolean isRunning() {
+        return !GeyserConnector.getInstance().isShuttingDown();
+    }
 
-            @Override
-            public synchronized String format(LogRecord lr) {
-                return String.format(format,
-                        new Date(lr.getMillis()),
-                        lr.getLevel().getLocalizedName(),
-                        lr.getMessage()
-                );
-            }
-        });
+    @Override
+    protected void runCommand(String line) {
+        GeyserConnector.getInstance().getCommandMap().runCommand(this, line);
+    }
 
-        try {
-            File logDir = new File("logs");
-            logDir.mkdir();
-            File logFile = new File(logDir, "latest.log");
-            int maxLogFileSize = 20;//Mo
-            if (logFile.exists() && (logFile.length()) > maxLogFileSize * 1024L * 1024L)
-                this.warning("Your log file is larger than " + maxLogFileSize + "Mo, you should backup and clean it !");
-            FileHandler fileHandler = new FileHandler(logFile.getCanonicalPath(), true);
-            fileHandler.setLevel(Level.INFO);
-            fileHandler.setFormatter(new SimpleFormatter() {
-                private static final String format = "[%1$tF %1$tT][%2$-5s] %3$s %n";
-
-                @Override
-                public synchronized String format(LogRecord lr) {
-                    return String.format(format,
-                            new Date(lr.getMillis()),
-                            lr.getLevel().getLocalizedName(),
-                            lr.getMessage()
-                    );
-                }
-            });
-        } catch (IOException | SecurityException ex) {
-            Logger.getLogger(GeyserLogger.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        if (System.getenv().containsKey("DP_SENTRY_CLIENT_KEY")) {
-            Handler sentryHandler = new io.sentry.jul.SentryHandler();
-            sentryHandler.setLevel(Level.SEVERE);
-            Sentry.init(System.getenv().get("DP_SENTRY_CLIENT_KEY"));
-        }
+    @Override
+    protected void shutdown() {
+        GeyserConnector.getInstance().shutdown();
     }
 
     @Override
     public void severe(String message) {
-        System.out.println(printConsole(ChatColor.DARK_RED + message, colored));
+        log.fatal(printConsole(ChatColor.DARK_RED + message, colored));
     }
 
     @Override
     public void severe(String message, Throwable error) {
-        System.out.println(printConsole(ChatColor.DARK_RED + message + "\n" + error.getMessage(), colored));
+        log.fatal(printConsole(ChatColor.DARK_RED + message, colored), error);
     }
 
     @Override
     public void error(String message) {
-        System.out.println(printConsole(ChatColor.RED + message, colored));
+        log.error(printConsole(ChatColor.RED + message, colored));
     }
 
     @Override
     public void error(String message, Throwable error) {
-        System.out.println(printConsole(ChatColor.RED + message + "\n" + error, colored));
+        log.error(printConsole(ChatColor.RED + message, colored), error);
     }
 
     @Override
     public void warning(String message) {
-        System.out.println(printConsole(ChatColor.YELLOW + message, colored));
+        log.warn(printConsole(ChatColor.YELLOW + message, colored));
     }
 
     @Override
     public void info(String message) {
-        System.out.println(printConsole(ChatColor.WHITE + message, colored));
+        log.info(printConsole(ChatColor.WHITE + message, colored));
     }
 
     @Override
     public void debug(String message) {
-        if (debug)
-            System.out.println(printConsole(ChatColor.GRAY + message, colored));
+        log.debug(printConsole(ChatColor.GRAY + message, colored));
     }
 
     public static String printConsole(String message, boolean colors) {
@@ -130,6 +96,16 @@ public class GeyserLogger implements IGeyserLogger {
 
     @Override
     public void setDebug(boolean debug) {
-        this.debug = debug;
+        Configurator.setLevel(log.getName(), debug ? org.apache.logging.log4j.Level.DEBUG : log.getLevel());
+    }
+
+    @Override
+    public String getName() {
+        return "CONSOLE";
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        info(message);
     }
 }
