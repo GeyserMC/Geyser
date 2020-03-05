@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators;
 
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.HashMap;
@@ -55,7 +55,7 @@ public class Registry<T> {
                     return true;
                 }
             } catch (Throwable ex) {
-                GeyserLogger.DEFAULT.error("Could not translate packet " + packet.getClass().getSimpleName(), ex);
+                GeyserConnector.getInstance().getLogger().error("Could not translate packet " + packet.getClass().getSimpleName(), ex);
                 ex.printStackTrace();
             }
         }

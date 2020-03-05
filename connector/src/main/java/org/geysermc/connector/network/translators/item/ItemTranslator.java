@@ -41,8 +41,8 @@ import com.github.steveice10.opennbt.tag.builtin.ShortTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
-import org.geysermc.api.Geyser;
-import org.geysermc.connector.console.GeyserLogger;
+
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -88,7 +88,7 @@ public class ItemTranslator {
                 if (potion != null) {
                     return ItemData.of(bedrockItem.getBedrockId(), potion.getBedrockId(), stack.getAmount(), translateToBedrockNBT(stack.getNbt()));
                 }
-                Geyser.getLogger().debug("Unknown java potion: " + potionTag.getValue());
+                GeyserConnector.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
             }
         }
         return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(stack.getNbt()));
@@ -105,7 +105,7 @@ public class ItemTranslator {
             }
         }
 
-        GeyserLogger.DEFAULT.debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
         return ItemEntry.AIR;
     }
 
@@ -199,7 +199,7 @@ public class ItemTranslator {
                         javaTag.setValue(javaValue);
                         tags.add(javaTag);
                     } else {
-                        Geyser.getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
+                        GeyserConnector.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
                     }
                 }
                 return new ListTag("Enchantments", tags);
@@ -310,7 +310,7 @@ public class ItemTranslator {
 
                     Enchantment enchantment = Enchantment.getByJavaIdentifier(((StringTag) javaEnchId).getValue());
                     if (enchantment == null) {
-                        Geyser.getLogger().debug("Unknown java enchantment: " + javaEnchId.getValue());
+                        GeyserConnector.getInstance().getLogger().debug("Unknown java enchantment: " + javaEnchId.getValue());
                         continue;
                     }
 

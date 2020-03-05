@@ -31,9 +31,11 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkD
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.geysermc.api.Geyser;
+
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -45,7 +47,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
         // Not sure if this is safe or not, however without this the client usually times out
-        Geyser.getConnector().getGeneralThreadPool().execute(() -> {
+        GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
                 if (packet.getColumn().getBiomeData() != null) { //Full chunk
                     ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());

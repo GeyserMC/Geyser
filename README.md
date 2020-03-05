@@ -16,7 +16,7 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 ### Currently supporting Minecraft Bedrock v1.14.X and Minecraft Java v1.15.2.
 
 ## Setting Up
-Please note, Geyser is **not** (currently) a plugin. Watch the video below or take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set it up.
+Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set up Geyser.
 
 [![YouTube Video](https://img.youtube.com/vi/U7dZZ8w7Gi4/0.jpg)](https://www.youtube.com/watch?v=U7dZZ8w7Gi4)
 
@@ -35,7 +35,6 @@ Please note, Geyser is **not** (currently) a plugin. Watch the video below or ta
 - Block Particles
 - Block Entities ([`block-entities`](https://github.com/GeyserMC/Geyser/tree/block-entities))
 - Some Entity Flags
-- Support to be Ran as a Plugin ([`plugin`](https://github.com/GeyserMC/Geyser/tree/plugin))
 
 ## Compiling
 1. Clone the repo to your computer

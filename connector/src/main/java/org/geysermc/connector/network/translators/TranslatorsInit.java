@@ -36,6 +36,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerT
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.*;
+import com.github.steveice10.mc.protocol.packet.login.server.LoginPluginRequestPacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
@@ -91,6 +92,8 @@ public class TranslatorsInit {
     }
 
     public static void start() {
+        Registry.registerJava(LoginPluginRequestPacket.class, new JavaLoginPluginMessageTranslator());
+
         Registry.registerJava(ServerJoinGamePacket.class, new JavaJoinGameTranslator());
         Registry.registerJava(ServerPluginMessagePacket.class, new JavaPluginMessageTranslator());
         Registry.registerJava(ServerChatPacket.class, new JavaChatTranslator());

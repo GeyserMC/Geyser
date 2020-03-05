@@ -15,7 +15,7 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'target/Geyser.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'bootstrap/**/target/*.jar', excludes: 'bootstrap/**/target/original-*.jar', fingerprint: true
                 }
             }
         }
@@ -26,18 +26,6 @@ pipeline {
             }
             steps {
                 sh 'mvn javadoc:jar source:jar deploy -DskipTests'
-            }
-        }
-
-        stage ('Javadoc') {
-            when {
-                branch "master"
-            }
-            steps {
-                sh 'mvn javadoc:javadoc -DskipTests -pl api'
-                step([$class: 'JavadocArchiver',
-                        javadocDir: 'api/target/site/apidocs',
-                        keepAll: false])
             }
         }
     }

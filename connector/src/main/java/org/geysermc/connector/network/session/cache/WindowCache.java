@@ -26,14 +26,14 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.nukkitx.protocol.bedrock.packet.ModalFormRequestPacket;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.Getter;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.api.window.FormWindow;
 
-import java.util.HashMap;
-import java.util.Map;
+import lombok.Getter;
+
+import org.geysermc.common.window.FormWindow;
+import org.geysermc.connector.network.session.GeyserSession;
 
 public class WindowCache {
 

@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenW
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
-import org.geysermc.api.Geyser;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -71,7 +71,7 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
                 name = jsonObject.get("translate").getAsString();
             }
         } catch (Exception e) {
-            Geyser.getLogger().debug("JavaOpenWindowTranslator: " + e.toString());
+            GeyserConnector.getInstance().getLogger().debug("JavaOpenWindowTranslator: " + e.toString());
         }
 
         Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);
@@ -80,7 +80,7 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             InventoryTranslator openTranslator = TranslatorsInit.getInventoryTranslators().get(openInventory.getWindowType());
             if (!openTranslator.getClass().equals(newTranslator.getClass())) {
                 InventoryUtils.closeInventory(session, openInventory.getId());
-                Geyser.getGeneralThreadPool().schedule(() -> InventoryUtils.openInventory(session, newInventory), 500, TimeUnit.MILLISECONDS);
+                GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> InventoryUtils.openInventory(session, newInventory), 500, TimeUnit.MILLISECONDS);
                 return;
             }
         }
