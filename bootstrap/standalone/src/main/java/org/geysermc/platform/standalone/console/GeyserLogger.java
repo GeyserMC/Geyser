@@ -108,4 +108,9 @@ public class GeyserLogger extends SimpleTerminalConsole implements IGeyserLogger
     public void sendMessage(String message) {
         info(message);
     }
+
+    @Override
+    public boolean isConsole() {
+        return true;
+    }
 }

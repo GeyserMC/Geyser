@@ -11,4 +11,6 @@ public interface CommandSender {
     }
 
     void sendMessage(String message);
+
+    boolean isConsole();
 }

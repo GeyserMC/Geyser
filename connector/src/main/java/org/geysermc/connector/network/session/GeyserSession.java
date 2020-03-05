@@ -324,6 +324,11 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(textPacket);
     }
 
+    @Override
+    public boolean isConsole() {
+        return false;
+    }
+
     public void sendForm(FormWindow window, int id) {
         windowCache.showWindow(window, id);
     }
