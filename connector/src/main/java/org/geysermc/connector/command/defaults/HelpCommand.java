@@ -52,7 +52,7 @@ public class HelpCommand extends GeyserCommand {
         Collections.sort(commands);
 
         for (String cmd : commands) {
-            sender.sendMessage(ChatColor.YELLOW + "/" + cmd + ChatColor.WHITE + ": " + cmds.get(cmd).getDescription());
+            sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmd + ChatColor.WHITE + ": " + cmds.get(cmd).getDescription());
         }
     }
 }
