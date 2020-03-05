@@ -35,7 +35,7 @@ import com.nukkitx.nbt.tag.ListTag;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import it.unimi.dsi.fastutil.ints.*;
-import org.geysermc.connector.console.GeyserLogger;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.io.InputStream;
@@ -110,7 +110,7 @@ public class BlockTranslator {
             } else {
                 int duplicateRuntimeId = addedStatesMap.get(blockTag);
                 if (duplicateRuntimeId == -1) {
-                    GeyserLogger.DEFAULT.debug("Mapping " + javaId + " was not found for bedrock edition!");
+                    GeyserConnector.getInstance().getLogger().debug("Mapping " + javaId + " was not found for bedrock edition!");
                 } else {
                     JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, duplicateRuntimeId);
                 }

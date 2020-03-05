@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.java.entity.spawn;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnMobPacket;
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.console.GeyserLogger;
+
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -47,7 +47,7 @@ public class JavaSpawnMobTranslator extends PacketTranslator<ServerSpawnMobPacke
 
         EntityType type = EntityUtils.toBedrockEntity(packet.getType());
         if (type == null) {
-            GeyserLogger.DEFAULT.warning("Entity type " + packet.getType() + " was null.");
+            session.getConnector().getLogger().warning("Entity type " + packet.getType() + " was null.");
             return;
         }
 

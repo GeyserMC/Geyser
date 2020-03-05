@@ -27,8 +27,8 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.configuration.UserAuthenticationInfo;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
@@ -66,7 +66,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         switch (packet.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
-                connector.getLogger().info("Player connected with username " + session.getAuthenticationData().getName());
+                connector.getLogger().info("Player connected with username " + session.getAuthData().getName());
                 break;
             case HAVE_ALL_PACKS:
                 ResourcePackStackPacket stack = new ResourcePackStackPacket();
@@ -90,11 +90,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean couldLoginUserByName(String bedrockUsername) {
         if (connector.getConfig().getUserAuths() != null) {
-            UserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
+            IGeyserConfiguration.IUserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
 
             if (info != null) {
-                connector.getLogger().info("using stored credentials for bedrock user " + session.getAuthenticationData().getName());
-                session.authenticate(info.email, info.password);
+                connector.getLogger().info("using stored credentials for bedrock user " + session.getAuthData().getName());
+                session.authenticate(info.getEmail(), info.getPassword());
 
                 // TODO send a message to bedrock user telling them they are connected (if nothing like a motd
                 //      somes from the Java server w/in a few seconds)
@@ -109,7 +109,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(MovePlayerPacket packet) {
         if (!session.isLoggedIn() && !session.isLoggingIn()) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
-            if (!couldLoginUserByName(session.getAuthenticationData().getName())) {
+            if (!couldLoginUserByName(session.getAuthData().getName())) {
                 LoginEncryptionUtils.showLoginWindow(session);
             }
             // else we were able to log the user in
@@ -124,11 +124,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     boolean defaultHandler(BedrockPacket packet) {
-        return translateAndDefault(packet);
-    }
-
-    @Override
-    public boolean handle(InventoryTransactionPacket packet) {
         return translateAndDefault(packet);
     }
 }
