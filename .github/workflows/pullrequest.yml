@@ -28,4 +28,4 @@ jobs:
         if: success()
         with:
           name: Geyser
-          path: target/Geyser.jar
+          path: bootstrap/standalone/target/Geyser.jar
