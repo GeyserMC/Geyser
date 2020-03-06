@@ -47,6 +47,9 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
+        if (packet.getColumn().getBiomeData() == null) //Non-full chunk
+            return;
+
         // Not sure if this is safe or not, however without this the client usually times out
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
