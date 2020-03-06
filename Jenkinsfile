@@ -28,18 +28,6 @@ pipeline {
                 sh 'mvn javadoc:jar source:jar deploy -DskipTests'
             }
         }
-
-        stage ('Javadoc') {
-            when {
-                branch "master"
-            }
-            steps {
-                sh 'mvn javadoc:javadoc -DskipTests -pl api'
-                step([$class: 'JavadocArchiver',
-                        javadocDir: 'api/target/site/apidocs',
-                        keepAll: false])
-            }
-        }
     }
 
     post {

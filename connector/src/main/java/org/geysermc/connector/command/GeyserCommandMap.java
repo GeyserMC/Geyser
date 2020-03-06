@@ -61,7 +61,7 @@ public class GeyserCommandMap {
     }
 
     public void runCommand(CommandSender sender, String command) {
-        if (!command.startsWith("/geyser "))
+        if (!command.startsWith("geyser "))
             return;
 
         command = command.trim();
@@ -80,7 +80,7 @@ public class GeyserCommandMap {
 
         GeyserCommand cmd = commandMap.get(label);
         if (cmd == null) {
-            connector.getLogger().warning("Invalid Command! Try /help for a list of commands.");
+            connector.getLogger().error("Invalid Command! Try /geyser help for a list of commands.");
             return;
         }
 
