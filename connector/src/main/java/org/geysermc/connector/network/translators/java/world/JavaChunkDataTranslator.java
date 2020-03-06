@@ -43,6 +43,10 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
+        if (session.isSpawned()) {
+            ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
+        }
+
         // Not sure if this is safe or not, however without this the client usually times out
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
