@@ -157,7 +157,7 @@ public class MessageUtils {
                 base += "r";
                 break;
             default:
-                break;
+                return "";
         }
 
         return base;
