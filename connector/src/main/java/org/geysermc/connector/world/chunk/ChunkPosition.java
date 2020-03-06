@@ -31,8 +31,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Objects;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -50,7 +48,6 @@ public class ChunkPosition {
         int chunkX = x & 15;
         int chunkY = y & 15;
         int chunkZ = z & 15;
-
         return new Position(chunkX, chunkY, chunkZ);
     }
 }

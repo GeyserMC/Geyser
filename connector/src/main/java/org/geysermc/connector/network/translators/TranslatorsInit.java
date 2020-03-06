@@ -49,6 +49,8 @@ import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.*;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
+import org.geysermc.connector.network.translators.block.entity.*;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.java.*;
 import org.geysermc.connector.network.translators.java.entity.*;
@@ -73,6 +75,9 @@ public class TranslatorsInit {
 
     @Getter
     private static Map<WindowType, InventoryTranslator> inventoryTranslators = new HashMap<>();
+
+    @Getter
+    private static Map<String, BlockEntityTranslator> blockEntityTranslators = new HashMap<>();
 
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
@@ -143,6 +148,8 @@ public class TranslatorsInit {
         Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
         Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
         Registry.registerJava(ServerUnloadChunkPacket.class, new JavaUnloadChunkTranslator());
+        Registry.registerJava(ServerUpdateTileEntityPacket.class, new JavaUpdateTileEntityTranslator());
+        Registry.registerJava(ServerBlockValuePacket.class, new JavaBlockValueTranslator());
 
         Registry.registerJava(ServerWindowItemsPacket.class, new JavaWindowItemsTranslator());
         Registry.registerJava(ServerOpenWindowPacket.class, new JavaOpenWindowTranslator());
@@ -170,7 +177,15 @@ public class TranslatorsInit {
         itemTranslator = new ItemTranslator();
         BlockTranslator.init();
 
+        registerBlockEntityTranslators();
         registerInventoryTranslators();
+    }
+
+    private static void registerBlockEntityTranslators() {
+        blockEntityTranslators.put("Empty", new EmptyBlockEntityTranslator());
+        blockEntityTranslators.put("Sign", new SignBlockEntityTranslator());
+        blockEntityTranslators.put("Campfire", new CampfireBlockEntityTranslator());
+        blockEntityTranslators.put("Banner", new BannerBlockEntityTranslator());
     }
 
     private static void registerInventoryTranslators() {

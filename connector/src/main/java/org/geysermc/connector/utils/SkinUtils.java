@@ -184,7 +184,6 @@ public class SkinUtils {
 
                         if (skinAndCapeConsumer != null) skinAndCapeConsumer.accept(skinAndCape);
                     });
-
         });
     }
 

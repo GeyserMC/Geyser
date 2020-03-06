@@ -51,6 +51,8 @@ public class BlockTranslator {
     private static final Map<String, BlockState> JAVA_ID_BLOCK_MAP = new HashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
+    private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
+
     private static final int BLOCK_STATE_VERSION = 17760256;
 
     static {
@@ -94,6 +96,10 @@ public class BlockTranslator {
             CompoundTag blockTag = buildBedrockState(entry.getValue());
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
+
+            if (javaId.contains("sign[")) {
+                JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
+            }
 
             if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = bedrockRuntimeId;
@@ -181,6 +187,10 @@ public class BlockTranslator {
 
     public static BlockState getJavaBlockState(String javaId) {
         return JAVA_ID_BLOCK_MAP.get(javaId);
+    }
+
+    public static String getBlockEntityString(BlockState javaId) {
+        return JAVA_ID_TO_BLOCK_ENTITY_MAP.get(javaId);
     }
 
     public static boolean isWaterlogged(BlockState state) {

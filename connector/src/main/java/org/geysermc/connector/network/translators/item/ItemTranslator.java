@@ -43,6 +43,7 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 
 import org.geysermc.connector.GeyserConnector;
+
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -52,6 +53,8 @@ import java.util.List;
 import java.util.Map;
 
 public class ItemTranslator {
+
+    private Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
 
     public ItemStack translateToJava(ItemData data) {
         ItemEntry javaItem = getItem(data);
@@ -107,6 +110,11 @@ public class ItemTranslator {
 
         GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
         return ItemEntry.AIR;
+    }
+
+    public ItemEntry getItemEntry(String javaIdentifier) {
+        return javaIdentifierMap.computeIfAbsent(javaIdentifier, key -> Toolbox.ITEM_ENTRIES.values()
+                .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
     }
 
     private CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {

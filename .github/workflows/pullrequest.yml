@@ -19,8 +19,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: submodules-init
-        uses: snickerbockers/submodules-init@v4
       - name: Build with Maven
         run: mvn -B package
       - name: Archive artifacts
