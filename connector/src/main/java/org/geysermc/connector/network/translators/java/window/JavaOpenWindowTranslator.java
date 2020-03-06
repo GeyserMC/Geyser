@@ -71,7 +71,7 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
                 name = jsonObject.get("translate").getAsString();
             }
         } catch (Exception e) {
-         // GeyserConnector.getInstance().debug("JavaOpenWindowTranslator: " + e.toString());
+            GeyserConnector.getInstance().getLogger().debug("JavaOpenWindowTranslator: " + e.toString());
         }
 
         Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);

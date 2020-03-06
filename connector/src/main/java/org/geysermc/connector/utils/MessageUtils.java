@@ -164,7 +164,7 @@ public class MessageUtils {
     }
 
     private static String getFormat(List<ChatFormat> formats) {
-        String str = "";
+        StringBuilder str = new StringBuilder();
         for (ChatFormat cf : formats) {
             String base = "\u00a7";
             switch (cf) {
@@ -187,10 +187,10 @@ public class MessageUtils {
                     break;
             }
 
-            str += base;
+            str.append(base);
         }
 
-        return str;
+        return str.toString();
     }
 
     public static boolean isMessage(String text) {

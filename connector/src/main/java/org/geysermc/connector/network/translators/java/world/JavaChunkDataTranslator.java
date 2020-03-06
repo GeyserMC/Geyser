@@ -27,15 +27,23 @@ package org.geysermc.connector.network.translators.java.world;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTOutputStream;
+import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 
 import org.geysermc.connector.GeyserConnector;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -46,7 +54,6 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
-        // Not sure if this is safe or not, however without this the client usually times out
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
                 if (packet.getColumn().getBiomeData() != null) { //Full chunk
@@ -71,6 +78,14 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     byteBuf.writeByte(0); // Border blocks - Edu edition only
                     VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
 
+                    ByteBufOutputStream stream = new ByteBufOutputStream(Unpooled.buffer());
+                    NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
+                    for (CompoundTag blockEntity : chunkData.blockEntities) {
+                        nbtStream.write(blockEntity);
+                    }
+
+                    byteBuf.writeBytes(stream.buffer());
+
                     byte[] payload = new byte[byteBuf.writerIndex()];
                     byteBuf.readBytes(payload);
 
@@ -81,6 +96,16 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     levelChunkPacket.setChunkZ(packet.getColumn().getZ());
                     levelChunkPacket.setData(payload);
                     session.getUpstream().sendPacket(levelChunkPacket);
+
+                    // Signs have to be sent after the chunk since in later versions they aren't included in the block entities
+                    for (Int2ObjectMap.Entry<CompoundTag> blockEntityEntry : chunkData.signs.int2ObjectEntrySet()) {
+                        int x = blockEntityEntry.getValue().getInt("x");
+                        int y = blockEntityEntry.getValue().getInt("y");
+                        int z = blockEntityEntry.getValue().getInt("z");
+
+                        ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntKey()), new Position(x, y, z));
+                    }
+                    chunkData.signs.clear();
                 } else {
                     final int xOffset = packet.getColumn().getX() << 4;
                     final int zOffset = packet.getColumn().getZ() << 4;

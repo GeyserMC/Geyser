@@ -29,25 +29,33 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.world.chunk.ChunkPosition;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.world.chunk.ChunkSection;
 
 import static org.geysermc.connector.network.translators.block.BlockTranslator.BEDROCK_WATER_ID;
 
 public class ChunkUtils {
+
     public static ChunkData translateToBedrock(Column column) {
         ChunkData chunkData = new ChunkData();
-
         Chunk[] chunks = column.getChunks();
-        int chunkSectionCount = chunks.length;
-        chunkData.sections = new ChunkSection[chunkSectionCount];
+        chunkData.sections = new ChunkSection[chunks.length];
 
-        for (int chunkY = 0; chunkY < chunkSectionCount; chunkY++) {
+        CompoundTag[] blockEntities = column.getTileEntities();
+        for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
             Chunk chunk = chunks[chunkY];
 
@@ -55,14 +63,18 @@ public class ChunkUtils {
                 continue;
 
             ChunkSection section = chunkData.sections[chunkY];
-
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
                         BlockState blockState = chunk.get(x, y, z);
                         int id = BlockTranslator.getBedrockBlockId(blockState);
 
-                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
+                        if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("sign[")) {
+                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+                            chunkData.signs.put(blockState.getId(), TranslatorsInit.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag("Sign", pos.getX(), pos.getY(), pos.getZ()));
+                        } else {
+                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
+                        }
 
                         if (BlockTranslator.isWaterlogged(blockState)) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);
@@ -71,6 +83,24 @@ public class ChunkUtils {
                 }
             }
         }
+
+        com.nukkitx.nbt.tag.CompoundTag[] bedrockBlockEntities = new com.nukkitx.nbt.tag.CompoundTag[blockEntities.length];
+        for (int i = 0; i < blockEntities.length; i++) {
+            CompoundTag tag = blockEntities[i];
+            String tagName;
+            if (!tag.contains("id")) {
+                GeyserConnector.getInstance().getLogger().debug("Got tag with no id: " + tag.getValue());
+                tagName = "Empty";
+            } else {
+                tagName = (String) tag.get("id").getValue();
+            }
+
+            String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
+            BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
+            bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tag);
+        }
+
+        chunkData.blockEntities = bedrockBlockEntities;
         return chunkData;
     }
 
@@ -128,6 +158,7 @@ public class ChunkUtils {
     public static final class ChunkData {
         public ChunkSection[] sections;
 
-        public byte[] blockEntities = new byte[0];
+        public com.nukkitx.nbt.tag.CompoundTag[] blockEntities = new com.nukkitx.nbt.tag.CompoundTag[0];
+        public Int2ObjectMap<com.nukkitx.nbt.tag.CompoundTag> signs = new Int2ObjectOpenHashMap<>();
     }
 }

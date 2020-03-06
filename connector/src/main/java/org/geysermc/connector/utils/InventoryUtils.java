@@ -50,7 +50,7 @@ public class InventoryUtils {
             translator.prepareInventory(session, inventory);
             //TODO: find better way to handle double chest delay
             if (translator instanceof DoubleChestInventoryTranslator) {
-                 GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
+                GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
                     translator.openInventory(session, inventory);
                     translator.updateInventory(session, inventory);
                 }, 200, TimeUnit.MILLISECONDS);
