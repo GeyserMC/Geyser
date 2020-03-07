@@ -157,7 +157,7 @@ public class MessageUtils {
                 base += "r";
                 break;
             default:
-                break;
+                return "";
         }
 
         return base;
@@ -184,7 +184,7 @@ public class MessageUtils {
                     base += "o";
                     break;
                 default:
-                    break;
+                    return "";
             }
 
             str.append(base);
