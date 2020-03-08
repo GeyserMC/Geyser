@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.geysermc.floodgate.util.DeviceOS;
 
 import java.util.UUID;
 
@@ -63,23 +64,6 @@ public class BedrockClientData {
         @JsonEnumDefaultValue
         CLASSIC,
         POCKET
-    }
-
-    public enum DeviceOS {
-        @JsonEnumDefaultValue
-        UNKOWN,
-        ANDROID,
-        IOS,
-        OSX,
-        FIREOS,
-        GEARVR,
-        HOLOLENS,
-        WIN10,
-        WIN32,
-        DEDICATED,
-        ORBIS,
-        NX,
-        SWITCH
     }
 
     public enum InputMode {
