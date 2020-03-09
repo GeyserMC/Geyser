@@ -3,6 +3,8 @@ package org.geysermc.floodgate.util;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @AllArgsConstructor
 @Getter
 public class BedrockData {
@@ -11,15 +13,15 @@ public class BedrockData {
 
     private String version;
     private String username;
-    private String xuid;
+    private UUID bedrockId;
     private int deviceId;
     private String languageCode;
     private int inputMode;
     private String ip;
     private int dataLength;
 
-    public BedrockData(String version, String username, String xuid, int deviceId, String languageCode, int inputMode, String ip) {
-        this(version, username, xuid, deviceId, languageCode, inputMode, ip, EXPECTED_LENGTH);
+    public BedrockData(String version, String username, UUID bedrockId, int deviceId, String languageCode, int inputMode, String ip) {
+        this(version, username, bedrockId, deviceId, languageCode, inputMode, ip, EXPECTED_LENGTH);
     }
 
     public static BedrockData fromString(String data) {
@@ -27,7 +29,7 @@ public class BedrockData {
         if (split.length != EXPECTED_LENGTH) return null;
 
         return new BedrockData(
-                split[0], split[1], split[2], Integer.parseInt(split[3]),
+                split[0], split[1], UUID.fromString(split[2]), Integer.parseInt(split[3]),
                 split[4], Integer.parseInt(split[5]), split[6], split.length
         );
     }
@@ -38,7 +40,7 @@ public class BedrockData {
 
     @Override
     public String toString() {
-        return version +'\0'+ username +'\0'+ xuid +'\0'+ deviceId +'\0'+ languageCode +'\0'+
+        return version +'\0'+ username +'\0'+ bedrockId +'\0'+ deviceId +'\0'+ languageCode +'\0'+
                 inputMode +'\0'+ ip;
     }
 }
