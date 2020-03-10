@@ -49,6 +49,10 @@
                                     <pattern>io.netty</pattern>
                                     <shadedPattern>org.geysermc.platform.bukkit.shaded.netty</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>it.unimi.dsi.fastutil</pattern>
+                                    <shadedPattern>org.geysermc.platform.bukkit.shaded.fastutil</shadedPattern>
+                                </relocation>
                             </relocations>
                             <minimizeJar>true</minimizeJar>
                         </configuration>

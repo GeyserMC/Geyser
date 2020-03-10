@@ -23,27 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.floodgate.util;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
-import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.GeyserCommandMap;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
+public enum DeviceOS {
 
-public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {
+    @JsonEnumDefaultValue
+    UNKNOWN,
+    ANDROID,
+    IOS,
+    OSX,
+    FIREOS,
+    GEARVR,
+    HOLOLENS,
+    WIN10,
+    WIN32,
+    DEDICATED,
+    ORBIS,
+    NX,
+    SWITCH;
 
-    @Override
-    public void translate(CommandRequestPacket packet, GeyserSession session) {
-        String command = packet.getCommand().replace("/", "");
-        GeyserCommandMap commandMap = GeyserConnector.getInstance().getCommandMap();
-        if (command.startsWith("geyser ") && commandMap.getCommands().containsKey(command.split(" ")[1])) {
-            commandMap.runCommand(session, command);
-        } else {
-            ClientChatPacket chatPacket = new ClientChatPacket(packet.getCommand());
-            session.getDownstream().getSession().send(chatPacket);
-        }
+    private static final DeviceOS[] VALUES = values();
+
+    public static DeviceOS getById(int id) {
+        return id < VALUES.length ? VALUES[id] : VALUES[0];
     }
 }
