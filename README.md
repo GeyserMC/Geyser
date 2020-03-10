@@ -8,7 +8,6 @@
 [![HitCount](http://hits.dwyl.io/Geyser/GeyserMC.svg)](http://hits.dwyl.io/Geyser/GeyserMC)
 
 ## Don't post bug reports in the Geyser discord or the Geyser repo. Use this at your own risk
-### If you want block entities support, then use the Legacy branch, although there won't be any major updates on that branch.
 
 ## What is Geyser?
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
@@ -28,7 +27,6 @@ You can also download the latest release [here](https://github.com/LoyaltyMC/Gey
 ## What's Left to be Added/Fixed
 - Sounds
 - Block Particles
-- Block Entities ([`block-entities`](https://github.com/GeyserMC/Geyser/tree/block-entities))
 - Some Entity Flags
 
 ## Libraries Used:
