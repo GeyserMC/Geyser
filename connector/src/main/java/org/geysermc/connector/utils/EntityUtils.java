@@ -25,20 +25,32 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.type.MobType;
 import com.github.steveice10.mc.protocol.data.game.entity.type.object.ObjectType;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class EntityUtils {
 
-    public static MobType toJavaEntity(EntityType type) {
-        try {
-            return MobType.valueOf(type.name());
-        } catch (IllegalArgumentException ex) {
-            return null;
+    public static int toBedrockEffectId(Effect effect) {
+        switch (effect) {
+            case GLOWING:
+            case LUCK:
+            case UNLUCK:
+            case DOLPHINS_GRACE:
+            case BAD_OMEN:
+            case HERO_OF_THE_VILLAGE:
+                return 0;
+            case LEVITATION:
+                return 24;
+            case CONDUIT_POWER:
+                return 26;
+            case SLOW_FALLING:
+                return 27;
+            default:
+                return effect.ordinal() + 1;
         }
     }
-
     public static EntityType toBedrockEntity(MobType type) {
         try {
             return EntityType.valueOf(type.name());
