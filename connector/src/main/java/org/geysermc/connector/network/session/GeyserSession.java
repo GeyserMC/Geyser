@@ -235,7 +235,7 @@ public class GeyserSession implements CommandSender {
                                 encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
                                         clientData.getGameVersion(),
                                         authData.getName(),
-                                        authData.getUUID(),
+                                        authData.getXboxUUID(),
                                         clientData.getDeviceOS().ordinal(),
                                         clientData.getLanguageCode(),
                                         clientData.getCurrentInputMode().ordinal(),
