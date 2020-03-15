@@ -28,12 +28,12 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Donate: https://patreon.com/GeyserMC
 
 ## What's Left to be Added/Fixed
-- Inventories ([#67](https://github.com/GeyserMC/Geyser/pull/67))
-- Crafting ([#67](https://github.com/GeyserMC/Geyser/pull/67))
-- Creative Mode ([#67](https://github.com/GeyserMC/Geyser/pull/67))
+- Inventories ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
+- Crafting ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
+- Creative Mode ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
 - Sounds
 - Block Particles
-- Block Entities ([`block-entities`](https://github.com/GeyserMC/Geyser/tree/block-entities))
+- Block Entities ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
 - Some Entity Flags
 
 ## Compiling

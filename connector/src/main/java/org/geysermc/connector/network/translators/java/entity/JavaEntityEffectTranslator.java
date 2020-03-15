@@ -23,20 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
-import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityEffectPacket;
+import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.utils.EntityUtils;
 
-public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimePacket> {
+public class JavaEntityEffectTranslator extends PacketTranslator<ServerEntityEffectPacket> {
 
     @Override
-    public void translate(ServerUpdateTimePacket packet, GeyserSession session) {
-        // https://minecraft.gamepedia.com/Day-night_cycle#24-hour_Minecraft_day
-        SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime((int) Math.abs(packet.getTime()) % 24000);
-        session.getUpstream().sendPacket(setTimePacket);
+    public void translate(ServerEntityEffectPacket packet, GeyserSession session) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
+            entity = session.getPlayerEntity();
+        }
+        if (entity == null)
+            return;
+
+        MobEffectPacket mobEffectPacket = new MobEffectPacket();
+        mobEffectPacket.setAmplifier(packet.getAmplifier());
+        mobEffectPacket.setDuration(packet.getDuration());
+        mobEffectPacket.setEvent(MobEffectPacket.Event.ADD);
+        mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
+        mobEffectPacket.setParticles(packet.isShowParticles());
+        mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(packet.getEffect()));
+        session.getUpstream().sendPacket(mobEffectPacket);
     }
 }
