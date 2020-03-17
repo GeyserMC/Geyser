@@ -42,7 +42,8 @@ public enum DeviceOS {
     DEDICATED,
     ORBIS,
     NX,
-    SWITCH;
+    SWITCH,
+    XBOX_ONE;
 
     private static final DeviceOS[] VALUES = values();
 
