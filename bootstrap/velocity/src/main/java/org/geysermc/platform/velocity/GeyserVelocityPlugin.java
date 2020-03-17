@@ -27,6 +27,7 @@ package org.geysermc.platform.velocity;
 
 import com.google.inject.Inject;
 
+import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
@@ -36,6 +37,7 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -48,9 +50,13 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
     @Inject
     private Logger logger;
 
+    @Inject
+    private CommandManager commandManager;
+
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityLogger geyserLogger;
 
+    private GeyserConnector connector;
 
     @Override
     public void onEnable() {
@@ -59,19 +65,21 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
             if (!configDir.exists())
                 configDir.mkdir();
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
-            geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
         } catch (IOException ex) {
             logger.warn("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
             ex.printStackTrace();
         }
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
-        GeyserConnector.start(PlatformType.VELOCITY, this);
+        this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);
+
+        this.commandManager.register(new GeyserVelocityCommandExecutor(connector), "geyser");
     }
 
     @Override
     public void onDisable() {
-        GeyserConnector.stop();
+        connector.shutdown();
     }
 
     @Override

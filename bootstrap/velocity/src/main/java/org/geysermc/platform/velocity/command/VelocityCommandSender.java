@@ -23,31 +23,40 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.platform.velocity.command;
 
-import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConnector;
+import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.proxy.ConsoleCommandSource;
+import com.velocitypowered.api.proxy.Player;
+
+import lombok.AllArgsConstructor;
+
+import net.kyori.text.TextComponent;
+
 import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
 
-import java.util.Collections;
+@AllArgsConstructor
+public class VelocityCommandSender implements CommandSender {
 
-public class StopCommand extends GeyserCommand {
+    private CommandSource handle;
 
-    private GeyserConnector connector;
-
-    public StopCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-        this.connector = connector;
-
-        this.setAliases(Collections.singletonList("shutdown"));
+    @Override
+    public String getName() {
+        if (handle instanceof Player) {
+            return ((Player) handle).getUsername();
+        } else if (handle instanceof ConsoleCommandSource) {
+            return "CONSOLE";
+        }
+        return "";
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
-            return;
-        }
-        connector.shutdown();
+    public void sendMessage(String message) {
+        handle.sendMessage(TextComponent.of(message));
+    }
+
+    @Override
+    public boolean isConsole() {
+        return handle instanceof ConsoleCommandSource;
     }
 }

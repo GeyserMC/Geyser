@@ -23,31 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.platform.sponge.command;
 
-import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConnector;
+import lombok.AllArgsConstructor;
+
 import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.source.ConsoleSource;
+import org.spongepowered.api.text.Text;
 
-import java.util.Collections;
+@AllArgsConstructor
+public class SpongeCommandSender implements CommandSender {
 
-public class StopCommand extends GeyserCommand {
+    private CommandSource handle;
 
-    private GeyserConnector connector;
-
-    public StopCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-        this.connector = connector;
-
-        this.setAliases(Collections.singletonList("shutdown"));
+    @Override
+    public String getName() {
+        return handle.getName();
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
-            return;
-        }
-        connector.shutdown();
+    public void sendMessage(String message) {
+        handle.sendMessage(Text.of(message));
+    }
+
+    @Override
+    public boolean isConsole() {
+        return handle instanceof ConsoleSource;
     }
 }

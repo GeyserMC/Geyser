@@ -25,22 +25,20 @@
 
 package org.geysermc.connector.command.defaults;
 
+import org.geysermc.common.ChatColor;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.Collections;
-
-public class StopCommand extends GeyserCommand {
+public class ReloadCommand extends GeyserCommand {
 
     private GeyserConnector connector;
 
-    public StopCommand(GeyserConnector connector, String name, String description, String permission) {
+    public ReloadCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
         this.connector = connector;
-
-        this.setAliases(Collections.singletonList("shutdown"));
     }
 
     @Override
@@ -48,6 +46,10 @@ public class StopCommand extends GeyserCommand {
         if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
             return;
         }
-        connector.shutdown();
+        sender.sendMessage(ChatColor.YELLOW + "Reloading Geyser configurations... all connected bedrock clients will be kicked.");
+        for (GeyserSession session : connector.getPlayers().values()) {
+            session.getUpstream().disconnect("Geyser has been reloaded... sorry for the inconvenience!");
+        }
+        connector.reload();
     }
 }

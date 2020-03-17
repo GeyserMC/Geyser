@@ -34,9 +34,9 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
 
     @Override
     public void translate(ServerUpdateTimePacket packet, GeyserSession session) {
+        // https://minecraft.gamepedia.com/Day-night_cycle#24-hour_Minecraft_day
         SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime((int) Math.abs(packet.getTime()));
-
+        setTimePacket.setTime((int) Math.abs(packet.getTime()) % 24000);
         session.getUpstream().sendPacket(setTimePacket);
     }
 }

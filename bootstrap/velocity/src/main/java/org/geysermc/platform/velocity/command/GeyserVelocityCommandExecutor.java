@@ -23,31 +23,40 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.platform.velocity.command;
 
-import org.geysermc.common.PlatformType;
+import com.velocitypowered.api.command.Command;
+import com.velocitypowered.api.command.CommandSource;
+
+import lombok.AllArgsConstructor;
+
+import net.kyori.text.TextComponent;
+
+import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 
-import java.util.Collections;
-
-public class StopCommand extends GeyserCommand {
+@AllArgsConstructor
+public class GeyserVelocityCommandExecutor implements Command {
 
     private GeyserConnector connector;
 
-    public StopCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-        this.connector = connector;
-
-        this.setAliases(Collections.singletonList("shutdown"));
+    @Override
+    public void execute(CommandSource source, String[] args) {
+        if (args.length > 0) {
+            if (getCommand(args[0]) != null) {
+                if (!source.hasPermission(getCommand(args[0]).getPermission())) {
+                    source.sendMessage(TextComponent.of(ChatColor.RED + "You do not have permission to execute this command!"));
+                    return;
+                }
+                getCommand(args[0]).execute(new VelocityCommandSender(source), args);
+            }
+        } else {
+            getCommand("help").execute(new VelocityCommandSender(source), args);
+        }
     }
 
-    @Override
-    public void execute(CommandSender sender, String[] args) {
-        if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
-            return;
-        }
-        connector.shutdown();
+    private GeyserCommand getCommand(String label) {
+        return connector.getCommandMap().getCommands().get(label);
     }
 }
