@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.tag.ListTag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
@@ -45,6 +46,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Toolbox {
 
@@ -52,7 +55,7 @@ public class Toolbox {
     public static final CompoundTag BIOMES;
     public static final ItemData[] CREATIVE_ITEMS;
 
-    public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
+    public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
