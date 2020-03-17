@@ -40,6 +40,8 @@ public class GeyserBootstrap implements IGeyserBootstrap {
     private GeyserConfiguration geyserConfig;
     private GeyserLogger geyserLogger;
 
+    private GeyserConnector connector;
+
     public static void main(String[] args) {
         new GeyserBootstrap().onEnable();
     }
@@ -56,13 +58,13 @@ public class GeyserBootstrap implements IGeyserBootstrap {
             System.exit(0);
         }
 
-        GeyserConnector.start(PlatformType.STANDALONE, this);
+        connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserLogger.start();
     }
 
     @Override
     public void onDisable() {
-        GeyserConnector.stop();
+        connector.shutdown();
         System.exit(0);
     }
 

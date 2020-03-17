@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.bedrock;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommandMap;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,7 +40,7 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
     public void translate(CommandRequestPacket packet, GeyserSession session) {
         String command = packet.getCommand().replace("/", "");
         GeyserCommandMap commandMap = GeyserConnector.getInstance().getCommandMap();
-        if (command.startsWith("geyser ") && commandMap.getCommands().containsKey(command.split(" ")[1])) {
+        if (session.getConnector().getPlatformType() == PlatformType.STANDALONE && command.startsWith("geyser ") && commandMap.getCommands().containsKey(command.split(" ")[1])) {
             commandMap.runCommand(session, command);
         } else {
             ClientChatPacket chatPacket = new ClientChatPacket(packet.getCommand());

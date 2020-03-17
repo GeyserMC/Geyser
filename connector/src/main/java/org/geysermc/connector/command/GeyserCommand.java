@@ -25,33 +25,23 @@
 
 package org.geysermc.connector.command;
 
-import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Setter
+@RequiredArgsConstructor
 public abstract class GeyserCommand {
 
-    private String name;
-    private String description;
+    protected final String name;
+    protected final String description;
+    protected final String permission;
 
-    @Setter(AccessLevel.NONE)
-    private GeyserCommandMap commandMap;
-
+    @Setter
     private List<String> aliases = new ArrayList<>();
-
-    public GeyserCommand(String name) {
-        this(name,  "A geyser command.");
-    }
-
-    public GeyserCommand(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
 
     public abstract void execute(CommandSender sender, String[] args);
 }

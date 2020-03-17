@@ -29,6 +29,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 
 import java.util.UUID;
 
@@ -37,25 +38,27 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
     private GeyserBukkitConfiguration geyserConfig;
     private GeyserBukkitLogger geyserLogger;
 
+    private GeyserConnector connector;
+
     @Override
     public void onEnable() {
         saveDefaultConfig();
 
-        geyserConfig = new GeyserBukkitConfiguration(getDataFolder(), getConfig());
-
+        this.geyserConfig = new GeyserBukkitConfiguration(getDataFolder(), getConfig());
         if (geyserConfig.getMetrics().getUniqueId().equals("generateduuid")) {
             getConfig().set("metrics.uuid", UUID.randomUUID().toString());
             saveConfig();
         }
 
-        geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
+        this.geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
+        this.connector = GeyserConnector.start(PlatformType.BUKKIT, this);
 
-        GeyserConnector.start(PlatformType.BUKKIT, this);
+        this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));
     }
 
     @Override
     public void onDisable() {
-        GeyserConnector.stop();
+        connector.shutdown();
     }
 
     @Override

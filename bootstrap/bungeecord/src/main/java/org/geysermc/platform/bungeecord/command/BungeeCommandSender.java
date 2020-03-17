@@ -23,31 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.platform.bungeecord.command;
 
-import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConnector;
+import lombok.AllArgsConstructor;
+
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+
 import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
 
-import java.util.Collections;
+@AllArgsConstructor
+public class BungeeCommandSender implements CommandSender {
 
-public class StopCommand extends GeyserCommand {
+    private net.md_5.bungee.api.CommandSender handle;
 
-    private GeyserConnector connector;
-
-    public StopCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-        this.connector = connector;
-
-        this.setAliases(Collections.singletonList("shutdown"));
+    @Override
+    public String getName() {
+        return handle.getName();
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
-            return;
-        }
-        connector.shutdown();
+    public void sendMessage(String message) {
+        handle.sendMessage(TextComponent.fromLegacyText(message));
+    }
+
+    @Override
+    public boolean isConsole() {
+        return !(handle instanceof ProxiedPlayer);
     }
 }
