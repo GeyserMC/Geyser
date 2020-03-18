@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -73,6 +74,6 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
     }
 
     private Set<String> toPlayerSet(String[] players) {
-        return new HashSet<>(Arrays.asList(players));
+        return new ObjectOpenHashSet<>(Arrays.asList(players));
     }
 }

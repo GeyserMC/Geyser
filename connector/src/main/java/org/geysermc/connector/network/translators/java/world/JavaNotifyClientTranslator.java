@@ -36,11 +36,11 @@ import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -68,7 +68,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.getUpstream().sendPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:
-                Set<AdventureSettingsPacket.Flag> playerFlags = new HashSet<>();
+                Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
                 GameMode gameMode = (GameMode) packet.getValue();
                 if (gameMode == GameMode.ADVENTURE)
                     playerFlags.add(AdventureSettingsPacket.Flag.IMMUTABLE_WORLD);
