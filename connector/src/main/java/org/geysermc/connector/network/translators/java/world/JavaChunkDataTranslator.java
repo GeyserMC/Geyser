@@ -54,29 +54,36 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
+        if (session.isSpawned()) {
+            ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
+        }
+
+        if (packet.getColumn().getBiomeData() == null) //Non-full chunk
+            return;
+
+        // Not sure if this is safe or not, however without this the client usually times out
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                if (packet.getColumn().getBiomeData() != null) { //Full chunk
-                    ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
-                    ByteBuf byteBuf = Unpooled.buffer(32);
-                    ChunkSection[] sections = chunkData.sections;
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
+                ByteBuf byteBuf = Unpooled.buffer(32);
+                ChunkSection[] sections = chunkData.sections;
 
-                    int sectionCount = sections.length - 1;
-                    while (sectionCount >= 0 && sections[sectionCount].isEmpty()) {
-                        sectionCount--;
-                    }
-                    sectionCount++;
+                int sectionCount = sections.length - 1;
+                while (sectionCount >= 0 && sections[sectionCount].isEmpty()) {
+                    sectionCount--;
+                }
+                sectionCount++;
 
-                    for (int i = 0; i < sectionCount; i++) {
-                        ChunkSection section = chunkData.sections[i];
-                        section.writeToNetwork(byteBuf);
-                    }
+                for (int i = 0; i < sectionCount; i++) {
+                    ChunkSection section = chunkData.sections[i];
+                    section.writeToNetwork(byteBuf);
+                }
 
-                    byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
+                byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
 
-                    byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
-                    byteBuf.writeByte(0); // Border blocks - Edu edition only
-                    VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
+                byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
+                byteBuf.writeByte(0); // Border blocks - Edu edition only
+                VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
 
                     ByteBufOutputStream stream = new ByteBufOutputStream(Unpooled.buffer());
                     NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
