@@ -47,6 +47,7 @@ public class Registry<T> {
         BEDROCK.MAP.put(clazz, translator);
     }
 
+    @SuppressWarnings("unchecked")
     public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
         if (!session.getUpstream().isClosed() && !session.isClosed()) {
             try {
