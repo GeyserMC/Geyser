@@ -71,6 +71,7 @@ public class BedrockClientData {
         UNKNOWN,
         KEYBOARD_MOUSE,
         TOUCH, // I guess Touch?
-        CONTROLLER
+        CONTROLLER,
+        VR
     }
 }
