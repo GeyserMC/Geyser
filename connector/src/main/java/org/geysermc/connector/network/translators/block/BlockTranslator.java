@@ -32,9 +32,9 @@ import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.ListTag;
-import gnu.trove.map.TObjectIntMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
 import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -52,6 +52,8 @@ public class BlockTranslator {
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
+    public static final Int2FloatMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2FloatOpenHashMap();
+
 
     private static final int BLOCK_STATE_VERSION = 17760256;
 
@@ -81,7 +83,9 @@ public class BlockTranslator {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
-        TObjectIntMap<CompoundTag> addedStatesMap = new TObjectIntHashMap<>(512, 0.5f, -1);
+
+        Object2IntMap<CompoundTag> addedStatesMap = new Object2IntOpenHashMap<>();
+
         List<CompoundTag> paletteList = new ArrayList<>();
 
         int waterRuntimeId = -1;
@@ -94,6 +98,11 @@ public class BlockTranslator {
             String javaId = entry.getKey();
             BlockState javaBlockState = new BlockState(javaRuntimeId);
             CompoundTag blockTag = buildBedrockState(entry.getValue());
+            // TODO fix this, (no block should have a null hardness)
+            JsonNode hardnessNode = entry.getValue().get("block_hardness");
+            if (hardnessNode != null) {
+                JAVA_RUNTIME_ID_TO_HARDNESS.put(javaRuntimeId, hardnessNode.floatValue());
+            }
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
 
@@ -118,7 +127,7 @@ public class BlockTranslator {
                 addedStatesMap.put(blockTag, bedrockRuntimeId);
                 paletteList.add(runtimeTag);
             } else {
-                int duplicateRuntimeId = addedStatesMap.get(blockTag);
+                int duplicateRuntimeId = addedStatesMap.getOrDefault(blockTag, -1);
                 if (duplicateRuntimeId == -1) {
                     GeyserConnector.getInstance().getLogger().debug("Mapping " + javaId + " was not found for bedrock edition!");
                 } else {
