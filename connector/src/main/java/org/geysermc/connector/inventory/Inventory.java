@@ -52,7 +52,6 @@ public class Inventory {
     @Setter
     protected String title;
 
-    @Getter
     @Setter
     protected ItemStack[] items;
 

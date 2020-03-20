@@ -50,6 +50,6 @@ public class PlayerInventory extends Inventory {
     }
 
     public ItemStack getItemInHand() {
-        return items[36 + heldItemSlot];
+        return items[heldItemSlot];
     }
 }

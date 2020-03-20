@@ -52,7 +52,7 @@ public class Toolbox {
     public static final CompoundTag BIOMES;
     public static final ItemData[] CREATIVE_ITEMS;
 
-    public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
+    public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
@@ -103,12 +103,8 @@ public class Toolbox {
         Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();
-            ITEM_ENTRIES.put(itemIndex, new ItemEntry(
-                    entry.getKey(), itemIndex,
-                    entry.getValue().get("bedrock_id").intValue(),
-                    entry.getValue().get("bedrock_data").intValue()/*,
-                    entry.getValue().get("tool_type").textValue(),
-                    entry.getValue().get("tool_tier").textValue()*/));
+            ITEM_ENTRIES.put(itemIndex, new ItemEntry(entry.getKey(), itemIndex,
+                    entry.getValue().get("bedrock_id").intValue(), entry.getValue().get("bedrock_data").intValue()));
             itemIndex++;
         }
 

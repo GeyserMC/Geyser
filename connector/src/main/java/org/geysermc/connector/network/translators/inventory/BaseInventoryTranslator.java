@@ -49,17 +49,11 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
         if (action.getSource().getContainerId() == ContainerId.INVENTORY) {
             //hotbar
             if (slotnum >= 9) {
-                // TODO REMOVE
-                System.out.println(slotnum);
                 return slotnum + this.size - 9;
             } else {
-                // TODO REMOVE
-                System.out.println(slotnum);
                 return slotnum + this.size + 27;
             }
         }
-        // TODO REMOVE
-        System.out.println(slotnum);
         return slotnum;
     }
 
@@ -68,17 +62,11 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
         if (slot >= this.size) {
             final int tmp = slot - this.size;
             if (tmp < 27) {
-                // TODO REMOVE
-                System.out.println(slot);
                 return tmp + 9;
             } else {
-                // TODO REMOVE
-                System.out.println(slot);
                 return tmp - 27;
             }
         }
-        // TODO REMOVE
-        System.out.println(slot);
         return slot;
     }
 
