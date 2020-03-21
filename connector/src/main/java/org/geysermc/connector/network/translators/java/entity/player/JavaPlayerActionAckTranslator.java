@@ -25,9 +25,17 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.utils.ChunkUtils;
 
 public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayerActionAckPacket> {
@@ -38,6 +46,142 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
             case FINISH_DIGGING:
                 ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
                 break;
+
+            case START_DIGGING: {
+                LevelEventPacket levelEvent = new LevelEventPacket();
+                levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
+                levelEvent.setPosition(Vector3f.from(
+                        packet.getPosition().getX(),
+                        packet.getPosition().getY(),
+                        packet.getPosition().getZ()
+                ));
+                double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(packet.getNewState().getId());
+
+                PlayerInventory inventory = session.getInventory();
+                ItemStack item = inventory.getItemInHand();
+                ItemEntry itemEntry = null;
+                if (item != null) {
+                    itemEntry = TranslatorsInit.getItemTranslator().getItem(item);
+                }
+                double breakTime = Math.ceil(getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry) * 20);
+                System.out.println("breakTime = " + breakTime);
+                int data = (int) (65535 / breakTime);
+                System.out.println("data = " + data);
+                levelEvent.setData((int) (65535 / breakTime));
+                session.getUpstream().sendPacket(levelEvent);
+                break;
+            }
+
+            case CANCEL_DIGGING: {
+                LevelEventPacket levelEvent = new LevelEventPacket();
+                levelEvent.setType(LevelEventType.BLOCK_STOP_BREAK);
+                levelEvent.setPosition(Vector3f.from(
+                        packet.getPosition().getX(),
+                        packet.getPosition().getY(),
+                        packet.getPosition().getZ()
+                ));
+                levelEvent.setData(0);
+                session.getUpstream().sendPacket(levelEvent);
+                break;
+            }
         }
     }
+
+     /*private static double speedBonusByEfficiencyLore0(int efficiencyLoreLevel) {
+        if (efficiencyLoreLevel == 0) return 0;
+        return efficiencyLoreLevel * efficiencyLoreLevel + 1;
+    }*/
+
+    /*private static double speedRateByHasteLore0(int hasteLoreLevel) {
+        return 1.0 + (0.2 * hasteLoreLevel);
+    }*/
+
+
+    private boolean correctTool(String blockToolType, String itemToolType) {
+        return (blockToolType.equals("sword") && itemToolType.equals("sword")) ||
+                (blockToolType.equals("shovel") && itemToolType.equals("shovel")) ||
+                (blockToolType.equals("pickaxe") && itemToolType.equals("pickaxe")) ||
+                (blockToolType.equals("axe") && itemToolType.equals("axe")) ||
+                (blockToolType.equals("shears") && itemToolType.equals("shears")) ||
+                blockToolType.equals("");
+    }
+
+    private double toolBreakTimeBonus0(String toolType, String toolTier, boolean isWoolBlock, boolean isCobweb) {
+        if (toolType.equals("sword")) return isCobweb ? 15.0 : 1.0;
+        if (toolType.equals("shears")) return isWoolBlock ? 5.0 : 15.0;
+        if (toolType.equals("none")) return 1.0;
+        switch (toolTier) {
+            case "wooden":
+                return 2.0;
+            case "stone":
+                return 4.0;
+            case "iron":
+                return 6.0;
+            case "diamond":
+                return 8.0;
+            case "golden":
+                return 12.0;
+            default:
+                return 1.0;
+        }
+    }
+
+    //http://minecraft.gamepedia.com/Breaking
+    private double breakTime0(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool,
+                              String toolType, boolean isWoolBlock, boolean isCobweb
+                              /*int efficiencyLoreLevel, int hasteEffectLevel,
+                                     boolean insideOfWaterWithoutAquaAffinity, boolean outOfWaterButNotOnGround*/) {
+        System.out.println("blockHardness = " + blockHardness);
+        double baseTime = ((correctTool || canHarvestWithHand) ? 1.5 : 5.0) * blockHardness;
+        System.out.println("baseTime = " + baseTime);
+        double speed = 1.0 / baseTime;
+        System.out.println("speed = " + speed);
+
+        if (correctTool) speed *= toolBreakTimeBonus0(toolType,toolTier, isWoolBlock, isCobweb);
+        System.out.println("speed = " + speed);
+        // TODO implement this math
+        //speed += speedBonusByEfficiencyLore0(efficiencyLoreLevel);
+        //speed *= speedRateByHasteLore0(hasteEffectLevel);
+        //if (insideOfWaterWithoutAquaAffinity) speed *= 0.2;
+        //if (outOfWaterButNotOnGround) speed *= 0.2;
+        return 1.0 / speed;
+    }
+
+    private double getBreakTime(double blockHardness, int blockId, ItemEntry item) {
+        String blockToolType = BlockTranslator.JAVA_RUNTIME_ID_TO_TOOL_TYPE.getOrDefault(blockId, "");
+        boolean canHarvestWithHand = BlockTranslator.JAVA_RUNTIME_ID_TO_CAN_BREAK_WITH_HAND.get(blockId);
+        System.out.println("canHarvestWithHand = " + canHarvestWithHand);
+        String toolTier = "none";
+        if (item != null) {
+            toolTier = item.getToolTier();
+        }
+        String toolType = "none";
+        if (item != null) {
+            toolType = item.getToolType();
+        }
+        boolean correctTool = correctTool(blockToolType, toolType);
+        System.out.println("correctTool = " + correctTool);
+        System.out.println("itemToolType = " + toolType);
+        System.out.println("toolTier = " + toolTier);
+        boolean isWoolBlock = BlockTranslator.JAVA_RUNTIME_WOOL_IDS.contains(blockId);
+        boolean isCobweb = blockId == BlockTranslator.JAVA_RUNTIME_COBWEB_ID;
+        System.out.println("isWoolBlock = " + isWoolBlock);
+        System.out.println("isCobweb = " + isCobweb);
+
+        //int efficiencyLoreLevel = Optional.ofNullable(item.getEnchantment(Enchantment.ID_EFFICIENCY))
+        //        .map(Enchantment::getLevel).orElse(0);
+        //int hasteEffectLevel = Optional.ofNullable(player.getEffect(Effect.HASTE))
+        //       .map(Effect::getAmplifier).orElse(0);
+        //boolean insideOfWaterWithoutAquaAffinity = player.isInsideOfWater() &&
+        //        Optional.ofNullable(player.getInventory().getHelmet().getEnchantment(Enchantment.ID_WATER_WORKER))
+        //                .map(Enchantment::getLevel).map(l -> l >= 1).orElse(false);
+        //boolean outOfWaterButNotOnGround = (!player.isInsideOfWater()) && (!player.isOnGround());
+        //return breakTime0(blockHardness, correctTool, canHarvestWithHand, blockId, itemToolType, itemTier,
+        //        efficiencyLoreLevel, hasteEffectLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround);
+        double returnValue = breakTime0(blockHardness, toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock, isCobweb);
+        System.out.println("returnValue = " + returnValue);
+        return returnValue;
+    }
 }
+
+

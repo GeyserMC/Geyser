@@ -32,13 +32,16 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ItemEntry {
 
-    public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0);
+    public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0, "none", "none");
 
     private String javaIdentifier;
     private int javaId;
 
     private int bedrockId;
     private int bedrockData;
+
+    private String toolType;
+    private String toolTier;
 
     @Override
     public boolean equals(Object obj) {

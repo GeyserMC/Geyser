@@ -103,8 +103,12 @@ public class Toolbox {
         Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();
-            ITEM_ENTRIES.put(itemIndex, new ItemEntry(entry.getKey(), itemIndex,
-                    entry.getValue().get("bedrock_id").intValue(), entry.getValue().get("bedrock_data").intValue()));
+            ITEM_ENTRIES.put(itemIndex, new ItemEntry(
+                    entry.getKey(), itemIndex,
+                    entry.getValue().get("bedrock_id").intValue(),
+                    entry.getValue().get("bedrock_data").intValue(),
+                    entry.getValue().get("tool_type").textValue(),
+                    entry.getValue().get("tool_tier").textValue()));
             itemIndex++;
         }
 

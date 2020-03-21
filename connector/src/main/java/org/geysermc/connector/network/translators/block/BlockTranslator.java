@@ -52,6 +52,13 @@ public class BlockTranslator {
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
+    public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
+    public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_BREAK_WITH_HAND = new Int2BooleanOpenHashMap();
+    public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
+
+    // For block breaking animation math
+    public static final List<Integer> JAVA_RUNTIME_WOOL_IDS = new ArrayList<>();
+    public static final int JAVA_RUNTIME_COBWEB_ID;
 
     private static final int BLOCK_STATE_VERSION = 17760256;
 
@@ -87,6 +94,7 @@ public class BlockTranslator {
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;
         int bedrockRuntimeId = 0;
+        int cobwebRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
@@ -94,6 +102,28 @@ public class BlockTranslator {
             String javaId = entry.getKey();
             BlockState javaBlockState = new BlockState(javaRuntimeId);
             CompoundTag blockTag = buildBedrockState(entry.getValue());
+
+            // TODO fix this, (no block should have a null hardness)
+            JsonNode hardnessNode = entry.getValue().get("block_hardness");
+            if (hardnessNode != null) {
+                JAVA_RUNTIME_ID_TO_HARDNESS.put(javaRuntimeId, hardnessNode.doubleValue());
+            }
+
+            JAVA_RUNTIME_ID_TO_CAN_BREAK_WITH_HAND.put(javaRuntimeId, entry.getValue().get("can_break_with_hand").booleanValue());
+
+            JsonNode toolTypeNode = entry.getValue().get("tool_type");
+            if (toolTypeNode != null) {
+                JAVA_RUNTIME_ID_TO_TOOL_TYPE.put(javaRuntimeId, toolTypeNode.textValue());
+            }
+
+            if (javaId.contains("wool")) {
+                JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
+            }
+
+
+            if (javaId.contains("cobweb")) {
+                cobwebRuntimeId = javaRuntimeId;
+            }
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
 
@@ -130,6 +160,11 @@ public class BlockTranslator {
 
             bedrockRuntimeId++;
         }
+
+        if (cobwebRuntimeId == -1) {
+            throw new AssertionError("Unable to find cobwebs in palette");
+        }
+        JAVA_RUNTIME_COBWEB_ID = cobwebRuntimeId;
 
         if (waterRuntimeId == -1) {
             throw new AssertionError("Unable to find water in palette");
