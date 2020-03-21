@@ -91,7 +91,7 @@ public class TranslatorsInit {
             }
 
             EMPTY_LEVEL_CHUNK_DATA = outputStream.toByteArray();
-        }catch (IOException e) {
+        } catch (IOException e) {
             throw new AssertionError("Unable to generate empty level chunk data");
         }
     }
@@ -131,6 +131,7 @@ public class TranslatorsInit {
         Registry.registerJava(ServerSpawnPaintingPacket.class, new JavaSpawnPaintingTranslator());
         Registry.registerJava(ServerSpawnPlayerPacket.class, new JavaSpawnPlayerTranslator());
         Registry.registerJava(ServerPlayerListEntryPacket.class, new JavaPlayerListEntryTranslator());
+        Registry.registerJava(ServerSpawnParticlePacket.class, new JavaSpawnParticlePacket());
 
         Registry.registerJava(ServerPlayerPositionRotationPacket.class, new JavaPlayerPositionRotationTranslator());
         Registry.registerJava(ServerPlayerSetExperiencePacket.class, new JavaPlayerSetExperienceTranslator());

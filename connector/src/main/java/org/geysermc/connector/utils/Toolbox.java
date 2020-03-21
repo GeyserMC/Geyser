@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -76,6 +77,22 @@ public class Toolbox {
             throw new AssertionError(ex);
         }
 
+        /* Particle Mappings */
+        InputStream particleStream = getResource("mappings/particles.json");
+
+        TypeReference<List<JsonNode>> particleEntryType = new TypeReference<List<JsonNode>>() {};
+
+        List<JsonNode> particleEntries;
+        try {
+            particleEntries = JSON_MAPPER.readValue(particleStream, particleEntryType);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load particle map", e);
+        }
+        
+        for (JsonNode entry : particleEntries) {
+            ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), entry.get("bedrock").asText());
+        }
+        
         /* Load item palette */
         InputStream stream = getResource("bedrock/items.json");
 
