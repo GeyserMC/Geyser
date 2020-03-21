@@ -133,7 +133,7 @@
 	},
 	{
 		"java": "firework",
-		"bedrock":"minecraft:sparkler_emitter"
+		"bedrock":"minecraft:sparkler_emitter "
 	},
 	{
 		"java": "fishing",
