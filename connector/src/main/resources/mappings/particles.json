@@ -1,0 +1,250 @@
+[
+	{
+		"java": "ambient_entity_effect",
+		"bedrock":"minecraft:mobspell_emitter"
+	},
+	{
+		"java": "angry_villager",
+		"bedrock":"minecraft:villager_angry"
+	},
+	{
+		"java": "barrier",
+		"bedrock":"?"
+	},
+	{
+		"java": "block",
+		"bedrock":"minecraft:breaking_item_icon"
+	},
+	{
+		"java": "bubble",
+		"bedrock":"basic_bubble_particle_manual"
+	},
+	{
+		"java": "bubble_column_up",
+		"bedrock":"minecraft:bubble_column_up_particle"
+	},
+	{
+		"java": "bubble_pop",
+		"bedrock":"minecraft:bubble_column_particle"
+	},
+	{
+		"java": "campfire_cosy_smoke",
+		"bedrock":"minecraft:campfire_smoke_particle"
+	},
+	{
+		"java": "campfire_signal_smoke",
+		"bedrock":"minecraft:campfire_tall_smoke_particle"
+	},
+	{
+		"java": "cloud",
+		"bedrock":"minecraft:water_evaporation_bucket_emitter"
+	},
+	{
+		"java": "composter",
+		"bedrock":"minecraft:villager_happy"
+	},
+	{
+		"java": "crit",
+		"bedrock":"minecraft:critical_hit_emitter"
+	},
+	{
+		"java": "current_down",
+		"bedrock":"minecraft:bubble_column_down_particle"
+	},
+	{
+		"java": "damage_indicator",
+		"bedrock":"?"
+	},
+	{
+		"java": "dolphin",
+		"bedrock":"minecraft:dolphin_move_particle"
+	},
+	{
+		"java": "dragon_breath",
+		"bedrock":"minecraft:dragon_breath_trail (or) minecraft:dragon_breath_lingering"
+	},
+	{
+		"java": "dripping_honey",
+		"bedrock":"?"
+	},
+	{
+		"java": "dripping_lava",
+		"bedrock":"driplava"
+	},
+	{
+		"java": "dripping_water",
+		"bedrock":"dripwater"
+	},
+	{
+		"java": "dust",
+		"bedrock":"minecraft:redstone_wire_dust_particle"
+	},
+	{
+		"java": "effect",
+		"bedrock":"minecraft:splash_spell_emitter "
+	},
+	{
+		"java": "elder_guardian",
+		"bedrock":"??"
+	},
+	{
+		"java": "enchant",
+		"bedrock":"enchantingtable"
+	},
+	{
+		"java": "enchanted_hit",
+		"bedrock":"?"
+	},
+	{
+		"java": "end_rod",
+		"bedrock":"minecraft:endrod"
+	},
+	{
+		"java": "entity_effect",
+		"bedrock":"minecraft:evoker_spell"
+	},
+	{
+		"java": "explosion",
+		"bedrock":"minecraft:large_explosion"
+	},
+	{
+		"java": "explosion_emitter",
+		"bedrock":"minecraft:huge_explosion_emitter"
+	},
+	{
+		"java": "falling_dust",
+		"bedrock":"minecraft:falling_dust_red_sand_particle, minecraft:falling_dust_sand_particle, minecraft:falling_dust_gravel_particle, minecraft:falling_dust_top_snow_particle, minecraft:falling_dust_dragon_egg_particle, minecraft:falling_dust_concrete_particle, minecraft:falling_dust_scaffolding_particle"
+	},
+	{
+		"java": "falling_honey",
+		"bedrock":"?"
+	},
+	{
+		"java": "falling_lava",
+		"bedrock":"minecraft:lava_drip_particle"
+	},
+	{
+		"java": "falling_nectar",
+		"bedrock":"?"
+	},
+	{
+		"java": "falling_water",
+		"bedrock":"water_splash_particle"
+	},
+	{
+		"java": "firework",
+		"bedrock":"minecraft:sparkler_emitter"
+	},
+	{
+		"java": "fishing",
+		"bedrock":"minecraft:water_wake_particle"
+	},
+	{
+		"java": "flame",
+		"bedrock":"minecraft:basic_flame_particle"
+	},
+	{
+		"java": "flash",
+		"bedrock":"?"
+	},
+	{
+		"java": "happy_villager",
+		"bedrock":"minecraft:villager_happy"
+	},
+	{
+		"java": "heart",
+		"bedrock":"minecraft:heart_particle"
+	},
+	{
+		"java": "instant_effect",
+		"bedrock":"minecraft:mobspell_emitter"
+	},
+	{
+		"java": "item",
+		"bedrock":"minecraft:breaking_item_icon"
+	},
+	{
+		"java": "item_slime",
+		"bedrock":"?"
+	},
+	{
+		"java": "item_snowball",
+		"bedrock":"?"
+	},
+	{
+		"java": "landing_honey",
+		"bedrock":"?"
+	},
+	{
+		"java": "landing_lava",
+		"bedrock":"?"
+	},
+	{
+		"java": "large_smoke",
+		"bedrock":"minecraft:water_evaporation_actor_emitter"
+	},
+	{
+		"java": "lava",
+		"bedrock":"minecraft:lava_particle"
+	},
+	{
+		"java": "?",
+		"bedrock":"minecraft:mobflame_emitter"
+	},
+	{
+		"java": "mycelium",
+		"bedrock":"minecraft:mycelium_dust_particle"
+	},
+	{
+		"java": "nautilus",
+		"bedrock":"nautilus"
+	},
+	{
+		"java": "note",
+		"bedrock":"note"
+	},
+	{
+		"java": "poof",
+		"bedrock":"explode"
+	},
+	{
+		"java": "portal",
+		"bedrock":"minecraft:mob_portal"
+	},
+	{
+		"java": "rain",
+		"bedrock":"rainsplash"
+	},
+	{
+		"java": "smoke",
+		"bedrock":"smoke"
+	},
+	{
+		"java": "sneeze",
+		"bedrock":"?"
+	},
+	{
+		"java": "spit",
+		"bedrock":"?"
+	},
+	{
+		"java": "?",
+		"bedrock":"terrain"
+	},
+	{
+		"java": "totem_of_undying",
+		"bedrock":"minecraft:totem_particle"
+	},
+	{
+		"java": "?",
+		"bedrock":"trackingemitter"
+	},
+	{
+		"java": "underwater",
+		"bedrock":"?"
+	},
+	{
+		"java": "witch",
+		"bedrock":"witchspell"
+	}
+}
