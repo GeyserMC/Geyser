@@ -36,6 +36,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ToolItemEntry;
 import org.geysermc.connector.utils.ChunkUtils;
 
 public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayerActionAckPacket> {
@@ -59,6 +60,8 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
 
                 PlayerInventory inventory = session.getInventory();
                 ItemStack item = inventory.getItemInHand();
+                System.out.println("item.getNbt() = " + item.getNbt());
+
                 ItemEntry itemEntry = null;
                 if (item != null) {
                     itemEntry = TranslatorsInit.getItemTranslator().getItem(item);
@@ -106,10 +109,9 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 blockToolType.equals("");
     }
 
-    private double toolBreakTimeBonus0(String toolType, String toolTier, boolean isWoolBlock, boolean isCobweb) {
-        if (toolType.equals("sword")) return isCobweb ? 15.0 : 1.0;
+    private double toolBreakTimeBonus(String toolType, String toolTier, boolean isWoolBlock) {
         if (toolType.equals("shears")) return isWoolBlock ? 5.0 : 15.0;
-        if (toolType.equals("none")) return 1.0;
+        if (toolType.equals("")) return 1.0;
         switch (toolTier) {
             case "wooden":
                 return 2.0;
@@ -127,7 +129,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
     }
 
     //http://minecraft.gamepedia.com/Breaking
-    private double breakTime0(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool,
+    private double calculateBreakTime(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool,
                               String toolType, boolean isWoolBlock, boolean isCobweb
                               /*int efficiencyLoreLevel, int hasteEffectLevel,
                                      boolean insideOfWaterWithoutAquaAffinity, boolean outOfWaterButNotOnGround*/) {
@@ -137,7 +139,11 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
         double speed = 1.0 / baseTime;
         System.out.println("speed = " + speed);
 
-        if (correctTool) speed *= toolBreakTimeBonus0(toolType,toolTier, isWoolBlock, isCobweb);
+        if (correctTool) {
+            speed *= toolBreakTimeBonus(toolType, toolTier, isWoolBlock);
+        } else if (toolType.equals("sword")) {
+            speed*= (isCobweb ? 15.0 : 1.5);
+        }
         System.out.println("speed = " + speed);
         // TODO implement this math
         //speed += speedBonusByEfficiencyLore0(efficiencyLoreLevel);
@@ -148,26 +154,25 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
     }
 
     private double getBreakTime(double blockHardness, int blockId, ItemEntry item) {
+        boolean isWoolBlock = BlockTranslator.JAVA_RUNTIME_WOOL_IDS.contains(blockId);
+        boolean isCobweb = blockId == BlockTranslator.JAVA_RUNTIME_COBWEB_ID;
         String blockToolType = BlockTranslator.JAVA_RUNTIME_ID_TO_TOOL_TYPE.getOrDefault(blockId, "");
-        boolean canHarvestWithHand = BlockTranslator.JAVA_RUNTIME_ID_TO_CAN_BREAK_WITH_HAND.get(blockId);
+        boolean canHarvestWithHand = BlockTranslator.JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND.get(blockId);
+        String toolType = "";
+        String toolTier = "";
+        boolean correctTool = false;
+        if (item instanceof ToolItemEntry) {
+            ToolItemEntry toolItem = (ToolItemEntry) item;
+            toolType = toolItem.getToolType();
+            toolTier = toolItem.getToolTier();
+            correctTool = correctTool(blockToolType, toolType);
+        }
         System.out.println("canHarvestWithHand = " + canHarvestWithHand);
-        String toolTier = "none";
-        if (item != null) {
-            toolTier = item.getToolTier();
-        }
-        String toolType = "none";
-        if (item != null) {
-            toolType = item.getToolType();
-        }
-        boolean correctTool = correctTool(blockToolType, toolType);
         System.out.println("correctTool = " + correctTool);
         System.out.println("itemToolType = " + toolType);
         System.out.println("toolTier = " + toolTier);
-        boolean isWoolBlock = BlockTranslator.JAVA_RUNTIME_WOOL_IDS.contains(blockId);
-        boolean isCobweb = blockId == BlockTranslator.JAVA_RUNTIME_COBWEB_ID;
         System.out.println("isWoolBlock = " + isWoolBlock);
         System.out.println("isCobweb = " + isCobweb);
-
         //int efficiencyLoreLevel = Optional.ofNullable(item.getEnchantment(Enchantment.ID_EFFICIENCY))
         //        .map(Enchantment::getLevel).orElse(0);
         //int hasteEffectLevel = Optional.ofNullable(player.getEffect(Effect.HASTE))
@@ -178,7 +183,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
         //boolean outOfWaterButNotOnGround = (!player.isInsideOfWater()) && (!player.isOnGround());
         //return breakTime0(blockHardness, correctTool, canHarvestWithHand, blockId, itemToolType, itemTier,
         //        efficiencyLoreLevel, hasteEffectLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround);
-        double returnValue = breakTime0(blockHardness, toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock, isCobweb);
+        double returnValue = calculateBreakTime(blockHardness, toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock, isCobweb);
         System.out.println("returnValue = " + returnValue);
         return returnValue;
     }

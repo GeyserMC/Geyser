@@ -53,7 +53,7 @@ public class BlockTranslator {
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
-    public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_BREAK_WITH_HAND = new Int2BooleanOpenHashMap();
+    public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
 
     // For block breaking animation math
@@ -109,7 +109,7 @@ public class BlockTranslator {
                 JAVA_RUNTIME_ID_TO_HARDNESS.put(javaRuntimeId, hardnessNode.doubleValue());
             }
 
-            JAVA_RUNTIME_ID_TO_CAN_BREAK_WITH_HAND.put(javaRuntimeId, entry.getValue().get("can_break_with_hand").booleanValue());
+            JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND.put(javaRuntimeId, entry.getValue().get("can_break_with_hand").booleanValue());
 
             JsonNode toolTypeNode = entry.getValue().get("tool_type");
             if (toolTypeNode != null) {
@@ -119,7 +119,6 @@ public class BlockTranslator {
             if (javaId.contains("wool")) {
                 JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
             }
-
 
             if (javaId.contains("cobweb")) {
                 cobwebRuntimeId = javaRuntimeId;

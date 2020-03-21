@@ -40,6 +40,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ToolItemEntry;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -103,12 +104,28 @@ public class Toolbox {
         Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();
-            ITEM_ENTRIES.put(itemIndex, new ItemEntry(
-                    entry.getKey(), itemIndex,
-                    entry.getValue().get("bedrock_id").intValue(),
-                    entry.getValue().get("bedrock_data").intValue(),
-                    entry.getValue().get("tool_type").textValue(),
-                    entry.getValue().get("tool_tier").textValue()));
+            if (entry.getValue().has("tool_type")) {
+                if (entry.getValue().has("tool_tier")) {
+                    ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
+                            entry.getKey(), itemIndex,
+                            entry.getValue().get("bedrock_id").intValue(),
+                            entry.getValue().get("bedrock_data").intValue(),
+                            entry.getValue().get("tool_type").textValue(),
+                            entry.getValue().get("tool_tier").textValue()));
+                } else {
+                    ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
+                            entry.getKey(), itemIndex,
+                            entry.getValue().get("bedrock_id").intValue(),
+                            entry.getValue().get("bedrock_data").intValue(),
+                            entry.getValue().get("tool_type").textValue(),
+                            ""));
+                }
+            } else {
+                ITEM_ENTRIES.put(itemIndex, new ItemEntry(
+                        entry.getKey(), itemIndex,
+                        entry.getValue().get("bedrock_id").intValue(),
+                        entry.getValue().get("bedrock_data").intValue()));
+            }
             itemIndex++;
         }
 
