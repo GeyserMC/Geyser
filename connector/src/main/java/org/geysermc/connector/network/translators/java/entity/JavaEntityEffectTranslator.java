@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java.entity;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityEffectPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.utils.EntityUtils;
@@ -39,6 +40,7 @@ public class JavaEntityEffectTranslator extends PacketTranslator<ServerEntityEff
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+            ((PlayerEntity) entity).getEffectCache().addEffect(packet.getEffect(), packet.getAmplifier());
         }
         if (entity == null)
             return;
