@@ -40,7 +40,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
@@ -53,12 +53,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case NORMAL:
                 Inventory inventory = session.getInventoryCache().getOpenInventory();
                 if (inventory == null) inventory = session.getInventory();
-                TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType()).translateActions(session, inventory, packet.getActions());
+                Translators.getInventoryTranslators().get(inventory.getWindowType()).translateActions(session, inventory, packet.getActions());
                 break;
             case INVENTORY_MISMATCH:
                 Inventory inv = session.getInventoryCache().getOpenInventory();
                 if (inv == null) inv = session.getInventory();
-                TranslatorsInit.getInventoryTranslators().get(inv.getWindowType()).updateInventory(session, inv);
+                Translators.getInventoryTranslators().get(inv.getWindowType()).updateInventory(session, inv);
                 InventoryUtils.updateCursor(session);
                 break;
             case ITEM_USE:

@@ -68,7 +68,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TranslatorsInit {
+public class Translators {
 
     @Getter
     private static ItemTranslator itemTranslator;

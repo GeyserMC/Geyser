@@ -40,7 +40,7 @@ import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.Toolbox;
 import org.geysermc.common.IGeyserConfiguration;
@@ -103,7 +103,7 @@ public class GeyserConnector {
         logger.setDebug(config.isDebugMode());
 
         Toolbox.init();
-        TranslatorsInit.start();
+        Translators.start();
 
         commandMap = new GeyserCommandMap(this);
         remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());

@@ -5,12 +5,12 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 
 public class BlockEntityUtils {
 
-    private static final BlockEntityTranslator EMPTY_TRANSLATOR = TranslatorsInit.getBlockEntityTranslators().get("Empty");
+    private static final BlockEntityTranslator EMPTY_TRANSLATOR = Translators.getBlockEntityTranslators().get("Empty");
 
     public static String getBedrockBlockEntityId(String id) {
         // This is the only exception when it comes to block entity ids
@@ -30,7 +30,7 @@ public class BlockEntityUtils {
     }
 
     public static BlockEntityTranslator getBlockEntityTranslator(String name) {
-        BlockEntityTranslator blockEntityTranslator = TranslatorsInit.getBlockEntityTranslators().get(name);
+        BlockEntityTranslator blockEntityTranslator = Translators.getBlockEntityTranslators().get(name);
         if (blockEntityTranslator == null) {
             return EMPTY_TRANSLATOR;
         }

@@ -31,7 +31,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translators;
 
 public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntityEquipmentPacket> {
 
@@ -52,7 +52,7 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
         }
 
         LivingEntity livingEntity = (LivingEntity) entity;
-        ItemData item = TranslatorsInit.getItemTranslator().translateToBedrock(packet.getItem());
+        ItemData item = Translators.getItemTranslator().translateToBedrock(packet.getItem());
         switch (packet.getSlot()) {
             case HELMET:
                 livingEntity.setHelmet(item);
