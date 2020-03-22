@@ -25,21 +25,24 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
+import java.util.concurrent.TimeUnit;
+
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.utils.InventoryUtils;
+
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translators;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.utils.InventoryUtils;
 
-import java.util.concurrent.TimeUnit;
-
+@Translator(packet = ServerOpenWindowPacket.class)
 public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
 
     @Override

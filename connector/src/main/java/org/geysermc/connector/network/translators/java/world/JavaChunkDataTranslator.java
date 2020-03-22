@@ -25,9 +25,17 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.BiomeTranslator;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.ChunkUtils;
+import org.geysermc.connector.world.chunk.ChunkSection;
+
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtUtils;
@@ -39,17 +47,9 @@ import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
-
-import org.geysermc.connector.GeyserConnector;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.BiomeTranslator;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.utils.ChunkUtils;
-import org.geysermc.connector.world.chunk.ChunkSection;
-
+@Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
 
     @Override

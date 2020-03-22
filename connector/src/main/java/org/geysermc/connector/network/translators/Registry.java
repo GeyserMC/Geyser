@@ -39,14 +39,23 @@ public class Registry<T> {
     public static final Registry<Packet> JAVA = new Registry<>();
     public static final Registry<BedrockPacket> BEDROCK = new Registry<>();
 
-    public static <T extends Packet> void registerJava(Class<T> clazz, PacketTranslator<T> translator) {
-        JAVA.MAP.put(clazz, translator);
+    public static void registerJava(Class<? extends Packet> javaPacket, PacketTranslator<? extends Packet> translator) {
+        if (JAVA.MAP.containsKey(javaPacket)) {
+            GeyserConnector.getInstance().getLogger().error("Duplicate packet entry for: " + javaPacket.getSimpleName() + " : " + translator.getClass().getCanonicalName() + "!");
+        } else {
+            JAVA.MAP.put(javaPacket, translator);
+        }
     }
 
-    public static <T extends BedrockPacket> void registerBedrock(Class<T> clazz, PacketTranslator<T> translator) {
-        BEDROCK.MAP.put(clazz, translator);
+    public static void registerBedrock(Class<? extends BedrockPacket> bedrockPacket, PacketTranslator<? extends BedrockPacket> translator) {
+        if (BEDROCK.MAP.containsKey(bedrockPacket)) {
+            GeyserConnector.getInstance().getLogger().error("Duplicate packet entry for: " + bedrockPacket.getSimpleName() + " : " + translator.getClass().getCanonicalName() + "!");
+        } else {
+            BEDROCK.MAP.put(bedrockPacket, translator);
+        }
     }
 
+    @SuppressWarnings("unchecked")
     public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
         if (!session.getUpstream().isClosed() && !session.isClosed()) {
             try {

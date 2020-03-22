@@ -22,21 +22,13 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.connector.network.translators;
 
-package org.geysermc.connector.network.translators.java.world;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.world.chunk.ChunkPosition;
+@Retention(value = RetentionPolicy.RUNTIME)
+public @interface Translator {
+    Class<?> packet();
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUnloadChunkPacket;
-
-@Translator(packet = ServerUnloadChunkPacket.class)
-public class JavaUnloadChunkTranslator extends PacketTranslator<ServerUnloadChunkPacket> {
-
-    @Override
-    public void translate(ServerUnloadChunkPacket packet, GeyserSession session) {
-        session.getChunkCache().removeChunk(new ChunkPosition(packet.getX(), packet.getZ()));
-    }
 }

@@ -25,48 +25,42 @@
 
 package org.geysermc.connector.network.translators;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.server.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.*;
-import com.github.steveice10.mc.protocol.packet.login.server.LoginPluginRequestPacket;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.*;
-import lombok.Getter;
-import org.geysermc.connector.network.translators.bedrock.*;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.inventory.*;
-import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
-import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
-import org.geysermc.connector.network.translators.block.entity.*;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.java.*;
-import org.geysermc.connector.network.translators.java.entity.*;
-import org.geysermc.connector.network.translators.java.entity.player.*;
-import org.geysermc.connector.network.translators.java.entity.spawn.*;
-import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
-import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
-import org.geysermc.connector.network.translators.java.scoreboard.JavaTeamTranslator;
-import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
-import org.geysermc.connector.network.translators.java.window.*;
-import org.geysermc.connector.network.translators.java.world.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.block.entity.BannerBlockEntityTranslator;
+import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.block.entity.CampfireBlockEntityTranslator;
+import org.geysermc.connector.network.translators.block.entity.EmptyBlockEntityTranslator;
+import org.geysermc.connector.network.translators.block.entity.SignBlockEntityTranslator;
+import org.geysermc.connector.network.translators.inventory.AnvilInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.BrewingInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.CraftingInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.FurnaceInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.PlayerInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.SingleChestInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.reflections.Reflections;
+
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.packetlib.packet.Packet;
+import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTOutputStream;
+import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
+import com.nukkitx.protocol.bedrock.data.ContainerType;
+
+import lombok.Getter;
 
 public class Translators {
 
@@ -96,86 +90,37 @@ public class Translators {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static void start() {
-        Registry.registerJava(LoginPluginRequestPacket.class, new JavaLoginPluginMessageTranslator());
-
-        Registry.registerJava(ServerJoinGamePacket.class, new JavaJoinGameTranslator());
-        Registry.registerJava(ServerPluginMessagePacket.class, new JavaPluginMessageTranslator());
-        Registry.registerJava(ServerChatPacket.class, new JavaChatTranslator());
-        Registry.registerJava(ServerTitlePacket.class, new JavaTitleTranslator());
-        Registry.registerJava(ServerUpdateTimePacket.class, new JavaUpdateTimeTranslator());
-        Registry.registerJava(ServerRespawnPacket.class, new JavaRespawnTranslator());
-        Registry.registerJava(ServerSpawnPositionPacket.class, new JavaSpawnPositionTranslator());
-        Registry.registerJava(ServerDifficultyPacket.class, new JavaDifficultyTranslator());
-        Registry.registerJava(ServerDeclareRecipesPacket.class, new JavaDeclareRecipesTranslator());
-
-        Registry.registerJava(ServerEntityAnimationPacket.class, new JavaEntityAnimationTranslator());
-        Registry.registerJava(ServerEntityPositionPacket.class, new JavaEntityPositionTranslator());
-        Registry.registerJava(ServerEntityPositionRotationPacket.class, new JavaEntityPositionRotationTranslator());
-        Registry.registerJava(ServerEntityTeleportPacket.class, new JavaEntityTeleportTranslator());
-        Registry.registerJava(ServerEntityVelocityPacket.class, new JavaEntityVelocityTranslator());
-        Registry.registerJava(ServerEntityPropertiesPacket.class, new JavaEntityPropertiesTranslator());
-        Registry.registerJava(ServerEntityRotationPacket.class, new JavaEntityRotationTranslator());
-        Registry.registerJava(ServerEntityHeadLookPacket.class, new JavaEntityHeadLookTranslator());
-        Registry.registerJava(ServerEntityMetadataPacket.class, new JavaEntityMetadataTranslator());
-        Registry.registerJava(ServerEntityStatusPacket.class, new JavaEntityStatusTranslator());
-        Registry.registerJava(ServerEntityEquipmentPacket.class, new JavaEntityEquipmentTranslator());
-        Registry.registerJava(ServerEntityEffectPacket.class, new JavaEntityEffectTranslator());
-        Registry.registerJava(ServerEntityRemoveEffectPacket.class, new JavaEntityRemoveEffectTranslator());
-        Registry.registerJava(ServerBossBarPacket.class, new JavaBossBarTranslator());
-
-        Registry.registerJava(ServerSpawnExpOrbPacket.class, new JavaSpawnExpOrbTranslator());
-        Registry.registerJava(ServerSpawnGlobalEntityPacket.class, new JavaSpawnGlobalEntityTranslator());
-        Registry.registerJava(ServerSpawnMobPacket.class, new JavaSpawnMobTranslator());
-        Registry.registerJava(ServerSpawnObjectPacket.class, new JavaSpawnObjectTranslator());
-        Registry.registerJava(ServerSpawnPaintingPacket.class, new JavaSpawnPaintingTranslator());
-        Registry.registerJava(ServerSpawnPlayerPacket.class, new JavaSpawnPlayerTranslator());
-        Registry.registerJava(ServerPlayerListEntryPacket.class, new JavaPlayerListEntryTranslator());
-
-        Registry.registerJava(ServerPlayerPositionRotationPacket.class, new JavaPlayerPositionRotationTranslator());
-        Registry.registerJava(ServerPlayerSetExperiencePacket.class, new JavaPlayerSetExperienceTranslator());
-        Registry.registerJava(ServerPlayerHealthPacket.class, new JavaPlayerHealthTranslator());
-        Registry.registerJava(ServerPlayerActionAckPacket.class, new JavaPlayerActionAckTranslator());
-        Registry.registerJava(ServerPlayerChangeHeldItemPacket.class, new JavaPlayerChangeHeldItemTranslator());
-
-        Registry.registerJava(ServerPlayerAbilitiesPacket.class, new JavaPlayerAbilitiesTranslator());
-
-        Registry.registerJava(ServerNotifyClientPacket.class, new JavaNotifyClientTranslator());
-        Registry.registerJava(ServerChunkDataPacket.class, new JavaChunkDataTranslator());
-        Registry.registerJava(ServerEntityDestroyPacket.class, new JavaEntityDestroyTranslator());
-        Registry.registerJava(ServerScoreboardObjectivePacket.class, new JavaScoreboardObjectiveTranslator());
-        Registry.registerJava(ServerDisplayScoreboardPacket.class, new JavaDisplayScoreboardTranslator());
-        Registry.registerJava(ServerUpdateScorePacket.class, new JavaUpdateScoreTranslator());
-        Registry.registerJava(ServerTeamPacket.class, new JavaTeamTranslator());
-        Registry.registerJava(ServerBlockChangePacket.class, new JavaBlockChangeTranslator());
-        Registry.registerJava(ServerMultiBlockChangePacket.class, new JavaMultiBlockChangeTranslator());
-        Registry.registerJava(ServerUnloadChunkPacket.class, new JavaUnloadChunkTranslator());
-        Registry.registerJava(ServerUpdateTileEntityPacket.class, new JavaUpdateTileEntityTranslator());
-        Registry.registerJava(ServerBlockValuePacket.class, new JavaBlockValueTranslator());
-
-        Registry.registerJava(ServerWindowItemsPacket.class, new JavaWindowItemsTranslator());
-        Registry.registerJava(ServerOpenWindowPacket.class, new JavaOpenWindowTranslator());
-        Registry.registerJava(ServerSetSlotPacket.class, new JavaSetSlotTranslator());
-        Registry.registerJava(ServerCloseWindowPacket.class, new JavaCloseWindowTranslator());
-        Registry.registerJava(ServerConfirmTransactionPacket.class, new JavaConfirmTransactionTranslator());
-        Registry.registerJava(ServerWindowPropertyPacket.class, new JavaWindowPropertyTranslator());
-
-        Registry.registerJava(ServerUpdateViewPositionPacket.class, new JavaUpdateViewPositionTranslator());
-        Registry.registerJava(ServerUpdateViewDistancePacket.class, new JavaUpdateViewDistanceTranslator());
-
-        Registry.registerBedrock(AnimatePacket.class, new BedrockAnimateTranslator());
-        Registry.registerBedrock(CommandRequestPacket.class, new BedrockCommandRequestTranslator());
-        Registry.registerBedrock(InventoryTransactionPacket.class, new BedrockInventoryTransactionTranslator());
-        Registry.registerBedrock(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator());
-        Registry.registerBedrock(MovePlayerPacket.class, new BedrockMovePlayerTranslator());
-        Registry.registerBedrock(PlayerActionPacket.class, new BedrockActionTranslator());
-        Registry.registerBedrock(SetLocalPlayerAsInitializedPacket.class, new BedrockPlayerInitializedTranslator());
-        Registry.registerBedrock(InteractPacket.class, new BedrockInteractTranslator());
-        Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
-        Registry.registerBedrock(ContainerClosePacket.class, new BedrockContainerCloseTranslator());
-        Registry.registerBedrock(RespawnPacket.class, new BedrockRespawnTranslator());
-        Registry.registerBedrock(ShowCreditsPacket.class, new BedrockShowCreditsTranslator());
-
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators");
+        
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(Translator.class)) {
+            Class<?> packet = clazz.getAnnotation(Translator.class).packet();
+            
+            GeyserConnector.getInstance().getLogger().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());
+            
+            try {
+                if (Packet.class.isAssignableFrom(packet)) {
+                    Class<? extends Packet> targetPacket = (Class<? extends Packet>) packet;
+                    PacketTranslator<? extends Packet> translator = (PacketTranslator<? extends Packet>) clazz.newInstance();
+                    
+                    Registry.registerJava(targetPacket, translator);
+                    
+                } else if (BedrockPacket.class.isAssignableFrom(packet)) {
+                    Class<? extends BedrockPacket> targetPacket = (Class<? extends BedrockPacket>) packet;
+                    PacketTranslator<? extends BedrockPacket> translator = (PacketTranslator<? extends BedrockPacket>) clazz.newInstance();
+                    
+                    Registry.registerBedrock(targetPacket, translator);
+                    
+                } else {
+                    GeyserConnector.getInstance().getLogger().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
+                }
+            } catch (InstantiationException | IllegalAccessException e) {
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated translator " + clazz.getCanonicalName() + ".");
+            }
+        }
+        
+        
         itemTranslator = new ItemTranslator();
         BlockTranslator.init();
 
