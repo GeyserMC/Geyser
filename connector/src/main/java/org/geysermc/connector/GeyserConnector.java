@@ -92,8 +92,6 @@ public class GeyserConnector {
         this.logger = logger;
         this.platformType = platformType;
 
-        logger.setDebug(!RELEASE);
-
         logger.info("******************************************");
         logger.info("");
         logger.info("Loading " + NAME + " version " + VERSION);
