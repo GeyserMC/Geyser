@@ -92,7 +92,7 @@ public class GeyserConnector {
         this.logger = logger;
         this.platformType = platformType;
 
-        this.logger.setDebug(!RELEASE);
+        logger.setDebug(!RELEASE);
 
         logger.info("******************************************");
         logger.info("");
@@ -100,6 +100,10 @@ public class GeyserConnector {
         logger.info("");
         logger.info("******************************************");
 
+        if (!RELEASE) {
+            logger.error("This is not a release build, There may be bugs ahead!");
+        }
+        
         this.config = config;
         this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
 
