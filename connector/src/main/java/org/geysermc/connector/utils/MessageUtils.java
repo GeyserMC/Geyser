@@ -154,6 +154,7 @@ public class MessageUtils {
                 base += "f";
                 break;
             case RESET:
+            case NONE:
                 base += "r";
                 break;
             default:
