@@ -25,12 +25,15 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
 
+@Translator(packet = AnimatePacket.class)
 public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
 
     @Override

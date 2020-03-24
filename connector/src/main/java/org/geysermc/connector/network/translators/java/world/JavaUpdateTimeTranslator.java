@@ -25,11 +25,14 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
-import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
+import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
+
+@Translator(packet = ServerUpdateTimePacket.class)
 public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimePacket> {
 
     @Override

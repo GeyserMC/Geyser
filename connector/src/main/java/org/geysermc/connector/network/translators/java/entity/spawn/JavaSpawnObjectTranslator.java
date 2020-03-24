@@ -25,19 +25,21 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.github.steveice10.mc.protocol.data.game.entity.type.object.ObjectType;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnObjectPacket;
-import com.nukkitx.math.vector.Vector3f;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.EntityUtils;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import com.github.steveice10.mc.protocol.data.game.entity.type.object.ObjectType;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnObjectPacket;
+import com.nukkitx.math.vector.Vector3f;
 
+@Translator(packet = ServerSpawnObjectPacket.class)
 public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjectPacket> {
 
     @Override

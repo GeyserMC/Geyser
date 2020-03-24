@@ -25,6 +25,14 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValue;
@@ -35,15 +43,15 @@ import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
+
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
 
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
-
+@Translator(packet = ServerNotifyClientPacket.class)
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
 
     @Override
