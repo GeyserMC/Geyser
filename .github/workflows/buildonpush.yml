@@ -1,0 +1,55 @@
+name: Build on Push
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: submodules-init
+        uses: snickerbockers/submodules-init@v4
+      - name: Build with Maven
+        run: mvn -B package
+      - name: Archive artifacts (Geyser Standalone)
+        uses: actions/upload-artifact@v1
+        if: success()
+        with:
+          name: Geyser Standalone
+          path: bootstrap/standalone/target/Geyser.jar
+      - name: Archive artifacts (Geyser Bukkit)
+        uses: actions/upload-artifact@v1
+        if: success()
+        with:
+          name: Geyser Bukkit
+          path: bootstrap/bukkit/target/Geyser-Bukkit.jar
+      - name: Archive artifacts (Geyser BungeeCord)
+        uses: actions/upload-artifact@v1
+        if: success()
+        with:
+          name: Geyser BungeeCord
+          path: bootstrap/bungeecord/target/Geyser-BungeeCord.jar
+      - name: Archive artifacts (Geyser Sponge)
+        uses: actions/upload-artifact@v1
+        if: success()
+        with:
+          name: Geyser Sponge
+          path: bootstrap/sponge/target/Geyser-Sponge.jar
+      - name: Archive artifacts (Geyser Velocity)
+        uses: actions/upload-artifact@v1
+        if: success()
+        with:
+          name: Geyser Velocity
+          path: bootstrap/velocity/target/Geyser-Velocity.jar
