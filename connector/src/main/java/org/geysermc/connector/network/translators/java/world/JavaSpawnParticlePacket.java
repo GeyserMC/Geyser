@@ -57,18 +57,14 @@ public class JavaSpawnParticlePacket extends PacketTranslator<ServerSpawnParticl
                 session.getUpstream().sendPacket(dustParticlePacket);
                 break;
             default:
-                try{
-                    if(ParticleUtils.hasIdentifier(packet.getParticle().getType())){
-                        SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
-                        particlePacket.setDimensionId(session.getPlayerEntity().getDimension());
-                        particlePacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-                        particlePacket.setIdentifier(ParticleUtils.getIdentifier(packet.getParticle().getType()));
-                        session.getUpstream().sendPacket(particlePacket);
-                    }else {
-                        LoggerFactory.getLogger(this.getClass()).debug("No particle mapping for " + packet.getParticle().getType());
-                    }
-                }catch (IllegalArgumentException e){
-                    //
+                if(ParticleUtils.hasIdentifier(packet.getParticle().getType())){
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setDimensionId(session.getPlayerEntity().getDimension());
+                    particlePacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
+                    particlePacket.setIdentifier(ParticleUtils.getIdentifier(packet.getParticle().getType()));
+                    session.getUpstream().sendPacket(particlePacket);
+                }else {
+                    LoggerFactory.getLogger(this.getClass()).debug("No particle mapping for " + packet.getParticle().getType());
                 }
                 break;
         }
