@@ -25,18 +25,18 @@
 
 package org.geysermc.platform.standalone;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
+
 import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.standalone.console.GeyserLogger;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-
 public class GeyserBootstrap implements IGeyserBootstrap {
-
+    
     private GeyserConfiguration geyserConfig;
     private GeyserLogger geyserLogger;
 
@@ -49,7 +49,9 @@ public class GeyserBootstrap implements IGeyserBootstrap {
     @Override
     public void onEnable() {
         geyserLogger = new GeyserLogger();
-
+        
+        Util.checkLoopback(geyserLogger);
+        
         try {
             File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserConfiguration.class);
