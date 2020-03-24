@@ -25,48 +25,26 @@
 
 package org.geysermc.connector.network.translators;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.*;
-import com.github.steveice10.mc.protocol.packet.login.server.LoginPluginRequestPacket;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.packet.*;
-import lombok.Getter;
-import org.geysermc.connector.network.translators.bedrock.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.java.*;
-import org.geysermc.connector.network.translators.java.entity.*;
-import org.geysermc.connector.network.translators.java.entity.player.*;
-import org.geysermc.connector.network.translators.java.entity.spawn.*;
-import org.geysermc.connector.network.translators.java.inventory.OpenWindowPacketTranslator;
-import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
-import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
-import org.geysermc.connector.network.translators.java.scoreboard.JavaTeamTranslator;
-import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
-import org.geysermc.connector.network.translators.java.window.JavaOpenWindowTranslator;
-import org.geysermc.connector.network.translators.java.window.JavaSetSlotTranslator;
-import org.geysermc.connector.network.translators.java.window.JavaWindowItemsTranslator;
-import org.geysermc.connector.network.translators.java.world.*;
+import org.reflections.Reflections;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import com.github.steveice10.packetlib.packet.Packet;
+import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTOutputStream;
+import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 
-public class TranslatorsInit {
+import lombok.Getter;
+
+public class Translators {
 
     @Getter
     private static ItemTranslator itemTranslator;
@@ -91,8 +69,9 @@ public class TranslatorsInit {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static void start() {
-        Registry.registerJava(LoginPluginRequestPacket.class, new JavaLoginPluginMessageTranslator());
+        /*Registry.registerJava(LoginPluginRequestPacket.class, new JavaLoginPluginMessageTranslator());
 
         Registry.registerJava(ServerJoinGamePacket.class, new JavaJoinGameTranslator());
         Registry.registerJava(ServerPluginMessagePacket.class, new JavaPluginMessageTranslator());
@@ -162,8 +141,36 @@ public class TranslatorsInit {
         Registry.registerBedrock(InteractPacket.class, new BedrockInteractTranslator());
         Registry.registerBedrock(TextPacket.class, new BedrockTextTranslator());
         Registry.registerBedrock(RespawnPacket.class, new BedrockRespawnTranslator());
-        Registry.registerBedrock(ShowCreditsPacket.class, new BedrockShowCreditsTranslator());
-
+        Registry.registerBedrock(ShowCreditsPacket.class, new BedrockShowCreditsTranslator());*/
+        
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators");
+        
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(Translator.class)) {
+            Class<?> packet = clazz.getAnnotation(Translator.class).packet();
+            
+            GeyserConnector.getInstance().getLogger().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());
+            
+            try {
+                if (Packet.class.isAssignableFrom(packet)) {
+                    Class<? extends Packet> targetPacket = (Class<? extends Packet>) packet;
+                    PacketTranslator<? extends Packet> translator = (PacketTranslator<? extends Packet>) clazz.newInstance();
+                    
+                    Registry.registerJava(targetPacket, translator);
+                    
+                } else if (BedrockPacket.class.isAssignableFrom(packet)) {
+                    Class<? extends BedrockPacket> targetPacket = (Class<? extends BedrockPacket>) packet;
+                    PacketTranslator<? extends BedrockPacket> translator = (PacketTranslator<? extends BedrockPacket>) clazz.newInstance();
+                    
+                    Registry.registerBedrock(targetPacket, translator);
+                    
+                } else {
+                    GeyserConnector.getInstance().getLogger().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
+                }
+            } catch (InstantiationException | IllegalAccessException e) {
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated translator " + clazz.getCanonicalName() + ".");
+            }
+        }
+        
         itemTranslator = new ItemTranslator();
         BlockTranslator.init();
 

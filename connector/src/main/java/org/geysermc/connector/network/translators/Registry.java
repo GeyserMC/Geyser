@@ -39,14 +39,15 @@ public class Registry<T> {
     public static final Registry<Packet> JAVA = new Registry<>();
     public static final Registry<BedrockPacket> BEDROCK = new Registry<>();
 
-    public static <T extends Packet> void registerJava(Class<T> clazz, PacketTranslator<T> translator) {
-        JAVA.MAP.put(clazz, translator);
+    public static void registerJava(Class<? extends Packet> targetPacket, PacketTranslator<? extends Packet> translator) {
+        JAVA.MAP.put(targetPacket, translator);
     }
 
-    public static <T extends BedrockPacket> void registerBedrock(Class<T> clazz, PacketTranslator<T> translator) {
-        BEDROCK.MAP.put(clazz, translator);
+    public static void registerBedrock(Class<? extends BedrockPacket> targetPacket, PacketTranslator<? extends BedrockPacket> translator) {
+        BEDROCK.MAP.put(targetPacket, translator);
     }
 
+    @SuppressWarnings("unchecked")
     public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
         if (!session.getUpstream().isClosed() && !session.isClosed()) {
             try {
