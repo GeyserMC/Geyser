@@ -92,7 +92,7 @@ public class GeyserConnector {
         IGeyserLogger logger = bootstrap.getGeyserLogger();
         IGeyserConfiguration config = bootstrap.getGeyserConfig();
 
-        logger.setDebug(!RELEASE);
+        //logger.setDebug(!RELEASE);
 
         this.platformType = platformType;
 

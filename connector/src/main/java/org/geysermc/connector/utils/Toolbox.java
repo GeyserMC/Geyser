@@ -90,7 +90,9 @@ public class Toolbox {
 
         for (JsonNode entry : particleEntries) {
             try{
-                ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), entry.get("bedrock").asText());
+                if(!entry.get("java").asText().equals("?") && !entry.get("bedrock").asText().equals("?")){
+                    ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), entry.get("bedrock").asText());
+                }
             }catch (IllegalArgumentException e){
                 //throw new AssertionError("Unable to find particle " + entry.get("java").asText().toUpperCase() + "in java edition", e);
             }

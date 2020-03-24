@@ -9,7 +9,7 @@
 	},
 	{
 		"java": "barrier",
-		"bedrock":"?"
+		"bedrock":"minecraft:barrier"
 	},
 	{
 		"java": "block",
@@ -17,7 +17,7 @@
 	},
 	{
 		"java": "bubble",
-		"bedrock":"basic_bubble_particle_manual"
+		"bedrock":"minecraft:basic_bubble_particle_manual"
 	},
 	{
 		"java": "bubble_column_up",
@@ -61,19 +61,19 @@
 	},
 	{
 		"java": "dragon_breath",
-		"bedrock":"minecraft:dragon_breath_trail (or) minecraft:dragon_breath_lingering"
+		"bedrock":"minecraft:dragonbreath"
 	},
 	{
 		"java": "?",
-		"bedrock":"drippinghoney"
+		"bedrock":"minecraft:dripping_honey"
 	},
 	{
 		"java": "dripping_lava",
-		"bedrock":"driplava"
+		"bedrock":"minecraft:driplava"
 	},
 	{
 		"java": "dripping_water",
-		"bedrock":"dripwater"
+		"bedrock":"minecraft:dripwater"
 	},
 	{
 		"java": "dust",
@@ -85,11 +85,11 @@
 	},
 	{
 		"java": "elder_guardian",
-		"bedrock":"??"
+		"bedrock":"?"
 	},
 	{
 		"java": "enchant",
-		"bedrock":"enchantingtable"
+		"bedrock":"minecraft:enchantingtable"
 	},
 	{
 		"java": "enchanted_hit",
@@ -117,7 +117,7 @@
 	},
 	{
 		"java": "?",
-		"bedrock":"falling_honey"
+		"bedrock":"minecraft:falling_honey"
 	},
 	{
 		"java": "falling_lava",
@@ -129,11 +129,11 @@
 	},
 	{
 		"java": "falling_water",
-		"bedrock":"water_splash_particle"
+		"bedrock":"minecraft:water_splash_particle"
 	},
 	{
 		"java": "firework",
-		"bedrock":"minecraft:sparkler_emitter "
+		"bedrock":"minecraft:sparkler_emitter"
 	},
 	{
 		"java": "fishing",
@@ -197,15 +197,15 @@
 	},
 	{
 		"java": "nautilus",
-		"bedrock":"nautilus"
+		"bedrock":"minecraft:nautilus"
 	},
 	{
 		"java": "note",
-		"bedrock":"note"
+		"bedrock":"minecraft:note"
 	},
 	{
 		"java": "poof",
-		"bedrock":"explode"
+		"bedrock":"minecraft:explode"
 	},
 	{
 		"java": "portal",
@@ -213,11 +213,11 @@
 	},
 	{
 		"java": "rain",
-		"bedrock":"rainsplash"
+		"bedrock":"minecraft:rainsplash"
 	},
 	{
 		"java": "smoke",
-		"bedrock":"smoke"
+		"bedrock":"minecraft:smoke"
 	},
 	{
 		"java": "sneeze",
@@ -229,7 +229,7 @@
 	},
 	{
 		"java": "?",
-		"bedrock":"terrain"
+		"bedrock":"minecraft:terrain"
 	},
 	{
 		"java": "totem_of_undying",
@@ -237,7 +237,7 @@
 	},
 	{
 		"java": "?",
-		"bedrock":"trackingemitter"
+		"bedrock":"minecraft:trackingemitter"
 	},
 	{
 		"java": "underwater",
@@ -245,6 +245,6 @@
 	},
 	{
 		"java": "witch",
-		"bedrock":"witchspell"
+		"bedrock":"minecraft:witchspell"
 	}
 ]
