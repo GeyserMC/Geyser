@@ -33,7 +33,6 @@ import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.ListTag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
@@ -88,11 +87,15 @@ public class Toolbox {
         } catch (Exception e) {
             throw new AssertionError("Unable to load particle map", e);
         }
-        
+
         for (JsonNode entry : particleEntries) {
-            ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), entry.get("bedrock").asText());
+            try{
+                ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), entry.get("bedrock").asText());
+            }catch (IllegalArgumentException e){
+                //throw new AssertionError("Unable to find particle " + entry.get("java").asText().toUpperCase() + "in java edition", e);
+            }
         }
-        
+
         /* Load item palette */
         InputStream stream = getResource("bedrock/items.json");
 

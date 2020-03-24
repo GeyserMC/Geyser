@@ -64,8 +64,8 @@
 		"bedrock":"minecraft:dragon_breath_trail (or) minecraft:dragon_breath_lingering"
 	},
 	{
-		"java": "dripping_honey",
-		"bedrock":"?"
+		"java": "?",
+		"bedrock":"drippinghoney"
 	},
 	{
 		"java": "dripping_lava",
@@ -116,8 +116,8 @@
 		"bedrock":"minecraft:falling_dust_red_sand_particle, minecraft:falling_dust_sand_particle, minecraft:falling_dust_gravel_particle, minecraft:falling_dust_top_snow_particle, minecraft:falling_dust_dragon_egg_particle, minecraft:falling_dust_concrete_particle, minecraft:falling_dust_scaffolding_particle"
 	},
 	{
-		"java": "falling_honey",
-		"bedrock":"?"
+		"java": "?",
+		"bedrock":"falling_honey"
 	},
 	{
 		"java": "falling_lava",
@@ -172,8 +172,8 @@
 		"bedrock":"?"
 	},
 	{
-		"java": "landing_honey",
-		"bedrock":"?"
+		"java": "?",
+		"bedrock":"landing_honey"
 	},
 	{
 		"java": "landing_lava",
@@ -247,4 +247,4 @@
 		"java": "witch",
 		"bedrock":"witchspell"
 	}
-}
+]
