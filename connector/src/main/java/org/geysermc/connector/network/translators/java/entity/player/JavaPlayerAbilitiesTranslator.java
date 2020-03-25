@@ -25,19 +25,23 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
+import java.util.Set;
+
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
 import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
 
-import java.util.Set;
-
+@Translator(packet = ServerPlayerAbilitiesPacket.class)
 public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
 
     @Override

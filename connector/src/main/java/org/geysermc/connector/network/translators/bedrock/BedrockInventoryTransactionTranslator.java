@@ -25,6 +25,11 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
@@ -36,10 +41,8 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
 
+@Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
 
     @Override

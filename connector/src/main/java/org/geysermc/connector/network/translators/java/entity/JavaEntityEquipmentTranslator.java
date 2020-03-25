@@ -25,14 +25,17 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityEquipmentPacket;
-import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.Translators;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityEquipmentPacket;
+import com.nukkitx.protocol.bedrock.data.ItemData;
+
+@Translator(packet = ServerEntityEquipmentPacket.class)
 public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntityEquipmentPacket> {
 
     @Override
@@ -52,7 +55,7 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
         }
 
         LivingEntity livingEntity = (LivingEntity) entity;
-        ItemData item = TranslatorsInit.getItemTranslator().translateToBedrock(packet.getItem());
+        ItemData item = Translators.getItemTranslator().translateToBedrock(packet.getItem());
         switch (packet.getSlot()) {
             case HELMET:
                 livingEntity.setHelmet(item);
