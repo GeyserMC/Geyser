@@ -83,7 +83,6 @@ public class ChunkUtils {
                         if (BlockTranslator.isWaterlogged(blockState)) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);
                         }
-
                     }
                 }
             }
@@ -137,7 +136,6 @@ public class ChunkUtils {
         // Since Java stores bed colors as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
         BedBlockEntityTranslator.checkForBedColor(session, blockState, position);
-
     }
 
     public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {
