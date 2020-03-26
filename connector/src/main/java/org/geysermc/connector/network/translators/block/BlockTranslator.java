@@ -35,6 +35,7 @@ import com.nukkitx.nbt.tag.ListTag;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -50,7 +51,7 @@ public class BlockTranslator {
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final Map<String, BlockState> JAVA_ID_BLOCK_MAP = new HashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
-    private static final Map<BlockState, Byte> BEDCOLORS = new HashMap<>();
+    private static final Object2ByteOpenHashMap<BlockState> BEDCOLORS = new Object2ByteOpenHashMap<>();
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
 
@@ -244,7 +245,7 @@ public class BlockTranslator {
 
     public static byte getBedColor(BlockState state) {
         if (BEDCOLORS.containsKey(state)) {
-            return BEDCOLORS.get(state);
+            return BEDCOLORS.getByte(state);
         }
         return -1;
     }
