@@ -105,7 +105,16 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
                         ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntKey()), new Position(x, y, z));
                     }
+
+                    for (Int2ObjectMap.Entry<CompoundTag> blockEntityEntry: chunkData.beds.int2ObjectEntrySet()) {
+                        int x = blockEntityEntry.getValue().getInt("x");
+                        int y = blockEntityEntry.getValue().getInt("y");
+                        int z = blockEntityEntry.getValue().getInt("z");
+
+                        ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntKey()), new Position(x, y, z));
+                    }
                     chunkData.signs.clear();
+                    chunkData.beds.clear();
                 } else {
                     final int xOffset = packet.getColumn().getX() << 4;
                     final int zOffset = packet.getColumn().getZ() << 4;

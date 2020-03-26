@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 
@@ -44,6 +45,8 @@ import org.geysermc.connector.network.translators.block.entity.BlockEntityTransl
 import org.geysermc.connector.world.chunk.ChunkPosition;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.world.chunk.ChunkSection;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.geysermc.connector.network.translators.block.BlockTranslator.BEDROCK_WATER_ID;
 
@@ -72,6 +75,9 @@ public class ChunkUtils {
                         if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("sign[")) {
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
                             chunkData.signs.put(blockState.getId(), TranslatorsInit.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag("Sign", pos.getX(), pos.getY(), pos.getZ()));
+                        } else if (BlockTranslator.getBedColor(blockState) > -1) {
+                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+                            chunkData.beds.put(blockState.getId(), getBedTag(BlockTranslator.getBedColor(blockState), pos));
                         } else {
                             section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
                         }
@@ -79,6 +85,7 @@ public class ChunkUtils {
                         if (BlockTranslator.isWaterlogged(blockState)) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);
                         }
+
                     }
                 }
             }
@@ -128,6 +135,23 @@ public class ChunkUtils {
             waterPacket.setRuntimeId(0);
         }
         session.getUpstream().sendPacket(waterPacket);
+
+        // Since Java stores bed colors as part of the namespaced ID and Bedrock stores it as a tag
+        // This is the only place I could find that interacts with the Java block state and block updates
+        byte bedcolor = BlockTranslator.getBedColor(blockState);
+        // If Bed Color is not -1 then it is indeed a bed with a color.
+        if (bedcolor > -1) {
+            Position pos = new Position(position.getX(), position.getY(), position.getZ());
+            com.nukkitx.nbt.tag.CompoundTag finalbedTag = getBedTag(bedcolor, pos);
+            // Delay needed, otherwise newly placed beds will not get their color
+            // Delay is not needed for beds already placed on login
+            session.getConnector().getGeneralThreadPool().schedule(() ->
+                            BlockEntityUtils.updateBlockEntity(session, finalbedTag, pos),
+                    500,
+                    TimeUnit.MILLISECONDS
+            );
+        }
+
     }
 
     public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {
@@ -160,5 +184,15 @@ public class ChunkUtils {
 
         public com.nukkitx.nbt.tag.CompoundTag[] blockEntities = new com.nukkitx.nbt.tag.CompoundTag[0];
         public Int2ObjectMap<com.nukkitx.nbt.tag.CompoundTag> signs = new Int2ObjectOpenHashMap<>();
+        public Int2ObjectMap<com.nukkitx.nbt.tag.CompoundTag> beds = new Int2ObjectOpenHashMap<>();
+    }
+    public static com.nukkitx.nbt.tag.CompoundTag getBedTag(byte bedcolor, Position pos) {
+        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
+                .intTag("x", pos.getX())
+                .intTag("y", pos.getY())
+                .intTag("z", pos.getZ())
+                .stringTag("id", "Bed");
+        tagBuilder.byteTag("color", bedcolor);
+        return tagBuilder.buildRootTag();
     }
 }
