@@ -123,7 +123,7 @@ public enum EntityType {
     PAINTING(PaintingEntity.class, 83, 0f),
     MINECART(MinecartEntity.class, 84, 0f),
     FIREBALL(ItemedFireballEntity.class, 85, 0f),
-    SPLASH_POTION(ThrowableEntity.class, 86, 0f),
+    POTION(ThrowableEntity.class, 86, 0f),
     ENDER_PEARL(ThrowableEntity.class, 87, 0f),
     LEASH_KNOT(Entity.class, 88, 0f),
     WITHER_SKULL(Entity.class, 89, 0f),
