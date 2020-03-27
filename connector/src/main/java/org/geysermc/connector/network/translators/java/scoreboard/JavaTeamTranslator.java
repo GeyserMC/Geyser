@@ -25,20 +25,22 @@
 
 package org.geysermc.connector.network.translators.java.scoreboard;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
+import java.util.Arrays;
+import java.util.Set;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.UpdateType;
 import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
+@Translator(packet = ServerTeamPacket.class)
 public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
 
     @Override

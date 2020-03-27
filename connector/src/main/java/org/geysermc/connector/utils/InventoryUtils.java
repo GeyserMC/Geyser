@@ -37,7 +37,7 @@ import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 import java.util.List;
@@ -52,17 +52,17 @@ public class InventoryUtils {
         ItemData[] contents = new ItemData[40];
         // Inventory
         for (int i = 9; i < 36; i++) {
-            contents[i] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
+            contents[i] = Translators.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
         }
 
         // Hotbar
         for (int i = 36; i < 45; i++) {
-            contents[i - 36] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
+            contents[i - 36] = Translators.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
         }
 
         // Armor
         for (int i = 5; i < 9; i++) {
-            contents[i + 31] = TranslatorsInit.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
+            contents[i + 31] = Translators.getItemTranslator().translateToBedrock(inventory.getItems()[i]);
         }
 
         inventoryContentPacket.setContents(contents);
@@ -74,7 +74,7 @@ public class InventoryUtils {
         session.getInventoryCache().getInventories().put(packet.getWindowId(), inventory);
         session.getInventoryCache().setOpenInventory(inventory);
 
-        InventoryTranslator translator = TranslatorsInit.getInventoryTranslator();
+        InventoryTranslator translator = Translators.getInventoryTranslator();
         translator.prepareInventory(session, inventory);
         GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
             List<Packet> packets = session.getInventoryCache().getCachedPackets().get(inventory.getId());
@@ -99,7 +99,7 @@ public class InventoryUtils {
         if (packet.getWindowId() != openInventory.getId())
             return;
 
-        InventoryTranslator translator = TranslatorsInit.getInventoryTranslator();
+        InventoryTranslator translator = Translators.getInventoryTranslator();
         if (translator == null) {
             session.getDownstream().getSession().send(new ClientCloseWindowPacket(packet.getWindowId()));
             return;
@@ -120,7 +120,7 @@ public class InventoryUtils {
         if (packet.getWindowId() != openInventory.getId())
             return;
 
-        InventoryTranslator translator = TranslatorsInit.getInventoryTranslator();
+        InventoryTranslator translator = Translators.getInventoryTranslator();
         if (translator == null) {
             session.getDownstream().getSession().send(new ClientCloseWindowPacket(packet.getWindowId()));
             return;

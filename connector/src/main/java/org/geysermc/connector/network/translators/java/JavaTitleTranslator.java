@@ -25,12 +25,15 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
-import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.MessageUtils;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
+import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
+
+@Translator(packet = ServerTitlePacket.class)
 public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
 
     @Override
