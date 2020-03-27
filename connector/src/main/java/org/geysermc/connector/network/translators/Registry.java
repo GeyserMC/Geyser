@@ -47,12 +47,15 @@ public class Registry<T> {
         BEDROCK.MAP.put(clazz, translator);
     }
 
+    @SuppressWarnings("unchecked")
     public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
         if (!session.getUpstream().isClosed() && !session.isClosed()) {
             try {
                 if (MAP.containsKey(clazz)) {
                     ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
                     return true;
+                } else {
+                    GeyserConnector.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
                 }
             } catch (Throwable ex) {
                 GeyserConnector.getInstance().getLogger().error("Could not translate packet " + packet.getClass().getSimpleName(), ex);

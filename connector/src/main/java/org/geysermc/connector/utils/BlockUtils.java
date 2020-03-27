@@ -63,13 +63,10 @@ public class BlockUtils {
 
     //http://minecraft.gamepedia.com/Breaking
     private static double calculateBreakTime(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool,
-                                      String toolType, boolean isWoolBlock, boolean isCobweb, int toolEfficiencyLevel, int hasteLevel, int miningFatigueLevel
+                                             String toolType, boolean isWoolBlock, boolean isCobweb, int toolEfficiencyLevel, int hasteLevel, int miningFatigueLevel
             /*boolean insideOfWaterWithoutAquaAffinity, boolean outOfWaterButNotOnGround*/) {
-        System.out.println("blockHardness = " + blockHardness);
         double baseTime = ((correctTool || canHarvestWithHand) ? 1.5 : 5.0) * blockHardness;
-        System.out.println("baseTime = " + baseTime);
         double speed = 1.0 / baseTime;
-        System.out.println("speed = " + speed);
 
         if (correctTool) {
             speed *= toolBreakTimeBonus(toolType, toolTier, isWoolBlock);
@@ -77,9 +74,7 @@ public class BlockUtils {
         } else if (toolType.equals("sword")) {
             speed*= (isCobweb ? 15.0 : 1.5);
         }
-        System.out.println("speed before haste = " + speed);
         speed *= 1.0 + (0.2 * hasteLevel);
-        System.out.println("speed = " + speed);
 
         switch (miningFatigueLevel) {
             case 0:
@@ -97,10 +92,10 @@ public class BlockUtils {
                 speed -= (speed * 0.99919);
                 break;
         }
-        System.out.println("miningFatigueLevel = " + miningFatigueLevel);
 
         //if (insideOfWaterWithoutAquaAffinity) speed *= 0.2;
         //if (outOfWaterButNotOnGround) speed *= 0.2;
+        // else if insideWaterAndNotOnGround speed *= 0.2;
         return 1.0 / speed;
     }
 
@@ -121,6 +116,7 @@ public class BlockUtils {
         int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(nbtData, "minecraft:efficiency");
         int hasteLevel = player.getEffectCache().getEffectLevel(Effect.FASTER_DIG);
         int miningFatigueLevel = player.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
+
         // TODO implement these checks and material check if possible
         //boolean insideOfWaterWithoutAquaAffinity = player.isInsideOfWater() &&
         //        Optional.ofNullable(player.getInventory().getHelmet().getEnchantment(Enchantment.ID_WATER_WORKER))

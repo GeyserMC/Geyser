@@ -53,6 +53,7 @@ public class PlayerEntity extends LivingEntity {
     private boolean playerList = true;
     private final EntityEffectCache effectCache;
 
+
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
 
