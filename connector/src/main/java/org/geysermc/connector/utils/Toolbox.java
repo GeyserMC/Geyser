@@ -72,8 +72,7 @@ public class Toolbox {
         /* Load item palette */
         InputStream stream = getResource("bedrock/items.json");
 
-        TypeReference<List<JsonNode>> itemEntriesType = new TypeReference<List<JsonNode>>() {
-        };
+        TypeReference<List<JsonNode>> itemEntriesType = new TypeReference<List<JsonNode>>() {};
 
         List<JsonNode> itemEntries;
         try {
