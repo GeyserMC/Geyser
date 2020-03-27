@@ -60,7 +60,7 @@ import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplaySco
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaTeamTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaUpdateScoreTranslator;
-import org.geysermc.connector.network.translators.java.JavaStopSoundTranslator;
+import org.geysermc.connector.network.translators.java.world.JavaStopSoundTranslator;
 import org.geysermc.connector.network.translators.java.window.*;
 import org.geysermc.connector.network.translators.java.world.*;
 
