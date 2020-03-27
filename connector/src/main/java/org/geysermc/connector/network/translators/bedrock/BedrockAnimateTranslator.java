@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientSteerBoatPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -39,6 +40,14 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             case SWING_ARM:
                 ClientPlayerSwingArmPacket swingArmPacket = new ClientPlayerSwingArmPacket(Hand.MAIN_HAND);
                 session.getDownstream().getSession().send(swingArmPacket);
+                break;
+            case ROW_LEFT:
+                ClientSteerBoatPacket steerLeftPacket = new ClientSteerBoatPacket(false, true);
+                session.getDownstream().getSession().send(steerLeftPacket);
+                break;
+            case ROW_RIGHT:
+                ClientSteerBoatPacket steerRightPacket = new ClientSteerBoatPacket(true, false);
+                session.getDownstream().getSession().send(steerRightPacket);
                 break;
         }
     }
