@@ -51,7 +51,7 @@ public class BlockTranslator {
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final Map<String, BlockState> JAVA_ID_BLOCK_MAP = new HashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
-    private static final Object2ByteOpenHashMap<BlockState> BEDCOLORS = new Object2ByteOpenHashMap<>();
+    private static final Object2ByteOpenHashMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
 
@@ -108,7 +108,7 @@ public class BlockTranslator {
             JsonNode bedColor = entry.getValue().get("bed_color");
             if (bedColor != null) {
                 // Converting to byte because the final tag value is a byte. bedColor.binaryValue() returns an array
-                BEDCOLORS.put(javaBlockState, (byte) bedColor.intValue());
+                BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
             }
 
             if ("minecraft:water[level=0]".equals(javaId)) {
@@ -208,8 +208,8 @@ public class BlockTranslator {
     }
 
     public static byte getBedColor(BlockState state) {
-        if (BEDCOLORS.containsKey(state)) {
-            return BEDCOLORS.getByte(state);
+        if (BED_COLORS.containsKey(state)) {
+            return BED_COLORS.getByte(state);
         }
         return -1;
     }
