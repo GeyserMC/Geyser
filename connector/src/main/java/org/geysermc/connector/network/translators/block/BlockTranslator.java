@@ -105,46 +105,11 @@ public class BlockTranslator {
 
             // If the Java ID is bed, signal that it needs a tag to show color
             // The color is in the namespace ID in Java Edition but it's a tag in Bedrock.
-            byte bedcolor = -1;
-            if (javaId.contains("_bed[")) {
-                if (javaId.contains("minecraft:white")) {
-                    bedcolor = 0;
-                } else if (javaId.contains("minecraft:orange")) {
-                    bedcolor = 1;
-                } else if (javaId.contains("minecraft:magenta")) {
-                    bedcolor = 2;
-                } else if (javaId.contains("minecraft:light_blue")) {
-                    bedcolor = 3;
-                } else if (javaId.contains("minecraft:yellow")) {
-                    bedcolor = 4;
-                } else if (javaId.contains("minecraft:lime")) {
-                    bedcolor = 5;
-                } else if (javaId.contains("minecraft:pink")) {
-                    bedcolor = 6;
-                } else if (javaId.contains("minecraft:gray")) {
-                    bedcolor = 7;
-                } else if (javaId.contains("minecraft:light_gray")) {
-                    bedcolor = 8;
-                } else if (javaId.contains("minecraft:cyan")) {
-                    bedcolor = 9;
-                } else if (javaId.contains("minecraft:purple")) {
-                    bedcolor = 10;
-                } else if (javaId.contains("minecraft:blue")) {
-                    bedcolor = 11;
-                } else if (javaId.contains("minecraft:brown")) {
-                    bedcolor = 12;
-                } else if (javaId.contains("minecraft:green")) {
-                    bedcolor = 13;
-                } else if (javaId.contains("minecraft:red")) {
-                    bedcolor = 14;
-                } else if (javaId.contains("minecraft:black")) {
-                    bedcolor = 15;
-                }
-
-            }
-            // -1 is used throughout the code to indicate no bed color.
-            if (bedcolor > -1) {
-                BEDCOLORS.put(javaBlockState, bedcolor);
+            JsonNode bedColor = entry.getValue().get("bed_color");
+            if (bedColor != null) {
+                System.out.println(bedColor.intValue());
+                // Converting to byte because the final tag value is a byte. bedColor.binaryValue() returns an array
+                BEDCOLORS.put(javaBlockState, (byte) bedColor.intValue());
             }
 
             if ("minecraft:water[level=0]".equals(javaId)) {
