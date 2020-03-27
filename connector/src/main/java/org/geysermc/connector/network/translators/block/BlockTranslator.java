@@ -107,7 +107,6 @@ public class BlockTranslator {
             // The color is in the namespace ID in Java Edition but it's a tag in Bedrock.
             JsonNode bedColor = entry.getValue().get("bed_color");
             if (bedColor != null) {
-                System.out.println(bedColor.intValue());
                 // Converting to byte because the final tag value is a byte. bedColor.binaryValue() returns an array
                 BEDCOLORS.put(javaBlockState, (byte) bedColor.intValue());
             }
