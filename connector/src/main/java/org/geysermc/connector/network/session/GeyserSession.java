@@ -381,7 +381,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setBonusChestEnabled(false);
         startGamePacket.setStartingWithMap(false);
         startGamePacket.setTrustingPlayers(true);
-        startGamePacket.setDefaultPlayerPermission(PlayerPermission.OPERATOR);
+        startGamePacket.setDefaultPlayerPermission(PlayerPermission.MEMBER);
         startGamePacket.setServerChunkTickRange(4);
         startGamePacket.setBehaviorPackLocked(false);
         startGamePacket.setResourcePackLocked(false);
