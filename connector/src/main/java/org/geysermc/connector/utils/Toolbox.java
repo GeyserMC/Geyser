@@ -68,6 +68,22 @@ public class Toolbox {
             GeyserConnector.getInstance().getLogger().warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
             throw new AssertionError(ex);
         }
+        
+      /* Load sounds */
+        InputStream soundStream = getResource("mappings/sounds.json");
+        HashMap<String, String> soundMap;
+        try {
+            soundMap = JSON_MAPPER.readValue(soundStream, new TypeReference<HashMap<String, String>>(){});
+            soundMap.forEach((k, v)->{
+                try{
+                    SoundUtils.setIdentifier(BuiltinSound.valueOf(k.toUpperCase()), v);
+                }catch (IllegalArgumentException e){
+                    GeyserConnector.getInstance().getLogger().warning("Fail to map sound " + k + "=>" + v);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         /* Load item palette */
         InputStream stream = getResource("bedrock/items.json");
