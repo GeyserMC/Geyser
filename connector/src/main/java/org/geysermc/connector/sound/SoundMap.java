@@ -52,12 +52,6 @@ public class SoundMap {
         return soundMappings;
     }
 
-    /**
-     * Where:
-     *
-     * key: Bedrock sound
-     * value: Java sound
-     */
     private ArrayList<SoundMapping> sounds;
 
     public SoundMap(ArrayList<SoundMapping> sounds) {
@@ -78,41 +72,11 @@ public class SoundMap {
         return null;
     }
 
-    /**
-     * Get's the sound mapping for a Bedrock edition sound identifier
-     * @param bedrock Bedrock edition sound identifier
-     * @return SoundMapping object with information for bedrock, nukkit, java, etc. null if not found
-     */
-    public SoundMapping fromBedrock(String bedrock) {
-        for (SoundMapping sound : this.sounds) {
-            if(sound.getJava().equals(bedrock)) {
-                return sound;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get's the sound mapping for a Nukkit sound identifier
-     * @param nukkit Nukkit sound identifier
-     * @return SoundMapping object with information for bedrock, nukkit, java, etc. null if not found
-     */
-    public SoundMapping fromNukkit(String nukkit) {
-        for (SoundMapping sound : this.sounds) {
-            if(sound.getJava().equals(nukkit)) {
-                return sound;
-            }
-        }
-        return null;
-    }
-
 
 
     public void refresh() {
         this.sounds = make();
     }
-
-    //
 
     public static SoundEvent toSoundEvent(String s) {
         SoundEvent sound;
@@ -128,14 +92,6 @@ public class SoundMap {
         }
     }
 
-    public static boolean validateVolume(float f) {
-        return (f >= 0.0F && f <= 1.0F);
-    }
-
-    public static boolean validatePitch(float f) {
-        return (f >= 0.5F && f <= 2.0F);
-    }
-
     @Data
     @ToString
     public static class SoundMapping {
@@ -147,18 +103,6 @@ public class SoundMap {
             this.java = java;
             this.bedrock = bedrock == null || bedrock.equalsIgnoreCase("") ? null : bedrock;
             this.playsound = playsound == null || playsound.equalsIgnoreCase("") ? null : playsound;
-        }
-
-        public boolean hasBedrock() {
-            return this.bedrock != null;
-        }
-
-        public boolean hasPlaysound() {
-            return this.playsound != null;
-        }
-
-        public boolean hasJava() {
-            return this.java != null;
         }
     }
 
