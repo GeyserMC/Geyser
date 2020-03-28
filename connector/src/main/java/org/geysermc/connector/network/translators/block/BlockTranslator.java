@@ -35,6 +35,7 @@ import com.nukkitx.nbt.tag.ListTag;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -50,6 +51,7 @@ public class BlockTranslator {
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final Map<String, BlockState> JAVA_ID_BLOCK_MAP = new HashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
+    private static final Object2ByteOpenHashMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
@@ -128,6 +130,14 @@ public class BlockTranslator {
 
             if (javaId.contains("sign[")) {
                 JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
+            }
+
+            // If the Java ID is bed, signal that it needs a tag to show color
+            // The color is in the namespace ID in Java Edition but it's a tag in Bedrock.
+            JsonNode bedColor = entry.getValue().get("bed_color");
+            if (bedColor != null) {
+                // Converting to byte because the final tag value is a byte. bedColor.binaryValue() returns an array
+                BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
             }
 
             if ("minecraft:water[level=0]".equals(javaId)) {
@@ -229,6 +239,13 @@ public class BlockTranslator {
 
     public static boolean isWaterlogged(BlockState state) {
         return WATERLOGGED.contains(state.getId());
+    }
+
+    public static byte getBedColor(BlockState state) {
+        if (BED_COLORS.containsKey(state)) {
+            return BED_COLORS.getByte(state);
+        }
+        return -1;
     }
 
     public static BlockState getJavaWaterloggedState(int bedrockId) {
