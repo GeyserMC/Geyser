@@ -39,6 +39,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.sound.SoundMap;
+
 
 import java.io.InputStream;
 import java.util.*;
@@ -103,6 +105,9 @@ public class Toolbox {
                     entry.getValue().get("bedrock_id").intValue(), entry.getValue().get("bedrock_data").intValue()));
             itemIndex++;
         }
+
+        /* Load sound mappings */
+        SoundMap.get();
     }
 
     public static InputStream getResource(String resource) {
