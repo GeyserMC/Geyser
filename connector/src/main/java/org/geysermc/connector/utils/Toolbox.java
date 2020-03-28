@@ -42,6 +42,7 @@ import org.geysermc.connector.network.translators.item.ItemEntry;
 
 import com.github.steveice10.mc.protocol.data.game.world.sound.BuiltinSound;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
