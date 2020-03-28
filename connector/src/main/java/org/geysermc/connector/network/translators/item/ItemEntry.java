@@ -34,11 +34,11 @@ public class ItemEntry {
 
     public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0);
 
-    private String javaIdentifier;
-    private int javaId;
+    private final String javaIdentifier;
+    private final int javaId;
 
-    private int bedrockId;
-    private int bedrockData;
+    private final int bedrockId;
+    private final int bedrockData;
 
     @Override
     public boolean equals(Object obj) {

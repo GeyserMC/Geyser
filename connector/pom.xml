@@ -50,6 +50,24 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-int-double-maps</artifactId>
+            <version>8.3.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-int-boolean-maps</artifactId>
+            <version>8.3.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-object-int-maps</artifactId>
+            <version>8.3.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-byte-maps</artifactId>
             <version>8.3.1</version>
             <scope>compile</scope>
