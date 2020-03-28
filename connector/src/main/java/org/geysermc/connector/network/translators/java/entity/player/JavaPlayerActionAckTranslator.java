@@ -44,13 +44,13 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
 
     @Override
     public void translate(ServerPlayerActionAckPacket packet, GeyserSession session) {
+        LevelEventPacket levelEvent = new LevelEventPacket();
         switch (packet.getAction()) {
             case FINISH_DIGGING:
                 ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
                 break;
 
-            case START_DIGGING: {
-                LevelEventPacket levelEvent = new LevelEventPacket();
+            case START_DIGGING:
                 levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
                 levelEvent.setPosition(Vector3f.from(
                         packet.getPosition().getX(),
@@ -67,14 +67,11 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                     nbtData = item.getNbt();
                 }
                 double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry, nbtData, session.getPlayerEntity()) * 20);
-                int data = (int) (65535 / breakTime);
                 levelEvent.setData((int) (65535 / breakTime));
                 session.getUpstream().sendPacket(levelEvent);
                 break;
-            }
 
-            case CANCEL_DIGGING: {
-                LevelEventPacket levelEvent = new LevelEventPacket();
+            case CANCEL_DIGGING:
                 levelEvent.setType(LevelEventType.BLOCK_STOP_BREAK);
                 levelEvent.setPosition(Vector3f.from(
                         packet.getPosition().getX(),
@@ -84,7 +81,6 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 levelEvent.setData(0);
                 session.getUpstream().sendPacket(levelEvent);
                 break;
-            }
         }
     }
 }
