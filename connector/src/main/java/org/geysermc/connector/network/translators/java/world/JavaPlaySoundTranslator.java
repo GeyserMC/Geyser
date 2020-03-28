@@ -8,7 +8,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.SoundUtils;
 
-@Translator(packet = PlaySoundPacket.class)
+@Translator(packet = ServerPlaySoundPacket.class)
 public class JavaPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPacket> {
 
     @Override
