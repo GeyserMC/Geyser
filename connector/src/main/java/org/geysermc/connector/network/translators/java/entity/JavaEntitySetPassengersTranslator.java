@@ -43,12 +43,11 @@ import java.util.Arrays;
 @Translator(packet = ServerEntitySetPassengersPacket.class)
 public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEntitySetPassengersPacket> {
 
+    // TODO - add check for this on login
+    // Players in a minecart when logged in are in the same spot but are not sitting
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        }
         if (entity == null) {
             return;
         }
@@ -57,6 +56,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
         boolean rider = true;
         for (long passengerId : packet.getPassengerIds()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
+            if (passengerId == session.getPlayerEntity().getEntityId()) {
+                System.out.println("Entity ID is Player ID");
+                passenger = session.getPlayerEntity();
+            }
             if (passenger == null) {
                 continue;
             }
@@ -89,10 +92,14 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
     }
 
     private void updateOffset(Entity passenger, EntityType mountType, GeyserSession session, boolean rider, boolean riding) {
+        // Without these, Bedrock players will find themselves in the floor when mounting
         float yOffset = 0;
         switch (mountType) {
             case BOAT:
                 yOffset = passenger.getEntityType() == EntityType.PLAYER ? 1.02001f : -0.2f;
+                break;
+            case MINECART:
+                yOffset = passenger.getEntityType() == EntityType.PLAYER ? 1.02001f : 0f;
                 break;
             case DONKEY:
                 yOffset = 2.1f;
