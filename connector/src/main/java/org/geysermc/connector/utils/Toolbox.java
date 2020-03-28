@@ -40,6 +40,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
+import com.github.steveice10.mc.protocol.data.game.world.sound.BuiltinSound;
+
 import java.io.InputStream;
 import java.util.*;
 
