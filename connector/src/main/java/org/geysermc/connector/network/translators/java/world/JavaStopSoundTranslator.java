@@ -7,7 +7,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.SoundUtils;
 
-@Translator(packet = JavaStopSoundPacket.class)
+@Translator(packet = StopSoundPacket.class)
 public class JavaStopSoundTranslator extends PacketTranslator<ServerStopSoundPacket> {
 
     @Override
