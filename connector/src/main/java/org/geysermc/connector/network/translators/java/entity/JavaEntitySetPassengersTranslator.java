@@ -57,7 +57,6 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
         for (long passengerId : packet.getPassengerIds()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passengerId == session.getPlayerEntity().getEntityId()) {
-                System.out.println("Entity ID is Player ID");
                 passenger = session.getPlayerEntity();
             }
             if (passenger == null) {
