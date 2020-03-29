@@ -47,6 +47,7 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
                 ClientPlayerSwingArmPacket swingArmPacket = new ClientPlayerSwingArmPacket(Hand.MAIN_HAND);
                 session.getDownstream().getSession().send(swingArmPacket);
                 break;
+            // These two might need to be flipped, but my recommendation is getting moving working first
             case ROW_LEFT:
                 // Packet value is a float of how long one has been rowing, so we convert that into a boolean
                 is_steering_left = packet.getRowingTime() > 0.0;
