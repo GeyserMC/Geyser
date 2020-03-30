@@ -58,9 +58,7 @@ public class BoatEntity extends Entity {
         if (entityMetadata.getId() == 10) {
             metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
         } else if (entityMetadata.getId() == 11) {
-            System.out.println("'Paddle left' ID");
             is_paddling_left = (boolean) entityMetadata.getValue();
-            System.out.println("Is paddling? " + is_paddling_left);
             if (!is_paddling_left) {
                 metadata.put(EntityData.PADDLE_TIME_LEFT, 0f);
             }
@@ -76,9 +74,7 @@ public class BoatEntity extends Entity {
             }
         }
         else if (entityMetadata.getId() == 12) {
-            System.out.println("'Paddle right' ID");
             is_paddling_right = (boolean) entityMetadata.getValue();
-            System.out.println("Is paddling? " + is_paddling_right);
             if (!is_paddling_right) {
                 metadata.put(EntityData.PADDLE_TIME_RIGHT, 0f);
             }
@@ -91,10 +87,12 @@ public class BoatEntity extends Entity {
                 );
             }
         } else if (entityMetadata.getId() == 8) {
+            // TODO: Called only on login, do we need this?
             System.out.println("Forward: " + entityMetadata.getValue());
         }
 
-        else {
+        else if (entityMetadata.getId() > 6){
+            // TODO: Also called at login - see if we can fill these out
             System.out.println("New metadata ID: " + entityMetadata.getId());
         }
 
@@ -105,7 +103,6 @@ public class BoatEntity extends Entity {
         while (is_paddling_left) {
             try {
                 paddle_time_left += ROWING_SPEED;
-                System.out.println("Paddle time left: " + paddle_time_left);
                 metadata.put(EntityData.PADDLE_TIME_LEFT, paddle_time_left);
                 super.updateBedrockMetadata(entityMetadata, session);
                 Thread.sleep(100);
@@ -120,7 +117,6 @@ public class BoatEntity extends Entity {
         while (is_paddling_right) {
             try {
                 paddle_time_right += ROWING_SPEED;
-                System.out.println("Paddle time right: " + paddle_time_right);
                 metadata.put(EntityData.PADDLE_TIME_RIGHT, paddle_time_right);
                 super.updateBedrockMetadata(entityMetadata, session);
                 Thread.sleep(100);
