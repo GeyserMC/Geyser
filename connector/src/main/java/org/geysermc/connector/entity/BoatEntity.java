@@ -32,12 +32,17 @@ import com.nukkitx.protocol.bedrock.data.EntityEventType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.concurrent.TimeUnit;
+
 public class BoatEntity extends Entity {
 
     private boolean is_paddling_left;
     private float paddle_time_left;
     private boolean is_paddling_right;
     private float paddle_time_right;
+
+    // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
+    private final float ROWING_SPEED = 0.05f;
 
     public BoatEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
@@ -60,29 +65,15 @@ public class BoatEntity extends Entity {
                 metadata.put(EntityData.PADDLE_TIME_LEFT, 0f);
             }
             else {
-                // TODO: Fix this.
-                // There needs to be a way to count this up. I believe it's in seconds.
-                metadata.put(EntityData.PADDLE_TIME_LEFT, 0.5f);
+                // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
+                // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
+                paddle_time_left = 0f;
+                session.getConnector().getGeneralThreadPool().schedule(() ->
+                                updateLeftPaddle(session, entityMetadata),
+                        100,
+                        TimeUnit.MILLISECONDS
+                );
             }
-//            if (!is_paddling_left) {
-//                paddle_time_left = 0;
-//                metadata.put(EntityData.PADDLE_TIME_LEFT, 0);
-//            } else if (paddle_time_left == 0) {
-//                paddle_time_left = System.currentTimeMillis() / 1000f;
-//                metadata.put(EntityData.PADDLE_TIME_LEFT, paddle_time_left / 1000f - System.currentTimeMillis());
-//                while (is_paddling_left) {
-//                    try {
-//                        System.out.println("Paddle time left: " + ((System.currentTimeMillis() - paddle_time_left) / 1000f));
-//                        metadata.put(EntityData.PADDLE_TIME_LEFT, ((System.currentTimeMillis() - paddle_time_left) / 1000f));
-//                        super.updateBedrockMetadata(entityMetadata, session);
-//                        Thread.sleep(500);
-//                    } catch (InterruptedException e) {
-//                        break;
-//                    }
-//
-//                }
-//
-//            }
         }
         else if (entityMetadata.getId() == 12) {
             System.out.println("'Paddle right' ID");
@@ -92,7 +83,12 @@ public class BoatEntity extends Entity {
                 metadata.put(EntityData.PADDLE_TIME_RIGHT, 0f);
             }
             else {
-                metadata.put(EntityData.PADDLE_TIME_RIGHT, 0.5f);
+                paddle_time_right = 0f;
+                session.getConnector().getGeneralThreadPool().schedule(() ->
+                                updateRightPaddle(session, entityMetadata),
+                        100,
+                        TimeUnit.MILLISECONDS
+                );
             }
         } else if (entityMetadata.getId() == 8) {
             System.out.println("Forward: " + entityMetadata.getValue());
@@ -103,5 +99,35 @@ public class BoatEntity extends Entity {
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    public void updateLeftPaddle(GeyserSession session, EntityMetadata entityMetadata) {
+        while (is_paddling_left) {
+            try {
+                paddle_time_left += ROWING_SPEED;
+                System.out.println("Paddle time left: " + paddle_time_left);
+                metadata.put(EntityData.PADDLE_TIME_LEFT, paddle_time_left);
+                super.updateBedrockMetadata(entityMetadata, session);
+                Thread.sleep(100);
+            }
+            catch (InterruptedException e) {
+                break;
+            }
+        }
+    }
+
+    public void updateRightPaddle(GeyserSession session, EntityMetadata entityMetadata) {
+        while (is_paddling_right) {
+            try {
+                paddle_time_right += ROWING_SPEED;
+                System.out.println("Paddle time right: " + paddle_time_right);
+                metadata.put(EntityData.PADDLE_TIME_RIGHT, paddle_time_right);
+                super.updateBedrockMetadata(entityMetadata, session);
+                Thread.sleep(100);
+            }
+            catch (InterruptedException e) {
+                break;
+            }
+        }
     }
 }
