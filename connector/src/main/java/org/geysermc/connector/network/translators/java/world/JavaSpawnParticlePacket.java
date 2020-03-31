@@ -8,17 +8,20 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.ParticleUtils;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnParticlePacket;
 import com.nukkitx.math.vector.Vector3f;
 
+@Translator(packet = ServerSpawnParticlePacket.class)
 public class JavaSpawnParticlePacket extends PacketTranslator<ServerSpawnParticlePacket> {
 
     @Override
     public void translate(ServerSpawnParticlePacket packet, GeyserSession session) {
+        System.out.println("Translating particle: " + packet.getParticle().getType());
         LevelEventPacket particle = new LevelEventPacket();
         switch(packet.getParticle().getType()){
             case BLOCK:
@@ -37,7 +40,7 @@ public class JavaSpawnParticlePacket extends PacketTranslator<ServerSpawnParticl
                 break;
             case ITEM:
                 ItemStack javaItem = ((ItemParticleData)packet.getParticle().getData()).getItemStack();
-                ItemData bedrockItem = TranslatorsInit.getItemTranslator().translateToBedrock(javaItem);
+                ItemData bedrockItem = Translators.getItemTranslator().translateToBedrock(javaItem);
                 int id = bedrockItem.getId();
                 short damage = bedrockItem.getDamage();
                 particle.setType(LevelEventType.PARTICLE_ITEM_BREAK);
