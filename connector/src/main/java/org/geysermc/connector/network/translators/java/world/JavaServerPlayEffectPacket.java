@@ -23,6 +23,7 @@ public class JavaServerPlayEffectPacket extends PacketTranslator<ServerPlayEffec
         System.out.println("Translating: " + packet.getEffect());
         System.out.println("Data: " + packet.getData());
         LevelEventPacket particle = new LevelEventPacket();
+        // Some things here are particles, others are not
         if (packet.getEffect() instanceof ParticleEffect) {
             ParticleEffect particleEffect = (ParticleEffect) packet.getEffect();
             switch (particleEffect) {
@@ -32,7 +33,6 @@ public class JavaServerPlayEffectPacket extends PacketTranslator<ServerPlayEffec
                     particle.setData(growEffectData.getParticleCount());
                     break;
                 case BREAK_BLOCK:
-                    // Currently sends no particle but does send a sound event
                     particle.setType(LevelEventType.DESTROY);
                     BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
                     particle.setData(BlockTranslator.getBedrockBlockId(breakBlockEffectData.getBlockState()));
