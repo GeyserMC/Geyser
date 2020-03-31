@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -67,6 +68,33 @@ public class Toolbox {
         } catch (Exception ex) {
             GeyserConnector.getInstance().getLogger().warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
             throw new AssertionError(ex);
+        }
+
+        /* Load particles */
+        InputStream particleStream = getResource("mappings/particles.json");
+
+        TypeReference<List<JsonNode>> particleEntryType = new TypeReference<List<JsonNode>>() {};
+        List<JsonNode> particleEntries;
+        try {
+            particleEntries = JSON_MAPPER.readValue(particleStream, particleEntryType);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load particle map", e);
+        }
+        for (JsonNode entry : particleEntries) {
+            try{
+                ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), LevelEventType.valueOf(entry.get("bedrock").asText().toUpperCase()));
+            }catch (IllegalArgumentException e1){
+                try{
+                    ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), entry.get("bedrock").asText());
+                    GeyserConnector.getInstance().getLogger().debug("Force to map particle "
+                            + entry.get("java").asText()
+                            + "=>"
+                            + entry.get("bedrock").asText()
+                            + ", it will take effect.");
+                }catch (IllegalArgumentException e2){
+                    GeyserConnector.getInstance().getLogger().warning("Fail to map particle " + entry.get("java").asText() + "=>" + entry.get("bedrock").asText());
+                }
+            }
         }
 
         /* Load item palette */
