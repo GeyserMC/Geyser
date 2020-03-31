@@ -50,7 +50,9 @@ public class JavaServerPlayEffectPacket extends PacketTranslator<ServerPlayEffec
                 case MOB_SPAWN:
                     particle.setType(LevelEventType.ENTITY_SPAWN);
                     break;
-
+                case SMOKE:
+                    particle.setType(LevelEventType.PARTICLE_SMOKE);
+                    break;
                 default:
                     GeyserConnector.getInstance().getLogger().debug("No effect handling for effect: " + packet.getEffect());
             }
