@@ -20,8 +20,6 @@ public class JavaServerPlayEffectPacket extends PacketTranslator<ServerPlayEffec
 
     @Override
     public void translate(ServerPlayEffectPacket packet, GeyserSession session) {
-        System.out.println("Translating: " + packet.getEffect());
-        System.out.println("Data: " + packet.getData());
         LevelEventPacket particle = new LevelEventPacket();
         // Some things here are particles, others are not
         if (packet.getEffect() instanceof ParticleEffect) {
@@ -57,7 +55,6 @@ public class JavaServerPlayEffectPacket extends PacketTranslator<ServerPlayEffec
 
             particle.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
             session.getUpstream().sendPacket(particle);
-        } else {
         }
 
     }

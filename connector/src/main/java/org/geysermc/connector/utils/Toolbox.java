@@ -72,7 +72,6 @@ public class Toolbox {
         }
 
         /* Load particles */
-        System.out.println("Loading particles...");
         InputStream particleStream = getResource("mappings/particles.json");
 
         TypeReference<List<JsonNode>> particleEntryType = new TypeReference<List<JsonNode>>() {};
@@ -85,7 +84,6 @@ public class Toolbox {
         for (JsonNode entry : particleEntries) {
             try {
                 ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), LevelEventType.valueOf(entry.get("bedrock").asText().toUpperCase()));
-                System.out.println("Mapping " + entry.get("java").asText() + "=>" + entry.get("bedrock").asText());
             } catch (IllegalArgumentException e1){
                 try {
                     ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), entry.get("bedrock").asText());
