@@ -17,7 +17,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnP
 import com.nukkitx.math.vector.Vector3f;
 
 @Translator(packet = ServerSpawnParticlePacket.class)
-public class JavaSpawnParticlePacket extends PacketTranslator<ServerSpawnParticlePacket> {
+public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnParticlePacket> {
 
     @Override
     public void translate(ServerSpawnParticlePacket packet, GeyserSession session) {

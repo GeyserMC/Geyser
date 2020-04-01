@@ -16,11 +16,12 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 
 @Translator(packet = ServerPlayEffectPacket.class)
-public class JavaServerPlayEffectPacket extends PacketTranslator<ServerPlayEffectPacket> {
+public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayEffectPacket> {
 
     @Override
     public void translate(ServerPlayEffectPacket packet, GeyserSession session) {
         System.out.println("Translating: " + packet.getEffect());
+        System.out.println("Packet type: " + packet.getEffect().getClass());
         System.out.println("Data: " + packet.getData());
         LevelEventPacket particle = new LevelEventPacket();
         // Some things here are particles, others are not
@@ -60,6 +61,5 @@ public class JavaServerPlayEffectPacket extends PacketTranslator<ServerPlayEffec
             particle.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
             session.getUpstream().sendPacket(particle);
         }
-
     }
 }
