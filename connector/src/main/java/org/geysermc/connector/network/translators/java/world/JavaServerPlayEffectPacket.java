@@ -59,7 +59,6 @@ public class JavaServerPlayEffectPacket extends PacketTranslator<ServerPlayEffec
 
             particle.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
             session.getUpstream().sendPacket(particle);
-        } else {
         }
 
     }
