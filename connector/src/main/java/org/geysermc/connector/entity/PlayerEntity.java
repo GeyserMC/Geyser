@@ -28,6 +28,7 @@ package org.geysermc.connector.entity;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.EntityLink;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -84,6 +85,15 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
+
+        Integer[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
+        System.out.println(passengerIds[0]);
+        if (passengerIds[0] != -1) {
+            for (int passengerId : passengerIds) {
+                System.out.println("Passenger ID: " + passengerId);
+                addPlayerPacket.getEntityLinks().add(new EntityLink(geyserId, session.getEntityCache().getEntityByJavaId(passengerId).getGeyserId(), EntityLink.Type.RIDER, false));
+            }
+        }
 
         valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);

@@ -89,11 +89,14 @@ public class BoatEntity extends Entity {
         } else if (entityMetadata.getId() == 8) {
             // TODO: Called only on login, do we need this?
             System.out.println("Forward: " + entityMetadata.getValue());
+        } else if (entityMetadata.getId() == 13) {
+            // Possibly
+            metadata.put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue());
         }
-
         else if (entityMetadata.getId() > 6){
             // TODO: Also called at login - see if we can fill these out
             System.out.println("New metadata ID: " + entityMetadata.getId());
+            System.out.println("Value: " + entityMetadata.getValue());
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
