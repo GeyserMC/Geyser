@@ -31,6 +31,7 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
                     effect.setData(growEffectData.getParticleCount());
                     break;
                 case BREAK_BLOCK:
+                    // TODO: Block break doesn't work when you're the player
                     effect.setType(LevelEventType.DESTROY);
                     BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
                     effect.setData(BlockTranslator.getBedrockBlockId(breakBlockEffectData.getBlockState()));
