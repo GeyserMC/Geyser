@@ -74,10 +74,38 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
                 case BLOCK_ANVIL_USE:
                     effect.setType(LevelEventType.SOUND_ANVIL_USE);
                     break;
+                //TODO: We can probably shorten this
+                case BLOCK_IRON_DOOR_OPEN:
+                case BLOCK_IRON_DOOR_CLOSE:
+                case BLOCK_IRON_TRAPDOOR_OPEN:
+                case BLOCK_IRON_TRAPDOOR_CLOSE:
+                case BLOCK_WOODEN_DOOR_OPEN:
+                case BLOCK_WOODEN_DOOR_CLOSE:
+                case BLOCK_WOODEN_TRAPDOOR_OPEN:
+                case BLOCK_WOODEN_TRAPDOOR_CLOSE:
+                    effect.setType(LevelEventType.SOUND_DOOR);
+                    break;
                 default:
                     LevelSoundEvent2Packet soundEvent = new LevelSoundEvent2Packet();
+                    soundEvent.setExtraData(-1);
                     switch (soundEffect) {
-                        // TODO: Any sounds that aren't here - do they need identifiers and extra data like RECORD?
+                        case BLOCK_END_PORTAL_SPAWN:
+                            soundEvent.setSound(SoundEvent.BLOCK_END_PORTAL_SPAWN);
+                            break;
+                        case BLOCK_FIRE_EXTINGUISH:
+                            soundEvent.setSound(SoundEvent.EXTINGUISH_FIRE);
+                            break;
+                        case ENTITY_BAT_TAKEOFF:
+                            soundEvent.setSound(SoundEvent.TAKEOFF);
+                            soundEvent.setIdentifier("minecraft:bat");
+                            break;
+                        case ENTITY_ENDEREYE_LAUNCH:
+                            soundEvent.setSound(SoundEvent.THROW);
+                            soundEvent.setIdentifier("minecraft:player");
+                            break;
+                        case ENTITY_FIREWORK_SHOOT:
+                            soundEvent.setSound(SoundEvent.LAUNCH);
+                            break;
                         case ENTITY_ZOMBIE_CONVERTED_TO_DROWNED:
                             soundEvent.setSound(SoundEvent.CONVERT_TO_DROWNED);
                             break;
@@ -128,10 +156,9 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
                                     GeyserConnector.getInstance().getLogger().debug("Unknown record ID found: " + recordEffectData.getRecordId());
                                     break;
                             }
-                            soundEvent.setExtraData(-1);
-                            soundEvent.setIdentifier("");
                     }
                     if (soundEvent.getSound() != null) {
+                        if (soundEvent.getIdentifier() == null) soundEvent.setIdentifier("");
                         soundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
                         System.out.println(soundEvent.toString());
                         session.getUpstream().sendPacket(soundEvent);
