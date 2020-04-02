@@ -91,36 +91,32 @@ public class BoatEntity extends Entity {
     }
 
     public void updateLeftPaddle(GeyserSession session, EntityMetadata entityMetadata) {
-        while (isPaddlingLeft) {
-            try {
-                paddleTimeLeft += ROWING_SPEED;
-                metadata.put(EntityData.PADDLE_TIME_LEFT, paddleTimeLeft);
-                super.updateBedrockMetadata(entityMetadata, session);
-                Thread.sleep(100);
-            }
-            catch (InterruptedException e) {
-                break;
-            }
-        }
-    }
+        if (isPaddlingLeft) {
+            paddleTimeLeft += ROWING_SPEED;
+            metadata.put(EntityData.PADDLE_TIME_LEFT, paddleTimeLeft);
+            super.updateBedrockMetadata(entityMetadata, session);
+            session.getConnector().getGeneralThreadPool().schedule(() ->
+                    updateLeftPaddle(session, entityMetadata),
+                    100,
+                    TimeUnit.MILLISECONDS
+            );
+        }}
 
     public void updateRightPaddle(GeyserSession session, EntityMetadata entityMetadata) {
 //        Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
-        while (isPaddlingRight) {
-            try {
-                paddleTimeRight += ROWING_SPEED;
-                metadata.put(EntityData.PADDLE_TIME_RIGHT, paddleTimeRight);
-                super.updateBedrockMetadata(entityMetadata, session);
-                // Something I tried recently, doesn't really work - keeping just in case someone wants to try it.
+        if (isPaddlingRight) {
+            paddleTimeRight += ROWING_SPEED;
+            metadata.put(EntityData.PADDLE_TIME_RIGHT, paddleTimeRight);
+            super.updateBedrockMetadata(entityMetadata, session);
+            // Something I tried recently, doesn't really work - keeping just in case someone wants to try it.
 //                ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
 //                        entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity.getBedrockRotation().getX() + 10f, 0
 //                );
 //                session.getDownstream().getSession().send(clientVehicleMovePacket);
-                Thread.sleep(100);
-            }
-            catch (InterruptedException e) {
-                break;
-            }
-        }
-    }
+            session.getConnector().getGeneralThreadPool().schedule(() ->
+                            updateRightPaddle(session, entityMetadata),
+                    100,
+                    TimeUnit.MILLISECONDS
+            );
+        }}
 }
