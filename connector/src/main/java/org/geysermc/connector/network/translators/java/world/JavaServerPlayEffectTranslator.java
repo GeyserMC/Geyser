@@ -5,7 +5,9 @@ import com.github.steveice10.mc.protocol.data.game.world.effect.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayEffectPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -63,14 +65,85 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
             switch (soundEffect) {
                 // TODO: Finish these
                 // Also consider: json map for this??
+                case BLOCK_ANVIL_DESTROY:
+                    effect.setType(LevelEventType.SOUND_ANVIL_BREAK);
+                    break;
                 case BLOCK_ANVIL_LAND:
                     effect.setType(LevelEventType.SOUND_ANVIL_FALL);
+                    break;
                 case BLOCK_ANVIL_USE:
                     effect.setType(LevelEventType.SOUND_ANVIL_USE);
                     break;
+                default:
+                    LevelSoundEvent2Packet soundEvent = new LevelSoundEvent2Packet();
+                    switch (soundEffect) {
+                        // TODO: Any sounds that aren't here - do they need identifiers and extra data like RECORD?
+                        case ENTITY_ZOMBIE_CONVERTED_TO_DROWNED:
+                            soundEvent.setSound(SoundEvent.CONVERT_TO_DROWNED);
+                            break;
+                        case RECORD:
+                            RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
+                            // This should absolutely be a mapping
+                            switch (recordEffectData.getRecordId()) {
+                                case 0:
+                                    soundEvent.setSound(SoundEvent.STOP_RECORD);
+                                    break;
+                                case 841:
+                                    soundEvent.setSound(SoundEvent.RECORD_13);
+                                    break;
+                                case 842:
+                                    soundEvent.setSound(SoundEvent.RECORD_CAT);
+                                    break;
+                                case 843:
+                                    soundEvent.setSound(SoundEvent.RECORD_BLOCKS);
+                                    break;
+                                case 844:
+                                    soundEvent.setSound(SoundEvent.RECORD_CHIRP);
+                                    break;
+                                case 845:
+                                    soundEvent.setSound(SoundEvent.RECORD_FAR);
+                                    break;
+                                case 846:
+                                    soundEvent.setSound(SoundEvent.RECORD_MALL);
+                                    break;
+                                case 847:
+                                    soundEvent.setSound(SoundEvent.RECORD_MELLOHI);
+                                    break;
+                                case 848:
+                                    soundEvent.setSound(SoundEvent.RECORD_STAL);
+                                    break;
+                                case 849:
+                                    soundEvent.setSound(SoundEvent.RECORD_STRAD);
+                                    break;
+                                case 850:
+                                    soundEvent.setSound(SoundEvent.RECORD_WARD);
+                                    break;
+                                case 851:
+                                    soundEvent.setSound(SoundEvent.RECORD_11);
+                                    break;
+                                case 852:
+                                    soundEvent.setSound(SoundEvent.RECORD_WAIT);
+                                    break;
+                                default:
+                                    GeyserConnector.getInstance().getLogger().debug("Unknown record ID found: " + recordEffectData.getRecordId());
+                                    break;
+                            }
+                            soundEvent.setExtraData(-1);
+                            soundEvent.setIdentifier("");
+                    }
+                    if (soundEvent.getSound() != null) {
+                        soundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
+                        System.out.println(soundEvent.toString());
+                        session.getUpstream().sendPacket(soundEvent);
+                    }
+
+
             }
-            effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-            session.getUpstream().sendPacket(effect);
+            if (effect.getType() != null) {
+                effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
+                session.getUpstream().sendPacket(effect);
+            }
+
         }
     }
 }
