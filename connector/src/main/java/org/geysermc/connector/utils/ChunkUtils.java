@@ -39,9 +39,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.world.chunk.ChunkPosition;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.world.chunk.ChunkSection;
 
@@ -71,7 +71,7 @@ public class ChunkUtils {
 
                         if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("sign[")) {
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            chunkData.signs.put(blockState.getId(), TranslatorsInit.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag("Sign", pos.getX(), pos.getY(), pos.getZ()));
+                            chunkData.signs.put(blockState.getId(), Translators.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag("Sign", pos.getX(), pos.getY(), pos.getZ()));
                         } else {
                             section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
                         }
@@ -139,7 +139,7 @@ public class ChunkUtils {
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
                 data.setSubChunksLength(0);
-                data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
+                data.setData(Translators.EMPTY_LEVEL_CHUNK_DATA);
                 data.setCachingEnabled(false);
                 session.getUpstream().sendPacket(data);
 

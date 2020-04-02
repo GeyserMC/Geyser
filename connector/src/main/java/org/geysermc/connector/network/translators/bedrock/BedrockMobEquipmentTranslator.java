@@ -25,12 +25,15 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerChangeHeldItemPacket;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
 
+@Translator(packet = MobEquipmentPacket.class)
 public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipmentPacket> {
 
     @Override

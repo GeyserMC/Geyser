@@ -25,8 +25,10 @@
 
 package org.geysermc.connector.command;
 
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.HelpCommand;
+import org.geysermc.connector.command.defaults.ReloadCommand;
 import org.geysermc.connector.command.defaults.StopCommand;
 
 import java.util.Collections;
@@ -35,37 +37,35 @@ import java.util.Map;
 
 public class GeyserCommandMap {
 
-    private final Map<String, GeyserCommand> commandMap = Collections.synchronizedMap(new HashMap<>());
+    @Getter
+    private final Map<String, GeyserCommand> commands = Collections.synchronizedMap(new HashMap<>());
+
     private GeyserConnector connector;
 
     public GeyserCommandMap(GeyserConnector connector) {
         this.connector = connector;
 
-        registerDefaults();
-    }
-
-    public void registerDefaults() {
-        registerCommand(new HelpCommand(connector, "help", "Shows help for all registered commands."));
-        registerCommand(new StopCommand(connector, "stop", "Shut down Geyser."));
+        registerCommand(new HelpCommand(connector, "help", "Shows help for all registered commands.", "geyser.command.help"));
+        registerCommand(new ReloadCommand(connector, "reload", "Reloads the Geyser configurations. Kicks all players when used!", "geyser.command.reload"));
+        registerCommand(new StopCommand(connector, "stop", "Shuts down Geyser.", "geyser.command.stop"));
     }
 
     public void registerCommand(GeyserCommand command) {
-        commandMap.put(command.getName(), command);
+        commands.put(command.getName(), command);
         connector.getLogger().debug("Registered command " + command.getName());
 
         if (command.getAliases().isEmpty())
             return;
 
         for (String alias : command.getAliases())
-            commandMap.put(alias, command);
+            commands.put(alias, command);
     }
 
     public void runCommand(CommandSender sender, String command) {
         if (!command.startsWith("geyser "))
             return;
 
-        command = command.trim();
-        command = command.replace("geyser ", "");
+        command = command.trim().replace("geyser ", "");
         String label;
         String[] args;
 
@@ -78,16 +78,12 @@ public class GeyserCommandMap {
             args = argLine.contains(" ") ? argLine.split(" ") : new String[] { argLine };
         }
 
-        GeyserCommand cmd = commandMap.get(label);
+        GeyserCommand cmd = commands.get(label);
         if (cmd == null) {
             connector.getLogger().error("Invalid Command! Try /geyser help for a list of commands.");
             return;
         }
 
         cmd.execute(sender, args);
-    }
-
-    public Map<String, GeyserCommand> getCommands() {
-        return commandMap;
     }
 }

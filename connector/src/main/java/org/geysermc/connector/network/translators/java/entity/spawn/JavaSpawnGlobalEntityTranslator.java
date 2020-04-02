@@ -25,13 +25,16 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnGlobalEntityPacket;
-import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnGlobalEntityPacket;
+import com.nukkitx.math.vector.Vector3f;
+
+@Translator(packet = ServerSpawnGlobalEntityPacket.class)
 public class JavaSpawnGlobalEntityTranslator extends PacketTranslator<ServerSpawnGlobalEntityPacket> {
 
     @Override

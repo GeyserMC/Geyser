@@ -30,10 +30,10 @@ import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.InventoryUtils;
 
+@Translator(packet = ContainerClosePacket.class)
 public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerClosePacket> {
 
     @Override

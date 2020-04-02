@@ -40,7 +40,7 @@ import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.Toolbox;
 import org.geysermc.common.IGeyserConfiguration;
@@ -68,9 +68,6 @@ public class GeyserConnector {
     private RemoteServer remoteServer;
     private AuthType authType;
 
-    private IGeyserLogger logger;
-    private IGeyserConfiguration config;
-
     private GeyserCommandMap commandMap;
 
     private boolean shuttingDown = false;
@@ -80,15 +77,20 @@ public class GeyserConnector {
 
     private BedrockServer bedrockServer;
     private PlatformType platformType;
+    private IGeyserBootstrap bootstrap;
 
     private Metrics metrics;
 
-    private GeyserConnector(PlatformType platformType, IGeyserConfiguration config, IGeyserLogger logger) {
+    private GeyserConnector(PlatformType platformType, IGeyserBootstrap bootstrap) {
         long startupTime = System.currentTimeMillis();
 
         instance = this;
 
-        this.logger = logger;
+        this.bootstrap = bootstrap;
+
+        IGeyserLogger logger = bootstrap.getGeyserLogger();
+        IGeyserConfiguration config = bootstrap.getGeyserConfig();
+
         this.platformType = platformType;
 
         logger.info("******************************************");
@@ -97,13 +99,12 @@ public class GeyserConnector {
         logger.info("");
         logger.info("******************************************");
 
-        this.config = config;
         this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
 
         logger.setDebug(config.isDebugMode());
 
         Toolbox.init();
-        TranslatorsInit.start();
+        Translators.start();
 
         commandMap = new GeyserCommandMap(this);
         remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
@@ -137,11 +138,16 @@ public class GeyserConnector {
     }
 
     public void shutdown() {
-        logger.info("Shutting down Geyser.");
+        bootstrap.getGeyserLogger().info("Shutting down Geyser.");
         shuttingDown = true;
 
         generalThreadPool.shutdown();
         bedrockServer.close();
+        players.clear();
+        remoteServer = null;
+        authType = null;
+        commandMap.getCommands().clear();
+        commandMap = null;
     }
 
     public void addPlayer(GeyserSession player) {
@@ -157,11 +163,20 @@ public class GeyserConnector {
     }
 
     public static GeyserConnector start(PlatformType platformType, IGeyserBootstrap bootstrap) {
-        return new GeyserConnector(platformType, bootstrap.getGeyserConfig(), bootstrap.getGeyserLogger());
+        return new GeyserConnector(platformType, bootstrap);
     }
 
-    public static void stop() {
-        instance.shutdown();
+    public void reload() {
+        shutdown();
+        bootstrap.onEnable();
+    }
+
+    public IGeyserLogger getLogger() {
+        return bootstrap.getGeyserLogger();
+    }
+
+    public IGeyserConfiguration getConfig() {
+        return bootstrap.getGeyserConfig();
     }
 
     public static GeyserConnector getInstance() {

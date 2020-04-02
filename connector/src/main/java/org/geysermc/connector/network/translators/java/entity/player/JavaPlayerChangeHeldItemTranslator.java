@@ -29,7 +29,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.Serv
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
+@Translator(packet = ServerPlayerChangeHeldItemPacket.class)
 public class JavaPlayerChangeHeldItemTranslator extends PacketTranslator<ServerPlayerChangeHeldItemPacket> {
 
     @Override

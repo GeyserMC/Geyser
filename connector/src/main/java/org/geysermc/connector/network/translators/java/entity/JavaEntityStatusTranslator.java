@@ -25,13 +25,16 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
-import com.nukkitx.protocol.bedrock.data.EntityEventType;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.protocol.bedrock.data.EntityEventType;
+import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+
+@Translator(packet = ServerEntityStatusPacket.class)
 public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntityStatusPacket> {
 
     @Override

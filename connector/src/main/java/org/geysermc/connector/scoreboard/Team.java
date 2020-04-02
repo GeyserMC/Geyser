@@ -25,12 +25,12 @@
 
 package org.geysermc.connector.scoreboard;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +45,7 @@ public class Team {
     private String name;
     private String prefix;
     private String suffix;
-    private Set<String> entities = new HashSet<>();
+    private Set<String> entities = new ObjectOpenHashSet<>();
 
 
     public Team(Scoreboard scoreboard, String id) {

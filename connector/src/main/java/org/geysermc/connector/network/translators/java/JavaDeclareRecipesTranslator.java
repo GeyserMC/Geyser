@@ -41,13 +41,15 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Translator(packet = ServerDeclareRecipesPacket.class)
 public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclareRecipesPacket> {
     private static final Collection<PotionMixData> POTION_MIXES =
             Arrays.stream(new int[]{372, 331, 348, 376, 289, 437, 353, 414, 382, 375, 462, 378, 396, 377, 370, 469, 470})
@@ -62,7 +64,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             switch (recipe.getType()) {
                 case CRAFTING_SHAPELESS: {
                     ShapelessRecipeData shapelessRecipeData = (ShapelessRecipeData) recipe.getData();
-                    ItemData output = TranslatorsInit.getItemTranslator().translateToBedrock(shapelessRecipeData.getResult());
+                    ItemData output = Translators.getItemTranslator().translateToBedrock(shapelessRecipeData.getResult());
                     output = ItemData.of(output.getId(), output.getDamage(), output.getCount()); //strip NBT
                     ItemData[][] inputCombinations = combinations(shapelessRecipeData.getIngredients());
                     for (ItemData[] inputs : inputCombinations) {
@@ -74,7 +76,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 }
                 case CRAFTING_SHAPED: {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
-                    ItemData output = TranslatorsInit.getItemTranslator().translateToBedrock(shapedRecipeData.getResult());
+                    ItemData output = Translators.getItemTranslator().translateToBedrock(shapedRecipeData.getResult());
                     output = ItemData.of(output.getId(), output.getDamage(), output.getCount()); //strip NBT
                     ItemData[][] inputCombinations = combinations(shapedRecipeData.getIngredients());
                     for (ItemData[] inputs : inputCombinations) {
@@ -101,7 +103,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             }
             Ingredient ingredient = ingredients[i];
             Map<GroupedItem, List<ItemData>> groupedByIds = Arrays.stream(ingredient.getOptions())
-                    .map(item -> TranslatorsInit.getItemTranslator().translateToBedrock(item))
+                    .map(item -> Translators.getItemTranslator().translateToBedrock(item))
                     .collect(Collectors.groupingBy(item -> new GroupedItem(item.getId(), item.getCount(), item.getTag())));
             Set<ItemData> optionSet = new HashSet<>(groupedByIds.size());
             for (Map.Entry<GroupedItem, List<ItemData>> entry : groupedByIds.entrySet()) {
@@ -134,7 +136,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             ItemData[] translatedItems = new ItemData[ingredients.length];
             for (int i = 0; i < ingredients.length; i++) {
                 if (ingredients[i].getOptions().length > 0) {
-                    translatedItems[i] = TranslatorsInit.getItemTranslator().translateToBedrock(ingredients[i].getOptions()[0]);
+                    translatedItems[i] = Translators.getItemTranslator().translateToBedrock(ingredients[i].getOptions()[0]);
                 } else {
                     translatedItems[i] = ItemData.AIR;
                 }

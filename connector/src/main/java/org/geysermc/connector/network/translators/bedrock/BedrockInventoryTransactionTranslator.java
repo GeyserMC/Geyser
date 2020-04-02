@@ -25,6 +25,14 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.utils.InventoryUtils;
+
 import com.nukkitx.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -36,15 +44,8 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.TranslatorsInit;
-import org.geysermc.connector.utils.InventoryUtils;
 
-import java.util.*;
-
+@Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
 
     @Override
@@ -53,12 +54,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case NORMAL:
                 Inventory inventory = session.getInventoryCache().getOpenInventory();
                 if (inventory == null) inventory = session.getInventory();
-                TranslatorsInit.getInventoryTranslators().get(inventory.getWindowType()).translateActions(session, inventory, packet.getActions());
+                Translators.getInventoryTranslators().get(inventory.getWindowType()).translateActions(session, inventory, packet.getActions());
                 break;
             case INVENTORY_MISMATCH:
                 Inventory inv = session.getInventoryCache().getOpenInventory();
                 if (inv == null) inv = session.getInventory();
-                TranslatorsInit.getInventoryTranslators().get(inv.getWindowType()).updateInventory(session, inv);
+                Translators.getInventoryTranslators().get(inv.getWindowType()).updateInventory(session, inv);
                 InventoryUtils.updateCursor(session);
                 break;
             case ITEM_USE:

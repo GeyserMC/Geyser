@@ -39,17 +39,17 @@ import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
-
-import org.geysermc.connector.GeyserConnector;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.world.chunk.ChunkSection;
 
+@Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
 
     @Override

@@ -33,6 +33,7 @@ import net.md_5.bungee.config.YamlConfiguration;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +46,8 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
 
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeLogger geyserLogger;
+
+    private GeyserConnector connector;
 
     @Override
     public void onEnable() {
@@ -73,7 +76,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
             return;
         }
 
-        geyserConfig = new GeyserBungeeConfiguration(getDataFolder(), configuration);
+        this.geyserConfig = new GeyserBungeeConfiguration(getDataFolder(), configuration);
 
         if (geyserConfig.getMetrics().getUniqueId().equals("generateduuid")) {
             configuration.set("metrics.uuid", UUID.randomUUID().toString());
@@ -85,14 +88,15 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
             }
         }
 
-        geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
+        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
+        this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
 
-        GeyserConnector.start(PlatformType.BUNGEECORD, this);
+        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(connector));
     }
 
     @Override
     public void onDisable() {
-        GeyserConnector.stop();
+        connector.shutdown();
     }
 
     @Override

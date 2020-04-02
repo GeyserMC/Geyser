@@ -33,7 +33,9 @@ import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
+@Translator(packet = ServerBlockValuePacket.class)
 public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValuePacket> {
 
     @Override

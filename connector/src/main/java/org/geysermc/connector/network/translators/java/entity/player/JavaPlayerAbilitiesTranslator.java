@@ -25,19 +25,23 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
+import java.util.Set;
+
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
 import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
 
-import java.util.HashSet;
-import java.util.Set;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
+@Translator(packet = ServerPlayerAbilitiesPacket.class)
 public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
 
     @Override
@@ -54,7 +58,7 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
         entityDataPacket.getMetadata().putAll(metadata);
         session.getUpstream().sendPacket(entityDataPacket);
 
-        Set<AdventureSettingsPacket.Flag> playerFlags = new HashSet<>();
+        Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
         playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
         if (packet.isCanFly())
             playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
@@ -63,7 +67,7 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
             playerFlags.add(AdventureSettingsPacket.Flag.FLYING);
 
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-        adventureSettingsPacket.setPlayerPermission(PlayerPermission.OPERATOR);
+        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
         adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
         adventureSettingsPacket.getFlags().addAll(playerFlags);
         session.getUpstream().sendPacket(adventureSettingsPacket);

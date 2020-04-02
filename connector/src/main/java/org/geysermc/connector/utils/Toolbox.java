@@ -52,7 +52,7 @@ public class Toolbox {
     public static final CompoundTag BIOMES;
     public static final ItemData[] CREATIVE_ITEMS;
 
-    public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
+    public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 

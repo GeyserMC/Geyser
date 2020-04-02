@@ -30,14 +30,17 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class HelpCommand extends GeyserCommand {
 
     public GeyserConnector connector;
 
-    public HelpCommand(GeyserConnector connector, String name, String description) {
-        super(name, description);
+    public HelpCommand(GeyserConnector connector, String name, String description, String permission) {
+        super(name, description, permission);
         this.connector = connector;
 
         this.setAliases(Collections.singletonList("?"));
@@ -47,12 +50,7 @@ public class HelpCommand extends GeyserCommand {
     public void execute(CommandSender sender, String[] args) {
         sender.sendMessage("---- Showing Help For: Geyser (Page 1/1) ----");
         Map<String, GeyserCommand> cmds = connector.getCommandMap().getCommands();
-
-        List<String> commands = new ArrayList<>(cmds.keySet());
-        Collections.sort(commands);
-
-        for (String cmd : commands) {
-            sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmd + ChatColor.WHITE + ": " + cmds.get(cmd).getDescription());
-        }
+        List<String> commands = connector.getCommandMap().getCommands().keySet().stream().sorted().collect(Collectors.toList());
+        commands.forEach(cmd -> sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmd + ChatColor.WHITE + ": " + cmds.get(cmd).getDescription()));
     }
 }
