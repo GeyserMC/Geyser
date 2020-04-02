@@ -66,10 +66,8 @@ public class BoatEntity extends Entity {
                 // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
                 // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
                 paddleTimeLeft = 0f;
-                session.getConnector().getGeneralThreadPool().schedule(() ->
-                                updateLeftPaddle(session, entityMetadata),
-                        100,
-                        TimeUnit.MILLISECONDS
+                session.getConnector().getGeneralThreadPool().execute(() ->
+                                updateLeftPaddle(session, entityMetadata)
                 );
             }
         }
@@ -80,10 +78,8 @@ public class BoatEntity extends Entity {
             }
             else {
                 paddleTimeRight = 0f;
-                session.getConnector().getGeneralThreadPool().schedule(() ->
-                                updateRightPaddle(session, entityMetadata),
-                        100,
-                        TimeUnit.MILLISECONDS
+                session.getConnector().getGeneralThreadPool().execute(() ->
+                                updateRightPaddle(session, entityMetadata)
                 );
             }
         } else if (entityMetadata.getId() == 13) {

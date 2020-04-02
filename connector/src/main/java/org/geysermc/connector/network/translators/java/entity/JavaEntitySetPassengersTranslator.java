@@ -52,8 +52,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
         // USELESS CODE BEGIN
         if (entity == null && (packet.getEntityId() != 0)) {
             // https://stackoverflow.com/questions/880581/how-to-convert-int-to-integer-in-java
-            Integer[] passengerIds = IntStream.of( packet.getPassengerIds().clone() ).boxed().toArray( Integer[]::new );
-            session.getEntityCache().addCachedEntityLink(packet.getEntityId(), passengerIds);
+            session.getEntityCache().addCachedEntityLink(packet.getEntityId(), packet.getPassengerIds().clone());
         }
         // USELESS CODE END
         if (entity == null) return;

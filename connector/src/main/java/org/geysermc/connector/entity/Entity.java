@@ -110,7 +110,7 @@ public class Entity {
         addEntityPacket.setEntityType(entityType.getType());
         addEntityPacket.getMetadata().putAll(metadata);
         //USELESS CODE START
-        Integer[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
+        int[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
         if (passengerIds[0] != -1) {
             for (int passengerId : passengerIds) {
                 addEntityPacket.getEntityLinks().add(new EntityLink(geyserId, session.getEntityCache().getEntityByJavaId(passengerId).getGeyserId(), EntityLink.Type.RIDER, false));

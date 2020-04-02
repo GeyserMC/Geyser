@@ -87,7 +87,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.getMetadata().putAll(metadata);
 
         //USELESS CODE START
-        Integer[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
+        int[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
         if (passengerIds[0] != -1) {
             for (int passengerId : passengerIds) {
                 addPlayerPacket.getEntityLinks().add(new EntityLink(geyserId, session.getEntityCache().getEntityByJavaId(passengerId).getGeyserId(), EntityLink.Type.RIDER, false));
