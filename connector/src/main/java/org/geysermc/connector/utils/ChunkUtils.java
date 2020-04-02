@@ -44,6 +44,7 @@ import org.geysermc.connector.world.chunk.ChunkPosition;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.world.chunk.ChunkSection;
+import org.geysermc.connector.network.translators.block.entity.BedBlockEntityTranslator;
 
 import static org.geysermc.connector.network.translators.block.BlockTranslator.BEDROCK_WATER_ID;
 
@@ -72,6 +73,9 @@ public class ChunkUtils {
                         if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("sign[")) {
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
                             chunkData.signs.put(blockState.getId(), Translators.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag("Sign", pos.getX(), pos.getY(), pos.getZ()));
+                        } else if (BlockTranslator.getBedColor(blockState) > -1) {
+                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+                            chunkData.beds.put(blockState.getId(), BedBlockEntityTranslator.getBedTag(BlockTranslator.getBedColor(blockState), pos));
                         } else {
                             section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
                         }
@@ -128,6 +132,10 @@ public class ChunkUtils {
             waterPacket.setRuntimeId(0);
         }
         session.getUpstream().sendPacket(waterPacket);
+
+        // Since Java stores bed colors as part of the namespaced ID and Bedrock stores it as a tag
+        // This is the only place I could find that interacts with the Java block state and block updates
+        BedBlockEntityTranslator.checkForBedColor(session, blockState, position);
     }
 
     public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {
@@ -160,5 +168,6 @@ public class ChunkUtils {
 
         public com.nukkitx.nbt.tag.CompoundTag[] blockEntities = new com.nukkitx.nbt.tag.CompoundTag[0];
         public Int2ObjectMap<com.nukkitx.nbt.tag.CompoundTag> signs = new Int2ObjectOpenHashMap<>();
+        public Int2ObjectMap<com.nukkitx.nbt.tag.CompoundTag> beds = new Int2ObjectOpenHashMap<>();
     }
 }
