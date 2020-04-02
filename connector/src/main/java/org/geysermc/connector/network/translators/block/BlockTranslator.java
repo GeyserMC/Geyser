@@ -61,15 +61,16 @@ public class BlockTranslator {
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final Map<String, BlockState> JAVA_ID_BLOCK_MAP = new HashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
-    private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
+    private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
+
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
 
     // For block breaking animation math
-    public static final List<Integer> JAVA_RUNTIME_WOOL_IDS = new ArrayList<>();
+    public static final IntSet JAVA_RUNTIME_WOOL_IDS = new IntOpenHashSet();
     public static final int JAVA_RUNTIME_COBWEB_ID;
 
     private static final int BLOCK_STATE_VERSION = 17760256;
