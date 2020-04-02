@@ -17,18 +17,20 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnP
 import com.nukkitx.math.vector.Vector3f;
 
 @Translator(packet = ServerSpawnParticlePacket.class)
-public class JavaSpawnParticlePacket extends PacketTranslator<ServerSpawnParticlePacket> {
+public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnParticlePacket> {
 
     @Override
     public void translate(ServerSpawnParticlePacket packet, GeyserSession session) {
         LevelEventPacket particle = new LevelEventPacket();
         switch(packet.getParticle().getType()){
-            case BLOCK:
-                particle.setType(LevelEventType.DESTROY);
-                particle.setData(BlockTranslator.getBedrockBlockId(((BlockParticleData)packet.getParticle().getData()).getBlockState()));
-                particle.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-                session.getUpstream().sendPacket(particle);
-                break;
+            // TODO: Particles are calculated client-side but no sound
+            // Might need to pull the sound PR first
+//            case BLOCK:
+//                particle.setType(LevelEventType.DESTROY);
+//                particle.setData(BlockTranslator.getBedrockBlockId(((BlockParticleData)packet.getParticle().getData()).getBlockState()));
+//                particle.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
+//                session.getUpstream().sendPacket(particle);
+//                break;
             case FALLING_DUST:
                 //In fact, FallingDustParticle should have data like DustParticle,
                 //but in MCProtocol, its data is BlockState(1).
