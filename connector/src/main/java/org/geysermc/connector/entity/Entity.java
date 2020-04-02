@@ -109,15 +109,14 @@ public class Entity {
         addEntityPacket.setRotation(getBedrockRotation());
         addEntityPacket.setEntityType(entityType.getType());
         addEntityPacket.getMetadata().putAll(metadata);
-        //TODO: Likely how to fix no links on login
+        //USELESS CODE START
         Integer[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
         if (passengerIds[0] != -1) {
             for (int passengerId : passengerIds) {
-                System.out.println("Passenger ID: " + passengerId);
-                System.out.println("Geyser passenger ID: " + session.getEntityCache().getEntityByJavaId(passengerId).getGeyserId());
                 addEntityPacket.getEntityLinks().add(new EntityLink(geyserId, session.getEntityCache().getEntityByJavaId(passengerId).getGeyserId(), EntityLink.Type.RIDER, false));
             }
         }
+        //USELESS CODE END
 
         valid = true;
         session.getUpstream().sendPacket(addEntityPacket);

@@ -95,7 +95,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             //TODO - figure out exacts
             // Also, horses are one block in the air which kicks you for flying
             ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
-                    GenericMath.round(packet.getPosition().getX(), 4), javaY, GenericMath.round(packet.getPosition().getZ(), 4), 0, 0
+                    GenericMath.round(packet.getPosition().getX(), 4), javaY, GenericMath.round(packet.getPosition().getZ(), 4), packet.getRotation().getX(), packet.getRotation().getZ()
             );
             session.getDownstream().getSession().send(clientVehicleMovePacket);
         }

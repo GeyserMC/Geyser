@@ -26,6 +26,7 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityEventType;
@@ -50,6 +51,7 @@ public class BoatEntity extends Entity {
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
+        // Rotation is basically only called when entering/exiting a boat.
         super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround);
     }
 
@@ -86,17 +88,9 @@ public class BoatEntity extends Entity {
                         TimeUnit.MILLISECONDS
                 );
             }
-        } else if (entityMetadata.getId() == 8) {
-            // TODO: Called only on login, do we need this?
-            System.out.println("Forward: " + entityMetadata.getValue());
         } else if (entityMetadata.getId() == 13) {
-            // Possibly
+            // Possibly - I don't think this does anything?
             metadata.put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue());
-        }
-        else if (entityMetadata.getId() > 6){
-            // TODO: Also called at login - see if we can fill these out
-            System.out.println("New metadata ID: " + entityMetadata.getId());
-            System.out.println("Value: " + entityMetadata.getValue());
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
@@ -117,11 +111,17 @@ public class BoatEntity extends Entity {
     }
 
     public void updateRightPaddle(GeyserSession session, EntityMetadata entityMetadata) {
+//        Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
         while (is_paddling_right) {
             try {
                 paddle_time_right += ROWING_SPEED;
                 metadata.put(EntityData.PADDLE_TIME_RIGHT, paddle_time_right);
                 super.updateBedrockMetadata(entityMetadata, session);
+                // Something I tried recently, doesn't really work - keeping just in case someone wants to try it.
+//                ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
+//                        entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity.getBedrockRotation().getX() + 10f, 0
+//                );
+//                session.getDownstream().getSession().send(clientVehicleMovePacket);
                 Thread.sleep(100);
             }
             catch (InterruptedException e) {

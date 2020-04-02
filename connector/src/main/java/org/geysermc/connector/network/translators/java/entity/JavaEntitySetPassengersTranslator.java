@@ -48,14 +48,14 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
     // Players in a minecart when logged in are in the same spot but are not sitting
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
-        System.out.println("Translating...");
-        System.out.println("Entity ID: " + packet.getEntityId());
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());;
+        // USELESS CODE BEGIN
         if (entity == null && (packet.getEntityId() != 0)) {
             // https://stackoverflow.com/questions/880581/how-to-convert-int-to-integer-in-java
             Integer[] passengerIds = IntStream.of( packet.getPassengerIds().clone() ).boxed().toArray( Integer[]::new );
             session.getEntityCache().addCachedEntityLink(packet.getEntityId(), passengerIds);
         }
+        // USELESS CODE END
         if (entity == null) return;
 
         LongOpenHashSet passengers = entity.getPassengers().clone();
@@ -64,7 +64,6 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passengerId == session.getPlayerEntity().getEntityId()) {
                 passenger = session.getPlayerEntity();
-                System.out.println("Passenger is player.");
             }
             if (passenger == null) {
                 continue;

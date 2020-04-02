@@ -86,14 +86,14 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
 
+        //USELESS CODE START
         Integer[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
-        System.out.println(passengerIds[0]);
         if (passengerIds[0] != -1) {
             for (int passengerId : passengerIds) {
-                System.out.println("Passenger ID: " + passengerId);
                 addPlayerPacket.getEntityLinks().add(new EntityLink(geyserId, session.getEntityCache().getEntityByJavaId(passengerId).getGeyserId(), EntityLink.Type.RIDER, false));
             }
         }
+        //USELESS CODE END
 
         valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);
