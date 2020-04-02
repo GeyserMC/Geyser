@@ -26,10 +26,8 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityEventType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -37,10 +35,10 @@ import java.util.concurrent.TimeUnit;
 
 public class BoatEntity extends Entity {
 
-    private boolean is_paddling_left;
-    private float paddle_time_left;
-    private boolean is_paddling_right;
-    private float paddle_time_right;
+    private boolean isPaddlingLeft;
+    private float paddleTimeLeft;
+    private boolean isPaddlingRight;
+    private float paddleTimeRight;
 
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
     private final float ROWING_SPEED = 0.05f;
@@ -60,14 +58,14 @@ public class BoatEntity extends Entity {
         if (entityMetadata.getId() == 10) {
             metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
         } else if (entityMetadata.getId() == 11) {
-            is_paddling_left = (boolean) entityMetadata.getValue();
-            if (!is_paddling_left) {
+            isPaddlingLeft = (boolean) entityMetadata.getValue();
+            if (!isPaddlingLeft) {
                 metadata.put(EntityData.PADDLE_TIME_LEFT, 0f);
             }
             else {
                 // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
                 // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
-                paddle_time_left = 0f;
+                paddleTimeLeft = 0f;
                 session.getConnector().getGeneralThreadPool().schedule(() ->
                                 updateLeftPaddle(session, entityMetadata),
                         100,
@@ -76,12 +74,12 @@ public class BoatEntity extends Entity {
             }
         }
         else if (entityMetadata.getId() == 12) {
-            is_paddling_right = (boolean) entityMetadata.getValue();
-            if (!is_paddling_right) {
+            isPaddlingRight = (boolean) entityMetadata.getValue();
+            if (!isPaddlingRight) {
                 metadata.put(EntityData.PADDLE_TIME_RIGHT, 0f);
             }
             else {
-                paddle_time_right = 0f;
+                paddleTimeRight = 0f;
                 session.getConnector().getGeneralThreadPool().schedule(() ->
                                 updateRightPaddle(session, entityMetadata),
                         100,
@@ -97,10 +95,10 @@ public class BoatEntity extends Entity {
     }
 
     public void updateLeftPaddle(GeyserSession session, EntityMetadata entityMetadata) {
-        while (is_paddling_left) {
+        while (isPaddlingLeft) {
             try {
-                paddle_time_left += ROWING_SPEED;
-                metadata.put(EntityData.PADDLE_TIME_LEFT, paddle_time_left);
+                paddleTimeLeft += ROWING_SPEED;
+                metadata.put(EntityData.PADDLE_TIME_LEFT, paddleTimeLeft);
                 super.updateBedrockMetadata(entityMetadata, session);
                 Thread.sleep(100);
             }
@@ -112,10 +110,10 @@ public class BoatEntity extends Entity {
 
     public void updateRightPaddle(GeyserSession session, EntityMetadata entityMetadata) {
 //        Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
-        while (is_paddling_right) {
+        while (isPaddlingRight) {
             try {
-                paddle_time_right += ROWING_SPEED;
-                metadata.put(EntityData.PADDLE_TIME_RIGHT, paddle_time_right);
+                paddleTimeRight += ROWING_SPEED;
+                metadata.put(EntityData.PADDLE_TIME_RIGHT, paddleTimeRight);
                 super.updateBedrockMetadata(entityMetadata, session);
                 // Something I tried recently, doesn't really work - keeping just in case someone wants to try it.
 //                ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(

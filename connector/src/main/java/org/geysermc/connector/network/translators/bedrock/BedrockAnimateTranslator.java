@@ -37,8 +37,8 @@ import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 @Translator(packet = AnimatePacket.class)
 public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
 
-    private boolean is_steering_left;
-    private boolean is_steering_right;
+    private boolean isSteeringLeft;
+    private boolean isSteeringRight;
 
     @Override
     public void translate(AnimatePacket packet, GeyserSession session) {
@@ -50,13 +50,13 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             // These two might need to be flipped, but my recommendation is getting moving working first
             case ROW_LEFT:
                 // Packet value is a float of how long one has been rowing, so we convert that into a boolean
-                is_steering_left = packet.getRowingTime() > 0.0;
-                ClientSteerBoatPacket steerLeftPacket = new ClientSteerBoatPacket(is_steering_right, is_steering_left);
+                isSteeringLeft = packet.getRowingTime() > 0.0;
+                ClientSteerBoatPacket steerLeftPacket = new ClientSteerBoatPacket(isSteeringRight, isSteeringLeft);
                 session.getDownstream().getSession().send(steerLeftPacket);
                 break;
             case ROW_RIGHT:
-                is_steering_right = packet.getRowingTime() > 0.0;
-                ClientSteerBoatPacket steerRightPacket = new ClientSteerBoatPacket(is_steering_right, is_steering_left);
+                isSteeringRight = packet.getRowingTime() > 0.0;
+                ClientSteerBoatPacket steerRightPacket = new ClientSteerBoatPacket(isSteeringRight, isSteeringLeft);
                 session.getDownstream().getSession().send(steerRightPacket);
                 break;
         }
