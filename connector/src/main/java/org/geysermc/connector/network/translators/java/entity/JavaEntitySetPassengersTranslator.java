@@ -49,12 +49,6 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());;
-        // USELESS CODE BEGIN
-        if (entity == null && (packet.getEntityId() != 0)) {
-            // https://stackoverflow.com/questions/880581/how-to-convert-int-to-integer-in-java
-            session.getEntityCache().addCachedEntityLink(packet.getEntityId(), packet.getPassengerIds().clone());
-        }
-        // USELESS CODE END
         if (entity == null) return;
 
         LongOpenHashSet passengers = entity.getPassengers().clone();
@@ -63,6 +57,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passengerId == session.getPlayerEntity().getEntityId()) {
                 passenger = session.getPlayerEntity();
+            }
+            // Passenger hasn't loaded in and entity link needs to be set later
+            if (passenger == null && passengerId != 0) {
+                session.getEntityCache().addCachedPlayerEntityLink(passengerId, packet.getEntityId());
             }
             if (passenger == null) {
                 continue;
