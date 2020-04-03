@@ -31,7 +31,17 @@ import com.nukkitx.protocol.bedrock.data.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.concurrent.TimeUnit;
+
 public class BoatEntity extends Entity {
+
+    private boolean isPaddlingLeft;
+    private float paddleTimeLeft;
+    private boolean isPaddlingRight;
+    private float paddleTimeRight;
+
+    // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
+    private final float ROWING_SPEED = 0.05f;
 
     public BoatEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
@@ -39,6 +49,7 @@ public class BoatEntity extends Entity {
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
+        // Rotation is basically only called when entering/exiting a boat.
         super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround);
     }
 
@@ -46,8 +57,66 @@ public class BoatEntity extends Entity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 10) {
             metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
+        } else if (entityMetadata.getId() == 11) {
+            isPaddlingLeft = (boolean) entityMetadata.getValue();
+            if (!isPaddlingLeft) {
+                metadata.put(EntityData.PADDLE_TIME_LEFT, 0f);
+            }
+            else {
+                // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
+                // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
+                paddleTimeLeft = 0f;
+                session.getConnector().getGeneralThreadPool().execute(() ->
+                                updateLeftPaddle(session, entityMetadata)
+                );
+            }
+        }
+        else if (entityMetadata.getId() == 12) {
+            isPaddlingRight = (boolean) entityMetadata.getValue();
+            if (!isPaddlingRight) {
+                metadata.put(EntityData.PADDLE_TIME_RIGHT, 0f);
+            }
+            else {
+                paddleTimeRight = 0f;
+                session.getConnector().getGeneralThreadPool().execute(() ->
+                                updateRightPaddle(session, entityMetadata)
+                );
+            }
+        } else if (entityMetadata.getId() == 13) {
+            // Possibly - I don't think this does anything?
+            metadata.put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue());
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
+    public void updateLeftPaddle(GeyserSession session, EntityMetadata entityMetadata) {
+        if (isPaddlingLeft) {
+            paddleTimeLeft += ROWING_SPEED;
+            metadata.put(EntityData.PADDLE_TIME_LEFT, paddleTimeLeft);
+            super.updateBedrockMetadata(entityMetadata, session);
+            session.getConnector().getGeneralThreadPool().schedule(() ->
+                    updateLeftPaddle(session, entityMetadata),
+                    100,
+                    TimeUnit.MILLISECONDS
+            );
+        }}
+
+    public void updateRightPaddle(GeyserSession session, EntityMetadata entityMetadata) {
+//        Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
+        if (isPaddlingRight) {
+            paddleTimeRight += ROWING_SPEED;
+            metadata.put(EntityData.PADDLE_TIME_RIGHT, paddleTimeRight);
+            super.updateBedrockMetadata(entityMetadata, session);
+            // Something I tried recently, doesn't really work - keeping just in case someone wants to try it.
+//                ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
+//                        entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity.getBedrockRotation().getX() + 10f, 0
+//                );
+//                session.getDownstream().getSession().send(clientVehicleMovePacket);
+            session.getConnector().getGeneralThreadPool().schedule(() ->
+                            updateRightPaddle(session, entityMetadata),
+                    100,
+                    TimeUnit.MILLISECONDS
+            );
+        }}
 }

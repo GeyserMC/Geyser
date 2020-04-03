@@ -29,10 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.EntityFlags;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -112,6 +109,14 @@ public class Entity {
         addEntityPacket.setRotation(getBedrockRotation());
         addEntityPacket.setEntityType(entityType.getType());
         addEntityPacket.getMetadata().putAll(metadata);
+        //USELESS CODE START
+        int[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
+        if (passengerIds[0] != -1) {
+            for (int passengerId : passengerIds) {
+                addEntityPacket.getEntityLinks().add(new EntityLink(geyserId, session.getEntityCache().getEntityByJavaId(passengerId).getGeyserId(), EntityLink.Type.RIDER, false));
+            }
+        }
+        //USELESS CODE END
 
         valid = true;
         session.getUpstream().sendPacket(addEntityPacket);

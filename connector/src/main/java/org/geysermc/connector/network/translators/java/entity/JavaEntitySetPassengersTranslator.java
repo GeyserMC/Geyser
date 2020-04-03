@@ -39,24 +39,31 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 @Translator(packet = ServerEntitySetPassengersPacket.class)
 public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEntitySetPassengersPacket> {
 
+    // TODO - add check for this on login
+    // Players in a minecart when logged in are in the same spot but are not sitting
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());;
+        // USELESS CODE BEGIN
+        if (entity == null && (packet.getEntityId() != 0)) {
+            // https://stackoverflow.com/questions/880581/how-to-convert-int-to-integer-in-java
+            session.getEntityCache().addCachedEntityLink(packet.getEntityId(), packet.getPassengerIds().clone());
         }
-        if (entity == null) {
-            return;
-        }
+        // USELESS CODE END
+        if (entity == null) return;
 
         LongOpenHashSet passengers = entity.getPassengers().clone();
         boolean rider = true;
         for (long passengerId : packet.getPassengerIds()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
+            if (passengerId == session.getPlayerEntity().getEntityId()) {
+                passenger = session.getPlayerEntity();
+            }
             if (passenger == null) {
                 continue;
             }
@@ -89,10 +96,14 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
     }
 
     private void updateOffset(Entity passenger, EntityType mountType, GeyserSession session, boolean rider, boolean riding) {
+        // Without these, Bedrock players will find themselves in the floor when mounting
         float yOffset = 0;
         switch (mountType) {
             case BOAT:
                 yOffset = passenger.getEntityType() == EntityType.PLAYER ? 1.02001f : -0.2f;
+                break;
+            case MINECART:
+                yOffset = passenger.getEntityType() == EntityType.PLAYER ? 1.02001f : 0f;
                 break;
             case DONKEY:
                 yOffset = 2.1f;

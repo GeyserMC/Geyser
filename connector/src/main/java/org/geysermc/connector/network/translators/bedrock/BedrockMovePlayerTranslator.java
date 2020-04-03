@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
 import org.geysermc.common.ChatColor;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
@@ -34,6 +35,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerVehicleMovePacket;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
@@ -88,6 +90,15 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (!colliding)
          */
         session.getDownstream().getSession().send(playerPositionRotationPacket);
+
+        if (packet.getRidingRuntimeEntityId() != 0) {
+            //TODO - figure out exacts
+            // Also, horses are one block in the air which kicks you for flying
+            ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
+                    GenericMath.round(packet.getPosition().getX(), 4), javaY, GenericMath.round(packet.getPosition().getZ(), 4), packet.getRotation().getX(), packet.getRotation().getZ()
+            );
+            session.getDownstream().getSession().send(clientVehicleMovePacket);
+        }
     }
 
     public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
