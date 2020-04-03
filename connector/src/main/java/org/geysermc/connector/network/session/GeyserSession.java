@@ -151,7 +151,7 @@ public class GeyserSession implements CommandSender {
                             "authentication is disabled." : "authentication will be encrypted"
                     )
             );
-            authenticate(authData.getName());
+            authenticate(authData.getName().replace(" ","_"));
         }
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
