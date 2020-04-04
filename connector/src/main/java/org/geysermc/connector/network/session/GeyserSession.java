@@ -199,9 +199,9 @@ public class GeyserSession implements CommandSender {
             try {
                 MinecraftProtocol protocol;
                 if (password != null && !password.isEmpty()) {
-                    protocol = new MinecraftProtocol(username, password);
+                    protocol = new MinecraftProtocol(username.replace(" ","_"), password);
                 } else {
-                    protocol = new MinecraftProtocol(username);
+                    protocol = new MinecraftProtocol(username.replace(" ","_"));
                 }
 
                 boolean floodgate = connector.getAuthType() == AuthType.FLOODGATE;
