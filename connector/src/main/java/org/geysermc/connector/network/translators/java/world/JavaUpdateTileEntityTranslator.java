@@ -45,12 +45,12 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
         if (id.equalsIgnoreCase("Sign")) {
             // Delay so chunks can finish sending
             session.getConnector().getGeneralThreadPool().schedule(() ->
-                    BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(packet.getNbt()), packet.getPosition()),
+                    BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag("Sign", packet.getNbt()), packet.getPosition()),
                     5,
                     TimeUnit.SECONDS
             );
         } else {
-            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(packet.getNbt()), packet.getPosition());
+            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt()), packet.getPosition());
         }
     }
 }

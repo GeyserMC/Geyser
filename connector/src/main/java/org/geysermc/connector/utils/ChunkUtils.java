@@ -103,7 +103,7 @@ public class ChunkUtils {
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
             BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
-            bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tag);
+            bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag);
         }
 
         chunkData.blockEntities = bedrockBlockEntities;
