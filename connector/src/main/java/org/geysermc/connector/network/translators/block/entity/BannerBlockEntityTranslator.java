@@ -41,13 +41,14 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
         List<Tag<?>> tags = new ArrayList<>();
         ListTag patterns = tag.get("Patterns");
         List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
-        for (com.github.steveice10.opennbt.tag.builtin.Tag patternTag : patterns.getValue()) {
-            tagsList.add(getPattern((CompoundTag) patternTag));
+        if (tag.contains("Patterns")) {
+            for (com.github.steveice10.opennbt.tag.builtin.Tag patternTag : patterns.getValue()) {
+                tagsList.add(getPattern((CompoundTag) patternTag));
+            }
+            com.nukkitx.nbt.tag.ListTag<com.nukkitx.nbt.tag.CompoundTag> bedrockPatterns =
+                    new com.nukkitx.nbt.tag.ListTag<>("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
+            tags.add(bedrockPatterns);
         }
-        com.nukkitx.nbt.tag.ListTag<com.nukkitx.nbt.tag.CompoundTag> bedrockPatterns =
-                new com.nukkitx.nbt.tag.ListTag<>("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
-        tags.add(bedrockPatterns);
-
         if (tag.contains("CustomName")) {
             tags.add(new StringTag("CustomName", (String) tag.get("CustomName").getValue()));
         }
