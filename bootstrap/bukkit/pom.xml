@@ -54,7 +54,6 @@
                                     <shadedPattern>org.geysermc.platform.bukkit.shaded.fastutil</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <minimizeJar>true</minimizeJar>
                         </configuration>
                     </execution>
                 </executions>
