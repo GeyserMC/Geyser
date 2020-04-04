@@ -38,6 +38,7 @@ import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -96,6 +97,8 @@ public class GeyserSession implements CommandSender {
 
     private DataCache<Packet> javaPacketCache;
 
+    @Setter
+    private Vector2i lastChunkPosition = null;
     private int renderDistance;
 
     private boolean loggedIn;

@@ -29,8 +29,10 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
@@ -72,6 +74,20 @@ public class ChunkUtils {
             }
         }
         return chunkData;
+    }
+
+    public static void updateChunkPosition(GeyserSession session, Vector3i position) {
+        Vector2i chunkPos = session.getLastChunkPosition();
+        Vector2i newChunkPos = Vector2i.from(position.getX() >> 4, position.getZ() >> 4);
+
+        if (chunkPos == null || !chunkPos.equals(newChunkPos)) {
+            NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
+            chunkPublisherUpdatePacket.setPosition(position);
+            chunkPublisherUpdatePacket.setRadius(session.getRenderDistance() << 4);
+            session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
+
+            session.setLastChunkPosition(newChunkPos);
+        }
     }
 
     public static void updateBlock(GeyserSession session, BlockState blockState, Position position) {
