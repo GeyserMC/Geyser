@@ -32,7 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.world.chunk.ChunkPosition;
 
@@ -102,7 +102,7 @@ public class ChunkCache {
         levelChunkPacket.setChunkZ(position.getZ());
         levelChunkPacket.setCachingEnabled(false);
         levelChunkPacket.setSubChunksLength(0);
-        levelChunkPacket.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
+        levelChunkPacket.setData(Translators.EMPTY_LEVEL_CHUNK_DATA);
         session.getUpstream().sendPacket(levelChunkPacket);
     }
 }

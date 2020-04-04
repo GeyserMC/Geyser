@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.ChatColor;
 import com.github.steveice10.mc.protocol.data.message.ChatFormat;
 import com.github.steveice10.mc.protocol.data.message.Message;
@@ -36,20 +37,19 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MessageUtils {
 
     public static List<String> getTranslationParams(Message[] messages) {
-        List<String> strings = new ArrayList<String>();
-        for (int i = 0; i < messages.length; i++) {
-            if (messages[i] instanceof TranslationMessage) {
-                TranslationMessage translation = (TranslationMessage) messages[i];
+        List<String> strings = new ArrayList<>();
+        for (Message message : messages) {
+            if (message instanceof TranslationMessage) {
+                TranslationMessage translation = (TranslationMessage) message;
 
-                StringBuilder builder = new StringBuilder("");
-                builder.append("%");
-                builder.append(translation.getTranslationKey());
-                strings.add(builder.toString());
+                String builder = "%" + translation.getTranslationKey();
+                strings.add(builder);
 
                 if (translation.getTranslationKey().equals("commands.gamemode.success.other")) {
                     strings.add("");
@@ -59,15 +59,12 @@ public class MessageUtils {
                     strings.add(" - no permission or invalid command!");
                 }
 
-                for (int j = 0; j < getTranslationParams(translation.getTranslationParams()).size(); j++) {
-                    strings.add(getTranslationParams(translation.getTranslationParams()).get(j));
-                }
+                strings.addAll(getTranslationParams(translation.getTranslationParams()));
             } else {
-                StringBuilder builder = new StringBuilder("");
-                builder.append(getFormat(messages[i].getStyle().getFormats()));
-                builder.append(getColor(messages[i].getStyle().getColor()));
-                builder.append(getBedrockMessage(messages[i]));
-                strings.add(builder.toString());
+                String builder = getFormat(message.getStyle().getFormats()) +
+                        getColor(message.getStyle().getColor()) +
+                        getBedrockMessage(message);
+                strings.add(builder);
             }
         }
 
@@ -75,12 +72,8 @@ public class MessageUtils {
     }
 
     public static String getTranslationText(TranslationMessage message) {
-        StringBuilder builder = new StringBuilder("");
-        builder.append(getFormat(message.getStyle().getFormats()));
-        builder.append(getColor(message.getStyle().getColor()));
-        builder.append("%");
-        builder.append(message.getTranslationKey());
-        return builder.toString();
+        return getFormat(message.getStyle().getFormats()) + getColor(message.getStyle().getColor())
+                + "%" + message.getTranslationKey();
     }
 
     public static String getBedrockMessage(Message message) {
@@ -98,7 +91,6 @@ public class MessageUtils {
                 builder.append(getBedrockMessage(msg));
             }
         }
-
         return builder.toString();
     }
 
@@ -154,17 +146,18 @@ public class MessageUtils {
                 base += "f";
                 break;
             case RESET:
+            case NONE:
                 base += "r";
                 break;
             default:
-                break;
+                return "";
         }
 
         return base;
     }
 
     private static String getFormat(List<ChatFormat> formats) {
-        String str = "";
+        StringBuilder str = new StringBuilder();
         for (ChatFormat cf : formats) {
             String base = "\u00a7";
             switch (cf) {
@@ -184,13 +177,13 @@ public class MessageUtils {
                     base += "o";
                     break;
                 default:
-                    break;
+                    return "";
             }
 
-            str += base;
+            str.append(base);
         }
 
-        return str;
+        return str.toString();
     }
 
     public static boolean isMessage(String text) {
@@ -205,7 +198,6 @@ public class MessageUtils {
         } catch (Exception ex) {
             return false;
         }
-
         return true;
     }
 
@@ -230,7 +222,20 @@ public class MessageUtils {
                     formatJson((JsonObject) a.get(i));
             }
         }
-
         return object;
+    }
+
+    public static String toChatColor(TeamColor teamColor) {
+        for (ChatColor color : ChatColor.values()) {
+            if (color.name().equals(teamColor.name())) {
+                return getColor(color);
+            }
+        }
+        for (ChatFormat format : ChatFormat.values()) {
+            if (format.name().equals(teamColor.name())) {
+                return getFormat(Collections.singletonList(format));
+            }
+        }
+        return "";
     }
 }

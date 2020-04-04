@@ -35,7 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.TranslatorsInit;
+import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.world.chunk.ChunkSection;
 
@@ -125,7 +125,7 @@ public class ChunkUtils {
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
                 data.setSubChunksLength(0);
-                data.setData(TranslatorsInit.EMPTY_LEVEL_CHUNK_DATA);
+                data.setData(Translators.EMPTY_LEVEL_CHUNK_DATA);
                 data.setCachingEnabled(false);
                 session.getUpstream().sendPacket(data);
 

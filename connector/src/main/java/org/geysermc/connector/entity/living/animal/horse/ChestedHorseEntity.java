@@ -39,9 +39,9 @@ public class ChestedHorseEntity extends AbstractHorseEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // https://wiki.vg/Entity_metadata#Horse
-        metadata.getFlags().setFlag(EntityFlag.CHESTED, chestplate != null && chestplate.getId() != 0);
-
+        if (entityMetadata.getId() == 18) {
+            metadata.getFlags().setFlag(EntityFlag.CHESTED, (boolean) entityMetadata.getValue());
+        }
         super.updateBedrockMetadata(entityMetadata, session);
     }
 }

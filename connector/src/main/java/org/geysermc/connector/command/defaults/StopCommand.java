@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.command.defaults;
 
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
@@ -33,10 +34,10 @@ import java.util.Collections;
 
 public class StopCommand extends GeyserCommand {
 
-    public GeyserConnector connector;
+    private GeyserConnector connector;
 
-    public StopCommand(GeyserConnector connector, String name, String description) {
-        super(name, description);
+    public StopCommand(GeyserConnector connector, String name, String description, String permission) {
+        super(name, description, permission);
         this.connector = connector;
 
         this.setAliases(Collections.singletonList("shutdown"));
@@ -44,9 +45,9 @@ public class StopCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (!sender.isConsole())
+        if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
             return;
-
+        }
         connector.shutdown();
     }
 }

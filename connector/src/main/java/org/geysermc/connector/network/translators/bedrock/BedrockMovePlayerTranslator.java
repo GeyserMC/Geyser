@@ -25,6 +25,14 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import org.geysermc.common.ChatColor;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
@@ -32,13 +40,7 @@ import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 
-import org.geysermc.common.ChatColor;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-
+@Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
 
     @Override

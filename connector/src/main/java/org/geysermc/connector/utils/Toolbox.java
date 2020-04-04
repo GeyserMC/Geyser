@@ -48,7 +48,7 @@ public class Toolbox {
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
     public static final CompoundTag BIOMES;
 
-    public static final Collection<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
+    public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 

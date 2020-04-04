@@ -3,6 +3,8 @@ package org.geysermc.floodgate.util;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @AllArgsConstructor
 @Getter
 public class BedrockData {

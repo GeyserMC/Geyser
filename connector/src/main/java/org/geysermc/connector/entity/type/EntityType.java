@@ -28,14 +28,14 @@ package org.geysermc.connector.entity.type;
 import lombok.Getter;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
-import org.geysermc.connector.entity.living.animal.AnimalEntity;
-import org.geysermc.connector.entity.living.animal.TameableEntity;
+import org.geysermc.connector.entity.living.animal.*;
+import org.geysermc.connector.entity.living.animal.tameable.CatEntity;
+import org.geysermc.connector.entity.living.animal.tameable.TameableEntity;
 import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
-import org.geysermc.connector.entity.living.animal.RabbitEntity;
-import org.geysermc.connector.entity.living.animal.SheepEntity;
 import org.geysermc.connector.entity.living.animal.horse.ChestedHorseEntity;
 import org.geysermc.connector.entity.living.animal.horse.HorseEntity;
 import org.geysermc.connector.entity.living.animal.horse.LlamaEntity;
+import org.geysermc.connector.entity.living.animal.tameable.WolfEntity;
 import org.geysermc.connector.entity.living.monster.*;
 import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
@@ -46,9 +46,9 @@ public enum EntityType {
 
     CHICKEN(AnimalEntity.class, 10, 0.7f, 0.4f),
     COW(AnimalEntity.class, 11, 1.4f, 0.9f),
-    PIG(AnimalEntity.class, 12, 0.9f),
+    PIG(PigEntity.class, 12, 0.9f),
     SHEEP(SheepEntity.class, 13, 1.3f, 0.9f),
-    WOLF(AnimalEntity.class, 14, 0.85f, 0.6f),
+    WOLF(WolfEntity.class, 14, 0.85f, 0.6f),
     VILLAGER(AbstractMerchantEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f),
     MOOSHROOM(AnimalEntity.class, 16, 1.4f, 0.9f),
     SQUID(WaterEntity.class, 17, 0.8f),
@@ -56,21 +56,21 @@ public enum EntityType {
     BAT(AmbientEntity.class, 19, 0.9f, 0.5f),
     IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
     SNOW_GOLEM(GolemEntity.class, 21, 1.9f, 0.7f),
-    OCELOT(AgeableEntity.class, 22, 0.35f, 0.3f),
+    OCELOT(OcelotEntity.class, 22, 0.35f, 0.3f),
     HORSE(HorseEntity.class, 23, 1.6f, 1.3965f),
     DONKEY(ChestedHorseEntity.class, 24, 1.6f, 1.3965f),
     MULE(ChestedHorseEntity.class, 25, 1.6f, 1.3965f),
     SKELETON_HORSE(AbstractHorseEntity.class, 26, 1.6f, 1.3965f),
     ZOMBIE_HORSE(AbstractHorseEntity.class, 27, 1.6f, 1.3965f),
-    POLAR_BEAR(AnimalEntity.class, 28, 1.4f, 1.3f),
+    POLAR_BEAR(PolarBearEntity.class, 28, 1.4f, 1.3f),
     LLAMA(LlamaEntity.class, 29, 1.87f, 0.9f),
     TRADER_LLAMA(LlamaEntity.class, 29, 1.187f, 0.9f),
     PARROT(TameableEntity.class, 30, 0.9f, 0.5f),
     DOLPHIN(WaterEntity.class, 31, 0.6f, 0.9f),
     ZOMBIE(ZombieEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f),
-    CREEPER(MonsterEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
+    CREEPER(CreeperEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
     SKELETON(AbstractSkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
-    SPIDER(MonsterEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
+    SPIDER(SpiderEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
     ZOMBIE_PIGMAN(MonsterEntity.class, 36, 1.8f, 0.6f, 0.6f, 1.62f),
     SLIME(InsentientEntity.class, 37, 0.51f),
     ENDERMAN(MonsterEntity.class, 38, 2.9f, 0.6f),
@@ -78,13 +78,13 @@ public enum EntityType {
     CAVE_SPIDER(MonsterEntity.class, 40, 0.5f, 0.7f),
     GHAST(FlyingEntity.class, 41, 4.0f),
     MAGMA_CUBE(InsentientEntity.class, 42, 0.51f),
-    BLAZE(MonsterEntity.class, 43, 1.8f, 0.6f),
+    BLAZE(BlazeEntity.class, 43, 1.8f, 0.6f),
     ZOMBIE_VILLAGER(ZombieEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f),
     WITCH(RaidParticipantEntity.class, 45, 1.8f, 0.6f, 0.6f, 1.62f),
     STRAY(AbstractSkeletonEntity.class, 46, 1.8f, 0.6f, 0.6f, 1.62f),
     HUSK(ZombieEntity.class, 47, 1.8f, 0.6f, 0.6f, 1.62f),
     WITHER_SKELETON(AbstractSkeletonEntity.class, 48, 2.4f, 0.7f),
-    GUARDIAN(MonsterEntity.class, 49, 0.85f),
+    GUARDIAN(GuardianEntity.class, 49, 0.85f),
     ELDER_GUARDIAN(GuardianEntity.class, 50, 1.9975f),
     NPC(PlayerEntity.class, 51, 1.8f, 0.6f, 0.6f, 1.62f),
     WITHER(MonsterEntity.class, 52, 3.5f, 0.9f),
@@ -112,7 +112,7 @@ public enum EntityType {
     FIREWORK_ROCKET(Entity.class, 72, 0f),
     TRIDENT(ArrowEntity.class, 73, 0f),
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
-    CAT(TameableEntity.class, 75, 0.35f, 0.3f),
+    CAT(CatEntity.class, 75, 0.35f, 0.3f),
     SHULKER_BULLET(Entity.class, 76, 0f),
     FISHING_BOBBER(Entity.class, 77, 0f),
     CHALKBOARD(Entity.class, 78, 0f),
@@ -123,7 +123,7 @@ public enum EntityType {
     PAINTING(PaintingEntity.class, 83, 0f),
     MINECART(MinecartEntity.class, 84, 0f),
     FIREBALL(ItemedFireballEntity.class, 85, 0f),
-    SPLASH_POTION(ThrowableEntity.class, 86, 0f),
+    POTION(ThrowableEntity.class, 86, 0f),
     ENDER_PEARL(ThrowableEntity.class, 87, 0f),
     LEASH_KNOT(Entity.class, 88, 0f),
     WITHER_SKULL(Entity.class, 89, 0f),
@@ -149,9 +149,9 @@ public enum EntityType {
     DROWNED(ZombieEntity.class, 110, 1.95f, 0.6f),
     TROPICAL_FISH(AbstractFishEntity.class, 111, 0.6f, 0.6f),
     COD(AbstractFishEntity.class, 112, 0.25f, 0.5f),
-    PANDA(AnimalEntity.class, 113, 1.25f, 1.125f, 1.825f),
-    FOX(AnimalEntity.class, 121, 0.5f, 1.25f),
-    BEE(InsentientEntity.class, 122, 0.6f, 0.6f);
+    PANDA(PandaEntity.class, 113, 1.25f, 1.125f, 1.825f),
+    FOX(FoxEntity.class, 121, 0.5f, 1.25f),
+    BEE(BeeEntity.class, 122, 0.6f, 0.6f);
 
     private Class<? extends Entity> entityClass;
     private final int type;

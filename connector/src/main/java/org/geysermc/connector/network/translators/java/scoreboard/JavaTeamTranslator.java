@@ -25,19 +25,22 @@
 
 package org.geysermc.connector.network.translators.java.scoreboard;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
+import java.util.Arrays;
+import java.util.Set;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.UpdateType;
 import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
+@Translator(packet = ServerTeamPacket.class)
 public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
 
     @Override
@@ -49,12 +52,14 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
             case CREATE:
                 scoreboard.registerNewTeam(packet.getTeamName(), toPlayerSet(packet.getPlayers()))
                         .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                        .setColor(packet.getColor())
                         .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
                         .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()));
                 break;
             case UPDATE:
                 scoreboard.getTeam(packet.getTeamName())
                         .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                        .setColor(packet.getColor())
                         .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
                         .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()))
                         .setUpdateType(UpdateType.UPDATE);
@@ -73,6 +78,6 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
     }
 
     private Set<String> toPlayerSet(String[] players) {
-        return new HashSet<>(Arrays.asList(players));
+        return new ObjectOpenHashSet<>(Arrays.asList(players));
     }
 }

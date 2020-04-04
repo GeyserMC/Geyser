@@ -34,7 +34,9 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
@@ -57,6 +59,8 @@ public class GeyserSpongePlugin implements IGeyserBootstrap {
 
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
+
+    private GeyserConnector connector;
 
     @Override
     public void onEnable() {
@@ -81,13 +85,14 @@ public class GeyserSpongePlugin implements IGeyserBootstrap {
         }
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
+        this.connector = GeyserConnector.start(PlatformType.SPONGE, this);
 
-        GeyserConnector.start(PlatformType.SPONGE, this);
+        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(connector), "geyser");
     }
 
     @Override
     public void onDisable() {
-        GeyserConnector.stop();
+        connector.shutdown();
     }
 
     @Override

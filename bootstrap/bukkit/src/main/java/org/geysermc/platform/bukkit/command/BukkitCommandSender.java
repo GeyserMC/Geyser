@@ -23,15 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.platform.bukkit.command;
 
-import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.living.animal.AnimalEntity;
-import org.geysermc.connector.entity.type.EntityType;
+import lombok.AllArgsConstructor;
 
-public class TameableEntity extends AnimalEntity {
+import org.bukkit.command.ConsoleCommandSender;
+import org.geysermc.connector.command.CommandSender;
 
-    public TameableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+@AllArgsConstructor
+public class BukkitCommandSender implements CommandSender {
+
+    private org.bukkit.command.CommandSender handle;
+
+    @Override
+    public String getName() {
+        return handle.getName();
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        handle.sendMessage(message);
+    }
+
+    @Override
+    public boolean isConsole() {
+        return handle instanceof ConsoleCommandSender;
     }
 }
