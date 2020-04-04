@@ -115,7 +115,14 @@ public class MessageUtils {
                 return "tile.bed.respawnSet";
 
             case "chat.type.advancement.task":
+            case "chat.type.advancement.challenge":
+            case "chat.type.advancement.goal":
                 return "chat.type.achievement";
+
+            case "commands.teleport.success.entity.single":
+                return "commands.tp.success";
+            case "commands.teleport.success.location.single":
+                return "commands.tp.success.coordinates";
 
             default:
                 return messageText;
