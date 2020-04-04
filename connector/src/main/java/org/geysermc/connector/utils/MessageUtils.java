@@ -76,14 +76,19 @@ public class MessageUtils {
                 + "%" + message.getTranslationKey();
     }
 
-    public static String getBedrockMessage(Message message) {
+    public static String getBedrockMessageWithTranslate(Message message, boolean convertLangStrings) {
         JsonParser parser = new JsonParser();
         if (isMessage(message.getText())) {
             JsonObject object = parser.parse(message.getText()).getAsJsonObject();
             message = Message.fromJson(formatJson(object));
         }
 
-        StringBuilder builder = new StringBuilder(message.getText());
+        String messageText = message.getText();
+        if (convertLangStrings) {
+            messageText = getLangConversion(messageText);
+        }
+
+        StringBuilder builder = new StringBuilder(messageText);
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
             builder.append(getColor(msg.getStyle().getColor()));
@@ -92,6 +97,33 @@ public class MessageUtils {
             }
         }
         return builder.toString();
+    }
+
+    private static String getLangConversion(String messageText) {
+        switch (messageText)  {
+            case "block.minecraft.bed.occupied":
+                return "tile.bed.occupied";
+            case "block.minecraft.bed.too_far_away":
+                return "tile.bed.tooFar";
+            case "block.minecraft.bed.not_safe":
+                return "tile.bed.notSafe";
+            case "block.minecraft.bed.no_sleep":
+                return "tile.bed.noSleep";
+            case "block.minecraft.bed.not_valid":
+                return "tile.bed.notValid";
+            case "block.minecraft.bed.set_spawn":
+                return "tile.bed.respawnSet";
+
+            case "chat.type.advancement.task":
+                return "chat.type.achievement";
+
+            default:
+                return messageText;
+        }
+    }
+
+    public static String getBedrockMessage(Message message) {
+        return getBedrockMessageWithTranslate(message, false);
     }
 
     private static String getColor(ChatColor color) {
