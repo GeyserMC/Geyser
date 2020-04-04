@@ -30,6 +30,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.ChunkUtils;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
@@ -39,7 +40,6 @@ import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerPlayerPositionRotationPacket.class)
 public class JavaPlayerPositionRotationTranslator extends PacketTranslator<ServerPlayerPositionRotationPacket> {
