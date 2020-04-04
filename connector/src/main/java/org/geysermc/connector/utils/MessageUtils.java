@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.ChatColor;
 import com.github.steveice10.mc.protocol.data.message.ChatFormat;
@@ -36,11 +37,28 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.InputStream;
+import java.util.*;
 
 public class MessageUtils {
+    private static final HashMap<String, String> LANG_MAPPINGS = new HashMap<>();
+
+    static {
+        /* Load the language mappings */
+        InputStream stream = Toolbox.getResource("mappings/lang.json");
+        JsonNode lang;
+        try {
+            lang = Toolbox.JSON_MAPPER.readTree(stream);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load Java lang mappings", e);
+        }
+
+        Iterator<Map.Entry<String, JsonNode>> langIterator = lang.fields();
+        while (langIterator.hasNext()) {
+            Map.Entry<String, JsonNode> entry = langIterator.next();
+            LANG_MAPPINGS.put(entry.getKey(), entry.getValue().asText());
+        }
+    }
 
     public static List<String> getTranslationParams(Message[] messages) {
         List<String> strings = new ArrayList<>();
@@ -100,33 +118,7 @@ public class MessageUtils {
     }
 
     private static String getLangConversion(String messageText) {
-        switch (messageText)  {
-            case "block.minecraft.bed.occupied":
-                return "tile.bed.occupied";
-            case "block.minecraft.bed.too_far_away":
-                return "tile.bed.tooFar";
-            case "block.minecraft.bed.not_safe":
-                return "tile.bed.notSafe";
-            case "block.minecraft.bed.no_sleep":
-                return "tile.bed.noSleep";
-            case "block.minecraft.bed.not_valid":
-                return "tile.bed.notValid";
-            case "block.minecraft.bed.set_spawn":
-                return "tile.bed.respawnSet";
-
-            case "chat.type.advancement.task":
-            case "chat.type.advancement.challenge":
-            case "chat.type.advancement.goal":
-                return "chat.type.achievement";
-
-            case "commands.teleport.success.entity.single":
-                return "commands.tp.success";
-            case "commands.teleport.success.location.single":
-                return "commands.tp.success.coordinates";
-
-            default:
-                return messageText;
-        }
+        return LANG_MAPPINGS.getOrDefault(messageText, messageText);
     }
 
     public static String getBedrockMessage(Message message) {
