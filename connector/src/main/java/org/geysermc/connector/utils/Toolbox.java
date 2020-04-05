@@ -115,6 +115,7 @@ public class Toolbox {
         Iterator<Map.Entry<String, JsonNode>> effectsIterator = effects.fields();
         while (effectsIterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = effectsIterator.next();
+            // Separate records database since they're handled differently between the two versions
             if (entry.getValue().has("records")) {
                 JsonNode records = entry.getValue().get("records");
                 Iterator<Map.Entry<String, JsonNode>> recordsIterator = records.fields();
@@ -122,12 +123,11 @@ public class Toolbox {
                     Map.Entry<String, JsonNode> recordEntry = recordsIterator.next();
                     RECORDS.put(Integer.parseInt(recordEntry.getKey()), SoundEvent.valueOf(recordEntry.getValue().asText()));
                 }
-            } else {
-                String identifier = (entry.getValue().has("Identifier")) ? entry.getValue().get("Identifier").asText() : null;
-                int data = (entry.getValue().has("data")) ? entry.getValue().get("Data").asInt() : -1;
-                Effect effect = new Effect(entry.getKey(), entry.getValue().get("Name").asText(), entry.getValue().get("Type").asText(), data, identifier);
-                EFFECTS.put(entry.getKey(), effect);
             }
+            String identifier = (entry.getValue().has("Identifier")) ? entry.getValue().get("Identifier").asText() : "";
+            int data = (entry.getValue().has("data")) ? entry.getValue().get("Data").asInt() : -1;
+            Effect effect = new Effect(entry.getKey(), entry.getValue().get("Name").asText(), entry.getValue().get("Type").asText(), data, identifier);
+            EFFECTS.put(entry.getKey(), effect);
         }
 
 

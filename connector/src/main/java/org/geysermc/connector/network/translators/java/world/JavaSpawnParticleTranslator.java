@@ -46,8 +46,12 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
 
     @Override
     public void translate(ServerSpawnParticlePacket packet, GeyserSession session) {
+        System.out.println("Translating particle: " + packet.getParticle().getType());
+        System.out.println("Data: " + packet.getParticle().getData());
         LevelEventPacket particle = new LevelEventPacket();
         switch(packet.getParticle().getType()){
+            case BLOCK:
+                particle.setType(LevelEventType.)
             case FALLING_DUST:
                 //In fact, FallingDustParticle should have data like DustParticle,
                 //but in MCProtocol, its data is BlockState(1).

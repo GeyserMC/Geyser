@@ -46,6 +46,9 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
 
     @Override
     public void translate(ServerPlayEffectPacket packet, GeyserSession session) {
+        System.out.println("Translating: " + packet.getEffect());
+        System.out.println("Packet type: " + packet.getEffect().getClass());
+        System.out.println("Data: " + packet.getData());
         LevelEventPacket effect = new LevelEventPacket();
         // Some things here are particles, others are not
         if (packet.getEffect() instanceof ParticleEffect) {
@@ -63,8 +66,8 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
                         BonemealGrowEffectData growEffectData = (BonemealGrowEffectData) packet.getData();
                         effect.setData(growEffectData.getParticleCount());
                         break;
+                    //TODO: Block break particles when under fire
                     case BREAK_BLOCK:
-                        // TODO:
                         effect.setType(LevelEventType.DESTROY);
                         BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
                         effect.setData(BlockTranslator.getBedrockBlockId(breakBlockEffectData.getBlockState()));
@@ -76,7 +79,9 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
                     case MOB_SPAWN:
                         effect.setType(LevelEventType.ENTITY_SPAWN);
                         break;
+                        // Done with a dispenser
                     case SMOKE:
+                        // Might need to be SHOOT
                         effect.setType(LevelEventType.PARTICLE_SMOKE);
                         break;
                     default:
@@ -99,10 +104,11 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
                     if (geyserEffect.getJavaName().equals("RECORD")) {
                         RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
                         soundEvent.setSound(Toolbox.RECORDS.get(recordEffectData.getRecordId()));
+                    } else {
+                        soundEvent.setSound(SoundEvent.valueOf(geyserEffect.getBedrockName()));
                     }
                     soundEvent.setExtraData(geyserEffect.getData());
                     soundEvent.setIdentifier(geyserEffect.getIdentifier());
-                    soundEvent.setSound(SoundEvent.valueOf(geyserEffect.getBedrockName()));
                     soundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
                     session.getUpstream().sendPacket(soundEvent);
                 }
