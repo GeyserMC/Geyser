@@ -160,6 +160,12 @@ public class SkinProvider {
         return CompletableFuture.completedFuture(officialCape);
     }
 
+    public static void storeBedrockSkin(UUID uuid, String skinID, byte[] skinData) {
+        Skin skin = new Skin(uuid, skinID, skinData, System.currentTimeMillis(), true);
+
+        cachedSkins.put(uuid, skin);
+    }
+
     private static Skin supplySkin(UUID uuid, String textureUrl) {
         byte[] skin = EMPTY_SKIN.getSkinData();
         try {

@@ -138,6 +138,14 @@ public class SkinUtils {
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             GameProfileData data = GameProfileData.from(entity.getProfile());
 
+            // Check if the entity is a bedrock player
+            if (entity.getEntityId() == -1) {
+                byte[] bytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getSkinData().getBytes());
+
+                // Allows 'legacy' style skins to work accross bedrock clients
+                SkinProvider.storeBedrockSkin(entity.getUuid(), data.getSkinUrl(), bytes);
+            }
+
             SkinProvider.requestSkinAndCape(entity.getUuid(), data.getSkinUrl(), data.getCapeUrl())
                     .whenCompleteAsync((skinAndCape, throwable) -> {
                         try {
