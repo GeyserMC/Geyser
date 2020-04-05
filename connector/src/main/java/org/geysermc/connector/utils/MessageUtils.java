@@ -68,8 +68,12 @@ public class MessageUtils {
                 }
             } else {
                 String builder = getFormat(message.getStyle().getFormats()) +
-                        getColor(message.getStyle().getColor()) +
-                        getBedrockMessage(message);
+                        getColor(message.getStyle().getColor());
+                if (locale != null) {
+                    builder += getTranslatedBedrockMessage(message, locale);
+                }else {
+                    builder += getBedrockMessage(message);
+                }
                 strings.add(builder);
             }
         }
