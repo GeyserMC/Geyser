@@ -41,14 +41,16 @@ import java.util.*;
 
 public class MessageUtils {
 
-    public static List<String> getTranslationParams(Message[] messages) {
+    public static List<String> getTranslationParams(Message[] messages, String locale) {
         List<String> strings = new ArrayList<>();
         for (Message message : messages) {
             if (message instanceof TranslationMessage) {
                 TranslationMessage translation = (TranslationMessage) message;
 
-                String builder = "%" + translation.getTranslationKey();
-                strings.add(builder);
+                if (locale == null) {
+                    String builder = "%" + translation.getTranslationKey();
+                    strings.add(builder);
+                }
 
                 if (translation.getTranslationKey().equals("commands.gamemode.success.other")) {
                     strings.add("");
@@ -58,7 +60,12 @@ public class MessageUtils {
                     strings.add(" - no permission or invalid command!");
                 }
 
-                strings.addAll(getTranslationParams(translation.getTranslationParams()));
+                List<String> furtherParams = getTranslationParams(translation.getTranslationParams());
+                if (locale != null) {
+                    strings.add(insertParams(getLocaleString(translation.getTranslationKey(), locale), furtherParams));
+                }else{
+                    strings.addAll(furtherParams);
+                }
             } else {
                 String builder = getFormat(message.getStyle().getFormats()) +
                         getColor(message.getStyle().getColor()) +
@@ -68,6 +75,10 @@ public class MessageUtils {
         }
 
         return strings;
+    }
+
+    public static List<String> getTranslationParams(Message[] messages) {
+        return getTranslationParams(messages, null);
     }
 
     public static String getTranslationText(TranslationMessage message) {
@@ -92,7 +103,7 @@ public class MessageUtils {
             builder.append(getFormat(msg.getStyle().getFormats()));
             builder.append(getColor(msg.getStyle().getColor()));
             if (!(msg.getText() == null)) {
-                builder.append(getBedrockMessage(msg));
+                builder.append(getTranslatedBedrockMessage(msg, locale));
             }
         }
         return builder.toString();
@@ -115,6 +126,16 @@ public class MessageUtils {
 
     public static String getBedrockMessage(Message message) {
         return getTranslatedBedrockMessage(message);
+    }
+
+    public static String insertParams(String message, List<String> params) {
+        String newMessage = message;
+
+        for (String text : params) {
+            newMessage = newMessage.replaceFirst("%s", text);
+        }
+
+        return newMessage;
     }
 
     private static String getColor(ChatColor color) {

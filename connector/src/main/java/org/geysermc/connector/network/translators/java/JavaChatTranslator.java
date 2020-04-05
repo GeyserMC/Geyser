@@ -34,6 +34,8 @@ import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 
+import java.util.List;
+
 @Translator(packet = ServerChatPacket.class)
 public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
 
@@ -61,10 +63,21 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
         if (packet.getMessage() instanceof TranslationMessage) {
             textPacket.setType(TextPacket.Type.TRANSLATION);
             textPacket.setNeedsTranslation(true);
-            textPacket.setParameters(MessageUtils.getTranslationParams(((TranslationMessage) packet.getMessage()).getTranslationParams()));
-            textPacket.setMessage(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), session.getClientData().getLanguageCode()));
+
+            String locale = session.getClientData().getLanguageCode();
+
+            List<String> paramsTranslated = MessageUtils.getTranslationParams(((TranslationMessage) packet.getMessage()).getTranslationParams(), locale);
+            textPacket.setParameters(paramsTranslated);
+
+            textPacket.setMessage(MessageUtils.insertParams(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale), paramsTranslated));
         } else {
             textPacket.setNeedsTranslation(false);
+
+            // This make every message get translated which fixes alot of formatting issues
+            // but also causes players to be able to send translation strings as messages
+            // if thats all they send
+            // textPacket.setMessage(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), session.getClientData().getLanguageCode()));
+
             textPacket.setMessage(MessageUtils.getBedrockMessage(packet.getMessage()));
         }
 
