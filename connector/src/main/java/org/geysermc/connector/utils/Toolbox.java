@@ -124,9 +124,9 @@ public class Toolbox {
                     RECORDS.put(Integer.parseInt(recordEntry.getKey()), SoundEvent.valueOf(recordEntry.getValue().asText()));
                 }
             }
-            String identifier = (entry.getValue().has("Identifier")) ? entry.getValue().get("Identifier").asText() : "";
-            int data = (entry.getValue().has("data")) ? entry.getValue().get("Data").asInt() : -1;
-            Effect effect = new Effect(entry.getKey(), entry.getValue().get("Name").asText(), entry.getValue().get("Type").asText(), data, identifier);
+            String identifier = (entry.getValue().has("identifier")) ? entry.getValue().get("identifier").asText() : "";
+            int data = (entry.getValue().has("data")) ? entry.getValue().get("data").asInt() : -1;
+            Effect effect = new Effect(entry.getKey(), entry.getValue().get("name").asText(), entry.getValue().get("type").asText(), data, identifier);
             EFFECTS.put(entry.getKey(), effect);
         }
 
