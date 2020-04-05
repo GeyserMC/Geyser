@@ -56,7 +56,7 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
                 effect.setType(LevelEventType.valueOf(name));
             } else {
                 switch (particleEffect) {
-                    // TODO: BREAK_SPLASH_POTION
+                    // TODO: BREAK_SPLASH_POTION has additional data
                     // TODO: Block break doesn't work when you're the player.
                     case BONEMEAL_GROW:
                         effect.setType(LevelEventType.BONEMEAL);
@@ -91,10 +91,11 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
             if (geyserEffect != null) {
                 // Some events are LevelEventTypes, some are SoundEvents.
                 if (geyserEffect.getType().equals("soundLevel")) {
-                    // TODO: Opening doors also does not work
+                    // TODO: Opening doors also does not work as the player
                     effect.setType(LevelEventType.valueOf(geyserEffect.getBedrockName()));
                 } else if (geyserEffect.getType().equals("soundEvent")) {
                     LevelSoundEvent2Packet soundEvent = new LevelSoundEvent2Packet();
+                    // Separate case since each RecordEffectData in Java is an individual track in Bedrock
                     if (geyserEffect.getJavaName().equals("RECORD")) {
                         RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
                         soundEvent.setSound(Toolbox.RECORDS.get(recordEffectData.getRecordId()));
