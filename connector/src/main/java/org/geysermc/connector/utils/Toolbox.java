@@ -78,27 +78,28 @@ public class Toolbox {
 
         /* Load particles */
         InputStream particleStream = getResource("mappings/particles.json");
-
-        TypeReference<List<JsonNode>> particleEntryType = new TypeReference<List<JsonNode>>() {};
-        List<JsonNode> particleEntries;
+        JsonNode particleEntries;
         try {
-            particleEntries = JSON_MAPPER.readValue(particleStream, particleEntryType);
+            particleEntries = JSON_MAPPER.readTree(particleStream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load particle map", e);
         }
-        for (JsonNode entry : particleEntries) {
+
+        Iterator<Map.Entry<String, JsonNode>> particlesIterator = particleEntries.fields();
+        while (particlesIterator.hasNext()) {
+            Map.Entry<String, JsonNode> entry = particlesIterator.next();
             try {
-                ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), LevelEventType.valueOf(entry.get("bedrock").asText().toUpperCase()));
-            } catch (IllegalArgumentException e1){
+                ParticleUtils.setIdentifier(ParticleType.valueOf(entry.getKey().toUpperCase()), LevelEventType.valueOf(entry.getValue().asText().toUpperCase()));
+            } catch (IllegalArgumentException e1) {
                 try {
-                    ParticleUtils.setIdentifier(ParticleType.valueOf(entry.get("java").asText().toUpperCase()), entry.get("bedrock").asText());
+                    ParticleUtils.setIdentifier(ParticleType.valueOf(entry.getKey().toUpperCase()), entry.getValue().asText());
                     GeyserConnector.getInstance().getLogger().debug("Force to map particle "
-                            + entry.get("java").asText()
+                            + entry.getKey()
                             + "=>"
-                            + entry.get("bedrock").asText()
+                            + entry.getValue().asText()
                             + ", it will take effect.");
                 } catch (IllegalArgumentException e2){
-                    GeyserConnector.getInstance().getLogger().warning("Fail to map particle " + entry.get("java").asText() + "=>" + entry.get("bedrock").asText());
+                    GeyserConnector.getInstance().getLogger().warning("Fail to map particle " + entry.getKey() + "=>" + entry.getValue().asText());
                 }
             }
         }
@@ -107,7 +108,7 @@ public class Toolbox {
         InputStream effectsStream = Toolbox.getResource("mappings/effects.json");
         JsonNode effects;
         try {
-            effects = Toolbox.JSON_MAPPER.readTree(effectsStream);
+            effects = JSON_MAPPER.readTree(effectsStream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load effects mappings", e);
         }
