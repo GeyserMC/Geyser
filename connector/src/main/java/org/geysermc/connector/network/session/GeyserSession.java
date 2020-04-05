@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.session;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -281,6 +282,9 @@ public class GeyserSession implements CommandSender {
 
                 downstream.getSession().connect();
                 connector.addPlayer(this);
+            } catch (InvalidCredentialsException e) {
+                connector.getLogger().info("User '" + username + "' entered invalid login info, kicking.");
+                disconnect("Invalid/incorrect login info");
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
