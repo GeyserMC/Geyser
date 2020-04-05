@@ -36,27 +36,43 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import org.geysermc.connector.GeyserConnector;
 
 import java.io.InputStream;
 import java.util.*;
 
 public class MessageUtils {
-    private static final HashMap<String, String> LANG_MAPPINGS = new HashMap<>();
+    private static final HashMap<String, HashMap<String, String>> LOCALE_MAPPINGS = new HashMap<>();
 
     static {
         /* Load the language mappings */
-        InputStream stream = Toolbox.getResource("mappings/lang.json");
-        JsonNode lang;
+        InputStream languagesStream = Toolbox.getResource("mappings/locales.json");
+        JsonNode locales;
         try {
-            lang = Toolbox.JSON_MAPPER.readTree(stream);
+            locales = Toolbox.JSON_MAPPER.readTree(languagesStream);
         } catch (Exception e) {
-            throw new AssertionError("Unable to load Java lang mappings", e);
+            throw new AssertionError("Unable to load Java locale list", e);
         }
 
-        Iterator<Map.Entry<String, JsonNode>> langIterator = lang.fields();
-        while (langIterator.hasNext()) {
-            Map.Entry<String, JsonNode> entry = langIterator.next();
-            LANG_MAPPINGS.put(entry.getKey(), entry.getValue().asText());
+        for (JsonNode localeNode : locales.get("locales")) {
+            String currentLocale = localeNode.asText();
+
+            InputStream stream = Toolbox.getResource("mappings/lang/" + currentLocale + ".json");
+            JsonNode lang;
+            try {
+                lang = Toolbox.JSON_MAPPER.readTree(stream);
+            } catch (Exception e) {
+                throw new AssertionError("Unable to load Java lang map for " + currentLocale, e);
+            }
+
+            Iterator<Map.Entry<String, JsonNode>> langIterator = lang.fields();
+            HashMap<String, String> langMap = new HashMap<>();
+            while (langIterator.hasNext()) {
+                Map.Entry<String, JsonNode> entry = langIterator.next();
+                langMap.put(entry.getKey(), entry.getValue().asText());
+            }
+
+            LOCALE_MAPPINGS.put(currentLocale.toLowerCase(), langMap);
         }
     }
 
@@ -94,7 +110,7 @@ public class MessageUtils {
                 + "%" + message.getTranslationKey();
     }
 
-    public static String getBedrockMessageWithTranslate(Message message, boolean convertLangStrings) {
+    public static String getBedrockMessageWithTranslate(Message message, String locale) {
         JsonParser parser = new JsonParser();
         if (isMessage(message.getText())) {
             JsonObject object = parser.parse(message.getText()).getAsJsonObject();
@@ -102,8 +118,8 @@ public class MessageUtils {
         }
 
         String messageText = message.getText();
-        if (convertLangStrings) {
-            messageText = getLangConversion(messageText);
+        if (locale != null) {
+            messageText = getLocaleString(messageText, locale);
         }
 
         StringBuilder builder = new StringBuilder(messageText);
@@ -117,12 +133,23 @@ public class MessageUtils {
         return builder.toString();
     }
 
-    private static String getLangConversion(String messageText) {
-        return LANG_MAPPINGS.getOrDefault(messageText, messageText);
+    public static String getBedrockMessageWithTranslate(Message message) {
+        return getBedrockMessageWithTranslate(message, null);
+    }
+
+    private static String getLocaleString(String messageText, String locale) {
+        HashMap<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase());
+        if (localeStrings == null)
+            localeStrings = LOCALE_MAPPINGS.get("en_us");
+
+        String newLocaleString = localeStrings.getOrDefault(messageText, messageText);
+
+        GeyserConnector.getInstance().getLogger().info("Converting '" + messageText + "' -> '" + newLocaleString + "'");
+        return newLocaleString;
     }
 
     public static String getBedrockMessage(Message message) {
-        return getBedrockMessageWithTranslate(message, false);
+        return getBedrockMessageWithTranslate(message);
     }
 
     private static String getColor(ChatColor color) {
