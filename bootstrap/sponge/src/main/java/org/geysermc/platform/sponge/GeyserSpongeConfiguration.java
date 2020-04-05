@@ -106,7 +106,9 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public String getDefaultLocale() { return node.getNode("default-locale").getString("en_us"); }
+    public String getDefaultLocale() {
+        return node.getNode("default-locale").getString("en_us");
+    }
 
     @Override
     public Path getFloodgateKeyFile() {

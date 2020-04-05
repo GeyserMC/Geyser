@@ -52,7 +52,7 @@ public class Toolbox {
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    public static final HashMap<String, HashMap<String, String>> LOCALE_MAPPINGS = new HashMap<>();
+    public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
 
     static {
         /* Load biomes */
@@ -127,7 +127,7 @@ public class Toolbox {
             }
 
             Iterator<Map.Entry<String, JsonNode>> localeIterator = locale.fields();
-            HashMap<String, String> langMap = new HashMap<>();
+            Map<String, String> langMap = new HashMap<>();
             while (localeIterator.hasNext()) {
                 Map.Entry<String, JsonNode> entry = localeIterator.next();
                 langMap.put(entry.getKey(), entry.getValue().asText());

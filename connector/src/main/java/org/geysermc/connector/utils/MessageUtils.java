@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.ChatColor;
 import com.github.steveice10.mc.protocol.data.message.ChatFormat;
@@ -38,7 +37,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import org.geysermc.connector.GeyserConnector;
 
-import java.io.InputStream;
 import java.util.*;
 
 public class MessageUtils {
@@ -77,7 +75,7 @@ public class MessageUtils {
                 + "%" + message.getTranslationKey();
     }
 
-    public static String getBedrockMessageWithTranslate(Message message, String locale) {
+    public static String getTranslatedBedrockMessage(Message message, String locale) {
         JsonParser parser = new JsonParser();
         if (isMessage(message.getText())) {
             JsonObject object = parser.parse(message.getText()).getAsJsonObject();
@@ -100,12 +98,12 @@ public class MessageUtils {
         return builder.toString();
     }
 
-    public static String getBedrockMessageWithTranslate(Message message) {
-        return getBedrockMessageWithTranslate(message, null);
+    public static String getTranslatedBedrockMessage(Message message) {
+        return getTranslatedBedrockMessage(message, null);
     }
 
     private static String getLocaleString(String messageText, String locale) {
-        HashMap<String, String> localeStrings = Toolbox.LOCALE_MAPPINGS.get(locale.toLowerCase());
+        Map<String, String> localeStrings = Toolbox.LOCALE_MAPPINGS.get(locale.toLowerCase());
         if (localeStrings == null)
             localeStrings = Toolbox.LOCALE_MAPPINGS.get(GeyserConnector.getInstance().getConfig().getDefaultLocale());
 
@@ -116,7 +114,7 @@ public class MessageUtils {
     }
 
     public static String getBedrockMessage(Message message) {
-        return getBedrockMessageWithTranslate(message);
+        return getTranslatedBedrockMessage(message);
     }
 
     private static String getColor(ChatColor color) {

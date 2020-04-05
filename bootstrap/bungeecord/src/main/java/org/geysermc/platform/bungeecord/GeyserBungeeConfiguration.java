@@ -103,7 +103,9 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public String getDefaultLocale() { return config.getString("default-locale", "en_us"); }
+    public String getDefaultLocale() {
+        return config.getString("default-locale", "en_us");
+    }
 
     @Override
     public Path getFloodgateKeyFile() {
