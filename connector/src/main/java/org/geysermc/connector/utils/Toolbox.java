@@ -34,6 +34,7 @@ import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -41,6 +42,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.effect.Effect;
 
 import java.io.InputStream;
 import java.util.*;
@@ -49,6 +51,9 @@ public class Toolbox {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
     public static final CompoundTag BIOMES;
+
+    public static final Map<String, Effect> EFFECTS = new HashMap<>();
+    public static final Int2ObjectMap<SoundEvent> RECORDS = new Int2ObjectOpenHashMap<>();
 
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
@@ -97,6 +102,34 @@ public class Toolbox {
                 }
             }
         }
+
+        /*Load effects*/
+        InputStream effectsStream = Toolbox.getResource("mappings/effects.json");
+        JsonNode effects;
+        try {
+            effects = Toolbox.JSON_MAPPER.readTree(effectsStream);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load effects mappings", e);
+        }
+
+        Iterator<Map.Entry<String, JsonNode>> effectsIterator = effects.fields();
+        while (effectsIterator.hasNext()) {
+            Map.Entry<String, JsonNode> entry = effectsIterator.next();
+            if (entry.getValue().has("records")) {
+                JsonNode records = entry.getValue().get("records");
+                Iterator<Map.Entry<String, JsonNode>> recordsIterator = records.fields();
+                while (recordsIterator.hasNext()) {
+                    Map.Entry<String, JsonNode> recordEntry = recordsIterator.next();
+                    RECORDS.put(Integer.parseInt(recordEntry.getKey()), SoundEvent.valueOf(recordEntry.getValue().asText()));
+                }
+            } else {
+                String identifier = (entry.getValue().has("Identifier")) ? entry.getValue().get("Identifier").asText() : null;
+                int data = (entry.getValue().has("data")) ? entry.getValue().get("Data").asInt() : -1;
+                Effect effect = new Effect(entry.getKey(), entry.getValue().get("Name").asText(), entry.getValue().get("Type").asText(), data, identifier);
+                EFFECTS.put(entry.getKey(), effect);
+            }
+        }
+
 
         /* Load item palette */
         InputStream stream = getResource("bedrock/items.json");
