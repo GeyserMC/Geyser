@@ -38,6 +38,8 @@ import com.google.gson.JsonPrimitive;
 import org.geysermc.connector.GeyserConnector;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MessageUtils {
 
@@ -131,6 +133,16 @@ public class MessageUtils {
 
     public static String insertParams(String message, List<String> params) {
         String newMessage = message;
+
+        Pattern p = Pattern.compile("%([1-9])\\$s");
+        Matcher m = p.matcher(message);
+        while (m.find()) {
+            try {
+                newMessage = newMessage.replaceFirst("%" + m.group(1) + "\\$s" , params.get(Integer.parseInt(m.group(1)) - 1));
+            } catch (Exception e) {
+                // Couldnt find the param to replace
+            }
+        }
 
         for (String text : params) {
             newMessage = newMessage.replaceFirst("%s", text);
