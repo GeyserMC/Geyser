@@ -46,9 +46,6 @@ public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayE
 
     @Override
     public void translate(ServerPlayEffectPacket packet, GeyserSession session) {
-        System.out.println("Translating: " + packet.getEffect());
-        System.out.println("Packet type: " + packet.getEffect().getClass());
-        System.out.println("Data: " + packet.getData());
         LevelEventPacket effect = new LevelEventPacket();
         // Some things here are particles, others are not
         if (packet.getEffect() instanceof ParticleEffect) {

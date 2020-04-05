@@ -46,8 +46,6 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
 
     @Override
     public void translate(ServerSpawnParticlePacket packet, GeyserSession session) {
-        System.out.println("Translating particle: " + packet.getParticle().getType());
-        System.out.println("Data: " + packet.getParticle().getData());
         LevelEventPacket particle = new LevelEventPacket();
         switch(packet.getParticle().getType()){
 //            case BLOCK:

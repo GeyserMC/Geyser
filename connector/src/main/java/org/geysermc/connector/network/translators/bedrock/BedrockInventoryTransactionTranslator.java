@@ -49,9 +49,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
         switch (packet.getTransactionType()) {
             case ITEM_USE:
-                if (packet.getActionType() == 0) {
-                  System.out.println(packet.getBlockRuntimeId());
-                } else if (packet.getActionType() == 1) {
+                if (packet.getActionType() == 1) {
                     ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                     session.getDownstream().getSession().send(useItemPacket);
                 } else if (packet.getActionType() == 2) {
