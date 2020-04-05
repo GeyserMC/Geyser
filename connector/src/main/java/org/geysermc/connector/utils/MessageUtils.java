@@ -122,10 +122,7 @@ public class MessageUtils {
         if (localeStrings == null)
             localeStrings = Toolbox.LOCALE_MAPPINGS.get(GeyserConnector.getInstance().getConfig().getDefaultLocale());
 
-        String newLocaleString = localeStrings.getOrDefault(messageText, messageText);
-
-        GeyserConnector.getInstance().getLogger().info("Converting '" + messageText + "' -> '" + newLocaleString + "'");
-        return newLocaleString;
+        return localeStrings.getOrDefault(messageText, messageText);
     }
 
     public static String getBedrockMessage(Message message) {
