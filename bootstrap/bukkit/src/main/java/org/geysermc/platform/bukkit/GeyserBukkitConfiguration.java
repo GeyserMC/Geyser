@@ -102,6 +102,9 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
     }
 
     @Override
+    public String getDefaultLocale() { return config.getString("default-locale", "en_us"); }
+
+    @Override
     public Path getFloodgateKeyFile() {
         return Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
     }

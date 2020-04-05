@@ -42,39 +42,6 @@ import java.io.InputStream;
 import java.util.*;
 
 public class MessageUtils {
-    private static final HashMap<String, HashMap<String, String>> LOCALE_MAPPINGS = new HashMap<>();
-
-    static {
-        /* Load the language mappings */
-        InputStream languagesStream = Toolbox.getResource("mappings/locales.json");
-        JsonNode locales;
-        try {
-            locales = Toolbox.JSON_MAPPER.readTree(languagesStream);
-        } catch (Exception e) {
-            throw new AssertionError("Unable to load Java locale list", e);
-        }
-
-        for (JsonNode localeNode : locales.get("locales")) {
-            String currentLocale = localeNode.asText();
-
-            InputStream stream = Toolbox.getResource("mappings/lang/" + currentLocale + ".json");
-            JsonNode lang;
-            try {
-                lang = Toolbox.JSON_MAPPER.readTree(stream);
-            } catch (Exception e) {
-                throw new AssertionError("Unable to load Java lang map for " + currentLocale, e);
-            }
-
-            Iterator<Map.Entry<String, JsonNode>> langIterator = lang.fields();
-            HashMap<String, String> langMap = new HashMap<>();
-            while (langIterator.hasNext()) {
-                Map.Entry<String, JsonNode> entry = langIterator.next();
-                langMap.put(entry.getKey(), entry.getValue().asText());
-            }
-
-            LOCALE_MAPPINGS.put(currentLocale.toLowerCase(), langMap);
-        }
-    }
 
     public static List<String> getTranslationParams(Message[] messages) {
         List<String> strings = new ArrayList<>();
@@ -138,9 +105,9 @@ public class MessageUtils {
     }
 
     private static String getLocaleString(String messageText, String locale) {
-        HashMap<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase());
+        HashMap<String, String> localeStrings = Toolbox.LOCALE_MAPPINGS.get(locale.toLowerCase());
         if (localeStrings == null)
-            localeStrings = LOCALE_MAPPINGS.get("en_us");
+            localeStrings = Toolbox.LOCALE_MAPPINGS.get(GeyserConnector.getInstance().getConfig().getDefaultLocale());
 
         String newLocaleString = localeStrings.getOrDefault(messageText, messageText);
 

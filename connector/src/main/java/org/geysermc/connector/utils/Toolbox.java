@@ -52,6 +52,8 @@ public class Toolbox {
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
+    public static final HashMap<String, HashMap<String, String>> LOCALE_MAPPINGS = new HashMap<>();
+
     static {
         /* Load biomes */
         InputStream biomestream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/biome_definitions.dat");
@@ -102,6 +104,36 @@ public class Toolbox {
             ITEM_ENTRIES.put(itemIndex, new ItemEntry(entry.getKey(), itemIndex,
                     entry.getValue().get("bedrock_id").intValue(), entry.getValue().get("bedrock_data").intValue()));
             itemIndex++;
+        }
+
+        /* Load the language mappings */
+        stream = Toolbox.getResource("mappings/locales.json");
+        JsonNode locales;
+        try {
+            locales = Toolbox.JSON_MAPPER.readTree(stream);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load Java locale list", e);
+        }
+
+        for (JsonNode localeNode : locales.get("locales")) {
+            String currentLocale = localeNode.asText();
+
+            InputStream localeStream = Toolbox.getResource("mappings/lang/" + currentLocale + ".json");
+            JsonNode locale;
+            try {
+                locale = Toolbox.JSON_MAPPER.readTree(localeStream);
+            } catch (Exception e) {
+                throw new AssertionError("Unable to load Java lang map for " + currentLocale, e);
+            }
+
+            Iterator<Map.Entry<String, JsonNode>> localeIterator = locale.fields();
+            HashMap<String, String> langMap = new HashMap<>();
+            while (localeIterator.hasNext()) {
+                Map.Entry<String, JsonNode> entry = localeIterator.next();
+                langMap.put(entry.getKey(), entry.getValue().asText());
+            }
+
+            LOCALE_MAPPINGS.put(currentLocale.toLowerCase(), langMap);
         }
     }
 
