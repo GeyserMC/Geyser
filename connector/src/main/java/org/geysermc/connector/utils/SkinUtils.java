@@ -224,6 +224,7 @@ public class SkinUtils {
                 SkinProvider.storeBedrockSkin(playerEntity.getUuid(), data.getSkinUrl(), skinBytes);
             }else{
                 GeyserConnector.getInstance().getLogger().info("Unable to load skin for '" + playerEntity.getUsername() + "' as they are using a customised skin");
+                GeyserConnector.getInstance().getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());
             }
             SkinProvider.storeBedrockGeometry(playerEntity.getUuid(), geometryNameBytes, geometryBytes);
             if (!clientData.getCapeId().equals("")) {

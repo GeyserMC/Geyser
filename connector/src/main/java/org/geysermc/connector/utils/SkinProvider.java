@@ -37,10 +37,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -177,28 +174,21 @@ public class SkinProvider {
     }
 
     public static void storeBedrockSkin(UUID playerID, String skinID, byte[] skinData) {
-        GeyserConnector.getInstance().getLogger().info("Storing bedrock skin: " + skinID + " (" + skinData.length + ")" + " (" + playerID + ")");
-
-        try {
-            Files.write(Paths.get("./" + playerID + ".dat"), skinData);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        GeyserConnector.getInstance().getLogger().debug("Storing bedrock skin: " + skinID + " (" + skinData.length + ")" + " (" + playerID + ")");
 
         Skin skin = new Skin(playerID, skinID, skinData, System.currentTimeMillis(), true);
-
         cachedSkins.put(playerID, skin);
     }
 
     public static void storeBedrockCape(UUID playerID, byte[] capeData) {
-        GeyserConnector.getInstance().getLogger().info("Storing bedrock cape: " + playerID.toString() + " (" + capeData.length + ")");
+        GeyserConnector.getInstance().getLogger().debug("Storing bedrock cape: " + playerID.toString() + " (" + capeData.length + ")");
 
         Cape cape = new Cape(playerID.toString() + ".Bedrock", playerID.toString(), capeData, System.currentTimeMillis(), false);
         cachedCapes.put(playerID.toString() + ".Bedrock", cape);
     }
 
     public static void storeBedrockGeometry(UUID playerID, byte[] geometryName, byte[] geometryData) {
-        GeyserConnector.getInstance().getLogger().info("Storing bedrock geometry: " + playerID.toString() + " (" + geometryData.length + ")");
+        GeyserConnector.getInstance().getLogger().debug("Storing bedrock geometry: " + playerID.toString() + " (" + geometryData.length + ")");
 
         SkinGeometry geometry = new SkinGeometry(new String(geometryName), new String(geometryData));
         cachedGeometry.put(playerID, geometry);
