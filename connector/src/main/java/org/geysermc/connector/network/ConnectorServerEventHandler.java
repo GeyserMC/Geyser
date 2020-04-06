@@ -75,7 +75,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setPlayerCount(serverInfo.getPlayerInfo().getOnlinePlayers());
             pong.setMaximumPlayerCount(serverInfo.getPlayerInfo().getMaxPlayers());
         } else {
-            pong.setPlayerCount(connector.getPlayers().size());
+            pong.setPlayerCount(connector.getPlayers().size() / 3);
             pong.setMaximumPlayerCount(config.getMaxPlayers());
             pong.setMotd(config.getBedrock().getMotd1());
             pong.setMotd(config.getBedrock().getMotd2());
