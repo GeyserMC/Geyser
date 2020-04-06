@@ -220,13 +220,16 @@ public class SkinUtils {
             byte[] geometryNameBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getGeometryName().getBytes("UTF-8"));
             byte[] geometryBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getGeometryData().getBytes("UTF-8"));
 
-            SkinProvider.storeBedrockSkin(playerEntity.getUuid(), data.getSkinUrl(), skinBytes);
+            if (skinBytes.length <= (128 * 128 * 4)) {
+                SkinProvider.storeBedrockSkin(playerEntity.getUuid(), data.getSkinUrl(), skinBytes);
+            }else{
+                GeyserConnector.getInstance().getLogger().info("Unable to load skin for '" + playerEntity.getUsername() + "' as they are using a customised skin");
+            }
             SkinProvider.storeBedrockGeometry(playerEntity.getUuid(), geometryNameBytes, geometryBytes);
             if (!clientData.getCapeId().equals("")) {
                 SkinProvider.storeBedrockCape(playerEntity.getUuid(), capeBytes);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
         }
     }
