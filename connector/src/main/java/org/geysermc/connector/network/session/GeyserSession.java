@@ -64,6 +64,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
+import org.geysermc.connector.utils.SkinUtils;
 import org.geysermc.connector.utils.Toolbox;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -281,6 +282,11 @@ public class GeyserSession implements CommandSender {
 
                 downstream.getSession().connect();
                 connector.addPlayer(this);
+
+                // Handle online mode bedrock skins
+                if (connector.getAuthType() == AuthType.ONLINE) {
+                    SkinUtils.handleBedrockSkin(playerEntity, clientData);
+                }
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }

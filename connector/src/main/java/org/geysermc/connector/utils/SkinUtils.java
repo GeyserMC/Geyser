@@ -38,6 +38,7 @@ import org.geysermc.common.AuthType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.auth.BedrockClientData;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -142,21 +143,8 @@ public class SkinUtils {
 
             // Check if the entity is a bedrock player
             if (entity.getEntityId() == -1) {
-                try {
-                    byte[] skinBytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getSkinData().getBytes("UTF-8"));
-                    byte[] capeBytes = session.getClientData().getCapeData();
-
-                    byte[] geometryNameBytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getGeometryName().getBytes("UTF-8"));
-                    byte[] geometryBytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getGeometryData().getBytes("UTF-8"));
-
-                    SkinProvider.storeBedrockSkin(entity.getUuid(), data.getSkinUrl(), skinBytes);
-                    SkinProvider.storeBedrockGeometry(entity.getUuid(), geometryNameBytes, geometryBytes);
-                    if (!session.getClientData().getCapeId().equals("")) {
-                        SkinProvider.storeBedrockCape(entity.getUuid(), capeBytes);
-                    }
-                } catch (Exception e) {
-                    throw new AssertionError("Failed to cache skin for bedrock user (" + entity.getUsername() + "): ", e);
-                }
+                // Handle offline and floodgate mode bedrock skins
+                SkinUtils.handleBedrockSkin(entity, session.getClientData());
             }
 
             SkinProvider.requestSkinAndCape(entity.getUuid(), data.getSkinUrl(), data.getCapeUrl())
@@ -218,5 +206,28 @@ public class SkinUtils {
                     });
 
         });
+    }
+
+    public static void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData) {
+        GameProfileData data = GameProfileData.from(playerEntity.getProfile());
+
+        GeyserConnector.getInstance().getLogger().info("Registering my skin: " + playerEntity.getUsername());
+
+        try {
+            byte[] skinBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getSkinData().getBytes("UTF-8"));
+            byte[] capeBytes = clientData.getCapeData();
+
+            byte[] geometryNameBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getGeometryName().getBytes("UTF-8"));
+            byte[] geometryBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getGeometryData().getBytes("UTF-8"));
+
+            SkinProvider.storeBedrockSkin(playerEntity.getUuid(), data.getSkinUrl(), skinBytes);
+            SkinProvider.storeBedrockGeometry(playerEntity.getUuid(), geometryNameBytes, geometryBytes);
+            if (!clientData.getCapeId().equals("")) {
+                SkinProvider.storeBedrockCape(playerEntity.getUuid(), capeBytes);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
+        }
     }
 }
