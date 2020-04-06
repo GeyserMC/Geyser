@@ -153,17 +153,17 @@ public class SkinUtils {
                             SkinProvider.Skin skin = skinAndCape.getSkin();
                             SkinProvider.Cape cape = skinAndCape.getCape();
 
+                            if (cape.isFailed()) {
+                                cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(
+                                        entity.getUuid(), false
+                                ), SkinProvider.EMPTY_CAPE, 3);
+                            }
+
                             if (cape.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_CAPES) {
                                 cape = SkinProvider.getOrDefault(SkinProvider.requestUnofficialCape(
                                         cape, entity.getUuid(),
                                         entity.getUsername(), false
                                 ), SkinProvider.EMPTY_CAPE, SkinProvider.UnofficalCape.VALUES.length * 3);
-                            }
-
-                            if (cape.isFailed()) {
-                                cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(
-                                        entity.getUuid(), false
-                                ), SkinProvider.EMPTY_CAPE, 3);
                             }
 
                             SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""));
