@@ -39,6 +39,7 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
@@ -46,6 +47,8 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.world.chunk.ChunkSection;
+
+import java.util.HashMap;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
@@ -102,20 +105,15 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 session.getUpstream().sendPacket(levelChunkPacket);
 
                 // Signs have to be sent after the chunk since in later versions they aren't included in the block entities
-                for (Int2ObjectMap.Entry<CompoundTag> blockEntityEntry : chunkData.signs.int2ObjectEntrySet()) {
-                    int x = blockEntityEntry.getValue().getInt("x");
-                    int y = blockEntityEntry.getValue().getInt("y");
-                    int z = blockEntityEntry.getValue().getInt("z");
-
-                    ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntKey()), new Position(x, y, z));
+                for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.signs.object2IntEntrySet()) {
+                    int x = blockEntityEntry.getKey().getInt("x");
+                    int y = blockEntityEntry.getKey().getInt("y");
+                    int z = blockEntityEntry.getKey().getInt("z");
+                    ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
                 }
 
-                for (Int2ObjectMap.Entry<CompoundTag> blockEntityEntry: chunkData.beds.int2ObjectEntrySet()) {
-                    int x = blockEntityEntry.getValue().getInt("x");
-                    int y = blockEntityEntry.getValue().getInt("y");
-                    int z = blockEntityEntry.getValue().getInt("z");
-
-                    ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntKey()), new Position(x, y, z));
+                for (HashMap.Entry<Position, BlockState> blockEntityEntry: chunkData.beds.entrySet()) {
+                    ChunkUtils.updateBlock(session, blockEntityEntry.getValue(), blockEntityEntry.getKey());
                 }
                 chunkData.signs.clear();
                 chunkData.beds.clear();
