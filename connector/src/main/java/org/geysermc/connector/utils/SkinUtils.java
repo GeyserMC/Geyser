@@ -140,10 +140,14 @@ public class SkinUtils {
 
             // Check if the entity is a bedrock player
             if (entity.getEntityId() == -1) {
-                byte[] bytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getSkinData().getBytes());
+                byte[] skinBytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getSkinData().getBytes());
+                byte[] capeBytes = session.getClientData().getCapeData();
 
                 // Allows 'legacy' style skins to work accross bedrock clients
-                SkinProvider.storeBedrockSkin(entity.getUuid(), data.getSkinUrl(), bytes);
+                SkinProvider.storeBedrockSkin(entity.getUuid(), data.getSkinUrl(), skinBytes);
+                if (!session.getClientData().getCapeId().equals("")) {
+                    SkinProvider.storeBedrockCape(entity.getUuid(), capeBytes);
+                }
             }
 
             SkinProvider.requestSkinAndCape(entity.getUuid(), data.getSkinUrl(), data.getCapeUrl())
@@ -157,6 +161,12 @@ public class SkinUtils {
                                         cape, entity.getUuid(),
                                         entity.getUsername(), false
                                 ), SkinProvider.EMPTY_CAPE, SkinProvider.UnofficalCape.VALUES.length * 3);
+                            }
+
+                            if (cape.isFailed()) {
+                                cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(
+                                        entity.getUuid(), false
+                                ), SkinProvider.EMPTY_CAPE, 3);
                             }
 
                             if (entity.getLastSkinUpdate() < skin.getRequestedOn()) {

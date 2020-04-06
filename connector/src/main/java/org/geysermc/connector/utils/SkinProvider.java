@@ -160,10 +160,20 @@ public class SkinProvider {
         return CompletableFuture.completedFuture(officialCape);
     }
 
-    public static void storeBedrockSkin(UUID uuid, String skinID, byte[] skinData) {
-        Skin skin = new Skin(uuid, skinID, skinData, System.currentTimeMillis(), true);
+    public static CompletableFuture<Cape> requestBedrockCape(UUID playerID, boolean newThread) {
+        Cape bedrockCape = cachedCapes.getOrDefault(playerID.toString() + ".Bedrock", EMPTY_CAPE);
+        return CompletableFuture.completedFuture(bedrockCape);
+    }
 
-        cachedSkins.put(uuid, skin);
+    public static void storeBedrockSkin(UUID playerID, String skinID, byte[] skinData) {
+        Skin skin = new Skin(playerID, skinID, skinData, System.currentTimeMillis(), true);
+
+        cachedSkins.put(playerID, skin);
+    }
+
+    public static void storeBedrockCape(UUID playerID, byte[] capeData) {
+        Cape cape = new Cape(playerID.toString() + ".Bedrock", playerID.toString(), capeData, System.currentTimeMillis(), false);
+        cachedCapes.put(playerID.toString() + ".Bedrock", cape);
     }
 
     private static Skin supplySkin(UUID uuid, String textureUrl) {
