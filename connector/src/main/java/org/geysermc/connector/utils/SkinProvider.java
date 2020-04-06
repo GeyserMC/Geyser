@@ -56,6 +56,9 @@ public class SkinProvider {
     private static Map<String, Cape> cachedCapes = new ConcurrentHashMap<>();
     private static Map<String, CompletableFuture<Cape>> requestedCapes = new ConcurrentHashMap<>();
 
+    public static final SkinGeometry EMPTY_GEOMETRY = SkinProvider.SkinGeometry.getLegacy("geometry.humanoid");
+    private static Map<UUID, SkinGeometry> cachedGeometry = new ConcurrentHashMap<>();
+
     private static final int CACHE_INTERVAL = 8 * 60 * 1000; // 8 minutes
 
     public static boolean hasSkinCached(UUID uuid) {
@@ -165,6 +168,11 @@ public class SkinProvider {
         return CompletableFuture.completedFuture(bedrockCape);
     }
 
+    public static CompletableFuture<SkinGeometry> requestBedrockGeometry(SkinGeometry currentGeometry, UUID playerID, boolean newThread) {
+        SkinGeometry bedrockGeometry = cachedGeometry.getOrDefault(playerID, currentGeometry);
+        return CompletableFuture.completedFuture(bedrockGeometry);
+    }
+
     public static void storeBedrockSkin(UUID playerID, String skinID, byte[] skinData) {
         Skin skin = new Skin(playerID, skinID, skinData, System.currentTimeMillis(), true);
 
@@ -174,6 +182,11 @@ public class SkinProvider {
     public static void storeBedrockCape(UUID playerID, byte[] capeData) {
         Cape cape = new Cape(playerID.toString() + ".Bedrock", playerID.toString(), capeData, System.currentTimeMillis(), false);
         cachedCapes.put(playerID.toString() + ".Bedrock", cape);
+    }
+
+    public static void storeBedrockGeometry(UUID playerID, byte[] geometryName, byte[] geometryData) {
+        SkinGeometry geometry = new SkinGeometry(new String(geometryName), new String(geometryData));
+        cachedGeometry.put(playerID, geometry);
     }
 
     private static Skin supplySkin(UUID uuid, String textureUrl) {
@@ -276,6 +289,17 @@ public class SkinProvider {
         private byte[] capeData;
         private long requestedOn;
         private boolean failed;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class SkinGeometry {
+        private String geometryName;
+        private String geometryData;
+
+        public static SkinGeometry getLegacy(String name) {
+            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"" + name + "\"}}", "");
+        }
     }
 
     /*

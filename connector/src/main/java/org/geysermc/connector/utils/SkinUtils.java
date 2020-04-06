@@ -51,6 +51,8 @@ public class SkinUtils {
         GameProfileData data = GameProfileData.from(profile);
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
 
+        SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""));
+
         return buildEntryManually(
                 profile.getId(),
                 profile.getName(),
@@ -59,8 +61,8 @@ public class SkinUtils {
                 SkinProvider.getCachedSkin(profile.getId()).getSkinData(),
                 cape.getCapeId(),
                 cape.getCapeData(),
-                getLegacySkinGeometry("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : "")),
-                ""
+                geometry.getGeometryName(),
+                geometry.getGeometryData()
         );
     }
 
@@ -73,8 +75,8 @@ public class SkinUtils {
                 SkinProvider.STEVE_SKIN,
                 SkinProvider.EMPTY_CAPE.getCapeId(),
                 SkinProvider.EMPTY_CAPE.getCapeData(),
-                getLegacySkinGeometry("geometry.humanoid"),
-                ""
+                SkinProvider.EMPTY_GEOMETRY.getGeometryName(),
+                SkinProvider.EMPTY_GEOMETRY.getGeometryData()
         );
     }
 
@@ -140,13 +142,20 @@ public class SkinUtils {
 
             // Check if the entity is a bedrock player
             if (entity.getEntityId() == -1) {
-                byte[] skinBytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getSkinData().getBytes());
-                byte[] capeBytes = session.getClientData().getCapeData();
+                try {
+                    byte[] skinBytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getSkinData().getBytes("UTF-8"));
+                    byte[] capeBytes = session.getClientData().getCapeData();
 
-                // Allows 'legacy' style skins to work accross bedrock clients
-                SkinProvider.storeBedrockSkin(entity.getUuid(), data.getSkinUrl(), skinBytes);
-                if (!session.getClientData().getCapeId().equals("")) {
-                    SkinProvider.storeBedrockCape(entity.getUuid(), capeBytes);
+                    byte[] geometryNameBytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getGeometryName().getBytes("UTF-8"));
+                    byte[] geometryBytes = com.github.steveice10.mc.auth.util.Base64.decode(session.getClientData().getGeometryData().getBytes("UTF-8"));
+
+                    SkinProvider.storeBedrockSkin(entity.getUuid(), data.getSkinUrl(), skinBytes);
+                    SkinProvider.storeBedrockGeometry(entity.getUuid(), geometryNameBytes, geometryBytes);
+                    if (!session.getClientData().getCapeId().equals("")) {
+                        SkinProvider.storeBedrockCape(entity.getUuid(), capeBytes);
+                    }
+                } catch (Exception e) {
+                    throw new AssertionError("Failed to cache skin for bedrock user (" + entity.getUsername() + "): ", e);
                 }
             }
 
@@ -169,6 +178,11 @@ public class SkinUtils {
                                 ), SkinProvider.EMPTY_CAPE, 3);
                             }
 
+                            SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""));
+                            geometry = SkinProvider.getOrDefault(SkinProvider.requestBedrockGeometry(
+                                    geometry, entity.getUuid(), false
+                            ), geometry, 3);
+
                             if (entity.getLastSkinUpdate() < skin.getRequestedOn()) {
                                 entity.setLastSkinUpdate(skin.getRequestedOn());
 
@@ -181,8 +195,8 @@ public class SkinUtils {
                                             skin.getSkinData(),
                                             cape.getCapeId(),
                                             cape.getCapeData(),
-                                            getLegacySkinGeometry("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : "")),
-                                            ""
+                                            geometry.getGeometryName(),
+                                            geometry.getGeometryData()
                                     );
 
                                     PlayerListPacket playerRemovePacket = new PlayerListPacket();
@@ -204,9 +218,5 @@ public class SkinUtils {
                     });
 
         });
-    }
-
-    private static String getLegacySkinGeometry(String geometryName) {
-        return "{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}";
     }
 }
