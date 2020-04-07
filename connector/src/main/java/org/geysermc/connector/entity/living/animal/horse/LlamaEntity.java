@@ -52,6 +52,7 @@ public class LlamaEntity extends ChestedHorseEntity {
             // Bedrock treats llama decoration as armor
             MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
             equipmentPacket.setRuntimeEntityId(getGeyserId());
+            // -1 means no armor
             if ((int) entityMetadata.getValue() != -1) {
                 // The damage value is the dye color that Java sends us
                 // Always going to be a carpet so we can hardcode 171
