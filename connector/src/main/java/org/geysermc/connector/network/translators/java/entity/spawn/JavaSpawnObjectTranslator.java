@@ -49,11 +49,6 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
         if (packet.getType() == ObjectType.ITEM_FRAME)
             return;
 
-        int javaId = -1;
-        if (packet.getType() == ObjectType.FALLING_BLOCK) {
-            javaId = ((FallingBlockData) packet.getData()).getId();
-        }
-
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), 0);
@@ -69,7 +64,7 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
             Entity entity;
             if (packet.getType() == ObjectType.FALLING_BLOCK) {
                 entity = new FallingBlockEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        type, position, motion, rotation, javaId);
+                        type, position, motion, rotation, ((FallingBlockData) packet.getData()).getId());
             } else {
                 Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, EntityType.class,
                         Vector3f.class, Vector3f.class, Vector3f.class);
