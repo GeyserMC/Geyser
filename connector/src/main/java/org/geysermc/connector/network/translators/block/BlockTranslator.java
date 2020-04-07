@@ -177,6 +177,10 @@ public class BlockTranslator {
         return JAVA_TO_BEDROCK_BLOCK_MAP.get(state.getId());
     }
 
+    public static int getBedrockBlockId(int javaId) {
+        return JAVA_TO_BEDROCK_BLOCK_MAP.get(javaId);
+    }
+
     public static BlockState getJavaBlockState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
     }
