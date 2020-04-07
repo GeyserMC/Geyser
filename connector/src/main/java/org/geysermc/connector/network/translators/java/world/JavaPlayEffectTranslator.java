@@ -42,7 +42,7 @@ import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.Toolbox;
 
 @Translator(packet = ServerPlayEffectPacket.class)
-public class JavaServerPlayEffectTranslator extends PacketTranslator<ServerPlayEffectPacket> {
+public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectPacket> {
 
     @Override
     public void translate(ServerPlayEffectPacket packet, GeyserSession session) {
