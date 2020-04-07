@@ -40,11 +40,7 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.UUID;
@@ -224,16 +220,6 @@ public class SkinUtils {
             byte[] geometryNameBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getGeometryName().getBytes("UTF-8"));
             byte[] geometryBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getGeometryData().getBytes("UTF-8"));
 
-            if (skinBytes.length == 131072) {
-                skinBytes = convertBedrockCustomised(skinBytes, clientData.getSkinImageWidth(), clientData.getSkinImageHeight());
-
-                try {
-                    Files.write(Paths.get("./" + playerEntity.getUuid() + "_conv.dat"), skinBytes);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
             if (skinBytes.length <= (128 * 128 * 4)) {
                 SkinProvider.storeBedrockSkin(playerEntity.getUuid(), data.getSkinUrl(), skinBytes);
             }else{
@@ -247,27 +233,5 @@ public class SkinUtils {
         } catch (Exception e) {
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
         }
-    }
-
-    public static byte[] convertBedrockCustomised(byte[] skinBytes, int width, int height) {
-        byte[] newSkinBytes = new byte[skinBytes.length / 2];
-
-        int fullIndex = 0;
-        int halfIndex = 0;
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (x < (width / 2)) {
-                    newSkinBytes[halfIndex] = skinBytes[fullIndex];
-                    newSkinBytes[halfIndex + 1] = skinBytes[fullIndex + 1];
-                    newSkinBytes[halfIndex + 2] = skinBytes[fullIndex + 2];
-                    newSkinBytes[halfIndex + 3] = skinBytes[fullIndex + 3];
-
-                    halfIndex += 4;
-                }
-                fullIndex += 4;
-            }
-        }
-
-        return newSkinBytes;
     }
 }
