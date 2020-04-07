@@ -37,8 +37,6 @@ import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -48,7 +46,7 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.world.chunk.ChunkSection;
 
-import java.util.HashMap;
+import java.util.Map;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
@@ -112,7 +110,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
                 }
 
-                for (HashMap.Entry<Position, BlockState> blockEntityEntry: chunkData.beds.entrySet()) {
+                for (Map.Entry<Position, BlockState> blockEntityEntry: chunkData.beds.entrySet()) {
                     ChunkUtils.updateBlock(session, blockEntityEntry.getValue(), blockEntityEntry.getKey());
                 }
                 chunkData.signs.clear();
