@@ -47,6 +47,24 @@ public class LlamaEntity extends ChestedHorseEntity {
         if (entityMetadata.getId() == 19) {
             metadata.put(EntityData.STRENGTH, entityMetadata.getValue());
         }
+        // Color equipped on the llama
+        if (entityMetadata.getId() == 20) {
+            // Bedrock treats llama decoration as armor
+            MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
+            equipmentPacket.setRuntimeEntityId(getGeyserId());
+            if ((int) entityMetadata.getValue() != -1) {
+                // The damage value is the dye color that Java sends us
+                // Always going to be a carpet so we can hardcode 171
+                // The int then short conversion is required or we get a ClassCastException
+                equipmentPacket.setChestplate(ItemData.of(171, (short)((int) entityMetadata.getValue()), 1));
+            } else equipmentPacket.setChestplate(ItemData.of(0, (short) 0, 0));
+            // Required to fill out the rest of the equipment or Bedrock ignores it
+            equipmentPacket.setBoots(ItemData.of(0, (short) 0, 0));
+            equipmentPacket.setHelmet(ItemData.of(0, (short) 0, 0));
+            equipmentPacket.setLeggings(ItemData.of(0, (short) 0, 0));
+
+            session.getUpstream().sendPacket(equipmentPacket);
+        }
         // Color of the llama
         if (entityMetadata.getId() == 21) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
