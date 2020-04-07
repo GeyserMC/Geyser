@@ -49,6 +49,7 @@ import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -61,7 +62,7 @@ public class GeyserConnector {
     public static final String NAME = "Geyser";
     public static final String VERSION = "1.0-SNAPSHOT";
 
-    private final Map<Object, GeyserSession> players = new HashMap<>();
+    private final Map<UUID, GeyserSession> players = new HashMap<>();
 
     private static GeyserConnector instance;
 
@@ -151,15 +152,11 @@ public class GeyserConnector {
     }
 
     public void addPlayer(GeyserSession player) {
-        players.put(player.getAuthData().getName(), player);
         players.put(player.getAuthData().getUUID(), player);
-        players.put(player.getSocketAddress(), player);
     }
 
     public void removePlayer(GeyserSession player) {
-        players.remove(player.getAuthData().getName());
         players.remove(player.getAuthData().getUUID());
-        players.remove(player.getSocketAddress());
     }
 
     public static GeyserConnector start(PlatformType platformType, IGeyserBootstrap bootstrap) {
