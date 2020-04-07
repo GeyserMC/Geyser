@@ -26,7 +26,6 @@
 package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
@@ -57,12 +56,14 @@ public class LlamaEntity extends ChestedHorseEntity {
                 // The damage value is the dye color that Java sends us
                 // Always going to be a carpet so we can hardcode 171
                 // The int then short conversion is required or we get a ClassCastException
-                equipmentPacket.setChestplate(ItemData.of(171, (short)((int) entityMetadata.getValue()), 1));
-            } else equipmentPacket.setChestplate(ItemData.of(0, (short) 0, 0));
+                equipmentPacket.setChestplate(ItemData.of(BlockTranslator.LLAMA_ARMOR_ID, (short)((int) entityMetadata.getValue()), 1));
+            } else {
+                equipmentPacket.setChestplate(ItemData.AIR);
+            }
             // Required to fill out the rest of the equipment or Bedrock ignores it
-            equipmentPacket.setBoots(ItemData.of(0, (short) 0, 0));
-            equipmentPacket.setHelmet(ItemData.of(0, (short) 0, 0));
-            equipmentPacket.setLeggings(ItemData.of(0, (short) 0, 0));
+            equipmentPacket.setBoots(ItemData.AIR);
+            equipmentPacket.setHelmet(ItemData.AIR);
+            equipmentPacket.setLeggings(ItemData.AIR);
 
             session.getUpstream().sendPacket(equipmentPacket);
         }

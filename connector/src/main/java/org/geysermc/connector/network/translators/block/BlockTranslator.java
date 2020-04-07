@@ -55,6 +55,9 @@ public class BlockTranslator {
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
+    // Carpet ID, used in LlamaEntity.java
+    public static final int LLAMA_ARMOR_ID = 171;
+
     private static final int BLOCK_STATE_VERSION = 17760256;
 
     static {
