@@ -48,7 +48,7 @@ public class LlamaEntity extends ChestedHorseEntity {
             metadata.put(EntityData.STRENGTH, entityMetadata.getValue());
         }
         // Color of the llama
-        else if (entityMetadata.getId() == 21) {
+        if (entityMetadata.getId() == 21) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
