@@ -40,10 +40,7 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
         ClientboundMapItemDataPacket mapItemDataPacket = new ClientboundMapItemDataPacket();
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
-        if (session.getLastDimPacket() == null) {
-            System.out.println("Dimension is null");
-            mapItemDataPacket.setDimensionId(0);
-        } else mapItemDataPacket.setDimensionId(session.getLastDimPacket().getDimension());
+        mapItemDataPacket.setDimensionId(session.getPlayerEntity().getDimension());
         mapItemDataPacket.setLocked(packet.isLocked());
         mapItemDataPacket.setScale(packet.getScale());
 
