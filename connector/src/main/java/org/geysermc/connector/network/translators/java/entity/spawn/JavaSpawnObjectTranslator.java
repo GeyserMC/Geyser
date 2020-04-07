@@ -28,7 +28,9 @@ package org.geysermc.connector.network.translators.java.entity.spawn;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import com.github.steveice10.mc.protocol.data.game.entity.type.object.FallingBlockData;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.FallingBlockEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -47,6 +49,11 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
         if (packet.getType() == ObjectType.ITEM_FRAME)
             return;
 
+        int javaId = -1;
+        if (packet.getType() == ObjectType.FALLING_BLOCK) {
+            javaId = ((FallingBlockData) packet.getData()).getId();
+        }
+
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), 0);
@@ -59,12 +66,18 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
 
         Class<? extends Entity> entityClass = type.getEntityClass();
         try {
-            Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, EntityType.class,
-                    Vector3f.class, Vector3f.class, Vector3f.class);
+            Entity entity;
+            if (packet.getType() == ObjectType.FALLING_BLOCK) {
+                entity = new FallingBlockEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                        type, position, motion, rotation, javaId);
+            } else {
+                Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, EntityType.class,
+                        Vector3f.class, Vector3f.class, Vector3f.class);
 
-            Entity entity = entityConstructor.newInstance(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                    type, position, motion, rotation
-            );
+                entity = entityConstructor.newInstance(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                        type, position, motion, rotation
+                );
+            }
             session.getEntityCache().spawnEntity(entity);
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
             ex.printStackTrace();

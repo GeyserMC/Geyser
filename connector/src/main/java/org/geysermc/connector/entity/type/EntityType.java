@@ -103,7 +103,7 @@ public enum EntityType {
     PLAYER(PlayerEntity.class, 63, 1.8f, 0.6f, 0.6f, 1.62f),
     ITEM(ItemEntity.class, 64, 0.25f, 0.25f),
     TNT(Entity.class, 65, 0.98f, 0.98f),
-    FALLING_BLOCK(Entity.class, 66, 0.98f, 0.98f),
+    FALLING_BLOCK(FallingBlockEntity.class, 66, 0.98f, 0.98f),
     MOVING_BLOCK(Entity.class, 67, 0f),
     EXPERIENCE_BOTTLE(ThrowableEntity.class, 68, 0.25f, 0.25f),
     EXPERIENCE_ORB(ExpOrbEntity.class, 69, 0f),
