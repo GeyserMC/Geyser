@@ -25,32 +25,37 @@
 
 package org.geysermc.connector.entity.living.animal.horse;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.ItemData;
-import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
+import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
 
-public class LlamaEntity extends ChestedHorseEntity {
+public class TraderLlamaEntity extends LlamaEntity {
 
-    public LlamaEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public TraderLlamaEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // Strength
-        if (entityMetadata.getId() == 19) {
-            metadata.put(EntityData.STRENGTH, entityMetadata.getValue());
-        }
-        // Color of the llama
-        if (entityMetadata.getId() == 21) {
-            metadata.put(EntityData.VARIANT, entityMetadata.getValue());
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void spawnEntity(GeyserSession session) {
+        // The trader llama is a separate entity from the llama in Java but a normal llama with extra metadata in Bedrock.
+        AddEntityPacket addEntityPacket = new AddEntityPacket();
+        addEntityPacket.setIdentifier("minecraft:llama");
+        addEntityPacket.setRuntimeEntityId(geyserId);
+        addEntityPacket.setUniqueEntityId(geyserId);
+        addEntityPacket.setPosition(position);
+        addEntityPacket.setMotion(motion);
+        addEntityPacket.setRotation(getBedrockRotation());
+        addEntityPacket.setEntityType(entityType.getType());
+        addEntityPacket.getMetadata().putAll(metadata);
+        // Here's the difference
+        addEntityPacket.getMetadata().put(EntityData.MARK_VARIANT, 1);
+
+        valid = true;
+        session.getUpstream().sendPacket(addEntityPacket);
+
+        session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
+
 }
