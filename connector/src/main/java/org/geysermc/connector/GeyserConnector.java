@@ -143,7 +143,7 @@ public class GeyserConnector {
         shuttingDown = true;
 
         if (players.size() >= 1) {
-            bootstrap.getGeyserLogger().info("Kicking " + (players.size() / 3) + " player(s)");
+            bootstrap.getGeyserLogger().info("Kicking " + players.size() + " player(s)");
 
             for (GeyserSession playerSession : players.values()) {
                 playerSession.disconnect("Geyser Proxy shutting down.");
