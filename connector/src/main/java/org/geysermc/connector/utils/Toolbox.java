@@ -106,35 +106,8 @@ public class Toolbox {
             itemIndex++;
         }
 
-        /* Load the language mappings */
-        stream = Toolbox.getResource("mappings/locales.json");
-        JsonNode locales;
-        try {
-            locales = Toolbox.JSON_MAPPER.readTree(stream);
-        } catch (Exception e) {
-            throw new AssertionError("Unable to load Java locale list", e);
-        }
-
-        for (JsonNode localeNode : locales.get("locales")) {
-            String currentLocale = localeNode.asText();
-
-            InputStream localeStream = Toolbox.getResource("mappings/lang/" + currentLocale + ".json");
-            JsonNode locale;
-            try {
-                locale = Toolbox.JSON_MAPPER.readTree(localeStream);
-            } catch (Exception e) {
-                throw new AssertionError("Unable to load Java lang map for " + currentLocale, e);
-            }
-
-            Iterator<Map.Entry<String, JsonNode>> localeIterator = locale.fields();
-            Map<String, String> langMap = new HashMap<>();
-            while (localeIterator.hasNext()) {
-                Map.Entry<String, JsonNode> entry = localeIterator.next();
-                langMap.put(entry.getKey(), entry.getValue().asText());
-            }
-
-            LOCALE_MAPPINGS.put(currentLocale.toLowerCase(), langMap);
-        }
+        // Load the locale data
+        LocaleUtils.init();
     }
 
     public static InputStream getResource(String resource) {

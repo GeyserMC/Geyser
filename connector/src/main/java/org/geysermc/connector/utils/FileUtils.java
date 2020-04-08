@@ -65,4 +65,23 @@ public class FileUtils {
 
         return file;
     }
+
+    public static void writeFile(File file, char[] data) throws IOException {
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+
+        FileOutputStream fos = new FileOutputStream(file);
+
+        for (char c : data) {
+            fos.write(c);
+        }
+
+        fos.flush();
+        fos.close();
+    }
+
+    public static void writeFile(String name, char[] data) throws IOException {
+        writeFile(new File(name), data);
+    }
 }

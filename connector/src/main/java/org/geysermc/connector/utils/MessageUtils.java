@@ -64,7 +64,7 @@ public class MessageUtils {
 
                 List<String> furtherParams = getTranslationParams(translation.getTranslationParams());
                 if (locale != null) {
-                    strings.add(insertParams(getLocaleString(translation.getTranslationKey(), locale), furtherParams));
+                    strings.add(insertParams(LocaleUtils.getLocaleString(translation.getTranslationKey(), locale), furtherParams));
                 }else{
                     strings.addAll(furtherParams);
                 }
@@ -101,7 +101,7 @@ public class MessageUtils {
 
         String messageText = message.getText();
         if (locale != null) {
-            messageText = getLocaleString(messageText, locale);
+            messageText = LocaleUtils.getLocaleString(messageText, locale);
         }
 
         StringBuilder builder = new StringBuilder(messageText);
@@ -117,14 +117,6 @@ public class MessageUtils {
 
     public static String getTranslatedBedrockMessage(Message message) {
         return getTranslatedBedrockMessage(message, null);
-    }
-
-    private static String getLocaleString(String messageText, String locale) {
-        Map<String, String> localeStrings = Toolbox.LOCALE_MAPPINGS.get(locale.toLowerCase());
-        if (localeStrings == null)
-            localeStrings = Toolbox.LOCALE_MAPPINGS.get(GeyserConnector.getInstance().getConfig().getDefaultLocale());
-
-        return localeStrings.getOrDefault(messageText, messageText);
     }
 
     public static String getBedrockMessage(Message message) {
