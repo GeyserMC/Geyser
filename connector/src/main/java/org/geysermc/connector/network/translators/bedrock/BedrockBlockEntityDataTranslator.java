@@ -35,7 +35,6 @@ import org.geysermc.connector.network.translators.Translator;
 
 import java.util.HashMap;
 
-
 @Translator(packet = BlockEntityDataPacket.class)
 public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEntityDataPacket> {
 
