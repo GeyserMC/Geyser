@@ -7,8 +7,10 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.sound.SoundMap;
 
+@Translator(packet = ServerPlaySoundPacket.class)
 public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPacket> {
 
     public static double processCoordinate(double f) {

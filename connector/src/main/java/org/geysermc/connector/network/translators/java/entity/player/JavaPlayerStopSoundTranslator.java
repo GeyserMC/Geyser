@@ -6,8 +6,10 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerStopSoundPac
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.sound.SoundMap;
 
+@Translator(packet = ServerStopSoundPacket.class)
 public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSoundPacket> {
 
     @Override
