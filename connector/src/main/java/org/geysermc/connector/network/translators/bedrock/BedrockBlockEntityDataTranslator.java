@@ -26,24 +26,15 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientUpdateSignPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
-
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.Translators;
-import org.geysermc.connector.network.translators.block.entity.SignBlockEntityTranslator;
-import org.geysermc.connector.utils.BlockEntityUtils;
-import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
+
 
 @Translator(packet = BlockEntityDataPacket.class)
 public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEntityDataPacket> {
