@@ -43,7 +43,8 @@ public class SoundMap {
                     new SoundMapping(
                             next.getKey(),
                             brMap.has("bedrock_mapping") && brMap.get("bedrock_mapping").isTextual() ? brMap.get("bedrock_mapping").asText() : null,
-                            brMap.has("playsound_mapping") && brMap.get("playsound_mapping").isTextual() ? brMap.get("playsound_mapping").asText() : null
+                            brMap.has("playsound_mapping") && brMap.get("playsound_mapping").isTextual() ? brMap.get("playsound_mapping").asText() : null,
+                            brMap.has("extra_data") && brMap.get("extra_data").isInt() ? brMap.get("extra_data").asInt() : -1
                     )
             );
         }
@@ -98,11 +99,13 @@ public class SoundMap {
         private final String java;
         private final String bedrock;
         private final String playsound;
+        private final int extraData;
 
-        public SoundMapping(String java, String bedrock, String playsound) {
+        public SoundMapping(String java, String bedrock, String playsound, int extraData) {
             this.java = java;
             this.bedrock = bedrock == null || bedrock.equalsIgnoreCase("") ? null : bedrock;
             this.playsound = playsound == null || playsound.equalsIgnoreCase("") ? null : playsound;
+            this.extraData = extraData;
         }
     }
 

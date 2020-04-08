@@ -47,7 +47,14 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
 
         soundPacket.setSound(sound);
         soundPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-        soundPacket.setExtraData(-1);
+        if (sound == SoundEvent.NOTE) {
+            // Minecraft Wiki: 2^(x/12) = Java pitch where x is -12 to 12
+            // Java sends the note value as above starting with -12 and ending at 12
+            // Bedrock has a number for each type of note, then proceeds up the scale by adding to that number
+            soundPacket.setExtraData(soundMapping.getExtraData() + (int)(Math.round((Math.log10(packet.getPitch()) / Math.log10(2)) * 12)) + 12);
+        } else {
+            soundPacket.setExtraData(soundMapping.getExtraData());
+        }
         soundPacket.setIdentifier(":"); // ???
         soundPacket.setBabySound(false); // might need to adjust this in the future
         soundPacket.setRelativeVolumeDisabled(false);
