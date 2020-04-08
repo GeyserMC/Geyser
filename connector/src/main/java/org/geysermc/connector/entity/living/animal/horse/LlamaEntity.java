@@ -54,13 +54,13 @@ public class LlamaEntity extends ChestedHorseEntity {
             // -1 means no armor
             if ((int) entityMetadata.getValue() != -1) {
                 // The damage value is the dye color that Java sends us
-                // Always going to be a carpet so we can hardcode 171
+                // Always going to be a carpet so we can hardcode 171 in BlockTranslator
                 // The int then short conversion is required or we get a ClassCastException
-                equipmentPacket.setChestplate(ItemData.of(BlockTranslator.LLAMA_ARMOR_ID, (short)((int) entityMetadata.getValue()), 1));
+                equipmentPacket.setChestplate(ItemData.of(BlockTranslator.CARPET, (short)((int) entityMetadata.getValue()), 1));
             } else {
                 equipmentPacket.setChestplate(ItemData.AIR);
             }
-            // Required to fill out the rest of the equipment or Bedrock ignores it
+            // Required to fill out the rest of the equipment or Bedrock ignores it, including above else statement if removing armor
             equipmentPacket.setBoots(ItemData.AIR);
             equipmentPacket.setHelmet(ItemData.AIR);
             equipmentPacket.setLeggings(ItemData.AIR);
