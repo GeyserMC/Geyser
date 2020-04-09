@@ -259,7 +259,6 @@ public class GeyserSession implements CommandSender {
                         // Let the user know there locale may take some time to download
                         // as it has to be extracted from a JAR
                         if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
-                            connector.getLogger().info("warning user");
                             sendMessage("Downloading your locale (en_us) this may take some time");
                         }
 
