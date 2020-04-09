@@ -46,9 +46,11 @@ public class TameableEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
             metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x04) == 0x04);
+            // Must be set for wolf collar color to work
+            // Extending it to all entities to prevent future bugs
             if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
                 metadata.put(EntityData.OWNER_EID, session.getPlayerEntity().getGeyserId());
-            }
+            } // Can't de-tame an entity so no resetting the owner ID
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

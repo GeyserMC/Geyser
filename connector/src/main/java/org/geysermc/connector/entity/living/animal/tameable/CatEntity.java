@@ -45,10 +45,11 @@ public class CatEntity extends TameableEntity {
             if ((int) entityMetadata.getValue() == 0) {
                 metadata.put(EntityData.VARIANT, 8);
             } else if ((int) entityMetadata.getValue() == 8) {
-                // Assumption, need to test
                 metadata.put(EntityData.VARIANT, 0);
             } else if ((int) entityMetadata.getValue() == 9) {
-                metadata.put(EntityData.VARIANT, 7);
+                metadata.put(EntityData.VARIANT, 10);
+            } else if ((int) entityMetadata.getValue() == 10) {
+                metadata.put(EntityData.VARIANT, 9);
             } else {
                 metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
             }

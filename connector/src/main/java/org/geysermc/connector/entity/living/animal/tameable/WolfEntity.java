@@ -44,6 +44,8 @@ public class WolfEntity extends TameableEntity {
         if (entityMetadata.getId() == 18) {
             metadata.getFlags().setFlag(EntityFlag.INTERESTED, (boolean) entityMetadata.getValue());
         }
+        // Wolf collar color
+        // Relies on EntityData.OWNER_EID being set in TameableEntity.java
         if (entityMetadata.getId() == 19) {
             metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
         }
