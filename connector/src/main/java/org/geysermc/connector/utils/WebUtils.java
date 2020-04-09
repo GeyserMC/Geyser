@@ -28,12 +28,16 @@ package org.geysermc.connector.utils;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 public class WebUtils {
 
@@ -59,6 +63,15 @@ public class WebUtils {
             return content.toString();
         } catch (Exception e) {
             return e.getMessage();
+        }
+    }
+
+    public static void downloadFile(String reqURL, String fileLocation) {
+        try {
+            InputStream in = new URL(reqURL).openStream();
+            Files.copy(in, Paths.get(fileLocation), StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to download and save file: " + fileLocation + " (" + reqURL + ")", e);
         }
     }
 }

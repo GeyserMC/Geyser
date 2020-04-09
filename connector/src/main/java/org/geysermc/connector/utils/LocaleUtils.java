@@ -33,8 +33,13 @@ import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.*;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.zip.ZipFile;
 
 public class LocaleUtils {
 
@@ -44,6 +49,8 @@ public class LocaleUtils {
 
     private static final String DEFAULT_LOCALE = (GeyserConnector.getInstance().getConfig().getDefaultLocale() != null ? GeyserConnector.getInstance().getConfig().getDefaultLocale() : "en_us");
 
+    private static String smallestURL = "";
+
     static {
         // Create the locales folder
         File localesFolder = new File("locales/");
@@ -51,6 +58,9 @@ public class LocaleUtils {
 
         // Download the latest asset list and cache it
         generateAssetCache();
+        if (!DEFAULT_LOCALE.equals("en_us")) {
+            downloadAndLoadLocale("en_us");
+        }
         downloadAndLoadLocale(DEFAULT_LOCALE);
     }
 
@@ -70,6 +80,15 @@ public class LocaleUtils {
             }
 
             VersionInfo versionInfo = Toolbox.JSON_MAPPER.readValue(WebUtils.getBody(latestInfoURL), VersionInfo.class);
+
+            int currentSize = Integer.MAX_VALUE;
+            for (VersionDownload download : versionInfo.getDownloads().values()) {
+                if (download.getUrl().endsWith(".jar") && download.getSize() < currentSize) {
+                    smallestURL = download.getUrl();
+                    currentSize = download.getSize();
+                }
+            }
+
             JsonNode assets = Toolbox.JSON_MAPPER.readTree(WebUtils.getBody(versionInfo.getAssetIndex().getUrl())).get("objects");
 
             Iterator<Map.Entry<String, JsonNode>> assetIterator = assets.fields();
@@ -106,30 +125,14 @@ public class LocaleUtils {
 
         // Create the en_us locale
         if (locale.equals("en_us")) {
-            try {
-                InputStreamReader isReader = new InputStreamReader(Toolbox.getResource("mappings/lang/en_us.json"));
-                BufferedReader reader = new BufferedReader(isReader);
-                StringBuffer sb = new StringBuffer();
-                String str;
-                while((str = reader.readLine())!= null){
-                    sb.append(str);
-                }
-
-                FileUtils.writeFile(localeFile, sb.toString().toCharArray());
-            } catch (Exception e) {
-                throw new AssertionError("Unable to load en_us locale!", e);
-            }
+            downloadEN_US(localeFile);
 
             return;
         }
 
+        // Get the hash and download the locale
         String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
-
-        try {
-            FileUtils.writeFile("locales/" + locale + ".json", WebUtils.getBody("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash).toCharArray());
-        } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().warning("Failed to download locale " + locale + ": " + (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace()));
-        }
+        WebUtils.downloadFile("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, "locales/" + locale + ".json");
     }
 
     private static void loadLocale(String locale) {
@@ -165,6 +168,41 @@ public class LocaleUtils {
             LOCALE_MAPPINGS.put(locale.toLowerCase(), langMap);
         } else {
             GeyserConnector.getInstance().getLogger().warning("Missing locale file: " + locale);
+        }
+    }
+
+    private static void downloadEN_US(File localeFile) {
+        try {
+            // Let the user know we are downloading the JAR
+            GeyserConnector.getInstance().getLogger().info("Downloading Minecraft JAR to extract en_us locale, please wait... (this may take some time depending on the speed of your internet connection)");
+            GeyserConnector.getInstance().getLogger().debug("Download URL: " + smallestURL);
+
+            // Download the smallest JAR (client or server)
+            WebUtils.downloadFile(smallestURL, "tmp_locale.jar");
+
+            // Load in the JAR as a zip and extract the file
+            ZipFile localeJar = new ZipFile("tmp_locale.jar");
+            InputStream inputStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"));
+            FileOutputStream outputStream = new FileOutputStream(localeFile);
+
+            // Write the file to the locale dir
+            int data = inputStream.read();
+            while(data != -1){
+                outputStream.write(data);
+                data = inputStream.read();
+            }
+
+            // Flush all changes to disk and cleanup
+            outputStream.flush();
+            outputStream.close();
+
+            inputStream.close();
+            localeJar.close();
+
+            // Delete the nolonger needed client/server jar
+            Files.delete(Paths.get("tmp_locale.jar"));
+        } catch (Exception e) {
+            throw new AssertionError("Unable to download and extract en_us locale!", e);
         }
     }
 
@@ -237,6 +275,22 @@ class VersionInfo {
 
     @JsonProperty("assetIndex")
     private AssetIndex assetIndex;
+
+    @JsonProperty("downloads")
+    private Map<String, VersionDownload> downloads;
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+class VersionDownload {
+    @JsonProperty("sha1")
+    private String sha1;
+
+    @JsonProperty("size")
+    private int size;
+
+    @JsonProperty("url")
+    private String url;
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
