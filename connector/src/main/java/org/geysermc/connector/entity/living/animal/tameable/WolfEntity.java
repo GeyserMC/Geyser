@@ -40,14 +40,12 @@ public class WolfEntity extends TameableEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        System.out.println("ID: " + entityMetadata.getId() + ", " + entityMetadata.getValue());
         // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
         if (entityMetadata.getId() == 18) {
             metadata.getFlags().setFlag(EntityFlag.INTERESTED, (boolean) entityMetadata.getValue());
         }
         if (entityMetadata.getId() == 19) {
-            metadata.put(EntityData.INTERACTIVE_TAG, "action.interact.dye");
-            metadata.put(EntityData.COLOR, entityMetadata.getValue());
+            metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

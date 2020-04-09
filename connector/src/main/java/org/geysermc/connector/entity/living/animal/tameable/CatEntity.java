@@ -55,7 +55,7 @@ public class CatEntity extends TameableEntity {
             System.out.println("Variant: " + entityMetadata.getValue());
         }
         if (entityMetadata.getId() == 21) {
-            // Needed or else wild cats are that color
+            // Needed or else wild cats are a red color
             if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
                 metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
             }

@@ -27,6 +27,7 @@ package org.geysermc.connector.entity.living.animal.tameable;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -45,6 +46,9 @@ public class TameableEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
             metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x04) == 0x04);
+            if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
+                metadata.put(EntityData.OWNER_EID, session.getPlayerEntity().getGeyserId());
+            }
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
