@@ -41,6 +41,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 
 @Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
@@ -61,11 +62,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 break;
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
-                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(
-                            packet.getBlockPosition().getX(),
-                            packet.getBlockPosition().getY(),
-                            packet.getBlockPosition().getZ()
-                    ), BlockFace.values()[packet.getFace()]);
+                    // Followed to the Minecraft Protocol specification outlined at wiki.vg
+                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0),
+                            BlockFace.DOWN);
                     session.getDownstream().getSession().send(releaseItemPacket);
                 }
                 break;

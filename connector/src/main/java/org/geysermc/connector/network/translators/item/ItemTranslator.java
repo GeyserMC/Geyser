@@ -72,7 +72,16 @@ public class ItemTranslator {
         if (stack.getNbt() == null) {
            return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount());
         }
-        return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(stack.getNbt()));
+
+        // TODO: Create proper transformers instead of shoving everything here
+        CompoundTag tag = stack.getNbt();
+        IntTag mapId = tag.get("map");
+
+        if (mapId != null)
+            tag.put(new StringTag("map_uuid", mapId.getValue().toString()));
+
+
+        return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(tag));
     }
 
     public ItemEntry getItem(ItemStack stack) {

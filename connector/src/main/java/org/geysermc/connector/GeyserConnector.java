@@ -49,6 +49,8 @@ import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -61,7 +63,7 @@ public class GeyserConnector {
     public static final String NAME = "Geyser";
     public static final String VERSION = "1.0-SNAPSHOT";
 
-    private final Map<Object, GeyserSession> players = new HashMap<>();
+    private final Map<UUID, GeyserSession> players = new HashMap<>();
 
     private static GeyserConnector instance;
 
@@ -141,6 +143,40 @@ public class GeyserConnector {
         bootstrap.getGeyserLogger().info("Shutting down Geyser.");
         shuttingDown = true;
 
+        if (players.size() >= 1) {
+            bootstrap.getGeyserLogger().info("Kicking " + players.size() + " player(s)");
+
+            for (GeyserSession playerSession : players.values()) {
+                playerSession.disconnect("Geyser Proxy shutting down.");
+            }
+
+            CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {
+                @Override
+                public void run() {
+                    // Simulate a long-running Job
+                    try {
+                        while (true) {
+                            if (players.size() == 0) {
+                                return;
+                            }
+
+                            TimeUnit.MILLISECONDS.sleep(100);
+                        }
+                    } catch (InterruptedException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+            });
+
+            // Block and wait for the future to complete
+            try {
+                future.get();
+                bootstrap.getGeyserLogger().info("Kicked all players");
+            } catch (Exception e) {
+                // Quietly fail
+            }
+        }
+
         generalThreadPool.shutdown();
         bedrockServer.close();
         players.clear();
@@ -148,18 +184,16 @@ public class GeyserConnector {
         authType = null;
         commandMap.getCommands().clear();
         commandMap = null;
+
+        bootstrap.getGeyserLogger().info("Geyser shutdown successfully.");
     }
 
     public void addPlayer(GeyserSession player) {
-        players.put(player.getAuthData().getName(), player);
         players.put(player.getAuthData().getUUID(), player);
-        players.put(player.getSocketAddress(), player);
     }
 
     public void removePlayer(GeyserSession player) {
-        players.remove(player.getAuthData().getName());
         players.remove(player.getAuthData().getUUID());
-        players.remove(player.getSocketAddress());
     }
 
     public static GeyserConnector start(PlatformType platformType, IGeyserBootstrap bootstrap) {

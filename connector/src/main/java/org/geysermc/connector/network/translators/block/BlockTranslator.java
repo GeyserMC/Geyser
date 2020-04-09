@@ -55,6 +55,9 @@ public class BlockTranslator {
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
+    // Bedrock carpet ID, used in LlamaEntity.java for decoration
+    public static final int CARPET = 171;
+
     private static final int BLOCK_STATE_VERSION = 17760256;
 
     static {
@@ -175,6 +178,10 @@ public class BlockTranslator {
 
     public static int getBedrockBlockId(BlockState state) {
         return JAVA_TO_BEDROCK_BLOCK_MAP.get(state.getId());
+    }
+
+    public static int getBedrockBlockId(int javaId) {
+        return JAVA_TO_BEDROCK_BLOCK_MAP.get(javaId);
     }
 
     public static BlockState getJavaBlockState(int bedrockId) {
