@@ -58,9 +58,6 @@ public class LocaleUtils {
 
         // Download the latest asset list and cache it
         generateAssetCache();
-        if (!DEFAULT_LOCALE.equals("en_us")) {
-            downloadAndLoadLocale("en_us");
-        }
         downloadAndLoadLocale(DEFAULT_LOCALE);
     }
 

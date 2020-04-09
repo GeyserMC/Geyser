@@ -254,6 +254,9 @@ public class GeyserSession implements CommandSender {
                         playerEntity.setUuid(protocol.getProfile().getId());
                         playerEntity.setUsername(protocol.getProfile().getName());
 
+                        // Should probably let the user know if there locale is
+                        // en_us that it might take time to download it
+
                         // Download and load the language for the player
                         LocaleUtils.downloadAndLoadLocale(clientData.getLanguageCode());
                     }
