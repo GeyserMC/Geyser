@@ -63,6 +63,9 @@ public class GeyserVelocityConfiguration implements IGeyserConfiguration {
     @JsonProperty("allow-third-party-capes")
     private boolean allowThirdPartyCapes;
 
+    @JsonProperty("default-locale")
+    private String defaultLocale;
+
     private MetricsInfo metrics;
 
     @Override

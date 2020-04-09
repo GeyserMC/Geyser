@@ -35,21 +35,24 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import org.geysermc.connector.GeyserConnector;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MessageUtils {
 
-    public static List<String> getTranslationParams(Message[] messages) {
+    public static List<String> getTranslationParams(Message[] messages, String locale) {
         List<String> strings = new ArrayList<>();
         for (Message message : messages) {
             if (message instanceof TranslationMessage) {
                 TranslationMessage translation = (TranslationMessage) message;
 
-                String builder = "%" + translation.getTranslationKey();
-                strings.add(builder);
+                if (locale == null) {
+                    String builder = "%" + translation.getTranslationKey();
+                    strings.add(builder);
+                }
 
                 if (translation.getTranslationKey().equals("commands.gamemode.success.other")) {
                     strings.add("");
@@ -59,11 +62,16 @@ public class MessageUtils {
                     strings.add(" - no permission or invalid command!");
                 }
 
-                strings.addAll(getTranslationParams(translation.getTranslationParams()));
+                List<String> furtherParams = getTranslationParams(translation.getTranslationParams());
+                if (locale != null) {
+                    strings.add(insertParams(LocaleUtils.getLocaleString(translation.getTranslationKey(), locale), furtherParams));
+                }else{
+                    strings.addAll(furtherParams);
+                }
             } else {
                 String builder = getFormat(message.getStyle().getFormats()) +
-                        getColor(message.getStyle().getColor()) +
-                        getBedrockMessage(message);
+                        getColor(message.getStyle().getColor());
+                builder += getTranslatedBedrockMessage(message, locale, false);
                 strings.add(builder);
             }
         }
@@ -71,27 +79,61 @@ public class MessageUtils {
         return strings;
     }
 
+    public static List<String> getTranslationParams(Message[] messages) {
+        return getTranslationParams(messages, null);
+    }
+
     public static String getTranslationText(TranslationMessage message) {
         return getFormat(message.getStyle().getFormats()) + getColor(message.getStyle().getColor())
                 + "%" + message.getTranslationKey();
     }
 
-    public static String getBedrockMessage(Message message) {
+    public static String getTranslatedBedrockMessage(Message message, String locale, boolean shouldTranslate) {
         JsonParser parser = new JsonParser();
         if (isMessage(message.getText())) {
             JsonObject object = parser.parse(message.getText()).getAsJsonObject();
             message = Message.fromJson(formatJson(object));
         }
 
-        StringBuilder builder = new StringBuilder(message.getText());
+        String messageText = message.getText();
+        if (locale != null && shouldTranslate) {
+            messageText = LocaleUtils.getLocaleString(messageText, locale);
+        }
+
+        StringBuilder builder = new StringBuilder(messageText);
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
             builder.append(getColor(msg.getStyle().getColor()));
             if (!(msg.getText() == null)) {
-                builder.append(getBedrockMessage(msg));
+                boolean isTranslationMessage = (msg instanceof TranslationMessage);
+                builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
             }
         }
         return builder.toString();
+    }
+
+    public static String getBedrockMessage(Message message) {
+        return getTranslatedBedrockMessage(message, null, false);
+    }
+
+    public static String insertParams(String message, List<String> params) {
+        String newMessage = message;
+
+        Pattern p = Pattern.compile("%([1-9])\\$s");
+        Matcher m = p.matcher(message);
+        while (m.find()) {
+            try {
+                newMessage = newMessage.replaceFirst("%" + m.group(1) + "\\$s" , params.get(Integer.parseInt(m.group(1)) - 1));
+            } catch (Exception e) {
+                // Couldnt find the param to replace
+            }
+        }
+
+        for (String text : params) {
+            newMessage = newMessage.replaceFirst("%s", text);
+        }
+
+        return newMessage;
     }
 
     private static String getColor(ChatColor color) {

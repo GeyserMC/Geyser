@@ -65,6 +65,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
+import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.utils.Toolbox;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -252,6 +253,17 @@ public class GeyserSession implements CommandSender {
                         connector.getLogger().info(authData.getName() + " (logged in as: " + protocol.getProfile().getName() + ")" + " has connected to remote java server on address " + remoteServer.getAddress());
                         playerEntity.setUuid(protocol.getProfile().getId());
                         playerEntity.setUsername(protocol.getProfile().getName());
+
+                        String locale = clientData.getLanguageCode();
+
+                        // Let the user know there locale may take some time to download
+                        // as it has to be extracted from a JAR
+                        if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
+                            sendMessage("Downloading your locale (en_us) this may take some time");
+                        }
+
+                        // Download and load the language for the player
+                        LocaleUtils.downloadAndLoadLocale(locale);
                     }
 
                     @Override
