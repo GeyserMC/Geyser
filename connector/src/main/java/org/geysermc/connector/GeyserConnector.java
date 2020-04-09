@@ -63,7 +63,7 @@ public class GeyserConnector {
     public static final String NAME = "Geyser";
     public static final String VERSION = "1.0-SNAPSHOT";
 
-    private final Map<UUID, GeyserSession> players = new HashMap<>();
+    private final Map<InetSocketAddress, GeyserSession> players = new HashMap<>();
 
     private static GeyserConnector instance;
 
@@ -189,11 +189,11 @@ public class GeyserConnector {
     }
 
     public void addPlayer(GeyserSession player) {
-        players.put(player.getAuthData().getUUID(), player);
+        players.put(player.getSocketAddress(), player);
     }
 
     public void removePlayer(GeyserSession player) {
-        players.remove(player.getAuthData().getUUID());
+        players.remove(player.getSocketAddress());
     }
 
     public static GeyserConnector start(PlatformType platformType, IGeyserBootstrap bootstrap) {
