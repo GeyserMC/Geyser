@@ -34,13 +34,14 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import java.util.HashMap;
+import java.util.Map;
 
 @Translator(packet = BlockEntityDataPacket.class)
 public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEntityDataPacket> {
 
     // In case two people are editing signs at the same time this array holds the temporary messages to be sent
     // Position -> Message being held
-    protected static HashMap<Position, String> lastMessages = new HashMap<>();
+    protected static Map<Position, String> lastMessages = new HashMap<>();
 
     @Override
     public void translate(BlockEntityDataPacket packet, GeyserSession session) {
@@ -79,7 +80,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
                 if (iterator < lines.length) lines[iterator] = newMessage.toString();
                 ClientUpdateSignPacket clientUpdateSignPacket = new ClientUpdateSignPacket(pos, lines);
                 session.getDownstream().getSession().send(clientUpdateSignPacket);
-                //TODO (potentionally): originally I was going to update the sign blocks so Bedrock and Java users would match visually
+                //TODO (potentially): originally I was going to update the sign blocks so Bedrock and Java users would match visually
                 // However Java can still store a lot per-line and visuals are still messed up so that doesn't work
 
                 // We remove the sign position from map to indicate there is no work-in-progress sign
