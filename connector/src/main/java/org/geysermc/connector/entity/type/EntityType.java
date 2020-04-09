@@ -33,6 +33,7 @@ import org.geysermc.connector.entity.living.animal.tameable.CatEntity;
 import org.geysermc.connector.entity.living.animal.tameable.TameableEntity;
 import org.geysermc.connector.entity.living.animal.horse.*;
 import org.geysermc.connector.entity.living.animal.tameable.WolfEntity;
+import org.geysermc.connector.entity.living.merchant.*;
 import org.geysermc.connector.entity.living.monster.*;
 import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
@@ -46,7 +47,7 @@ public enum EntityType {
     PIG(PigEntity.class, 12, 0.9f),
     SHEEP(SheepEntity.class, 13, 1.3f, 0.9f),
     WOLF(WolfEntity.class, 14, 0.85f, 0.6f),
-    VILLAGER(AbstractMerchantEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f),
+    VILLAGER(VillagerEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f),
     MOOSHROOM(AnimalEntity.class, 16, 1.4f, 0.9f),
     SQUID(WaterEntity.class, 17, 0.8f),
     RABBIT(RabbitEntity.class, 18, 0.5f, 0.4f),
