@@ -55,9 +55,6 @@ public class BlockTranslator {
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
-    // Bedrock bow ID, used in BedrockInventoryTransactionTranslator.java for bow support
-    public static final int BOW = 261;
-
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
 

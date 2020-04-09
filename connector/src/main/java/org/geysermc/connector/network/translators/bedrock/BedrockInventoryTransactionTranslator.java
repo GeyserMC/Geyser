@@ -62,18 +62,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 break;
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
-                    ClientPlayerActionPacket releaseItemPacket;
-                    if (packet.getItemInHand().getId() == BlockTranslator.BOW) {
-                        // Followed to the Minecraft Protocol specification outlined at wiki.vg
-                        releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0),
+                    // Followed to the Minecraft Protocol specification outlined at wiki.vg
+                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0),
                             BlockFace.DOWN);
-                    } else {
-                        releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(
-                                packet.getBlockPosition().getX(),
-                                packet.getBlockPosition().getY(),
-                                packet.getBlockPosition().getZ()
-                        ), BlockFace.values()[packet.getFace()]);
-                    }
                     session.getDownstream().getSession().send(releaseItemPacket);
                 }
                 break;
