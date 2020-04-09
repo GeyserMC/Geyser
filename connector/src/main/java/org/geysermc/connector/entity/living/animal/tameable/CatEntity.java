@@ -41,15 +41,25 @@ public class CatEntity extends TameableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 18) {
-            metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
+            // Different colors in Java and Bedrock for some reason
+            if ((int) entityMetadata.getValue() == 0) {
+                metadata.put(EntityData.VARIANT, 8);
+            } else if ((int) entityMetadata.getValue() == 8) {
+                // Assumption, need to test
+                metadata.put(EntityData.VARIANT, 0);
+            } else if ((int) entityMetadata.getValue() == 9) {
+                metadata.put(EntityData.VARIANT, 7);
+            } else {
+                metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
+            }
+            System.out.println("Variant: " + entityMetadata.getValue());
         }
         if (entityMetadata.getId() == 21) {
-            // FIXME: Colors the whole animal instead of just collar
-            System.out.println("Color: " + (int) entityMetadata.getValue());
-            metadata.getFlags().setFlag(EntityFlag.TAMED, true);
-            metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
+            // Needed or else wild cats are that color
+            if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
+                metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
+            }
         }
-        System.out.println("ID: " + entityMetadata.getId() + " Value: " + entityMetadata.getValue());
         super.updateBedrockMetadata(entityMetadata, session);
     }
 }

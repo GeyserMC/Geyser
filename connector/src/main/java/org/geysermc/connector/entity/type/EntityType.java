@@ -29,10 +29,8 @@ import lombok.Getter;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
 import org.geysermc.connector.entity.living.animal.*;
-import org.geysermc.connector.entity.living.animal.tameable.CatEntity;
-import org.geysermc.connector.entity.living.animal.tameable.TameableEntity;
 import org.geysermc.connector.entity.living.animal.horse.*;
-import org.geysermc.connector.entity.living.animal.tameable.WolfEntity;
+import org.geysermc.connector.entity.living.animal.tameable.*;
 import org.geysermc.connector.entity.living.monster.*;
 import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
@@ -62,7 +60,7 @@ public enum EntityType {
     POLAR_BEAR(PolarBearEntity.class, 28, 1.4f, 1.3f),
     LLAMA(LlamaEntity.class, 29, 1.87f, 0.9f),
     TRADER_LLAMA(TraderLlamaEntity.class, 29, 1.187f, 0.9f),
-    PARROT(TameableEntity.class, 30, 0.9f, 0.5f),
+    PARROT(ParrotEntity.class, 30, 0.9f, 0.5f),
     DOLPHIN(WaterEntity.class, 31, 0.6f, 0.9f),
     ZOMBIE(ZombieEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f),
     CREEPER(CreeperEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
