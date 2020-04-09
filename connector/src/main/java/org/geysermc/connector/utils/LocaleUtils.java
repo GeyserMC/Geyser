@@ -42,6 +42,8 @@ public class LocaleUtils {
 
     private static final Map<String, Asset> ASSET_MAP = new HashMap<>();
 
+    private static final String DEFAULT_LOCALE = (GeyserConnector.getInstance().getConfig().getDefaultLocale() != null ? GeyserConnector.getInstance().getConfig().getDefaultLocale() : "en_us");
+
     static {
         // Create the locales folder
         File localesFolder = new File("locales/");
@@ -49,7 +51,7 @@ public class LocaleUtils {
 
         // Download the latest asset list and cache it
         generateAssetCache();
-        downloadAndLoadLocale(GeyserConnector.getInstance().getConfig().getDefaultLocale());
+        downloadAndLoadLocale(DEFAULT_LOCALE);
     }
 
     private static void generateAssetCache() {
@@ -169,7 +171,7 @@ public class LocaleUtils {
     public static String getLocaleString(String messageText, String locale) {
         Map<String, String> localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(locale.toLowerCase());
         if (localeStrings == null)
-            localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(GeyserConnector.getInstance().getConfig().getDefaultLocale());
+            localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(DEFAULT_LOCALE);
 
         return localeStrings.getOrDefault(messageText, messageText);
     }

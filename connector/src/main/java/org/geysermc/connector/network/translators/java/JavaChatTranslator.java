@@ -60,25 +60,20 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
                 break;
         }
 
+        String locale = session.getClientData().getLanguageCode();
+
         if (packet.getMessage() instanceof TranslationMessage) {
             textPacket.setType(TextPacket.Type.TRANSLATION);
             textPacket.setNeedsTranslation(true);
 
-            String locale = session.getClientData().getLanguageCode();
-
             List<String> paramsTranslated = MessageUtils.getTranslationParams(((TranslationMessage) packet.getMessage()).getTranslationParams(), locale);
             textPacket.setParameters(paramsTranslated);
 
-            textPacket.setMessage(MessageUtils.insertParams(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale), paramsTranslated));
+            textPacket.setMessage(MessageUtils.insertParams(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, false), paramsTranslated));
         } else {
             textPacket.setNeedsTranslation(false);
 
-            // This make every message get translated which fixes alot of formatting issues
-            // but also causes players to be able to send translation strings as messages
-            // if thats all they send
-            // textPacket.setMessage(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), session.getClientData().getLanguageCode()));
-
-            textPacket.setMessage(MessageUtils.getBedrockMessage(packet.getMessage()));
+            textPacket.setMessage(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, false));
         }
 
         session.getUpstream().sendPacket(textPacket);

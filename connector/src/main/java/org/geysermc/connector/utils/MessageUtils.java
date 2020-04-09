@@ -71,11 +71,7 @@ public class MessageUtils {
             } else {
                 String builder = getFormat(message.getStyle().getFormats()) +
                         getColor(message.getStyle().getColor());
-                if (locale != null) {
-                    builder += getTranslatedBedrockMessage(message, locale);
-                }else {
-                    builder += getBedrockMessage(message);
-                }
+                builder += getTranslatedBedrockMessage(message, locale, false);
                 strings.add(builder);
             }
         }
@@ -92,7 +88,7 @@ public class MessageUtils {
                 + "%" + message.getTranslationKey();
     }
 
-    public static String getTranslatedBedrockMessage(Message message, String locale) {
+    public static String getTranslatedBedrockMessage(Message message, String locale, boolean shouldTranslate) {
         JsonParser parser = new JsonParser();
         if (isMessage(message.getText())) {
             JsonObject object = parser.parse(message.getText()).getAsJsonObject();
@@ -100,7 +96,7 @@ public class MessageUtils {
         }
 
         String messageText = message.getText();
-        if (locale != null) {
+        if (locale != null && shouldTranslate) {
             messageText = LocaleUtils.getLocaleString(messageText, locale);
         }
 
@@ -109,18 +105,15 @@ public class MessageUtils {
             builder.append(getFormat(msg.getStyle().getFormats()));
             builder.append(getColor(msg.getStyle().getColor()));
             if (!(msg.getText() == null)) {
-                builder.append(getTranslatedBedrockMessage(msg, locale));
+                boolean isTranslationMessage = (msg instanceof TranslationMessage);
+                builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
             }
         }
         return builder.toString();
     }
 
-    public static String getTranslatedBedrockMessage(Message message) {
-        return getTranslatedBedrockMessage(message, null);
-    }
-
     public static String getBedrockMessage(Message message) {
-        return getTranslatedBedrockMessage(message);
+        return getTranslatedBedrockMessage(message, null, false);
     }
 
     public static String insertParams(String message, List<String> params) {
