@@ -42,17 +42,24 @@ public class CatEntity extends TameableEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 18) {
             // Different colors in Java and Bedrock for some reason
-            if ((int) entityMetadata.getValue() == 0) {
-                metadata.put(EntityData.VARIANT, 8);
-            } else if ((int) entityMetadata.getValue() == 8) {
-                metadata.put(EntityData.VARIANT, 0);
-            } else if ((int) entityMetadata.getValue() == 9) {
-                metadata.put(EntityData.VARIANT, 10);
-            } else if ((int) entityMetadata.getValue() == 10) {
-                metadata.put(EntityData.VARIANT, 9);
-            } else {
-                metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
+            int variantColor;
+            switch ((int) entityMetadata.getValue()) {
+                case 0:
+                    variantColor = 8;
+                    break;
+                case 8:
+                    variantColor = 0;
+                    break;
+                case 9:
+                    variantColor = 10;
+                    break;
+                case 10:
+                    variantColor = 9;
+                    break;
+                default:
+                    variantColor = (int) entityMetadata.getValue();
             }
+            metadata.put(EntityData.VARIANT, variantColor);
         }
         if (entityMetadata.getId() == 21) {
             // Needed or else wild cats are a red color
