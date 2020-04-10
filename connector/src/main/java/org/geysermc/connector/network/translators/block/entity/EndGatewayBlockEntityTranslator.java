@@ -43,11 +43,12 @@ public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
         // Java sometimes does not provide this tag, but Bedrock crashes if it doesn't exist
         // Linked coordinates
         List<IntTag> tagsList = new ArrayList<>();
+        // Yes, the axis letters are capitalized
         tagsList.add(new IntTag("", getExitPortalCoordinate(tag, "X")));
         tagsList.add(new IntTag("", getExitPortalCoordinate(tag, "Y")));
         tagsList.add(new IntTag("", getExitPortalCoordinate(tag, "Z")));
         com.nukkitx.nbt.tag.ListTag<IntTag> exitPortal =
-                new com.nukkitx.nbt.tag.ListTag<>("ExitPortal", com.nukkitx.nbt.tag.IntTag.class, tagsList);
+                new com.nukkitx.nbt.tag.ListTag<>("ExitPortal", IntTag.class, tagsList);
         tags.add(exitPortal);
         return tags;
     }
