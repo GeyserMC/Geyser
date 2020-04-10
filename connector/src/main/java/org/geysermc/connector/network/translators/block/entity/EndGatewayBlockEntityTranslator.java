@@ -13,7 +13,6 @@ import java.util.List;
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
-        System.out.println(tag);
         List<Tag<?>> tags = new ArrayList<>();
         tags.add(new IntTag("Age", (int) (long) tag.get("Age").getValue()));
         // Java sometimes does not provide this tag, but Bedrock crashes if it doesn't exist
@@ -37,14 +36,18 @@ public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        System.out.println("Default Bedrock tag being created");
         CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        tagBuilder.listTag("ExitPortal", IntTag.class, new ArrayList<>());
+        List<IntTag> tagsList = new ArrayList<>();
+        tagsList.add(new IntTag("", 0));
+        tagsList.add(new IntTag("", 0));
+        tagsList.add(new IntTag("", 0));
+        tagBuilder.listTag("ExitPortal", IntTag.class, tagsList);
         return tagBuilder.buildRootTag();
     }
 
     private int getExitPortalCoordinate(CompoundTag tag, String axis) {
-        if (tag.get("ExitPortal").getValue() != null) {
+        // Return 0 if it doesn't exist, otherwise give proper value
+        if (tag.get("ExitPortal") != null) {
             LinkedHashMap compoundTag = (LinkedHashMap) tag.get("ExitPortal").getValue();
             com.github.steveice10.opennbt.tag.builtin.IntTag intTag = (com.github.steveice10.opennbt.tag.builtin.IntTag) compoundTag.get(axis);
             return intTag.getValue();
