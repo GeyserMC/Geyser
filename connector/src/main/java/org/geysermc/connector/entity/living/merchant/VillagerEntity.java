@@ -15,6 +15,8 @@ public class VillagerEntity extends AbstractMerchantEntity {
     public static Int2IntMap VILLAGER_VARIANTS = new Int2IntOpenHashMap();
 
     static {
+        // Java villager profession IDs -> Bedrock
+        VILLAGER_VARIANTS.put(0, 0);
         VILLAGER_VARIANTS.put(1, 8);
         VILLAGER_VARIANTS.put(2, 11);
         VILLAGER_VARIANTS.put(3, 6);
