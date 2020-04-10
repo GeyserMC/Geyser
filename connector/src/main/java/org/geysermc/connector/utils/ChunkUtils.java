@@ -78,6 +78,9 @@ public class ChunkUtils {
                         if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("sign[")) {
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
                             chunkData.signs.put(Translators.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag("Sign", pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
+                        } else if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("end_gateway")) {
+                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+                            chunkData.gateways.put(Translators.getBlockEntityTranslators().get("EndGateway").getDefaultBedrockTag("EndGateway", pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
                         } else if (BlockTranslator.getBedColor(blockState) > -1) {
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
                             // Beds need to be updated separately to add the bed color tag
@@ -189,6 +192,7 @@ public class ChunkUtils {
 
         public com.nukkitx.nbt.tag.CompoundTag[] blockEntities = new com.nukkitx.nbt.tag.CompoundTag[0];
         public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> signs = new Object2IntOpenHashMap<>();
+        public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> gateways = new Object2IntOpenHashMap<>();
         public Map<Position, BlockState> beds = new HashMap<>();
     }
 }
