@@ -35,7 +35,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import org.geysermc.connector.GeyserConnector;
 
 import java.util.*;
 import java.util.regex.Matcher;

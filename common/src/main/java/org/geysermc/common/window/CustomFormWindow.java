@@ -25,6 +25,8 @@
 
 package org.geysermc.common.window;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
@@ -34,6 +36,7 @@ import org.geysermc.common.window.component.*;
 import org.geysermc.common.window.response.CustomFormResponse;
 import org.geysermc.common.window.response.FormResponseData;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -100,7 +103,11 @@ public class CustomFormWindow extends FormWindow {
         Map<Integer, Object> responses = new HashMap<Integer, Object>();
         Map<Integer, String> labelResponses = new HashMap<Integer, String>();
 
-        List<String> componentResponses = new Gson().fromJson(data, new TypeToken<List<String>>() { }.getType());
+        List<String> componentResponses = new ArrayList<>();
+        try {
+            componentResponses = new ObjectMapper().readValue(data, new TypeReference<List<String>>(){});
+        } catch (IOException e) { }
+
         for (String response : componentResponses) {
             if (i >= content.size()) {
                 break;
