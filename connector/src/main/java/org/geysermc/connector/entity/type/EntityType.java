@@ -105,7 +105,7 @@ public enum EntityType {
     EXPERIENCE_BOTTLE(ThrowableEntity.class, 68, 0.25f, 0.25f),
     EXPERIENCE_ORB(ExpOrbEntity.class, 69, 0f),
     EYE_OF_ENDER(Entity.class, 70, 0f),
-    END_CRYSTAL(Entity.class, 71, 0f),
+    END_CRYSTAL(EnderCrystalEntity.class, 71, 0f),
     FIREWORK_ROCKET(Entity.class, 72, 0f),
     TRIDENT(ArrowEntity.class, 73, 0f),
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
