@@ -34,11 +34,7 @@ import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.block.entity.BannerBlockEntityTranslator;
-import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
-import org.geysermc.connector.network.translators.block.entity.CampfireBlockEntityTranslator;
-import org.geysermc.connector.network.translators.block.entity.EmptyBlockEntityTranslator;
-import org.geysermc.connector.network.translators.block.entity.SignBlockEntityTranslator;
+import org.geysermc.connector.network.translators.block.entity.*;
 import org.geysermc.connector.network.translators.inventory.AnvilInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.BrewingInventoryTranslator;
@@ -132,6 +128,7 @@ public class Translators {
         blockEntityTranslators.put("Sign", new SignBlockEntityTranslator());
         blockEntityTranslators.put("Campfire", new CampfireBlockEntityTranslator());
         blockEntityTranslators.put("Banner", new BannerBlockEntityTranslator());
+        blockEntityTranslators.put("EndGateway", new EndGatewayBlockEntityTranslator());
     }
 
     private static void registerInventoryTranslators() {
