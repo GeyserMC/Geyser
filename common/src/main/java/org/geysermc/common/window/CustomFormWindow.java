@@ -25,10 +25,9 @@
 
 package org.geysermc.common.window;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.window.button.FormImage;
@@ -80,7 +79,11 @@ public class CustomFormWindow extends FormWindow {
     }
 
     public String getJSONData() {
-        String toModify = new Gson().toJson(this);
+        String toModify = "";
+        try {
+            toModify = new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException e) { }
+
         //We need to replace this due to Java not supporting declaring class field 'default'
         return toModify.replace("defaultOptionIndex", "default")
                 .replace("defaultText", "default")

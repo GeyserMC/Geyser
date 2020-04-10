@@ -25,7 +25,8 @@
 
 package org.geysermc.common.window;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.window.button.FormButton;
@@ -63,7 +64,11 @@ public class SimpleFormWindow extends FormWindow {
 
     @Override
     public String getJSONData() {
-        return new Gson().toJson(this);
+        try {
+            return new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
     }
 
     public void setResponse(String data) {
