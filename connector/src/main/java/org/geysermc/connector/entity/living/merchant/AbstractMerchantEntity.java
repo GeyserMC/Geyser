@@ -23,9 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living;
+package org.geysermc.connector.entity.living.merchant;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.geysermc.connector.entity.living.AgeableEntity;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class AbstractMerchantEntity extends AgeableEntity {
