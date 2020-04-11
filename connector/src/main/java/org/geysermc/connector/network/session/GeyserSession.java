@@ -149,15 +149,6 @@ public class GeyserSession implements CommandSender {
     public void connect(RemoteServer remoteServer) {
         startGame();
         this.remoteServer = remoteServer;
-        if (connector.getAuthType() != AuthType.ONLINE) {
-            connector.getLogger().info(
-                    "Attempting to login using " + connector.getAuthType().name().toLowerCase() + " mode... " +
-                    (connector.getAuthType() == AuthType.OFFLINE ?
-                            "authentication is disabled." : "authentication will be encrypted"
-                    )
-            );
-            authenticate(authData.getName());
-        }
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
@@ -172,6 +163,18 @@ public class GeyserSession implements CommandSender {
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
+    }
+
+    public void login() {
+        if (connector.getAuthType() != AuthType.ONLINE) {
+            connector.getLogger().info(
+                    "Attempting to login using " + connector.getAuthType().name().toLowerCase() + " mode... " +
+                            (connector.getAuthType() == AuthType.OFFLINE ?
+                                    "authentication is disabled." : "authentication will be encrypted"
+                            )
+            );
+            authenticate(authData.getName());
+        }
     }
 
     public void authenticate(String username) {

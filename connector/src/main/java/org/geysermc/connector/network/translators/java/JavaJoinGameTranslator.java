@@ -29,7 +29,6 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
@@ -69,7 +68,6 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         session.setRenderDistance(packet.getViewDistance());
 
         if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
-            ChunkUtils.sendEmptyChunks(session, entity.getPosition().toInt(), 3, true);
             DimensionUtils.switchDimension(session, packet.getDimension());
         }
     }
