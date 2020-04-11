@@ -26,16 +26,12 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
-import com.github.steveice10.mc.protocol.data.message.ChatColor;
-import com.github.steveice10.mc.protocol.data.message.ChatFormat;
-import com.github.steveice10.mc.protocol.data.message.Message;
-import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
+import com.github.steveice10.mc.protocol.data.message.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import org.geysermc.connector.GeyserConnector;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -70,7 +66,7 @@ public class MessageUtils {
                 }
             } else {
                 String builder = getFormat(message.getStyle().getFormats()) +
-                        getColor(message.getStyle().getColor());
+                        getColorOrParent(message.getStyle());
                 builder += getTranslatedBedrockMessage(message, locale, false);
                 strings.add(builder);
             }
@@ -84,7 +80,7 @@ public class MessageUtils {
     }
 
     public static String getTranslationText(TranslationMessage message) {
-        return getFormat(message.getStyle().getFormats()) + getColor(message.getStyle().getColor())
+        return getFormat(message.getStyle().getFormats()) + getColorOrParent(message.getStyle())
                 + "%" + message.getTranslationKey();
     }
 
@@ -103,7 +99,7 @@ public class MessageUtils {
         StringBuilder builder = new StringBuilder(messageText);
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
-            builder.append(getColor(msg.getStyle().getColor()));
+            builder.append(getColorOrParent(msg.getStyle()));
             if (!(msg.getText() == null)) {
                 boolean isTranslationMessage = (msg instanceof TranslationMessage);
                 builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
@@ -134,6 +130,16 @@ public class MessageUtils {
         }
 
         return newMessage;
+    }
+
+    private static String getColorOrParent(MessageStyle style) {
+        ChatColor chatColor = style.getColor();
+
+        if (chatColor == ChatColor.NONE) {
+            return getColor(style.getParent().getColor());
+        }
+
+        return getColor(chatColor);
     }
 
     private static String getColor(ChatColor color) {
