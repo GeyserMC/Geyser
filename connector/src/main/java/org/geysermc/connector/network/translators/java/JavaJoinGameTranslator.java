@@ -25,7 +25,9 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -38,6 +40,8 @@ import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.utils.Toolbox;
 
 @Translator(packet = ServerJoinGamePacket.class)
 public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacket> {
@@ -60,6 +64,10 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
         session.getUpstream().sendPacket(playerGameTypePacket);
         session.setGameMode(packet.getGameMode());
+
+        if(packet.getGameMode() == GameMode.CREATIVE) {
+            InventoryUtils.creativeInventory(session);
+        }
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());

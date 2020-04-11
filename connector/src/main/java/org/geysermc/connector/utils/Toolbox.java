@@ -32,16 +32,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.item.CreativeItem;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
 import java.io.*;
 import java.util.*;
+
+import static jdk.xml.internal.SecuritySupport.getResourceAsStream;
 
 public class Toolbox {
 
@@ -51,6 +56,8 @@ public class Toolbox {
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
+
+    public static final ItemData[] creativeItems;
 
     public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
 
@@ -104,6 +111,23 @@ public class Toolbox {
             ITEM_ENTRIES.put(itemIndex, new ItemEntry(entry.getKey(), itemIndex,
                     entry.getValue().get("bedrock_id").intValue(), entry.getValue().get("bedrock_data").intValue()));
             itemIndex++;
+        }
+
+        /* Load creative Inventory */
+        stream = getResource("bedrock/creative_items.json");
+
+        CreativeItem[] creativeItemEntries;
+        try {
+            creativeItemEntries = JSON_MAPPER.readValue(stream, CreativeItem[].class);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load Bedrock runtime creative item IDs", e);
+        }
+
+        int i = 0;
+        creativeItems = new ItemData[creativeItemEntries.length];
+        for (CreativeItem entry : creativeItemEntries) {
+            creativeItems[i] = ItemData.of(entry.getId(), (short) entry.getDamage(), 1);
+            i++;
         }
 
         // Load the locale data

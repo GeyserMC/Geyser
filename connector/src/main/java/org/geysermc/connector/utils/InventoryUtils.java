@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
@@ -40,8 +41,12 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static jdk.xml.internal.SecuritySupport.getResourceAsStream;
+import static org.geysermc.connector.utils.Toolbox.JSON_MAPPER;
 
 public class InventoryUtils {
 
@@ -134,5 +139,12 @@ public class InventoryUtils {
         ItemStack[] items = openInventory.getItems();
         items[packet.getSlot()] = packet.getItem();
         translator.updateSlot(session, openInventory, packet.getSlot());
+    }
+
+    public static void creativeInventory(GeyserSession session) {
+        InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
+        inventoryContentPacket.setContainerId(ContainerId.CREATIVE);
+        inventoryContentPacket.setContents(Toolbox.creativeItems);
+        session.getUpstream().sendPacket(inventoryContentPacket);
     }
 }

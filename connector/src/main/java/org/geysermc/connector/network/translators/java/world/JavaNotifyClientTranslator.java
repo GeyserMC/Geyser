@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -50,6 +51,7 @@ import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = ServerNotifyClientPacket.class)
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
@@ -81,8 +83,10 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 if (gameMode == GameMode.ADVENTURE)
                     playerFlags.add(AdventureSettingsPacket.Flag.IMMUTABLE_WORLD);
 
-                if (gameMode == GameMode.CREATIVE)
+                if (gameMode == GameMode.CREATIVE) {
                     playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
+                    InventoryUtils.creativeInventory(session);
+                }
 
                 if (gameMode == GameMode.SPECTATOR) {
                     playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
