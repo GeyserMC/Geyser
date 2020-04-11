@@ -25,8 +25,6 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
 import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
 import com.github.steveice10.mc.protocol.data.game.command.CommandType;
@@ -35,39 +33,37 @@ import com.nukkitx.protocol.bedrock.data.CommandData;
 import com.nukkitx.protocol.bedrock.data.CommandEnumData;
 import com.nukkitx.protocol.bedrock.data.CommandParamData;
 import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.FileUtils;
 
-import java.io.IOException;
 import java.util.*;
 
 @Translator(packet = ServerDeclareCommandsPacket.class)
 public class JavaServerDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
     @Override
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
-        GeyserConnector.getInstance().getLogger().info("ServerDeclareCommandsPacket");
-
         List<CommandNode> rootNodes = new ArrayList<>();
         List<CommandData> commandData = new ArrayList<>();
         Map<Integer, String> commands = new HashMap<>();
         Map<Integer, List<CommandNode>> commandArgs = new HashMap<>();
-        ObjectMapper mapper = new ObjectMapper();
 
+        // Find the root nodes
         for (CommandNode node : packet.getNodes()) {
             if (node.getType() == CommandType.ROOT) {
                 rootNodes.add(node);
             }
         }
 
+        // Loop through the root nodes to get all commands
         for (CommandNode rootNode : rootNodes) {
             for (int nodeIndex : rootNode.getChildIndices()) {
                 CommandNode node = packet.getNodes()[nodeIndex];
 
+                // Make sure we dont have duplicated commands (happens if there is more than 1 root node)
                 if (commands.containsKey(nodeIndex)) { continue; }
 
+                // Get and update the commandArgs list with the found arguments
                 if (node.getChildIndices().length >= 1) {
                     for (int childIndex : node.getChildIndices()) {
                         commandArgs.putIfAbsent(nodeIndex, new ArrayList<>());
@@ -75,41 +71,77 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
                     }
                 }
 
+                // Insert the command name into the list
                 commands.put(nodeIndex, node.getName());
             }
         }
 
+        // The command flags, not sure what these do apart from break things
         List<CommandData.Flag> flags = new ArrayList<>();
+
+        // Loop through all the found commands
         for (int commandID : commands.keySet()) {
             String commandName = commands.get(commandID);
 
+            // Create a basic alias
             CommandEnumData aliases = new CommandEnumData( commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
+
+            // Get and parse all params
             CommandParamData[][] params = getParams(commandID, packet.getNodes()[commandID], commandArgs);
 
+            // Build the completed command and add it to the final list
             CommandData data = new CommandData(commandName, "A Java server command", flags, (byte) 0, aliases, params);
             commandData.add(data);
         }
 
+        // Add our commands to the AvailableCommandsPacket for the bedrock client
         AvailableCommandsPacket availableCommandsPacket = new AvailableCommandsPacket();
         for (CommandData data : commandData) {
             availableCommandsPacket.getCommands().add(data);
         }
 
+        // Finally, send the commands to the client
         session.getUpstream().sendPacket(availableCommandsPacket);
     }
 
     private CommandParamData[][] getParams(int commandID, CommandNode commandNode, Map<Integer, List<CommandNode>> commandArgs) {
         if (commandArgs.containsKey(commandID)) {
-            CommandParamData[][] params = new CommandParamData[commandArgs.get(commandID).size()][];
+            List<CommandParamData> parsedParams = new ArrayList<>();
+            int enumIndex = -1;
 
-            if (commandNode.getName().equals("ban")) {
-                GeyserConnector.getInstance().getLogger().debug("ban : " + commandArgs.get(commandID));
+            for (CommandNode paramNode : commandArgs.get(commandID)) {
+                if (paramNode.getParser() == null) {
+                    if (enumIndex == -1) {
+                        enumIndex = parsedParams.size();
+
+                        // Create the new enum command
+                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[] { paramNode.getName() }, false);
+                        parsedParams.add(new CommandParamData(paramNode.getName(), false, enumData, mapCommandType(paramNode.getParser()), null, Collections.emptyList()));
+                    }else {
+                        // Get the existing enum
+                        CommandParamData enumParam = parsedParams.get(enumIndex);
+
+                        // Extend the current list of enum values
+                        String[] enumOptions = Arrays.copyOf(enumParam.getEnumData().getValues(), enumParam.getEnumData().getValues().length + 1);
+                        enumOptions[enumOptions.length - 1] = paramNode.getName();
+
+                        // Re-create the command using the updated values
+                        CommandEnumData enumData = new CommandEnumData(enumParam.getEnumData().getName(), enumOptions, false);
+                        parsedParams.set(enumIndex, new CommandParamData(enumParam.getName(), false, enumData, enumParam.getType(), null, Collections.emptyList()));
+                    }
+                }else{
+                    // Put the non-enum param into the list
+                    parsedParams.add(new CommandParamData(paramNode.getName(), false, null, mapCommandType(paramNode.getParser()), null, Collections.emptyList()));
+                }
             }
 
+            CommandParamData[][] params = new CommandParamData[parsedParams.size()][];
+
+            // Fill the nested params array
             int i = 0;
-            for (CommandNode paramNode : commandArgs.get(commandID)) {
+            for (CommandParamData parsedParam : parsedParams) {
                 CommandParamData[] param1 = new CommandParamData[1];
-                param1[0] = new CommandParamData(paramNode.getName(), false, null, mapCommandType(paramNode.getParser()), null, Collections.emptyList());
+                param1[0] = parsedParam;
                 params[i] = param1;
                 i++;
             }
