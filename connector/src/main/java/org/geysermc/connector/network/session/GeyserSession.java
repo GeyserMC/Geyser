@@ -187,7 +187,7 @@ public class GeyserSession implements CommandSender {
             return;
         }
 
-        loggedIn = true;
+        loggingIn = true;
         // new thread so clients don't timeout
         new Thread(() -> {
             try {
