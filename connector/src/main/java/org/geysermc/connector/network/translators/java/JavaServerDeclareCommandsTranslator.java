@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
 import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
 import com.github.steveice10.mc.protocol.data.game.command.CommandType;
@@ -33,6 +35,8 @@ import com.nukkitx.protocol.bedrock.data.CommandData;
 import com.nukkitx.protocol.bedrock.data.CommandEnumData;
 import com.nukkitx.protocol.bedrock.data.CommandParamData;
 import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
+import lombok.Getter;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -87,7 +91,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             CommandEnumData aliases = new CommandEnumData( commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
 
             // Get and parse all params
-            CommandParamData[][] params = getParams(commandID, packet.getNodes()[commandID], commandArgs);
+            CommandParamData[][] params = getParams(commandID, packet.getNodes()[commandID], packet.getNodes());
 
             // Build the completed command and add it to the final list
             CommandData data = new CommandData(commandName, "A Java server command", flags, (byte) 0, aliases, params);
@@ -104,45 +108,30 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         session.getUpstream().sendPacket(availableCommandsPacket);
     }
 
-    private CommandParamData[][] getParams(int commandID, CommandNode commandNode, Map<Integer, List<CommandNode>> commandArgs) {
-        if (commandArgs.containsKey(commandID)) {
-            List<CommandParamData> parsedParams = new ArrayList<>();
-            int enumIndex = -1;
+    private CommandParamData[][] getParams(int commandID, CommandNode commandNode, CommandNode[] allNodes) {
+        // Check if the command is an alias and redirect it
+        if (commandNode.getRedirectIndex() != -1) {
+            GeyserConnector.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[commandNode.getRedirectIndex()].getName());
+            commandNode = allNodes[commandNode.getRedirectIndex()];
+        }
 
-            for (CommandNode paramNode : commandArgs.get(commandID)) {
-                if (paramNode.getParser() == null) {
-                    if (enumIndex == -1) {
-                        enumIndex = parsedParams.size();
+        if (commandNode.getChildIndices().length >= 1) {
+            // Create the root param node and build all the children
+            ParamInfo rootParam = new ParamInfo(commandNode, null);
+            rootParam.buildChildren(allNodes);
 
-                        // Create the new enum command
-                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[] { paramNode.getName() }, false);
-                        parsedParams.add(new CommandParamData(paramNode.getName(), false, enumData, mapCommandType(paramNode.getParser()), null, Collections.emptyList()));
-                    }else {
-                        // Get the existing enum
-                        CommandParamData enumParam = parsedParams.get(enumIndex);
+            try {
+                new ObjectMapper().writeValueAsString(rootParam.getChildren());
+            } catch (JsonProcessingException e) { }
 
-                        // Extend the current list of enum values
-                        String[] enumOptions = Arrays.copyOf(enumParam.getEnumData().getValues(), enumParam.getEnumData().getValues().length + 1);
-                        enumOptions[enumOptions.length - 1] = paramNode.getName();
-
-                        // Re-create the command using the updated values
-                        CommandEnumData enumData = new CommandEnumData(enumParam.getEnumData().getName(), enumOptions, false);
-                        parsedParams.set(enumIndex, new CommandParamData(enumParam.getName(), false, enumData, enumParam.getType(), null, Collections.emptyList()));
-                    }
-                }else{
-                    // Put the non-enum param into the list
-                    parsedParams.add(new CommandParamData(paramNode.getName(), false, null, mapCommandType(paramNode.getParser()), null, Collections.emptyList()));
-                }
-            }
-
-            CommandParamData[][] params = new CommandParamData[parsedParams.size()][];
+            CommandParamData[][] params = new CommandParamData[rootParam.getChildren().size()][];
 
             // Fill the nested params array
             int i = 0;
-            for (CommandParamData parsedParam : parsedParams) {
-                CommandParamData[] param1 = new CommandParamData[1];
-                param1[0] = parsedParam;
-                params[i] = param1;
+            for (ParamInfo parmInfo : rootParam.getChildren()) {
+                CommandParamData[] paramParts = new CommandParamData[1];
+                paramParts[0] = parmInfo.getParamData();
+                params[i] = paramParts;
                 i++;
             }
 
@@ -219,6 +208,51 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             case TIME:
             default:
                 return CommandParamData.Type.STRING;
+        }
+    }
+
+    @Getter
+    private class ParamInfo {
+        private CommandNode paramNode;
+        private CommandParamData paramData;
+        private List<ParamInfo> children;
+
+        public ParamInfo(CommandNode paramNode, CommandParamData paramData) {
+            this.paramNode = paramNode;
+            this.paramData = paramData;
+            this.children = new ArrayList<>();
+        }
+
+        public void buildChildren(CommandNode[] allNodes) {
+            int enumIndex = -1;
+
+            for (int paramID : paramNode.getChildIndices()) {
+                CommandNode paramNode = allNodes[paramID];
+
+                if (paramNode.getParser() == null) {
+                    if (enumIndex == -1) {
+                        enumIndex = children.size();
+
+                        // Create the new enum command
+                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[] { paramNode.getName() }, false);
+                        children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, enumData, mapCommandType(paramNode.getParser()), null, Collections.emptyList())));
+                    } else {
+                        // Get the existing enum
+                        ParamInfo enumParamInfo = children.get(enumIndex);
+
+                        // Extend the current list of enum values
+                        String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().length + 1);
+                        enumOptions[enumOptions.length - 1] = paramNode.getName();
+
+                        // Re-create the command using the updated values
+                        CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), enumOptions, false);
+                        children.set(enumIndex, new ParamInfo(enumParamInfo.getParamNode(), new CommandParamData(enumParamInfo.getParamData().getName(), false, enumData, enumParamInfo.getParamData().getType(), null, Collections.emptyList())));
+                    }
+                }else{
+                    // Put the non-enum param into the list
+                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, null, mapCommandType(paramNode.getParser()), null, Collections.emptyList())));
+                }
+            }
         }
     }
 }
