@@ -108,6 +108,10 @@ public class MessageUtils {
         return builder.toString();
     }
 
+    public static String getTranslatedBedrockMessage(Message message, String locale) {
+        return getTranslatedBedrockMessage(message, locale, true);
+    }
+
     public static String getBedrockMessage(Message message) {
         return getTranslatedBedrockMessage(message, null, false);
     }
