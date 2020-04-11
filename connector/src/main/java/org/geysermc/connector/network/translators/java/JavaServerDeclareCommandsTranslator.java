@@ -120,10 +120,6 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             ParamInfo rootParam = new ParamInfo(commandNode, null);
             rootParam.buildChildren(allNodes);
 
-            if (commandNode.getName().equals("gamerule")) {
-                GeyserConnector.getInstance().getLogger().debug("BREAK HERE");
-            }
-
             List<CommandParamData[]> treeData = rootParam.getTree();
             CommandParamData[][] params = new CommandParamData[treeData.size()][];
 
@@ -263,7 +259,10 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             List<CommandParamData[]> treeParamData = new ArrayList<>();
 
             for (ParamInfo child : children) {
+                // Get the tree from the child
                 List<CommandParamData[]> childTree = child.getTree();
+
+                // Un-pack the tree append the child node to it and push into the list
                 for (CommandParamData[] subchild : childTree) {
                     CommandParamData[] tmpTree = new ArrayList<CommandParamData>() {
                         {
@@ -275,6 +274,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
                     treeParamData.add(tmpTree);
                 }
 
+                // If we have no more child parameters just the child
                 if (childTree.size() == 0) {
                     treeParamData.add(new CommandParamData[] { child.getParamData() });
                 }
