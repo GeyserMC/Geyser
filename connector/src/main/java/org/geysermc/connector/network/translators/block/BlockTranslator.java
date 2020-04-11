@@ -103,7 +103,8 @@ public class BlockTranslator {
             if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = bedrockRuntimeId;
             }
-            boolean waterlogged = entry.getValue().has("waterlogged") && entry.getValue().get("waterlogged").booleanValue();
+            boolean waterlogged = entry.getKey().contains("waterlogged=true")
+                    || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
 
             if (waterlogged) {
                 BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, new BlockState(javaRuntimeId));
