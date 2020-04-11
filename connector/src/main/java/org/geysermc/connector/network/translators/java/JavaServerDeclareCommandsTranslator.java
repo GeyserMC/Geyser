@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
 import com.github.steveice10.mc.protocol.data.game.command.CommandType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareCommandsPacket;
@@ -36,7 +38,9 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.FileUtils;
 
+import java.io.IOException;
 import java.util.*;
 
 @Translator(packet = ServerDeclareCommandsPacket.class)
@@ -48,6 +52,8 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         List<CommandNode> rootNodes = new ArrayList<>();
         List<CommandData> commandData = new ArrayList<>();
         Map<Integer, String> commands = new HashMap<>();
+        Map<Integer, List<CommandNode>> commandArgs = new HashMap<>();
+        ObjectMapper mapper = new ObjectMapper();
 
         for (CommandNode node : packet.getNodes()) {
             if (node.getType() == CommandType.ROOT) {
@@ -59,20 +65,46 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             for (int nodeIndex : rootNode.getChildIndices()) {
                 CommandNode node = packet.getNodes()[nodeIndex];
 
+                if (node.getChildIndices().length >= 1) {
+                    for (int childIndex : node.getChildIndices()) {
+                        commandArgs.putIfAbsent(nodeIndex, new ArrayList<>());
+                        commandArgs.get(nodeIndex).add(packet.getNodes()[childIndex]);
+                    }
+                }
+
                 commands.put(nodeIndex, node.getName());
             }
         }
+
+
+
+        /* try {
+            GeyserConnector.getInstance().getLogger().debug(mapper.writeValueAsString(params));
+        } catch (JsonProcessingException e) { } */
 
         List<CommandData.Flag> flags = new ArrayList<>();
         for (int commandID : commands.keySet()) {
             String commandName = commands.get(commandID);
 
-            CommandEnumData aliases = new CommandEnumData( commandName + "Aliases", new String[]{commandName.toLowerCase()}, false);
+            CommandEnumData aliases = new CommandEnumData( commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
+            CommandParamData[][] params = new CommandParamData[0][0];
 
-            CommandData data = new CommandData(commandName, "A Java server command", flags, (byte) 0, aliases, new CommandParamData[0][0]);
+            if (commandArgs.containsKey(commandID)) {
+                params = new CommandParamData[1][];
+                CommandParamData[] param1 = new CommandParamData[commandArgs.get(commandID).size()];
+
+                int i = 0;
+                for (CommandNode paramNode : commandArgs.get(commandID)) {
+                    param1[i] = new CommandParamData(paramNode.getName(), false, null, CommandParamData.Type.MESSAGE, null, Collections.emptyList());
+                    i++;
+                }
+
+                params[0] = param1;
+            }
+
+            CommandData data = new CommandData(commandName, "A Java server command", flags, (byte) 0, aliases, params);
             commandData.add(data);
         }
-
 
         AvailableCommandsPacket availableCommandsPacket = new AvailableCommandsPacket();
         for (CommandData data : commandData) {
