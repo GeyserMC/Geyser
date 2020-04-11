@@ -37,8 +37,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class VillagerEntity extends AbstractMerchantEntity {
 
-    public static Int2IntMap VILLAGER_VARIANTS = new Int2IntOpenHashMap();
-    public static Int2IntMap VILLAGER_REGIONS = new Int2IntOpenHashMap();
+    private static final Int2IntMap VILLAGER_VARIANTS = new Int2IntOpenHashMap();
+    private static final Int2IntMap VILLAGER_REGIONS = new Int2IntOpenHashMap();
 
     static {
         // Java villager profession IDs -> Bedrock
