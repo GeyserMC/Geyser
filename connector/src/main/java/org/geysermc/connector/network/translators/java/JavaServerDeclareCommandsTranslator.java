@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
+import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
 import com.github.steveice10.mc.protocol.data.game.command.CommandType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareCommandsPacket;
 import com.nukkitx.protocol.bedrock.data.CommandData;
@@ -65,6 +66,8 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             for (int nodeIndex : rootNode.getChildIndices()) {
                 CommandNode node = packet.getNodes()[nodeIndex];
 
+                if (commands.containsKey(nodeIndex)) { continue; }
+
                 if (node.getChildIndices().length >= 1) {
                     for (int childIndex : node.getChildIndices()) {
                         commandArgs.putIfAbsent(nodeIndex, new ArrayList<>());
@@ -76,31 +79,12 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             }
         }
 
-
-
-        /* try {
-            GeyserConnector.getInstance().getLogger().debug(mapper.writeValueAsString(params));
-        } catch (JsonProcessingException e) { } */
-
         List<CommandData.Flag> flags = new ArrayList<>();
         for (int commandID : commands.keySet()) {
             String commandName = commands.get(commandID);
 
             CommandEnumData aliases = new CommandEnumData( commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
-            CommandParamData[][] params = new CommandParamData[0][0];
-
-            if (commandArgs.containsKey(commandID)) {
-                params = new CommandParamData[1][];
-                CommandParamData[] param1 = new CommandParamData[commandArgs.get(commandID).size()];
-
-                int i = 0;
-                for (CommandNode paramNode : commandArgs.get(commandID)) {
-                    param1[i] = new CommandParamData(paramNode.getName(), false, null, CommandParamData.Type.MESSAGE, null, Collections.emptyList());
-                    i++;
-                }
-
-                params[0] = param1;
-            }
+            CommandParamData[][] params = getParams(commandID, packet.getNodes()[commandID], commandArgs);
 
             CommandData data = new CommandData(commandName, "A Java server command", flags, (byte) 0, aliases, params);
             commandData.add(data);
@@ -112,5 +96,97 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         }
 
         session.getUpstream().sendPacket(availableCommandsPacket);
+    }
+
+    private CommandParamData[][] getParams(int commandID, CommandNode commandNode, Map<Integer, List<CommandNode>> commandArgs) {
+        if (commandArgs.containsKey(commandID)) {
+            CommandParamData[][] params = new CommandParamData[commandArgs.get(commandID).size()][];
+
+            if (commandNode.getName().equals("ban")) {
+                GeyserConnector.getInstance().getLogger().debug("ban : " + commandArgs.get(commandID));
+            }
+
+            int i = 0;
+            for (CommandNode paramNode : commandArgs.get(commandID)) {
+                CommandParamData[] param1 = new CommandParamData[1];
+                param1[0] = new CommandParamData(paramNode.getName(), false, null, mapCommandType(paramNode.getParser()), null, Collections.emptyList());
+                params[i] = param1;
+                i++;
+            }
+
+            return params;
+        }
+
+        return new CommandParamData[0][0];
+    }
+
+    private CommandParamData.Type mapCommandType(CommandParser parser) {
+        if (parser == null) { return CommandParamData.Type.STRING; }
+
+        switch (parser) {
+            case FLOAT:
+                return CommandParamData.Type.FLOAT;
+
+            case INTEGER:
+                return CommandParamData.Type.INT;
+
+            case ENTITY:
+            case GAME_PROFILE:
+                return CommandParamData.Type.TARGET;
+
+            case BLOCK_POS:
+                return CommandParamData.Type.BLOCK_POSITION;
+
+            case COLUMN_POS:
+            case VEC3:
+                return CommandParamData.Type.POSITION;
+
+            case MESSAGE:
+                return CommandParamData.Type.MESSAGE;
+
+            case NBT:
+            case NBT_COMPOUND_TAG:
+            case NBT_TAG:
+            case NBT_PATH:
+                return CommandParamData.Type.JSON;
+
+            case RESOURCE_LOCATION:
+                return CommandParamData.Type.FILE_PATH;
+
+            case INT_RANGE:
+                return CommandParamData.Type.INT_RANGE;
+
+            case BOOL:
+            case DOUBLE:
+            case STRING:
+            case VEC2:
+            case BLOCK_STATE:
+            case BLOCK_PREDICATE:
+            case ITEM_STACK:
+            case ITEM_PREDICATE:
+            case COLOR:
+            case COMPONENT:
+            case OBJECTIVE:
+            case OBJECTIVE_CRITERIA:
+            case OPERATION: // Possibly OPERATOR
+            case PARTICLE:
+            case ROTATION:
+            case SCOREBOARD_SLOT:
+            case SCORE_HOLDER:
+            case SWIZZLE:
+            case TEAM:
+            case ITEM_SLOT:
+            case MOB_EFFECT:
+            case FUNCTION:
+            case ENTITY_ANCHOR:
+            case RANGE:
+            case FLOAT_RANGE:
+            case ITEM_ENCHANTMENT:
+            case ENTITY_SUMMON:
+            case DIMENSION:
+            case TIME:
+            default:
+                return CommandParamData.Type.STRING;
+        }
     }
 }
