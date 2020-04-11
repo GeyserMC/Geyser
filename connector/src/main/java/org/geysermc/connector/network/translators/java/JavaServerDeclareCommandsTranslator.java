@@ -120,18 +120,17 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             ParamInfo rootParam = new ParamInfo(commandNode, null);
             rootParam.buildChildren(allNodes);
 
-            try {
-                new ObjectMapper().writeValueAsString(rootParam.getChildren());
-            } catch (JsonProcessingException e) { }
+            if (commandNode.getName().equals("gamerule")) {
+                GeyserConnector.getInstance().getLogger().debug("BREAK HERE");
+            }
 
-            CommandParamData[][] params = new CommandParamData[rootParam.getChildren().size()][];
+            List<CommandParamData[]> treeData = rootParam.getTree();
+            CommandParamData[][] params = new CommandParamData[treeData.size()][];
 
             // Fill the nested params array
             int i = 0;
-            for (ParamInfo parmInfo : rootParam.getChildren()) {
-                CommandParamData[] paramParts = new CommandParamData[1];
-                paramParts[0] = parmInfo.getParamData();
-                params[i] = paramParts;
+            for (CommandParamData[] tree : treeData) {
+                params[i] = tree;
                 i++;
             }
 
@@ -253,6 +252,35 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
                     children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, null, mapCommandType(paramNode.getParser()), null, Collections.emptyList())));
                 }
             }
+
+            // Recursively build all child options
+            for (ParamInfo child : children) {
+                child.buildChildren(allNodes);
+            }
+        }
+
+        public List<CommandParamData[]> getTree() {
+            List<CommandParamData[]> treeParamData = new ArrayList<>();
+
+            for (ParamInfo child : children) {
+                List<CommandParamData[]> childTree = child.getTree();
+                for (CommandParamData[] subchild : childTree) {
+                    CommandParamData[] tmpTree = new ArrayList<CommandParamData>() {
+                        {
+                            add(child.getParamData());
+                            addAll(Arrays.asList(subchild));
+                        }
+                    }.toArray(new CommandParamData[0]);
+
+                    treeParamData.add(tmpTree);
+                }
+
+                if (childTree.size() == 0) {
+                    treeParamData.add(new CommandParamData[] { child.getParamData() });
+                }
+            }
+
+            return treeParamData;
         }
     }
 }
