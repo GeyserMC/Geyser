@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.session;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -70,6 +71,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
+import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.utils.Toolbox;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -156,15 +158,6 @@ public class GeyserSession implements CommandSender {
     public void connect(RemoteServer remoteServer) {
         startGame();
         this.remoteServer = remoteServer;
-        if (connector.getAuthType() != AuthType.ONLINE) {
-            connector.getLogger().info(
-                    "Attempting to login using " + connector.getAuthType().name().toLowerCase() + " mode... " +
-                    (connector.getAuthType() == AuthType.OFFLINE ?
-                            "authentication is disabled." : "authentication will be encrypted"
-                    )
-            );
-            authenticate(authData.getName());
-        }
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
@@ -186,6 +179,18 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(playStatusPacket);
     }
 
+    public void login() {
+        if (connector.getAuthType() != AuthType.ONLINE) {
+            connector.getLogger().info(
+                    "Attempting to login using " + connector.getAuthType().name().toLowerCase() + " mode... " +
+                            (connector.getAuthType() == AuthType.OFFLINE ?
+                                    "authentication is disabled." : "authentication will be encrypted"
+                            )
+            );
+            authenticate(authData.getName());
+        }
+    }
+
     public void authenticate(String username) {
         authenticate(username, "");
     }
@@ -196,7 +201,7 @@ public class GeyserSession implements CommandSender {
             return;
         }
 
-        loggedIn = true;
+        loggingIn = true;
         // new thread so clients don't timeout
         new Thread(() -> {
             try {
@@ -265,6 +270,17 @@ public class GeyserSession implements CommandSender {
                         connector.getLogger().info(authData.getName() + " (logged in as: " + protocol.getProfile().getName() + ")" + " has connected to remote java server on address " + remoteServer.getAddress());
                         playerEntity.setUuid(protocol.getProfile().getId());
                         playerEntity.setUsername(protocol.getProfile().getName());
+
+                        String locale = clientData.getLanguageCode();
+
+                        // Let the user know there locale may take some time to download
+                        // as it has to be extracted from a JAR
+                        if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
+                            sendMessage("Downloading your locale (en_us) this may take some time");
+                        }
+
+                        // Download and load the language for the player
+                        LocaleUtils.downloadAndLoadLocale(locale);
                     }
 
                     @Override
@@ -295,6 +311,9 @@ public class GeyserSession implements CommandSender {
 
                 downstream.getSession().connect();
                 connector.addPlayer(this);
+            } catch (InvalidCredentialsException e) {
+                connector.getLogger().info("User '" + username + "' entered invalid login info, kicking.");
+                disconnect("Invalid/incorrect login info");
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
