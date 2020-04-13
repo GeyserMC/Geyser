@@ -27,6 +27,7 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.common.AuthType;
 import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -142,7 +143,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
-        if (!session.isLoggedIn() && !session.isLoggingIn()) {
+        if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthData().getName())) {
                 LoginEncryptionUtils.showLoginWindow(session);

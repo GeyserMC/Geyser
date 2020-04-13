@@ -46,6 +46,8 @@ public interface IGeyserConfiguration {
 
     boolean isAllowThirdPartyCapes();
 
+    String getDefaultLocale();
+
     Path getFloodgateKeyFile();
 
     IMetricsInfo getMetrics();

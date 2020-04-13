@@ -52,6 +52,7 @@ public class DimensionUtils {
         player.setDimension(bedrockDimension);
         player.setPosition(pos.toFloat());
         session.setSpawned(false);
+        session.setLastChunkPosition(null);
 
         //let java server handle portal travel sound
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
