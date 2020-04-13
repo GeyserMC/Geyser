@@ -29,6 +29,8 @@ import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.packet.GameRulesChangedPacket;
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2LongMap;
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -41,14 +43,17 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
 
     // doDaylightCycle per-player for multi-world support
     static Long2BooleanMap daylightCycles = new Long2BooleanOpenHashMap();
+    // If negative, the last time is stored so we know it's not some plugin behavior doing weird things.
+    static Long2LongMap lastRecordedTimes = new Long2LongOpenHashMap();
 
     @Override
     public void translate(ServerUpdateTimePacket packet, GeyserSession session) {
 
         boolean doDayLightCycle = daylightCycles.getOrDefault(session.getPlayerEntity().getEntityId(), true);
+        long lastTime = lastRecordedTimes.getOrDefault(session.getPlayerEntity().getEntityId(), 0);
         long time = packet.getTime();
 
-        if ((!doDayLightCycle && time > 0) || (doDayLightCycle && time < 0)) {
+        if ((!doDayLightCycle && time > 0 && lastTime != time) || (doDayLightCycle && time < 0)) {
             // doDaylightCycle is different than the client and we don't know
             // Time is set either way as a reference point for the current time
             setTime(time, session);
@@ -56,6 +61,10 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
         } else if (time > 0) {
             // doDaylightCycle is true and we know
             setTime(time, session);
+        } else if (time < 0) {
+            setTime(time, session);
+            // Only written to if negative to ease performance
+            lastRecordedTimes.put(session.getPlayerEntity().getEntityId(), time);
         }
     }
 
