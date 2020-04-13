@@ -31,7 +31,11 @@ import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Registry;
-import org.geysermc.connector.utils.LoginEncryptionUtils;
+import org.geysermc.connector.utils.*;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.UUID;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -57,24 +61,55 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.getUpstream().sendPacket(playStatus);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
+        for(ResourcePack resourcePack : ResourcePack.PACKS.values()) {
+            ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
+            String version = header.getVersion()[0] + "." + header.getVersion()[1] + "." + header.getVersion()[2];
+            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), version, resourcePack.getFile().length(), "", "", "", false));
+        }
+        resourcePacksInfo.setForcedToAccept(true);
         session.getUpstream().sendPacket(resourcePacksInfo);
         return true;
     }
 
     @Override
     public boolean handle(ResourcePackClientResponsePacket packet) {
+        System.out.println(packet.getStatus());
         switch (packet.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
                 connector.getLogger().info("Player connected with username " + session.getAuthData().getName());
                 break;
-            case HAVE_ALL_PACKS:
-                ResourcePackStackPacket stack = new ResourcePackStackPacket();
-                stack.setExperimental(false);
-                stack.setForcedToAccept(false);
-                stack.setGameVersion("*");
-                session.getUpstream().sendPacket(stack);
+
+            case SEND_PACKS:
+                for(String id : packet.getPackIds()) {
+                    ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
+                    ResourcePack pack = ResourcePack.PACKS.get(id.split("_")[0]);
+                    ResourcePackManifest.Header header = pack.getManifest().getHeader();
+
+                    data.setPackId(header.getUuid());
+                    data.setChunkCount(pack.getFile().length()/ResourcePack.CHUNK_SIZE);
+                    data.setCompressedPackSize(pack.getFile().length());
+                    data.setMaxChunkSize(ResourcePack.CHUNK_SIZE);
+                    data.setHash(pack.getSha256());
+
+                    session.getUpstream().sendPacket(data);
+                }
                 break;
+
+            case HAVE_ALL_PACKS:
+                ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
+
+                stackPacket.setExperimental(false);
+                stackPacket.setForcedToAccept(true);
+                stackPacket.setGameVersion(GeyserConnector.GAME_VERSION);
+                for(ResourcePack pack : ResourcePack.PACKS.values()) {
+                    ResourcePackManifest.Header header = pack.getManifest().getHeader();
+                    String version = header.getVersion()[0] + "." + header.getVersion()[1] + "." + header.getVersion()[2];
+                    stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), version, ""));
+                }
+                session.getUpstream().sendPacket(stackPacket);
+                break;
+
             default:
                 session.getUpstream().disconnect("disconnectionScreen.resourcePack");
                 break;
@@ -125,5 +160,29 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     boolean defaultHandler(BedrockPacket packet) {
         return translateAndDefault(packet);
+    }
+
+    @Override
+    public boolean handle(ResourcePackChunkRequestPacket packet) {
+        ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
+        ResourcePack pack = ResourcePack.PACKS.get(data.getPackId().toString());
+
+        data.setChunkIndex(packet.getChunkIndex());
+        data.setProgress(packet.getChunkIndex()*ResourcePack.CHUNK_SIZE);
+        data.setPackVersion(packet.getPackVersion());
+        data.setPackId(packet.getPackId());
+        byte[] packData = new byte[(int) MathUtils.constrain(pack.getFile().length(), 0, ResourcePack.CHUNK_SIZE)];
+
+        try (InputStream inputStream = new FileInputStream(pack.getFile())) {
+            int offset = packet.getChunkIndex()*ResourcePack.CHUNK_SIZE;
+
+            inputStream.read(packData, offset, packData.length);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        data.setData(packData);
+
+        session.getUpstream().sendPacket(data);
+        return true;
     }
 }

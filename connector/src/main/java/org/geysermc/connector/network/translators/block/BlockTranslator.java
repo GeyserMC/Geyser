@@ -41,8 +41,10 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
+//import org.geysermc.connector.network.translators.forge.Blocks;
 import org.geysermc.connector.utils.Toolbox;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
@@ -64,6 +66,7 @@ public class BlockTranslator {
         ListTag<CompoundTag> blocksTag;
         try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
             blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
+            //Blocks.registerBlocks(new File("mods"));
         } catch (Exception e) {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }

@@ -65,6 +65,7 @@ public class Toolbox {
             biomesTag = (CompoundTag) biomenbtInputStream.readTag();
             BIOMES = biomesTag;
         } catch (Exception ex) {
+            ex.printStackTrace();
             GeyserConnector.getInstance().getLogger().warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
             throw new AssertionError(ex);
         }
