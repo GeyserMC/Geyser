@@ -45,7 +45,14 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
         if (session.getConnector().getPlatformType() == PlatformType.STANDALONE && command.startsWith("geyser ") && commandMap.getCommands().containsKey(command.split(" ")[1])) {
             commandMap.runCommand(session, command);
         } else {
-            ClientChatPacket chatPacket = new ClientChatPacket(packet.getCommand());
+            String message = packet.getCommand().trim();
+
+            if (message.length() > 256) {
+                session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+                return;
+            }
+
+            ClientChatPacket chatPacket = new ClientChatPacket(message);
             session.getDownstream().getSession().send(chatPacket);
         }
     }

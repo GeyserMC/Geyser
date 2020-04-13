@@ -38,12 +38,26 @@ public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
     @Override
     public void translate(TextPacket packet, GeyserSession session) {
         if (packet.getMessage().charAt(0) == '.') {
-            ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage().replace(".", "/"));
+            String message = packet.getMessage().replace(".", "/").trim();
+
+            if (message.length() > 256) {
+                session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+                return;
+            }
+
+            ClientChatPacket chatPacket = new ClientChatPacket(message);
             session.getDownstream().getSession().send(chatPacket);
             return;
         }
 
-        ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage());
+        String message = packet.getMessage().trim();
+
+        if (message.length() > 256) {
+            session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+            return;
+        }
+
+        ClientChatPacket chatPacket = new ClientChatPacket(message);
         session.getDownstream().getSession().send(chatPacket);
     }
 }
