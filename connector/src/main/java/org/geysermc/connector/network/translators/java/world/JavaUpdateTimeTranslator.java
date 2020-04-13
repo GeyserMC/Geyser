@@ -27,8 +27,6 @@ package org.geysermc.connector.network.translators.java.world;
 
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.packet.GameRulesChangedPacket;
-import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
-import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,7 +38,7 @@ import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
 
 @Translator(packet = ServerUpdateTimePacket.class)
 public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimePacket> {
-    
+
     // If negative, the last time is stored so we know it's not some plugin behavior doing weird things.
     // Per-player for multi-world support
     static Long2LongMap lastRecordedTimes = new Long2LongOpenHashMap();
