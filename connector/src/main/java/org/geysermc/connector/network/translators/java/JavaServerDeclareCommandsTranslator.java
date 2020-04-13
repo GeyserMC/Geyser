@@ -25,11 +25,8 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
 import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
-import com.github.steveice10.mc.protocol.data.game.command.CommandType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareCommandsPacket;
 import com.nukkitx.protocol.bedrock.data.CommandData;
 import com.nukkitx.protocol.bedrock.data.CommandEnumData;
@@ -47,37 +44,30 @@ import java.util.*;
 public class JavaServerDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
     @Override
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
-        List<CommandNode> rootNodes = new ArrayList<>();
         List<CommandData> commandData = new ArrayList<>();
         Map<Integer, String> commands = new HashMap<>();
         Map<Integer, List<CommandNode>> commandArgs = new HashMap<>();
 
-        // Find the root nodes
-        for (CommandNode node : packet.getNodes()) {
-            if (node.getType() == CommandType.ROOT) {
-                rootNodes.add(node);
-            }
-        }
+        // Get the first node, it should be a root node
+        CommandNode rootNode = packet.getNodes()[packet.getFirstNodeIndex()];
 
         // Loop through the root nodes to get all commands
-        for (CommandNode rootNode : rootNodes) {
-            for (int nodeIndex : rootNode.getChildIndices()) {
-                CommandNode node = packet.getNodes()[nodeIndex];
+        for (int nodeIndex : rootNode.getChildIndices()) {
+            CommandNode node = packet.getNodes()[nodeIndex];
 
-                // Make sure we dont have duplicated commands (happens if there is more than 1 root node)
-                if (commands.containsKey(nodeIndex)) { continue; }
+            // Make sure we dont have duplicated commands (happens if there is more than 1 root node)
+            if (commands.containsKey(nodeIndex)) { continue; }
 
-                // Get and update the commandArgs list with the found arguments
-                if (node.getChildIndices().length >= 1) {
-                    for (int childIndex : node.getChildIndices()) {
-                        commandArgs.putIfAbsent(nodeIndex, new ArrayList<>());
-                        commandArgs.get(nodeIndex).add(packet.getNodes()[childIndex]);
-                    }
+            // Get and update the commandArgs list with the found arguments
+            if (node.getChildIndices().length >= 1) {
+                for (int childIndex : node.getChildIndices()) {
+                    commandArgs.putIfAbsent(nodeIndex, new ArrayList<>());
+                    commandArgs.get(nodeIndex).add(packet.getNodes()[childIndex]);
                 }
-
-                // Insert the command name into the list
-                commands.put(nodeIndex, node.getName());
             }
+
+            // Insert the command name into the list
+            commands.put(nodeIndex, node.getName());
         }
 
         // The command flags, not sure what these do apart from break things
@@ -103,6 +93,8 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         for (CommandData data : commandData) {
             availableCommandsPacket.getCommands().add(data);
         }
+
+        GeyserConnector.getInstance().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
 
         // Finally, send the commands to the client
         session.getUpstream().sendPacket(availableCommandsPacket);
