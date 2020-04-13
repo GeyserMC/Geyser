@@ -41,14 +41,14 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
 
     // If negative, the last time is stored so we know it's not some plugin behavior doing weird things.
     // Per-player for multi-world support
-    static Long2LongMap lastRecordedTimes = new Long2LongOpenHashMap();
+    private static final Long2LongMap LAST_RECORDED_TIMES = new Long2LongOpenHashMap();
 
     @Override
     public void translate(ServerUpdateTimePacket packet, GeyserSession session) {
 
         // Bedrock sends a GameRulesChangedPacket if there is no daylight cycle
         // Java just sends a negative long if there is no daylight cycle
-        long lastTime = lastRecordedTimes.getOrDefault(session.getPlayerEntity().getEntityId(), 0);
+        long lastTime = LAST_RECORDED_TIMES.getOrDefault(session.getPlayerEntity().getEntityId(), 0);
         long time = packet.getTime();
 
         if (lastTime != time) {
@@ -57,16 +57,16 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
             setTimePacket.setTime((int) Math.abs(time) % 24000);
             session.getUpstream().sendPacket(setTimePacket);
             // TODO: Performance efficient to always do this?
-            lastRecordedTimes.put(session.getPlayerEntity().getEntityId(), time);
+            LAST_RECORDED_TIMES.put(session.getPlayerEntity().getEntityId(), time);
         }
         if (lastTime < 0 && time >= 0) {
-            setDoDayLightGamerule(session, true);
+            setDoDaylightCycleGamerule(session, true);
         } else if (lastTime != time && time < 0) {
-            setDoDayLightGamerule(session, false);
+            setDoDaylightCycleGamerule(session, false);
         }
     }
 
-    private void setDoDayLightGamerule(GeyserSession session, boolean doCycle) {
+    private void setDoDaylightCycleGamerule(GeyserSession session, boolean doCycle) {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
         gameRulesChangedPacket.getGameRules().add(new GameRuleData<>("dodaylightcycle", doCycle));
         session.getUpstream().sendPacket(gameRulesChangedPacket);
