@@ -32,6 +32,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -289,5 +290,15 @@ public class MessageUtils {
             }
         }
         return "";
+    }
+
+    public static boolean isTooLong(String message, GeyserSession session) {
+        if (message.length() > 256) {
+            // TODO: Add Geyser localization and translate this based on language
+            session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+            return false;
+        }
+
+        return true;
     }
 }

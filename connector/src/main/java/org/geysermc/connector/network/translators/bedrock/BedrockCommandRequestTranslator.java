@@ -34,6 +34,7 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
+import org.geysermc.connector.utils.MessageUtils;
 
 @Translator(packet = CommandRequestPacket.class)
 public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {
@@ -47,10 +48,7 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
         } else {
             String message = packet.getCommand().trim();
 
-            if (message.length() > 256) {
-                session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
-                return;
-            }
+            if (MessageUtils.isTooLong(message, session)) { return; }
 
             ClientChatPacket chatPacket = new ClientChatPacket(message);
             session.getDownstream().getSession().send(chatPacket);
