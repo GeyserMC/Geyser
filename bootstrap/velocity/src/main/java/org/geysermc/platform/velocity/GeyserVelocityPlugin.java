@@ -44,7 +44,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-@Plugin(id = "geyser", name = GeyserConnector.NAME + "-Velocity", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
+@Plugin(id = "geyser", name = GeyserConnector.NAME + "-Velocity", version = GeyserConnector.VERSION_STATIC, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserVelocityPlugin implements IGeyserBootstrap {
 
     @Inject
