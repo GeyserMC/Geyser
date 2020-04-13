@@ -40,9 +40,7 @@ import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
 
 @Translator(packet = ServerUpdateTimePacket.class)
 public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimePacket> {
-
-    // doDaylightCycle per-player for multi-world support
-    //static Long2BooleanMap daylightCycles = new Long2BooleanOpenHashMap();
+    
     // If negative, the last time is stored so we know it's not some plugin behavior doing weird things.
     // Per-player for multi-world support
     static Long2LongMap lastRecordedTimes = new Long2LongOpenHashMap();
@@ -52,7 +50,6 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
 
         // Bedrock sends a GameRulesChangedPacket if there is no daylight cycle
         // Java just sends a negative long if there is no daylight cycle
-        //boolean doDayLightCycle = daylightCycles.getOrDefault(session.getPlayerEntity().getEntityId(), true);
         long lastTime = lastRecordedTimes.getOrDefault(session.getPlayerEntity().getEntityId(), 0);
         long time = packet.getTime();
 
