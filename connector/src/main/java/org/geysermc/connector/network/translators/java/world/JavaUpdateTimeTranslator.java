@@ -59,7 +59,7 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
             // TODO: Performance efficient to always do this?
             lastRecordedTimes.put(session.getPlayerEntity().getEntityId(), time);
         }
-        if (lastTime < 0 && time > 0) {
+        if (lastTime < 0 && time >= 0) {
             setDoDayLightGamerule(session, true);
         } else if (lastTime != time && time < 0) {
             setDoDayLightGamerule(session, false);
