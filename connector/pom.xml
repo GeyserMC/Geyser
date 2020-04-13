@@ -68,6 +68,12 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-long-boolean-maps</artifactId>
+            <version>8.3.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-long-maps</artifactId>
             <version>8.3.1</version>
             <scope>compile</scope>
