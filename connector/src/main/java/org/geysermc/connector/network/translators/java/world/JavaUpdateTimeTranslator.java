@@ -42,44 +42,39 @@ import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
 public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimePacket> {
 
     // doDaylightCycle per-player for multi-world support
-    static Long2BooleanMap daylightCycles = new Long2BooleanOpenHashMap();
+    //static Long2BooleanMap daylightCycles = new Long2BooleanOpenHashMap();
     // If negative, the last time is stored so we know it's not some plugin behavior doing weird things.
+    // Per-player for multi-world support
     static Long2LongMap lastRecordedTimes = new Long2LongOpenHashMap();
 
     @Override
     public void translate(ServerUpdateTimePacket packet, GeyserSession session) {
 
-        boolean doDayLightCycle = daylightCycles.getOrDefault(session.getPlayerEntity().getEntityId(), true);
+        // Bedrock sends a GameRulesChangedPacket if there is no daylight cycle
+        // Java just sends a negative long if there is no daylight cycle
+        //boolean doDayLightCycle = daylightCycles.getOrDefault(session.getPlayerEntity().getEntityId(), true);
         long lastTime = lastRecordedTimes.getOrDefault(session.getPlayerEntity().getEntityId(), 0);
         long time = packet.getTime();
 
-        if ((!doDayLightCycle && time > 0 && lastTime != time) || (doDayLightCycle && time < 0)) {
-            // doDaylightCycle is different than the client and we don't know
-            // Time is set either way as a reference point for the current time
-            setTime(time, session);
-            setDoDayLightGamerule(session, !doDayLightCycle);
-        } else if (time > 0) {
-            // doDaylightCycle is true and we know
-            setTime(time, session);
-        } else if (time < 0) {
-            setTime(time, session);
-            // Only written to if negative to ease performance
+        if (lastTime != time) {
+            // https://minecraft.gamepedia.com/Day-night_cycle#24-hour_Minecraft_day
+            SetTimePacket setTimePacket = new SetTimePacket();
+            setTimePacket.setTime((int) Math.abs(time) % 24000);
+            session.getUpstream().sendPacket(setTimePacket);
+            // TODO: Performance efficient to always do this?
             lastRecordedTimes.put(session.getPlayerEntity().getEntityId(), time);
         }
-    }
-
-    private void setTime(long time, GeyserSession session) {
-        // https://minecraft.gamepedia.com/Day-night_cycle#24-hour_Minecraft_day
-        SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime((int) Math.abs(time) % 24000);
-        session.getUpstream().sendPacket(setTimePacket);
+        if (lastTime < 0 && time > 0) {
+            setDoDayLightGamerule(session, true);
+        } else if (lastTime != time && time < 0) {
+            setDoDayLightGamerule(session, false);
+        }
     }
 
     private void setDoDayLightGamerule(GeyserSession session, boolean doCycle) {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
         gameRulesChangedPacket.getGameRules().add(new GameRuleData<>("dodaylightcycle", doCycle));
         session.getUpstream().sendPacket(gameRulesChangedPacket);
-        daylightCycles.put(session.getPlayerEntity().getEntityId(), doCycle);
     }
 
 }
