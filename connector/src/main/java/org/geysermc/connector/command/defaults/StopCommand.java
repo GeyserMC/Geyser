@@ -48,6 +48,11 @@ public class StopCommand extends GeyserCommand {
         if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
             return;
         }
+
         connector.shutdown();
+
+        if (connector.getPlatformType() == PlatformType.STANDALONE) {
+            System.exit(0);
+        }
     }
 }

@@ -29,13 +29,9 @@ import lombok.Getter;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
 import org.geysermc.connector.entity.living.animal.*;
-import org.geysermc.connector.entity.living.animal.tameable.CatEntity;
-import org.geysermc.connector.entity.living.animal.tameable.TameableEntity;
-import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
-import org.geysermc.connector.entity.living.animal.horse.ChestedHorseEntity;
-import org.geysermc.connector.entity.living.animal.horse.HorseEntity;
-import org.geysermc.connector.entity.living.animal.horse.LlamaEntity;
-import org.geysermc.connector.entity.living.animal.tameable.WolfEntity;
+import org.geysermc.connector.entity.living.animal.horse.*;
+import org.geysermc.connector.entity.living.animal.tameable.*;
+import org.geysermc.connector.entity.living.merchant.*;
 import org.geysermc.connector.entity.living.monster.*;
 import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
@@ -49,7 +45,7 @@ public enum EntityType {
     PIG(PigEntity.class, 12, 0.9f),
     SHEEP(SheepEntity.class, 13, 1.3f, 0.9f),
     WOLF(WolfEntity.class, 14, 0.85f, 0.6f),
-    VILLAGER(AbstractMerchantEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f),
+    VILLAGER(VillagerEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f),
     MOOSHROOM(AnimalEntity.class, 16, 1.4f, 0.9f),
     SQUID(WaterEntity.class, 17, 0.8f),
     RABBIT(RabbitEntity.class, 18, 0.5f, 0.4f),
@@ -64,8 +60,8 @@ public enum EntityType {
     ZOMBIE_HORSE(AbstractHorseEntity.class, 27, 1.6f, 1.3965f),
     POLAR_BEAR(PolarBearEntity.class, 28, 1.4f, 1.3f),
     LLAMA(LlamaEntity.class, 29, 1.87f, 0.9f),
-    TRADER_LLAMA(LlamaEntity.class, 29, 1.187f, 0.9f),
-    PARROT(TameableEntity.class, 30, 0.9f, 0.5f),
+    TRADER_LLAMA(TraderLlamaEntity.class, 29, 1.187f, 0.9f),
+    PARROT(ParrotEntity.class, 30, 0.9f, 0.5f),
     DOLPHIN(WaterEntity.class, 31, 0.6f, 0.9f),
     ZOMBIE(ZombieEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f),
     CREEPER(CreeperEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
@@ -103,7 +99,7 @@ public enum EntityType {
     PLAYER(PlayerEntity.class, 63, 1.8f, 0.6f, 0.6f, 1.62f),
     ITEM(ItemEntity.class, 64, 0.25f, 0.25f),
     TNT(Entity.class, 65, 0.98f, 0.98f),
-    FALLING_BLOCK(Entity.class, 66, 0.98f, 0.98f),
+    FALLING_BLOCK(FallingBlockEntity.class, 66, 0.98f, 0.98f),
     MOVING_BLOCK(Entity.class, 67, 0f),
     EXPERIENCE_BOTTLE(ThrowableEntity.class, 68, 0.25f, 0.25f),
     EXPERIENCE_ORB(ExpOrbEntity.class, 69, 0f),
