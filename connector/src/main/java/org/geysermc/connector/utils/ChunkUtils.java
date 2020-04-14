@@ -89,8 +89,7 @@ public class ChunkUtils {
                             chunkData.beds.put(pos, blockState);
                         } else if (BlockTranslator.getSkullVariant(blockState) > 0) {
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            // Beds need to be updated separately to add the bed color tag
-                            // Previously this was done by matching block state but this resulted in only one bed per color+orientation showing
+                            //Doing the same stuff as beds
                             chunkData.skulls.put(pos, blockState);
                         } else {
                             section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);

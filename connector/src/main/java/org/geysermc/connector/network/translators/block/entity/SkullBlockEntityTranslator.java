@@ -22,12 +22,11 @@ public class SkullBlockEntityTranslator {
     public static void checkForSkullVariant(GeyserSession session, BlockState blockState, Vector3i position) {
         byte skullVariant = BlockTranslator.getSkullVariant(blockState);
         byte rotation = BlockTranslator.getSkullRotation(blockState);
-        // If Bed Color is not -1 then it is indeed a bed with a color.
-        if (skullVariant > 0) {
+        if (skullVariant > -1) {
             Position pos = new Position(position.getX(), position.getY(), position.getZ());
             com.nukkitx.nbt.tag.CompoundTag finalSkullTag = getSkullTag(skullVariant, pos, rotation);
-            // Delay needed, otherwise newly placed beds will not get their color
-            // Delay is not needed for beds already placed on login
+            // Delay needed, otherwise newly placed skulls will not appear
+            // Delay is not needed for skulls already placed on login
             session.getConnector().getGeneralThreadPool().schedule(() ->
                             BlockEntityUtils.updateBlockEntity(session, finalSkullTag, pos),
                     500,
