@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
