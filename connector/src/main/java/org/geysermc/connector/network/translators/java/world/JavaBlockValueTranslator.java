@@ -25,10 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.value.ChestValue;
-import com.github.steveice10.mc.protocol.data.game.world.block.value.EndGatewayValue;
-import com.github.steveice10.mc.protocol.data.game.world.block.value.NoteBlockValue;
-import com.github.steveice10.mc.protocol.data.game.world.block.value.NoteBlockValueType;
+import com.github.steveice10.mc.protocol.data.game.world.block.value.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockValuePacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
@@ -56,24 +53,34 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof NoteBlockValue) {
-            switch ((NoteBlockValueType) packet.getType()) {
-                case PLING:
-                    blockEventPacket.setEventType(0);
-                    break;
-                case BASS_DRUM:
-                    blockEventPacket.setEventType(1);
-                    break;
-                case HI_HAT:
-                    blockEventPacket.setEventType(2);
-                    break;
-                case SNARE_DRUM:
-                    blockEventPacket.setEventType(3);
-                    break;
-                case DOUBLE_BASS:
-                    blockEventPacket.setEventType(4);
-                    break;
-            }
+            NoteBlockValueType type = (NoteBlockValueType) packet.getType();
 
+            blockEventPacket.setEventType(type.ordinal());
+
+            session.getUpstream().sendPacket(blockEventPacket);
+        }
+        if (packet.getValue() instanceof PistonValue) {
+            PistonValueType type = (PistonValueType) packet.getType();
+            PistonValue value = (PistonValue) packet.getValue();
+
+            System.out.println(type.ordinal());
+            System.out.println(value.ordinal());
+
+            blockEventPacket.setEventType(type.ordinal());
+            blockEventPacket.setEventData(value.ordinal());
+
+            session.getUpstream().sendPacket(blockEventPacket);
+        }
+        if (packet.getValue() instanceof BeaconValue) {
+            blockEventPacket.setEventType(1);
+            session.getUpstream().sendPacket(blockEventPacket);
+        }
+        if (packet.getValue() instanceof MobSpawnerValue) {
+            blockEventPacket.setEventType(1);
+            session.getUpstream().sendPacket(blockEventPacket);
+        }
+        if (packet.getValue() instanceof EndGatewayValue) {
+            blockEventPacket.setEventType(1);
             session.getUpstream().sendPacket(blockEventPacket);
         }
     }
