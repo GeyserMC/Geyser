@@ -57,12 +57,8 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         }
         if (packet.getValue() instanceof NoteBlockValue) {
             NoteBlockValueType type = (NoteBlockValueType) packet.getType();
-            NoteBlockValue value = (NoteBlockValue) packet.getValue();
 
             blockEventPacket.setEventType(type.ordinal());
-            System.out.println("Pitch: " + value.getPitch());
-            blockEventPacket.setEventData(value.getPitch());
-
             session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof PistonValue) {
