@@ -67,6 +67,8 @@ public class BlockTranslator {
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
+    private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
+    private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
 
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
@@ -145,6 +147,170 @@ public class BlockTranslator {
 
             if (javaId.contains("sign[")) {
                 JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
+            }
+
+            int lastIndex = javaId.length() -1;
+            byte rotation = 0;
+            if (javaId.contains("skeleton_skull[")) {
+                if (javaId.indexOf("=") == lastIndex - 2) {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -1, lastIndex));
+                }
+                else {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -2, lastIndex));
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 0);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+            else if (javaId.contains("skeleton_wall")) {
+                if (javaId.contains("north")) {
+                    rotation = 0;
+                }
+                else if (javaId.contains("east")) {
+                    rotation = 4;
+                }
+                else if (javaId.contains("south")) {
+                    rotation = 8;
+                }
+                else if(javaId.contains("west")) {
+                    rotation = 12;
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 0);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+
+            if (javaId.contains("wither_skeleton_skull[")) {
+                if (javaId.indexOf("=") == lastIndex - 2) {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -1, lastIndex));
+                }
+                else {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -2, lastIndex));
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 1);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+            else if (javaId.contains("wither_skeleton_wall")) {
+                if (javaId.contains("north")) {
+                    rotation = 0;
+                }
+                else if (javaId.contains("east")) {
+                    rotation = 4;
+                }
+                else if (javaId.contains("south")) {
+                    rotation = 8;
+                }
+                else if(javaId.contains("west")) {
+                    rotation = 12;
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 1);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+
+            if (javaId.contains("zombie_head[")) {
+                if (javaId.indexOf("=") == lastIndex - 2) {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -1, lastIndex));
+                }
+                else {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -2, lastIndex));
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 2);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+            else if (javaId.contains("zombie_wall")) {
+                if (javaId.contains("north")) {
+                    rotation = 0;
+                }
+                else if (javaId.contains("east")) {
+                    rotation = 4;
+                }
+                else if (javaId.contains("south")) {
+                    rotation = 8;
+                }
+                else if(javaId.contains("west")) {
+                    rotation = 12;
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 2);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+
+            if (javaId.contains("player_head[")) {
+                if (javaId.indexOf("=") == lastIndex - 2) {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -1, lastIndex));
+                }
+                else {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -2, lastIndex));
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 3);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+            else if (javaId.contains("player_wall")) {
+                if (javaId.contains("north")) {
+                    rotation = 0;
+                }
+                else if (javaId.contains("east")) {
+                    rotation = 4;
+                }
+                else if (javaId.contains("south")) {
+                    rotation = 8;
+                }
+                else if(javaId.contains("west")) {
+                    rotation = 12;
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 3);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+
+            if (javaId.contains("creeper_head[")) {
+                if (javaId.indexOf("=") == lastIndex - 2) {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -1, lastIndex));
+                }
+                else {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -2, lastIndex));
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 4);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+            else if (javaId.contains("creeper_wall")) {
+                if (javaId.contains("north")) {
+                    rotation = 0;
+                }
+                else if (javaId.contains("east")) {
+                    rotation = 4;
+                }
+                else if (javaId.contains("south")) {
+                    rotation = 8;
+                }
+                else if(javaId.contains("west")) {
+                    rotation = 12;
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 4);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+
+            if (javaId.contains("dragon_head[")) {
+                if (javaId.indexOf("=") == lastIndex - 2) {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -1, lastIndex));
+                }
+                else {
+                    rotation = Byte.parseByte(javaId.substring(lastIndex -2, lastIndex));
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 5);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
+            }
+            else if (javaId.contains("dragon_wall")) {
+                if (javaId.contains("north")) {
+                    rotation = 0;
+                }
+                else if (javaId.contains("east")) {
+                    rotation = 4;
+                }
+                else if (javaId.contains("south")) {
+                    rotation = 8;
+                }
+                else if(javaId.contains("west")) {
+                    rotation = 12;
+                }
+                SKULL_VARIANTS.put(javaBlockState, (byte) 5);
+                SKULL_ROTATIONS.put(javaBlockState, rotation);
             }
 
             // If the Java ID is bed, signal that it needs a tag to show color
@@ -266,6 +432,20 @@ public class BlockTranslator {
             return BED_COLORS.getByte(state);
         }
         return -1;
+    }
+
+    public static byte getSkullVariant(BlockState state) {
+        if (SKULL_VARIANTS.containsKey(state)) {
+            return SKULL_VARIANTS.getByte(state);
+        }
+        return 0;
+    }
+
+    public static byte getSkullRotation(BlockState state) {
+        if (SKULL_ROTATIONS.containsKey(state)) {
+            return SKULL_ROTATIONS.getByte(state);
+        }
+        return 0;
     }
 
     public static BlockState getJavaWaterloggedState(int bedrockId) {
