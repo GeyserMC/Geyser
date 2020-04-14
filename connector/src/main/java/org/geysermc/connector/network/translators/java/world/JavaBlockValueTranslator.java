@@ -63,9 +63,6 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             PistonValueType type = (PistonValueType) packet.getType();
             PistonValue value = (PistonValue) packet.getValue();
 
-            System.out.println(type.ordinal());
-            System.out.println(value.ordinal());
-
             blockEventPacket.setEventType(type.ordinal());
             blockEventPacket.setEventData(value.ordinal());
 
