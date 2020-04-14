@@ -51,7 +51,7 @@ public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket>
 
                 bossEventPacket.setAction(BossEventPacket.Action.SHOW);
                 bossEventPacket.setBossUniqueEntityId(entityId);
-                bossEventPacket.setTitle(MessageUtils.getBedrockMessage(packet.getTitle()));
+                bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(packet.getTitle(), session.getClientData().getLanguageCode()));
                 bossEventPacket.setHealthPercentage(packet.getHealth());
                 bossEventPacket.setColor(0); //ignored by client
                 bossEventPacket.setOverlay(1);
@@ -59,7 +59,7 @@ public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket>
                 break;
             case UPDATE_TITLE:
                 bossEventPacket.setAction(BossEventPacket.Action.TITLE);
-                bossEventPacket.setTitle(MessageUtils.getBedrockMessage(packet.getTitle()));
+                bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(packet.getTitle(), session.getClientData().getLanguageCode()));
                 break;
             case UPDATE_HEALTH:
                 bossEventPacket.setAction(BossEventPacket.Action.HEALTH_PERCENTAGE);
