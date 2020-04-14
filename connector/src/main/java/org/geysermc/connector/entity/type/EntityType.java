@@ -69,7 +69,7 @@ public enum EntityType {
     SPIDER(SpiderEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
     ZOMBIE_PIGMAN(MonsterEntity.class, 36, 1.8f, 0.6f, 0.6f, 1.62f),
     SLIME(InsentientEntity.class, 37, 0.51f),
-    ENDERMAN(MonsterEntity.class, 38, 2.9f, 0.6f),
+    ENDERMAN(EndermanEntity.class, 38, 2.9f, 0.6f),
     SILVERFISH(MonsterEntity.class, 39, 0.3f, 0.4f),
     CAVE_SPIDER(MonsterEntity.class, 40, 0.5f, 0.7f),
     GHAST(FlyingEntity.class, 41, 4.0f),
