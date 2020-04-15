@@ -67,6 +67,8 @@ public class BlockTranslator {
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
+    private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
+    private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
 
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
@@ -145,6 +147,17 @@ public class BlockTranslator {
 
             if (javaId.contains("sign[")) {
                 JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
+            }
+
+
+            JsonNode skullVariation = entry.getValue().get("variation");
+            if(skullVariation != null) {
+                SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
+            }
+
+            JsonNode skullRotation = entry.getValue().get("skull_rotation");
+            if (skullRotation != null) {
+                SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
             }
 
             // If the Java ID is bed, signal that it needs a tag to show color
@@ -266,6 +279,20 @@ public class BlockTranslator {
             return BED_COLORS.getByte(state);
         }
         return -1;
+    }
+
+    public static byte getSkullVariant(BlockState state) {
+        if (SKULL_VARIANTS.containsKey(state)) {
+            return SKULL_VARIANTS.getByte(state);
+        }
+        return 0;
+    }
+
+    public static byte getSkullRotation(BlockState state) {
+        if (SKULL_ROTATIONS.containsKey(state)) {
+            return SKULL_ROTATIONS.getByte(state);
+        }
+        return 0;
     }
 
     public static BlockState getJavaWaterloggedState(int bedrockId) {
