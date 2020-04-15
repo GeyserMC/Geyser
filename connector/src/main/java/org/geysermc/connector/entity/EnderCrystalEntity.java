@@ -1,8 +1,11 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -16,7 +19,20 @@ public class EnderCrystalEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        System.out.println("ID: " + entityMetadata.getId() + ", " + entityMetadata.getValue());
+        // Show beam
+        // Usually performed client-side on Bedrock except for Ender Dragon respawn event
+        if (entityMetadata.getId() == 7) {
+            if (entityMetadata.getValue() instanceof Position) {
+                Position pos = (Position) entityMetadata.getValue();
+                metadata.put(EntityData.BLOCK_TARGET, Vector3i.from(pos.getX(), pos.getY(), pos.getZ()));
+            } else {
+                metadata.put(EntityData.BLOCK_TARGET, Vector3i.ZERO);
+            }
+        }
+        // There is a base located on the ender crystal
+        if (entityMetadata.getId() == 8) {
+            metadata.getFlags().setFlag(EntityFlag.SHOW_BOTTOM, (boolean) entityMetadata.getValue());
+        }
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
