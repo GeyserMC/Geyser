@@ -118,6 +118,13 @@ public class ItemTranslator {
                 return itemEntry;
             }
         }
+        // If item find was unsuccessful first time, we try again while ignoring damage
+        // Fixes piston, sticky pistons, dispensers and droppers turning into air from creative inventory
+        for (ItemEntry itemEntry : Toolbox.ITEM_ENTRIES.values()) {
+            if (itemEntry.getBedrockId() == data.getId()) {
+                return itemEntry;
+            }
+        }
 
         GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
         return ItemEntry.AIR;
