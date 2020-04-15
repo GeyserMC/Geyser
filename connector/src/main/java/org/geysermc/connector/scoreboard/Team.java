@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.scoreboard;
 
+import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,9 +45,9 @@ public class Team {
     private UpdateType updateType = UpdateType.ADD;
     private String name;
     private String prefix;
+    private TeamColor color;
     private String suffix;
     private Set<String> entities = new ObjectOpenHashSet<>();
-
 
     public Team(Scoreboard scoreboard, String id) {
         this.scoreboard = scoreboard;

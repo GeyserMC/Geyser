@@ -44,7 +44,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.effect.Effect;
 
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 public class Toolbox {
@@ -58,6 +58,8 @@ public class Toolbox {
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
+
+    public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
 
     static {
         /* Load biomes */
@@ -166,6 +168,9 @@ public class Toolbox {
                     entry.getValue().get("bedrock_id").intValue(), entry.getValue().get("bedrock_data").intValue()));
             itemIndex++;
         }
+
+        // Load the locale data
+        LocaleUtils.init();
     }
 
     public static InputStream getResource(String resource) {
