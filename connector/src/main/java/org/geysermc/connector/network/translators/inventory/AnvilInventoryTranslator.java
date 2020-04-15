@@ -25,7 +25,10 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
@@ -113,5 +116,31 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
         }
 
         super.translateActions(session, inventory, actions);
+    }
+
+    @Override
+    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
+        if (slot >= 0 && slot <= 2) {
+            ItemStack item = inventory.getItem(slot);
+            if (item != null) {
+                String rename;
+                CompoundTag tag = item.getNbt();
+                if (tag != null) {
+                    CompoundTag displayTag = tag.get("display");
+                    if (displayTag != null) {
+                        String itemName = displayTag.get("Name").getValue().toString();
+                        Message message = Message.fromString(itemName);
+                        rename = message.getText();
+                    } else {
+                        rename = "";
+                    }
+                } else {
+                    rename = "";
+                }
+                ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
+                session.getDownstream().getSession().send(renameItemPacket);
+            }
+        }
+        super.updateSlot(session, inventory, slot);
     }
 }
