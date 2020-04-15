@@ -28,6 +28,9 @@ package org.geysermc.connector.network.translators.java.world;
 import com.github.steveice10.mc.protocol.data.game.world.block.value.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockValuePacket;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 
 import org.geysermc.connector.network.session.GeyserSession;
@@ -57,10 +60,22 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         }
         if (packet.getValue() instanceof PistonValue) {
             PistonValueType type = (PistonValueType) packet.getType();
-            PistonValue value = (PistonValue) packet.getValue();
 
-            blockEventPacket.setEventType(type.ordinal());
-            blockEventPacket.setEventData(value.ordinal());
+            // Unlike everything else, pistons need a block entity packet to convey motion
+            // TODO: Doesn't register on chunk load; needs to be interacted with first
+            BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
+            blockEntityDataPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(),
+                    packet.getPosition().getY(), packet.getPosition().getZ()));
+            CompoundTagBuilder builder = CompoundTag.EMPTY.toBuilder();
+            builder.intTag("x", packet.getPosition().getX())
+                    .intTag("y", packet.getPosition().getY())
+                    .intTag("z", packet.getPosition().getZ())
+                    .floatTag("Progress", 1.0f)
+                    .stringTag("id", "PistonArm")
+                    .byteTag("State", (byte) (type.ordinal() - 1));
+            blockEntityDataPacket.setData(builder.buildRootTag());
+            session.getUpstream().sendPacket(blockEntityDataPacket);
+            return;
         }
         if (packet.getValue() instanceof BeaconValue) {
             blockEventPacket.setEventType(1);
