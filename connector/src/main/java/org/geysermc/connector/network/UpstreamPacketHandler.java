@@ -74,7 +74,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ResourcePackClientResponsePacket packet) {
-        System.out.println(packet.getStatus());
         switch (packet.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
@@ -102,7 +101,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
                 stackPacket.setExperimental(false);
                 stackPacket.setForcedToAccept(true);
-                stackPacket.setGameVersion(GeyserConnector.GAME_VERSION);
+                stackPacket.setGameVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
                 for(ResourcePack pack : ResourcePack.PACKS.values()) {
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();
                     String version = header.getVersion()[0] + "." + header.getVersion()[1] + "." + header.getVersion()[2];

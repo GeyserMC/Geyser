@@ -77,6 +77,7 @@ public class ResourcePack {
                 bytes.writeBytes(Files.readAllBytes(file.toPath()));
                 hash.update(bytes);
                 sha256 = hash.digest();
+                hashed = true;
             } catch (Exception e) {
                 throw new RuntimeException("Could not calculate pack hash", e);
             } finally {
