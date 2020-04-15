@@ -19,7 +19,6 @@ public class EnderDragonEntity extends InsentientEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        System.out.println("Ender Dragon ID: " + entityMetadata.getId() + " Value: " + entityMetadata.getValue());
         if (entityMetadata.getId() == 15) {
             metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
             switch ((int) entityMetadata.getValue()) {
