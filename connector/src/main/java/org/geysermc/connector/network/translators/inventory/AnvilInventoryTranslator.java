@@ -120,14 +120,14 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        if(slot >= 0 && slot <= 2){
+        if (slot >= 0 && slot <= 2) {
             ItemStack item = inventory.getItem(slot);
-            if(item != null){
+            if (item != null) {
                 String rename;
                 CompoundTag tag = item.getNbt();
                 if (tag != null) {
                     CompoundTag displayTag = tag.get("display");
-                    if(displayTag != null){
+                    if (displayTag != null) {
                         String itemName = displayTag.get("Name").getValue().toString();
                         Message message = Message.fromString(itemName);
                         rename = message.getText();
