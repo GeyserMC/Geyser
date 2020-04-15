@@ -151,13 +151,13 @@ public class BlockTranslator {
 
 
             JsonNode skullVariation = entry.getValue().get("variation");
-                if(skullVariation != null) {
-                    SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
-                }
+            if(skullVariation != null) {
+                SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
+            }
 
             JsonNode skullRotation = entry.getValue().get("skull_rotation");
-                if (skullRotation != null) {
-                   SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
+            if (skullRotation != null) {
+                SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
             }
 
             // If the Java ID is bed, signal that it needs a tag to show color
