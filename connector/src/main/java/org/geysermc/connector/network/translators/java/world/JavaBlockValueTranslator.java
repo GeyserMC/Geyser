@@ -46,18 +46,14 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             ChestValue value = (ChestValue) packet.getValue() ;
             blockEventPacket.setEventType(1);
             blockEventPacket.setEventData(value.getViewers() > 0 ? 1 : 0);
-            session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
-            session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof NoteBlockValue) {
             NoteBlockValueType type = (NoteBlockValueType) packet.getType();
 
             blockEventPacket.setEventType(type.ordinal());
-
-            session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof PistonValue) {
             PistonValueType type = (PistonValueType) packet.getType();
@@ -65,20 +61,17 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
 
             blockEventPacket.setEventType(type.ordinal());
             blockEventPacket.setEventData(value.ordinal());
-
-            session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof BeaconValue) {
             blockEventPacket.setEventType(1);
-            session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof MobSpawnerValue) {
             blockEventPacket.setEventType(1);
-            session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
-            session.getUpstream().sendPacket(blockEventPacket);
         }
+
+        session.getUpstream().sendPacket(blockEventPacket);
     }
 }
