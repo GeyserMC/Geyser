@@ -48,7 +48,9 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
         } else {
             String message = packet.getCommand().trim();
 
-            if (MessageUtils.isTooLong(message, session)) { return; }
+            if (MessageUtils.isTooLong(message, session)) {
+                return;
+            }
 
             ClientChatPacket chatPacket = new ClientChatPacket(message);
             session.getDownstream().getSession().send(chatPacket);
