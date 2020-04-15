@@ -2,4 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: GeyserMC Discord
     url: http://discord.geysermc.org/
-    about: If your issue seems like it possibly an easy fix due to configuration, please hop on our discord.
+    about: If your issue seems like it could possibly be an easy fix due to configuration, please hop on our Discord.
