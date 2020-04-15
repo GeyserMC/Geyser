@@ -99,8 +99,10 @@ public class ItemTranslator {
         CompoundTag tag = stack.getNbt();
         IntTag mapId = tag.get("map");
 
-        if (mapId != null)
+        if (mapId != null) {
             tag.put(new StringTag("map_uuid", mapId.getValue().toString()));
+            tag.put(new IntTag("map_name_index", mapId.getValue()));
+        }
 
 
         return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(tag));

@@ -288,6 +288,9 @@ public class GeyserSession implements CommandSender {
                         loggingIn = false;
                         loggedIn = false;
                         connector.getLogger().info(authData.getName() + " has disconnected from remote java server on address " + remoteServer.getAddress() + " because of " + event.getReason());
+                        if (event.getCause() != null) {
+                            event.getCause().printStackTrace();
+                        }
                         upstream.disconnect(event.getReason());
                     }
 

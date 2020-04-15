@@ -227,7 +227,7 @@ public enum MapColor {
     }
 
     public static MapColor fromId(int id) {
-        return Arrays.stream(values()).filter(color -> color.getId() == id).findFirst().get();
+        return Arrays.stream(values()).filter(color -> color.getId() == id).findFirst().orElse(COLOR_0);
     }
 
     public int toARGB() {
