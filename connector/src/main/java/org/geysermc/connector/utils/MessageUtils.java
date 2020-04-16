@@ -300,9 +300,9 @@ public class MessageUtils {
         if (message.length() > 256) {
             // TODO: Add Geyser localization and translate this based on language
             session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 }
