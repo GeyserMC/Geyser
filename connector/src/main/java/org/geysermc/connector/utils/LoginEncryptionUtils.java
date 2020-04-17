@@ -159,7 +159,7 @@ public class LoginEncryptionUtils {
     private static int AUTH_DETAILS_FORM_ID = 1337;
 
     public static void showLoginWindow(GeyserSession session) {
-        SimpleFormWindow window = new SimpleFormWindow("Login", "Minecraft: Java Edition account authentication. You need a Java Edition account to play on this server.");
+        SimpleFormWindow window = new SimpleFormWindow("Login", "You need a Java Edition account to play on this server.");
         window.getButtons().add(new FormButton("Login with Minecraft"));
         window.getButtons().add(new FormButton("Disconnect"));
 
