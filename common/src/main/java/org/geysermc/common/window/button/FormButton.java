@@ -37,6 +37,10 @@ public class FormButton {
     @Getter
     private FormImage image;
 
+    public FormButton(String text) {
+        this.text = text;
+    }
+
     public FormButton(String text, FormImage image) {
         this.text = text;
 
