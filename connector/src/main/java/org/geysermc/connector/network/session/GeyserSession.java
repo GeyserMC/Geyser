@@ -149,15 +149,6 @@ public class GeyserSession implements CommandSender {
     public void connect(RemoteServer remoteServer) {
         startGame();
         this.remoteServer = remoteServer;
-        if (connector.getAuthType() != AuthType.ONLINE) {
-            connector.getLogger().info(
-                    "Attempting to login using " + connector.getAuthType().name().toLowerCase() + " mode... " +
-                    (connector.getAuthType() == AuthType.OFFLINE ?
-                            "authentication is disabled." : "authentication will be encrypted"
-                    )
-            );
-            authenticate(authData.getName());
-        }
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
@@ -174,6 +165,18 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(playStatusPacket);
     }
 
+    public void login() {
+        if (connector.getAuthType() != AuthType.ONLINE) {
+            connector.getLogger().info(
+                    "Attempting to login using " + connector.getAuthType().name().toLowerCase() + " mode... " +
+                            (connector.getAuthType() == AuthType.OFFLINE ?
+                                    "authentication is disabled." : "authentication will be encrypted"
+                            )
+            );
+            authenticate(authData.getName());
+        }
+    }
+
     public void authenticate(String username) {
         authenticate(username, "");
     }
@@ -184,7 +187,7 @@ public class GeyserSession implements CommandSender {
             return;
         }
 
-        loggedIn = true;
+        loggingIn = true;
         // new thread so clients don't timeout
         new Thread(() -> {
             try {
@@ -271,6 +274,9 @@ public class GeyserSession implements CommandSender {
                         loggingIn = false;
                         loggedIn = false;
                         connector.getLogger().info(authData.getName() + " has disconnected from remote java server on address " + remoteServer.getAddress() + " because of " + event.getReason());
+                        if (event.getCause() != null) {
+                            event.getCause().printStackTrace();
+                        }
                         upstream.disconnect(event.getReason());
                     }
 
@@ -294,7 +300,7 @@ public class GeyserSession implements CommandSender {
 
                 downstream.getSession().connect();
                 connector.addPlayer(this);
-            } catch (InvalidCredentialsException e) {
+            } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info("User '" + username + "' entered invalid login info, kicking.");
                 disconnect("Invalid/incorrect login info");
             } catch (RequestException ex) {

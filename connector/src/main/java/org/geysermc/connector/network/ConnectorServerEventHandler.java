@@ -80,6 +80,13 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setMotd(config.getBedrock().getMotd1());
             pong.setMotd(config.getBedrock().getMotd2());
         }
+
+        //Bedrock will not even attempt a connection if the client thinks the server is full
+        //so we have to fake it not being full
+        if (pong.getPlayerCount() >= pong.getMaximumPlayerCount()) {
+            pong.setMaximumPlayerCount(pong.getPlayerCount() + 1);
+        }
+
         return pong;
     }
 

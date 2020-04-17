@@ -23,49 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window;
+package org.geysermc.connector.entity.living.merchant;
 
-import lombok.Getter;
-import org.geysermc.common.window.CustomFormWindow;
-import org.geysermc.common.window.button.FormImage;
-import org.geysermc.common.window.component.FormComponent;
-import org.geysermc.common.window.response.CustomFormResponse;
+import com.nukkitx.math.vector.Vector3f;
+import org.geysermc.connector.entity.living.AgeableEntity;
+import org.geysermc.connector.entity.type.EntityType;
 
-public class CustomFormBuilder {
+public class AbstractMerchantEntity extends AgeableEntity {
 
-    @Getter
-    private CustomFormWindow form;
-
-    public CustomFormBuilder(String title) {
-        form = new CustomFormWindow(title);
-    }
-
-    public CustomFormBuilder setTitle(String title) {
-        form.setTitle(title);
-        return this;
-    }
-
-    public CustomFormBuilder setIcon(FormImage icon) {
-        form.setIcon(icon);
-        return this;
-    }
-
-    public CustomFormBuilder setResponse(String data) {
-        form.setResponse(data);
-        return this;
-    }
-
-    public CustomFormBuilder setResponse(CustomFormResponse response) {
-        form.setResponse(response);
-        return this;
-    }
-
-    public CustomFormBuilder addComponent(FormComponent component) {
-        form.addComponent(component);
-        return this;
-    }
-
-    public CustomFormWindow build() {
-        return form;
+    public AbstractMerchantEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
     }
 }

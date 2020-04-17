@@ -40,6 +40,11 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
 
     @Override
     public void translate(AnimatePacket packet, GeyserSession session) {
+        // Stop the player sending animations before they have fully spawned into the server
+        if (!session.isSpawned()) {
+            return;
+        }
+
         switch (packet.getAction()) {
             case SWING_ARM:
                 // Delay so entity damage can be processed first

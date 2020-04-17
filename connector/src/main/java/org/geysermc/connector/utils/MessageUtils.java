@@ -26,15 +26,13 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
-import com.github.steveice10.mc.protocol.data.message.ChatColor;
-import com.github.steveice10.mc.protocol.data.message.ChatFormat;
-import com.github.steveice10.mc.protocol.data.message.Message;
-import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
+import com.github.steveice10.mc.protocol.data.message.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -61,7 +59,7 @@ public class MessageUtils {
                     strings.add(" - no permission or invalid command!");
                 }
 
-                List<String> furtherParams = getTranslationParams(translation.getTranslationParams());
+                List<String> furtherParams = getTranslationParams(translation.getTranslationParams(), locale);
                 if (locale != null) {
                     strings.add(insertParams(LocaleUtils.getLocaleString(translation.getTranslationKey(), locale), furtherParams));
                 }else{
@@ -69,7 +67,7 @@ public class MessageUtils {
                 }
             } else {
                 String builder = getFormat(message.getStyle().getFormats()) +
-                        getColor(message.getStyle().getColor());
+                        getColorOrParent(message.getStyle());
                 builder += getTranslatedBedrockMessage(message, locale, false);
                 strings.add(builder);
             }
@@ -83,7 +81,7 @@ public class MessageUtils {
     }
 
     public static String getTranslationText(TranslationMessage message) {
-        return getFormat(message.getStyle().getFormats()) + getColor(message.getStyle().getColor())
+        return getFormat(message.getStyle().getFormats()) + getColorOrParent(message.getStyle())
                 + "%" + message.getTranslationKey();
     }
 
@@ -99,16 +97,24 @@ public class MessageUtils {
             messageText = LocaleUtils.getLocaleString(messageText, locale);
         }
 
-        StringBuilder builder = new StringBuilder(messageText);
+        StringBuilder builder = new StringBuilder();
+        builder.append(getFormat(message.getStyle().getFormats()));
+        builder.append(getColorOrParent(message.getStyle()));
+        builder.append(messageText);
+
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
-            builder.append(getColor(msg.getStyle().getColor()));
+            builder.append(getColorOrParent(msg.getStyle()));
             if (!(msg.getText() == null)) {
                 boolean isTranslationMessage = (msg instanceof TranslationMessage);
                 builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
             }
         }
         return builder.toString();
+    }
+
+    public static String getTranslatedBedrockMessage(Message message, String locale) {
+        return getTranslatedBedrockMessage(message, locale, true);
     }
 
     public static String getBedrockMessage(Message message) {
@@ -133,6 +139,16 @@ public class MessageUtils {
         }
 
         return newMessage;
+    }
+
+    private static String getColorOrParent(MessageStyle style) {
+        ChatColor chatColor = style.getColor();
+
+        if (chatColor == ChatColor.NONE && style.getParent() != null) {
+            return getColorOrParent(style.getParent());
+        }
+
+        return getColor(chatColor);
     }
 
     private static String getColor(ChatColor color) {
@@ -278,5 +294,15 @@ public class MessageUtils {
             }
         }
         return "";
+    }
+
+    public static boolean isTooLong(String message, GeyserSession session) {
+        if (message.length() > 256) {
+            // TODO: Add Geyser localization and translate this based on language
+            session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+            return true;
+        }
+
+        return false;
     }
 }

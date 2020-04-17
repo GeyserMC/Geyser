@@ -23,40 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityCollectItemPacket;
+import com.nukkitx.protocol.bedrock.packet.TakeItemEntityPacket;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
-import org.geysermc.connector.utils.MessageUtils;
-
-@Translator(packet = TextPacket.class)
-public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
+@Translator(packet = ServerEntityCollectItemPacket.class)
+public class JavaCollectItemTranslator extends PacketTranslator<ServerEntityCollectItemPacket> {
 
     @Override
-    public void translate(TextPacket packet, GeyserSession session) {
-        if (packet.getMessage().charAt(0) == '.') {
-            String message = packet.getMessage().replace(".", "/").trim();
-
-            if (MessageUtils.isTooLong(message, session)) {
-                return;
-            }
-
-            ClientChatPacket chatPacket = new ClientChatPacket(message);
-            session.getDownstream().getSession().send(chatPacket);
-            return;
+    public void translate(ServerEntityCollectItemPacket packet, GeyserSession session) {
+        // This is the definition of translating - both packets take the same values
+        TakeItemEntityPacket takeItemEntityPacket = new TakeItemEntityPacket();
+        // Collected entity is the item
+        Entity collectedEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectedEntityId());
+        // Collector is the entity picking up the item
+        Entity collectorEntity;
+        if (packet.getCollectorEntityId() == session.getPlayerEntity().getEntityId()) {
+            collectorEntity = session.getPlayerEntity();
+        } else {
+            collectorEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectorEntityId());
         }
-
-        String message = packet.getMessage().trim();
-
-        if (MessageUtils.isTooLong(message, session)) {
-            return;
-        }
-
-        ClientChatPacket chatPacket = new ClientChatPacket(message);
-        session.getDownstream().getSession().send(chatPacket);
+        takeItemEntityPacket.setRuntimeEntityId(collectorEntity.getGeyserId());
+        takeItemEntityPacket.setItemRuntimeEntityId(collectedEntity.getGeyserId());
+        session.getUpstream().sendPacket(takeItemEntityPacket);
     }
 }

@@ -33,14 +33,56 @@ import org.geysermc.connector.network.translators.Translator;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 
+import java.nio.charset.StandardCharsets;
+
 @Translator(packet = ServerPluginMessagePacket.class)
 public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMessagePacket> {
+
+    private static byte[] brandData;
+
+    static {
+        byte[] data = GeyserConnector.NAME.getBytes(StandardCharsets.UTF_8);
+        byte[] varInt = writeVarInt(data.length);
+        brandData = new byte[varInt.length + data.length];
+        System.arraycopy(varInt, 0, brandData, 0, varInt.length);
+        System.arraycopy(data, 0, brandData, varInt.length, data.length);
+    }
+
+
     @Override
     public void translate(ServerPluginMessagePacket packet, GeyserSession session) {
         if (packet.getChannel().equals("minecraft:brand")) {
             session.getDownstream().getSession().send(
-                    new ClientPluginMessagePacket(packet.getChannel(), GeyserConnector.NAME.getBytes())
+                    new ClientPluginMessagePacket(packet.getChannel(), brandData)
             );
         }
+    }
+
+    private static byte[] writeVarInt(int value) {
+        byte[] data = new byte[getVarIntLength(value)];
+        int index = 0;
+        do {
+            byte temp = (byte)(value & 0b01111111);
+            value >>>= 7;
+            if (value != 0) {
+                temp |= 0b10000000;
+            }
+            data[index] = temp;
+            index++;
+        } while (value != 0);
+        return data;
+    }
+
+    private static int getVarIntLength(int number) {
+        if ((number & 0xFFFFFF80) == 0) {
+            return 1;
+        } else if ((number & 0xFFFFC000) == 0) {
+            return 2;
+        } else if ((number & 0xFFE00000) == 0) {
+            return 3;
+        } else if ((number & 0xF0000000) == 0) {
+            return 4;
+        }
+        return 5;
     }
 }
