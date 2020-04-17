@@ -314,7 +314,7 @@ public class GeyserSession implements CommandSender {
 
                 downstream.getSession().connect();
                 connector.addPlayer(this);
-            } catch (InvalidCredentialsException e) {
+            } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info("User '" + username + "' entered invalid login info, kicking.");
                 disconnect("Invalid/incorrect login info");
             } catch (RequestException ex) {

@@ -25,6 +25,9 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -34,6 +37,8 @@ import org.geysermc.connector.utils.DimensionUtils;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 @Translator(packet = ServerRespawnPacket.class)
 public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket> {
@@ -54,6 +59,12 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
         session.getUpstream().sendPacket(playerGameTypePacket);
         session.setGameMode(packet.getGamemode());
+
+        LevelEventPacket stopRainPacket = new LevelEventPacket();
+        stopRainPacket.setType(LevelEventType.STOP_RAIN);
+        stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
+        stopRainPacket.setPosition(Vector3f.ZERO);
+        session.getUpstream().sendPacket(stopRainPacket);
 
         if (entity.getDimension() != DimensionUtils.javaToBedrock(packet.getDimension())) {
             DimensionUtils.switchDimension(session, packet.getDimension());
