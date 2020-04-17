@@ -46,7 +46,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
-        if (loginPacket.getProtocolVersion() != GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
+        if (loginPacket.getProtocolVersion() != 390) {
             session.getUpstream().disconnect("Unsupported Bedrock version. Are you running an outdated version?");
             return true;
         }
