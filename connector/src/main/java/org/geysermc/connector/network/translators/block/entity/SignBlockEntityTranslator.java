@@ -31,11 +31,13 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
 
+import org.geysermc.connector.network.translators.block.LoadLater;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@LoadLater(identifier = "sign")
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override

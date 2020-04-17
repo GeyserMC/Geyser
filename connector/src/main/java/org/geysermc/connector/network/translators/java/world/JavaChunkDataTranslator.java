@@ -102,31 +102,39 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 levelChunkPacket.setData(payload);
                 session.getUpstream().sendPacket(levelChunkPacket);
 
-                // Signs have to be sent after the chunk since in later versions they aren't included in the block entities
-                for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.signs.object2IntEntrySet()) {
+                for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.loadLater.object2IntEntrySet()) {
                     int x = blockEntityEntry.getKey().getInt("x");
                     int y = blockEntityEntry.getKey().getInt("y");
                     int z = blockEntityEntry.getKey().getInt("z");
                     ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
                 }
+                chunkData.loadLater.clear();
 
-                for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.gateways.object2IntEntrySet()) {
-                    int x = blockEntityEntry.getKey().getInt("x");
-                    int y = blockEntityEntry.getKey().getInt("y");
-                    int z = blockEntityEntry.getKey().getInt("z");
-                    ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
-                }
-
-                for (Map.Entry<Position, BlockState> blockEntityEntry: chunkData.beds.entrySet()) {
-                    ChunkUtils.updateBlock(session, blockEntityEntry.getValue(), blockEntityEntry.getKey());
-                }
-                for (Map.Entry<Position, BlockState> blockEntityEntry: chunkData.skulls.entrySet()) {
-                    ChunkUtils.updateBlock(session, blockEntityEntry.getValue(), blockEntityEntry.getKey());
-                }
-                chunkData.signs.clear();
-                chunkData.gateways.clear();
-                chunkData.beds.clear();
-                chunkData.skulls.clear();
+//                // Signs have to be sent after the chunk since in later versions they aren't included in the block entities
+//                for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.signs.object2IntEntrySet()) {
+//                    int x = blockEntityEntry.getKey().getInt("x");
+//                    int y = blockEntityEntry.getKey().getInt("y");
+//                    int z = blockEntityEntry.getKey().getInt("z");
+//                    ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
+//                }
+//
+//                for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.gateways.object2IntEntrySet()) {
+//                    int x = blockEntityEntry.getKey().getInt("x");
+//                    int y = blockEntityEntry.getKey().getInt("y");
+//                    int z = blockEntityEntry.getKey().getInt("z");
+//                    ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
+//                }
+//
+//                for (Map.Entry<Position, BlockState> blockEntityEntry: chunkData.beds.entrySet()) {
+//                    ChunkUtils.updateBlock(session, blockEntityEntry.getValue(), blockEntityEntry.getKey());
+//                }
+//                for (Map.Entry<Position, BlockState> blockEntityEntry: chunkData.skulls.entrySet()) {
+//                    ChunkUtils.updateBlock(session, blockEntityEntry.getValue(), blockEntityEntry.getKey());
+//                }
+//                chunkData.signs.clear();
+//                chunkData.gateways.clear();
+//                chunkData.beds.clear();
+//                chunkData.skulls.clear();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

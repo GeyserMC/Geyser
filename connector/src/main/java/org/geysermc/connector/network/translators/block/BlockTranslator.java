@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
@@ -47,7 +48,10 @@ import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.Toolbox;
+import org.geysermc.connector.world.chunk.ChunkPosition;
+import org.reflections.Reflections;
 
 import java.io.InputStream;
 import java.util.*;
@@ -65,7 +69,7 @@ public class BlockTranslator {
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
 
-    private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
+    private static final Map<String, BlockState> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
@@ -110,6 +114,8 @@ public class BlockTranslator {
         addedStatesMap.defaultReturnValue(-1);
         List<CompoundTag> paletteList = new ArrayList<>();
 
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block");
+
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;
         int bedrockRuntimeId = 0;
@@ -145,9 +151,20 @@ public class BlockTranslator {
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
 
-            if (javaId.contains("sign[")) {
-                JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
+//            if (javaId.contains("sign[")) {
+//                JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
+//            }
+
+            String identifier;
+            for (Class<?> clazz : ref.getTypesAnnotatedWith(LoadLater.class)) {
+                identifier = clazz.getAnnotation(LoadLater.class).identifier();
+                if (javaId.contains(identifier)) {
+                    System.out.println("Putting " + javaId + " on the map.");
+                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(identifier, javaBlockState);
+                    break;
+                }
             }
+            //if (ref.getTypesAnnotatedWith(LoadLater.class).contains(Block))
 
 
             JsonNode skullVariation = entry.getValue().get("variation");
@@ -266,8 +283,8 @@ public class BlockTranslator {
         return JAVA_ID_BLOCK_MAP.get(javaId);
     }
 
-    public static String getBlockEntityString(BlockState javaId) {
-        return JAVA_ID_TO_BLOCK_ENTITY_MAP.get(javaId);
+    public static BlockState getBlockEntityString(String blockEntityId) {
+        return JAVA_ID_TO_BLOCK_ENTITY_MAP.get(blockEntityId);
     }
 
     public static boolean isWaterlogged(BlockState state) {

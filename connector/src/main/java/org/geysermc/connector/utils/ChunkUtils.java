@@ -30,8 +30,10 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -41,6 +43,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.block.LoadLater;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.world.chunk.ChunkPosition;
@@ -48,6 +51,7 @@ import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.block.entity.BedBlockEntityTranslator;
 import org.geysermc.connector.world.chunk.ChunkSection;
+import org.reflections.Reflections;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +66,9 @@ public class ChunkUtils {
         chunkData.sections = new ChunkSection[chunks.length];
 
         CompoundTag[] blockEntities = column.getTileEntities();
+
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block");
+
         for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
             Chunk chunk = chunks[chunkY];
@@ -76,24 +83,42 @@ public class ChunkUtils {
                         BlockState blockState = chunk.get(x, y, z);
                         int id = BlockTranslator.getBedrockBlockId(blockState);
 
-                        if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("sign[")) {
-                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            chunkData.signs.put(Translators.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag("Sign", pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
-                        } else if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("end_gateway")) {
-                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            chunkData.gateways.put(Translators.getBlockEntityTranslators().get("EndGateway").getDefaultBedrockTag("EndGateway", pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
-                        } else if (BlockTranslator.getBedColor(blockState) > -1) {
-                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            // Beds need to be updated separately to add the bed color tag
-                            // Previously this was done by matching block state but this resulted in only one bed per color+orientation showing
-                            chunkData.beds.put(pos, blockState);
-                        } else if (BlockTranslator.getSkullVariant(blockState) > 0) {
-                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            //Doing the same stuff as beds
-                            chunkData.skulls.put(pos, blockState);
+//                            Class<?> result = clazz.getAnnotation(LoadLater.class).result();
+//
+//                        if (BlockState.class.isAssignableFrom(result)) {
+//                            Registry.registerJava(targetPacket, translator);
+//
+//                        } else if (com.nukkitx.nbt.tag.CompoundTag.class.isAssignableFrom(result)) {
+//                            Registry.registerBedrock(targetPacket, translator);
+                        if (BlockTranslator.getBlockEntityString(blockState) != null) {
+                            if (ref.getTypesAnnotatedWith(LoadLater.class).contains(BlockEntityUtils.getBlockEntityTranslator(BlockTranslator.getBlockEntityString(blockState)).getClass())) {
+                                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(BlockTranslator.getBlockEntityString(blockState));
+                                Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+                                chunkData.loadLater.put(blockEntityTranslator.getDefaultBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockTranslator.getBlockEntityString(blockState)),
+                                        pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
+                            }
                         } else {
                             section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
                         }
+//
+//                        if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("sign[")) {
+//                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+//                            chunkData.signs.put(Translators.getBlockEntityTranslators().get("Sign").getDefaultBedrockTag("Sign", pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
+//                        } else if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("end_gateway")) {
+//                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+//                            chunkData.gateways.put(Translators.getBlockEntityTranslators().get("EndGateway").getDefaultBedrockTag("EndGateway", pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
+//                        } else if (BlockTranslator.getBedColor(blockState) > -1) {
+//                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+//                            // Beds need to be updated separately to add the bed color tag
+//                            // Previously this was done by matching block state but this resulted in only one bed per color+orientation showing
+//                            chunkData.beds.put(pos, blockState);
+//                        } else if (BlockTranslator.getSkullVariant(blockState) > 0) {
+//                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+//                            //Doing the same stuff as beds
+//                            chunkData.skulls.put(pos, blockState);
+//                        } else {
+//                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
+//                        }
 
                         if (BlockTranslator.isWaterlogged(blockState)) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);
@@ -196,10 +221,12 @@ public class ChunkUtils {
     public static final class ChunkData {
         public ChunkSection[] sections;
 
+        public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> loadLater = new Object2IntOpenHashMap<>();
+
         public com.nukkitx.nbt.tag.CompoundTag[] blockEntities = new com.nukkitx.nbt.tag.CompoundTag[0];
-        public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> signs = new Object2IntOpenHashMap<>();
-        public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> gateways = new Object2IntOpenHashMap<>();
-        public Map<Position, BlockState> beds = new HashMap<>();
-        public Map<Position, BlockState> skulls = new HashMap<>();
+//        public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> signs = new Object2IntOpenHashMap<>();
+//        public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> gateways = new Object2IntOpenHashMap<>();
+//        public Map<Position, BlockState> beds = new HashMap<>();
+//        public Map<Position, BlockState> skulls = new HashMap<>();
     }
 }

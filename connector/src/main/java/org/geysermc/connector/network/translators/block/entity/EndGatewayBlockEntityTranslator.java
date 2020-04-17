@@ -30,11 +30,13 @@ import com.github.steveice10.opennbt.tag.builtin.LongTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.IntTag;
 import com.nukkitx.nbt.tag.Tag;
+import org.geysermc.connector.network.translators.block.LoadLater;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+@LoadLater(identifier = "end_gateway")
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
