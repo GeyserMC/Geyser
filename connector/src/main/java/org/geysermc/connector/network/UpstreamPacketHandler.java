@@ -86,7 +86,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormData());
+        return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
