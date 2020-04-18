@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.game.world.block.value.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockValuePacket;
 import com.nukkitx.math.vector.Vector3i;
@@ -36,6 +37,7 @@ import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 
 @Translator(packet = ServerBlockValuePacket.class)
 public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValuePacket> {
@@ -59,7 +61,10 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             NoteBlockValueType type = (NoteBlockValueType) packet.getType();
 
             blockEventPacket.setEventType(type.ordinal());
-            
+
+            BlockState blockState = new BlockState(packet.getBlockId());
+            blockEventPacket.setEventData(BlockTranslator.getNoteblockPitch(blockState));
+
             session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof PistonValue) {

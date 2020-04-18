@@ -70,6 +70,8 @@ public class BlockTranslator {
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
 
+    public static final Object2IntMap<BlockState> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
+
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
@@ -166,6 +168,10 @@ public class BlockTranslator {
             if (bedColor != null) {
                 // Converting to byte because the final tag value is a byte. bedColor.binaryValue() returns an array
                 BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
+            }
+
+            if (javaId.contains("note=")) {
+                NOTEBLOCK_PITCHES.put(javaBlockState, Integer.parseInt(entry.getKey().substring(entry.getKey().indexOf("note=") + 5, entry.getKey().indexOf(",powered"))));
             }
 
             if ("minecraft:water[level=0]".equals(javaId)) {
@@ -292,6 +298,14 @@ public class BlockTranslator {
         if (SKULL_ROTATIONS.containsKey(state)) {
             return SKULL_ROTATIONS.getByte(state);
         }
+        return 0;
+    }
+
+    public static int getNoteblockPitch(BlockState state) {
+        if (NOTEBLOCK_PITCHES.containsKey(state)) {
+            return NOTEBLOCK_PITCHES.getInt(state);
+        }
+
         return 0;
     }
 
