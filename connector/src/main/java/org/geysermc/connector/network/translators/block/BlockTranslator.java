@@ -303,14 +303,14 @@ public class BlockTranslator {
         if (SKULL_VARIANTS.containsKey(state)) {
             return SKULL_VARIANTS.getByte(state);
         }
-        return 0;
+        return -1;
     }
 
     public static byte getSkullRotation(BlockState state) {
         if (SKULL_ROTATIONS.containsKey(state)) {
             return SKULL_ROTATIONS.getByte(state);
         }
-        return 0;
+        return -1;
     }
 
     public static BlockState getJavaWaterloggedState(int bedrockId) {
