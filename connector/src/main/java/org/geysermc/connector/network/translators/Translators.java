@@ -25,13 +25,15 @@
 
 package org.geysermc.connector.network.translators;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.packetlib.packet.Packet;
+import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTOutputStream;
+import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.block.entity.*;
@@ -41,14 +43,10 @@ import org.geysermc.connector.network.translators.inventory.updater.InventoryUpd
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.reflections.Reflections;
 
-import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-
-import lombok.Getter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Translators {
 
@@ -119,7 +117,8 @@ public class Translators {
         blockEntityTranslators.put("Empty", new EmptyBlockEntityTranslator());
         blockEntityTranslators.put("Sign", new SignBlockEntityTranslator());
         blockEntityTranslators.put("Campfire", new CampfireBlockEntityTranslator());
-        blockEntityTranslators.put("Banner", new BannerBlockEntityTranslator());
+        // Enabling this breaks base colours but fixes patterns
+        //blockEntityTranslators.put("Banner", new BannerBlockEntityTranslator());
         blockEntityTranslators.put("EndGateway", new EndGatewayBlockEntityTranslator());
     }
 

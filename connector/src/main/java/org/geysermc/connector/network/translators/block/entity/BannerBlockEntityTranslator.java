@@ -25,20 +25,57 @@
 
 package org.geysermc.connector.network.translators.block.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.IntTag;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.utils.BlockEntityUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class BannerBlockEntityTranslator extends BlockEntityTranslator {
 
+    public static void checkForBannerColor(GeyserSession session, BlockState blockState, Vector3i position) {
+        int bannercolor = BlockTranslator.getBannerColor(blockState);
+        // If Banner Color is not -1 then it is indeed a Banner with a color.
+        if (bannercolor > -1) {
+            Position pos = new Position(position.getX(), position.getY(), position.getZ());
+            com.nukkitx.nbt.tag.CompoundTag finalbannerTag = getBannerTag(bannercolor, pos);
+            GeyserConnector.getInstance().getLogger().debug("FBanner: " + finalbannerTag);
+
+            // Delay needed, otherwise newly placed beds will not get their color
+            // Delay is not needed for beds already placed on login
+            session.getConnector().getGeneralThreadPool().schedule(() ->
+                            BlockEntityUtils.updateBlockEntity(session, finalbannerTag, pos),
+                    500,
+                    TimeUnit.MILLISECONDS
+            );
+        }
+    }
+
+    public static com.nukkitx.nbt.tag.CompoundTag getBannerTag(int bannercolor, Position pos) {
+        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
+                .intTag("x", pos.getX())
+                .intTag("y", pos.getY())
+                .intTag("z", pos.getZ())
+                .stringTag("id", "Banner");
+        tagBuilder.intTag("Base", 15 - bannercolor);
+        return tagBuilder.buildRootTag();
+    }
+
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
+        GeyserConnector.getInstance().getLogger().debug("BTag: " + tag);
+
         List<Tag<?>> tags = new ArrayList<>();
         ListTag patterns = tag.get("Patterns");
         List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
@@ -56,7 +93,7 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
 
         // This needs to be mapped in blocks.json as something like banner_color
         // But I cant get that to work, hardcoded to red for now
-        tags.add(new IntTag("Base", 1));
+        //tags.add(new IntTag("Base", 1));
 
         return tags;
     }

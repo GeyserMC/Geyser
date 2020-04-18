@@ -41,6 +41,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.block.entity.BannerBlockEntityTranslator;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.world.chunk.ChunkPosition;
@@ -87,6 +88,10 @@ public class ChunkUtils {
                             // Beds need to be updated separately to add the bed color tag
                             // Previously this was done by matching block state but this resulted in only one bed per color+orientation showing
                             chunkData.beds.put(pos, blockState);
+                        } else if (BlockTranslator.getBannerColor(blockState) > -1) {
+                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+                            // Doing the same stuff as beds
+                            chunkData.banners.put(pos, blockState);
                         } else if (BlockTranslator.getSkullVariant(blockState) > 0) {
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
                             //Doing the same stuff as beds
@@ -165,6 +170,7 @@ public class ChunkUtils {
         // Since Java stores bed colors as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
         BedBlockEntityTranslator.checkForBedColor(session, blockState, position);
+        BannerBlockEntityTranslator.checkForBannerColor(session, blockState, position);
         SkullBlockEntityTranslator.checkForSkullVariant(session, blockState, position);
     }
 
@@ -200,6 +206,7 @@ public class ChunkUtils {
         public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> signs = new Object2IntOpenHashMap<>();
         public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> gateways = new Object2IntOpenHashMap<>();
         public Map<Position, BlockState> beds = new HashMap<>();
+        public Map<Position, BlockState> banners = new HashMap<>();
         public Map<Position, BlockState> skulls = new HashMap<>();
     }
 }
