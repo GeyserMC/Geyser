@@ -170,8 +170,9 @@ public class BlockTranslator {
                 BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
             }
 
-            if (javaId.contains("note=")) {
-                NOTEBLOCK_PITCHES.put(javaBlockState, Integer.parseInt(entry.getKey().substring(entry.getKey().indexOf("note=") + 5, entry.getKey().indexOf(",powered"))));
+            JsonNode notePitch = entry.getValue().get("note_pitch");
+            if (notePitch != null) {
+                NOTEBLOCK_PITCHES.put(javaBlockState, entry.getValue().get("note_pitch").intValue());
             }
 
             if ("minecraft:water[level=0]".equals(javaId)) {
