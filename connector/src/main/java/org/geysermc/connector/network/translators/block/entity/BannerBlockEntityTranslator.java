@@ -31,7 +31,6 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.IntTag;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
-import org.geysermc.connector.GeyserConnector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +39,6 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
-        GeyserConnector.getInstance().getLogger().debug("Banner: " + tag);
-
         List<Tag<?>> tags = new ArrayList<>();
         ListTag patterns = tag.get("Patterns");
         List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
@@ -51,7 +48,6 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
             }
             com.nukkitx.nbt.tag.ListTag<com.nukkitx.nbt.tag.CompoundTag> bedrockPatterns =
                     new com.nukkitx.nbt.tag.ListTag<>("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
-
             tags.add(bedrockPatterns);
         }
         if (tag.contains("CustomName")) {
@@ -59,7 +55,7 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
         }
 
         // This needs to be mapped in blocks.json as something like banner_color
-        // But I cant get that to work
+        // But I cant get that to work, hardcoded to red for now
         tags.add(new IntTag("Base", 1));
 
         return tags;
@@ -81,6 +77,7 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
 
     protected com.nukkitx.nbt.tag.CompoundTag getPattern(CompoundTag pattern) {
         // Pattern colour values are inverted on bedrock for some reason
+        // So we take the value we get from 15 to invert it
         return CompoundTagBuilder.builder()
                 .intTag("Color", 15 - (int) pattern.get("Color").getValue())
                 .stringTag("Pattern", (String) pattern.get("Pattern").getValue())
