@@ -49,7 +49,7 @@ public class ShulkerEntity extends GolemEntity {
         }
         if (entityMetadata.getId() == 16) {
             Position position = (Position) entityMetadata.getValue();
-            if(position != null){
+            if (position != null) {
                 metadata.put(EntityData.SHULKER_ATTACH_POS, Vector3i.from(position.getX(), position.getY(), position.getZ()));
             }
         }
