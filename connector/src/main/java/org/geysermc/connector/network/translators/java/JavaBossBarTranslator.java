@@ -41,7 +41,8 @@ public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket>
         BossBar bossBar = session.getEntityCache().getBossBar(packet.getUuid());
         switch (packet.getAction()) {
             case ADD:
-                bossBar = new BossBar(session, packet.getTitle(), packet.getHealth(), 0, 1, 0);
+                long entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
+                bossBar = new BossBar(session, entityId, packet.getTitle(), packet.getHealth(), 0, 1, 0);
                 session.getEntityCache().addBossBar(packet.getUuid(), bossBar);
                 break;
             case UPDATE_TITLE:
