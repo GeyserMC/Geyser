@@ -225,3 +225,4 @@ nbdist/
 config.yml
 logs/
 public-key.pem
+locales/

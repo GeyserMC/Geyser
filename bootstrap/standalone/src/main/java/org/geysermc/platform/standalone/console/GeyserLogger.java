@@ -52,7 +52,7 @@ public class GeyserLogger extends SimpleTerminalConsole implements IGeyserLogger
 
     @Override
     protected void shutdown() {
-        GeyserConnector.getInstance().shutdown();
+        GeyserConnector.getInstance().getBootstrap().onDisable();
     }
 
     @Override

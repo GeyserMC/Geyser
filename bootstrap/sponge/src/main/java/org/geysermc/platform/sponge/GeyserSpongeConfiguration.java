@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -103,6 +103,11 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     @Override
     public boolean isAllowThirdPartyCapes() {
         return node.getNode("allow-third-party-capes").getBoolean(true);
+    }
+
+    @Override
+    public String getDefaultLocale() {
+        return node.getNode("default-locale").getString("en_us");
     }
 
     @Override

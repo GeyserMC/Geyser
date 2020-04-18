@@ -25,12 +25,52 @@
 
 package org.geysermc.connector.entity.living.animal.horse;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 
 public class LlamaEntity extends ChestedHorseEntity {
 
     public LlamaEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        // Strength
+        if (entityMetadata.getId() == 19) {
+            metadata.put(EntityData.STRENGTH, entityMetadata.getValue());
+        }
+        // Color equipped on the llama
+        if (entityMetadata.getId() == 20) {
+            // Bedrock treats llama decoration as armor
+            MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
+            equipmentPacket.setRuntimeEntityId(getGeyserId());
+            // -1 means no armor
+            if ((int) entityMetadata.getValue() != -1) {
+                // The damage value is the dye color that Java sends us
+                // Always going to be a carpet so we can hardcode 171 in BlockTranslator
+                // The int then short conversion is required or we get a ClassCastException
+                equipmentPacket.setChestplate(ItemData.of(BlockTranslator.CARPET, (short)((int) entityMetadata.getValue()), 1));
+            } else {
+                equipmentPacket.setChestplate(ItemData.AIR);
+            }
+            // Required to fill out the rest of the equipment or Bedrock ignores it, including above else statement if removing armor
+            equipmentPacket.setBoots(ItemData.AIR);
+            equipmentPacket.setHelmet(ItemData.AIR);
+            equipmentPacket.setLeggings(ItemData.AIR);
+
+            session.getUpstream().sendPacket(equipmentPacket);
+        }
+        // Color of the llama
+        if (entityMetadata.getId() == 21) {
+            metadata.put(EntityData.VARIANT, entityMetadata.getValue());
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }
