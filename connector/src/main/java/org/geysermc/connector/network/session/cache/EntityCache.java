@@ -48,7 +48,7 @@ public class EntityCache {
     private Long2ObjectMap<Entity> entities = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
     private Long2LongMap entityIdTranslations = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
     private Map<UUID, PlayerEntity> playerEntities = Collections.synchronizedMap(new HashMap<>());
-    private Object2LongMap<UUID> bossbars = new Object2LongOpenHashMap<>();
+    private Map<UUID, BossBar> bossBars = Collections.synchronizedMap(new HashMap<>());
 
     @Getter
     private AtomicLong nextEntityId = new AtomicLong(2L);
@@ -116,24 +116,30 @@ public class EntityCache {
         playerEntities.remove(uuid);
     }
 
-    public long addBossBar(UUID uuid) {
-        long entityId = getNextEntityId().incrementAndGet();
-        bossbars.put(uuid, entityId);
-        return entityId;
+    public void addBossBar(UUID uuid, BossBar bossBar) {
+        bossBars.put(uuid, bossBar);
+        bossBar.addBossBar();
     }
 
-    public long getBossBar(UUID uuid) {
-        return bossbars.containsKey(uuid) ? bossbars.get(uuid) : -1;
+    public BossBar getBossBar(UUID uuid) {
+        return bossBars.get(uuid);
     }
 
-    public long removeBossBar(UUID uuid) {
-        return bossbars.remove(uuid);
+    public void removeBossBar(UUID uuid) {
+        BossBar bossBar = bossBars.remove(uuid);
+        if (bossBar != null) {
+            bossBar.removeBossBar();
+        }
+    }
+
+    public void updateBossBars() {
+        bossBars.values().forEach(BossBar::updateBossBar);
     }
 
     public void clear() {
         entities = null;
         entityIdTranslations = null;
         playerEntities = null;
-        bossbars = null;
+        bossBars = null;
     }
 }
