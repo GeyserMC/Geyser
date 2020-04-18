@@ -28,8 +28,10 @@ package org.geysermc.connector.network.translators.block.entity;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.IntTag;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
+import org.geysermc.connector.GeyserConnector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +40,8 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
+        GeyserConnector.getInstance().getLogger().debug("Banner: " + tag);
+
         List<Tag<?>> tags = new ArrayList<>();
         ListTag patterns = tag.get("Patterns");
         List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
@@ -47,11 +51,17 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
             }
             com.nukkitx.nbt.tag.ListTag<com.nukkitx.nbt.tag.CompoundTag> bedrockPatterns =
                     new com.nukkitx.nbt.tag.ListTag<>("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
+
             tags.add(bedrockPatterns);
         }
         if (tag.contains("CustomName")) {
             tags.add(new StringTag("CustomName", (String) tag.get("CustomName").getValue()));
         }
+
+        // This needs to be mapped in blocks.json as something like banner_color
+        // But I cant get that to work
+        tags.add(new IntTag("Base", 1));
+
         return tags;
     }
 
@@ -70,8 +80,9 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     protected com.nukkitx.nbt.tag.CompoundTag getPattern(CompoundTag pattern) {
+        // Pattern colour values are inverted on bedrock for some reason
         return CompoundTagBuilder.builder()
-                .intTag("Color", (int) pattern.get("Color").getValue())
+                .intTag("Color", 15 - (int) pattern.get("Color").getValue())
                 .stringTag("Pattern", (String) pattern.get("Pattern").getValue())
                 .buildRootTag();
     }
