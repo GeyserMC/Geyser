@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.block.entity.BlockEntity;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
@@ -38,16 +39,20 @@ import java.util.concurrent.TimeUnit;
 @Translator(packet = ServerUpdateTileEntityPacket.class)
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
 
+    // Time before attempting to send
+    private static final int DELAY = 500;
+
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
-        if (id.equalsIgnoreCase("Sign")) {
+        // Blank name means it's not handled as a translator Bedrock-wise
+        if (!translator.getClass().getAnnotation(BlockEntity.class).name().equals("") || translator.getClass().getAnnotation(BlockEntity.class).delay()) {
             // Delay so chunks can finish sending
             session.getConnector().getGeneralThreadPool().schedule(() ->
-                    BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag("Sign", packet.getNbt()), packet.getPosition()),
-                    5,
-                    TimeUnit.SECONDS
+                            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt()), packet.getPosition()),
+                    DELAY,
+                    TimeUnit.MILLISECONDS
             );
         } else {
             BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt()), packet.getPosition());

@@ -34,6 +34,7 @@ import com.nukkitx.nbt.tag.Tag;
 import java.util.ArrayList;
 import java.util.List;
 
+@BlockEntity(name = "Banner", delay = false)
 public class BannerBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override

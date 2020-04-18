@@ -30,10 +30,8 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -43,18 +41,16 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.LoadLater;
+import org.geysermc.connector.network.translators.block.entity.BedrockOnlyBlockEntityTranslator;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.block.entity.SkullBlockEntityTranslator;
-import org.geysermc.connector.world.chunk.ChunkPosition;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.block.entity.BedBlockEntityTranslator;
 import org.geysermc.connector.world.chunk.ChunkSection;
 import org.reflections.Reflections;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 
 import static org.geysermc.connector.network.translators.block.BlockTranslator.BEDROCK_WATER_ID;
 
@@ -67,7 +63,7 @@ public class ChunkUtils {
 
         CompoundTag[] blockEntities = column.getTileEntities();
 
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block");
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
 
         for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
@@ -90,16 +86,20 @@ public class ChunkUtils {
 //
 //                        } else if (com.nukkitx.nbt.tag.CompoundTag.class.isAssignableFrom(result)) {
 //                            Registry.registerBedrock(targetPacket, translator);
-                        if (BlockTranslator.getBlockEntityString(blockState) != null) {
-                            if (ref.getTypesAnnotatedWith(LoadLater.class).contains(BlockEntityUtils.getBlockEntityTranslator(BlockTranslator.getBlockEntityString(blockState)).getClass())) {
-                                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(BlockTranslator.getBlockEntityString(blockState));
-                                Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                                chunkData.loadLater.put(blockEntityTranslator.getDefaultBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockTranslator.getBlockEntityString(blockState)),
-                                        pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
-                            }
-                        } else {
-                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
-                        }
+//                        if (BlockTranslator.getBlockEntityString(blockState) != null) {
+//                            System.out.println(BlockEntityUtils.getBedrockBlockEntityId(BlockTranslator.getBlockEntityString(blockState)));
+//                            System.out.println(BlockEntityUtils.getBlockEntityTranslator(BlockEntityUtils.getBedrockBlockEntityId(BlockTranslator.getBlockEntityString(blockState))).getClass());
+//                            if (ref.getTypesAnnotatedWith(LoadLater.class).contains(BlockEntityUtils.getBlockEntityTranslator(BlockEntityUtils.getBedrockBlockEntityId(BlockTranslator.getBlockEntityString(blockState))).getClass())) {
+//                                System.out.println("Contained");
+//                                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(BlockTranslator.getBlockEntityString(blockState));
+//                                Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+//                                chunkData.loadLater.put(blockEntityTranslator.getDefaultBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockTranslator.getBlockEntityString(blockState)),
+//                                        pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
+//                            }
+//                        } else {
+//                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
+//                        }
+                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
 //
 //                        if (BlockTranslator.getBlockEntityString(blockState) != null && BlockTranslator.getBlockEntityString(blockState).contains("sign[")) {
 //                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
@@ -137,6 +137,7 @@ public class ChunkUtils {
                 tagName = "Empty";
             } else {
                 tagName = (String) tag.get("id").getValue();
+                System.out.println(tagName);
             }
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
@@ -189,8 +190,17 @@ public class ChunkUtils {
 
         // Since Java stores bed colors as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
-        BedBlockEntityTranslator.checkForBedColor(session, blockState, position);
-        SkullBlockEntityTranslator.checkForSkullVariant(session, blockState, position);
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
+        Set<Class<? extends BedrockOnlyBlockEntityTranslator>> classes = ref.getSubTypesOf(BedrockOnlyBlockEntityTranslator.class);
+        for (Class<? extends BedrockOnlyBlockEntityTranslator> aClass : classes) {
+            try {
+                System.out.println("Test");
+                BedrockOnlyBlockEntityTranslator bedrockOnlyBlockEntityTranslator = aClass.newInstance();
+                bedrockOnlyBlockEntityTranslator.checkForBlockEntity(session, blockState, position);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {

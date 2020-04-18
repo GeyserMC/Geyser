@@ -69,7 +69,7 @@ public class BlockTranslator {
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
 
-    private static final Map<String, BlockState> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
+    private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
@@ -155,16 +155,17 @@ public class BlockTranslator {
 //                JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
 //            }
 
-            String identifier;
-            for (Class<?> clazz : ref.getTypesAnnotatedWith(LoadLater.class)) {
-                identifier = clazz.getAnnotation(LoadLater.class).identifier();
-                if (javaId.contains(identifier)) {
-                    System.out.println("Putting " + javaId + " on the map.");
-                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(identifier, javaBlockState);
-                    break;
-                }
-            }
-            //if (ref.getTypesAnnotatedWith(LoadLater.class).contains(Block))
+//            String identifier;
+//            String temporary;
+//            for (Class<?> clazz : ref.getTypesAnnotatedWith(LoadLater.class)) {
+//                identifier = clazz.getAnnotation(LoadLater.class).identifier();
+//                temporary = javaId.split("\\[")[0];
+//                if (temporary.contains(identifier)) {
+//                    System.out.println("Putting " + javaId + " on the map.");
+//                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
+//                    break;
+//                }
+//            }
 
 
             JsonNode skullVariation = entry.getValue().get("variation");
@@ -283,8 +284,8 @@ public class BlockTranslator {
         return JAVA_ID_BLOCK_MAP.get(javaId);
     }
 
-    public static BlockState getBlockEntityString(String blockEntityId) {
-        return JAVA_ID_TO_BLOCK_ENTITY_MAP.get(blockEntityId);
+    public static String getBlockEntityString(BlockState javaId) {
+        return JAVA_ID_TO_BLOCK_ENTITY_MAP.get(javaId);
     }
 
     public static boolean isWaterlogged(BlockState state) {

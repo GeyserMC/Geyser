@@ -31,16 +31,17 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.block.LoadLater;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
 import java.util.concurrent.TimeUnit;
 
-//@LoadLater(identifier = "bed")
-public class BedBlockEntityTranslator {
+@BlockEntity(name = "", delay = true)
+public class BedBlockEntityTranslator extends BedrockOnlyBlockEntityTranslator {
 
-    public static void checkForBedColor(GeyserSession session, BlockState blockState, Vector3i position) {
+    @Override
+    public void checkForBlockEntity(GeyserSession session, BlockState blockState, Vector3i position) {
         byte bedcolor = BlockTranslator.getBedColor(blockState);
+        System.out.println(bedcolor);
         // If Bed Color is not -1 then it is indeed a bed with a color.
         if (bedcolor > -1) {
             Position pos = new Position(position.getX(), position.getY(), position.getZ());

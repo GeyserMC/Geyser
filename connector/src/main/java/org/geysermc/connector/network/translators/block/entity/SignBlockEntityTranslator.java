@@ -30,14 +30,12 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
-
-import org.geysermc.connector.network.translators.block.LoadLater;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@LoadLater(identifier = "sign")
+@BlockEntity(name = "Sign", delay = true)
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
