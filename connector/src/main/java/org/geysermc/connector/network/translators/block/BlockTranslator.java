@@ -307,7 +307,7 @@ public class BlockTranslator {
             return NOTEBLOCK_PITCHES.getInt(state);
         }
 
-        return 0;
+        return -1;
     }
 
     public static BlockState getJavaWaterloggedState(int bedrockId) {

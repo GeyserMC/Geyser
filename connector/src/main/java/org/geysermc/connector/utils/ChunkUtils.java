@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -55,6 +56,8 @@ import java.util.Map;
 import static org.geysermc.connector.network.translators.block.BlockTranslator.BEDROCK_WATER_ID;
 
 public class ChunkUtils {
+
+    private static final Object2IntMap<Vector3i> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
 
     public static ChunkData translateToBedrock(Column column) {
         ChunkData chunkData = new ChunkData();
@@ -160,6 +163,21 @@ public class ChunkUtils {
         } else {
             waterPacket.setRuntimeId(0);
         }
+
+        if (BlockTranslator.getNoteblockPitch(blockState) != -1) {
+            if (NOTEBLOCK_PITCHES.containsKey(position)) {
+                NOTEBLOCK_PITCHES.put(position, BlockTranslator.getNoteblockPitch(blockState));
+            } else {
+                NOTEBLOCK_PITCHES.replace(position, BlockTranslator.getNoteblockPitch(blockState));
+            }
+
+            BlockEventPacket blockEventPacket = new BlockEventPacket();
+            blockEventPacket.setBlockPosition(position);
+            blockEventPacket.setEventType(13);
+            blockEventPacket.setEventData(NOTEBLOCK_PITCHES.getInt(position));
+            session.getUpstream().sendPacket(blockEventPacket);
+        }
+
         session.getUpstream().sendPacket(waterPacket);
 
         // Since Java stores bed colors as part of the namespaced ID and Bedrock stores it as a tag

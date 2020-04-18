@@ -38,6 +38,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerBlockValuePacket.class)
 public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValuePacket> {
@@ -58,14 +59,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             session.getUpstream().sendPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof NoteBlockValue) {
-            NoteBlockValueType type = (NoteBlockValueType) packet.getType();
-
-            blockEventPacket.setEventType(type.ordinal());
-
-            BlockState blockState = new BlockState(packet.getBlockId());
-            blockEventPacket.setEventData(BlockTranslator.getNoteblockPitch(blockState));
-
-            session.getUpstream().sendPacket(blockEventPacket);
+            ChunkUtils.updateBlock(session, new BlockState(packet.getBlockId()), packet.getPosition());
         }
         if (packet.getValue() instanceof PistonValue) {
             PistonValueType type = (PistonValueType) packet.getType();
