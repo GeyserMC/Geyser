@@ -34,11 +34,12 @@ import com.nukkitx.nbt.tag.Tag;
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(name = "Banner", delay = false)
+@BlockEntity(name = "Banner", delay = false, regex = "banner")
 public class BannerBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag) {
+        System.out.println(tag);
         List<Tag<?>> tags = new ArrayList<>();
         ListTag patterns = tag.get("Patterns");
         List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
@@ -72,7 +73,7 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator {
 
     protected com.nukkitx.nbt.tag.CompoundTag getPattern(CompoundTag pattern) {
         return CompoundTagBuilder.builder()
-                .intTag("Color", (int) pattern.get("Color").getValue())
+                .intTag("Color", 15 - (int) pattern.get("Color").getValue())
                 .stringTag("Pattern", (String) pattern.get("Pattern").getValue())
                 .buildRootTag();
     }

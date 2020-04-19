@@ -30,20 +30,24 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.tag.Tag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@BlockEntity(name = "", delay = true)
-public class SkullBlockEntityTranslator extends BedrockOnlyBlockEntityTranslator {
+@BlockEntity(name = "Skull", delay = true, regex = "skull")
+public class SkullBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntityTranslator {
 
     @Override
     public void checkForBlockEntity(GeyserSession session, BlockState blockState, Vector3i position) {
         byte skullVariant = BlockTranslator.getSkullVariant(blockState);
-        byte rotation = BlockTranslator.getSkullRotation(blockState);
         if (skullVariant > -1) {
+            System.out.println("Skull variant: " + skullVariant);
+            byte rotation = BlockTranslator.getSkullRotation(blockState);
             Position pos = new Position(position.getX(), position.getY(), position.getZ());
             CompoundTag finalSkullTag = getSkullTag(skullVariant, pos, rotation);
             // Delay needed, otherwise newly placed skulls will not appear
@@ -64,6 +68,24 @@ public class SkullBlockEntityTranslator extends BedrockOnlyBlockEntityTranslator
                 .stringTag("id", "Skull")
                 .floatTag("Rotation", rotation * 22.5f);
         tagBuilder.byteTag("SkullType", skullvariant);
+        return tagBuilder.buildRootTag();
+    }
+
+    @Override
+    public List<Tag<?>> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public com.github.steveice10.opennbt.tag.builtin.CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
+        return null;
+    }
+
+    @Override
+    public CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
+        tagBuilder.floatTag("Rotation", 0);
+        tagBuilder.byteTag("SkullType", (byte) 0);
         return tagBuilder.buildRootTag();
     }
 }

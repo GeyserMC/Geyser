@@ -27,16 +27,20 @@ package org.geysermc.connector.network.translators.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.Tag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@BlockEntity(name = "", delay = true)
-public class BedBlockEntityTranslator extends BedrockOnlyBlockEntityTranslator {
+@BlockEntity(name = "Bed", delay = true, regex = "bed")
+public class BedBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntityTranslator {
 
     @Override
     public void checkForBlockEntity(GeyserSession session, BlockState blockState, Vector3i position) {
@@ -66,4 +70,20 @@ public class BedBlockEntityTranslator extends BedrockOnlyBlockEntityTranslator {
         return tagBuilder.buildRootTag();
     }
 
+    @Override
+    public List<Tag<?>> translateTag(CompoundTag tag) {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
+        return null;
+    }
+
+    @Override
+    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
+        tagBuilder.byteTag("color", (byte) 0);
+        return tagBuilder.buildRootTag();
+    }
 }

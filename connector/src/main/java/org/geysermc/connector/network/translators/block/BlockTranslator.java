@@ -48,6 +48,7 @@ import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.block.entity.BlockEntity;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.Toolbox;
 import org.geysermc.connector.world.chunk.ChunkPosition;
@@ -114,7 +115,8 @@ public class BlockTranslator {
         addedStatesMap.defaultReturnValue(-1);
         List<CompoundTag> paletteList = new ArrayList<>();
 
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block");
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
+        ref.getTypesAnnotatedWith(BlockEntity.class);
 
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;
@@ -151,21 +153,19 @@ public class BlockTranslator {
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
 
-//            if (javaId.contains("sign[")) {
-//                JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
-//            }
-
-//            String identifier;
-//            String temporary;
-//            for (Class<?> clazz : ref.getTypesAnnotatedWith(LoadLater.class)) {
-//                identifier = clazz.getAnnotation(LoadLater.class).identifier();
-//                temporary = javaId.split("\\[")[0];
-//                if (temporary.contains(identifier)) {
-//                    System.out.println("Putting " + javaId + " on the map.");
-//                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
-//                    break;
-//                }
-//            }
+            String identifier;
+            String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
+            for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
+                if (clazz.getAnnotation(BlockEntity.class).delay()) {
+                    identifier = clazz.getAnnotation(BlockEntity.class).regex();
+                    // Endswith, or else the block bedrock gets picked up for bed
+                    if (bedrock_identifer.endsWith(identifier)) {
+                        System.out.println("Putting " + javaId + " on the map because of " + identifier + " with Bedrock " + bedrock_identifer + ".");
+                        JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, clazz.getAnnotation(BlockEntity.class).name());
+                        break;
+                    }
+                }
+            }
 
 
             JsonNode skullVariation = entry.getValue().get("variation");
@@ -204,7 +204,7 @@ public class BlockTranslator {
                 addedStatesMap.put(blockTag, bedrockRuntimeId);
                 paletteList.add(runtimeTag);
             } else {
-                int duplicateRuntimeId = addedStatesMap.get(blockTag);
+                int duplicateRuntimeId = addedStatesMap.getOrDefault(blockTag, -1);
                 if (duplicateRuntimeId == -1) {
                     GeyserConnector.getInstance().getLogger().debug("Mapping " + javaId + " was not found for bedrock edition!");
                 } else {

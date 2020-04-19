@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-@BlockEntity(name = "Campfire", delay = false)
+@BlockEntity(name = "Campfire", delay = false, regex = "campfire")
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
