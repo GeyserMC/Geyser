@@ -44,8 +44,6 @@ import java.util.stream.IntStream;
 @Translator(packet = ServerEntitySetPassengersPacket.class)
 public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEntitySetPassengersPacket> {
 
-    // TODO - add check for this on login
-    // Players in a minecart when logged in are in the same spot but are not sitting
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());;

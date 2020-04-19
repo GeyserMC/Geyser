@@ -75,11 +75,10 @@ public class BoatEntity extends Entity {
             isPaddlingRight = (boolean) entityMetadata.getValue();
             if (!isPaddlingRight) {
                 metadata.put(EntityData.PADDLE_TIME_RIGHT, 0f);
-            }
-            else {
+            } else {
                 paddleTimeRight = 0f;
                 session.getConnector().getGeneralThreadPool().execute(() ->
-                                updateRightPaddle(session, entityMetadata)
+                        updateRightPaddle(session, entityMetadata)
                 );
             }
         } else if (entityMetadata.getId() == 13) {
