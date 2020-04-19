@@ -57,7 +57,7 @@ import static org.geysermc.connector.network.translators.block.BlockTranslator.B
 public class ChunkUtils {
 
     /**
-     * Stores positions of BlockState values that are needed for certain block entities
+     * Temporarily stores positions of BlockState values that are needed for certain block entities actively
      */
     public static final Map<Position, BlockState> CACHED_BLOCK_ENTITIES = new HashMap<>();
 
@@ -67,6 +67,9 @@ public class ChunkUtils {
         chunkData.sections = new ChunkSection[chunks.length];
 
         CompoundTag[] blockEntities = column.getTileEntities();
+        /**
+         * Temporarily stores block entity positions per each chunk load
+         */
         Map<Position, BlockState> blockEntityPositions = new HashMap<>();
 
         for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
