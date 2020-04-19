@@ -26,8 +26,11 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityLink;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
@@ -40,6 +43,8 @@ import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.scoreboard.Team;
+import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.UUID;
@@ -86,14 +91,10 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
 
-        //USELESS CODE START
-        int[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
-        if (passengerIds[0] != -1) {
-            for (int passengerId : passengerIds) {
-                addPlayerPacket.getEntityLinks().add(new EntityLink(geyserId, session.getEntityCache().getEntityByJavaId(passengerId).getGeyserId(), EntityLink.Type.RIDER, false));
-            }
+        long linkedEntityId = session.getEntityCache().getCachedPlayerEntityLink(entityId);
+        if (linkedEntityId != -1) {
+            addPlayerPacket.getEntityLinks().add(new EntityLink(session.getEntityCache().getEntityByJavaId(linkedEntityId).getGeyserId(), geyserId, EntityLink.Type.RIDER, false));
         }
-        //USELESS CODE END
 
         valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);
@@ -161,5 +162,28 @@ public class PlayerEntity extends LivingEntity {
     @Override
     public void setPosition(Vector3f position) {
         this.position = position.add(0, entityType.getOffset(), 0);
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        super.updateBedrockMetadata(entityMetadata, session);
+
+        if (entityMetadata.getId() == 2) {
+            // System.out.println(session.getScoreboardCache().getScoreboard().getObjectives().keySet());
+            for (Team team : session.getScoreboardCache().getScoreboard().getTeams().values()) {
+                // session.getConnector().getLogger().info("team name " + team.getName());
+                // session.getConnector().getLogger().info("team entities " + team.getEntities());
+            }
+            String username = this.username;
+            TextMessage name = (TextMessage) entityMetadata.getValue();
+            if (name != null) {
+                username = MessageUtils.getBedrockMessage(name);
+            }
+            Team team = session.getScoreboardCache().getScoreboard().getTeamFor(username);
+            if (team != null) {
+                // session.getConnector().getLogger().info("team name es " + team.getName() + " with prefix " + team.getPrefix() + " and suffix " + team.getSuffix());
+                metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());
+            }
+        }
     }
 }

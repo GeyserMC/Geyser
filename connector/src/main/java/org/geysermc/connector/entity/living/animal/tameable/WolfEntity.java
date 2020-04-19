@@ -28,6 +28,7 @@ package org.geysermc.connector.entity.living.animal.tameable;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -39,9 +40,14 @@ public class WolfEntity extends TameableEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
+        if (entityMetadata.getId() == 18) {
+            metadata.getFlags().setFlag(EntityFlag.INTERESTED, (boolean) entityMetadata.getValue());
+        }
+        // Wolf collar color
+        // Relies on EntityData.OWNER_EID being set in TameableEntity.java
         if (entityMetadata.getId() == 19) {
-            // FIXME: Colors the whole animal instead of just collar
-            // metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
+            metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

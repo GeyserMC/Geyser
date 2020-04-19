@@ -33,12 +33,10 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
@@ -101,10 +99,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getDownstream().getSession().send(stopSleepingPacket);
                 break;
             case BLOCK_INTERACT:
-                ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(position,
-                        BlockFace.values()[packet.getFace()],
-                        Hand.MAIN_HAND, 0, 0, 0, false);
-                session.getDownstream().getSession().send(blockPacket);
+                // Handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
                 ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
@@ -128,6 +123,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
                     session.getUpstream().sendPacket(spawnPacket);
                     entity.updateBedrockAttributes(session);
+                    session.getEntityCache().updateBossBars();
                 }
                 break;
             case JUMP:

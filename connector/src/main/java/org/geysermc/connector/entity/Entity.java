@@ -109,14 +109,6 @@ public class Entity {
         addEntityPacket.setRotation(getBedrockRotation());
         addEntityPacket.setEntityType(entityType.getType());
         addEntityPacket.getMetadata().putAll(metadata);
-        //USELESS CODE START
-        int[] passengerIds = session.getEntityCache().getCachedEntityLink((int) entityId);
-        if (passengerIds[0] != -1) {
-            for (int passengerId : passengerIds) {
-                addEntityPacket.getEntityLinks().add(new EntityLink(geyserId, session.getEntityCache().getEntityByJavaId(passengerId).getGeyserId(), EntityLink.Type.RIDER, false));
-            }
-        }
-        //USELESS CODE END
 
         valid = true;
         session.getUpstream().sendPacket(addEntityPacket);
