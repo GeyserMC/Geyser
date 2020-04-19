@@ -143,7 +143,7 @@ public enum EntityType {
     PUFFERFISH(AbstractFishEntity.class, 108, 0.7f, 0.7f),
     SALMON(AbstractFishEntity.class, 109, 0.5f, 0.7f),
     DROWNED(ZombieEntity.class, 110, 1.95f, 0.6f),
-    TROPICAL_FISH(AbstractFishEntity.class, 111, 0.6f, 0.6f),
+    TROPICAL_FISH(TropicalFishEntity.class, 111, 0.6f, 0.6f),
     COD(AbstractFishEntity.class, 112, 0.25f, 0.5f),
     PANDA(PandaEntity.class, 113, 1.25f, 1.125f, 1.825f),
     FOX(FoxEntity.class, 121, 0.5f, 1.25f),

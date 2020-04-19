@@ -105,6 +105,9 @@ public class Entity {
     public void spawnEntity(GeyserSession session) {
         AddEntityPacket addEntityPacket = new AddEntityPacket();
         addEntityPacket.setIdentifier("minecraft:" + entityType.name().toLowerCase());
+        if (entityType.name().toLowerCase().equals("tropical_fish")) {
+            addEntityPacket.setIdentifier("minecraft:tropicalfish");
+        }
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
