@@ -31,24 +31,24 @@ import com.nukkitx.nbt.tag.ByteTag;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.FloatTag;
 import com.nukkitx.nbt.tag.Tag;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.block.BlockStateValues;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @BlockEntity(name = "Skull", delay = false, regex = "skull")
-public class SkullBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntityTranslator, RequiresBlockState {
+public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
     public boolean isBlock(BlockState blockState) {
-        return BlockTranslator.getSkullVariant(blockState) != -1;
+        return BlockStateValues.getSkullVariant(blockState) != -1;
     }
 
     @Override
     public List<Tag<?>> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, BlockState blockState) {
         List<Tag<?>> tags = new ArrayList<>();
-        byte skullVariant = BlockTranslator.getSkullVariant(blockState);
-        float rotation = BlockTranslator.getSkullRotation(blockState) * 22.5f;
+        byte skullVariant = BlockStateValues.getSkullVariant(blockState);
+        float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;
         // Just in case...
         if (skullVariant == -1) skullVariant = 0;
         tags.add(new FloatTag("Rotation", rotation));

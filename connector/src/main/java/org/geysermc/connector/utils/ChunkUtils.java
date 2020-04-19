@@ -56,6 +56,9 @@ import static org.geysermc.connector.network.translators.block.BlockTranslator.B
 
 public class ChunkUtils {
 
+    /**
+     * Stores positions of BlockState values that are needed for certain block entities
+     */
     public static final Map<Position, BlockState> CACHED_BLOCK_ENTITIES = new HashMap<>();
 
     public static ChunkData translateToBedrock(Column column) {
@@ -65,8 +68,6 @@ public class ChunkUtils {
 
         CompoundTag[] blockEntities = column.getTileEntities();
         Map<Position, BlockState> blockEntityPositions = new HashMap<>();
-
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
 
         for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
@@ -178,6 +179,7 @@ public class ChunkUtils {
                 RequiresBlockState requiresBlockState = aClass.newInstance();
                 if (requiresBlockState.isBlock(blockState)) {
                     CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+                    break; //No block will be a part of two classes
                 }
             } catch (Exception e) {
                 e.printStackTrace();

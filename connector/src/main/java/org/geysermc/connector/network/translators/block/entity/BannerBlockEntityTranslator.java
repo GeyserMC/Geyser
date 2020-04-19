@@ -32,7 +32,7 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.IntTag;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.block.BlockStateValues;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,14 +42,14 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
 
     @Override
     public boolean isBlock(BlockState blockState) {
-        return BlockTranslator.getBannerColor(blockState) != -1;
+        return BlockStateValues.getBannerColor(blockState) != -1;
     }
 
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
         System.out.println(tag);
         List<Tag<?>> tags = new ArrayList<>();
-        int bannerColor = BlockTranslator.getBannerColor(blockState);
+        int bannerColor = BlockStateValues.getBannerColor(blockState);
         if (bannerColor != -1) {
             tags.add(new IntTag("Base", 15 - bannerColor));
         }

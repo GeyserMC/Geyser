@@ -30,23 +30,23 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.ByteTag;
 import com.nukkitx.nbt.tag.Tag;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.block.BlockStateValues;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @BlockEntity(name = "Bed", delay = false, regex = "bed")
-public class BedBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntityTranslator, RequiresBlockState {
+public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
     public boolean isBlock(BlockState blockState) {
-        return BlockTranslator.getBedColor(blockState) != -1;
+        return BlockStateValues.getBedColor(blockState) != -1;
     }
 
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
         List<Tag<?>> tags = new ArrayList<>();
-        byte bedcolor = BlockTranslator.getBedColor(blockState);
+        byte bedcolor = BlockStateValues.getBedColor(blockState);
         // Just in case...
         if (bedcolor == -1) bedcolor = 0;
         tags.add(new ByteTag("color", bedcolor));

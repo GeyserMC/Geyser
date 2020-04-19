@@ -68,10 +68,6 @@ public class BlockTranslator {
     public static final int CARPET = 171;
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
-    private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
-    private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
-    private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
-    private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
 
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
@@ -151,41 +147,19 @@ public class BlockTranslator {
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
 
+            //
             String identifier;
             String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
             for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
                 identifier = clazz.getAnnotation(BlockEntity.class).regex();
                 // Endswith, or else the block bedrock gets picked up for bed
-                if (bedrock_identifer.endsWith(identifier)) {
-                    System.out.println("Putting " + javaId + " on the map because of " + identifier + " with Bedrock " + bedrock_identifer + ".");
+                if (bedrock_identifer.endsWith(identifier) && !identifier.equals("")) {
                     JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, clazz.getAnnotation(BlockEntity.class).name());
                     break;
                 }
             }
 
-            JsonNode bannerColor = entry.getValue().get("banner_color");
-            if (bannerColor != null) {
-                // Converting to byte because the final tag value is a byte. bedColor.binaryValue() returns an array
-                BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
-            }
-
-            JsonNode skullVariation = entry.getValue().get("variation");
-            if(skullVariation != null) {
-                SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
-            }
-
-            JsonNode skullRotation = entry.getValue().get("skull_rotation");
-            if (skullRotation != null) {
-                SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
-            }
-
-            // If the Java ID is bed, signal that it needs a tag to show color
-            // The color is in the namespace ID in Java Edition but it's a tag in Bedrock.
-            JsonNode bedColor = entry.getValue().get("bed_color");
-            if (bedColor != null) {
-                // Converting to byte because the final tag value is a byte. bedColor.binaryValue() returns an array
-                BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
-            }
+            BlockStateValues.storeBlockStateValues(entry, javaBlockState);
 
             if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = bedrockRuntimeId;
@@ -291,34 +265,6 @@ public class BlockTranslator {
 
     public static boolean isWaterlogged(BlockState state) {
         return WATERLOGGED.contains(state.getId());
-    }
-
-    public static int getBannerColor(BlockState state) {
-        if (BANNER_COLORS.containsKey(state)) {
-            return BANNER_COLORS.getInt(state);
-        }
-        return -1;
-    }
-
-    public static byte getBedColor(BlockState state) {
-        if (BED_COLORS.containsKey(state)) {
-            return BED_COLORS.getByte(state);
-        }
-        return -1;
-    }
-
-    public static byte getSkullVariant(BlockState state) {
-        if (SKULL_VARIANTS.containsKey(state)) {
-            return SKULL_VARIANTS.getByte(state);
-        }
-        return -1;
-    }
-
-    public static byte getSkullRotation(BlockState state) {
-        if (SKULL_ROTATIONS.containsKey(state)) {
-            return SKULL_ROTATIONS.getByte(state);
-        }
-        return -1;
     }
 
     public static BlockState getJavaWaterloggedState(int bedrockId) {
