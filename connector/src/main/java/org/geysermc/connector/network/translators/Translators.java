@@ -123,11 +123,6 @@ public class Translators {
             GeyserConnector.getInstance().getLogger().debug("Found annotated block entity: " + clazz.getCanonicalName());
 
             try {
-                // Blank name means Java does not handle it as a block entity
-//                if (!(clazz.newInstance() instanceof BedrockOnlyBlockEntityTranslator)) {
-//                    GeyserConnector.getInstance().getLogger().debug("Registering block entity: " + clazz.getCanonicalName());
-//                    blockEntityTranslators.put(clazz.getAnnotation(BlockEntity.class).name(), (BlockEntityTranslator) clazz.newInstance());
-//                }
                 blockEntityTranslators.put(clazz.getAnnotation(BlockEntity.class).name(), (BlockEntityTranslator) clazz.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
                 GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block entity " + clazz.getCanonicalName() + ".");
