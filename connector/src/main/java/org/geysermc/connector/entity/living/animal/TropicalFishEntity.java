@@ -29,6 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.geysermc.connector.entity.living.AbstractFishEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -43,8 +45,11 @@ public class TropicalFishEntity extends AbstractFishEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 16) {
             // Still not always the right model and colour is broken
-            int variant = (int) entityMetadata.getValue();
-            metadata.put(EntityData.VARIANT, variant);
+            TropicalFishVariant variant = TropicalFishVariant.fromVariantNumber((int) entityMetadata.getValue());
+            metadata.put(EntityData.VARIANT, variant.getShape()); // Shape 0-1
+            metadata.put(EntityData.MARK_VARIANT, variant.getPattern()); // Pattern 0-5
+            metadata.put(EntityData.COLOR, variant.getBaseColor()); // Base color 0-15
+            metadata.put(EntityData.COLOR_2, variant.getPatternColor()); // Pattern color 0-15
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
@@ -65,5 +70,18 @@ public class TropicalFishEntity extends AbstractFishEntity {
         session.getUpstream().sendPacket(addEntityPacket);
 
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+    }
+
+    @Getter
+    @AllArgsConstructor
+    private static class TropicalFishVariant {
+        private int shape;
+        private int pattern;
+        private int baseColor;
+        private int patternColor;
+
+        public static TropicalFishVariant fromVariantNumber(int varNumber) {
+            return new TropicalFishVariant((varNumber & 0xFF), ((varNumber >> 8) & 0xFF), ((varNumber >> 16) & 0xFF), ((varNumber >> 24) & 0xFF));
+        }
     }
 }
