@@ -67,9 +67,7 @@ public class ChunkUtils {
         chunkData.sections = new ChunkSection[chunks.length];
 
         CompoundTag[] blockEntities = column.getTileEntities();
-        /**
-         * Temporarily stores block entity positions per each chunk load
-         */
+        // Temporarily stores positions of BlockState values per chunk load
         Map<Position, BlockState> blockEntityPositions = new HashMap<>();
 
         for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
