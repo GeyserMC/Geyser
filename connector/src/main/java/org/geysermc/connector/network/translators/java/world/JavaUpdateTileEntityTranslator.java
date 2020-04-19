@@ -34,29 +34,30 @@ import org.geysermc.connector.network.translators.block.entity.BedrockOnlyBlockE
 import org.geysermc.connector.network.translators.block.entity.BlockEntity;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.connector.utils.ChunkUtils;
 
 import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerUpdateTileEntityPacket.class)
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
 
-    // Time before attempting to send
-    private static final int DELAY = 500;
-
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
-        // Blank name means it's not handled as a translator Bedrock-wise
-        if (!(translator instanceof BedrockOnlyBlockEntityTranslator) && translator.getClass().getAnnotation(BlockEntity.class).delay()) {
+        if (ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition()) != null) {
+            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(),
+                    ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition())), packet.getPosition());
+            ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition());
+        } else if (translator.getClass().getAnnotation(BlockEntity.class).delay()) {
             // Delay so chunks can finish sending
             session.getConnector().getGeneralThreadPool().schedule(() ->
-                            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt()), packet.getPosition()),
-                    DELAY,
+                            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), null), packet.getPosition()),
+                    500,
                     TimeUnit.MILLISECONDS
             );
         } else {
-            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt()), packet.getPosition());
+            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), null), packet.getPosition());
         }
     }
 }

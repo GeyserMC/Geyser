@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.ByteTag;
 import com.nukkitx.nbt.tag.Tag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
@@ -39,40 +40,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@BlockEntity(name = "Bed", delay = true, regex = "bed")
-public class BedBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntityTranslator {
+@BlockEntity(name = "Bed", delay = false, regex = "bed")
+public class BedBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntityTranslator, RequiresBlockState {
 
     @Override
-    public void checkForBlockEntity(GeyserSession session, BlockState blockState, Vector3i position) {
+    public boolean isBlock(BlockState blockState) {
+        return BlockTranslator.getBedColor(blockState) != -1;
+    }
+
+    @Override
+    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
+        List<Tag<?>> tags = new ArrayList<>();
         byte bedcolor = BlockTranslator.getBedColor(blockState);
-        System.out.println(bedcolor);
-        // If Bed Color is not -1 then it is indeed a bed with a color.
-        if (bedcolor > -1) {
-            Position pos = new Position(position.getX(), position.getY(), position.getZ());
-            com.nukkitx.nbt.tag.CompoundTag finalbedTag = getBedTag(bedcolor, pos);
-            // Delay needed, otherwise newly placed beds will not get their color
-            // Delay is not needed for beds already placed on login
-            session.getConnector().getGeneralThreadPool().schedule(() ->
-                            BlockEntityUtils.updateBlockEntity(session, finalbedTag, pos),
-                    500,
-                    TimeUnit.MILLISECONDS
-            );
-        }
-    }
-
-    public static com.nukkitx.nbt.tag.CompoundTag getBedTag(byte bedcolor, Position pos) {
-        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
-                .intTag("x", pos.getX())
-                .intTag("y", pos.getY())
-                .intTag("z", pos.getZ())
-                .stringTag("id", "Bed");
-        tagBuilder.byteTag("color", bedcolor);
-        return tagBuilder.buildRootTag();
-    }
-
-    @Override
-    public List<Tag<?>> translateTag(CompoundTag tag) {
-        return new ArrayList<>();
+        // Just in case...
+        if (bedcolor == -1) bedcolor = 0;
+        tags.add(new ByteTag("color", bedcolor));
+        return tags;
     }
 
     @Override

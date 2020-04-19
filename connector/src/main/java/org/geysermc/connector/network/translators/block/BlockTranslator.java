@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
@@ -49,9 +48,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.block.entity.BlockEntity;
-import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.Toolbox;
-import org.geysermc.connector.world.chunk.ChunkPosition;
 import org.reflections.Reflections;
 
 import java.io.InputStream;
@@ -71,6 +68,7 @@ public class BlockTranslator {
     public static final int CARPET = 171;
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
+    private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
@@ -156,17 +154,20 @@ public class BlockTranslator {
             String identifier;
             String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
             for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
-                if (clazz.getAnnotation(BlockEntity.class).delay()) {
-                    identifier = clazz.getAnnotation(BlockEntity.class).regex();
-                    // Endswith, or else the block bedrock gets picked up for bed
-                    if (bedrock_identifer.endsWith(identifier)) {
-                        System.out.println("Putting " + javaId + " on the map because of " + identifier + " with Bedrock " + bedrock_identifer + ".");
-                        JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, clazz.getAnnotation(BlockEntity.class).name());
-                        break;
-                    }
+                identifier = clazz.getAnnotation(BlockEntity.class).regex();
+                // Endswith, or else the block bedrock gets picked up for bed
+                if (bedrock_identifer.endsWith(identifier)) {
+                    System.out.println("Putting " + javaId + " on the map because of " + identifier + " with Bedrock " + bedrock_identifer + ".");
+                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, clazz.getAnnotation(BlockEntity.class).name());
+                    break;
                 }
             }
 
+            JsonNode bannerColor = entry.getValue().get("banner_color");
+            if (bannerColor != null) {
+                // Converting to byte because the final tag value is a byte. bedColor.binaryValue() returns an array
+                BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
+            }
 
             JsonNode skullVariation = entry.getValue().get("variation");
             if(skullVariation != null) {
@@ -290,6 +291,13 @@ public class BlockTranslator {
 
     public static boolean isWaterlogged(BlockState state) {
         return WATERLOGGED.contains(state.getId());
+    }
+
+    public static int getBannerColor(BlockState state) {
+        if (BANNER_COLORS.containsKey(state)) {
+            return BANNER_COLORS.getInt(state);
+        }
+        return -1;
     }
 
     public static byte getBedColor(BlockState state) {

@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.block.entity;
 
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.tag.Tag;
 
@@ -35,7 +36,7 @@ import java.util.List;
 public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag) {
+    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
         return new ArrayList<>();
     }
 

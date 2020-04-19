@@ -25,22 +25,34 @@
 
 package org.geysermc.connector.network.translators.block.entity;
 
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.IntTag;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @BlockEntity(name = "Banner", delay = false, regex = "banner")
-public class BannerBlockEntityTranslator extends BlockEntityTranslator {
+public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag) {
+    public boolean isBlock(BlockState blockState) {
+        return BlockTranslator.getBannerColor(blockState) != -1;
+    }
+
+    @Override
+    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
         System.out.println(tag);
         List<Tag<?>> tags = new ArrayList<>();
+        int bannerColor = BlockTranslator.getBannerColor(blockState);
+        if (bannerColor != -1) {
+            tags.add(new IntTag("Base", 15 - bannerColor));
+        }
         ListTag patterns = tag.get("Patterns");
         List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
         if (tag.contains("Patterns")) {

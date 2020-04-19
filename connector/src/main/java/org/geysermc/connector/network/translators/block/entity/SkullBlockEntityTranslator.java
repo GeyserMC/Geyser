@@ -29,7 +29,9 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.ByteTag;
 import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.tag.FloatTag;
 import com.nukkitx.nbt.tag.Tag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
@@ -39,41 +41,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@BlockEntity(name = "Skull", delay = true, regex = "skull")
-public class SkullBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntityTranslator {
+@BlockEntity(name = "Skull", delay = false, regex = "skull")
+public class SkullBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntityTranslator, RequiresBlockState {
 
     @Override
-    public void checkForBlockEntity(GeyserSession session, BlockState blockState, Vector3i position) {
+    public boolean isBlock(BlockState blockState) {
+        return BlockTranslator.getSkullVariant(blockState) != -1;
+    }
+
+    @Override
+    public List<Tag<?>> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, BlockState blockState) {
+        List<Tag<?>> tags = new ArrayList<>();
         byte skullVariant = BlockTranslator.getSkullVariant(blockState);
-        if (skullVariant > -1) {
-            System.out.println("Skull variant: " + skullVariant);
-            byte rotation = BlockTranslator.getSkullRotation(blockState);
-            Position pos = new Position(position.getX(), position.getY(), position.getZ());
-            CompoundTag finalSkullTag = getSkullTag(skullVariant, pos, rotation);
-            // Delay needed, otherwise newly placed skulls will not appear
-            // Delay is not needed for skulls already placed on login
-            session.getConnector().getGeneralThreadPool().schedule(() ->
-                            BlockEntityUtils.updateBlockEntity(session, finalSkullTag, pos),
-                    500,
-                    TimeUnit.MILLISECONDS
-            );
-        }
-    }
-
-    public static CompoundTag getSkullTag(byte skullvariant, Position pos, byte rotation) {
-        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
-                .intTag("x", pos.getX())
-                .intTag("y", pos.getY())
-                .intTag("z", pos.getZ())
-                .stringTag("id", "Skull")
-                .floatTag("Rotation", rotation * 22.5f);
-        tagBuilder.byteTag("SkullType", skullvariant);
-        return tagBuilder.buildRootTag();
-    }
-
-    @Override
-    public List<Tag<?>> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
-        return new ArrayList<>();
+        float rotation = BlockTranslator.getSkullRotation(blockState) * 22.5f;
+        // Just in case...
+        if (skullVariant == -1) skullVariant = 0;
+        tags.add(new FloatTag("Rotation", rotation));
+        tags.add(new ByteTag("SkullType", skullVariant));
+        return tags;
     }
 
     @Override

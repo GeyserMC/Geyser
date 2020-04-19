@@ -7,8 +7,4 @@ import org.geysermc.connector.network.session.GeyserSession;
 /**
  * Any block entities that are Bedrock-only are managed through this class
  */
-public interface BedrockOnlyBlockEntityTranslator {
-
-    void checkForBlockEntity(GeyserSession session, BlockState blockState, Vector3i position);
-
-}
+public interface BedrockOnlyBlockEntityTranslator { }
