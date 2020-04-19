@@ -98,7 +98,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.setGameMode(gameMode);
 
                 AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-                adventureSettingsPacket.setPlayerPermission(PlayerPermission.OPERATOR);
+                adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
                 adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
                 adventureSettingsPacket.getFlags().addAll(playerFlags);
                 session.getUpstream().sendPacket(adventureSettingsPacket);

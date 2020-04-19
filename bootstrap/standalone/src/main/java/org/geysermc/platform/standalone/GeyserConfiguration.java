@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,6 +62,9 @@ public class GeyserConfiguration implements IGeyserConfiguration {
 
     @JsonProperty("allow-third-party-capes")
     private boolean allowThirdPartyCapes;
+
+    @JsonProperty("default-locale")
+    private String defaultLocale;
 
     private MetricsInfo metrics;
 

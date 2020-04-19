@@ -55,6 +55,8 @@ public class Registry<T> {
                 if (MAP.containsKey(clazz)) {
                     ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
                     return true;
+                } else {
+                    GeyserConnector.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
                 }
             } catch (Throwable ex) {
                 GeyserConnector.getInstance().getLogger().error("Could not translate packet " + packet.getClass().getSimpleName(), ex);

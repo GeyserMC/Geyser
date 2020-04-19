@@ -58,7 +58,6 @@
                                     <shadedPattern>org.geysermc.platform.sponge.shaded.fastutil</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <minimizeJar>true</minimizeJar>
                         </configuration>
                     </execution>
                 </executions>

@@ -55,6 +55,9 @@ public class BlockTranslator {
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
+    // Bedrock carpet ID, used in LlamaEntity.java for decoration
+    public static final int CARPET = 171;
+
     private static final int BLOCK_STATE_VERSION = 17760256;
 
     static {
@@ -100,7 +103,8 @@ public class BlockTranslator {
             if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = bedrockRuntimeId;
             }
-            boolean waterlogged = entry.getValue().has("waterlogged") && entry.getValue().get("waterlogged").booleanValue();
+            boolean waterlogged = entry.getKey().contains("waterlogged=true")
+                    || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
 
             if (waterlogged) {
                 BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, new BlockState(javaRuntimeId));
@@ -175,6 +179,10 @@ public class BlockTranslator {
 
     public static int getBedrockBlockId(BlockState state) {
         return JAVA_TO_BEDROCK_BLOCK_MAP.get(state.getId());
+    }
+
+    public static int getBedrockBlockId(int javaId) {
+        return JAVA_TO_BEDROCK_BLOCK_MAP.get(javaId);
     }
 
     public static BlockState getJavaBlockState(int bedrockId) {

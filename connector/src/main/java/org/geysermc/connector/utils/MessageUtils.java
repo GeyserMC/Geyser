@@ -25,31 +25,31 @@
 
 package org.geysermc.connector.utils;
 
-import com.github.steveice10.mc.protocol.data.message.ChatColor;
-import com.github.steveice10.mc.protocol.data.message.ChatFormat;
-import com.github.steveice10.mc.protocol.data.message.Message;
-import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
+import com.github.steveice10.mc.protocol.data.message.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MessageUtils {
 
-    public static List<String> getTranslationParams(Message[] messages) {
-        List<String> strings = new ArrayList<String>();
-        for (int i = 0; i < messages.length; i++) {
-            if (messages[i] instanceof TranslationMessage) {
-                TranslationMessage translation = (TranslationMessage) messages[i];
+    public static List<String> getTranslationParams(Message[] messages, String locale) {
+        List<String> strings = new ArrayList<>();
+        for (Message message : messages) {
+            if (message instanceof TranslationMessage) {
+                TranslationMessage translation = (TranslationMessage) message;
 
-                StringBuilder builder = new StringBuilder("");
-                builder.append("%");
-                builder.append(translation.getTranslationKey());
-                strings.add(builder.toString());
+                if (locale == null) {
+                    String builder = "%" + translation.getTranslationKey();
+                    strings.add(builder);
+                }
 
                 if (translation.getTranslationKey().equals("commands.gamemode.success.other")) {
                     strings.add("");
@@ -59,47 +59,96 @@ public class MessageUtils {
                     strings.add(" - no permission or invalid command!");
                 }
 
-                for (int j = 0; j < getTranslationParams(translation.getTranslationParams()).size(); j++) {
-                    strings.add(getTranslationParams(translation.getTranslationParams()).get(j));
+                List<String> furtherParams = getTranslationParams(translation.getTranslationParams(), locale);
+                if (locale != null) {
+                    strings.add(insertParams(LocaleUtils.getLocaleString(translation.getTranslationKey(), locale), furtherParams));
+                }else{
+                    strings.addAll(furtherParams);
                 }
             } else {
-                StringBuilder builder = new StringBuilder("");
-                builder.append(getFormat(messages[i].getStyle().getFormats()));
-                builder.append(getColor(messages[i].getStyle().getColor()));
-                builder.append(getBedrockMessage(messages[i]));
-                strings.add(builder.toString());
+                String builder = getFormat(message.getStyle().getFormats()) +
+                        getColorOrParent(message.getStyle());
+                builder += getTranslatedBedrockMessage(message, locale, false);
+                strings.add(builder);
             }
         }
 
         return strings;
     }
 
-    public static String getTranslationText(TranslationMessage message) {
-        StringBuilder builder = new StringBuilder("");
-        builder.append(getFormat(message.getStyle().getFormats()));
-        builder.append(getColor(message.getStyle().getColor()));
-        builder.append("%");
-        builder.append(message.getTranslationKey());
-        return builder.toString();
+    public static List<String> getTranslationParams(Message[] messages) {
+        return getTranslationParams(messages, null);
     }
 
-    public static String getBedrockMessage(Message message) {
+    public static String getTranslationText(TranslationMessage message) {
+        return getFormat(message.getStyle().getFormats()) + getColorOrParent(message.getStyle())
+                + "%" + message.getTranslationKey();
+    }
+
+    public static String getTranslatedBedrockMessage(Message message, String locale, boolean shouldTranslate) {
         JsonParser parser = new JsonParser();
         if (isMessage(message.getText())) {
             JsonObject object = parser.parse(message.getText()).getAsJsonObject();
             message = Message.fromJson(formatJson(object));
         }
 
-        StringBuilder builder = new StringBuilder(message.getText());
+        String messageText = message.getText();
+        if (locale != null && shouldTranslate) {
+            messageText = LocaleUtils.getLocaleString(messageText, locale);
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(getFormat(message.getStyle().getFormats()));
+        builder.append(getColorOrParent(message.getStyle()));
+        builder.append(messageText);
+
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
-            builder.append(getColor(msg.getStyle().getColor()));
+            builder.append(getColorOrParent(msg.getStyle()));
             if (!(msg.getText() == null)) {
-                builder.append(getBedrockMessage(msg));
+                boolean isTranslationMessage = (msg instanceof TranslationMessage);
+                builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
+            }
+        }
+        return builder.toString();
+    }
+
+    public static String getTranslatedBedrockMessage(Message message, String locale) {
+        return getTranslatedBedrockMessage(message, locale, true);
+    }
+
+    public static String getBedrockMessage(Message message) {
+        return getTranslatedBedrockMessage(message, null, false);
+    }
+
+    public static String insertParams(String message, List<String> params) {
+        String newMessage = message;
+
+        Pattern p = Pattern.compile("%([1-9])\\$s");
+        Matcher m = p.matcher(message);
+        while (m.find()) {
+            try {
+                newMessage = newMessage.replaceFirst("%" + m.group(1) + "\\$s" , params.get(Integer.parseInt(m.group(1)) - 1));
+            } catch (Exception e) {
+                // Couldnt find the param to replace
             }
         }
 
-        return builder.toString();
+        for (String text : params) {
+            newMessage = newMessage.replaceFirst("%s", text);
+        }
+
+        return newMessage;
+    }
+
+    private static String getColorOrParent(MessageStyle style) {
+        ChatColor chatColor = style.getColor();
+
+        if (chatColor == ChatColor.NONE && style.getParent() != null) {
+            return getColorOrParent(style.getParent());
+        }
+
+        return getColor(chatColor);
     }
 
     private static String getColor(ChatColor color) {
@@ -206,7 +255,6 @@ public class MessageUtils {
         } catch (Exception ex) {
             return false;
         }
-
         return true;
     }
 
@@ -231,7 +279,30 @@ public class MessageUtils {
                     formatJson((JsonObject) a.get(i));
             }
         }
-
         return object;
+    }
+
+    public static String toChatColor(TeamColor teamColor) {
+        for (ChatColor color : ChatColor.values()) {
+            if (color.name().equals(teamColor.name())) {
+                return getColor(color);
+            }
+        }
+        for (ChatFormat format : ChatFormat.values()) {
+            if (format.name().equals(teamColor.name())) {
+                return getFormat(Collections.singletonList(format));
+            }
+        }
+        return "";
+    }
+
+    public static boolean isTooLong(String message, GeyserSession session) {
+        if (message.length() > 256) {
+            // TODO: Add Geyser localization and translate this based on language
+            session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+            return true;
+        }
+
+        return false;
     }
 }

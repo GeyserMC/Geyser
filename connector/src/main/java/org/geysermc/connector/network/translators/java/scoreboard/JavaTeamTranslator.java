@@ -52,12 +52,14 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
             case CREATE:
                 scoreboard.registerNewTeam(packet.getTeamName(), toPlayerSet(packet.getPlayers()))
                         .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                        .setColor(packet.getColor())
                         .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
                         .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()));
                 break;
             case UPDATE:
                 scoreboard.getTeam(packet.getTeamName())
                         .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                        .setColor(packet.getColor())
                         .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
                         .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()))
                         .setUpdateType(UpdateType.UPDATE);

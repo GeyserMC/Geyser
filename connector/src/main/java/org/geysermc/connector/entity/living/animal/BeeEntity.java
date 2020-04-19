@@ -42,6 +42,8 @@ public class BeeEntity extends AnimalEntity {
         if (entityMetadata.getId() == 16) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
+            // If the bee has nectar or not
+            metadata.getFlags().setFlag(EntityFlag.POWERED, (xd & 0x08) == 0x08);
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
