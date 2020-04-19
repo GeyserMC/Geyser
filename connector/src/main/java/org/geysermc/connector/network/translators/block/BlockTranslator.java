@@ -145,7 +145,7 @@ public class BlockTranslator {
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
 
-            //
+            // Used for adding all "special" Java block states to block state map
             String identifier;
             String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
             for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
