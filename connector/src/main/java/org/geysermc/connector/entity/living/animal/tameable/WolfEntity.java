@@ -44,9 +44,21 @@ public class WolfEntity extends TameableEntity {
         if (entityMetadata.getId() == 18) {
             metadata.getFlags().setFlag(EntityFlag.INTERESTED, (boolean) entityMetadata.getValue());
         }
+
+        //Reset wolf color
+        if (entityMetadata.getId() == 16) {
+            byte xd = (byte) entityMetadata.getValue();
+            boolean angry = (xd & 0x02) == 0x02;
+            boolean tamed = (xd & 0x04) == 0x04;
+            if (angry || !tamed) {
+                metadata.put(EntityData.COLOR, (byte) 0);
+            }
+        }
+
         // Wolf collar color
         // Relies on EntityData.OWNER_EID being set in TameableEntity.java
-        if (entityMetadata.getId() == 19) {
+        boolean tamed = !metadata.getFlags().getFlag(EntityFlag.ANGRY) && metadata.getFlags().getFlag(EntityFlag.TAMED);
+        if (entityMetadata.getId() == 19 && tamed) {
             metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
