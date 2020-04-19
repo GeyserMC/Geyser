@@ -23,21 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.bootstrap;
+package org.geysermc.platform.bukkit.command;
 
-import org.geysermc.common.IGeyserConfiguration;
-import org.geysermc.common.command.ICommandManager;
-import org.geysermc.common.logger.IGeyserLogger;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
+import org.geysermc.platform.bukkit.GeyserBukkitPlugin;
 
-public interface IGeyserBootstrap {
+import java.lang.reflect.Field;
 
-    void onEnable();
+public class GeyserBukkitCommandManager extends CommandManager {
 
-    void onDisable();
+    private static CommandMap COMMAND_MAP;
 
-    IGeyserConfiguration getGeyserConfig();
+    static {
+        try {
+            Field cmdMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            cmdMapField.setAccessible(true);
+            COMMAND_MAP = (CommandMap) cmdMapField.get(Bukkit.getServer());
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            ex.printStackTrace();
+        }
+    }
 
-    IGeyserLogger getGeyserLogger();
+    private GeyserBukkitPlugin plugin;
 
-    ICommandManager getGeyserCommandManager();
+    public GeyserBukkitCommandManager(GeyserBukkitPlugin plugin, GeyserConnector connector) {
+        super(connector);
+
+        this.plugin = plugin;
+    }
+
+    @Override
+    public String getDescription(String command) {
+        Command cmd = COMMAND_MAP.getCommand(command.replace("/", ""));
+        return cmd != null ? cmd.getDescription() : "";
+    }
 }

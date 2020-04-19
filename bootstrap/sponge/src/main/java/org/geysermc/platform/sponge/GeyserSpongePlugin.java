@@ -32,9 +32,12 @@ import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.common.command.ICommandManager;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandExecutor;
+import org.geysermc.platform.sponge.command.GeyserSpongeCommandManager;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
@@ -57,6 +60,7 @@ public class GeyserSpongePlugin implements IGeyserBootstrap {
     @ConfigDir(sharedRoot = false)
     private File configDir;
 
+    private GeyserSpongeCommandManager geyserCommandManager;
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
 
@@ -86,6 +90,7 @@ public class GeyserSpongePlugin implements IGeyserBootstrap {
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
         this.connector = GeyserConnector.start(PlatformType.SPONGE, this);
+        this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), connector);
 
         Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(connector), "geyser");
     }
@@ -103,6 +108,11 @@ public class GeyserSpongePlugin implements IGeyserBootstrap {
     @Override
     public GeyserSpongeLogger getGeyserLogger() {
         return geyserLogger;
+    }
+
+    @Override
+    public CommandManager getGeyserCommandManager() {
+        return this.geyserCommandManager;
     }
 
     @Listener

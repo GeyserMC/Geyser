@@ -23,21 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.bootstrap;
+package org.geysermc.platform.standalone.command;
 
-import org.geysermc.common.IGeyserConfiguration;
-import org.geysermc.common.command.ICommandManager;
-import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
 
-public interface IGeyserBootstrap {
+public class GeyserCommandManager extends CommandManager {
 
-    void onEnable();
+    public GeyserCommandManager(GeyserConnector connector) {
+        super(connector);
+    }
 
-    void onDisable();
-
-    IGeyserConfiguration getGeyserConfig();
-
-    IGeyserLogger getGeyserLogger();
-
-    ICommandManager getGeyserCommandManager();
+    @Override
+    public String getDescription(String command) {
+        return ""; // this is not sent over the protocol, so we return none
+    }
 }

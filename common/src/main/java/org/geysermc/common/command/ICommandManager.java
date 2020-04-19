@@ -23,21 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.bootstrap;
+package org.geysermc.common.command;
 
-import org.geysermc.common.IGeyserConfiguration;
-import org.geysermc.common.command.ICommandManager;
-import org.geysermc.common.logger.IGeyserLogger;
+public interface ICommandManager {
 
-public interface IGeyserBootstrap {
-
-    void onEnable();
-
-    void onDisable();
-
-    IGeyserConfiguration getGeyserConfig();
-
-    IGeyserLogger getGeyserLogger();
-
-    ICommandManager getGeyserCommandManager();
+    String getDescription(String command);
 }

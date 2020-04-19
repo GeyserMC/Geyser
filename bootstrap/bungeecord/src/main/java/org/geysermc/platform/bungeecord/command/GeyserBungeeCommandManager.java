@@ -23,21 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.bootstrap;
+package org.geysermc.platform.bungeecord.command;
 
-import org.geysermc.common.IGeyserConfiguration;
-import org.geysermc.common.command.ICommandManager;
-import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
 
-public interface IGeyserBootstrap {
+public class GeyserBungeeCommandManager extends CommandManager {
 
-    void onEnable();
+    public GeyserBungeeCommandManager(GeyserConnector connector) {
+        super(connector);
+    }
 
-    void onDisable();
-
-    IGeyserConfiguration getGeyserConfig();
-
-    IGeyserLogger getGeyserLogger();
-
-    ICommandManager getGeyserCommandManager();
+    @Override
+    public String getDescription(String command) {
+        return ""; // no support for command descriptions in bungee
+    }
 }

@@ -84,7 +84,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             CommandParamData[][] params = getParams(commandID, packet.getNodes()[commandID], packet.getNodes());
 
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, "A Java server command", flags, (byte) 0, aliases, params);
+            CommandData data = new CommandData(commandName, session.getConnector().getCommandManager().getDescription(commandName), flags, (byte) 0, aliases, params);
             commandData.add(data);
         }
 

@@ -23,21 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.bootstrap;
+package org.geysermc.platform.sponge.command;
 
-import org.geysermc.common.IGeyserConfiguration;
-import org.geysermc.common.command.ICommandManager;
-import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandMapping;
+import org.spongepowered.api.text.Text;
 
-public interface IGeyserBootstrap {
+public class GeyserSpongeCommandManager extends CommandManager {
 
-    void onEnable();
+    private org.spongepowered.api.command.CommandManager handle;
 
-    void onDisable();
+    public GeyserSpongeCommandManager(org.spongepowered.api.command.CommandManager handle, GeyserConnector connector) {
+        super(connector);
 
-    IGeyserConfiguration getGeyserConfig();
+        this.handle = handle;
+    }
 
-    IGeyserLogger getGeyserLogger();
-
-    ICommandManager getGeyserCommandManager();
+    @Override
+    public String getDescription(String command) {
+        return handle.get(command).map(CommandMapping::getCallable).map(callable -> callable.getShortDescription(Sponge.getServer().getConsole()).orElse(Text.EMPTY)).orElse(Text.EMPTY).toPlain();
+    }
 }

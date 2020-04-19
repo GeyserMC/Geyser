@@ -26,6 +26,7 @@
 package org.geysermc.connector.command;
 
 import lombok.Getter;
+import org.geysermc.common.command.ICommandManager;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.HelpCommand;
 import org.geysermc.connector.command.defaults.ReloadCommand;
@@ -35,14 +36,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserCommandMap {
+public abstract class CommandManager implements ICommandManager {
 
     @Getter
     private final Map<String, GeyserCommand> commands = Collections.synchronizedMap(new HashMap<>());
 
     private GeyserConnector connector;
 
-    public GeyserCommandMap(GeyserConnector connector) {
+    public CommandManager(GeyserConnector connector) {
         this.connector = connector;
 
         registerCommand(new HelpCommand(connector, "help", "Shows help for all registered commands.", "geyser.command.help"));
