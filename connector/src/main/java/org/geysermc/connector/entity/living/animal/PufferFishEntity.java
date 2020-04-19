@@ -44,6 +44,7 @@ public class PufferFishEntity extends AbstractFishEntity {
             // Transfers correctly but doesn't apply on the client
             int puffsize = (int) entityMetadata.getValue();
             metadata.put(EntityData.PUFFERFISH_SIZE, puffsize);
+            metadata.put(EntityData.VARIANT, puffsize);
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
