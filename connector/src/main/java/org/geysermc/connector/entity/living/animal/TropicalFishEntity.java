@@ -77,11 +77,11 @@ public class TropicalFishEntity extends AbstractFishEntity {
     private static class TropicalFishVariant {
         private int shape;
         private int pattern;
-        private int baseColor;
-        private int patternColor;
+        private byte baseColor;
+        private byte patternColor;
 
         public static TropicalFishVariant fromVariantNumber(int varNumber) {
-            return new TropicalFishVariant((varNumber & 0xFF), ((varNumber >> 8) & 0xFF), ((varNumber >> 16) & 0xFF), ((varNumber >> 24) & 0xFF));
+            return new TropicalFishVariant((varNumber & 0xFF), ((varNumber >> 8) & 0xFF), (byte) ((varNumber >> 16) & 0xFF), (byte) ((varNumber >> 24) & 0xFF));
         }
     }
 }
