@@ -118,7 +118,6 @@ public class ChunkUtils {
                 tagName = "Empty";
             } else {
                 tagName = (String) tag.get("id").getValue();
-                System.out.println(tagName);
             }
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);

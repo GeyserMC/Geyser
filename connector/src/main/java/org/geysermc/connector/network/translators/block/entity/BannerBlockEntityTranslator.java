@@ -47,7 +47,6 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
 
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
-        System.out.println(tag);
         List<Tag<?>> tags = new ArrayList<>();
         int bannerColor = BlockStateValues.getBannerColor(blockState);
         if (bannerColor != -1) {
