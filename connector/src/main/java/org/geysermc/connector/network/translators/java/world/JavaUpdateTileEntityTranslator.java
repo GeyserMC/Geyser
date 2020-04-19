@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 @Translator(packet = ServerUpdateTileEntityPacket.class)
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
 
-    // Modify if sign text is not showing up
+    // This should be modified if sign text is not showing up
     private static final int DELAY = 500;
 
     @Override
