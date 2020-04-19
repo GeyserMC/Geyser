@@ -50,7 +50,8 @@ public class BoatEntity extends Entity {
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
         // Rotation is basically only called when entering/exiting a boat.
-        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround);
+        // We don't include the rotation (y) as it causes the boat to appear sideways
+        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), Vector3f.from(rotation.getX(), 0, rotation.getZ() + 90), isOnGround);
     }
 
     @Override

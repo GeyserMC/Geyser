@@ -39,7 +39,6 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import java.util.Arrays;
-import java.util.stream.IntStream;
 
 @Translator(packet = ServerEntitySetPassengersPacket.class)
 public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEntitySetPassengersPacket> {
@@ -70,9 +69,15 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             session.getUpstream().sendPacket(linkPacket);
             passengers.add(passengerId);
 
+            passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
+            passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 90);
+            passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, !passengers.isEmpty() ? -90 : 0);
+
+            passenger.updateBedrockMetadata(session);
             this.updateOffset(passenger, entity.getEntityType(), session, rider, true);
             rider = false;
         }
+
         entity.setPassengers(passengers);
 
         for (long passengerId : entity.getPassengers()) {
