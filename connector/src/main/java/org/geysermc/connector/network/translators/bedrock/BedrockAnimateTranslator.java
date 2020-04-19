@@ -33,15 +33,26 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 
+import java.util.concurrent.TimeUnit;
+
 @Translator(packet = AnimatePacket.class)
 public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
 
     @Override
     public void translate(AnimatePacket packet, GeyserSession session) {
+        // Stop the player sending animations before they have fully spawned into the server
+        if (!session.isSpawned()) {
+            return;
+        }
+
         switch (packet.getAction()) {
             case SWING_ARM:
-                ClientPlayerSwingArmPacket swingArmPacket = new ClientPlayerSwingArmPacket(Hand.MAIN_HAND);
-                session.getDownstream().getSession().send(swingArmPacket);
+                // Delay so entity damage can be processed first
+                session.getConnector().getGeneralThreadPool().schedule(() ->
+                        session.getDownstream().getSession().send(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
+                        25,
+                        TimeUnit.MILLISECONDS
+                );
                 break;
         }
     }

@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -49,19 +50,33 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
         switch (packet.getTransactionType()) {
             case ITEM_USE:
-                if (packet.getActionType() == 1) {
-                    ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                    session.getDownstream().getSession().send(useItemPacket);
-                } else if (packet.getActionType() == 2) {
-                    PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
-                    Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
-                    ClientPlayerActionPacket breakPacket = new ClientPlayerActionPacket(action, pos, BlockFace.values()[packet.getFace()]);
-                    session.getDownstream().getSession().send(breakPacket);
+                switch (packet.getActionType()) {
+                    case 0:
+                        ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(
+                                new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
+                                BlockFace.values()[packet.getFace()],
+                                Hand.MAIN_HAND,
+                                packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
+                                false);
+                        session.getDownstream().getSession().send(blockPacket);
+                        break;
+                    case 1:
+                        ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                        session.getDownstream().getSession().send(useItemPacket);
+                        break;
+                    case 2:
+                        PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
+                        Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
+                        ClientPlayerActionPacket breakPacket = new ClientPlayerActionPacket(action, pos, BlockFace.values()[packet.getFace()]);
+                        session.getDownstream().getSession().send(breakPacket);
+                        break;
                 }
                 break;
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
-                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
+                    // Followed to the Minecraft Protocol specification outlined at wiki.vg
+                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0),
+                            BlockFace.DOWN);
                     session.getDownstream().getSession().send(releaseItemPacket);
                 }
                 break;
@@ -70,11 +85,23 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 if (entity == null)
                     return;
 
-                Vector3f vector = packet.getClickPosition();
-                ClientPlayerInteractEntityPacket entityPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                        InteractAction.values()[packet.getActionType()], vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
-
-                session.getDownstream().getSession().send(entityPacket);
+                //https://wiki.vg/Protocol#Interact_Entity
+                switch (packet.getActionType()) {
+                    case 0: //Interact
+                        Vector3f vector = packet.getClickPosition();
+                        ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                                InteractAction.INTERACT, Hand.MAIN_HAND);
+                        ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                                InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
+                        session.getDownstream().getSession().send(interactPacket);
+                        session.getDownstream().getSession().send(interactAtPacket);
+                        break;
+                    case 1: //Attack
+                        ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                                InteractAction.ATTACK);
+                        session.getDownstream().getSession().send(attackPacket);
+                        break;
+                }
                 break;
         }
     }

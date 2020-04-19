@@ -54,7 +54,6 @@
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.netty</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <minimizeJar>true</minimizeJar>
                         </configuration>
                     </execution>
                 </executions>
