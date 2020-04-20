@@ -40,24 +40,54 @@ import com.github.steveice10.opennbt.tag.builtin.LongTag;
 import com.github.steveice10.opennbt.tag.builtin.ShortTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.packetlib.packet.Packet;
+import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 
 import org.geysermc.connector.GeyserConnector;
 
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.*;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
+import org.reflections.Reflections;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class ItemTranslator {
+public class ItemTranslatorRegistry {
 
+    private List<ItemStackTranslator> itemTranslators;
     private Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
 
-    public ItemStack translateToJava(ItemData data) {
+    public void init(){
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
+
+        Map<ItemStackTranslator, Integer> loadedItemTranslators = new HashMap<>();
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemTranslator.class)) {
+            int priority = clazz.getAnnotation(ItemTranslator.class).priority();
+
+            GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());
+
+            try {
+                ItemStackTranslator itemStackTranslator = (ItemStackTranslator) clazz.newInstance();
+                loadedItemTranslators.put(itemStackTranslator, priority);
+            } catch (InstantiationException | IllegalAccessException e) {
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName() + ".");
+            }
+        }
+
+        itemTranslators = loadedItemTranslators.keySet().stream()
+                .sorted(Comparator.comparingInt(value -> loadedItemTranslators.get(value))).collect(Collectors.toList());
+    }
+
+    public ItemStack translateToJava(GeyserSession session, ItemData data) {
         ItemEntry javaItem = getItem(data);
+
+        for (ItemStackTranslator translator : itemTranslators) {
+            data = translator.translateToJava(session, data);
+        }
 
         if (data.getTag() == null) {
             return new ItemStack(javaItem.getJavaId(), data.getCount());
@@ -76,9 +106,13 @@ public class ItemTranslator {
         return new ItemStack(javaItem.getJavaId(), data.getCount(), translateToJavaNBT(data.getTag()));
     }
 
-    public ItemData translateToBedrock(ItemStack stack) {
+    public ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
         if (stack == null) {
             return ItemData.AIR;
+        }
+
+        for (ItemStackTranslator translator : itemTranslators) {
+            stack = translator.translateToBedrock(session, stack);
         }
 
         ItemEntry bedrockItem = getItem(stack);
@@ -244,7 +278,8 @@ public class ItemTranslator {
         }
 
         if (tag instanceof com.nukkitx.nbt.tag.CompoundTag) {
-            return translateToJavaNBT((com.nukkitx.nbt.tag.CompoundTag) tag);
+            com.nukkitx.nbt.tag.CompoundTag compoundTag = (com.nukkitx.nbt.tag.CompoundTag) tag;
+            return translateToJavaNBT(compoundTag);
         }
 
         return null;
@@ -361,7 +396,9 @@ public class ItemTranslator {
         }
 
         if (tag instanceof CompoundTag) {
-            return translateToBedrockNBT((CompoundTag) tag);
+            CompoundTag compoundTag = (CompoundTag) tag;
+
+            return translateToBedrockNBT(compoundTag);
         }
 
         return null;
