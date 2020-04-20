@@ -106,6 +106,7 @@ public class SkinUtils {
 
         /**
          * Generate the GameProfileData from the given GameProfile
+         *
          * @param profile GameProfile to build the GameProfileData from
          * @return The built GameProfileData
          */
@@ -195,6 +196,7 @@ public class SkinUtils {
 
     /**
      * Create a basic geometry json for the given name
+     *
      * @param geometryName Geometry name to use
      * @return Geometry data as a json string
      */

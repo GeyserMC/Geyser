@@ -40,7 +40,6 @@ public class WebUtils {
      * Makes a web request to the given URL and returns the body as a string
      *
      * @param reqURL URL to fetch
-     *
      * @return Body contents or error message if the request fails
      */
     public static String getBody(String reqURL) {

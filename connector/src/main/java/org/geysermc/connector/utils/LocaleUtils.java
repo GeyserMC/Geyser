@@ -238,7 +238,6 @@ public class LocaleUtils {
      *
      * @param messageText Language string to translate
      * @param locale Locale to translate to
-     *
      * @return Translated string or the original message if it was not found in the given locale
      */
     public static String getLocaleString(String messageText, String locale) {

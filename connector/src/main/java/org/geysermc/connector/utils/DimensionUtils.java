@@ -65,7 +65,6 @@ public class DimensionUtils {
      * Map the Java edition dimension IDs to Bedrock edition
      *
      * @param javaDimension Dimension ID to convert
-     *
      * @return Converted Bedrock edition dimension ID
      */
     public static int javaToBedrock(int javaDimension) {

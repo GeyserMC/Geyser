@@ -31,7 +31,6 @@ public class MathUtils {
      * Round the given float to the next whole number
      *
      * @param floatNumber Float to round
-     *
      * @return Rounded number
      */
     public static int ceil(float floatNumber) {

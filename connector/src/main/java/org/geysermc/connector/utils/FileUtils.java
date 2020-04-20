@@ -40,11 +40,9 @@ public class FileUtils {
     /**
      * Load the given YAML file into the given class
      *
-     * src File to load
+     * @param src File to load
      * @param valueType Class to load file into
-     *
      * @return The data as the given class
-     *
      * @throws IOException
      */
     public static <T> T loadConfig(File src, Class<T> valueType) throws IOException {
@@ -56,14 +54,12 @@ public class FileUtils {
      * Open the specified file or copy if from resources
      *
      * @param name File and resource name
-     * @param s Formatting callback
-     *
+     * @param fallback Formatting callback
      * @return File handle of the specified file
-     *
      * @throws IOException
      */
-    public static File fileOrCopiedFromResource(String name, Function<String, String> s) throws IOException {
-        return fileOrCopiedFromResource(new File(name), name, s);
+    public static File fileOrCopiedFromResource(String name, Function<String, String> fallback) throws IOException {
+        return fileOrCopiedFromResource(new File(name), name, fallback);
     }
 
     /**
@@ -71,13 +67,11 @@ public class FileUtils {
      *
      * @param file File to open
      * @param name Name of the resource get if needed
-     * @param s Formatting callback
-     *
+     * @param format Formatting callback
      * @return File handle of the specified file
-     *
      * @throws IOException
      */
-    public static File fileOrCopiedFromResource(File file, String name, Function<String, String> s) throws IOException {
+    public static File fileOrCopiedFromResource(File file, String name, Function<String, String> format) throws IOException {
         if (!file.exists()) {
             file.createNewFile();
             FileOutputStream fos = new FileOutputStream(file);
@@ -87,7 +81,7 @@ public class FileUtils {
 
             input.read(bytes);
 
-            for(char c : s.apply(new String(bytes)).toCharArray()) {
+            for(char c : format.apply(new String(bytes)).toCharArray()) {
                 fos.write(c);
             }
 
@@ -104,7 +98,6 @@ public class FileUtils {
      *
      * @param file File to write to
      * @param data Data to write to the file
-     *
      * @throws IOException
      */
     public static void writeFile(File file, char[] data) throws IOException {
@@ -127,7 +120,6 @@ public class FileUtils {
      *
      * @param name File path to write to
      * @param data Data to write to the file
-     *
      * @throws IOException
      */
     public static void writeFile(String name, char[] data) throws IOException {
