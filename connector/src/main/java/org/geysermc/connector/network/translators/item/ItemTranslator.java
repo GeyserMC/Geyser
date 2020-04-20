@@ -40,6 +40,7 @@ import com.github.steveice10.opennbt.tag.builtin.LongTag;
 import com.github.steveice10.opennbt.tag.builtin.ShortTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 
 import org.geysermc.connector.GeyserConnector;
@@ -83,7 +84,7 @@ public class ItemTranslator {
 
         ItemEntry bedrockItem = getItem(stack);
         if (stack.getNbt() == null) {
-           return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount());
+            return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount());
         } else if (bedrockItem.getJavaIdentifier().endsWith("potion")) {
             Tag potionTag = stack.getNbt().get("Potion");
             if (potionTag instanceof StringTag) {
@@ -103,7 +104,6 @@ public class ItemTranslator {
             tag.put(new StringTag("map_uuid", mapId.getValue().toString()));
             tag.put(new IntTag("map_name_index", mapId.getValue()));
         }
-
 
         return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount(), translateToBedrockNBT(tag));
     }
@@ -252,6 +252,7 @@ public class ItemTranslator {
 
     private com.nukkitx.nbt.tag.CompoundTag translateToBedrockNBT(CompoundTag tag) {
         Map<String, com.nukkitx.nbt.tag.Tag<?>> javaValue = new HashMap<String, com.nukkitx.nbt.tag.Tag<?>>();
+
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
                 Tag javaTag = tag.get(str);
@@ -357,6 +358,20 @@ public class ItemTranslator {
                         tags.add(bedrockTag);
                 }
                 return new com.nukkitx.nbt.tag.ListTag<>(listTag.getName(), com.nukkitx.nbt.tag.StringTag.class, tags);
+            } else if (listTag.getName().equals("pages")) {
+                List<com.nukkitx.nbt.tag.CompoundTag> pages = new ArrayList<>();
+                for (Object value : listTag.getValue()) {
+                    if (!(value instanceof StringTag))
+                        continue;
+
+                    StringTag page = (StringTag) value;
+                    Message message = Message.fromString(page.getValue());
+                    CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
+                            .stringTag("photoname", "")
+                            .stringTag("text", MessageUtils.getBedrockMessage(message));
+                    pages.add(tagBuilder.buildRootTag());
+                }
+                return new com.nukkitx.nbt.tag.ListTag<>(listTag.getName(), com.nukkitx.nbt.tag.CompoundTag.class, pages);
             }
         }
 
