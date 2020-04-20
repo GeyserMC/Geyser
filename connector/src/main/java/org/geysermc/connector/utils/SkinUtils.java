@@ -104,6 +104,11 @@ public class SkinUtils {
         private String capeUrl;
         private boolean alex;
 
+        /**
+         * Generate the GameProfileData from the given GameProfile
+         * @param profile GameProfile to build the GameProfileData from
+         * @return The built GameProfileData
+         */
         public static GameProfileData from(GameProfile profile) {
             try {
                 GameProfile.Property skinProperty = profile.getProperty("textures");
@@ -188,6 +193,11 @@ public class SkinUtils {
         });
     }
 
+    /**
+     * Create a basic geometry json for the given name
+     * @param geometryName Geometry name to use
+     * @return Geometry data as a json string
+     */
     private static String getLegacySkinGeometry(String geometryName) {
         return "{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}";
     }

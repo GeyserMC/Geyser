@@ -27,5 +27,12 @@ package org.geysermc.common.command;
 
 public interface ICommandManager {
 
+    /**
+     * Returns the description of the given command
+     *
+     * @param command Command to get the description for
+     *
+     * @return Command description
+     */
     String getDescription(String command);
 }
