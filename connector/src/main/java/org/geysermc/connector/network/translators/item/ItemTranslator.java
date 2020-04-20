@@ -56,7 +56,7 @@ import org.reflections.Reflections;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ItemTranslatorRegistry {
+public class ItemTranslator {
 
     private List<ItemStackTranslator> itemTranslators;
     private Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
@@ -65,8 +65,8 @@ public class ItemTranslatorRegistry {
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
 
         Map<ItemStackTranslator, Integer> loadedItemTranslators = new HashMap<>();
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemTranslator.class)) {
-            int priority = clazz.getAnnotation(ItemTranslator.class).priority();
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(org.geysermc.connector.network.translators.ItemTranslator.class)) {
+            int priority = clazz.getAnnotation(org.geysermc.connector.network.translators.ItemTranslator.class).priority();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());
 
@@ -86,22 +86,13 @@ public class ItemTranslatorRegistry {
         ItemEntry javaItem = getItem(data);
 
         for (ItemStackTranslator translator : itemTranslators) {
-            data = translator.translateToJava(session, data);
+            if(translator.acceptItem(javaItem)){
+                data = translator.translateToJava(session, data, javaItem);
+            }
         }
 
         if (data.getTag() == null) {
             return new ItemStack(javaItem.getJavaId(), data.getCount());
-        } else if (javaItem.getJavaIdentifier().equals("minecraft:enchanted_book")) {
-            CompoundTag javaTag = translateToJavaNBT(data.getTag());
-            Map<String, Tag> javaValue = javaTag.getValue();
-            Tag enchTag = javaValue.get("Enchantments");
-            if (enchTag instanceof ListTag) {
-                enchTag = new ListTag("StoredEnchantments", ((ListTag) enchTag).getValue());
-                javaValue.remove("Enchantments");
-                javaValue.put("StoredEnchantments", enchTag);
-                javaTag.setValue(javaValue);
-            }
-            return new ItemStack(javaItem.getJavaId(), data.getCount(), javaTag);
         }
         return new ItemStack(javaItem.getJavaId(), data.getCount(), translateToJavaNBT(data.getTag()));
     }
@@ -111,22 +102,16 @@ public class ItemTranslatorRegistry {
             return ItemData.AIR;
         }
 
+        ItemEntry bedrockItem = getItem(stack);
+
         for (ItemStackTranslator translator : itemTranslators) {
-            stack = translator.translateToBedrock(session, stack);
+            if(translator.acceptItem(bedrockItem)){
+                stack = translator.translateToBedrock(session, stack, bedrockItem);
+            }
         }
 
-        ItemEntry bedrockItem = getItem(stack);
         if (stack.getNbt() == null) {
            return ItemData.of(bedrockItem.getBedrockId(), (short) bedrockItem.getBedrockData(), stack.getAmount());
-        } else if (bedrockItem.getJavaIdentifier().endsWith("potion")) {
-            Tag potionTag = stack.getNbt().get("Potion");
-            if (potionTag instanceof StringTag) {
-                Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
-                if (potion != null) {
-                    return ItemData.of(bedrockItem.getBedrockId(), potion.getBedrockId(), stack.getAmount(), translateToBedrockNBT(stack.getNbt()));
-                }
-                GeyserConnector.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
-            }
         }
 
         // TODO: Create proper transformers instead of shoving everything here

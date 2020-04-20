@@ -38,7 +38,7 @@ import org.geysermc.connector.network.translators.block.entity.*;
 import org.geysermc.connector.network.translators.inventory.*;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
-import org.geysermc.connector.network.translators.item.ItemTranslatorRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.reflections.Reflections;
 
 import com.github.steveice10.packetlib.packet.Packet;
@@ -53,7 +53,7 @@ import lombok.Getter;
 public class Translators {
 
     @Getter
-    private static ItemTranslatorRegistry itemTranslator;
+    private static ItemTranslator itemTranslator;
 
     @Getter
     private static Map<WindowType, InventoryTranslator> inventoryTranslators = new HashMap<>();
@@ -108,7 +108,7 @@ public class Translators {
             }
         }
         
-        itemTranslator = new ItemTranslatorRegistry();
+        itemTranslator = new ItemTranslator();
         itemTranslator.init();
         BlockTranslator.init();
 

@@ -32,14 +32,18 @@ import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemStackTranslator;
 import org.geysermc.connector.network.translators.ItemTranslator;
+import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.graalvm.compiler.nodes.calc.IntegerTestNode;
 
 import java.util.HashMap;
 
 @ItemTranslator
 public class LeatherArmorTranslator extends ItemStackTranslator {
 
+    private static final String[] ITEMS = new String[]{"minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"};
+
     @Override
-    public ItemData translateToJava(GeyserSession session, ItemData itemData) {
+    public ItemData translateToJava(GeyserSession session, ItemData itemData, ItemEntry itemEntry) {
         if(itemData == null || itemData.getTag() == null) return itemData;
 
         CompoundTag itemTag = itemData.getTag();
@@ -58,7 +62,7 @@ public class LeatherArmorTranslator extends ItemStackTranslator {
     }
 
     @Override
-    public ItemStack translateToBedrock(GeyserSession session, ItemStack itemStack) {
+    public ItemStack translateToBedrock(GeyserSession session, ItemStack itemStack, ItemEntry itemEntry) {
         if(itemStack == null || itemStack.getNbt() == null) return itemStack;
 
         com.github.steveice10.opennbt.tag.builtin.CompoundTag itemTag = itemStack.getNbt();
@@ -74,5 +78,13 @@ public class LeatherArmorTranslator extends ItemStackTranslator {
             }
         }
         return itemStack;
+    }
+
+    @Override
+    public boolean acceptItem(ItemEntry itemEntry) {
+        for (String item : ITEMS) {
+            if(itemEntry.getJavaIdentifier().equals(item)) return true;
+        }
+        return false;
     }
 }

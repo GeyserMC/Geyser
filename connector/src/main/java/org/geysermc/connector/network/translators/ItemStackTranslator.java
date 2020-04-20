@@ -28,14 +28,19 @@ package org.geysermc.connector.network.translators;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class ItemStackTranslator {
 
-    public ItemStack translateToBedrock(GeyserSession session, ItemStack itemStack) {
+    public ItemStack translateToBedrock(GeyserSession session, ItemStack itemStack, ItemEntry itemEntry) {
         return itemStack;
     }
 
-    public ItemData translateToJava(GeyserSession session, ItemData itemData){
+    public ItemData translateToJava(GeyserSession session, ItemData itemData, ItemEntry itemEntry){
         return itemData;
+    }
+
+    public boolean acceptItem(ItemEntry itemEntry){
+        return true;
     }
 }

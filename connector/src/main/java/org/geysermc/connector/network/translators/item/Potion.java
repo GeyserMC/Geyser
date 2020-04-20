@@ -30,7 +30,7 @@ import lombok.Getter;
 import java.util.Locale;
 
 @Getter
-enum Potion {
+public enum Potion {
     WATER(0),
     MUNDANE(1),
     THICK(3),
