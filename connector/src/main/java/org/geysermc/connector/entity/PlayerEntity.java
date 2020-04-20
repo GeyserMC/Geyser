@@ -125,7 +125,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         setPosition(position);
         setRotation(rotation);
 
@@ -134,7 +134,13 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setPosition(this.position);
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+        movePlayerPacket.setMode(teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
+
+        if(teleported){
+            //movePlayerPacket.setRidingRuntimeEntityId(0);
+            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
+            //movePlayerPacket.setEntityType(0);
+        }
 
         session.getUpstream().sendPacket(movePlayerPacket);
     }

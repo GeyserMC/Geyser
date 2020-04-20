@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -101,7 +102,8 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             double yDis = entity.getPosition().getY() - packet.getY();
             double zDis = Math.abs(entity.getPosition().getZ() - packet.getZ());
             if (xDis > 1.5 || (yDis < 1.45 || yDis > (session.isJumping() ? 4.3 : (session.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5) {
-                entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), true);
+                GeyserConnector.getInstance().getLogger().debug("packet.getTeleportId(): " + packet.getTeleportId());
+                entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), true, true);
             }
         }
 
