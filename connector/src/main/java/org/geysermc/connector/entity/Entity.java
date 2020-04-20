@@ -26,13 +26,19 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.EntityFlags;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -45,7 +51,9 @@ import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.connector.utils.AttributeUtils;
+import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.*;
@@ -190,6 +198,7 @@ public class Entity {
     }
 
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        System.out.println(entityMetadata.getId() + " " + entityMetadata.getType() + " " + entityMetadata.getValue());
         switch (entityMetadata.getId()) {
             case 0:
                 if (entityMetadata.getType() == MetadataType.BYTE) {
@@ -199,6 +208,18 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
+                    if(session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING) && (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == 829)) {
+                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
+                        ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                        session.getDownstream().getSession().send(useItemPacket);
+                        System.out.println("sneaking");
+                    }
+                    else if(session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING) == false && metadata.getFlags().getFlag(EntityFlag.BLOCKING) == true) {
+                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
+                        metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
+                        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
+                        session.getDownstream().getSession().send(releaseItemPacket);
+                    }
                     // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
                     if ((xd & 0x20) == 0x20)
                         metadata.put(EntityData.SCALE, 0.0f);
@@ -220,6 +241,12 @@ public class Entity {
                 break;
             case 5: // no gravity
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
+                break;
+            case 7: // blocking
+                if (entityMetadata.getType() == MetadataType.BYTE) {
+                    byte xd = (byte) entityMetadata.getValue();
+                    metadata.getFlags().setFlag(EntityFlag.BLOCKING, (xd & 0x01) == 0x01);
+                }
                 break;
         }
 
