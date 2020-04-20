@@ -198,7 +198,6 @@ public class Entity {
     }
 
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        System.out.println(entityMetadata.getId() + " " + entityMetadata.getType() + " " + entityMetadata.getValue());
         switch (entityMetadata.getId()) {
             case 0:
                 if (entityMetadata.getType() == MetadataType.BYTE) {
@@ -208,18 +207,28 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
-                    if(session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING) && (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == 829)) {
-                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
-                        ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                        session.getDownstream().getSession().send(useItemPacket);
-                        System.out.println("sneaking");
-                    }
-                    else if(session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING) == false && metadata.getFlags().getFlag(EntityFlag.BLOCKING) == true) {
-                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                        metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
-                        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
-                        session.getDownstream().getSession().send(releaseItemPacket);
-                    }
+
+                    // Shield code
+                    if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
+                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == 829) ||
+                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == 829)) {
+                            ClientPlayerUseItemPacket useItemPacket;
+                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
+                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == 829) {
+                                useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                            }
+                            // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
+                            else {
+                                useItemPacket = new ClientPlayerUseItemPacket(Hand.OFF_HAND);
+                            }
+                            session.getDownstream().getSession().send(useItemPacket);
+                        }
+                    } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
+                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
+                            metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
+                            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
+                            session.getDownstream().getSession().send(releaseItemPacket);
+                        }
                     // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
                     if ((xd & 0x20) == 0x20)
                         metadata.put(EntityData.SCALE, 0.0f);

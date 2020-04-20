@@ -66,9 +66,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_USE:
                 switch (packet.getActionType()) {
                     case 0:
-                        if(session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == 829) {
-                            break;
-                        }
                         ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(
                                 new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
                                 BlockFace.values()[packet.getFace()],
@@ -78,9 +75,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.getDownstream().getSession().send(blockPacket);
                         break;
                     case 1:
-                        if(session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == 829) {
+                        if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == 829) {
                             break;
-                        }
+                        } // Handled in Entity.java
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                         session.getDownstream().getSession().send(useItemPacket);
                         break;
