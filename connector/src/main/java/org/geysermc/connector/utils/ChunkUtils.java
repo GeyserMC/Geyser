@@ -47,11 +47,9 @@ import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.world.chunk.ChunkPosition;
 import org.geysermc.connector.world.chunk.ChunkSection;
-import org.reflections.Reflections;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static org.geysermc.connector.network.translators.block.BlockTranslator.BEDROCK_WATER_ID;
 
@@ -173,17 +171,14 @@ public class ChunkUtils {
 
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
-        Set<Class<? extends RequiresBlockState>> classes = ref.getSubTypesOf(RequiresBlockState.class);
-        for (Class<? extends RequiresBlockState> aClass : classes) {
-            try {
-                RequiresBlockState requiresBlockState = aClass.newInstance();
+        // Iterates through all block entity translators and determines if the block state needs to be saved
+        for (Map.Entry<String, BlockEntityTranslator> entry : Translators.getBlockEntityTranslators().entrySet()) {
+            if (entry.getValue() instanceof RequiresBlockState) {
+                RequiresBlockState requiresBlockState = (RequiresBlockState) entry.getValue();
                 if (requiresBlockState.isBlock(blockState)) {
                     CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
                     break; //No block will be a part of two classes
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
     }
