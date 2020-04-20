@@ -39,10 +39,10 @@ import java.util.Map;
  */
 public class BlockStateValues {
 
-    public static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
-    public static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
-    public static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
-    public static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
+    private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
+    private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
+    private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
+    private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
 
     /**
      * Determines if the block state contains Bedrock block information

@@ -39,6 +39,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.entity.*;
@@ -215,7 +216,9 @@ public class ChunkUtils {
     public static final class ChunkData {
         public ChunkSection[] sections;
 
-        public com.nukkitx.nbt.tag.CompoundTag[] blockEntities = new com.nukkitx.nbt.tag.CompoundTag[0];
-        public Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> loadBlockEntitiesLater = new Object2IntOpenHashMap<>();
+        @Getter
+        private com.nukkitx.nbt.tag.CompoundTag[] blockEntities = new com.nukkitx.nbt.tag.CompoundTag[0];
+        @Getter
+        private Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> loadBlockEntitiesLater = new Object2IntOpenHashMap<>();
     }
 }
