@@ -25,10 +25,6 @@
 
 package org.geysermc.platform.standalone;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-
 import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
@@ -36,6 +32,10 @@ import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
 import org.geysermc.platform.standalone.console.GeyserLogger;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
 
 public class GeyserBootstrap implements IGeyserBootstrap {
 
@@ -64,8 +64,8 @@ public class GeyserBootstrap implements IGeyserBootstrap {
         }
 
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
-        geyserLogger.start();
         geyserCommandManager = new GeyserCommandManager(connector);
+        geyserLogger.start();
     }
 
     @Override
