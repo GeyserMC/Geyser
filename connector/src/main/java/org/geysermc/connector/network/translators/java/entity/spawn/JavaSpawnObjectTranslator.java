@@ -46,12 +46,15 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
 
     @Override
     public void translate(ServerSpawnObjectPacket packet, GeyserSession session) {
-        if (packet.getType() == ObjectType.ITEM_FRAME)
-            return;
 
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), 0);
+
+//        if (packet.getType() == ObjectType.ITEM_FRAME) {
+//
+//            return;
+//        }
 
         EntityType type = EntityUtils.toBedrockEntity(packet.getType());
         if (type == null) {

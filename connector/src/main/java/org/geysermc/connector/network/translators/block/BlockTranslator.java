@@ -138,6 +138,37 @@ public class BlockTranslator {
 
         paletteList.addAll(blockStateMap.values()); // Add any missing mappings that could crash the client
 
+        CompoundTagBuilder builder = CompoundTag.builder();
+        builder.tag(CompoundTag.builder()
+                .stringTag("name", "minecraft:frame")
+                .intTag("version", BLOCK_STATE_VERSION)
+                .tag(CompoundTag.builder()
+                    .intTag("facing_direction", 0)
+                    .byteTag("item_frame_map_bit", (byte) 0)
+                    .build("states"))
+                .build("block"));
+        builder.shortTag("id", (short) 199);
+        System.out.println(builder.buildRootTag());
+
+        System.out.println(bedrockRuntimeId);
+        paletteList.add(builder.buildRootTag());
+
+        CompoundTagBuilder builder2 = CompoundTag.builder();
+        builder2.tag(CompoundTag.builder()
+                .stringTag("name", "minecraft:frame")
+                .intTag("version", BLOCK_STATE_VERSION)
+                .tag(CompoundTag.builder()
+                        .intTag("facing_direction", 4)
+                        .byteTag("item_frame_map_bit", (byte) 0)
+                        .build("states"))
+                .build("block"));
+        builder2.shortTag("id", (short) 199);
+        System.out.println(builder2.buildRootTag());
+
+        System.out.println(bedrockRuntimeId + 1);
+        paletteList.add(builder2.buildRootTag());
+        System.out.println(paletteList);
+
         BLOCKS = new ListTag<>("", CompoundTag.class, paletteList);
     }
 
