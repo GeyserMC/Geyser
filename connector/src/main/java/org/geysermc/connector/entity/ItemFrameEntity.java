@@ -13,6 +13,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.Getter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 
@@ -48,9 +49,12 @@ public class ItemFrameEntity extends Entity {
             System.out.println(itemData.getTag());
             builder.intTag("Count", itemData.getCount());
             //builder.stringTag("Name", );
+            CompoundTagBuilder tag = getDefaultTag().toBuilder();
             builder.build("Item");
+            //updateBlock(session, );
+        } else {
+            updateBlock(session, null);
         }
-        updateBlock(session, null);
     }
 
     @Override
@@ -77,7 +81,9 @@ public class ItemFrameEntity extends Entity {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(getBedrockPosition());
-        updateBlockPacket.setRuntimeId(2441);
+        updateBlockPacket.setRuntimeId(2603);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.getUpstream().sendPacket(updateBlockPacket);
 

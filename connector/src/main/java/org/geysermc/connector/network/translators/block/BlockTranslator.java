@@ -128,6 +128,9 @@ public class BlockTranslator {
             }
             JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
 
+            if (entry.getValue().get("bedrock_identifier").asText().equals("minecraft:grass_path"))
+                System.out.println(bedrockRuntimeId);
+
             bedrockRuntimeId++;
         }
 
@@ -167,7 +170,6 @@ public class BlockTranslator {
 
         System.out.println(bedrockRuntimeId + 1);
         paletteList.add(builder2.buildRootTag());
-        System.out.println(paletteList);
 
         BLOCKS = new ListTag<>("", CompoundTag.class, paletteList);
     }
