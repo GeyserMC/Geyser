@@ -56,7 +56,10 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
         List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
         if (tag.contains("Patterns")) {
             for (com.github.steveice10.opennbt.tag.builtin.Tag patternTag : patterns.getValue()) {
-                tagsList.add(getPattern((CompoundTag) patternTag));
+                com.nukkitx.nbt.tag.CompoundTag newPatternTag = getPattern((CompoundTag) patternTag);
+                if (newPatternTag != null) {
+                    tagsList.add(newPatternTag);
+                }
             }
             com.nukkitx.nbt.tag.ListTag<com.nukkitx.nbt.tag.CompoundTag> bedrockPatterns =
                     new com.nukkitx.nbt.tag.ListTag<>("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
@@ -82,10 +85,23 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
         return tagBuilder.buildRootTag();
     }
 
+    /**
+     * Convert the Java edition pattern nbt to Bedrock edition, null if the pattern doesn't exist
+     *
+     * @param pattern Java edition pattern nbt
+     * @return The Bedrock edition format pattern nbt
+     */
     protected com.nukkitx.nbt.tag.CompoundTag getPattern(CompoundTag pattern) {
+        String patternName = (String) pattern.get("Pattern").getValue();
+
+        // Return null if its the globe pattern as it doesn't exist on bedrock
+        if (patternName.equals("glb")) {
+            return null;
+        }
+
         return CompoundTagBuilder.builder()
                 .intTag("Color", 15 - (int) pattern.get("Color").getValue())
-                .stringTag("Pattern", (String) pattern.get("Pattern").getValue())
+                .stringTag("Pattern", patternName)
                 .buildRootTag();
     }
 }
