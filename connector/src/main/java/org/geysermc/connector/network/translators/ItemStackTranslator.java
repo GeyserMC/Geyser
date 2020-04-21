@@ -137,7 +137,7 @@ public abstract class ItemStackTranslator {
             for (com.github.steveice10.opennbt.tag.builtin.Tag value : listTag) {
                 tagList.add(translateToBedrockNBT(value));
             }
-            Class clazz = Tag.class;
+            Class clazz = CompoundTag.class;
             if(!tagList.isEmpty()){
                 clazz = tagList.get(0).getClass();
             }
