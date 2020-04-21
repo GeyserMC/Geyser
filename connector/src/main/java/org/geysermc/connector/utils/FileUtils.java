@@ -27,24 +27,51 @@ package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import org.geysermc.connector.GeyserConnector;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.function.Function;
 
 public class FileUtils {
 
+    /**
+     * Load the given YAML file into the given class
+     *
+     * @param src File to load
+     * @param valueType Class to load file into
+     * @return The data as the given class
+     * @throws IOException
+     */
     public static <T> T loadConfig(File src, Class<T> valueType) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         return objectMapper.readValue(src, valueType);
     }
 
-    public static File fileOrCopiedFromResource(String name, Function<String, String> s) throws IOException {
-        return fileOrCopiedFromResource(new File(name), name, s);
+    /**
+     * Open the specified file or copy if from resources
+     *
+     * @param name File and resource name
+     * @param fallback Formatting callback
+     * @return File handle of the specified file
+     * @throws IOException
+     */
+    public static File fileOrCopiedFromResource(String name, Function<String, String> fallback) throws IOException {
+        return fileOrCopiedFromResource(new File(name), name, fallback);
     }
 
-    public static File fileOrCopiedFromResource(File file, String name, Function<String, String> s) throws IOException {
+    /**
+     * Open the specified file or copy if from resources
+     *
+     * @param file File to open
+     * @param name Name of the resource get if needed
+     * @param format Formatting callback
+     * @return File handle of the specified file
+     * @throws IOException
+     */
+    public static File fileOrCopiedFromResource(File file, String name, Function<String, String> format) throws IOException {
         if (!file.exists()) {
             file.createNewFile();
             FileOutputStream fos = new FileOutputStream(file);
@@ -54,7 +81,7 @@ public class FileUtils {
 
             input.read(bytes);
 
-            for(char c : s.apply(new String(bytes)).toCharArray()) {
+            for(char c : format.apply(new String(bytes)).toCharArray()) {
                 fos.write(c);
             }
 
@@ -66,6 +93,13 @@ public class FileUtils {
         return file;
     }
 
+    /**
+     * Writes the given data to the specified file on disk
+     *
+     * @param file File to write to
+     * @param data Data to write to the file
+     * @throws IOException
+     */
     public static void writeFile(File file, char[] data) throws IOException {
         if (!file.exists()) {
             file.createNewFile();
@@ -81,6 +115,13 @@ public class FileUtils {
         fos.close();
     }
 
+    /**
+     * Writes the given data to the specified file on disk
+     *
+     * @param name File path to write to
+     * @param data Data to write to the file
+     * @throws IOException
+     */
     public static void writeFile(String name, char[] data) throws IOException {
         writeFile(new File(name), data);
     }

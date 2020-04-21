@@ -55,7 +55,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         for (int nodeIndex : rootNode.getChildIndices()) {
             CommandNode node = packet.getNodes()[nodeIndex];
 
-            // Make sure we dont have duplicated commands (happens if there is more than 1 root node)
+            // Make sure we don't have duplicated commands (happens if there is more than 1 root node)
             if (commands.containsKey(nodeIndex)) { continue; }
 
             // Get and update the commandArgs list with the found arguments
@@ -81,7 +81,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             CommandEnumData aliases = new CommandEnumData( commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
 
             // Get and parse all params
-            CommandParamData[][] params = getParams(commandID, packet.getNodes()[commandID], packet.getNodes());
+            CommandParamData[][] params = getParams(packet.getNodes()[commandID], packet.getNodes());
 
             // Build the completed command and add it to the final list
             CommandData data = new CommandData(commandName, session.getConnector().getCommandManager().getDescription(commandName), flags, (byte) 0, aliases, params);
@@ -100,7 +100,15 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         session.getUpstream().sendPacket(availableCommandsPacket);
     }
 
-    private CommandParamData[][] getParams(int commandID, CommandNode commandNode, CommandNode[] allNodes) {
+    /**
+     * Build the command parameter array for the given command
+     *
+     * @param commandNode The command to build the parameters for
+     * @param allNodes Every command node
+     *
+     * @return An array of parameter option arrays
+     */
+    private CommandParamData[][] getParams(CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex() != -1) {
             GeyserConnector.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[commandNode.getRedirectIndex()].getName());
@@ -128,6 +136,13 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         return new CommandParamData[0][0];
     }
 
+    /**
+     * Convert Java edition command types to Bedrock edition
+     *
+     * @param parser Command type to convert
+     *
+     * @return Bedrock parameter data type
+     */
     private CommandParamData.Type mapCommandType(CommandParser parser) {
         if (parser == null) { return CommandParamData.Type.STRING; }
 
@@ -204,12 +219,23 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         private CommandParamData paramData;
         private List<ParamInfo> children;
 
+        /**
+         * Create a new parameter info object
+         *
+         * @param paramNode CommandNode the parameter is for
+         * @param paramData The existing parameters for the command
+         */
         public ParamInfo(CommandNode paramNode, CommandParamData paramData) {
             this.paramNode = paramNode;
             this.paramData = paramData;
             this.children = new ArrayList<>();
         }
 
+        /**
+         * Build the array of all the child parameters (recursive)
+         *
+         * @param allNodes Every command node
+         */
         public void buildChildren(CommandNode[] allNodes) {
             int enumIndex = -1;
 
@@ -247,6 +273,11 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             }
         }
 
+        /**
+         * Get the tree of every parameter node (recursive)
+         *
+         * @return List of parameter options arrays for the command
+         */
         public List<CommandParamData[]> getTree() {
             List<CommandParamData[]> treeParamData = new ArrayList<>();
 
