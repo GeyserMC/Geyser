@@ -36,6 +36,12 @@ import java.nio.file.StandardCopyOption;
 
 public class WebUtils {
 
+    /**
+     * Makes a web request to the given URL and returns the body as a string
+     *
+     * @param reqURL URL to fetch
+     * @return Body contents or error message if the request fails
+     */
     public static String getBody(String reqURL) {
         URL url = null;
         try {
@@ -61,6 +67,12 @@ public class WebUtils {
         }
     }
 
+    /**
+     * Downloads a file from the given URL and saves it to disk
+     *
+     * @param reqURL File to fetch
+     * @param fileLocation Location to save on disk
+     */
     public static void downloadFile(String reqURL, String fileLocation) {
         try {
             InputStream in = new URL(reqURL).openStream();

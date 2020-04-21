@@ -44,8 +44,8 @@ public class TropicalFishEntity extends AbstractFishEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 16) {
-            // Still not always the right model and colour is broken
             TropicalFishVariant variant = TropicalFishVariant.fromVariantNumber((int) entityMetadata.getValue());
+
             metadata.put(EntityData.VARIANT, variant.getShape()); // Shape 0-1
             metadata.put(EntityData.MARK_VARIANT, variant.getPattern()); // Pattern 0-5
             metadata.put(EntityData.COLOR, variant.getBaseColor()); // Base color 0-15
@@ -80,6 +80,13 @@ public class TropicalFishEntity extends AbstractFishEntity {
         private byte baseColor;
         private byte patternColor;
 
+        /**
+         * Convert the variant number from Java into separate values
+         *
+         * @param varNumber Variant number from Java edition
+         *
+         * @return The variant converted into TropicalFishVariant
+         */
         public static TropicalFishVariant fromVariantNumber(int varNumber) {
             return new TropicalFishVariant((varNumber & 0xFF), ((varNumber >> 8) & 0xFF), (byte) ((varNumber >> 16) & 0xFF), (byte) ((varNumber >> 24) & 0xFF));
         }
