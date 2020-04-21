@@ -26,27 +26,17 @@
 package org.geysermc.connector.network.translators.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.tag.Tag;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * Implemented in block entities if their Java block state is required for additional values in Bedrock
+ */
+public interface RequiresBlockState {
 
-@BlockEntity(name = "Empty", delay = false, regex = "")
-public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
+    /**
+     * Determines if block is part of class
+     * @param blockState BlockState to be compared
+     * @return true if part of the class
+     */
+    boolean isBlock(BlockState blockState);
 
-    @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        return getConstantJavaTag(javaId, x, y, z);
-    }
-
-    @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z);
-    }
 }

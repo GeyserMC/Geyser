@@ -25,28 +25,21 @@
 
 package org.geysermc.connector.network.translators.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.tag.Tag;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@BlockEntity(name = "Empty", delay = false, regex = "")
-public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
-
-    @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        return getConstantJavaTag(javaId, x, y, z);
-    }
-
-    @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z);
-    }
+@Retention(value = RetentionPolicy.RUNTIME)
+public @interface BlockEntity {
+    /**
+     * Whether to delay the sending of the block entity
+     */
+    boolean delay();
+    /**
+     * The block entity name
+     */
+    String name();
+    /**
+     * The search term used in BlockTranslator
+     */
+    String regex();
 }

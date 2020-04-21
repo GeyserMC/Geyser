@@ -25,21 +25,22 @@
 
 package org.geysermc.connector.network.translators.block.entity;
 
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
-
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@BlockEntity(name = "Sign", delay = true, regex = "sign")
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag) {
+    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
         List<Tag<?>> tags = new ArrayList<>();
 
         String line1 = getOrDefault(tag.getValue().get("Text1"), "");

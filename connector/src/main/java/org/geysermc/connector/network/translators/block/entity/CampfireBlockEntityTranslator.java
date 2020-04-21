@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.block.entity;
 
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -37,10 +38,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@BlockEntity(name = "Campfire", delay = false, regex = "campfire")
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag) {
+    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
         List<Tag<?>> tags = new ArrayList<>();
         ListTag items = tag.get("Items");
         int i = 1;
