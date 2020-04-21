@@ -23,51 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item.translators;
+package org.geysermc.connector.network.translators.item.translators.nbt;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.ItemStackTranslator;
 import org.geysermc.connector.network.translators.ItemTranslator;
+import org.geysermc.connector.network.translators.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.graalvm.compiler.nodes.calc.IntegerTestNode;
-
-import java.util.HashMap;
 
 @ItemTranslator
-public class LeatherArmorTranslator extends ItemStackTranslator {
+public class LeatherArmorTranslator extends NbtItemStackTranslator {
 
     private static final String[] ITEMS = new String[]{"minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"};
 
     @Override
-    public ItemData translateToJava(GeyserSession session, ItemData itemData, ItemEntry itemEntry) {
-        if(itemData == null || itemData.getTag() == null) return itemData;
-
-        CompoundTag itemTag = itemData.getTag();
-
-        if(itemTag.contains("customColor")){
-            int color = itemTag.getInt("customColor");
-            CompoundTag displayTag = itemTag.getCompound("display");
-            if(displayTag == null){
-                displayTag = new CompoundTag("display", new HashMap<>());
-            }
-            displayTag = displayTag.toBuilder().intTag("color", color).build("display");
-            itemTag.getValue().put("display", displayTag);
-            System.out.println("Java: " + itemTag);
-        }
-        return itemData;
-    }
-
-    @Override
-    public ItemStack translateToBedrock(GeyserSession session, ItemStack itemStack, ItemEntry itemEntry) {
-        if(itemStack == null || itemStack.getNbt() == null) return itemStack;
-
-        com.github.steveice10.opennbt.tag.builtin.CompoundTag itemTag = itemStack.getNbt();
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
         if(itemTag.contains("display")){
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag displayTag = itemTag.get("display");
+            CompoundTag displayTag = itemTag.get("display");
             if(displayTag.contains("color")){
                 IntTag color = displayTag.get("color");
                 if(color != null){
@@ -77,7 +50,19 @@ public class LeatherArmorTranslator extends ItemStackTranslator {
                 System.out.println("Bedrock: " + itemTag);
             }
         }
-        return itemStack;
+    }
+
+    @Override
+    public void translateToJava(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+        if(itemTag.contains("customColor")){
+            IntTag color = itemTag.get("customColor");
+            CompoundTag displayTag = itemTag.get("display");
+            if(displayTag == null){
+                displayTag = new CompoundTag("display");
+            }
+            displayTag.put(color);
+            itemTag.remove("customColor");
+        }
     }
 
     @Override

@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
 package org.geysermc.connector.network.translators.item.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
@@ -10,32 +35,47 @@ import org.geysermc.connector.network.translators.ItemStackTranslator;
 import org.geysermc.connector.network.translators.ItemTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.Potion;
+import org.geysermc.connector.utils.Toolbox;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ItemTranslator
 public class PotionTranslator extends ItemStackTranslator {
-    @Override
-    public ItemStack translateToBedrock(GeyserSession session, ItemStack itemStack, ItemEntry itemEntry) {
-        if(itemStack == null || itemStack.getNbt() == null) return itemStack;
 
+    private List<ItemEntry> appliedItems;
+
+    public PotionTranslator(){
+        appliedItems = Toolbox.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("potion")).collect(Collectors.toList());
+    }
+
+    @Override
+    public ItemData translateToBedrock(GeyserSession session, ItemStack itemStack, ItemEntry itemEntry) {
+        if(itemStack.getNbt() == null) return super.translateToBedrock(session, itemStack, itemEntry);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
             Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
             if (potion != null) {
-                //TODO
-                //return new ItemStack(itemEntry.getBedrockId(), potion.getBedrockId(), itemStack.getAmount(), itemStack.getNbt())
+                return ItemData.of(itemEntry.getBedrockId(), potion.getBedrockId(), itemStack.getAmount(), translateNbtToBedrock(itemStack.getNbt()));
             }
             GeyserConnector.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
+        }
+        return super.translateToBedrock(session, itemStack, itemEntry);
+    }
+
+    @Override
+    public ItemStack translateToJava(GeyserSession session, ItemData itemData, ItemEntry itemEntry) {
+        Potion potion = Potion.getByBedrockId(itemData.getDamage());
+        ItemStack itemStack = super.translateToJava(session, itemData, itemEntry);
+        if(potion != null){
+            StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
+            itemStack.getNbt().put(potionTag);
         }
         return itemStack;
     }
 
     @Override
-    public ItemData translateToJava(GeyserSession session, ItemData itemData, ItemEntry itemEntry) {
-        return super.translateToJava(session, itemData, itemEntry);
-    }
-
-    @Override
-    public boolean acceptItem(ItemEntry itemEntry) {
-        return itemEntry.getJavaIdentifier().endsWith("potion");
+    public List<ItemEntry> getAppliedItems() {
+        return appliedItems;
     }
 }
