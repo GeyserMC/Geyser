@@ -54,6 +54,7 @@ public class BlockTranslator {
     private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
+    private static final Object2IntMap<CompoundTag> ITEM_FRAMES = new Object2IntOpenHashMap<>();
 
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
@@ -141,35 +142,46 @@ public class BlockTranslator {
 
         paletteList.addAll(blockStateMap.values()); // Add any missing mappings that could crash the client
 
-        CompoundTagBuilder builder = CompoundTag.builder();
-        builder.tag(CompoundTag.builder()
-                .stringTag("name", "minecraft:frame")
-                .intTag("version", BLOCK_STATE_VERSION)
-                .tag(CompoundTag.builder()
-                    .intTag("facing_direction", 0)
-                    .byteTag("item_frame_map_bit", (byte) 0)
-                    .build("states"))
-                .build("block"));
-        builder.shortTag("id", (short) 199);
-        System.out.println(builder.buildRootTag());
+//        CompoundTagBuilder builder = CompoundTag.builder();
+//        builder.tag(CompoundTag.builder()
+//                .stringTag("name", "minecraft:frame")
+//                .intTag("version", BLOCK_STATE_VERSION)
+//                .tag(CompoundTag.builder()
+//                    .intTag("facing_direction", 0)
+//                    .byteTag("item_frame_map_bit", (byte) 0)
+//                    .build("states"))
+//                .build("block"));
+//        builder.shortTag("id", (short) 199);
+//        System.out.println(builder.buildRootTag());
+//
+//        System.out.println(bedrockRuntimeId);
+//        paletteList.add(builder.buildRootTag());
+//
+//        CompoundTagBuilder builder2 = CompoundTag.builder();
+//        builder2.tag(CompoundTag.builder()
+//                .stringTag("name", "minecraft:frame")
+//                .intTag("version", BLOCK_STATE_VERSION)
+//                .tag(CompoundTag.builder()
+//                        .intTag("facing_direction", 4)
+//                        .byteTag("item_frame_map_bit", (byte) 0)
+//                        .build("states"))
+//                .build("block"));
+//        builder2.shortTag("id", (short) 199);
+//        System.out.println(builder2.buildRootTag());
+//
+//        System.out.println(bedrockRuntimeId + 1);
+//        paletteList.add(builder2.buildRootTag());
 
-        System.out.println(bedrockRuntimeId);
-        paletteList.add(builder.buildRootTag());
-
-        CompoundTagBuilder builder2 = CompoundTag.builder();
-        builder2.tag(CompoundTag.builder()
-                .stringTag("name", "minecraft:frame")
-                .intTag("version", BLOCK_STATE_VERSION)
-                .tag(CompoundTag.builder()
-                        .intTag("facing_direction", 4)
-                        .byteTag("item_frame_map_bit", (byte) 0)
-                        .build("states"))
-                .build("block"));
-        builder2.shortTag("id", (short) 199);
-        System.out.println(builder2.buildRootTag());
-
-        System.out.println(bedrockRuntimeId + 1);
-        paletteList.add(builder2.buildRootTag());
+        int frameRuntimeId = 0;
+        for (CompoundTag tag : paletteList) {
+            CompoundTag blockTag = tag.getCompound("block");
+            if (blockTag.getString("name").equals("minecraft:frame")) {
+                System.out.println(frameRuntimeId);
+                System.out.println(tag);
+                ITEM_FRAMES.put(tag, frameRuntimeId);
+            }
+            frameRuntimeId++;
+        }
 
         BLOCKS = new ListTag<>("", CompoundTag.class, paletteList);
     }
@@ -220,6 +232,14 @@ public class BlockTranslator {
 
     public static BlockState getJavaBlockState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
+    }
+
+    public static int getItemFrame(CompoundTag tag) {
+        return ITEM_FRAMES.getOrDefault(tag, -1);
+    }
+
+    public static int getBlockStateVersion() {
+        return BLOCK_STATE_VERSION;
     }
 
     public static boolean isWaterlogged(BlockState state) {

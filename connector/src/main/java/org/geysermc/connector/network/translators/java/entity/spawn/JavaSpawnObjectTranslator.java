@@ -29,8 +29,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import com.github.steveice10.mc.protocol.data.game.entity.type.object.FallingBlockData;
+import com.github.steveice10.mc.protocol.data.game.entity.type.object.HangingDirection;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.FallingBlockEntity;
+import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -51,10 +53,9 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), 0);
 
-//        if (packet.getType() == ObjectType.ITEM_FRAME) {
-//
-//            return;
-//        }
+        if (packet.getType() == ObjectType.ITEM_FRAME) {
+            System.out.println(packet.getData().getClass());
+        }
 
         EntityType type = EntityUtils.toBedrockEntity(packet.getType());
         if (type == null) {
@@ -68,6 +69,9 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
             if (packet.getType() == ObjectType.FALLING_BLOCK) {
                 entity = new FallingBlockEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                         type, position, motion, rotation, ((FallingBlockData) packet.getData()).getId());
+            } else if (packet.getType() == ObjectType.ITEM_FRAME) {
+                entity = new ItemFrameEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                        type, position, motion, rotation, (HangingDirection) packet.getData());
             } else {
                 Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, EntityType.class,
                         Vector3f.class, Vector3f.class, Vector3f.class);
