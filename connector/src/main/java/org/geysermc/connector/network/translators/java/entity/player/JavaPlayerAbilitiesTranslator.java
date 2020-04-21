@@ -69,6 +69,7 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
 
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
         adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
+        // Required or the packet simply is not sent
         adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
         adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
         adventureSettingsPacket.getFlags().addAll(playerFlags);
