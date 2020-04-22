@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.world.sound.BuiltinSound;
@@ -8,14 +33,10 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.sound.SoundMap;
+import org.geysermc.connector.utils.SoundUtils;
 
 @Translator(packet = ServerPlaySoundPacket.class)
 public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPacket> {
-
-    public static double processCoordinate(double f) {
-        return (f / 3D) * 8D;
-    }
 
     @Override
     public void translate(ServerPlaySoundPacket packet, GeyserSession session) {
@@ -29,7 +50,7 @@ public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySo
             return;
         }
 
-        SoundMap.SoundMapping soundMapping = SoundMap.get().fromJava(packetSound);
+        SoundUtils.SoundMapping soundMapping = SoundUtils.fromJava(packetSound);
         session.getConnector().getLogger()
                 .debug("[PlaySound] Sound mapping " + packetSound + " -> "
                         + soundMapping + (soundMapping == null ? "[not found]" : "")
@@ -46,7 +67,7 @@ public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySo
 
         PlaySoundPacket playSoundPacket = new PlaySoundPacket();
         playSoundPacket.setSound(playsound);
-        playSoundPacket.setPosition(Vector3f.from(processCoordinate(packet.getX()), processCoordinate(packet.getY()), processCoordinate(packet.getZ())));
+        playSoundPacket.setPosition(Vector3f.from(SoundUtils.processCoordinate(packet.getX()), SoundUtils.processCoordinate(packet.getY()), SoundUtils.processCoordinate(packet.getZ())));
         playSoundPacket.setVolume(packet.getVolume());
         playSoundPacket.setPitch(packet.getPitch());
 

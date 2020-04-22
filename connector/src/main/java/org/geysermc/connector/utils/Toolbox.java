@@ -39,8 +39,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.sound.SoundMap;
-
 
 import java.io.*;
 import java.util.*;
@@ -109,7 +107,7 @@ public class Toolbox {
         }
         
         // Load sound mappings
-        SoundMap.get();
+        SoundUtils.init();
         // Load the locale data
         LocaleUtils.init();
     }

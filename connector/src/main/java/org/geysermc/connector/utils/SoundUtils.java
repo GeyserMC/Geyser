@@ -1,29 +1,51 @@
-package org.geysermc.connector.sound;
+/*
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+
 import lombok.Data;
 import lombok.ToString;
-import org.geysermc.connector.utils.Toolbox;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class SoundMap {
+public class SoundUtils {
 
-    private static SoundMap instance;
+    private static final Map<String, SoundMapping> SOUNDS;
 
-    public static SoundMap get() {
-        if(instance == null) {
-            instance = new SoundMap(make());
-        }
-        return instance;
+    public static void init() {
+        // no-op
     }
 
-    private static ArrayList<SoundMapping> make() {
+    static {
         /* Load sound mappings */
         InputStream stream  = Toolbox.getResource("mappings/sounds.json");
         JsonNode soundsTree;
@@ -33,14 +55,13 @@ public class SoundMap {
             throw new AssertionError("Unable to load sound mappings", e);
         }
 
-        ArrayList<SoundMapping> soundMappings = new ArrayList<>();
+        Map<String, SoundMapping> soundMappings = new HashMap<>();
         Iterator<Map.Entry<String, JsonNode>> soundsIterator = soundsTree.fields();
         while(soundsIterator.hasNext()) {
             Map.Entry<String, JsonNode> next = soundsIterator.next();
             JsonNode brMap = next.getValue();
 
-            soundMappings.add(
-                    new SoundMapping(
+            soundMappings.put(next.getKey(), new SoundMapping(
                             next.getKey(),
                             brMap.has("bedrock_mapping") && brMap.get("bedrock_mapping").isTextual() ? brMap.get("bedrock_mapping").asText() : null,
                             brMap.has("playsound_mapping") && brMap.get("playsound_mapping").isTextual() ? brMap.get("playsound_mapping").asText() : null,
@@ -48,15 +69,7 @@ public class SoundMap {
                     )
             );
         }
-
-
-        return soundMappings;
-    }
-
-    private ArrayList<SoundMapping> sounds;
-
-    public SoundMap(ArrayList<SoundMapping> sounds) {
-        this.sounds = sounds;
+        SOUNDS = soundMappings;
     }
 
     /**
@@ -64,33 +77,20 @@ public class SoundMap {
      * @param java Java edition sound identifier
      * @return SoundMapping object with information for bedrock, nukkit, java, etc. null if not found
      */
-    public SoundMapping fromJava(String java) {
-        for (SoundMapping sound : this.sounds) {
-            if(sound.getJava().equals(java)) {
-                return sound;
-            }
-        }
-        return null;
+    public static SoundMapping fromJava(String java) {
+        return SOUNDS.get(java);
     }
 
-
-
-    public void refresh() {
-        this.sounds = make();
-    }
-
-    public static SoundEvent toSoundEvent(String s) {
-        SoundEvent sound;
+    public static SoundEvent toSoundEvent(String sound) {
         try {
-            sound = SoundEvent.valueOf(
-                    s
-                            .toUpperCase()
-                            .replaceAll("\\.", "_")
-            );
-            return sound;
-        } catch(Exception e) {
+            return SoundEvent.valueOf(sound.toUpperCase().replaceAll("\\.", "_"));
+        } catch (IllegalArgumentException ex) {
             return null;
         }
+    }
+
+    public static double processCoordinate(double f) {
+        return (f / 3D) * 8D;
     }
 
     @Data
@@ -108,5 +108,4 @@ public class SoundMap {
             this.extraData = extraData;
         }
     }
-
 }
