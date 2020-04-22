@@ -23,18 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.connector.network.translators.block.entity;
 
-public class MathUtils {
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+@Retention(value = RetentionPolicy.RUNTIME)
+public @interface BlockEntity {
 
     /**
-     * Round the given float to the next whole number
-     *
-     * @param floatNumber Float to round
-     * @return Rounded number
+     * Whether to delay the sending of the block entity
+     * @return the delay for when sending the block entity
      */
-    public static int ceil(float floatNumber) {
-        int truncated = (int) floatNumber;
-        return floatNumber > truncated ? truncated + 1 : truncated;
-    }
+    boolean delay();
+
+    /**
+     * The block entity name
+     * @return the name of the block entity
+     */
+    String name();
+
+    /**
+     * The search term used in BlockTranslator
+     * @return the search term used in BlockTranslator
+     */
+    String regex();
 }

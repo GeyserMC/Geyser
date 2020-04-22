@@ -23,18 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.platform.velocity.command;
 
-public class MathUtils {
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
 
-    /**
-     * Round the given float to the next whole number
-     *
-     * @param floatNumber Float to round
-     * @return Rounded number
-     */
-    public static int ceil(float floatNumber) {
-        int truncated = (int) floatNumber;
-        return floatNumber > truncated ? truncated + 1 : truncated;
+public class GeyserVelocityCommandManager extends CommandManager {
+
+    public GeyserVelocityCommandManager(GeyserConnector connector) {
+        super(connector);
+    }
+
+    @Override
+    public String getDescription(String command) {
+        return ""; // no support for command descriptions in velocity
     }
 }

@@ -23,18 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.connector.command.defaults;
 
-public class MathUtils {
+import org.geysermc.common.ChatColor;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.network.session.GeyserSession;
 
-    /**
-     * Round the given float to the next whole number
-     *
-     * @param floatNumber Float to round
-     * @return Rounded number
-     */
-    public static int ceil(float floatNumber) {
-        int truncated = (int) floatNumber;
-        return floatNumber > truncated ? truncated + 1 : truncated;
+import java.util.stream.Collectors;
+
+public class ListCommand extends GeyserCommand {
+
+    private GeyserConnector connector;
+
+    public ListCommand(GeyserConnector connector, String name, String description, String permission) {
+        super(name, description, permission);
+
+        this.connector = connector;
+    }
+
+    @Override
+    public void execute(CommandSender sender, String[] args) {
+        sender.sendMessage(ChatColor.YELLOW + "Online Players (" + connector.getPlayers().size() + "): " + ChatColor.WHITE + connector.getPlayers().values().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
     }
 }

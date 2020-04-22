@@ -25,8 +25,9 @@
 
 package org.geysermc.connector.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.auth.data.GameProfile;
-import com.google.gson.JsonObject;
 import com.nukkitx.protocol.bedrock.data.ImageData;
 import com.nukkitx.protocol.bedrock.data.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
@@ -104,22 +105,28 @@ public class SkinUtils {
         private String capeUrl;
         private boolean alex;
 
+        /**
+         * Generate the GameProfileData from the given GameProfile
+         *
+         * @param profile GameProfile to build the GameProfileData from
+         * @return The built GameProfileData
+         */
         public static GameProfileData from(GameProfile profile) {
             try {
                 GameProfile.Property skinProperty = profile.getProperty("textures");
 
-                JsonObject skinObject = SkinProvider.GSON.fromJson(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8), JsonObject.class);
-                JsonObject textures = skinObject.getAsJsonObject("textures");
+                JsonNode skinObject = new ObjectMapper().readTree(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8));
+                JsonNode textures = skinObject.get("textures");
 
-                JsonObject skinTexture = textures.getAsJsonObject("SKIN");
-                String skinUrl = skinTexture.get("url").getAsString();
+                JsonNode skinTexture = textures.get("SKIN");
+                String skinUrl = skinTexture.get("url").asText();
 
                 boolean isAlex = skinTexture.has("metadata");
 
                 String capeUrl = null;
                 if (textures.has("CAPE")) {
-                    JsonObject capeTexture = textures.getAsJsonObject("CAPE");
-                    capeUrl = capeTexture.get("url").getAsString();
+                    JsonNode capeTexture = textures.get("CAPE");
+                    capeUrl = capeTexture.get("url").asText();
                 }
 
                 return new GameProfileData(skinUrl, capeUrl, isAlex);
@@ -187,6 +194,12 @@ public class SkinUtils {
         });
     }
 
+    /**
+     * Create a basic geometry json for the given name
+     *
+     * @param geometryName Geometry name to use
+     * @return Geometry data as a json string
+     */
     private static String getLegacySkinGeometry(String geometryName) {
         return "{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}";
     }

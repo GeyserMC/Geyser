@@ -23,18 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.connector.network.translators.block.entity;
 
-public class MathUtils {
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+
+/**
+ * Implemented in block entities if their Java block state is required for additional values in Bedrock
+ */
+public interface RequiresBlockState {
 
     /**
-     * Round the given float to the next whole number
-     *
-     * @param floatNumber Float to round
-     * @return Rounded number
+     * Determines if block is part of class
+     * @param blockState BlockState to be compared
+     * @return true if part of the class
      */
-    public static int ceil(float floatNumber) {
-        int truncated = (int) floatNumber;
-        return floatNumber > truncated ? truncated + 1 : truncated;
-    }
+    boolean isBlock(BlockState blockState);
+
 }

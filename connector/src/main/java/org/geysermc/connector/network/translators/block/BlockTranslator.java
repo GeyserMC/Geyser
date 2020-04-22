@@ -42,12 +42,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2ByteMap;
-import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.block.entity.BlockEntity;
 import org.geysermc.connector.utils.Toolbox;
+import org.reflections.Reflections;
 
 import java.io.InputStream;
 import java.util.*;
@@ -66,9 +66,6 @@ public class BlockTranslator {
     public static final int CARPET = 171;
 
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
-    private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
-    private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
-    private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
 
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
@@ -110,6 +107,9 @@ public class BlockTranslator {
         addedStatesMap.defaultReturnValue(-1);
         List<CompoundTag> paletteList = new ArrayList<>();
 
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
+        ref.getTypesAnnotatedWith(BlockEntity.class);
+
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;
         int bedrockRuntimeId = 0;
@@ -145,28 +145,19 @@ public class BlockTranslator {
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
 
-            if (javaId.contains("sign[")) {
-                JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, javaId);
+            // Used for adding all "special" Java block states to block state map
+            String identifier;
+            String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
+            for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
+                identifier = clazz.getAnnotation(BlockEntity.class).regex();
+                // Endswith, or else the block bedrock gets picked up for bed
+                if (bedrock_identifer.endsWith(identifier) && !identifier.equals("")) {
+                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, clazz.getAnnotation(BlockEntity.class).name());
+                    break;
+                }
             }
 
-
-            JsonNode skullVariation = entry.getValue().get("variation");
-            if(skullVariation != null) {
-                SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
-            }
-
-            JsonNode skullRotation = entry.getValue().get("skull_rotation");
-            if (skullRotation != null) {
-                SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
-            }
-
-            // If the Java ID is bed, signal that it needs a tag to show color
-            // The color is in the namespace ID in Java Edition but it's a tag in Bedrock.
-            JsonNode bedColor = entry.getValue().get("bed_color");
-            if (bedColor != null) {
-                // Converting to byte because the final tag value is a byte. bedColor.binaryValue() returns an array
-                BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
-            }
+            BlockStateValues.storeBlockStateValues(entry, javaBlockState);
 
             if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = bedrockRuntimeId;
@@ -186,7 +177,7 @@ public class BlockTranslator {
                 addedStatesMap.put(blockTag, bedrockRuntimeId);
                 paletteList.add(runtimeTag);
             } else {
-                int duplicateRuntimeId = addedStatesMap.get(blockTag);
+                int duplicateRuntimeId = addedStatesMap.getOrDefault(blockTag, -1);
                 if (duplicateRuntimeId == -1) {
                     GeyserConnector.getInstance().getLogger().debug("Mapping " + javaId + " was not found for bedrock edition!");
                 } else {
@@ -272,27 +263,6 @@ public class BlockTranslator {
 
     public static boolean isWaterlogged(BlockState state) {
         return WATERLOGGED.contains(state.getId());
-    }
-
-    public static byte getBedColor(BlockState state) {
-        if (BED_COLORS.containsKey(state)) {
-            return BED_COLORS.getByte(state);
-        }
-        return -1;
-    }
-
-    public static byte getSkullVariant(BlockState state) {
-        if (SKULL_VARIANTS.containsKey(state)) {
-            return SKULL_VARIANTS.getByte(state);
-        }
-        return -1;
-    }
-
-    public static byte getSkullRotation(BlockState state) {
-        if (SKULL_ROTATIONS.containsKey(state)) {
-            return SKULL_ROTATIONS.getByte(state);
-        }
-        return -1;
     }
 
     public static BlockState getJavaWaterloggedState(int bedrockId) {

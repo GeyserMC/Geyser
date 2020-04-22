@@ -163,6 +163,12 @@ public class Toolbox {
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
     }
 
+    /**
+     * Get an InputStream for the given resource path, throws AssertionError if resource is not found
+     *
+     * @param resource Resource to get
+     * @return InputStream of the given resource
+     */
     public static InputStream getResource(String resource) {
         InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream(resource);
         if (stream == null) {

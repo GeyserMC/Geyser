@@ -23,18 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.platform.sponge.command;
 
-public class MathUtils {
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandMapping;
+import org.spongepowered.api.text.Text;
 
-    /**
-     * Round the given float to the next whole number
-     *
-     * @param floatNumber Float to round
-     * @return Rounded number
-     */
-    public static int ceil(float floatNumber) {
-        int truncated = (int) floatNumber;
-        return floatNumber > truncated ? truncated + 1 : truncated;
+public class GeyserSpongeCommandManager extends CommandManager {
+
+    private org.spongepowered.api.command.CommandManager handle;
+
+    public GeyserSpongeCommandManager(org.spongepowered.api.command.CommandManager handle, GeyserConnector connector) {
+        super(connector);
+
+        this.handle = handle;
+    }
+
+    @Override
+    public String getDescription(String command) {
+        return handle.get(command).map(CommandMapping::getCallable).map(callable -> callable.getShortDescription(Sponge.getServer().getConsole()).orElse(Text.EMPTY)).orElse(Text.EMPTY).toPlain();
     }
 }

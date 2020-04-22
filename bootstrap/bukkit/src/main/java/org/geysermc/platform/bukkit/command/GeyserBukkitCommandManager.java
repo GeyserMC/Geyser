@@ -23,18 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.platform.bukkit.command;
 
-public class MathUtils {
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
+import org.geysermc.platform.bukkit.GeyserBukkitPlugin;
 
-    /**
-     * Round the given float to the next whole number
-     *
-     * @param floatNumber Float to round
-     * @return Rounded number
-     */
-    public static int ceil(float floatNumber) {
-        int truncated = (int) floatNumber;
-        return floatNumber > truncated ? truncated + 1 : truncated;
+import java.lang.reflect.Field;
+
+public class GeyserBukkitCommandManager extends CommandManager {
+
+    private static CommandMap COMMAND_MAP;
+
+    static {
+        try {
+            Field cmdMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            cmdMapField.setAccessible(true);
+            COMMAND_MAP = (CommandMap) cmdMapField.get(Bukkit.getServer());
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private GeyserBukkitPlugin plugin;
+
+    public GeyserBukkitCommandManager(GeyserBukkitPlugin plugin, GeyserConnector connector) {
+        super(connector);
+
+        this.plugin = plugin;
+    }
+
+    @Override
+    public String getDescription(String command) {
+        Command cmd = COMMAND_MAP.getCommand(command.replace("/", ""));
+        return cmd != null ? cmd.getDescription() : "";
     }
 }

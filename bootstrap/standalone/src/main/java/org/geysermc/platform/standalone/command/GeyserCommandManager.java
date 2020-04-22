@@ -23,18 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.platform.standalone.command;
 
-public class MathUtils {
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
 
-    /**
-     * Round the given float to the next whole number
-     *
-     * @param floatNumber Float to round
-     * @return Rounded number
-     */
-    public static int ceil(float floatNumber) {
-        int truncated = (int) floatNumber;
-        return floatNumber > truncated ? truncated + 1 : truncated;
+public class GeyserCommandManager extends CommandManager {
+
+    public GeyserCommandManager(GeyserConnector connector) {
+        super(connector);
+    }
+
+    @Override
+    public String getDescription(String command) {
+        return ""; // this is not sent over the protocol, so we return none
     }
 }

@@ -95,6 +95,6 @@ public class GeyserSpongeCommandExecutor implements CommandCallable {
     }
 
     private GeyserCommand getCommand(String label) {
-        return connector.getCommandMap().getCommands().get(label);
+        return connector.getCommandManager().getCommands().get(label);
     }
 }
