@@ -61,13 +61,13 @@ public class InventoryActionDataTranslator {
                 worldAction = action;
             } else if (action.getSource().getContainerId() == ContainerId.CURSOR && action.getSlot() == 0) {
                 cursorAction = action;
-                ItemData translatedCursor = Translators.getItemTranslator().translateToBedrock(session.getInventory().getCursor());
+                ItemData translatedCursor = Translators.getItemTranslator().translateToBedrock(session, session.getInventory().getCursor());
                 if (!translatedCursor.equals(action.getFromItem())) {
                     refresh = true;
                 }
             } else {
                 containerAction = action;
-                ItemData translatedItem = Translators.getItemTranslator().translateToBedrock(inventory.getItem(translator.bedrockSlotToJava(action)));
+                ItemData translatedItem = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(translator.bedrockSlotToJava(action)));
                 if (!translatedItem.equals(action.getFromItem())) {
                     refresh = true;
                 }
