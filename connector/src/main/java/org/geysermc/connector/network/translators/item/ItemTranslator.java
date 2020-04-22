@@ -28,6 +28,8 @@ package org.geysermc.connector.network.translators.item;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
 
 public class ItemTranslator {
 
-    private Map<Integer, ItemStackTranslator> itemTranslators = new HashMap<>();
+    private Int2ObjectMap<ItemStackTranslator> itemTranslators = new Int2ObjectOpenHashMap();
     private List<NbtItemStackTranslator> nbtItemTranslators;
     private Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
 
@@ -89,15 +91,15 @@ public class ItemTranslator {
 
         ItemStackTranslator itemStackTranslator = itemTranslators.get(javaItem.getJavaId());
         if (itemStackTranslator != null) {
-            itemStack = itemStackTranslator.translateToJava(session, data, javaItem);
+            itemStack = itemStackTranslator.translateToJava(data, javaItem);
         } else {
-            itemStack = DEFAULT_TRANSLATOR.translateToJava(session, data, javaItem);
+            itemStack = DEFAULT_TRANSLATOR.translateToJava(data, javaItem);
         }
 
         if (itemStack != null && itemStack.getNbt() != null) {
             for (NbtItemStackTranslator translator : nbtItemTranslators) {
                 if (translator.acceptItem(javaItem)) {
-                    translator.translateToJava(session, itemStack.getNbt(), javaItem);
+                    translator.translateToJava(itemStack.getNbt(), javaItem);
                 }
             }
         }
@@ -114,16 +116,16 @@ public class ItemTranslator {
         if (stack != null && stack.getNbt() != null) {
             for (NbtItemStackTranslator translator : nbtItemTranslators) {
                 if (translator.acceptItem(bedrockItem)) {
-                    translator.translateToBedrock(session, stack.getNbt(), bedrockItem);
+                    translator.translateToBedrock(stack.getNbt(), bedrockItem);
                 }
             }
         }
 
         ItemStackTranslator itemStackTranslator = itemTranslators.get(bedrockItem.getJavaId());
         if (itemStackTranslator != null) {
-            return itemStackTranslator.translateToBedrock(session, stack, bedrockItem);
+            return itemStackTranslator.translateToBedrock(stack, bedrockItem);
         } else {
-            return DEFAULT_TRANSLATOR.translateToBedrock(session, stack, bedrockItem);
+            return DEFAULT_TRANSLATOR.translateToBedrock(stack, bedrockItem);
         }
     }
 

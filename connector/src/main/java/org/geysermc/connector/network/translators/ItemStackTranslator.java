@@ -31,7 +31,6 @@ import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
-import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.utils.MessageUtils;
 
@@ -42,7 +41,7 @@ import java.util.Map;
 
 public abstract class ItemStackTranslator {
 
-    public ItemData translateToBedrock(GeyserSession session, ItemStack itemStack, ItemEntry itemEntry) {
+    public ItemData translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
         if (itemStack == null) {
             return ItemData.AIR;
         }
@@ -52,7 +51,7 @@ public abstract class ItemStackTranslator {
         return ItemData.of(itemEntry.getBedrockId(), (short) itemEntry.getBedrockData(), itemStack.getAmount(), this.translateNbtToBedrock(itemStack.getNbt()));
     }
 
-    public ItemStack translateToJava(GeyserSession session, ItemData itemData, ItemEntry itemEntry) {
+    public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
         if (itemData == null) return null;
         if (itemData.getTag() == null) {
             return new ItemStack(itemEntry.getJavaId(), itemData.getCount());

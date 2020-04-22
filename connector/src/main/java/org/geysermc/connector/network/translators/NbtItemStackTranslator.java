@@ -26,16 +26,15 @@
 package org.geysermc.connector.network.translators;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class NbtItemStackTranslator {
 
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
 
     }
 
-    public void translateToJava(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
 
     }
 
