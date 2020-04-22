@@ -46,7 +46,7 @@ public class BlockStateValues {
 
     /**
      * Determines if the block state contains Bedrock block information
-     * @param entry The String -> JsonNode map used in BlockTranslator
+     * @param entry The String to JsonNode map used in BlockTranslator
      * @param javaBlockState the Java Block State of the block
      */
     public static void storeBlockStateValues(Map.Entry<String, JsonNode> entry, BlockState javaBlockState) {

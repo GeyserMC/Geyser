@@ -30,16 +30,22 @@ import java.lang.annotation.RetentionPolicy;
 
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface BlockEntity {
+
     /**
      * Whether to delay the sending of the block entity
+     * @return the delay for when sending the block entity
      */
     boolean delay();
+
     /**
      * The block entity name
+     * @return the name of the block entity
      */
     String name();
+
     /**
      * The search term used in BlockTranslator
+     * @return the search term used in BlockTranslator
      */
     String regex();
 }
