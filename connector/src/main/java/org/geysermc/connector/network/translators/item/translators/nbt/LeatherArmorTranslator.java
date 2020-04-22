@@ -39,25 +39,24 @@ public class LeatherArmorTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
-        if(itemTag.contains("display")){
+        if (itemTag.contains("display")) {
             CompoundTag displayTag = itemTag.get("display");
-            if(displayTag.contains("color")){
+            if (displayTag.contains("color")) {
                 IntTag color = displayTag.get("color");
-                if(color != null){
+                if (color != null) {
                     itemTag.put(new IntTag("customColor", color.getValue()));
                     displayTag.remove("color");
                 }
-                System.out.println("Bedrock: " + itemTag);
             }
         }
     }
 
     @Override
     public void translateToJava(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
-        if(itemTag.contains("customColor")){
+        if (itemTag.contains("customColor")) {
             IntTag color = itemTag.get("customColor");
             CompoundTag displayTag = itemTag.get("display");
-            if(displayTag == null){
+            if (displayTag == null) {
                 displayTag = new CompoundTag("display");
             }
             displayTag.put(color);
@@ -68,7 +67,7 @@ public class LeatherArmorTranslator extends NbtItemStackTranslator {
     @Override
     public boolean acceptItem(ItemEntry itemEntry) {
         for (String item : ITEMS) {
-            if(itemEntry.getJavaIdentifier().equals(item)) return true;
+            if (itemEntry.getJavaIdentifier().equals(item)) return true;
         }
         return false;
     }

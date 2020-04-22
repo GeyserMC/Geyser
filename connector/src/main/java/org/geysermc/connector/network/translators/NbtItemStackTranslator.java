@@ -35,11 +35,11 @@ public class NbtItemStackTranslator {
 
     }
 
-    public void translateToJava(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry){
+    public void translateToJava(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
 
     }
 
-    public boolean acceptItem(ItemEntry itemEntry){
+    public boolean acceptItem(ItemEntry itemEntry) {
         return true;
     }
 

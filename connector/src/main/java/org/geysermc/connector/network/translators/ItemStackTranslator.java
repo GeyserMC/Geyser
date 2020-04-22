@@ -42,7 +42,7 @@ import java.util.Map;
 
 public abstract class ItemStackTranslator {
 
-    public ItemData translateToBedrock(GeyserSession session, ItemStack itemStack, ItemEntry itemEntry){
+    public ItemData translateToBedrock(GeyserSession session, ItemStack itemStack, ItemEntry itemEntry) {
         if (itemStack == null) {
             return ItemData.AIR;
         }
@@ -52,8 +52,8 @@ public abstract class ItemStackTranslator {
         return ItemData.of(itemEntry.getBedrockId(), (short) itemEntry.getBedrockData(), itemStack.getAmount(), this.translateNbtToBedrock(itemStack.getNbt()));
     }
 
-    public ItemStack translateToJava(GeyserSession session, ItemData itemData, ItemEntry itemEntry){
-        if(itemData == null) return null;
+    public ItemStack translateToJava(GeyserSession session, ItemData itemData, ItemEntry itemEntry) {
+        if (itemData == null) return null;
         if (itemData.getTag() == null) {
             return new ItemStack(itemEntry.getJavaId(), itemData.getCount());
         }
@@ -62,7 +62,7 @@ public abstract class ItemStackTranslator {
 
     public abstract List<ItemEntry> getAppliedItems();
 
-    public CompoundTag translateNbtToBedrock(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag){
+    public CompoundTag translateNbtToBedrock(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
         Map<String, Tag<?>> javaValue = new HashMap<String, Tag<?>>();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
@@ -138,7 +138,7 @@ public abstract class ItemStackTranslator {
                 tagList.add(translateToBedrockNBT(value));
             }
             Class clazz = CompoundTag.class;
-            if(!tagList.isEmpty()){
+            if (!tagList.isEmpty()) {
                 clazz = tagList.get(0).getClass();
             }
             return new com.nukkitx.nbt.tag.ListTag(listTag.getName(), clazz, tagList);

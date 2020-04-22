@@ -50,7 +50,7 @@ public class MapItemTranslator extends NbtItemStackTranslator {
     @Override
     public void translateToJava(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
         IntTag tag = itemTag.get("map_name_index");
-        if(tag != null){
+        if (tag != null) {
             itemTag.put(new IntTag("map", tag.getValue()));
             itemTag.remove("map_name_index");
             itemTag.remove("map_uuid");

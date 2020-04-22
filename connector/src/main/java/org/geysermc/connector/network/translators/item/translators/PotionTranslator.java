@@ -45,13 +45,13 @@ public class PotionTranslator extends ItemStackTranslator {
 
     private List<ItemEntry> appliedItems;
 
-    public PotionTranslator(){
+    public PotionTranslator() {
         appliedItems = Toolbox.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("potion")).collect(Collectors.toList());
     }
 
     @Override
     public ItemData translateToBedrock(GeyserSession session, ItemStack itemStack, ItemEntry itemEntry) {
-        if(itemStack.getNbt() == null) return super.translateToBedrock(session, itemStack, itemEntry);
+        if (itemStack.getNbt() == null) return super.translateToBedrock(session, itemStack, itemEntry);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
             Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
@@ -67,7 +67,7 @@ public class PotionTranslator extends ItemStackTranslator {
     public ItemStack translateToJava(GeyserSession session, ItemData itemData, ItemEntry itemEntry) {
         Potion potion = Potion.getByBedrockId(itemData.getDamage());
         ItemStack itemStack = super.translateToJava(session, itemData, itemEntry);
-        if(potion != null){
+        if (potion != null) {
             StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
             itemStack.getNbt().put(potionTag);
         }

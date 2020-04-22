@@ -44,7 +44,7 @@ public class ItemTranslator {
     private List<NbtItemStackTranslator> nbtItemTranslators;
     private Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
 
-    public void init(){
+    public void init() {
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
@@ -54,7 +54,7 @@ public class ItemTranslator {
             GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());
 
             try {
-                if(NbtItemStackTranslator.class.isAssignableFrom(clazz)){
+                if (NbtItemStackTranslator.class.isAssignableFrom(clazz)) {
                     NbtItemStackTranslator nbtItemTranslator = (NbtItemStackTranslator) clazz.newInstance();
                     loadedNbtItemTranslators.put(nbtItemTranslator, priority);
                     continue;
@@ -63,7 +63,7 @@ public class ItemTranslator {
                 List<ItemEntry> appliedItems = itemStackTranslator.getAppliedItems();
                 for (ItemEntry item : appliedItems) {
                     ItemStackTranslator registered = itemTranslators.get(item.getJavaId());
-                    if(registered != null){
+                    if (registered != null) {
                         GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName() + "." +
                                 " Item translator " + registered.getClass().getCanonicalName() + " is already registered for the item " + item.getJavaIdentifier());
                         continue;
@@ -80,7 +80,7 @@ public class ItemTranslator {
     }
 
     public ItemStack translateToJava(GeyserSession session, ItemData data) {
-        if(data == null){
+        if (data == null) {
             return new ItemStack(0);
         }
         ItemEntry javaItem = getItem(data);
@@ -88,15 +88,15 @@ public class ItemTranslator {
         ItemStack itemStack;
 
         ItemStackTranslator itemStackTranslator = itemTranslators.get(javaItem.getJavaId());
-        if(itemStackTranslator != null){
+        if (itemStackTranslator != null) {
             itemStack = itemStackTranslator.translateToJava(session, data, javaItem);
-        }else{
+        } else {
             itemStack = DEFAULT_TRANSLATOR.translateToJava(session, data, javaItem);
         }
 
-        if(itemStack != null && itemStack.getNbt() != null){
+        if (itemStack != null && itemStack.getNbt() != null) {
             for (NbtItemStackTranslator translator : nbtItemTranslators) {
-                if(translator.acceptItem(javaItem)){
+                if (translator.acceptItem(javaItem)) {
                     translator.translateToJava(session, itemStack.getNbt(), javaItem);
                 }
             }
@@ -105,24 +105,24 @@ public class ItemTranslator {
     }
 
     public ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
-        if(stack == null){
+        if (stack == null) {
             return ItemData.AIR;
         }
 
         ItemEntry bedrockItem = getItem(stack);
 
-        if(stack != null && stack.getNbt() != null){
+        if (stack != null && stack.getNbt() != null) {
             for (NbtItemStackTranslator translator : nbtItemTranslators) {
-                if(translator.acceptItem(bedrockItem)){
+                if (translator.acceptItem(bedrockItem)) {
                     translator.translateToBedrock(session, stack.getNbt(), bedrockItem);
                 }
             }
         }
 
         ItemStackTranslator itemStackTranslator = itemTranslators.get(bedrockItem.getJavaId());
-        if(itemStackTranslator != null){
+        if (itemStackTranslator != null) {
             return itemStackTranslator.translateToBedrock(session, stack, bedrockItem);
-        }else{
+        } else {
             return DEFAULT_TRANSLATOR.translateToBedrock(session, stack, bedrockItem);
         }
     }
