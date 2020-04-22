@@ -32,20 +32,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ItemEntry {
 
-    public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, "minecraft:air", 0, 0);
-
-    public ItemEntry(String javaIdentifier, int javaId, int bedrockId, int bedrockData) {
-        this.javaIdentifier = javaIdentifier;
-        this.javaId = javaId;
-        this.bedrockIdentifier = null;
-        this.bedrockId = bedrockId;
-        this.bedrockData = bedrockData;
-    }
+    public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0);
 
     private final String javaIdentifier;
     private final int javaId;
-
-    private final String bedrockIdentifier;
     private final int bedrockId;
     private final int bedrockData;
 

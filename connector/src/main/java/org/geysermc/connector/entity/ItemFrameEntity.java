@@ -6,12 +6,10 @@ import com.github.steveice10.mc.protocol.data.game.entity.type.object.HangingDir
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.ListTag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
@@ -22,7 +20,6 @@ import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.Toolbox;
 
-import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -78,27 +75,17 @@ public class ItemFrameEntity extends Entity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         System.out.println(entityMetadata.getId() + " " + entityMetadata.getValue());
         if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
-            ItemData itemData = new ItemTranslator().translateToBedrock((ItemStack) entityMetadata.getValue());
+            ItemData itemData = new ItemTranslator().translateToBedrock(session, (ItemStack) entityMetadata.getValue());
             ItemEntry itemEntry = new ItemTranslator().getItem((ItemStack) entityMetadata.getValue());
             CompoundTagBuilder builder = CompoundTag.builder();
 
-//            InputStream stream = Toolbox.getResource("bedrock/runtime_block_states.dat");
-//            ListTag<CompoundTag> blocksTag;
-//            try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-//                blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
-//            } catch (Exception e) {
-//                throw new AssertionError("Unable to get blocks from runtime block states while getting blocks for item frame", e);
-//            }
-
-            String blockName = itemEntry.getJavaIdentifier();
-//            for (CompoundTag tag : blocksTag.getValue()) {
-//                if (tag.getShort("id") == itemData.getId()) {
-//                    CompoundTag tempTag = tag.getCompound("block");
-//                    blockName = tempTag.getString("name");
-//                    //builder.tag(tempTag.toBuilder().build("Block"));
-//                    break;
-//                }
-//            }
+            String blockName = "";
+            for (StartGamePacket.ItemEntry startGamePacketItemEntry: Toolbox.ITEMS) {
+                if (startGamePacketItemEntry.getId() == (short) itemEntry.getBedrockId()) {
+                    blockName = startGamePacketItemEntry.getIdentifier();
+                    break;
+                }
+            }
 
             builder.byteTag("Count", (byte) itemData.getCount());
             builder.shortTag("Damage", itemData.getDamage());
@@ -183,7 +170,7 @@ public class ItemFrameEntity extends Entity {
     /**
      * Finds the Java entity ID of an item frame from its Bedrock position.
      * @param position position of item frame in Bedrock
-     * @return Java entity ID
+     * @return Java entity ID or -1 if not found
      */
     public static long getItemFrameEntityId(Vector3i position) {
         return POSITION_TO_ENTITY_ID.getOrDefault(position, -1);
