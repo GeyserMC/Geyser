@@ -25,6 +25,19 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTOutputStream;
+import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.network.VarInts;
+import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
@@ -33,14 +46,7 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.world.chunk.ChunkSection;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
-import com.nukkitx.network.VarInts;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import java.util.Map;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
@@ -54,7 +60,6 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
         if (packet.getColumn().getBiomeData() == null) //Non-full chunk
             return;
 
-        // Not sure if this is safe or not, however without this the client usually times out
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
                 ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
@@ -78,6 +83,14 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 byteBuf.writeByte(0); // Border blocks - Edu edition only
                 VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
 
+                ByteBufOutputStream stream = new ByteBufOutputStream(Unpooled.buffer());
+                NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
+                for (CompoundTag blockEntity : chunkData.getBlockEntities()) {
+                    nbtStream.write(blockEntity);
+                }
+
+                byteBuf.writeBytes(stream.buffer());
+
                 byte[] payload = new byte[byteBuf.writerIndex()];
                 byteBuf.readBytes(payload);
 
@@ -88,6 +101,16 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 levelChunkPacket.setChunkZ(packet.getColumn().getZ());
                 levelChunkPacket.setData(payload);
                 session.getUpstream().sendPacket(levelChunkPacket);
+
+                // Some block entities need to be loaded in later or else text doesn't show (signs) or they crash the game (end gateway blocks)
+                for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.getLoadBlockEntitiesLater().object2IntEntrySet()) {
+                    int x = blockEntityEntry.getKey().getInt("x");
+                    int y = blockEntityEntry.getKey().getInt("y");
+                    int z = blockEntityEntry.getKey().getInt("z");
+                    ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
+                }
+                chunkData.getLoadBlockEntitiesLater().clear();
+
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

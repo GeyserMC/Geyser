@@ -28,12 +28,14 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Donate: https://patreon.com/GeyserMC
 
 ## What's Left to be Added/Fixed
-- Inventories ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
-- Crafting ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
-- Creative Mode ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
+- The Following Inventories 
+  - [ ] Enchantment Table
+  - [ ] Beacon
+  - [ ] Cartography Table
+  - [ ] Stonecutter
+  - [ ] Villager Trading
 - Sounds
 - Block Particles
-- Block Entities ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
 - Some Entity Flags
 
 ## Compiling
