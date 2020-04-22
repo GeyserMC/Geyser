@@ -47,7 +47,7 @@ public class GeyserLogger extends SimpleTerminalConsole implements IGeyserLogger
 
     @Override
     protected void runCommand(String line) {
-        GeyserConnector.getInstance().getCommandMap().runCommand(this, line);
+        GeyserConnector.getInstance().getCommandManager().runCommand(this, line);
     }
 
     @Override

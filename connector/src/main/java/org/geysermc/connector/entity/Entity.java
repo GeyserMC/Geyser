@@ -120,6 +120,9 @@ public class Entity {
     }
 
     /**
+     * Despawns the entity
+     *
+     * @param session The GeyserSession
      * @return can be deleted
      */
     public boolean despawnEntity(GeyserSession session) {
@@ -234,6 +237,7 @@ public class Entity {
 
     /**
      * x = Pitch, y = HeadYaw, z = Yaw
+     * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {
         return Vector3f.from(rotation.getY(), rotation.getZ(), rotation.getX());

@@ -71,6 +71,6 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
     }
 
     private GeyserCommand getCommand(String label) {
-        return connector.getCommandMap().getCommands().get(label);
+        return connector.getCommandManager().getCommands().get(label);
     }
 }
