@@ -13,10 +13,12 @@ import com.nukkitx.nbt.tag.ListTag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
-import lombok.Getter;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -29,14 +31,23 @@ import java.util.concurrent.TimeUnit;
 public class ItemFrameEntity extends Entity {
 
     /**
+     * A map of Vector3i positions to Java entity IDs.
+     * Used for translating Bedrock block actions to Java entity actions.
+     */
+    private static final Object2LongMap<Vector3i> POSITION_TO_ENTITY_ID = new Object2LongOpenHashMap<>();
+
+    /**
      * Used for getting the Bedrock block position.
      * Blocks deal with integers whereas entities deal with floats.
      */
     Vector3i bedrockPosition;
     /**
-     * Specific block we are emulating in Bedrock.
+     * Specific block 'state' we are emulating in Bedrock.
      */
     int bedrockRuntimeId;
+    /**
+     * Rotation of item in frame
+     */
     float rotation = 0.0f;
     CompoundTag cachedTag;
 
@@ -54,6 +65,7 @@ public class ItemFrameEntity extends Entity {
         builder.shortTag("id", (short) 199);
         bedrockRuntimeId = BlockTranslator.getItemFrame(builder.buildRootTag());
         bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
+        POSITION_TO_ENTITY_ID.put(bedrockPosition, entityId);
     }
 
     @Override
@@ -67,25 +79,26 @@ public class ItemFrameEntity extends Entity {
         System.out.println(entityMetadata.getId() + " " + entityMetadata.getValue());
         if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
             ItemData itemData = new ItemTranslator().translateToBedrock((ItemStack) entityMetadata.getValue());
+            ItemEntry itemEntry = new ItemTranslator().getItem((ItemStack) entityMetadata.getValue());
             CompoundTagBuilder builder = CompoundTag.builder();
 
-            InputStream stream = Toolbox.getResource("bedrock/runtime_block_states.dat");
-            ListTag<CompoundTag> blocksTag;
-            try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-                blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
-            } catch (Exception e) {
-                throw new AssertionError("Unable to get blocks from runtime block states while getting blocks for item frame", e);
-            }
+//            InputStream stream = Toolbox.getResource("bedrock/runtime_block_states.dat");
+//            ListTag<CompoundTag> blocksTag;
+//            try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
+//                blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
+//            } catch (Exception e) {
+//                throw new AssertionError("Unable to get blocks from runtime block states while getting blocks for item frame", e);
+//            }
 
-            String blockName = "";
-            for (CompoundTag tag : blocksTag.getValue()) {
-                if (tag.getShort("id") == itemData.getId()) {
-                    CompoundTag tempTag = tag.getCompound("block");
-                    blockName = tempTag.getString("name");
-                    builder.tag(tempTag.toBuilder().build("Block"));
-                    break;
-                }
-            }
+            String blockName = itemEntry.getJavaIdentifier();
+//            for (CompoundTag tag : blocksTag.getValue()) {
+//                if (tag.getShort("id") == itemData.getId()) {
+//                    CompoundTag tempTag = tag.getCompound("block");
+//                    blockName = tempTag.getString("name");
+//                    //builder.tag(tempTag.toBuilder().build("Block"));
+//                    break;
+//                }
+//            }
 
             builder.byteTag("Count", (byte) itemData.getCount());
             builder.shortTag("Damage", itemData.getDamage());
@@ -100,13 +113,12 @@ public class ItemFrameEntity extends Entity {
             cachedTag = getDefaultTag();
             updateBlock(session, null);
         } else if (entityMetadata.getId() == 8) {
+            rotation = ((int) entityMetadata.getValue()) * 45;
             if (cachedTag == null) {
                 session.getConnector().getLogger().warning("Cached item frame tag is null at " + bedrockPosition.toString());
-                rotation = ((int) entityMetadata.getValue()) * 45;
                 return;
             }
             CompoundTagBuilder builder = cachedTag.toBuilder();
-            rotation = ((int) entityMetadata.getValue()) * 45;
             builder.floatTag("ItemRotation", rotation);
             updateBlock(session, builder.buildRootTag());
         } else {
@@ -124,6 +136,7 @@ public class ItemFrameEntity extends Entity {
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.getUpstream().sendPacket(updateBlockPacket);
+        POSITION_TO_ENTITY_ID.remove(position, entityId);
         return true;
     }
 
@@ -165,5 +178,14 @@ public class ItemFrameEntity extends Entity {
         }
         System.out.println(blockEntityDataPacket);
         session.getUpstream().sendPacket(blockEntityDataPacket);
+    }
+
+    /**
+     * Finds the Java entity ID of an item frame from its Bedrock position.
+     * @param position position of item frame in Bedrock
+     * @return Java entity ID
+     */
+    public static long getItemFrameEntityId(Vector3i position) {
+        return POSITION_TO_ENTITY_ID.getOrDefault(position, -1);
     }
 }

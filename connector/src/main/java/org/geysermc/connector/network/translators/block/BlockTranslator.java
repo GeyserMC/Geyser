@@ -263,6 +263,10 @@ public class BlockTranslator {
         return ITEM_FRAMES.getOrDefault(tag, -1);
     }
 
+    public static boolean isItemFrame(int bedrockBlockRuntimeId) {
+        return ITEM_FRAMES.values().contains(bedrockBlockRuntimeId);
+    }
+
     public static int getBlockStateVersion() {
         return BLOCK_STATE_VERSION;
     }
