@@ -29,6 +29,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface ItemTranslator {
+public @interface ItemRemapper {
     int priority() default 0;
 }

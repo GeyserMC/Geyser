@@ -50,8 +50,8 @@ public class ItemTranslator {
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(org.geysermc.connector.network.translators.ItemTranslator.class)) {
-            int priority = clazz.getAnnotation(org.geysermc.connector.network.translators.ItemTranslator.class).priority();
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
+            int priority = clazz.getAnnotation(ItemRemapper.class).priority();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());
 
