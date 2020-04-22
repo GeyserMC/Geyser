@@ -102,6 +102,7 @@ public class ItemFrameEntity extends Entity {
         } else if (entityMetadata.getId() == 8) {
             if (cachedTag == null) {
                 session.getConnector().getLogger().warning("Cached item frame tag is null at " + bedrockPosition.toString());
+                rotation = ((int) entityMetadata.getValue()) * 45;
                 return;
             }
             CompoundTagBuilder builder = cachedTag.toBuilder();
