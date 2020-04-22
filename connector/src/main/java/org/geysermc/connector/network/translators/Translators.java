@@ -27,11 +27,17 @@ package org.geysermc.connector.network.translators;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.nukkitx.protocol.bedrock.data.ContainerType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.inventory.GenericInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.block.entity.*;
+import org.geysermc.connector.network.translators.inventory.*;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.reflections.Reflections;
 
@@ -50,7 +56,10 @@ public class Translators {
     private static ItemTranslator itemTranslator;
 
     @Getter
-    private static InventoryTranslator inventoryTranslator = new GenericInventoryTranslator();
+    private static Map<WindowType, InventoryTranslator> inventoryTranslators = new HashMap<>();
+
+    @Getter
+    private static Map<String, BlockEntityTranslator> blockEntityTranslators = new HashMap<>();
 
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
@@ -82,15 +91,15 @@ public class Translators {
                 if (Packet.class.isAssignableFrom(packet)) {
                     Class<? extends Packet> targetPacket = (Class<? extends Packet>) packet;
                     PacketTranslator<? extends Packet> translator = (PacketTranslator<? extends Packet>) clazz.newInstance();
-                    
+
                     Registry.registerJava(targetPacket, translator);
-                    
+
                 } else if (BedrockPacket.class.isAssignableFrom(packet)) {
                     Class<? extends BedrockPacket> targetPacket = (Class<? extends BedrockPacket>) packet;
                     PacketTranslator<? extends BedrockPacket> translator = (PacketTranslator<? extends BedrockPacket>) clazz.newInstance();
-                    
+
                     Registry.registerBedrock(targetPacket, translator);
-                    
+
                 } else {
                     GeyserConnector.getInstance().getLogger().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
                 }
@@ -102,15 +111,48 @@ public class Translators {
         itemTranslator = new ItemTranslator();
         BlockTranslator.init();
 
+        registerBlockEntityTranslators();
         registerInventoryTranslators();
     }
 
+    private static void registerBlockEntityTranslators() {
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
+
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
+
+            GeyserConnector.getInstance().getLogger().debug("Found annotated block entity: " + clazz.getCanonicalName());
+
+            try {
+                blockEntityTranslators.put(clazz.getAnnotation(BlockEntity.class).name(), (BlockEntityTranslator) clazz.newInstance());
+            } catch (InstantiationException | IllegalAccessException e) {
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block entity " + clazz.getCanonicalName() + ".");
+            }
+        }
+    }
+
     private static void registerInventoryTranslators() {
-        /*inventoryTranslators.put(WindowType.GENERIC_9X1, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X2, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X3, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X4, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X5, new GenericInventoryTranslator());
-        inventoryTranslators.put(WindowType.GENERIC_9X6, new GenericInventoryTranslator());*/
+        inventoryTranslators.put(null, new PlayerInventoryTranslator()); //player inventory
+        inventoryTranslators.put(WindowType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
+        inventoryTranslators.put(WindowType.GENERIC_9X2, new SingleChestInventoryTranslator(18));
+        inventoryTranslators.put(WindowType.GENERIC_9X3, new SingleChestInventoryTranslator(27));
+        inventoryTranslators.put(WindowType.GENERIC_9X4, new DoubleChestInventoryTranslator(36));
+        inventoryTranslators.put(WindowType.GENERIC_9X5, new DoubleChestInventoryTranslator(45));
+        inventoryTranslators.put(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
+        inventoryTranslators.put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
+        inventoryTranslators.put(WindowType.ANVIL, new AnvilInventoryTranslator());
+        inventoryTranslators.put(WindowType.CRAFTING, new CraftingInventoryTranslator());
+        inventoryTranslators.put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
+        //inventoryTranslators.put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
+
+        InventoryTranslator furnace = new FurnaceInventoryTranslator();
+        inventoryTranslators.put(WindowType.FURNACE, furnace);
+        inventoryTranslators.put(WindowType.BLAST_FURNACE, furnace);
+        inventoryTranslators.put(WindowType.SMOKER, furnace);
+
+        InventoryUpdater containerUpdater = new ContainerInventoryUpdater();
+        inventoryTranslators.put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, containerUpdater));
+        inventoryTranslators.put(WindowType.HOPPER, new BlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, containerUpdater));
+        inventoryTranslators.put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, containerUpdater));
+        //inventoryTranslators.put(WindowType.BEACON, new BlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO
     }
 }

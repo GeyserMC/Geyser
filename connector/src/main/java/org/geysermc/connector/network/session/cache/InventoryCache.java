@@ -25,15 +25,12 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.github.steveice10.packetlib.packet.Packet;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class InventoryCache {
@@ -46,9 +43,6 @@ public class InventoryCache {
 
     @Getter
     private Map<Integer, Inventory> inventories = new HashMap<Integer, Inventory>();
-
-    @Getter
-    private Map<Integer, List<Packet>> cachedPackets = new HashMap<Integer, List<Packet>>();
 
     public InventoryCache(GeyserSession session) {
         this.session = session;
@@ -64,11 +58,5 @@ public class InventoryCache {
 
     public void uncacheInventory(int id) {
         inventories.remove(id);
-    }
-
-    public void cachePacket(int id, Packet packet) {
-        List<Packet> packets = cachedPackets.getOrDefault(id, new ArrayList<Packet>());
-        packets.add(packet);
-        cachedPackets.put(id, packets);
     }
 }

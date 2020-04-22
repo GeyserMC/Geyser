@@ -43,7 +43,7 @@ public class FileUtils {
      * @param src File to load
      * @param valueType Class to load file into
      * @return The data as the given class
-     * @throws IOException
+     * @throws IOException if the config could not be loaded
      */
     public static <T> T loadConfig(File src, Class<T> valueType) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
@@ -56,7 +56,7 @@ public class FileUtils {
      * @param name File and resource name
      * @param fallback Formatting callback
      * @return File handle of the specified file
-     * @throws IOException
+     * @throws IOException if the file failed to copy from resource
      */
     public static File fileOrCopiedFromResource(String name, Function<String, String> fallback) throws IOException {
         return fileOrCopiedFromResource(new File(name), name, fallback);
@@ -69,7 +69,7 @@ public class FileUtils {
      * @param name Name of the resource get if needed
      * @param format Formatting callback
      * @return File handle of the specified file
-     * @throws IOException
+     * @throws IOException if the file failed to copy from resource
      */
     public static File fileOrCopiedFromResource(File file, String name, Function<String, String> format) throws IOException {
         if (!file.exists()) {
@@ -98,7 +98,7 @@ public class FileUtils {
      *
      * @param file File to write to
      * @param data Data to write to the file
-     * @throws IOException
+     * @throws IOException if the file failed to write
      */
     public static void writeFile(File file, char[] data) throws IOException {
         if (!file.exists()) {
@@ -120,7 +120,7 @@ public class FileUtils {
      *
      * @param name File path to write to
      * @param data Data to write to the file
-     * @throws IOException
+     * @throws IOException if the file failed to write
      */
     public static void writeFile(String name, char[] data) throws IOException {
         writeFile(new File(name), data);
