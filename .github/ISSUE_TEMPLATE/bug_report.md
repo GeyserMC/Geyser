@@ -37,4 +37,4 @@ assignees: ''
 <!-- The version of your Minecraft: Bedrock Edition client you tested with. -->
 
 **Additional Context**
-<!--- Add any other context about the problem here. --->
+<!--- Add any other context about the problem here. Include any plugins on the Minecraft server that may cause problems. --->
