@@ -26,12 +26,16 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
+import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.ItemStackTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import com.nukkitx.math.vector.Vector3f;
@@ -73,6 +77,29 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false);
                         session.getDownstream().getSession().send(blockPacket);
+                        Vector3i clickPos = packet.getBlockPosition();
+                        // TODO: Find a better way to do this?
+                        switch (packet.getFace()) {
+                            case 0:
+                                clickPos = clickPos.sub(0, 1, 0);
+                                break;
+                            case 1:
+                                clickPos = clickPos.add(0, 1, 0);
+                                break;
+                            case 2:
+                                clickPos = clickPos.sub(0, 0, 1);
+                                break;
+                            case 3:
+                                clickPos = clickPos.add(0, 0, 1);
+                                break;
+                            case 4:
+                                clickPos = clickPos.sub(1, 0, 0);
+                                break;
+                            case 5:
+                                clickPos = clickPos.add(1, 0, 0);
+                                break;
+                        }
+                        session.setLastBlockPlacePosition(clickPos);
                         break;
                     case 1:
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);

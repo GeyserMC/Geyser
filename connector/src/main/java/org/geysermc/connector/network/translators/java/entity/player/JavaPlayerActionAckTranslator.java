@@ -26,6 +26,8 @@
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.github.steveice10.mc.protocol.data.game.world.particle.BlockParticleData;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.math.vector.Vector3f;
@@ -49,9 +51,13 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
         LevelEventPacket levelEvent = new LevelEventPacket();
         switch (packet.getAction()) {
             case FINISH_DIGGING:
+                levelEvent.setType(LevelEventType.DESTROY);
+                levelEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
+                levelEvent.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock()));
+                session.getUpstream().sendPacket(levelEvent);
+                session.setBreakingBlock(null);
                 ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
                 break;
-
             case START_DIGGING:
                 levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
                 levelEvent.setPosition(Vector3f.from(
@@ -70,9 +76,9 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 }
                 double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry, nbtData, session.getPlayerEntity()) * 20);
                 levelEvent.setData((int) (65535 / breakTime));
+                session.setBreakingBlock(packet.getNewState());
                 session.getUpstream().sendPacket(levelEvent);
                 break;
-
             case CANCEL_DIGGING:
                 levelEvent.setType(LevelEventType.BLOCK_STOP_BREAK);
                 levelEvent.setPosition(Vector3f.from(
@@ -81,6 +87,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                         packet.getPosition().getZ()
                 ));
                 levelEvent.setData(0);
+                session.setBreakingBlock(null);
                 session.getUpstream().sendPacket(levelEvent);
                 break;
         }

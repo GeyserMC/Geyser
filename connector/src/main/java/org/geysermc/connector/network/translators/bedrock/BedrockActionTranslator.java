@@ -27,6 +27,10 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import java.util.concurrent.TimeUnit;
 
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -41,6 +45,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
@@ -107,6 +112,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getDownstream().getSession().send(startBreakingPacket);
                 break;
             case CONTINUE_BREAK:
+                LevelEventPacket continueBreakPacket = new LevelEventPacket();
+                continueBreakPacket.setType(LevelEventType.PUNCH_BLOCK);
+                continueBreakPacket.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock() == null ? BlockTranslator.AIR : session.getBreakingBlock()));
+                continueBreakPacket.setPosition(packet.getBlockPosition().toFloat());
+                session.getUpstream().sendPacket(continueBreakPacket);
                 break;
             case ABORT_BREAK:
                 ClientPlayerActionPacket abortBreakingPacket = new ClientPlayerActionPacket(PlayerAction.CANCEL_DIGGING, new Position(packet.getBlockPosition().getX(),

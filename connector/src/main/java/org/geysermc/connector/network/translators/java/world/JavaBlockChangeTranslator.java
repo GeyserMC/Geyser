@@ -25,9 +25,13 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockChangePacket;
@@ -38,5 +42,23 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
     @Override
     public void translate(ServerBlockChangePacket packet, GeyserSession session) {
         ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), packet.getRecord().getPosition());
+        Vector3i lastPlacePos = session.getLastBlockPlacePosition();
+        if (lastPlacePos == null) {
+            return;
+        }
+        if (lastPlacePos.getX() != packet.getRecord().getPosition().getX()
+                || lastPlacePos.getY() != packet.getRecord().getPosition().getY()
+                || lastPlacePos.getZ() != packet.getRecord().getPosition().getZ()) {
+            return;
+        }
+        // This is not sent from the server, so we need to send it this way
+        LevelSoundEventPacket placeBlockSoundPacket = new LevelSoundEventPacket();
+        placeBlockSoundPacket.setSound(SoundEvent.PLACE);
+        placeBlockSoundPacket.setPosition(lastPlacePos.toFloat());
+        placeBlockSoundPacket.setBabySound(false);
+        placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(packet.getRecord().getBlock()));
+        placeBlockSoundPacket.setIdentifier(":");
+        session.getUpstream().sendPacket(placeBlockSoundPacket);
+        session.setLastBlockPlacePosition(null);
     }
 }

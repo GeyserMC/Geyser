@@ -128,7 +128,9 @@ public class Toolbox {
             }
             itemIndex++;
         }
-        
+
+        // Load particle/effect mappings
+        EffectUtils.init();
         // Load sound mappings
         SoundUtils.init();
         // Load the locale data
