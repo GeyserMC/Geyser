@@ -31,7 +31,7 @@ assignees: ''
 <!--- Give us the exact output from /version. Saying "latest" does not help us at all. -->
 
 **Geyser Version**
-<!--- Give us the exact build number as well as branch if applicable. Saying "latest" does not help us at all. -->
+<!--- Give us the exact build number as well as branch if applicable. Saying "latest" does not help us at all. Please also include if you are running the standalone version, or specify which plugin version you are using. If your issue is a connection problem, please specify if you are using the Floodgate plugin. -->
 
 **Minecraft: Bedrock Edition Version**
 <!-- The version of your Minecraft: Bedrock Edition client you tested with. -->
