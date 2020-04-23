@@ -32,6 +32,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import com.nukkitx.math.vector.Vector3f;
@@ -75,7 +76,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.getDownstream().getSession().send(blockPacket);
                         break;
                     case 1:
-                        if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == 829) {
+                        if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == BlockTranslator.SHIELD) {
                             break;
                         } // Handled in Entity.java
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
