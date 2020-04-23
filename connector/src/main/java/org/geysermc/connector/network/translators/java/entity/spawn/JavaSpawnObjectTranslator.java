@@ -53,10 +53,6 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), 0);
 
-        if (packet.getType() == ObjectType.ITEM_FRAME) {
-            System.out.println(packet.getData().getClass());
-        }
-
         EntityType type = EntityUtils.toBedrockEntity(packet.getType());
         if (type == null) {
             session.getConnector().getLogger().warning("Entity type " + packet.getType() + " was null.");
@@ -70,6 +66,7 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
                 entity = new FallingBlockEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                         type, position, motion, rotation, ((FallingBlockData) packet.getData()).getId());
             } else if (packet.getType() == ObjectType.ITEM_FRAME) {
+                // Item frames need the hanging direction
                 entity = new ItemFrameEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                         type, position, motion, rotation, (HangingDirection) packet.getData());
             } else {

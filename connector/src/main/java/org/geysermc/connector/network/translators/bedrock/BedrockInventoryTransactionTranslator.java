@@ -70,7 +70,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     case 0:
 
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
-                        if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId())) {
+                        if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId()) &&
+                                session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition())) != null) {
                             Vector3f vector = packet.getClickPosition();
                             ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition()),
                                     InteractAction.INTERACT, Hand.MAIN_HAND);
@@ -95,12 +96,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         break;
                     case 2:
 
-//                        if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId())) {
-//                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition()),
-//                                    InteractAction.ATTACK);
-//                            session.getDownstream().getSession().send(attackPacket);
-//                            break;
-//                        }
+                        if (ItemFrameEntity.positionContainsItemFrame(packet.getBlockPosition()) &&
+                                session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition())) != null) {
+                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition()),
+                                    InteractAction.ATTACK);
+                            session.getDownstream().getSession().send(attackPacket);
+                            break;
+                        }
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
                         Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());

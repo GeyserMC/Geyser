@@ -179,9 +179,6 @@ public class BlockTranslator {
             }
             JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
 
-            if (entry.getValue().get("bedrock_identifier").asText().equals("minecraft:grass_path"))
-                System.out.println(bedrockRuntimeId);
-
             bedrockRuntimeId++;
         }
 
@@ -197,12 +194,11 @@ public class BlockTranslator {
 
         paletteList.addAll(blockStateMap.values()); // Add any missing mappings that could crash the client
 
+        // Loop around again to find all item frame runtime IDs
         int frameRuntimeId = 0;
         for (CompoundTag tag : paletteList) {
             CompoundTag blockTag = tag.getCompound("block");
             if (blockTag.getString("name").equals("minecraft:frame")) {
-                System.out.println(frameRuntimeId);
-                System.out.println(tag);
                 ITEM_FRAMES.put(tag, frameRuntimeId);
             }
             frameRuntimeId++;
