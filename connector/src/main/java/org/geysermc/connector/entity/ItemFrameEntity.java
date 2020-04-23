@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
@@ -37,16 +62,16 @@ public class ItemFrameEntity extends Entity {
      * Used for getting the Bedrock block position.
      * Blocks deal with integers whereas entities deal with floats.
      */
-    Vector3i bedrockPosition;
+    private final Vector3i bedrockPosition;
     /**
      * Specific block 'state' we are emulating in Bedrock.
      */
-    int bedrockRuntimeId;
+    private final int bedrockRuntimeId;
     /**
      * Rotation of item in frame
      */
-    float rotation = 0.0f;
-    CompoundTag cachedTag;
+    private float rotation = 0.0f;
+    private CompoundTag cachedTag;
 
     public ItemFrameEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, HangingDirection direction) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -196,5 +221,13 @@ public class ItemFrameEntity extends Entity {
      */
     public static boolean positionContainsItemFrame(Vector3i position) {
         return POSITION_TO_ENTITY_ID.containsKey(position);
+    }
+
+    /**
+     * Force-remove from the position-to-ID map so it doesn't cause conflicts.
+     * @param position position of the removed item frame
+     */
+    public static void removePosition(Vector3i position) {
+        POSITION_TO_ENTITY_ID.remove(position);
     }
 }
