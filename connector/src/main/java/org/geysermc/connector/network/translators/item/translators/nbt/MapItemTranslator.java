@@ -37,7 +37,6 @@ public class MapItemTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
-        System.out.println("Map tag: " + itemTag.toString());
         IntTag mapId = itemTag.get("map");
 
         if (mapId != null) {

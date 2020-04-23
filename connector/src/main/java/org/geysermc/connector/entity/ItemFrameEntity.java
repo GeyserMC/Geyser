@@ -76,7 +76,7 @@ public class ItemFrameEntity extends Entity {
         System.out.println(entityMetadata.getId() + " " + entityMetadata.getValue());
         if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
             ItemData itemData = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
-            ItemEntry itemEntry = new ItemTranslator().getItem((ItemStack) entityMetadata.getValue());
+            ItemEntry itemEntry = ItemTranslator.getItem((ItemStack) entityMetadata.getValue());
             CompoundTagBuilder builder = CompoundTag.builder();
 
             String blockName = "";
@@ -88,6 +88,10 @@ public class ItemFrameEntity extends Entity {
             }
 
             builder.byteTag("Count", (byte) itemData.getCount());
+            if (itemData.getTag() != null) {
+                System.out.println(itemData.getTag().toBuilder().build("tag"));
+                builder.tag(itemData.getTag().toBuilder().build("tag"));
+            }
             builder.shortTag("Damage", itemData.getDamage());
             builder.stringTag("Name", blockName);
             CompoundTagBuilder tag = getDefaultTag().toBuilder();

@@ -107,7 +107,7 @@ public class Translators {
                 GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated translator " + clazz.getCanonicalName() + ".");
             }
         }
-
+        ItemTranslator.init();
         BlockTranslator.init();
 
         registerBlockEntityTranslators();
