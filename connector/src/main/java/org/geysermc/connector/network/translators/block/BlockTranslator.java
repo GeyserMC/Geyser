@@ -65,9 +65,6 @@ public class BlockTranslator {
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
 
-    // Shield ID, used in Entity.java
-    public static final int SHIELD = 829;
-
     private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
 
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();

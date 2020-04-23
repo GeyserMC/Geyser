@@ -26,7 +26,6 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
@@ -34,8 +33,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.*;
@@ -51,10 +48,8 @@ import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.AttributeUtils;
-import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.*;
@@ -211,11 +206,11 @@ public class Entity {
 
                     // Shield code
                     if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
-                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == BlockTranslator.SHIELD) ||
-                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == BlockTranslator.SHIELD)) {
+                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemTranslator.SHIELD) ||
+                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == ItemTranslator.SHIELD)) {
                             ClientPlayerUseItemPacket useItemPacket;
                             metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
-                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == BlockTranslator.SHIELD) {
+                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemTranslator.SHIELD) {
                                 useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             }
                             // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
