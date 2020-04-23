@@ -27,6 +27,8 @@ package org.geysermc.connector.network.translators.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
@@ -59,7 +61,7 @@ public class BlockTranslator {
 
     private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
-    private static final Map<String, BlockState> JAVA_ID_BLOCK_MAP = new HashMap<>();
+    private static final BiMap<String, BlockState> JAVA_ID_BLOCK_MAP = HashBiMap.create();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
 
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
@@ -263,6 +265,10 @@ public class BlockTranslator {
 
     public static boolean isWaterlogged(BlockState state) {
         return WATERLOGGED.contains(state.getId());
+    }
+
+    public static BiMap<String, BlockState> getJavaIdBlockMap() {
+        return JAVA_ID_BLOCK_MAP;
     }
 
     public static BlockState getJavaWaterloggedState(int bedrockId) {

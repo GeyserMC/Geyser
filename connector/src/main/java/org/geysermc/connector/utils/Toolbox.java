@@ -111,20 +111,23 @@ public class Toolbox {
                             entry.getValue().get("bedrock_id").intValue(),
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            entry.getValue().get("tool_tier").textValue()));
+                            entry.getValue().get("tool_tier").textValue(),
+                            entry.getValue().get("is_block").booleanValue()));
                 } else {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
                             entry.getKey(), itemIndex,
                             entry.getValue().get("bedrock_id").intValue(),
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            ""));
+                            "",
+                            entry.getValue().get("is_block").booleanValue()));
                 }
             } else {
                 ITEM_ENTRIES.put(itemIndex, new ItemEntry(
                         entry.getKey(), itemIndex,
                         entry.getValue().get("bedrock_id").intValue(),
-                        entry.getValue().get("bedrock_data").intValue()));
+                        entry.getValue().get("bedrock_data").intValue(),
+                        entry.getValue().get("is_block").booleanValue()));
             }
             itemIndex++;
         }

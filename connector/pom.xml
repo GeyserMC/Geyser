@@ -91,6 +91,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>29.0-jre</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.github.steveice10</groupId>
             <artifactId>opennbt</artifactId>
             <version>1.4-SNAPSHOT</version>

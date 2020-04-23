@@ -51,6 +51,21 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
                 || lastPlacePos.getZ() != packet.getRecord().getPosition().getZ()) {
             return;
         }
+
+        // We need to check if the identifier is the same, else a packet with the sound of what the
+        // player has in their hand is played, despite if the block is being placed or not
+        boolean contains = false;
+        String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(packet.getRecord().getBlock()).split("\\[")[0];
+        if (identifier.equals(session.getLastBlockPlacedId())) {
+            contains = true;
+        }
+
+        if (!contains) {
+            session.setLastBlockPlacePosition(null);
+            session.setLastBlockPlacedId(null);
+            return;
+        }
+
         // This is not sent from the server, so we need to send it this way
         LevelSoundEventPacket placeBlockSoundPacket = new LevelSoundEventPacket();
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
@@ -60,5 +75,6 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         placeBlockSoundPacket.setIdentifier(":");
         session.getUpstream().sendPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
+        session.setLastBlockPlacedId(null);
     }
 }

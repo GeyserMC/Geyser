@@ -134,6 +134,9 @@ public class GeyserSession implements CommandSender {
     private Vector3i lastBlockPlacePosition;
 
     @Setter
+    private String lastBlockPlacedId;
+
+    @Setter
     private boolean switchingDimension = false;
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
