@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityLink;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -92,6 +93,11 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
+
+        long linkedEntityId = session.getEntityCache().getCachedPlayerEntityLink(entityId);
+        if (linkedEntityId != -1) {
+            addPlayerPacket.getEntityLinks().add(new EntityLink(session.getEntityCache().getEntityByJavaId(linkedEntityId).getGeyserId(), geyserId, EntityLink.Type.RIDER, false));
+        }
 
         valid = true;
         session.getUpstream().sendPacket(addPlayerPacket);

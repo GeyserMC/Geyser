@@ -29,14 +29,10 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.EntityFlags;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -53,6 +49,7 @@ import java.util.*;
 @Getter
 @Setter
 public class Entity {
+
     protected long entityId;
     protected long geyserId;
 
@@ -72,7 +69,7 @@ public class Entity {
 
     protected boolean valid;
 
-    protected LongSet passengers = new LongOpenHashSet();
+    protected LongOpenHashSet passengers = new LongOpenHashSet();
     protected Map<AttributeType, Attribute> attributes = new HashMap<>();
     protected EntityDataMap metadata = new EntityDataMap();
 
