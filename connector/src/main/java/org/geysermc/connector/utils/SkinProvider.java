@@ -25,9 +25,6 @@
 
 package org.geysermc.connector.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -43,7 +40,6 @@ import java.util.UUID;
 import java.util.concurrent.*;
 
 public class SkinProvider {
-    public static final Gson GSON = new GsonBuilder().create();
     public static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserConnector.getInstance().getConfig().isAllowThirdPartyCapes();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
 

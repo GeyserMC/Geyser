@@ -49,8 +49,8 @@ public class HelpCommand extends GeyserCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         sender.sendMessage("---- Showing Help For: Geyser (Page 1/1) ----");
-        Map<String, GeyserCommand> cmds = connector.getCommandMap().getCommands();
-        List<String> commands = connector.getCommandMap().getCommands().keySet().stream().sorted().collect(Collectors.toList());
+        Map<String, GeyserCommand> cmds = connector.getCommandManager().getCommands();
+        List<String> commands = connector.getCommandManager().getCommands().keySet().stream().sorted().collect(Collectors.toList());
         commands.forEach(cmd -> sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmd + ChatColor.WHITE + ": " + cmds.get(cmd).getDescription()));
     }
 }

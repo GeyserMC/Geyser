@@ -57,6 +57,6 @@ public class GeyserVelocityCommandExecutor implements Command {
     }
 
     private GeyserCommand getCommand(String label) {
-        return connector.getCommandMap().getCommands().get(label);
+        return connector.getCommandManager().getCommands().get(label);
     }
 }

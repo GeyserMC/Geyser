@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -39,6 +40,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ToolItemEntry;
 
 import java.io.*;
 import java.util.*;
@@ -47,12 +49,13 @@ public class Toolbox {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
     public static final CompoundTag BIOMES;
+    public static final ItemData[] CREATIVE_ITEMS;
 
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
+    public static int BARRIER_INDEX = 0;
 
     static {
         /* Load biomes */
@@ -101,15 +104,75 @@ public class Toolbox {
         Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();
-            ITEM_ENTRIES.put(itemIndex, new ItemEntry(entry.getKey(), itemIndex,
-                    entry.getValue().get("bedrock_id").intValue(), entry.getValue().get("bedrock_data").intValue()));
+            if (entry.getValue().has("tool_type")) {
+                if (entry.getValue().has("tool_tier")) {
+                    ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
+                            entry.getKey(), itemIndex,
+                            entry.getValue().get("bedrock_id").intValue(),
+                            entry.getValue().get("bedrock_data").intValue(),
+                            entry.getValue().get("tool_type").textValue(),
+                            entry.getValue().get("tool_tier").textValue()));
+                } else {
+                    ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
+                            entry.getKey(), itemIndex,
+                            entry.getValue().get("bedrock_id").intValue(),
+                            entry.getValue().get("bedrock_data").intValue(),
+                            entry.getValue().get("tool_type").textValue(),
+                            ""));
+                }
+            } else {
+                ITEM_ENTRIES.put(itemIndex, new ItemEntry(
+                        entry.getKey(), itemIndex,
+                        entry.getValue().get("bedrock_id").intValue(),
+                        entry.getValue().get("bedrock_data").intValue()));
+            }
+            if (entry.getKey().equals("minecraft:barrier")) {
+                BARRIER_INDEX = itemIndex;
+            }
+
             itemIndex++;
         }
 
         // Load the locale data
         LocaleUtils.init();
+
+        stream = getResource("bedrock/creative_items.json");
+
+        JsonNode creativeItemEntries;
+        try {
+            creativeItemEntries = JSON_MAPPER.readTree(stream).get("items");
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load creative items", e);
+        }
+
+        List<ItemData> creativeItems = new ArrayList<>();
+        for (JsonNode itemNode : creativeItemEntries) {
+            short damage = 0;
+            if (itemNode.has("damage")) {
+                damage = itemNode.get("damage").numberValue().shortValue();
+            }
+            if (itemNode.has("nbt_b64")) {
+                byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
+                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+                try {
+                    com.nukkitx.nbt.tag.CompoundTag tag = (com.nukkitx.nbt.tag.CompoundTag) NbtUtils.createReaderLE(bais).readTag();
+                    creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1));
+            }
+        }
+        CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
     }
 
+    /**
+     * Get an InputStream for the given resource path, throws AssertionError if resource is not found
+     *
+     * @param resource Resource to get
+     * @return InputStream of the given resource
+     */
     public static InputStream getResource(String resource) {
         InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream(resource);
         if (stream == null) {

@@ -33,7 +33,9 @@ import net.md_5.bungee.config.YamlConfiguration;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.connector.command.CommandManager;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandExecutor;
+import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +46,7 @@ import java.util.logging.Level;
 
 public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
 
+    private GeyserBungeeCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeLogger geyserLogger;
 
@@ -91,6 +94,8 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
         this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
 
+        this.geyserCommandManager = new GeyserBungeeCommandManager(connector);
+
         this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(connector));
     }
 
@@ -107,5 +112,10 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
     @Override
     public GeyserBungeeLogger getGeyserLogger() {
         return geyserLogger;
+    }
+
+    @Override
+    public CommandManager getGeyserCommandManager() {
+        return this.geyserCommandManager;
     }
 }
