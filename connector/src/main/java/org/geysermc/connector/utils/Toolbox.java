@@ -55,7 +55,7 @@ public class Toolbox {
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
+    public static int BARRIER_INDEX = 0;
 
     static {
         /* Load biomes */
@@ -126,6 +126,10 @@ public class Toolbox {
                         entry.getValue().get("bedrock_id").intValue(),
                         entry.getValue().get("bedrock_data").intValue()));
             }
+            if (entry.getKey().equals("minecraft:barrier")) {
+                BARRIER_INDEX = itemIndex;
+            }
+
             itemIndex++;
         }
 
