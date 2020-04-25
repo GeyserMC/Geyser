@@ -67,6 +67,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
         if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
+        // We need to parse the float as a string since casting a float to a double causes us to
+        // lose precision and thus, causes players to get stuck when walking near walls
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
                 packet.isOnGround(), Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY, Double.parseDouble(Float.toString(packet.getPosition().getZ())), packet.getRotation().getY(), packet.getRotation().getX()
         );
