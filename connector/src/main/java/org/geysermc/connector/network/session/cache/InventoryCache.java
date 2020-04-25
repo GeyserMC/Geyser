@@ -25,13 +25,12 @@
 
 package org.geysermc.connector.network.session.cache;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class InventoryCache {
 
@@ -42,7 +41,7 @@ public class InventoryCache {
     private Inventory openInventory;
 
     @Getter
-    private Map<Integer, Inventory> inventories = new HashMap<Integer, Inventory>();
+    private Int2ObjectMap<Inventory> inventories = new Int2ObjectOpenHashMap<>();
 
     public InventoryCache(GeyserSession session) {
         this.session = session;

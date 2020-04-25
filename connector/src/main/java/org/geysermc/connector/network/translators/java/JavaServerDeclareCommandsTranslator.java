@@ -32,6 +32,8 @@ import com.nukkitx.protocol.bedrock.data.CommandData;
 import com.nukkitx.protocol.bedrock.data.CommandEnumData;
 import com.nukkitx.protocol.bedrock.data.CommandParamData;
 import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -45,8 +47,8 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
     @Override
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
         List<CommandData> commandData = new ArrayList<>();
-        Map<Integer, String> commands = new HashMap<>();
-        Map<Integer, List<CommandNode>> commandArgs = new HashMap<>();
+        Int2ObjectMap<String> commands = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
 
         // Get the first node, it should be a root node
         CommandNode rootNode = packet.getNodes()[packet.getFirstNodeIndex()];
