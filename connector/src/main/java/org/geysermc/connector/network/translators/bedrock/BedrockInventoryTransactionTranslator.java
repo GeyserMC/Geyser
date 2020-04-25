@@ -46,6 +46,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = InventoryTransactionPacket.class)
@@ -104,6 +105,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
                         break;
                     case 1:
+                        if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemTranslator.SHIELD) {
+                            break;
+                        } // Handled in Entity.java
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                         session.getDownstream().getSession().send(useItemPacket);
                         break;

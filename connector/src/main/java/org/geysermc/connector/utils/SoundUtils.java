@@ -84,7 +84,7 @@ public class SoundUtils {
     public static SoundEvent toSoundEvent(String sound) {
         try {
             return SoundEvent.valueOf(sound.toUpperCase().replaceAll("\\.", "_"));
-        } catch (IllegalArgumentException ex) {
+        } catch (Exception ex) {
             return null;
         }
     }

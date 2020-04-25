@@ -58,8 +58,10 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
                 if (!(tag instanceof CompoundTag)) continue;
 
                 CompoundTag bedrockTag = remapEnchantment((CompoundTag) tag);
-                bedrockTag.put(new ShortTag("GeyserStoredEnchantment", (short) 0));
-                newTags.add(bedrockTag);
+                if (bedrockTag != null) {
+                    bedrockTag.put(new ShortTag("GeyserStoredEnchantment", (short) 0));
+                    newTags.add(bedrockTag);
+                }
             }
             itemTag.remove("StoredEnchantments");
         }
@@ -117,11 +119,11 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
 
     private CompoundTag remapEnchantment(CompoundTag tag) {
-        Tag javaEnchLvl = ((CompoundTag) tag).get("lvl");
+        Tag javaEnchLvl = tag.get("lvl");
         if (!(javaEnchLvl instanceof ShortTag))
             return null;
 
-        Tag javaEnchId = ((CompoundTag) tag).get("id");
+        Tag javaEnchId = tag.get("id");
         if (!(javaEnchId instanceof StringTag))
             return null;
 

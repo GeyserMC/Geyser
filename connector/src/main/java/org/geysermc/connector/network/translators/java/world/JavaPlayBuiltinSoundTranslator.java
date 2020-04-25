@@ -42,32 +42,29 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
         String packetSound = packet.getSound().getName();
 
         SoundUtils.SoundMapping soundMapping = SoundUtils.fromJava(packetSound);
-        session.getConnector().getLogger()
-                .debug("[Builtin] Sound mapping " + packetSound + " -> "
+        session.getConnector().getLogger().debug("[Builtin] Sound mapping " + packetSound + " -> "
                         + soundMapping + (soundMapping == null ? "[not found]" : "")
                         + " - " + packet.toString());
-        if(soundMapping == null) {
+        if (soundMapping == null) {
             return;
         }
 
         LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
         SoundEvent sound = SoundUtils.toSoundEvent(soundMapping.getBedrock());
-        if(sound == null) {
+        if (sound == null) {
             sound = SoundUtils.toSoundEvent(soundMapping.getBedrock());
-            if(sound == null) {
-                sound = SoundUtils.toSoundEvent(packetSound);
-                if(sound == null) {
-                    session.getConnector().getLogger()
-                            .debug("[Builtin] Sound for original " + packetSound + " to mappings " + soundPacket
-                                    + " was not a playable level sound, or has yet to be mapped to an enum in " +
-                                    "NukkitX SoundEvent ");
-                } else {
-                    session.getConnector().getLogger()
-                            .debug("[Builtin] Sound for original " + packetSound + " to mappings " + soundPacket
-                                    + " was not found in NukkitX SoundEvent, but original packet sound name was.");
-                }
-                return;
-            }
+        }
+        if (sound == null) {
+            sound = SoundUtils.toSoundEvent(packetSound);
+        }
+        if (sound == null) {
+            session.getConnector().getLogger().debug("[Builtin] Sound for original " + packetSound + " to mappings " + soundPacket
+                            + " was not a playable level sound, or has yet to be mapped to an enum in "
+                            + "NukkitX SoundEvent ");
+
+        } else {
+            session.getConnector().getLogger().debug("[Builtin] Sound for original " + packetSound + " to mappings " + soundPacket
+                            + " was not found in NukkitX SoundEvent, but original packet sound name was.");
         }
 
         soundPacket.setSound(sound);

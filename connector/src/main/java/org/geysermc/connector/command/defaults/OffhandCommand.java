@@ -25,31 +25,37 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.common.ChatColor;
-import org.geysermc.common.PlatformType;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class ReloadCommand extends GeyserCommand {
+public class OffhandCommand extends GeyserCommand {
 
     private GeyserConnector connector;
 
-    public ReloadCommand(GeyserConnector connector, String name, String description, String permission) {
+    public OffhandCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
+
         this.connector = connector;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
+        if (sender.isConsole()) {
             return;
         }
-        sender.sendMessage(ChatColor.YELLOW + "Reloading Geyser configurations... all connected bedrock clients will be kicked.");
-        for (GeyserSession session : connector.getPlayers().values()) {
-            session.disconnect("Geyser has been reloaded... sorry for the inconvenience!");
+
+        // Make sure the sender is a Bedrock edition client
+        if (sender instanceof GeyserSession) {
+            GeyserSession session = (GeyserSession) sender;
+            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
+                    BlockFace.DOWN);
+            session.getDownstream().getSession().send(releaseItemPacket);
         }
-        connector.reload();
     }
 }
