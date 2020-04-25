@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreat
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import it.unimi.dsi.fastutil.longs.LongArraySet;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
@@ -40,6 +41,9 @@ import org.geysermc.connector.utils.InventoryUtils;
 import java.util.List;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
+
+    public static final LongArraySet HAS_RECEIVED_MESSAGE = new LongArraySet();
+
     public PlayerInventoryTranslator() {
         super(46);
     }
@@ -164,6 +168,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             //crafting grid is not visible in creative mode in java edition
             for (InventoryActionData action : actions) {
                 if (action.getSource().getContainerId() == ContainerId.CURSOR && (action.getSlot() >= 28 && 31 >= action.getSlot())) {
+                    if (!HAS_RECEIVED_MESSAGE.contains(session.getPlayerEntity().getEntityId())) {
+                        // TODO: Allow the crafting table to be used with non-standalone versions
+                        session.sendMessage("The creative crafting table cannot be used in Java Edition.");
+                        HAS_RECEIVED_MESSAGE.add(session.getPlayerEntity().getEntityId());
+                    }
                     updateInventory(session, inventory);
                     InventoryUtils.updateCursor(session);
                     return;
