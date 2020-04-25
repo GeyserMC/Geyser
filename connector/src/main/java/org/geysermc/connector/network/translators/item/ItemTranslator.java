@@ -47,7 +47,7 @@ public class ItemTranslator {
     private Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
 	
 	// Shield ID, used in Entity.java
-	public static final int SHIELD = 829;
+    public static final int SHIELD = 829;
 
     public void init() {
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
