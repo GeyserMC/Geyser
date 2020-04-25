@@ -83,7 +83,7 @@ public class InventoryUtils {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
         cursorPacket.setContainerId(ContainerId.CURSOR);
         cursorPacket.setSlot(0);
-        cursorPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, session.getInventory().getCursor()));
+        cursorPacket.setItem(Translators.getItemTranslator().translateToBedrock(session.getInventory().getCursor()));
         session.getUpstream().sendPacket(cursorPacket);
     }
 

@@ -120,6 +120,7 @@ public class ChunkUtils {
                 tagName = (String) tag.get("id").getValue();
             }
 
+
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
             BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
             BlockState blockState = blockEntityPositions.get(new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue()));

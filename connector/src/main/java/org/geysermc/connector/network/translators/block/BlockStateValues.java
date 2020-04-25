@@ -27,12 +27,11 @@ package org.geysermc.connector.network.translators.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import it.unimi.dsi.fastutil.objects.Object2ByteMap;
-import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
@@ -43,6 +42,7 @@ public class BlockStateValues {
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
+    private static final Set<BlockState> LECTERN_BOOK = new HashSet<>();
 
     /**
      * Determines if the block state contains Bedrock block information
@@ -70,6 +70,11 @@ public class BlockStateValues {
         JsonNode skullRotation = entry.getValue().get("skull_rotation");
         if (skullRotation != null) {
             BlockStateValues.SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
+        }
+
+        String javaId = entry.getKey();
+        if(javaId.contains("lectern") && javaId.contains("has_book=true")){
+            BlockStateValues.LECTERN_BOOK.add(javaBlockState);
         }
     }
 
@@ -122,6 +127,10 @@ public class BlockStateValues {
             return SKULL_ROTATIONS.getByte(state);
         }
         return -1;
+    }
+
+    public static boolean hasBook(BlockState state){
+        return LECTERN_BOOK.contains(state);
     }
 
 }

@@ -45,7 +45,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         ItemData[] bedrockItems = new ItemData[paddedSize];
         for (int i = 0; i < bedrockItems.length; i++) {
             if (i <= translator.size) {
-                bedrockItems[i] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
+                bedrockItems[i] = Translators.getItemTranslator().translateToBedrock(inventory.getItem(i));
             } else {
                 bedrockItems[i] = ItemData.AIR;
             }
@@ -65,7 +65,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(inventory.getId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(javaSlot)));
+        slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(inventory.getItem(javaSlot)));
         session.getUpstream().sendPacket(slotPacket);
         return true;
     }

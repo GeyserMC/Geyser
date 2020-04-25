@@ -51,7 +51,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.CURSOR);
             slotPacket.setSlot(i + 27);
-            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i)));
+            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(inventory.getItem(i)));
             session.getUpstream().sendPacket(slotPacket);
         }
 
@@ -60,11 +60,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         ItemData[] contents = new ItemData[36];
         // Inventory
         for (int i = 9; i < 36; i++) {
-            contents[i] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
+            contents[i] = Translators.getItemTranslator().translateToBedrock(inventory.getItem(i));
         }
         // Hotbar
         for (int i = 36; i < 45; i++) {
-            contents[i - 36] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
+            contents[i - 36] = Translators.getItemTranslator().translateToBedrock(inventory.getItem(i));
         }
         inventoryContentPacket.setContents(contents);
         session.getUpstream().sendPacket(inventoryContentPacket);
@@ -74,7 +74,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         armorContentPacket.setContainerId(ContainerId.ARMOR);
         contents = new ItemData[4];
         for (int i = 5; i < 9; i++) {
-            contents[i - 5] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
+            contents[i - 5] = Translators.getItemTranslator().translateToBedrock(inventory.getItem(i));
         }
         armorContentPacket.setContents(contents);
         session.getUpstream().sendPacket(armorContentPacket);
@@ -82,7 +82,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         // Offhand
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
-        offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(45))});
+        offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(inventory.getItem(45))});
         session.getUpstream().sendPacket(offhandPacket);
     }
 
@@ -104,12 +104,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setContainerId(ContainerId.CURSOR);
                 slotPacket.setSlot(slot + 27);
             }
-            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(slot)));
+            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(inventory.getItem(slot)));
             session.getUpstream().sendPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
-            offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(slot))});
+            offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(inventory.getItem(slot))});
             session.getUpstream().sendPacket(offhandPacket);
         }
     }
@@ -180,7 +180,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         if (action.getToItem().getId() == 0) {
                             javaItem = new ItemStack(-1, 0, null);
                         } else {
-                            javaItem = Translators.getItemTranslator().translateToJava(session, action.getToItem());
+                            javaItem = Translators.getItemTranslator().translateToJava(action.getToItem());
                         }
                         ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(javaSlot, javaItem);
                         session.getDownstream().getSession().send(creativePacket);
@@ -188,13 +188,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         break;
                     case ContainerId.CURSOR:
                         if (action.getSlot() == 0) {
-                            session.getInventory().setCursor(Translators.getItemTranslator().translateToJava(session, action.getToItem()));
+                            session.getInventory().setCursor(Translators.getItemTranslator().translateToJava(action.getToItem()));
                         }
                         break;
                     case ContainerId.NONE:
                         if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                                 && action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                            javaItem = Translators.getItemTranslator().translateToJava(session, action.getToItem());
+                            javaItem = Translators.getItemTranslator().translateToJava(action.getToItem());
                             ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, javaItem);
                             session.getDownstream().getSession().send(creativeDropPacket);
                         }

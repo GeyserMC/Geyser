@@ -26,6 +26,11 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.opennbt.tag.builtin.ByteTag;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -45,8 +50,8 @@ public class ItemTranslator {
     private Int2ObjectMap<ItemStackTranslator> itemTranslators = new Int2ObjectOpenHashMap();
     private List<NbtItemStackTranslator> nbtItemTranslators;
     private Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
-	
-	// Shield ID, used in Entity.java
+
+    // Shield ID, used in Entity.java
     public static final int SHIELD = 829;
 
     public void init() {
@@ -84,7 +89,7 @@ public class ItemTranslator {
                 .sorted(Comparator.comparingInt(value -> loadedNbtItemTranslators.get(value))).collect(Collectors.toList());
     }
 
-    public ItemStack translateToJava(GeyserSession session, ItemData data) {
+    public ItemStack translateToJava(ItemData data) {
         if (data == null) {
             return new ItemStack(0);
         }
@@ -109,7 +114,27 @@ public class ItemTranslator {
         return itemStack;
     }
 
-    public ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
+    public CompoundTag translateToJava(com.nukkitx.nbt.tag.CompoundTag itemTag) {
+        if (itemTag == null || !itemTag.contains("Name")) return null;
+        ItemEntry entry = getItemEntry(itemTag.getString("Name"));
+        int count = itemTag.getInt("Count", 1);
+
+        com.nukkitx.nbt.tag.CompoundTag tag = itemTag.getCompound("tag");
+        ItemData itemData = ItemData.of(entry.getBedrockId(), (short) entry.getBedrockData(), count, tag);
+        ItemStack itemStack = translateToJava(itemData);
+
+        ItemEntry javaEntry = getItem(itemStack);
+
+        CompoundTag javaTag = new CompoundTag("");
+        javaTag.put(new StringTag("id", javaEntry.getJavaIdentifier()));
+        javaTag.put(new IntTag("Count", itemStack.getAmount()));
+        if (itemStack.getNbt() != null) {
+            javaTag.put(new CompoundTag("tag", itemStack.getNbt().getValue()));
+        }
+        return javaTag;
+    }
+
+    public ItemData translateToBedrock(ItemStack stack) {
         if (stack == null) {
             return ItemData.AIR;
         }
@@ -130,6 +155,28 @@ public class ItemTranslator {
         } else {
             return DEFAULT_TRANSLATOR.translateToBedrock(stack, bedrockItem);
         }
+    }
+
+    public com.nukkitx.nbt.tag.CompoundTag translateToBedrock(CompoundTag itemTag) {
+        if (itemTag == null || !itemTag.contains("id")) return null;
+        ItemEntry entry = getItemEntry(((StringTag) itemTag.get("id")).getValue());
+        ByteTag countTag = itemTag.get("Count");
+        int count = countTag != null ? countTag.getValue() : 1;
+
+        CompoundTag tag = itemTag.get("tag");
+        ItemStack itemStack = new ItemStack(entry.getJavaId(), count, tag);
+        ItemData itemData = translateToBedrock(itemStack);
+
+        ItemEntry bedrockEntry = getItem(itemData);
+
+        CompoundTagBuilder bedrockTag = CompoundTagBuilder.builder()
+                .stringTag("Name", bedrockEntry.getJavaIdentifier())
+                .shortTag("Damage", itemData.getDamage())
+                .byteTag("Count", (byte) itemData.getCount());
+        if (itemData.getTag() != null) {
+            bedrockTag.tag(new com.nukkitx.nbt.tag.CompoundTag("tag", itemData.getTag().getValue()));
+        }
+        return bedrockTag.buildRootTag();
     }
 
     public ItemEntry getItem(ItemStack stack) {
