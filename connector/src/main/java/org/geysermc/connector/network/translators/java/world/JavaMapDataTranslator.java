@@ -51,13 +51,12 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
             mapItemDataPacket.setWidth(data.getColumns());
             mapItemDataPacket.setHeight(data.getRows());
 
-            // Every int entry is an ARGB color
+            // Every int entry is an ABGR color
             int[] colors = new int[data.getData().length];
 
             int idx = 0;
             for (byte colorId : data.getData()) {
-                colors[idx] = MapColor.fromId(colorId).toARGB();
-                idx++;
+                colors[idx++] = MapColor.fromId(colorId & 0xFF).toABGR();
             }
 
             mapItemDataPacket.setColors(colors);

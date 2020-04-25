@@ -1,7 +1,5 @@
 package org.geysermc.connector.utils;
 
-import java.util.Arrays;
-
 public enum MapColor {
     COLOR_0(-1, -1, -1),
     COLOR_1(-1, -1, -1),
@@ -212,6 +210,8 @@ public enum MapColor {
     COLOR_206(37, 22, 16),
     COLOR_207(19, 11, 8);
 
+    private static final MapColor[] VALUES = values();
+
     private final int red;
     private final int green;
     private final int blue;
@@ -222,23 +222,18 @@ public enum MapColor {
         this.blue = blue;
     }
 
-    int getId() {
-        return ordinal();
-    }
-
     public static MapColor fromId(int id) {
-        return Arrays.stream(values()).filter(color -> color.getId() == id).findFirst().orElse(COLOR_0);
+        return id >= 0 && id < VALUES.length ? VALUES[id] : COLOR_0;
     }
 
-    public int toARGB() {
+    public int toABGR() {
         int alpha = 255;
         if (red == -1 && green == -1 && blue == -1)
             alpha = 0; // transparent
 
-        long result = red & 0xff;
-        result |= (green & 0xff) << 8;
-        result |= (blue & 0xff) << 16;
-        result |= (alpha & 0xff) << 24;
-        return (int) (result & 0xFFFFFFFFL);
+        return ((alpha & 0xFF) << 24) |
+               ((blue & 0xFF) << 16) |
+               ((green & 0xFF) << 8) |
+               ((red & 0xFF) << 0);
     }
 }
