@@ -330,9 +330,15 @@ public class GeyserSession implements CommandSender {
                 downstream.getSession().disconnect(reason);
             }
             if (upstream != null && !upstream.isClosed()) {
+                connector.getPlayers().remove(this.upstream.getAddress());
                 upstream.disconnect(reason);
             }
         }
+
+        this.entityCache.getEntities().clear();
+        this.scoreboardCache.removeScoreboard();
+        this.inventoryCache.getInventories().clear();
+        this.windowCache.getWindows().clear();
 
         closed = true;
     }
