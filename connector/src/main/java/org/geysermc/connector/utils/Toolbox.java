@@ -55,6 +55,8 @@ public class Toolbox {
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
+    public static CompoundTag ENTITY_IDENTIFIERS;
+
     public static int BARRIER_INDEX = 0;
 
     static {
@@ -136,6 +138,7 @@ public class Toolbox {
         // Load the locale data
         LocaleUtils.init();
 
+        /* Load creative items */
         stream = getResource("bedrock/creative_items.json");
 
         JsonNode creativeItemEntries;
@@ -165,6 +168,16 @@ public class Toolbox {
             }
         }
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
+
+
+        /* Load entity identifiers */
+        stream = Toolbox.getResource("bedrock/entity_identifiers.dat");
+
+        try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
+            ENTITY_IDENTIFIERS = (CompoundTag) nbtInputStream.readTag();
+        } catch (Exception e) {
+            throw new AssertionError("Unable to get entities from entity identifiers", e);
+        }
     }
 
     /**
