@@ -59,6 +59,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
+        Vector3f position = packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0);
+
+        if(!session.confirmTeleport(position)) return;
+
         if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
             session.getConnector().getLogger().debug("Recalculating position...");
             recalculatePosition(session, entity, entity.getPosition());
@@ -73,7 +77,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
-        entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
+        entity.setPosition(position);
         entity.setRotation(rotation);
 
         /*

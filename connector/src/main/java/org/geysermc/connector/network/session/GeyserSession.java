@@ -30,6 +30,7 @@ import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsExcepti
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.packetlib.Client;
@@ -96,6 +97,7 @@ public class GeyserSession implements CommandSender {
     private InventoryCache inventoryCache;
     private ScoreboardCache scoreboardCache;
     private WindowCache windowCache;
+    @Setter private TeleportCache teleportCache;
 
     private DataCache<Packet> javaPacketCache;
 
@@ -426,5 +428,20 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setVanillaVersion("*");
         // startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacket(startGamePacket);
+    }
+
+    public boolean confirmTeleport(Vector3f position){
+        if(teleportCache != null){
+            if(!teleportCache.canConfirm(position)){
+                GeyserConnector.getInstance().getLogger().info("Ignore movement " + position);
+                return false;
+            }
+            int teleportId = teleportCache.getTeleportConfirmId();
+            teleportCache = null;
+            ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(teleportId);
+            getDownstream().getSession().send(teleportConfirmPacket);
+            GeyserConnector.getInstance().getLogger().info("Confirm Teleport " + teleportId);
+        }
+        return true;
     }
 }
