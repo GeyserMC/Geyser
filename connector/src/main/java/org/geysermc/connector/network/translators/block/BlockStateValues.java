@@ -75,7 +75,7 @@ public class BlockStateValues {
 
         JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
         if (shulkerDirection != null) {
-            BlockStateValues.SHULKERBOX_DIRECTIONS.put(javaBlockState, getDirectionInt(shulkerDirection.asText()));
+            BlockStateValues.SHULKERBOX_DIRECTIONS.put(javaBlockState, (byte) shulkerDirection.intValue());
         }
     }
 
@@ -148,35 +148,5 @@ public class BlockStateValues {
             return SHULKERBOX_DIRECTIONS.getByte(state);
         }
         return -1;
-    }
-
-    /**
-     * TODO: Write JavaDoc
-     *
-     * @param direction
-     * @return
-     */
-    private static byte getDirectionInt(String direction) {
-        switch (direction) {
-            case "down":
-                return 0;
-
-            case "up":
-                return 1;
-
-            case "north":
-                return 2;
-
-            case "south":
-                return 3;
-
-            case "west":
-                return 4;
-
-            case "east":
-                return 5;
-        }
-
-        return 1;
     }
 }
