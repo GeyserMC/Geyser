@@ -34,7 +34,6 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
-import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;

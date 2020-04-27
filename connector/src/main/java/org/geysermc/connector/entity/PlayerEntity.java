@@ -139,10 +139,8 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
 
-        if(teleported){
-            //movePlayerPacket.setRidingRuntimeEntityId(0);
+        if (teleported) {
             movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
-            //movePlayerPacket.setEntityType(0);
         }
 
         session.getUpstream().sendPacket(movePlayerPacket);

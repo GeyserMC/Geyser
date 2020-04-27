@@ -39,9 +39,9 @@ public class TeleportCache {
     private double x, y, z;
     private int teleportConfirmId;
 
-    public boolean canConfirm(Vector3f postion) {
-        return (Math.abs(this.x - postion.getX()) < ERROR &&
-                Math.abs(this.y - postion.getY()) < ERROR_Y &&
-                Math.abs(this.z - postion.getZ()) < ERROR);
+    public boolean canConfirm(Vector3f position) {
+        return (Math.abs(this.x - position.getX()) < ERROR &&
+                Math.abs(this.y - position.getY()) < ERROR_Y &&
+                Math.abs(this.z - position.getZ()) < ERROR);
     }
 }
