@@ -101,7 +101,8 @@ public class PlayerEntity extends LivingEntity {
     }
 
     public void sendPlayer(GeyserSession session) {
-        if(session.getEntityCache().getPlayerEntity(uuid) == null) return;
+        if(session.getEntityCache().getPlayerEntity(uuid) == null)
+            return;
         if (getLastSkinUpdate() == -1) {
             if (playerList) {
                 PlayerListPacket playerList = new PlayerListPacket();
