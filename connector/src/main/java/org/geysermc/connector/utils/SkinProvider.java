@@ -36,7 +36,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
 import java.util.Map;
@@ -165,8 +164,7 @@ public class SkinProvider {
         byte[] skin = EMPTY_SKIN.getSkinData();
         try {
             skin = requestImage(textureUrl, false);
-        } catch (Exception ignored) {
-        } // just ignore I guess
+        } catch (Exception ignored) {} // just ignore I guess
         return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false);
     }
 
@@ -174,8 +172,7 @@ public class SkinProvider {
         byte[] cape = new byte[0];
         try {
             cape = requestImage(capeUrl, true);
-        } catch (Exception ignored) {
-        } // just ignore I guess
+        } catch (Exception ignored) {} // just ignore I guess
 
         String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
 
@@ -222,31 +219,11 @@ public class SkinProvider {
     }
 
     private static BufferedImage readCapeFromJson(String url) throws IOException {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        try {
-            connection = (HttpURLConnection) (new URL(url)).openConnection();
-            connection.setDoInput(true);
-            connection.setDoOutput(false);
-            connection.connect();
-            if (connection.getResponseCode() != 200) {
-                return null;
-            }
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-            JsonNode element = OBJECT_MAPPER.readTree(reader);
-            if (element != null && element.isObject()) {
-                JsonNode capeElement = element.get("d");
-                if (capeElement == null || capeElement.isNull()) return null;
-                return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(capeElement.textValue())));
-            }
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
+        JsonNode element = OBJECT_MAPPER.readTree(WebUtils.getBody(url));
+        if (element != null && element.isObject()) {
+            JsonNode capeElement = element.get("d");
+            if (capeElement == null || capeElement.isNull()) return null;
+            return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(capeElement.textValue())));
         }
         return null;
     }
