@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.utils;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -33,8 +35,10 @@ import org.geysermc.connector.GeyserConnector;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -52,6 +56,7 @@ public class SkinProvider {
     private static Map<String, Cape> cachedCapes = new ConcurrentHashMap<>();
     private static Map<String, CompletableFuture<Cape>> requestedCapes = new ConcurrentHashMap<>();
 
+    private static final JsonParser JSON_PARSER = new JsonParser();
     private static final int CACHE_INTERVAL = 8 * 60 * 1000; // 8 minutes
 
     public static boolean hasSkinCached(UUID uuid) {
@@ -160,7 +165,8 @@ public class SkinProvider {
         byte[] skin = EMPTY_SKIN.getSkinData();
         try {
             skin = requestImage(textureUrl, false);
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
         return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false);
     }
 
@@ -168,7 +174,8 @@ public class SkinProvider {
         byte[] cape = new byte[0];
         try {
             cape = requestImage(capeUrl, true);
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
 
         String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
 
@@ -182,7 +189,12 @@ public class SkinProvider {
     }
 
     private static byte[] requestImage(String imageUrl, boolean cape) throws Exception {
-        BufferedImage image = ImageIO.read(new URL(imageUrl));
+        BufferedImage image;
+        if (imageUrl.startsWith(UnofficalCape.FIVEZIG.url)) {
+            image = readCapeFromJson(imageUrl);
+        } else {
+            image = ImageIO.read(new URL(imageUrl));
+        }
         GeyserConnector.getInstance().getLogger().debug("Downloaded " + imageUrl);
 
         if (cape) {
@@ -209,7 +221,37 @@ public class SkinProvider {
         }
     }
 
-    private static BufferedImage scale (BufferedImage bufferedImage) {
+    private static BufferedImage readCapeFromJson(String url) throws IOException {
+        HttpURLConnection connection = null;
+        BufferedReader reader = null;
+        try {
+            connection = (HttpURLConnection) (new URL(url)).openConnection();
+            connection.setDoInput(true);
+            connection.setDoOutput(false);
+            connection.connect();
+            if (connection.getResponseCode() != 200) {
+                return null;
+            }
+            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            JsonElement element = JSON_PARSER.parse(reader);
+            if (element != null && element.isJsonObject()) {
+                JsonElement capeElement = element.getAsJsonObject().get("d");
+                if (capeElement == null || capeElement.isJsonNull()) return null;
+                return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(capeElement.getAsString())));
+            }
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+        return null;
+    }
+
+    private static BufferedImage scale(BufferedImage bufferedImage) {
         BufferedImage resized = new BufferedImage(bufferedImage.getWidth() / 2, bufferedImage.getHeight() / 2, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = resized.createGraphics();
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -221,7 +263,8 @@ public class SkinProvider {
     public static <T> T getOrDefault(CompletableFuture<T> future, T defaultValue, int timeoutInSeconds) {
         try {
             return future.get(timeoutInSeconds, TimeUnit.SECONDS);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return defaultValue;
     }
 
@@ -265,8 +308,8 @@ public class SkinProvider {
     @Getter
     public enum UnofficalCape {
         OPTIFINE("http://s.optifine.net/capes/%s.png", CapeUrlType.USERNAME),
-        LABYMOD("http://capes.labymod.net/capes/%s.png", CapeUrlType.UUID_DASHED),
-        FIVEZIG("http://textures.5zig.net/2/%s", CapeUrlType.UUID),
+        LABYMOD("https://www.labymod.net/page/php/getCapeTexture.php?uuid=%s", CapeUrlType.UUID_DASHED),
+        FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
         MINECRAFTCAPES("https://www.minecraftcapes.co.uk/getCape/%s", CapeUrlType.UUID);
 
         public static final UnofficalCape[] VALUES = values();
@@ -283,9 +326,12 @@ public class SkinProvider {
 
         public static String toRequestedType(CapeUrlType type, UUID uuid, String username) {
             switch (type) {
-                case UUID: return uuid.toString().replace("-", "");
-                case UUID_DASHED: return uuid.toString();
-                default: return username;
+                case UUID:
+                    return uuid.toString().replace("-", "");
+                case UUID_DASHED:
+                    return uuid.toString();
+                default:
+                    return username;
             }
         }
     }
