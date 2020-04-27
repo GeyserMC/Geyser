@@ -446,14 +446,14 @@ public class GeyserSession implements CommandSender {
     public boolean confirmTeleport(Vector3f position){
         if(teleportCache != null){
             if(!teleportCache.canConfirm(position)){
-                GeyserConnector.getInstance().getLogger().info("Ignore movement " + position);
+                GeyserConnector.getInstance().getLogger().debug("Unconfirmed Teleport " + teleportCache.getTeleportConfirmId()
+                        + " Ignore movement " + position + " expected " +teleportCache);
                 return false;
             }
             int teleportId = teleportCache.getTeleportConfirmId();
             teleportCache = null;
             ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(teleportId);
             getDownstream().getSession().send(teleportConfirmPacket);
-            GeyserConnector.getInstance().getLogger().info("Confirm Teleport " + teleportId);
         }
         return true;
     }
