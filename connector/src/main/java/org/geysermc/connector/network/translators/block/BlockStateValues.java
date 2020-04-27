@@ -71,6 +71,11 @@ public class BlockStateValues {
         if (skullRotation != null) {
             BlockStateValues.SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
         }
+
+        JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
+        if (shulkerDirection != null) {
+            BlockStateValues.SHULKERBOX_DIRECTIONS.put(javaBlockState, getDirectionInt(shulkerDirection.asText()));
+        }
     }
 
     /**
@@ -124,4 +129,48 @@ public class BlockStateValues {
         return -1;
     }
 
+
+    /**
+     * Shulker box directions are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     * This gives a byte direction that Bedrock can use.
+     *
+     * @param state BlockState of the block
+     * @return Shulker direction value or -1 if no value
+     */
+    public static byte getShulkerBoxDirection(BlockState state) {
+        if (SHULKERBOX_DIRECTIONS.containsKey(state)) {
+            return SHULKERBOX_DIRECTIONS.getByte(state);
+        }
+        return -1;
+    }
+
+    /**
+     * TODO: Write JavaDoc
+     *
+     * @param direction
+     * @return
+     */
+    private static byte getDirectionInt(String direction) {
+        switch (direction) {
+            case "down":
+                return 0;
+
+            case "up":
+                return 1;
+
+            case "north":
+                return 2;
+
+            case "south":
+                return 3;
+
+            case "west":
+                return 4;
+
+            case "east":
+                return 5;
+        }
+
+        return 1;
+    }
 }
