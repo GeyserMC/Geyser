@@ -43,6 +43,7 @@ public class BlockStateValues {
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
+    private static final Object2ByteMap<BlockState> SHULKERBOX_DIRECTIONS = new Object2ByteOpenHashMap<>();
 
     /**
      * Determines if the block state contains Bedrock block information
