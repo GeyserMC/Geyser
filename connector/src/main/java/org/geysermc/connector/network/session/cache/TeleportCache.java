@@ -33,7 +33,7 @@ import lombok.Data;
 @Data
 public class TeleportCache {
 
-    private static final double ERROR = 0.1;
+    private static final double ERROR = 0.2;
     private static final double ERROR_Y = 0.5;
 
     private double x, y, z;

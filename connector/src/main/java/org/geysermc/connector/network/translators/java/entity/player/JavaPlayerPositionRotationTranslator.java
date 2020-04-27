@@ -91,8 +91,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             session.getDownstream().getSession().send(teleportConfirmPacket);
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
-
-            session.getConnector().getLogger().info("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
             return;
         }
 
@@ -100,7 +98,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
         if (!packet.getRelative().isEmpty()) {
             session.setTeleportCache(new TeleportCache(packet.getX(), packet.getY(), packet.getZ(), packet.getTeleportId()));
-            GeyserConnector.getInstance().getLogger().info("packet.getTeleportId(): " + packet.getTeleportId() + " " + packet.toString());
             entity.moveRelative(session, packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ(), packet.getYaw(), packet.getPitch(), true);
         } else {
             double xDis = Math.abs(entity.getPosition().getX() - packet.getX());
@@ -108,7 +105,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             double zDis = Math.abs(entity.getPosition().getZ() - packet.getZ());
             if (xDis > 1.5 || (yDis < 1.45 || yDis > (session.isJumping() ? 4.3 : (session.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5) {
                 session.setTeleportCache(new TeleportCache(packet.getX(), packet.getY(), packet.getZ(), packet.getTeleportId()));
-                GeyserConnector.getInstance().getLogger().info("packet.getTeleportId(): " + packet.getTeleportId() + " " + packet.toString());
                 entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), true, true);
             } else {
                 ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());

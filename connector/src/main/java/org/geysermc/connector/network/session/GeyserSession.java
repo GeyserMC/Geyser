@@ -85,8 +85,10 @@ public class GeyserSession implements CommandSender {
     private final UpstreamSession upstream;
     private RemoteServer remoteServer;
     private Client downstream;
-    @Setter private AuthData authData;
-    @Setter private BedrockClientData clientData;
+    @Setter
+    private AuthData authData;
+    @Setter
+    private BedrockClientData clientData;
 
     private PlayerEntity playerEntity;
     private PlayerInventory inventory;
@@ -96,7 +98,8 @@ public class GeyserSession implements CommandSender {
     private InventoryCache inventoryCache;
     private ScoreboardCache scoreboardCache;
     private WindowCache windowCache;
-    @Setter private TeleportCache teleportCache;
+    @Setter
+    private TeleportCache teleportCache;
 
     private DataCache<Packet> javaPacketCache;
 
@@ -443,11 +446,11 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(startGamePacket);
     }
 
-    public boolean confirmTeleport(Vector3f position){
-        if(teleportCache != null){
-            if(!teleportCache.canConfirm(position)){
+    public boolean confirmTeleport(Vector3f position) {
+        if (teleportCache != null) {
+            if (!teleportCache.canConfirm(position)) {
                 GeyserConnector.getInstance().getLogger().debug("Unconfirmed Teleport " + teleportCache.getTeleportConfirmId()
-                        + " Ignore movement " + position + " expected " +teleportCache);
+                        + " Ignore movement " + position + " expected " + teleportCache);
                 return false;
             }
             int teleportId = teleportCache.getTeleportConfirmId();
