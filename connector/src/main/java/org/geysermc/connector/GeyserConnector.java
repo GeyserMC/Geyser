@@ -32,6 +32,7 @@ import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
 import lombok.Getter;
 
 import org.geysermc.common.AuthType;
+import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.common.logger.IGeyserLogger;
@@ -43,7 +44,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.Toolbox;
-import org.geysermc.common.IGeyserConfiguration;
 
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;

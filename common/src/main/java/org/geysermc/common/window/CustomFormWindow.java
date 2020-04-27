@@ -25,8 +25,9 @@
 
 package org.geysermc.common.window;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.window.button.FormImage;
@@ -34,6 +35,7 @@ import org.geysermc.common.window.component.*;
 import org.geysermc.common.window.response.CustomFormResponse;
 import org.geysermc.common.window.response.FormResponseData;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +79,11 @@ public class CustomFormWindow extends FormWindow {
     }
 
     public String getJSONData() {
-        String toModify = new Gson().toJson(this);
+        String toModify = "";
+        try {
+            toModify = new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException e) { }
+
         //We need to replace this due to Java not supporting declaring class field 'default'
         return toModify.replace("defaultOptionIndex", "default")
                 .replace("defaultText", "default")
@@ -100,7 +106,11 @@ public class CustomFormWindow extends FormWindow {
         Map<Integer, Object> responses = new HashMap<Integer, Object>();
         Map<Integer, String> labelResponses = new HashMap<Integer, String>();
 
-        List<String> componentResponses = new Gson().fromJson(data, new TypeToken<List<String>>() { }.getType());
+        List<String> componentResponses = new ArrayList<>();
+        try {
+            componentResponses = new ObjectMapper().readValue(data, new TypeReference<List<String>>(){});
+        } catch (IOException e) { }
+
         for (String response : componentResponses) {
             if (i >= content.size()) {
                 break;

@@ -46,8 +46,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
-        if (loginPacket.getProtocolVersion() != GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
-            session.getUpstream().disconnect("Unsupported Bedrock version. Are you running an outdated version?");
+        if (loginPacket.getProtocolVersion() > GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
+            session.disconnect("Outdated Geyser proxy! I'm still on " + GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+            return true;
+        } else if (loginPacket.getProtocolVersion() < GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
+            session.disconnect("Outdated Bedrock client! Please use " + GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
             return true;
         }
 
@@ -77,7 +80,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 session.getUpstream().sendPacket(stack);
                 break;
             default:
-                session.getUpstream().disconnect("disconnectionScreen.resourcePack");
+                session.disconnect("disconnectionScreen.resourcePack");
                 break;
         }
 
