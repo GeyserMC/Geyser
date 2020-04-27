@@ -25,34 +25,34 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.InventoryCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
+import java.util.Arrays;
 
 @Translator(packet = ServerWindowItemsPacket.class)
 public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItemsPacket> {
 
     @Override
     public void translate(ServerWindowItemsPacket packet, GeyserSession session) {
-        InventoryCache inventoryCache = session.getInventoryCache();
-        if (!inventoryCache.getInventories().containsKey(packet.getWindowId())) {
-            inventoryCache.cachePacket(packet.getWindowId(), packet);
+        Inventory inventory = session.getInventoryCache().getInventories().get(packet.getWindowId());
+        if (inventory == null || (packet.getWindowId() != 0 && inventory.getWindowType() == null))
             return;
-        }
 
-        Inventory inventory = inventoryCache.getInventories().get(packet.getWindowId());
-        // Player inventory
-        if (packet.getWindowId() == 0) {
+        if (packet.getItems().length < inventory.getSize()) {
+            inventory.setItems(Arrays.copyOf(packet.getItems(), inventory.getSize()));
+        } else {
             inventory.setItems(packet.getItems());
-            InventoryUtils.refreshPlayerInventory(session, inventory);
-            return;
         }
 
-        InventoryUtils.updateInventory(session, packet);
+        InventoryTranslator translator = Translators.getInventoryTranslators().get(inventory.getWindowType());
+        if (translator != null) {
+            translator.updateInventory(session, inventory);
+        }
     }
 }

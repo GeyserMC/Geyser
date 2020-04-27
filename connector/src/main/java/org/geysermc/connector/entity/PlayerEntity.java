@@ -44,6 +44,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.UUID;
@@ -55,6 +56,7 @@ public class PlayerEntity extends LivingEntity {
     private String username;
     private long lastSkinUpdate = -1;
     private boolean playerList = true;
+    private final EntityEffectCache effectCache;
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
@@ -62,6 +64,7 @@ public class PlayerEntity extends LivingEntity {
         profile = gameProfile;
         uuid = gameProfile.getId();
         username = gameProfile.getName();
+        effectCache = new EntityEffectCache();
         if (geyserId == 1) valid = true;
     }
 

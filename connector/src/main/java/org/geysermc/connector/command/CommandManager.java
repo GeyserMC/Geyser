@@ -28,9 +28,7 @@ package org.geysermc.connector.command;
 import lombok.Getter;
 import org.geysermc.common.command.ICommandManager;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.defaults.HelpCommand;
-import org.geysermc.connector.command.defaults.ReloadCommand;
-import org.geysermc.connector.command.defaults.StopCommand;
+import org.geysermc.connector.command.defaults.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,8 +45,10 @@ public abstract class CommandManager implements ICommandManager {
         this.connector = connector;
 
         registerCommand(new HelpCommand(connector, "help", "Shows help for all registered commands.", "geyser.command.help"));
+        registerCommand(new ListCommand(connector, "list", "List all players connected through Geyser.", "geyser.command.list"));
         registerCommand(new ReloadCommand(connector, "reload", "Reloads the Geyser configurations. Kicks all players when used!", "geyser.command.reload"));
         registerCommand(new StopCommand(connector, "stop", "Shuts down Geyser.", "geyser.command.stop"));
+        registerCommand(new OffhandCommand(connector, "offhand", "Puts an items in your offhand.", "geyser.command.offhand"));
     }
 
     public void registerCommand(GeyserCommand command) {
