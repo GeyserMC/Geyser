@@ -240,8 +240,7 @@ public class SkinProvider {
     public static <T> T getOrDefault(CompletableFuture<T> future, T defaultValue, int timeoutInSeconds) {
         try {
             return future.get(timeoutInSeconds, TimeUnit.SECONDS);
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
         return defaultValue;
     }
 
