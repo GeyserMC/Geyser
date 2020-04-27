@@ -32,12 +32,6 @@ import java.lang.annotation.RetentionPolicy;
 public @interface BlockEntity {
 
     /**
-     * Whether to delay the sending of the block entity
-     * @return the delay for when sending the block entity
-     */
-    boolean delay();
-
-    /**
      * The block entity name
      * @return the name of the block entity
      */

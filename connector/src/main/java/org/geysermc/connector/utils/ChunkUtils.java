@@ -85,20 +85,11 @@ public class ChunkUtils {
 
                         // Check to see if the name is in BlockTranslator.getBlockEntityString, and therefore must be handled differently
                         if (BlockTranslator.getBlockEntityString(blockState) != null) {
-                            // Get the block entity translator
-                            BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(BlockTranslator.getBlockEntityString(blockState));
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
                             blockEntityPositions.put(pos, blockState);
-                            // If there is a delay required for the block, allow it.
-                            if (blockEntityTranslator.getClass().getAnnotation(BlockEntity.class).delay()) {
-                                chunkData.loadBlockEntitiesLater.put(blockEntityTranslator.getDefaultBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockTranslator.getBlockEntityString(blockState)),
-                                        pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
-                            } else {
-                                section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
-                            }
-                        } else {
-                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
                         }
+
+                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
 
                         if (BlockTranslator.isWaterlogged(blockState)) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);

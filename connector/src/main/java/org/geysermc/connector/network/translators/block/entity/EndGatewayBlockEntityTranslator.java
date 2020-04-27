@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-@BlockEntity(name = "EndGateway", delay = true, regex = "end_gateway")
+@BlockEntity(name = "EndGateway", regex = "end_gateway")
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override

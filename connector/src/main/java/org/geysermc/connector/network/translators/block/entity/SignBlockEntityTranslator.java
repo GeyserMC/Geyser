@@ -36,7 +36,7 @@ import org.geysermc.connector.utils.MessageUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(name = "Sign", delay = true, regex = "sign")
+@BlockEntity(name = "Sign", regex = "sign")
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
