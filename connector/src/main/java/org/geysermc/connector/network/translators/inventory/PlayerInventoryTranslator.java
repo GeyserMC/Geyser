@@ -46,8 +46,6 @@ import java.util.List;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
 
-    private static final LongArraySet HAS_RECEIVED_MESSAGE = new LongArraySet();
-
     public PlayerInventoryTranslator() {
         super(46);
     }
@@ -187,11 +185,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             //crafting grid is not visible in creative mode in java edition
             for (InventoryActionData action : actions) {
                 if (action.getSource().getContainerId() == ContainerId.CURSOR && (action.getSlot() >= 28 && 31 >= action.getSlot())) {
-                    if (!HAS_RECEIVED_MESSAGE.contains(session.getPlayerEntity().getEntityId())) {
-                        // TODO: Allow the crafting table to be used with non-standalone versions
-                        session.sendMessage("The creative crafting table cannot be used as it's incompatible with Minecraft: Java Edition.");
-                        HAS_RECEIVED_MESSAGE.add(session.getPlayerEntity().getEntityId());
-                    }
                     updateInventory(session, inventory);
                     InventoryUtils.updateCursor(session);
                     return;
