@@ -30,10 +30,9 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
-
 import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
@@ -81,6 +80,8 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
             return;
         }
 
+        this.geyserConfig = new GeyserBungeeConfiguration(getDataFolder(), configuration);
+
         boolean configHasChanged = false;
 
         if (getProxy().getConfig().getListeners().size() == 1) {
@@ -98,8 +99,6 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
 
             configHasChanged = true;
         }
-
-        this.geyserConfig = new GeyserBungeeConfiguration(getDataFolder(), configuration);
 
         if (geyserConfig.getMetrics().getUniqueId().equals("generateduuid")) {
             configuration.set("metrics.uuid", UUID.randomUUID().toString());
