@@ -126,7 +126,7 @@ public abstract class ItemStackTranslator {
 
         if (tag instanceof StringTag) {
             StringTag stringTag = (StringTag) tag;
-            return new com.nukkitx.nbt.tag.StringTag(stringTag.getName(), MessageUtils.getBedrockMessage(Message.fromString(stringTag.getValue())));
+            return new com.nukkitx.nbt.tag.StringTag(stringTag.getName(), stringTag.getValue());
         }
 
         if (tag instanceof ListTag) {
