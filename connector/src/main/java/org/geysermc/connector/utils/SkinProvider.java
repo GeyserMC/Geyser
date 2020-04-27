@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.utils;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -56,7 +56,7 @@ public class SkinProvider {
     private static Map<String, Cape> cachedCapes = new ConcurrentHashMap<>();
     private static Map<String, CompletableFuture<Cape>> requestedCapes = new ConcurrentHashMap<>();
 
-    private static final JsonParser JSON_PARSER = new JsonParser();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final int CACHE_INTERVAL = 8 * 60 * 1000; // 8 minutes
 
     public static boolean hasSkinCached(UUID uuid) {
@@ -234,11 +234,11 @@ public class SkinProvider {
             }
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-            JsonElement element = JSON_PARSER.parse(reader);
-            if (element != null && element.isJsonObject()) {
-                JsonElement capeElement = element.getAsJsonObject().get("d");
-                if (capeElement == null || capeElement.isJsonNull()) return null;
-                return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(capeElement.getAsString())));
+            JsonNode element = OBJECT_MAPPER.readTree(reader);
+            if (element != null && element.isObject()) {
+                JsonNode capeElement = element.get("d");
+                if (capeElement == null || capeElement.isNull()) return null;
+                return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(capeElement.textValue())));
             }
         } finally {
             if (reader != null) {
