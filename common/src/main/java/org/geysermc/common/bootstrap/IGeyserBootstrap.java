@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +26,39 @@
 package org.geysermc.common.bootstrap;
 
 import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.common.command.ICommandManager;
 import org.geysermc.common.logger.IGeyserLogger;
 
 public interface IGeyserBootstrap {
 
+    /**
+     * Called when the GeyserBootstrap is enabled
+     */
     void onEnable();
 
+    /**
+     * Called when the GeyserBootstrap is disabled
+     */
     void onDisable();
 
+    /**
+     * Returns the current GeyserConfig
+     *
+     * @return The current GeyserConfig
+     */
     IGeyserConfiguration getGeyserConfig();
 
+    /**
+     * Returns the current GeyserLogger
+     *
+     * @return The current GeyserLogger
+     */
     IGeyserLogger getGeyserLogger();
+
+    /**
+     * Returns the current GeyserCommandManager
+     *
+     * @return The current GeyserCommandManager
+     */
+    ICommandManager getGeyserCommandManager();
 }

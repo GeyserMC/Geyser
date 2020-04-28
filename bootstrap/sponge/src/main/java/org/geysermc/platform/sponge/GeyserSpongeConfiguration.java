@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,17 +26,13 @@
 package org.geysermc.platform.sponge;
 
 import lombok.AllArgsConstructor;
-
 import ninja.leaping.configurate.ConfigurationNode;
-
 import org.geysermc.common.IGeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GeyserSpongeConfiguration implements IGeyserConfiguration {
 
@@ -60,7 +56,8 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
         if (node.getNode("userAuths").getValue() == null)
             return;
 
-        for (String key : (List<String>) node.getNode("userAuths").getValue()) {
+        List<String> userAuths = new ArrayList<String>(((LinkedHashMap)node.getNode("userAuths").getValue()).keySet());
+        for (String key : userAuths) {
             userAuthInfo.put(key, new SpongeUserAuthenticationInfo(key));
         }
     }
