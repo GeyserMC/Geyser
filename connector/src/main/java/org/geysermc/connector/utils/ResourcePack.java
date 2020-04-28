@@ -26,66 +26,66 @@ public class ResourcePack {
     public static final NativeCode<VoxelwindHash> HASH = new NativeCode<>("native-hash", JavaHash.class, NativeHash.class);
     public static final int CHUNK_SIZE = 1048576;
 
-    private boolean hashed;
     private byte[] sha256;
     private File file;
     private ResourcePackManifest manifest;
     private ResourcePackManifest.Version version;
 
     public static void loadPacks() {
+        Map<String, String> hashes = new HashMap<>();
+
+        try {
+            Files.lines(new File("packs/hashes.txt").toPath()).forEach((x) -> hashes.put(x.split("=")[0], x.split("=")[1]));
+        } catch (Exception e) {
+            //
+        }
+
         File directory = new File("packs");
 
         for(File file : directory.listFiles()) {
-            try {
-                ZipFile zip = new ZipFile(file);
+            if(file.getName().endsWith(".zip")) {
+                ResourcePack pack = new ResourcePack();
 
-                zip.stream().forEach((x) -> {
-                    if(x.getName().contains("manifest.json")) {
-                        try {
-                            ResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), ResourcePackManifest.class);
+                pack.sha256 = getBytes(hashes.get(file.getName()));
 
-                            ResourcePack pack = new ResourcePack();
+                try {
+                    ZipFile zip = new ZipFile(file);
 
-                            pack.file = file;
-                            pack.manifest = manifest;
-                            pack.version = ResourcePackManifest.Version.fromArray(manifest.getHeader().getVersion());
+                    zip.stream().forEach((x) -> {
+                        if (x.getName().contains("manifest.json")) {
+                            try {
+                                ResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), ResourcePackManifest.class);
 
-                            PACKS.put(pack.getManifest().getHeader().getUuid().toString(), pack);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                                pack.file = file;
+                                pack.manifest = manifest;
+                                pack.version = ResourcePackManifest.Version.fromArray(manifest.getHeader().getVersion());
+
+                                PACKS.put(pack.getManifest().getHeader().getUuid().toString(), pack);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-                    }
-                });
-            } catch (Exception e) {
-                GeyserConnector.getInstance().getLogger().error(file.getName() + " " + "is broken!");
-                e.printStackTrace();
+                    });
+                } catch (Exception e) {
+                    GeyserConnector.getInstance().getLogger().error(file.getName() + " " + "is broken!");
+                    e.printStackTrace();
+                }
             }
         }
     }
 
-    /**
-     * author: NukkitX
-     * Nukkit Project
-     */
-    //TODO: calculate this separately
-    public byte[] getSha256() {
-        if (!hashed) {
-            VoxelwindHash hash = HASH.newInstance();
-            ByteBuf bytes = null;
-            try {
-                bytes = PooledByteBufAllocator.DEFAULT.directBuffer(Math.toIntExact(Files.size(file.toPath()))); // Hopefully there is not a resource pack big enough to need a long...
-                bytes.writeBytes(Files.readAllBytes(file.toPath()));
-                hash.update(bytes);
-                sha256 = hash.digest();
-                hashed = true;
-            } catch (Exception e) {
-                throw new RuntimeException("Could not calculate pack hash", e);
-            } finally {
-                if (bytes != null) {
-                    bytes.release();
-                }
-            }
+    private static byte[] getBytes(String string) {
+        String[] strings = string.replace("]", "").replace("[", "").replaceAll(" ", "").split(",");
+        byte[] bytes = new byte[strings.length];
+
+        for(int i = 0; i < strings.length; i++) {
+            bytes[i] = Byte.parseByte(strings[i]);
         }
+
+        return bytes;
+    }
+
+    public byte[] getSha256() {
         return sha256;
     }
 
