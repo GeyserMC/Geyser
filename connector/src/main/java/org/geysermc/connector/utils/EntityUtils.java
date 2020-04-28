@@ -32,6 +32,12 @@ import org.geysermc.connector.entity.type.EntityType;
 
 public class EntityUtils {
 
+    /**
+     * Convert Java edition effect IDs to Bedrock edition
+     *
+     * @param effect Effect to convert
+     * @return The numeric ID for the Bedrock edition effect
+     */
     public static int toBedrockEffectId(Effect effect) {
         switch (effect) {
             case GLOWING:
@@ -51,6 +57,13 @@ public class EntityUtils {
                 return effect.ordinal() + 1;
         }
     }
+
+    /**
+     * Converts a MobType to a Bedrock edition EntityType, returns null if the EntityType is not found
+     *
+     * @param type The MobType to convert
+     * @return Converted EntityType
+     */
     public static EntityType toBedrockEntity(MobType type) {
         try {
             return EntityType.valueOf(type.name());
@@ -59,6 +72,12 @@ public class EntityUtils {
         }
     }
 
+    /**
+     * Converts a ObjectType to a Bedrock edition EntityType, returns null if the EntityType is not found
+     *
+     * @param type The ObjectType to convert
+     * @return Converted EntityType
+     */
     public static EntityType toBedrockEntity(ObjectType type) {
         try {
             return EntityType.valueOf(type.name());

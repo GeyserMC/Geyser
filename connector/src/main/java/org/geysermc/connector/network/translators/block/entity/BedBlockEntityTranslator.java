@@ -25,42 +25,43 @@
 
 package org.geysermc.connector.network.translators.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.nukkitx.math.vector.Vector3i;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.utils.BlockEntityUtils;
+import com.nukkitx.nbt.tag.ByteTag;
+import com.nukkitx.nbt.tag.Tag;
+import org.geysermc.connector.network.translators.block.BlockStateValues;
 
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
 
-public class BedBlockEntityTranslator {
+@BlockEntity(name = "Bed", delay = false, regex = "bed")
+public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
-    public static void checkForBedColor(GeyserSession session, BlockState blockState, Vector3i position) {
-        byte bedcolor = BlockTranslator.getBedColor(blockState);
-        // If Bed Color is not -1 then it is indeed a bed with a color.
-        if (bedcolor > -1) {
-            Position pos = new Position(position.getX(), position.getY(), position.getZ());
-            com.nukkitx.nbt.tag.CompoundTag finalbedTag = getBedTag(bedcolor, pos);
-            // Delay needed, otherwise newly placed beds will not get their color
-            // Delay is not needed for beds already placed on login
-            session.getConnector().getGeneralThreadPool().schedule(() ->
-                            BlockEntityUtils.updateBlockEntity(session, finalbedTag, pos),
-                    500,
-                    TimeUnit.MILLISECONDS
-            );
-        }
+    @Override
+    public boolean isBlock(BlockState blockState) {
+        return BlockStateValues.getBedColor(blockState) != -1;
     }
 
-    public static com.nukkitx.nbt.tag.CompoundTag getBedTag(byte bedcolor, Position pos) {
-        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
-                .intTag("x", pos.getX())
-                .intTag("y", pos.getY())
-                .intTag("z", pos.getZ())
-                .stringTag("id", "Bed");
-        tagBuilder.byteTag("color", bedcolor);
+    @Override
+    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
+        List<Tag<?>> tags = new ArrayList<>();
+        byte bedcolor = BlockStateValues.getBedColor(blockState);
+        // Just in case...
+        if (bedcolor == -1) bedcolor = 0;
+        tags.add(new ByteTag("color", bedcolor));
+        return tags;
+    }
+
+    @Override
+    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
+        return null;
+    }
+
+    @Override
+    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
+        tagBuilder.byteTag("color", (byte) 0);
         return tagBuilder.buildRootTag();
     }
-
 }

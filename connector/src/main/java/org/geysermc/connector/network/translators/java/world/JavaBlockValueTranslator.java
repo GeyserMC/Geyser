@@ -37,7 +37,7 @@ import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.block.BlockStateValues;
 
 @Translator(packet = ServerBlockValuePacket.class)
 public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValuePacket> {
@@ -63,7 +63,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             blockEventPacket.setEventType(type.ordinal());
 
             BlockState blockState = new BlockState(packet.getBlockId());
-            blockEventPacket.setEventData(BlockTranslator.getNoteblockPitch(blockState));
+            blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
 
             session.getUpstream().sendPacket(blockEventPacket);
         }

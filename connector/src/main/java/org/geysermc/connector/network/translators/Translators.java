@@ -91,15 +91,15 @@ public class Translators {
                 if (Packet.class.isAssignableFrom(packet)) {
                     Class<? extends Packet> targetPacket = (Class<? extends Packet>) packet;
                     PacketTranslator<? extends Packet> translator = (PacketTranslator<? extends Packet>) clazz.newInstance();
-                    
+
                     Registry.registerJava(targetPacket, translator);
-                    
+
                 } else if (BedrockPacket.class.isAssignableFrom(packet)) {
                     Class<? extends BedrockPacket> targetPacket = (Class<? extends BedrockPacket>) packet;
                     PacketTranslator<? extends BedrockPacket> translator = (PacketTranslator<? extends BedrockPacket>) clazz.newInstance();
-                    
+
                     Registry.registerBedrock(targetPacket, translator);
-                    
+
                 } else {
                     GeyserConnector.getInstance().getLogger().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
                 }
@@ -109,6 +109,7 @@ public class Translators {
         }
         
         itemTranslator = new ItemTranslator();
+        itemTranslator.init();
         BlockTranslator.init();
 
         registerBlockEntityTranslators();
@@ -116,11 +117,18 @@ public class Translators {
     }
 
     private static void registerBlockEntityTranslators() {
-        blockEntityTranslators.put("Empty", new EmptyBlockEntityTranslator());
-        blockEntityTranslators.put("Sign", new SignBlockEntityTranslator());
-        blockEntityTranslators.put("Campfire", new CampfireBlockEntityTranslator());
-        blockEntityTranslators.put("Banner", new BannerBlockEntityTranslator());
-        blockEntityTranslators.put("EndGateway", new EndGatewayBlockEntityTranslator());
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
+
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
+
+            GeyserConnector.getInstance().getLogger().debug("Found annotated block entity: " + clazz.getCanonicalName());
+
+            try {
+                blockEntityTranslators.put(clazz.getAnnotation(BlockEntity.class).name(), (BlockEntityTranslator) clazz.newInstance());
+            } catch (InstantiationException | IllegalAccessException e) {
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block entity " + clazz.getCanonicalName() + ".");
+            }
+        }
     }
 
     private static void registerInventoryTranslators() {

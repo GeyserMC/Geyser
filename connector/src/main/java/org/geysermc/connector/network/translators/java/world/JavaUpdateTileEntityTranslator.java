@@ -30,27 +30,35 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.block.entity.BlockEntity;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.connector.utils.ChunkUtils;
 
 import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerUpdateTileEntityPacket.class)
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
 
+    // This should be modified if sign text is not showing up
+    private static final int DELAY = 500;
+
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
-        if (id.equalsIgnoreCase("Sign")) {
+        // If not null then the BlockState is used in BlockEntityTranslator.translateTag()
+        if (ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition()) != null) {
+            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(),
+                    ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition())), packet.getPosition());
+            ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition());
+        } else if (translator.getClass().getAnnotation(BlockEntity.class).delay()) {
             // Delay so chunks can finish sending
             session.getConnector().getGeneralThreadPool().schedule(() ->
-                    BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag("Sign", packet.getNbt()), packet.getPosition()),
-                    5,
-                    TimeUnit.SECONDS
-            );
+                            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), null), packet.getPosition()),
+                    DELAY, TimeUnit.MILLISECONDS);
         } else {
-            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt()), packet.getPosition());
+            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), null), packet.getPosition());
         }
     }
 }

@@ -42,10 +42,8 @@ public class AgeableEntity extends CreatureEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 15) {
             boolean isBaby = (boolean) entityMetadata.getValue();
-            if (isBaby) {
-                metadata.put(EntityData.SCALE, .55f);
-                metadata.getFlags().setFlag(EntityFlag.BABY, true);
-            }
+            metadata.put(EntityData.SCALE, isBaby ? .55f : 1f);
+            metadata.getFlags().setFlag(EntityFlag.BABY, isBaby);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);

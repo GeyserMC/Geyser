@@ -49,7 +49,9 @@ public class ShulkerEntity extends GolemEntity {
         }
         if (entityMetadata.getId() == 16) {
             Position position = (Position) entityMetadata.getValue();
-            metadata.put(EntityData.SHULKER_ATTACH_POS, Vector3i.from(position.getX(), position.getY(), position.getZ()));
+            if (position != null) {
+                metadata.put(EntityData.SHULKER_ATTACH_POS, Vector3i.from(position.getX(), position.getY(), position.getZ()));
+            }
         }
         //TODO Outdated metadata flag SHULKER_PEAK_HEIGHT
 //        if (entityMetadata.getId() == 17) {

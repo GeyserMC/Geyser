@@ -28,43 +28,42 @@ package org.geysermc.connector.network.translators.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
-import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.data.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.InventorySource;
+import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import it.unimi.dsi.fastutil.longs.LongArraySet;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.utils.Toolbox;
 
 import java.util.List;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
+
     public PlayerInventoryTranslator() {
         super(46);
     }
 
     @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
-        // Crafting grid
-        for (int i = 1; i < 5; i++) {
-            InventorySlotPacket slotPacket = new InventorySlotPacket();
-            slotPacket.setContainerId(ContainerId.CURSOR);
-            slotPacket.setSlot(i + 27);
-            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(inventory.getItem(i)));
-            session.getUpstream().sendPacket(slotPacket);
-        }
+        updateCraftingGrid(session, inventory);
 
         InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
         inventoryContentPacket.setContainerId(ContainerId.INVENTORY);
         ItemData[] contents = new ItemData[36];
         // Inventory
         for (int i = 9; i < 36; i++) {
-            contents[i] = Translators.getItemTranslator().translateToBedrock(inventory.getItem(i));
+            contents[i] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
         }
         // Hotbar
         for (int i = 36; i < 45; i++) {
-            contents[i - 36] = Translators.getItemTranslator().translateToBedrock(inventory.getItem(i));
+            contents[i - 36] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
         }
         inventoryContentPacket.setContents(contents);
         session.getUpstream().sendPacket(inventoryContentPacket);
@@ -74,7 +73,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         armorContentPacket.setContainerId(ContainerId.ARMOR);
         contents = new ItemData[4];
         for (int i = 5; i < 9; i++) {
-            contents[i - 5] = Translators.getItemTranslator().translateToBedrock(inventory.getItem(i));
+            contents[i - 5] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
         }
         armorContentPacket.setContents(contents);
         session.getUpstream().sendPacket(armorContentPacket);
@@ -82,8 +81,30 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         // Offhand
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
-        offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(inventory.getItem(45))});
+        offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(45))});
         session.getUpstream().sendPacket(offhandPacket);
+    }
+
+    /**
+     * Update the crafting grid for the player to hide/show the barriers in the creative inventory
+     * @param session Session of the player
+     * @param inventory Inventory of the player
+     */
+    public static void updateCraftingGrid(GeyserSession session, Inventory inventory) {
+        // Crafting grid
+        for (int i = 1; i < 5; i++) {
+            InventorySlotPacket slotPacket = new InventorySlotPacket();
+            slotPacket.setContainerId(ContainerId.CURSOR);
+            slotPacket.setSlot(i + 27);
+
+            if (session.getGameMode() == GameMode.CREATIVE) {
+                slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, new ItemStack(Toolbox.BARRIER_INDEX)));
+            }else{
+                slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i)));
+            }
+
+            session.getUpstream().sendPacket(slotPacket);
+        }
     }
 
     @Override
@@ -104,12 +125,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setContainerId(ContainerId.CURSOR);
                 slotPacket.setSlot(slot + 27);
             }
-            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(inventory.getItem(slot)));
+            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(slot)));
             session.getUpstream().sendPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
-            offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(inventory.getItem(slot))});
+            offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(slot))});
             session.getUpstream().sendPacket(offhandPacket);
         }
     }
@@ -180,7 +201,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         if (action.getToItem().getId() == 0) {
                             javaItem = new ItemStack(-1, 0, null);
                         } else {
-                            javaItem = Translators.getItemTranslator().translateToJava(action.getToItem());
+                            javaItem = Translators.getItemTranslator().translateToJava(session, action.getToItem());
                         }
                         ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(javaSlot, javaItem);
                         session.getDownstream().getSession().send(creativePacket);
@@ -188,13 +209,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         break;
                     case ContainerId.CURSOR:
                         if (action.getSlot() == 0) {
-                            session.getInventory().setCursor(Translators.getItemTranslator().translateToJava(action.getToItem()));
+                            session.getInventory().setCursor(Translators.getItemTranslator().translateToJava(session, action.getToItem()));
                         }
                         break;
                     case ContainerId.NONE:
                         if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                                 && action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                            javaItem = Translators.getItemTranslator().translateToJava(action.getToItem());
+                            javaItem = Translators.getItemTranslator().translateToJava(session, action.getToItem());
                             ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, javaItem);
                             session.getDownstream().getSession().send(creativeDropPacket);
                         }

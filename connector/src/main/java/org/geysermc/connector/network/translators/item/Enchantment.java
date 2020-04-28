@@ -30,7 +30,7 @@ import lombok.Getter;
 import java.util.Locale;
 
 @Getter
-enum Enchantment {
+public enum Enchantment {
     PROTECTION,
     FIRE_PROTECTION,
     FEATHER_FALLING,

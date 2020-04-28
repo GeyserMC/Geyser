@@ -55,7 +55,9 @@ public class Toolbox {
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
+    public static CompoundTag ENTITY_IDENTIFIERS;
+
+    public static int BARRIER_INDEX = 0;
 
     static {
         /* Load biomes */
@@ -126,12 +128,17 @@ public class Toolbox {
                         entry.getValue().get("bedrock_id").intValue(),
                         entry.getValue().get("bedrock_data").intValue()));
             }
+            if (entry.getKey().equals("minecraft:barrier")) {
+                BARRIER_INDEX = itemIndex;
+            }
+
             itemIndex++;
         }
 
         // Load the locale data
         LocaleUtils.init();
 
+        /* Load creative items */
         stream = getResource("bedrock/creative_items.json");
 
         JsonNode creativeItemEntries;
@@ -161,8 +168,24 @@ public class Toolbox {
             }
         }
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
+
+
+        /* Load entity identifiers */
+        stream = Toolbox.getResource("bedrock/entity_identifiers.dat");
+
+        try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
+            ENTITY_IDENTIFIERS = (CompoundTag) nbtInputStream.readTag();
+        } catch (Exception e) {
+            throw new AssertionError("Unable to get entities from entity identifiers", e);
+        }
     }
 
+    /**
+     * Get an InputStream for the given resource path, throws AssertionError if resource is not found
+     *
+     * @param resource Resource to get
+     * @return InputStream of the given resource
+     */
     public static InputStream getResource(String resource) {
         InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream(resource);
         if (stream == null) {
