@@ -221,7 +221,9 @@ public class SkinProvider {
     private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {
         if (provider == CapeProvider.FIVEZIG)
             return readFiveZigCape(imageUrl);
-        return ImageIO.read(new URL(imageUrl));
+        BufferedImage image = ImageIO.read(new URL(imageUrl));
+        if (image == null) throw new NullPointerException();
+        return image;
     }
 
     private static BufferedImage readFiveZigCape(String url) throws IOException {
