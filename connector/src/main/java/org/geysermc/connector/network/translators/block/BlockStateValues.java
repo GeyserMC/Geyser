@@ -110,7 +110,7 @@ public class BlockStateValues {
         if (NOTEBLOCK_PITCHES.containsKey(state)) {
             return NOTEBLOCK_PITCHES.getInt(state);
         }
-        return 0;
+        return -1;
     }
 
     /**
