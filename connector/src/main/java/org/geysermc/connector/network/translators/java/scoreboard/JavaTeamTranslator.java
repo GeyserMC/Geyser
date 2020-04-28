@@ -33,6 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.scoreboard.UpdateType;
 import org.geysermc.connector.utils.MessageUtils;
 
@@ -45,9 +46,10 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
 
     @Override
     public void translate(ServerTeamPacket packet, GeyserSession session) {
-        GeyserConnector.getInstance().getLogger().debug("Team packet " + packet.getTeamName() + " " + packet.getAction()+" "+ Arrays.toString(packet.getPlayers()));
+        GeyserConnector.getInstance().getLogger().debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
 
         Scoreboard scoreboard = session.getScoreboardCache().getScoreboard();
+        Team team = scoreboard.getTeam(packet.getTeamName());
         switch (packet.getAction()) {
             case CREATE:
                 scoreboard.registerNewTeam(packet.getTeamName(), toPlayerSet(packet.getPlayers()))
@@ -57,22 +59,33 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                         .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()));
                 break;
             case UPDATE:
-                scoreboard.getTeam(packet.getTeamName())
-                        .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
-                        .setColor(packet.getColor())
-                        .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
-                        .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()))
-                        .setUpdateType(UpdateType.UPDATE);
+                if (team != null) {
+                    team.setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                            .setColor(packet.getColor())
+                            .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
+                            .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()))
+                            .setUpdateType(UpdateType.UPDATE);
+                } else {
+                    GeyserConnector.getInstance().getLogger().error("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
+                }
                 break;
             case ADD_PLAYER:
-                scoreboard.getTeam(packet.getTeamName()).addEntities(packet.getPlayers());
+                if(team != null){
+                    team.addEntities(packet.getPlayers());
+                } else {
+                    GeyserConnector.getInstance().getLogger().error("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
+                }
                 break;
             case REMOVE_PLAYER:
-                scoreboard.getTeam(packet.getTeamName()).removeEntities(packet.getPlayers());
+                if(team != null){
+                    team.removeEntities(packet.getPlayers());
+                } else {
+                    GeyserConnector.getInstance().getLogger().error("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
+                }
                 break;
             case REMOVE:
-               scoreboard.removeTeam(packet.getTeamName());
-               break;
+                scoreboard.removeTeam(packet.getTeamName());
+                break;
         }
         scoreboard.onUpdate();
     }

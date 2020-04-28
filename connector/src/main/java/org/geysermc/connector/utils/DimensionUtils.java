@@ -61,6 +61,12 @@ public class DimensionUtils {
         session.getUpstream().sendPacket(stopSoundPacket);
     }
 
+    /**
+     * Map the Java edition dimension IDs to Bedrock edition
+     *
+     * @param javaDimension Dimension ID to convert
+     * @return Converted Bedrock edition dimension ID
+     */
     public static int javaToBedrock(int javaDimension) {
         switch (javaDimension) {
             case -1:

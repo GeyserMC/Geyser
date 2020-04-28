@@ -57,9 +57,15 @@ public class LocaleUtils {
         downloadAndLoadLocale(DEFAULT_LOCALE);
     }
 
+    /**
+     * Fetch the latest versions asset cache from Mojang so we can grab the locale files later
+     */
     private static void generateAssetCache() {
         try {
+            // Get the version manifest from Mojang
             VersionManifest versionManifest = Toolbox.JSON_MAPPER.readValue(WebUtils.getBody("https://launchermeta.mojang.com/mc/game/version_manifest.json"), VersionManifest.class);
+
+            // Get the url for the latest version of the games manifest
             String latestInfoURL = "";
             for (Version version : versionManifest.getVersions()) {
                 if (version.getId().equals(versionManifest.getLatestVersion().getRelease())) {
@@ -68,12 +74,15 @@ public class LocaleUtils {
                 }
             }
 
+            // Make sure we definitely got a version
             if (latestInfoURL.isEmpty()) {
                 throw new Exception("Unable to get latest Minecraft version");
             }
 
+            // Get the individual version manifest
             VersionInfo versionInfo = Toolbox.JSON_MAPPER.readValue(WebUtils.getBody(latestInfoURL), VersionInfo.class);
 
+            // Get the smallest jar for use when downloading the en_us locale, will be either the server or client
             int currentSize = Integer.MAX_VALUE;
             for (VersionDownload download : versionInfo.getDownloads().values()) {
                 if (download.getUrl().endsWith(".jar") && download.getSize() < currentSize) {
@@ -82,8 +91,10 @@ public class LocaleUtils {
                 }
             }
 
+            // Get the assets list
             JsonNode assets = Toolbox.JSON_MAPPER.readTree(WebUtils.getBody(versionInfo.getAssetIndex().getUrl())).get("objects");
 
+            // Put each asset into an array for use later
             Iterator<Map.Entry<String, JsonNode>> assetIterator = assets.fields();
             while (assetIterator.hasNext()) {
                 Map.Entry<String, JsonNode> entry = assetIterator.next();
@@ -95,8 +106,15 @@ public class LocaleUtils {
         }
     }
 
+    /**
+     * Downloads a locale from Mojang if its not already loaded
+     *
+     * @param locale Locale to download and load
+     */
     public static void downloadAndLoadLocale(String locale) {
         locale = locale.toLowerCase();
+
+        // Check the locale isn't already loaded
         if (!ASSET_MAP.containsKey("minecraft/lang/" + locale + ".json") && !locale.equals("en_us")) {
             GeyserConnector.getInstance().getLogger().warning("Invalid locale requested to download and load: " + locale);
             return;
@@ -108,9 +126,15 @@ public class LocaleUtils {
         loadLocale(locale);
     }
 
+    /**
+     * Downloads the specified locale if its not already downloaded
+     *
+     * @param locale Locale to download
+     */
     private static void downloadLocale(String locale) {
         File localeFile = new File("locales/" + locale + ".json");
 
+        // Check if we have already downloaded the locale file
         if (localeFile.exists()) {
             GeyserConnector.getInstance().getLogger().debug("Locale already downloaded: " + locale);
             return;
@@ -128,6 +152,11 @@ public class LocaleUtils {
         WebUtils.downloadFile("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, "locales/" + locale + ".json");
     }
 
+    /**
+     * Loads a locale already downloaded, if the file doesn't exist it just logs a warning
+     *
+     * @param locale Locale to load
+     */
     private static void loadLocale(String locale) {
         File localeFile = new File("locales/" + locale + ".json");
 
@@ -146,7 +175,7 @@ public class LocaleUtils {
             try {
                 localeObj = Toolbox.JSON_MAPPER.readTree(localeStream);
             } catch (Exception e) {
-                throw new AssertionError("Unable to load Java lang map for " + locale, e);
+                throw new AssertionError("Unable to load Java edition lang map for " + locale, e);
             }
 
             // Parse all the locale fields
@@ -164,6 +193,11 @@ public class LocaleUtils {
         }
     }
 
+    /**
+     * Download then en_us locale by downloading the server jar and extracting it from there.
+     *
+     * @param localeFile File to save the locale to
+     */
     private static void downloadEN_US(File localeFile) {
         try {
             // Let the user know we are downloading the JAR
@@ -199,6 +233,13 @@ public class LocaleUtils {
         }
     }
 
+    /**
+     * Translate the given language string into the given locale, or falls back to the default locale
+     *
+     * @param messageText Language string to translate
+     * @param locale Locale to translate to
+     * @return Translated string or the original message if it was not found in the given locale
+     */
     public static String getLocaleString(String messageText, String locale) {
         Map<String, String> localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(locale.toLowerCase());
         if (localeStrings == null)

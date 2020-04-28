@@ -27,9 +27,8 @@ package org.geysermc.platform.velocity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Getter;
-
+import lombok.Setter;
 import org.geysermc.common.IGeyserConfiguration;
 
 import java.nio.file.Path;
@@ -86,7 +85,10 @@ public class GeyserVelocityConfiguration implements IGeyserConfiguration {
     @Getter
     public static class RemoteConfiguration implements IRemoteConfiguration {
 
+        @Setter
         private String address;
+
+        @Setter
         private int port;
 
         private String motd1;
