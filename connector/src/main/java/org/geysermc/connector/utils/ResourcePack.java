@@ -1,23 +1,14 @@
 package org.geysermc.connector.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.voxelwind.server.jni.hash.JavaHash;
 import com.voxelwind.server.jni.hash.NativeHash;
 import com.voxelwind.server.jni.hash.VoxelwindHash;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import net.md_5.bungee.jni.NativeCode;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.floodgate.util.EncryptionUtil;
 
 import java.io.File;
-import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipFile;
 
@@ -43,7 +34,7 @@ public class ResourcePack {
         File directory = new File("packs");
 
         for(File file : directory.listFiles()) {
-            if(file.getName().endsWith(".zip")) {
+            if(file.getName().endsWith(".zip") || file.getName().endsWith(".mcpack")) {
                 ResourcePack pack = new ResourcePack();
 
                 pack.sha256 = getBytes(hashes.get(file.getName()));
