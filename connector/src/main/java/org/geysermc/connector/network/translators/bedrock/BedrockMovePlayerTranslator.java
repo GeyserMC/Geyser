@@ -47,6 +47,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
+        System.out.println("Moving player...");
         PlayerEntity entity = session.getPlayerEntity();
         if (entity == null || !session.isSpawned() || session.getPendingDimSwitches().get() > 0) return;
 
@@ -96,8 +97,12 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (packet.getRidingRuntimeEntityId() != 0) {
             //TODO - figure out exacts
             // Also, horses are one block in the air which kicks you for flying
+            double vehicleY = javaY;
+            if (session.getEntityCache().getEntityByGeyserId(packet.getRidingRuntimeEntityId()).getEntityType() == EntityType.HORSE) {
+                vehicleY--;
+            }
             ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
-                    GenericMath.round(packet.getPosition().getX(), 4), javaY, GenericMath.round(packet.getPosition().getZ(), 4), packet.getRotation().getX(), packet.getRotation().getZ()
+                    GenericMath.round(packet.getPosition().getX(), 4), vehicleY, GenericMath.round(packet.getPosition().getZ(), 4), packet.getRotation().getX(), packet.getRotation().getZ()
             );
             session.getDownstream().getSession().send(clientVehicleMovePacket);
         }
