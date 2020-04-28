@@ -140,10 +140,10 @@ public enum EntityType {
     VEX(MonsterEntity.class, 105, 0f),
     ICE_BOMB(Entity.class, 106, 0f),
     BALLOON(Entity.class, 107, 0f), //TODO
-    PUFFERFISH(AbstractFishEntity.class, 108, 0.7f, 0.7f),
+    PUFFERFISH(PufferFishEntity.class, 108, 0.7f, 0.7f),
     SALMON(AbstractFishEntity.class, 109, 0.5f, 0.7f),
     DROWNED(ZombieEntity.class, 110, 1.95f, 0.6f),
-    TROPICAL_FISH(AbstractFishEntity.class, 111, 0.6f, 0.6f),
+    TROPICAL_FISH(TropicalFishEntity.class, 111, 0.6f, 0.6f),
     COD(AbstractFishEntity.class, 112, 0.25f, 0.5f),
     PANDA(PandaEntity.class, 113, 1.25f, 1.125f, 1.825f),
     FOX(FoxEntity.class, 121, 0.5f, 1.25f),

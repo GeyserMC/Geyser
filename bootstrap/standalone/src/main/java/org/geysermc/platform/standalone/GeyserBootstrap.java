@@ -25,18 +25,21 @@
 
 package org.geysermc.platform.standalone;
 
+import org.geysermc.common.PlatformType;
+import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.platform.standalone.command.GeyserCommandManager;
+import org.geysermc.platform.standalone.console.GeyserLogger;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-import org.geysermc.common.PlatformType;
-import org.geysermc.common.bootstrap.IGeyserBootstrap;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.platform.standalone.console.GeyserLogger;
-
 public class GeyserBootstrap implements IGeyserBootstrap {
-    
+
+    private GeyserCommandManager geyserCommandManager;
     private GeyserConfiguration geyserConfig;
     private GeyserLogger geyserLogger;
 
@@ -49,7 +52,7 @@ public class GeyserBootstrap implements IGeyserBootstrap {
     @Override
     public void onEnable() {
         geyserLogger = new GeyserLogger();
-        
+
         LoopbackUtil.checkLoopback(geyserLogger);
         
         try {
@@ -61,6 +64,7 @@ public class GeyserBootstrap implements IGeyserBootstrap {
         }
 
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
+        geyserCommandManager = new GeyserCommandManager(connector);
         geyserLogger.start();
     }
 
@@ -78,5 +82,10 @@ public class GeyserBootstrap implements IGeyserBootstrap {
     @Override
     public GeyserLogger getGeyserLogger() {
         return geyserLogger;
+    }
+
+    @Override
+    public CommandManager getGeyserCommandManager() {
+        return geyserCommandManager;
     }
 }

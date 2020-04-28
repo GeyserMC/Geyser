@@ -25,6 +25,7 @@
 
 package org.geysermc.common.window;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.window.response.FormResponse;
@@ -50,6 +51,7 @@ public abstract class FormWindow {
         this.response = response;
     }
 
+    @JsonIgnore
     public abstract String getJSONData();
 
     public abstract void setResponse(String response);

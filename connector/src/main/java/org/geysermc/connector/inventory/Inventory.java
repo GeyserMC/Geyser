@@ -27,8 +27,11 @@ package org.geysermc.connector.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Inventory {
 
@@ -43,15 +46,25 @@ public class Inventory {
     protected WindowType windowType;
 
     @Getter
-    protected int size;
+    protected final int size;
 
     @Getter
     @Setter
     protected String title;
 
-    @Getter
     @Setter
     protected ItemStack[] items;
+
+    @Getter
+    @Setter
+    protected Vector3i holderPosition = Vector3i.ZERO;
+
+    @Getter
+    @Setter
+    protected long holderId = -1;
+
+    @Getter
+    protected AtomicInteger transactionId = new AtomicInteger(1);
 
     public Inventory(int id, WindowType windowType, int size) {
         this("Inventory", id, windowType, size);
@@ -62,11 +75,16 @@ public class Inventory {
         this.id = id;
         this.windowType = windowType;
         this.size = size;
-
         this.items = new ItemStack[size];
     }
 
     public ItemStack getItem(int slot) {
         return items[slot];
+    }
+
+    public void setItem(int slot, ItemStack item) {
+        if (item != null && (item.getId() == 0 || item.getAmount() < 1))
+            item = null;
+        items[slot] = item;
     }
 }
