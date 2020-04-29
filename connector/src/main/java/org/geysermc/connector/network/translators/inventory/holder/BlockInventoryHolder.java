@@ -38,6 +38,7 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.utils.LocaleUtils;
 
 @AllArgsConstructor
 public class BlockInventoryHolder extends InventoryHolder {
@@ -60,7 +61,7 @@ public class BlockInventoryHolder extends InventoryHolder {
                 .intTag("x", position.getX())
                 .intTag("y", position.getY())
                 .intTag("z", position.getZ())
-                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
+                .stringTag("CustomName", LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode())).buildRootTag();
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(position);

@@ -25,11 +25,11 @@
 
 package org.geysermc.platform.bukkit;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
-import org.geysermc.common.command.ICommandManager;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
@@ -53,6 +53,15 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
             getConfig().set("metrics.uuid", UUID.randomUUID().toString());
             saveConfig();
         }
+
+        // Don't change the ip if its listening on all interfaces
+        // By default this should be 127.0.0.1 but may need to be changed in some circumstances
+        if (!Bukkit.getIp().equals("0.0.0.0")) {
+            getConfig().set("remote.address", Bukkit.getIp());
+        }
+
+        getConfig().set("remote.port", Bukkit.getPort());
+        saveConfig();
 
         this.geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
         this.connector = GeyserConnector.start(PlatformType.BUKKIT, this);

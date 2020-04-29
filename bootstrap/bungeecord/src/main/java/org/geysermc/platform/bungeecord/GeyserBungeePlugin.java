@@ -25,14 +25,14 @@
 
 package org.geysermc.platform.bungeecord;
 
+import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
-
 import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
@@ -40,6 +40,7 @@ import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -81,8 +82,31 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
 
         this.geyserConfig = new GeyserBungeeConfiguration(getDataFolder(), configuration);
 
+        boolean configHasChanged = false;
+
+        if (getProxy().getConfig().getListeners().size() == 1) {
+            ListenerInfo listener = getProxy().getConfig().getListeners().toArray(new ListenerInfo[0])[0];
+
+            InetSocketAddress javaAddr = listener.getHost();
+
+            // Don't change the ip if its listening on all interfaces
+            // By default this should be 127.0.0.1 but may need to be changed in some circumstances
+            if (!javaAddr.getHostString().equals("0.0.0.0")) {
+                configuration.set("remote.address", javaAddr.getHostString());
+            }
+
+            configuration.set("remote.port", javaAddr.getPort());
+
+            configHasChanged = true;
+        }
+
         if (geyserConfig.getMetrics().getUniqueId().equals("generateduuid")) {
             configuration.set("metrics.uuid", UUID.randomUUID().toString());
+
+            configHasChanged = true;
+        }
+
+        if (configHasChanged) {
             try {
                 ConfigurationProvider.getProvider(YamlConfiguration.class).save(configuration, new File(getDataFolder(), "config.yml"));
             } catch (IOException ex) {
