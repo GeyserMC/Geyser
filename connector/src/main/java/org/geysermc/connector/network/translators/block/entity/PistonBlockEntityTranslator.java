@@ -29,12 +29,13 @@ package org.geysermc.connector.network.translators.block.entity;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.EndTag;
 import com.nukkitx.nbt.tag.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(name = "piston", delay = false, regex = "piston")
+@BlockEntity(name = "piston_head", delay = false, regex = "piston")
 public class PistonBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
@@ -57,6 +58,7 @@ public class PistonBlockEntityTranslator extends BlockEntityTranslator implement
         tagBuilder.floatTag("LastProgress", 0);
         tagBuilder.byteTag("NewState", (byte) 0);
         tagBuilder.byteTag("Sticky", (byte) 0);
+        tagBuilder.listTag("AttachedBlocks", EndTag.class, new ArrayList<>());
         return tagBuilder.buildRootTag();
     }
 

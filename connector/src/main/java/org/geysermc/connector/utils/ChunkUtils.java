@@ -32,10 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -43,7 +40,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.BlockStateValues;
 import org.geysermc.connector.network.translators.block.entity.*;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
@@ -61,7 +57,6 @@ public class ChunkUtils {
      * Temporarily stores positions of BlockState values that are needed for certain block entities actively
      */
     public static final Map<Position, BlockState> CACHED_BLOCK_ENTITIES = new HashMap<>();
-    private static final Object2IntMap<Vector3i> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
 
     public static ChunkData translateToBedrock(Column column) {
         ChunkData chunkData = new ChunkData();
@@ -170,21 +165,6 @@ public class ChunkUtils {
         } else {
             waterPacket.setRuntimeId(0);
         }
-
-//        if (BlockStateValues.getNoteblockPitch(blockState) != -1) {
-//            if (NOTEBLOCK_PITCHES.containsKey(position)) {
-//                NOTEBLOCK_PITCHES.put(position, BlockStateValues.getNoteblockPitch(blockState));
-//            } else {
-//                NOTEBLOCK_PITCHES.replace(position, BlockStateValues.getNoteblockPitch(blockState));
-//            }
-//
-//            BlockEventPacket blockEventPacket = new BlockEventPacket();
-//            blockEventPacket.setBlockPosition(position);
-//            blockEventPacket.setEventType(13);
-//            blockEventPacket.setEventData(NOTEBLOCK_PITCHES.getInt(position));
-//            session.getUpstream().sendPacket(blockEventPacket);
-//        }
-
         session.getUpstream().sendPacket(waterPacket);
 
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
