@@ -27,8 +27,6 @@ package org.geysermc.connector.network.translators.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
-import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -44,7 +42,6 @@ public class BlockStateValues {
     private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
     private static final Object2IntMap<BlockState> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
-    public static final Int2BooleanMap IS_PISTON_EXTENDED = new Int2BooleanOpenHashMap();
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
 
@@ -56,13 +53,13 @@ public class BlockStateValues {
     public static void storeBlockStateValues(Map.Entry<String, JsonNode> entry, BlockState javaBlockState) {
         JsonNode bannerColor = entry.getValue().get("banner_color");
         if (bannerColor != null) {
-            BlockStateValues.BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
+            BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
             return; // There will never be a banner color and a skull variant
         }
 
         JsonNode bedColor = entry.getValue().get("bed_color");
         if (bedColor != null) {
-            BlockStateValues.BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
+            BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
             return;
         }
 
@@ -74,17 +71,12 @@ public class BlockStateValues {
 
         JsonNode skullVariation = entry.getValue().get("variation");
         if(skullVariation != null) {
-            BlockStateValues.SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
+            SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
         }
 
         JsonNode skullRotation = entry.getValue().get("skull_rotation");
         if (skullRotation != null) {
-            BlockStateValues.SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
-        }
-
-        if (entry.getKey().contains("piston")) {
-            System.out.println("Is piston");
-            IS_PISTON_EXTENDED.put(javaBlockState.getId(), entry.getKey().contains("extended=true"));
+            SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
         }
     }
 
@@ -114,6 +106,12 @@ public class BlockStateValues {
         return -1;
     }
 
+    /**
+     * The note that noteblocks output when hit is part of the block state in Java but sent as a BlockEventPacket in Bedrock.
+     * This gives an integer pitch that Bedrock can use.
+     * @param state BlockState of the block
+     * @return note block note integer or -1 if not present
+     */
     public static int getNoteblockPitch(BlockState state) {
         if (NOTEBLOCK_PITCHES.containsKey(state)) {
             return NOTEBLOCK_PITCHES.getInt(state);
