@@ -33,6 +33,7 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 
+import com.velocitypowered.api.proxy.ProxyServer;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -43,6 +44,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserConnector.NAME + "-Velocity", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -50,6 +52,9 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Inject
     private Logger logger;
+
+    @Inject
+    private ProxyServer server;
 
     @Inject
     private CommandManager commandManager;
@@ -72,6 +77,16 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             logger.warn("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
             ex.printStackTrace();
         }
+
+        InetSocketAddress javaAddr = server.getBoundAddress();
+
+        // Don't change the ip if its listening on all interfaces
+        // By default this should be 127.0.0.1 but may need to be changed in some circumstances
+        if (!javaAddr.getHostString().equals("0.0.0.0")) {
+            geyserConfig.getRemote().setAddress(javaAddr.getHostString());
+        }
+
+        geyserConfig.getRemote().setPort(javaAddr.getPort());
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
         this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);

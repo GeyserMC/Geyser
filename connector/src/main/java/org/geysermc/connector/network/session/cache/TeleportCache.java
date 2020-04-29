@@ -23,27 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity;
+package org.geysermc.connector.network.session.cache;
 
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
 import com.nukkitx.math.vector.Vector3f;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Translator(packet = ServerEntityTeleportPacket.class)
-public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityTeleportPacket> {
+@AllArgsConstructor
+@Data
+public class TeleportCache {
 
-    @Override
-    public void translate(ServerEntityTeleportPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        }
-        if (entity == null) return;
+    private static final double ERROR = 0.2;
+    private static final double ERROR_Y = 0.5;
 
-        entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), packet.isOnGround(), false);
+    private double x, y, z;
+    private int teleportConfirmId;
+
+    public boolean canConfirm(Vector3f position) {
+        return (Math.abs(this.x - position.getX()) < ERROR &&
+                Math.abs(this.y - position.getY()) < ERROR_Y &&
+                Math.abs(this.z - position.getZ()) < ERROR);
     }
 }

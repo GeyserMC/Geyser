@@ -45,8 +45,8 @@ public class ItemTranslator {
     private Int2ObjectMap<ItemStackTranslator> itemTranslators = new Int2ObjectOpenHashMap();
     private List<NbtItemStackTranslator> nbtItemTranslators;
     private Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
-	
-	// Shield ID, used in Entity.java
+
+    // Shield ID, used in Entity.java
     public static final int SHIELD = 829;
 
     public void init() {
@@ -91,7 +91,6 @@ public class ItemTranslator {
         ItemEntry javaItem = getItem(data);
 
         ItemStack itemStack;
-
         ItemStackTranslator itemStackTranslator = itemTranslators.get(javaItem.getJavaId());
         if (itemStackTranslator != null) {
             itemStack = itemStackTranslator.translateToJava(data, javaItem);
@@ -116,19 +115,21 @@ public class ItemTranslator {
 
         ItemEntry bedrockItem = getItem(stack);
 
-        if (stack != null && stack.getNbt() != null) {
+        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), stack.getNbt() != null ? stack.getNbt().clone() : null);
+
+        if (itemStack.getNbt() != null) {
             for (NbtItemStackTranslator translator : nbtItemTranslators) {
                 if (translator.acceptItem(bedrockItem)) {
-                    translator.translateToBedrock(stack.getNbt(), bedrockItem);
+                    translator.translateToBedrock(itemStack.getNbt(), bedrockItem);
                 }
             }
         }
 
         ItemStackTranslator itemStackTranslator = itemTranslators.get(bedrockItem.getJavaId());
         if (itemStackTranslator != null) {
-            return itemStackTranslator.translateToBedrock(stack, bedrockItem);
+            return itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
         } else {
-            return DEFAULT_TRANSLATOR.translateToBedrock(stack, bedrockItem);
+            return DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
         }
     }
 
