@@ -118,7 +118,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     case 2:
                         BlockState blockState = session.getChunkCache().getBlockAt(new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()));
                         double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(blockState.getId());
-                        if (session.getGameMode() == GameMode.CREATIVE || blockHardness == 0) {
+                        if (session.getGameMode() == GameMode.CREATIVE || (session.getConnector().getConfig().isCacheChunks() && blockHardness == 0)) {
                             session.setLastBlockPlacedId(null);
                             session.setLastBlockPlacePosition(null);
 

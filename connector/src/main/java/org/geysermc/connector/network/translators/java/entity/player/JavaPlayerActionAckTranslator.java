@@ -48,9 +48,9 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
     @Override
     public void translate(ServerPlayerActionAckPacket packet, GeyserSession session) {
         LevelEventPacket levelEvent = new LevelEventPacket();
-        double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(packet.getNewState().getId());
         switch (packet.getAction()) {
             case FINISH_DIGGING:
+                double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(session.getBreakingBlock() == null ? 0 : session.getBreakingBlock().getId());
                 if (session.getGameMode() != GameMode.CREATIVE && blockHardness != 0) {
                     levelEvent.setType(LevelEventType.DESTROY);
                     levelEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
@@ -61,6 +61,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
                 break;
             case START_DIGGING:
+                blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(packet.getNewState().getId());
                 levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
                 levelEvent.setPosition(Vector3f.from(
                         packet.getPosition().getX(),
