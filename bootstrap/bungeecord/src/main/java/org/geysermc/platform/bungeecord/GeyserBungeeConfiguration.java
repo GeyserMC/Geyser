@@ -25,11 +25,12 @@
 
 package org.geysermc.platform.bungeecord;
 
+import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
-
 import org.geysermc.common.IGeyserConfiguration;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -46,6 +47,8 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
 
     private Map<String, BungeeUserAuthenticationInfo> userAuthInfo = new HashMap<>();
 
+    private Path floodgateKey;
+
     public GeyserBungeeConfiguration(File dataFolder, Configuration config) {
         this.dataFolder = dataFolder;
         this.config = config;
@@ -59,6 +62,24 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
 
         for (String key : config.getSection("userAuths").getKeys()) {
             userAuthInfo.put(key, new BungeeUserAuthenticationInfo(key));
+        }
+    }
+
+    public void loadFloodgate(GeyserBungeePlugin plugin) {
+        floodgateKey = Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
+        if (!Files.exists(floodgateKey) && getRemote().getAuthType().equals("floodgate")) {
+            Plugin floodgate = plugin.getProxy().getPluginManager().getPlugin("floodgate-bungee");
+            if (floodgate != null) {
+                Path autoKey = floodgate.getDataFolder().toPath().resolve("public-key.pem");
+                if (Files.exists(autoKey)) {
+                    plugin.getGeyserLogger().info("Auto-loaded floodgate key");
+                    floodgateKey = autoKey;
+                } else {
+                    plugin.getGeyserLogger().error("Auth-type set to floodgate and the public key is missing!");
+                }
+            } else {
+                plugin.getGeyserLogger().error("Auth-type set to floodgate but floodgate is not installed!");
+            }
         }
     }
 
@@ -109,7 +130,7 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
 
     @Override
     public Path getFloodgateKeyFile() {
-        return Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
+        return floodgateKey;
     }
 
     @Override
