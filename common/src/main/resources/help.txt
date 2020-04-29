@@ -1,0 +1,13 @@
+
+--------------------------------------------------------------------------------
+
+  Oops! You attempted to run a plugin version of Geyser directly!
+
+  This jar file is a plugin for ${plugin_type}. You can run this file as a
+  ${plugin_type} plugin dropping the jar file into the "${plugin_folder}" directory.
+
+  If you need more help, you should check out our discord:
+
+    http://discord.geysermc.org/
+
+--------------------------------------------------------------------------------
