@@ -26,12 +26,25 @@
 
 package org.geysermc.common.main;
 
+import javax.swing.*;
 import java.io.InputStream;
 import java.util.Scanner;
 
 public class IGeyserMain {
 
-    public void printMessage() {
+    public void displayMessage() {
+        String message = createMessage();
+
+        if (System.console() == null) {
+            JOptionPane.showMessageDialog(null, message, "GeyserMC plugin", JOptionPane.ERROR_MESSAGE);
+        }
+
+        printMessage(message);
+    }
+
+    private String createMessage() {
+        String message = "";
+
         InputStream helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("help.txt");
         Scanner help = new Scanner(helpStream).useDelimiter("\\Z");
         String line = "";
@@ -41,8 +54,14 @@ public class IGeyserMain {
             line = line.replace("${plugin_type}", this.getPluginType());
             line = line.replace("${plugin_folder}", this.getPluginFolder());
 
-            System.out.println(line);
+            message += line + "\n";
         }
+
+        return message;
+    }
+
+    private void printMessage(String message) {
+        System.out.print(message);
     }
 
     public String getPluginType() {

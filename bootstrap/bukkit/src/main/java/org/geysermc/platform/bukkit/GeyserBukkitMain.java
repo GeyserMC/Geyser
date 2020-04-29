@@ -31,7 +31,7 @@ import org.geysermc.common.main.IGeyserMain;
 public class GeyserBukkitMain extends IGeyserMain {
 
     public static void main(String[] args) {
-        new GeyserBukkitMain().printMessage();
+        new GeyserBukkitMain().displayMessage();
     }
 
     public String getPluginType() {

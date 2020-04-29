@@ -31,7 +31,7 @@ import org.geysermc.common.main.IGeyserMain;
 public class GeyserSpongeMain extends IGeyserMain {
 
     public static void main(String[] args) {
-        new GeyserSpongeMain().printMessage();
+        new GeyserSpongeMain().displayMessage();
     }
 
     public String getPluginType() {

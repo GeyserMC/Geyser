@@ -31,7 +31,7 @@ import org.geysermc.common.main.IGeyserMain;
 public class GeyserBungeeMain extends IGeyserMain {
 
     public static void main(String[] args) {
-        new GeyserBungeeMain().printMessage();
+        new GeyserBungeeMain().displayMessage();
     }
 
     public String getPluginType() {

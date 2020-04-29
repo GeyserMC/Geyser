@@ -31,7 +31,7 @@ import org.geysermc.common.main.IGeyserMain;
 public class GeyserVelocityMain extends IGeyserMain {
 
     public static void main(String[] args) {
-        new GeyserVelocityMain().printMessage();
+        new GeyserVelocityMain().displayMessage();
     }
 
     public String getPluginType() {
