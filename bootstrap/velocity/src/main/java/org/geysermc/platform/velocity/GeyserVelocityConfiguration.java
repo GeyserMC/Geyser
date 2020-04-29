@@ -27,13 +27,18 @@ package org.geysermc.platform.velocity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.velocitypowered.api.plugin.PluginContainer;
+import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.IGeyserConfiguration;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Optional;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
@@ -67,9 +72,30 @@ public class GeyserVelocityConfiguration implements IGeyserConfiguration {
 
     private MetricsInfo metrics;
 
+    private Path floodgateKey;
+
+    public void loadFloodgate(GeyserVelocityPlugin plugin, ProxyServer proxyServer, File dataFolder) {
+        // Paths.get(floodgateKeyFile)
+        floodgateKey = Paths.get(dataFolder.toString(), floodgateKeyFile.isEmpty() ? floodgateKeyFile : "public-key.pem");
+        if (!Files.exists(floodgateKey) && getRemote().getAuthType().equals("floodgate")) {
+            Optional<PluginContainer> floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
+            if (floodgate != null && floodgate.isPresent()) {
+                Path autoKey = Paths.get("plugins/floodgate/", "public-key.pem");
+                if (Files.exists(autoKey)) {
+                    plugin.getGeyserLogger().info("Auto-loaded floodgate key");
+                    floodgateKey = autoKey;
+                } else {
+                    plugin.getGeyserLogger().error("Auth-type set to floodgate and the public key is missing!");
+                }
+            } else {
+                plugin.getGeyserLogger().error("Auth-type set to floodgate but floodgate is not installed!");
+            }
+        }
+    }
+
     @Override
     public Path getFloodgateKeyFile() {
-        return Paths.get(floodgateKeyFile);
+        return floodgateKey;
     }
 
     @Getter

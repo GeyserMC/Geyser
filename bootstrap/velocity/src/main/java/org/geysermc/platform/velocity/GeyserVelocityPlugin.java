@@ -54,7 +54,7 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
     private Logger logger;
 
     @Inject
-    private ProxyServer server;
+    private ProxyServer proxyServer;
 
     @Inject
     private CommandManager commandManager;
@@ -67,8 +67,9 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
 
     @Override
     public void onEnable() {
+        File configDir = new File("plugins/" + GeyserConnector.NAME + "-Velocity/");
+
         try {
-            File configDir = new File("plugins/" + GeyserConnector.NAME + "-Velocity/");
             if (!configDir.exists())
                 configDir.mkdir();
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
@@ -78,7 +79,7 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
             ex.printStackTrace();
         }
 
-        InetSocketAddress javaAddr = server.getBoundAddress();
+        InetSocketAddress javaAddr = proxyServer.getBoundAddress();
 
         // Don't change the ip if its listening on all interfaces
         // By default this should be 127.0.0.1 but may need to be changed in some circumstances
@@ -89,6 +90,9 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
         geyserConfig.getRemote().setPort(javaAddr.getPort());
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
+
+        geyserConfig.loadFloodgate(this, proxyServer, configDir);
+
         this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
