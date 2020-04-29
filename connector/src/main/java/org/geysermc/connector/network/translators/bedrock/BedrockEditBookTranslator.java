@@ -1,8 +1,32 @@
+/*
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientEditBookPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
@@ -29,6 +53,8 @@ public class BedrockEditBookTranslator  extends PacketTranslator<BookEditPacket>
             ItemStack bookItem = new ItemStack(itemStack.getId(), itemStack.getAmount(), tag);
             List<Tag> pages = tag.contains("pages") ? new LinkedList<>(((ListTag) tag.get("pages")).getValue()) : new LinkedList<>();
 
+            System.out.println(packet.toString());
+
             int page = packet.getPageNumber();
 
             switch (packet.getAction()) {
@@ -41,11 +67,16 @@ public class BedrockEditBookTranslator  extends PacketTranslator<BookEditPacket>
                 }
                 case REPLACE_PAGE: {
                     if (page < pages.size()) {
+                        if(((StringTag) pages.get(page)).getValue().equals(packet.getText())){
+                            return;
+                        }
+
                         pages.set(page, new StringTag("", MessageUtils.getJavaMessage(packet.getText())));
+
+                        tag.put(new ListTag("pages", pages));
+                        ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, false, Hand.MAIN_HAND);
+                        session.getDownstream().getSession().send(editBookPacket);
                     }
-                    tag.put(new ListTag("pages", pages));
-                    ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, false, Hand.MAIN_HAND);
-                    session.getDownstream().getSession().send(editBookPacket);
                     break;
                 }
                 case DELETE_PAGE: {

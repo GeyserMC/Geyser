@@ -106,7 +106,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             slotPacket.setSlot(i + 27);
 
             if (session.getGameMode() == GameMode.CREATIVE) {
-                slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, new ItemStack(Toolbox.BARRIER_INDEX)));
+                slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(new ItemStack(Toolbox.BARRIER_INDEX)));
             }else{
                 slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(inventory.getItem(i)));
             }
