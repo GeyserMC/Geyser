@@ -35,7 +35,7 @@ public class GeyserBukkitMain extends IGeyserMain {
     }
 
     public String getPluginType() {
-        return "Bukkit";
+        return "Spigot or Paper (recommended)";
     }
 
     public String getPluginFolder() {

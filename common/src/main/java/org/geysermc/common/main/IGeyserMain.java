@@ -36,7 +36,7 @@ public class IGeyserMain {
         String message = createMessage();
 
         if (System.console() == null) {
-            JOptionPane.showMessageDialog(null, message, "GeyserMC plugin", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, message, "GeyserMC Plugin: " + this.getPluginType(), JOptionPane.ERROR_MESSAGE);
         }
 
         printMessage(message);
