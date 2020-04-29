@@ -40,7 +40,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>org.geysermc.platform.velocity.GeyserVelocityRunnable</Main-Class>
+                            <Main-Class>org.geysermc.platform.velocity.GeyserVelocityMain</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>

@@ -24,21 +24,32 @@
  *
  */
 
-package org.geysermc.platform.velocity;
+package org.geysermc.common.main;
 
-import org.geysermc.common.runnable.IGeyserRunnable;
+import java.io.InputStream;
+import java.util.Scanner;
 
-public class GeyserVelocityRunnable extends IGeyserRunnable {
+public class IGeyserMain {
 
-    public static void main(String[] args) {
-        new GeyserVelocityRunnable().printMessage();
+    public void printMessage() {
+        InputStream helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("help.txt");
+        Scanner help = new Scanner(helpStream).useDelimiter("\\Z");
+        String line = "";
+        while (help.hasNext()) {
+            line = help.next();
+
+            line = line.replace("${plugin_type}", this.getPluginType());
+            line = line.replace("${plugin_folder}", this.getPluginFolder());
+
+            System.out.println(line);
+        }
     }
 
     public String getPluginType() {
-        return "Velocity";
+        return "unknown";
     }
 
     public String getPluginFolder() {
-        return "plugins";
+        return "unknown";
     }
 }

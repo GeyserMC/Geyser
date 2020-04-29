@@ -24,21 +24,21 @@
  *
  */
 
-package org.geysermc.platform.sponge;
+package org.geysermc.platform.bungeecord;
 
-import org.geysermc.common.runnable.IGeyserRunnable;
+import org.geysermc.common.main.IGeyserMain;
 
-public class GeyserSpongeRunnable extends IGeyserRunnable {
+public class GeyserBungeeMain extends IGeyserMain {
 
     public static void main(String[] args) {
-        new GeyserSpongeRunnable().printMessage();
+        new GeyserBungeeMain().printMessage();
     }
 
     public String getPluginType() {
-        return "Sponge";
+        return "BungeeCord";
     }
 
     public String getPluginFolder() {
-        return "mods";
+        return "plugins";
     }
 }

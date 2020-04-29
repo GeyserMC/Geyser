@@ -24,21 +24,21 @@
  *
  */
 
-package org.geysermc.platform.bukkit;
+package org.geysermc.platform.sponge;
 
-import org.geysermc.common.runnable.IGeyserRunnable;
+import org.geysermc.common.main.IGeyserMain;
 
-public class GeyserBukkitRunnable extends IGeyserRunnable {
+public class GeyserSpongeMain extends IGeyserMain {
 
     public static void main(String[] args) {
-        new GeyserBukkitRunnable().printMessage();
+        new GeyserSpongeMain().printMessage();
     }
 
     public String getPluginType() {
-        return "Bukkit";
+        return "Sponge";
     }
 
     public String getPluginFolder() {
-        return "plugins";
+        return "mods";
     }
 }

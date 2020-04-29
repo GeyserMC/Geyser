@@ -24,18 +24,18 @@
  *
  */
 
-package org.geysermc.platform.bungeecord;
+package org.geysermc.platform.bukkit;
 
-import org.geysermc.common.runnable.IGeyserRunnable;
+import org.geysermc.common.main.IGeyserMain;
 
-public class GeyserBungeeRunnable extends IGeyserRunnable {
+public class GeyserBukkitMain extends IGeyserMain {
 
     public static void main(String[] args) {
-        new GeyserBungeeRunnable().printMessage();
+        new GeyserBukkitMain().printMessage();
     }
 
     public String getPluginType() {
-        return "BungeeCord";
+        return "Bukkit";
     }
 
     public String getPluginFolder() {

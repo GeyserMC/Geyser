@@ -40,7 +40,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>org.geysermc.platform.bungeecord.GeyserBungeeRunnable</Main-Class>
+                            <Main-Class>org.geysermc.platform.bungeecord.GeyserBungeeMain</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>
