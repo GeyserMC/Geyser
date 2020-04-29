@@ -32,7 +32,7 @@ import net.md_5.bungee.config.YamlConfiguration;
 
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
@@ -44,7 +44,7 @@ import java.nio.file.Files;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
+public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserBungeeCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;

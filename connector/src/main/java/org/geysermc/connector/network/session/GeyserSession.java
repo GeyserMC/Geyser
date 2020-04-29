@@ -62,7 +62,7 @@ import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.utils.Toolbox;
@@ -337,10 +337,11 @@ public class GeyserSession implements CommandSender {
             }
         }
 
-        this.entityCache.getEntities().clear();
-        this.scoreboardCache.removeScoreboard();
-        this.inventoryCache.getInventories().clear();
-        this.windowCache.getWindows().clear();
+        this.chunkCache = null;
+        this.entityCache = null;
+        this.scoreboardCache = null;
+        this.inventoryCache = null;
+        this.windowCache = null;
 
         closed = true;
     }

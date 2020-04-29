@@ -26,7 +26,7 @@
 package org.geysermc.platform.bukkit;
 
 import org.bukkit.configuration.file.FileConfiguration;
-import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.connector.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -34,7 +34,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserBukkitConfiguration implements IGeyserConfiguration {
+public class GeyserBukkitConfiguration implements GeyserConfiguration {
 
     private FileConfiguration config;
     private File dataFolder;
@@ -109,6 +109,11 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
     @Override
     public Path getFloodgateKeyFile() {
         return Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
+    }
+
+    @Override
+    public boolean isCacheChunks() {
+        return true; // We override this as with Bukkit, we have direct access to the server implementation
     }
 
     @Override

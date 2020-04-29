@@ -27,11 +27,11 @@ package org.geysermc.platform.velocity;
 
 import lombok.AllArgsConstructor;
 
-import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserLogger;
 import org.slf4j.Logger;
 
 @AllArgsConstructor
-public class GeyserVelocityLogger implements IGeyserLogger {
+public class GeyserVelocityLogger implements GeyserLogger {
 
     private Logger logger;
     private boolean debugMode;
