@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
@@ -42,9 +43,13 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
 
     @Override
     public void translate(ServerBlockChangePacket packet, GeyserSession session) {
+        Position pos = packet.getRecord().getPosition();
+        boolean updatePlacement = !(session.getConnector().getConfig().isCacheChunks() && session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ()).getId() == packet.getRecord().getBlock().getId());
         ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), packet.getRecord().getPosition());
+        if (updatePlacement) {
+            this.checkPlace(session, packet);
+        }
         this.checkInteract(session, packet);
-        this.checkPlace(session, packet);
     }
 
     private boolean checkPlace(GeyserSession session, ServerBlockChangePacket packet) {
