@@ -40,8 +40,9 @@ import org.geysermc.connector.utils.SkinUtils;
 public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayerListEntryPacket> {
     @Override
     public void translate(ServerPlayerListEntryPacket packet, GeyserSession session) {
-        if (packet.getAction() != PlayerListEntryAction.ADD_PLAYER && packet.getAction() != PlayerListEntryAction.REMOVE_PLAYER)
+        if (packet.getAction() != PlayerListEntryAction.ADD_PLAYER && packet.getAction() != PlayerListEntryAction.REMOVE_PLAYER) {
             return;
+        }
 
         PlayerListPacket translate = new PlayerListPacket();
         translate.setAction(packet.getAction() == PlayerListEntryAction.ADD_PLAYER ? PlayerListPacket.Action.ADD : PlayerListPacket.Action.REMOVE);

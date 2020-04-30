@@ -39,9 +39,7 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
-        //
-    }
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) { }
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {

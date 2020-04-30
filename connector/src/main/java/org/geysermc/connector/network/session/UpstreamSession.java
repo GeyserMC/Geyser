@@ -38,6 +38,7 @@ import java.net.InetSocketAddress;
 public class UpstreamSession {
     @Getter
     private final BedrockServerSession session;
+
     @Getter
     @Setter
     private boolean initialized = false;
