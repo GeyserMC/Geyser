@@ -38,6 +38,8 @@ public class GeyserBukkitCommandManager extends CommandManager {
 
     private static CommandMap COMMAND_MAP;
 
+    private GeyserBukkitPlugin plugin;
+
     static {
         try {
             Field cmdMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -47,8 +49,6 @@ public class GeyserBukkitCommandManager extends CommandManager {
             ex.printStackTrace();
         }
     }
-
-    private GeyserBukkitPlugin plugin;
 
     public GeyserBukkitCommandManager(GeyserBukkitPlugin plugin, GeyserConnector connector) {
         super(connector);

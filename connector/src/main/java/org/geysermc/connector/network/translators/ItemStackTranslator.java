@@ -26,13 +26,11 @@
 package org.geysermc.connector.network.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.Tag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,7 +64,7 @@ public abstract class ItemStackTranslator {
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
                 com.github.steveice10.opennbt.tag.builtin.Tag javaTag = tag.get(str);
-                com.nukkitx.nbt.tag.Tag translatedTag = translateToBedrockNBT(javaTag);
+                Tag translatedTag = translateToBedrockNBT(javaTag);
                 if (translatedTag == null)
                     continue;
 
@@ -74,11 +72,11 @@ public abstract class ItemStackTranslator {
             }
         }
 
-        com.nukkitx.nbt.tag.CompoundTag bedrockTag = new com.nukkitx.nbt.tag.CompoundTag(tag.getName(), javaValue);
+       CompoundTag bedrockTag = new CompoundTag(tag.getName(), javaValue);
         return bedrockTag;
     }
 
-    private com.nukkitx.nbt.tag.Tag translateToBedrockNBT(com.github.steveice10.opennbt.tag.builtin.Tag tag) {
+    private Tag translateToBedrockNBT(com.github.steveice10.opennbt.tag.builtin.Tag tag) {
         if (tag instanceof ByteArrayTag) {
             ByteArrayTag byteArrayTag = (ByteArrayTag) tag;
             return new com.nukkitx.nbt.tag.ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
@@ -152,12 +150,12 @@ public abstract class ItemStackTranslator {
         return null;
     }
 
-    public com.github.steveice10.opennbt.tag.builtin.CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
+    public com.github.steveice10.opennbt.tag.builtin.CompoundTag translateToJavaNBT(CompoundTag tag) {
         com.github.steveice10.opennbt.tag.builtin.CompoundTag javaTag = new com.github.steveice10.opennbt.tag.builtin.CompoundTag(tag.getName());
         Map<String, com.github.steveice10.opennbt.tag.builtin.Tag> javaValue = javaTag.getValue();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
-                com.nukkitx.nbt.tag.Tag bedrockTag = tag.get(str);
+                Tag bedrockTag = tag.get(str);
                 com.github.steveice10.opennbt.tag.builtin.Tag translatedTag = translateToJavaNBT(bedrockTag);
                 if (translatedTag == null)
                     continue;
@@ -170,7 +168,7 @@ public abstract class ItemStackTranslator {
         return javaTag;
     }
 
-    private com.github.steveice10.opennbt.tag.builtin.Tag translateToJavaNBT(com.nukkitx.nbt.tag.Tag tag) {
+    private com.github.steveice10.opennbt.tag.builtin.Tag translateToJavaNBT(Tag tag) {
         if (tag instanceof com.nukkitx.nbt.tag.ByteArrayTag) {
             com.nukkitx.nbt.tag.ByteArrayTag byteArrayTag = (com.nukkitx.nbt.tag.ByteArrayTag) tag;
             return new ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
@@ -227,10 +225,10 @@ public abstract class ItemStackTranslator {
             List<com.github.steveice10.opennbt.tag.builtin.Tag> tags = new ArrayList<>();
 
             for (Object value : listTag.getValue()) {
-                if (!(value instanceof com.nukkitx.nbt.tag.Tag))
+                if (!(value instanceof Tag))
                     continue;
 
-                com.nukkitx.nbt.tag.Tag tagValue = (com.nukkitx.nbt.tag.Tag) value;
+                Tag tagValue = (Tag) value;
                 com.github.steveice10.opennbt.tag.builtin.Tag javaTag = translateToJavaNBT(tagValue);
                 if (javaTag != null)
                     tags.add(javaTag);
@@ -238,8 +236,8 @@ public abstract class ItemStackTranslator {
             return new ListTag(listTag.getName(), tags);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.CompoundTag) {
-            com.nukkitx.nbt.tag.CompoundTag compoundTag = (com.nukkitx.nbt.tag.CompoundTag) tag;
+        if (tag instanceof CompoundTag) {
+            CompoundTag compoundTag = (CompoundTag) tag;
             return translateToJavaNBT(compoundTag);
         }
 

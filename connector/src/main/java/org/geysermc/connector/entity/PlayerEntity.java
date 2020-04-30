@@ -103,13 +103,11 @@ public class PlayerEntity extends LivingEntity {
     public void sendPlayer(GeyserSession session) {
         if(session.getEntityCache().getPlayerEntity(uuid) == null)
             return;
-        if (getLastSkinUpdate() == -1) {
-            if (playerList) {
-                PlayerListPacket playerList = new PlayerListPacket();
-                playerList.setAction(PlayerListPacket.Action.ADD);
-                playerList.getEntries().add(SkinUtils.buildDefaultEntry(profile, geyserId));
-                session.getUpstream().sendPacket(playerList);
-            }
+        if (getLastSkinUpdate() == -1 && playerList) {
+            PlayerListPacket playerList = new PlayerListPacket();
+            playerList.setAction(PlayerListPacket.Action.ADD);
+            playerList.getEntries().add(SkinUtils.buildDefaultEntry(profile, geyserId));
+            session.getUpstream().sendPacket(playerList);
         }
 
         if (session.getUpstream().isInitialized() && session.getEntityCache().getEntityByGeyserId(geyserId) == null) {
@@ -172,11 +170,13 @@ public class PlayerEntity extends LivingEntity {
         super.updateBedrockMetadata(entityMetadata, session);
 
         if (entityMetadata.getId() == 2) {
-            // System.out.println(session.getScoreboardCache().getScoreboard().getObjectives().keySet());
+            /* This should probably just be removed
+            System.out.println(session.getScoreboardCache().getScoreboard().getObjectives().keySet());
             for (Team team : session.getScoreboardCache().getScoreboard().getTeams().values()) {
-                // session.getConnector().getLogger().info("team name " + team.getName());
-                // session.getConnector().getLogger().info("team entities " + team.getEntities());
+                session.getConnector().getLogger().info("team name " + team.getName());
+                session.getConnector().getLogger().info("team entities " + team.getEntities());
             }
+            */
             String username = this.username;
             TextMessage name = (TextMessage) entityMetadata.getValue();
             if (name != null) {

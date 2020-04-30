@@ -167,8 +167,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
     @EqualsAndHashCode
     @AllArgsConstructor
     private static class GroupedItem {
-        int id;
-        int count;
-        CompoundTag tag;
+        private int id;
+        private int count;
+        private CompoundTag tag;
     }
 }

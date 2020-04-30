@@ -111,15 +111,17 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
      * @return An array of parameter option arrays
      */
     private CommandParamData[][] getParams(CommandNode commandNode, CommandNode[] allNodes) {
+        CommandNode finalNode = commandNode;
+
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex() != -1) {
-            GeyserConnector.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[commandNode.getRedirectIndex()].getName());
-            commandNode = allNodes[commandNode.getRedirectIndex()];
+            finalNode = allNodes[commandNode.getRedirectIndex()];
+            GeyserConnector.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + finalNode.getName());
         }
 
-        if (commandNode.getChildIndices().length >= 1) {
+        if (finalNode.getChildIndices().length >= 1) {
             // Create the root param node and build all the children
-            ParamInfo rootParam = new ParamInfo(commandNode, null);
+            ParamInfo rootParam = new ParamInfo(finalNode, null);
             rootParam.buildChildren(allNodes);
 
             List<CommandParamData[]> treeData = rootParam.getTree();

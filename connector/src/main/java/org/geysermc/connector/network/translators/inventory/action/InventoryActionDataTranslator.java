@@ -85,58 +85,55 @@ public class InventoryActionDataTranslator {
                 sourceAction = containerAction;
             }
 
-            if (sourceAction != null) {
-                if (worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                    //quick dropping from hotbar?
-                    if (session.getInventoryCache().getOpenInventory() == null && sourceAction.getSource().getContainerId() == ContainerId.INVENTORY) {
-                        int heldSlot = session.getInventory().getHeldItemSlot();
-                        if (sourceAction.getSlot() == heldSlot) {
-                            ClientPlayerActionPacket actionPacket = new ClientPlayerActionPacket(
-                                    sourceAction.getToItem().getCount() == 0 ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
-                                    new Position(0, 0, 0), BlockFace.DOWN);
-                            session.getDownstream().getSession().send(actionPacket);
-                            ItemStack item = session.getInventory().getItem(heldSlot);
-                            if (item != null) {
-                                session.getInventory().setItem(heldSlot, new ItemStack(item.getId(), item.getAmount() - 1, item.getNbt()));
-                            }
-                            return;
-                        }
-                    }
-                    int dropAmount = sourceAction.getFromItem().getCount() - sourceAction.getToItem().getCount();
-                    if (sourceAction != cursorAction) { //dropping directly from inventory
-                        int javaSlot = translator.bedrockSlotToJava(sourceAction);
-                        if (dropAmount == sourceAction.getFromItem().getCount()) {
-                            ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(),
-                                    inventory.getTransactionId().getAndIncrement(),
-                                    javaSlot, null, WindowAction.DROP_ITEM,
-                                    DropItemParam.DROP_SELECTED_STACK);
-                            session.getDownstream().getSession().send(dropPacket);
-                        } else {
-                            for (int i = 0; i < dropAmount; i++) {
-                                ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(),
-                                        inventory.getTransactionId().getAndIncrement(),
-                                        javaSlot, null, WindowAction.DROP_ITEM,
-                                        DropItemParam.DROP_FROM_SELECTED);
-                                session.getDownstream().getSession().send(dropPacket);
-                            }
-                        }
-                        ItemStack item = session.getInventory().getItem(javaSlot);
+            if (sourceAction != null && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
+                //quick dropping from hotbar?
+                if (session.getInventoryCache().getOpenInventory() == null && sourceAction.getSource().getContainerId() == ContainerId.INVENTORY) {
+                    int heldSlot = session.getInventory().getHeldItemSlot();
+                    if (sourceAction.getSlot() == heldSlot) {
+                        ClientPlayerActionPacket actionPacket = new ClientPlayerActionPacket(
+                                sourceAction.getToItem().getCount() == 0 ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
+                                new Position(0, 0, 0), BlockFace.DOWN);
+                        session.getDownstream().getSession().send(actionPacket);
+                        ItemStack item = session.getInventory().getItem(heldSlot);
                         if (item != null) {
-                            session.getInventory().setItem(javaSlot, new ItemStack(item.getId(), item.getAmount() - dropAmount, item.getNbt()));
-                        }
-                        return;
-                    } else { //clicking outside of inventory
-                        ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
-                                -999, null, WindowAction.CLICK_ITEM,
-                                dropAmount > 1 ? ClickItemParam.LEFT_CLICK : ClickItemParam.RIGHT_CLICK);
-                        session.getDownstream().getSession().send(dropPacket);
-                        ItemStack cursor = session.getInventory().getCursor();
-                        if (cursor != null) {
-                            session.getInventory().setCursor(new ItemStack(cursor.getId(), dropAmount > 1 ? 0 : cursor.getAmount() - 1, cursor.getNbt()));
+                            session.getInventory().setItem(heldSlot, new ItemStack(item.getId(), item.getAmount() - 1, item.getNbt()));
                         }
                         return;
                     }
                 }
+                int dropAmount = sourceAction.getFromItem().getCount() - sourceAction.getToItem().getCount();
+                if (!sourceAction.equals(cursorAction)) { //dropping directly from inventory
+                    int javaSlot = translator.bedrockSlotToJava(sourceAction);
+                    if (dropAmount == sourceAction.getFromItem().getCount()) {
+                        ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(),
+                                inventory.getTransactionId().getAndIncrement(),
+                                javaSlot, null, WindowAction.DROP_ITEM,
+                                DropItemParam.DROP_SELECTED_STACK);
+                        session.getDownstream().getSession().send(dropPacket);
+                    } else {
+                        for (int i = 0; i < dropAmount; i++) {
+                            ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(),
+                                    inventory.getTransactionId().getAndIncrement(),
+                                    javaSlot, null, WindowAction.DROP_ITEM,
+                                    DropItemParam.DROP_FROM_SELECTED);
+                            session.getDownstream().getSession().send(dropPacket);
+                        }
+                    }
+                    ItemStack item = session.getInventory().getItem(javaSlot);
+                    if (item != null) {
+                        session.getInventory().setItem(javaSlot, new ItemStack(item.getId(), item.getAmount() - dropAmount, item.getNbt()));
+                    }
+                } else { //clicking outside of inventory
+                    ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
+                            -999, null, WindowAction.CLICK_ITEM,
+                            dropAmount > 1 ? ClickItemParam.LEFT_CLICK : ClickItemParam.RIGHT_CLICK);
+                    session.getDownstream().getSession().send(dropPacket);
+                    ItemStack cursor = session.getInventory().getCursor();
+                    if (cursor != null) {
+                        session.getInventory().setCursor(new ItemStack(cursor.getId(), dropAmount > 1 ? 0 : cursor.getAmount() - 1, cursor.getNbt()));
+                    }
+                }
+                return;
             }
         } else if (cursorAction != null && containerAction != null) {
             //left/right click

@@ -37,16 +37,14 @@ import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
 public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
     @Override
     public void translate(SetLocalPlayerAsInitializedPacket packet, GeyserSession session) {
-        if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {
-            if (!session.getUpstream().isInitialized()) {
-                session.getUpstream().setInitialized(true);
-                session.login();
+        if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId() && !session.getUpstream().isInitialized()) {
+            session.getUpstream().setInitialized(true);
+            session.login();
 
-                for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
-                    if (!entity.isValid()) {
-                        // async skin loading
-                        SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
-                    }
+            for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
+                if (!entity.isValid()) {
+                    // async skin loading
+                    SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
                 }
             }
         }

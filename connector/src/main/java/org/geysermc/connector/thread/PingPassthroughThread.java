@@ -39,14 +39,14 @@ public class PingPassthroughThread implements Runnable {
 
     private GeyserConnector connector;
 
-    public PingPassthroughThread(GeyserConnector connector) {
-        this.connector = connector;
-    }
-
     @Getter
     private ServerStatusInfo info;
 
     private Client client;
+
+    public PingPassthroughThread(GeyserConnector connector) {
+        this.connector = connector;
+    }
 
     @Override
     public void run() {

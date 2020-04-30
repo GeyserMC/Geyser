@@ -34,7 +34,6 @@ import com.nukkitx.protocol.bedrock.data.InventorySource;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import it.unimi.dsi.fastutil.longs.LongArraySet;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
@@ -229,18 +228,14 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-    }
+    public void prepareInventory(GeyserSession session, Inventory inventory) { }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-    }
+    public void openInventory(GeyserSession session, Inventory inventory) { }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-    }
+    public void closeInventory(GeyserSession session, Inventory inventory) { }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
-    }
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) { }
 }

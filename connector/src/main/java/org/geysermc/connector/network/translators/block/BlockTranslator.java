@@ -151,7 +151,7 @@ public class BlockTranslator {
             for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
                 identifier = clazz.getAnnotation(BlockEntity.class).regex();
                 // Endswith, or else the block bedrock gets picked up for bed
-                if (bedrock_identifer.endsWith(identifier) && !identifier.equals("")) {
+                if (!identifier.equals("") && bedrock_identifer.endsWith(identifier)) {
                     JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, clazz.getAnnotation(BlockEntity.class).name());
                     break;
                 }
@@ -229,12 +229,13 @@ public class BlockTranslator {
                 switch (stateValue.getNodeType()) {
                     case BOOLEAN:
                         statesBuilder.booleanTag(stateEntry.getKey(), stateValue.booleanValue());
-                        continue;
+                        break;
                     case STRING:
                         statesBuilder.stringTag(stateEntry.getKey(), stateValue.textValue());
-                        continue;
+                        break;
                     case NUMBER:
                         statesBuilder.intTag(stateEntry.getKey(), stateValue.intValue());
+                        break;
                 }
             }
         }

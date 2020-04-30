@@ -27,7 +27,6 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.*;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -109,7 +108,7 @@ public class MessageUtils {
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
             builder.append(getColorOrParent(msg.getStyle()));
-            if (!(msg.getText() == null)) {
+            if (msg.getText() != null) {
                 boolean isTranslationMessage = (msg instanceof TranslationMessage);
                 builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
             }

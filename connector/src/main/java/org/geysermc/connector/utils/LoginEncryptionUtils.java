@@ -35,8 +35,6 @@ import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
 
-import net.minidev.json.JSONObject;
-
 import org.geysermc.common.window.CustomFormBuilder;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
@@ -63,6 +61,9 @@ import java.util.UUID;
 
 public class LoginEncryptionUtils {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+    private static int AUTH_FORM_ID = 1336;
+    private static int AUTH_DETAILS_FORM_ID = 1337;
 
     private static boolean validateChainData(JsonNode data) throws Exception {
         ECPublicKey lastKey = null;
@@ -154,9 +155,6 @@ public class LoginEncryptionUtils {
         packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token).serialize());
         session.getUpstream().sendPacketImmediately(packet);
     }
-
-    private static int AUTH_FORM_ID = 1336;
-    private static int AUTH_DETAILS_FORM_ID = 1337;
 
     public static void showLoginWindow(GeyserSession session) {
         SimpleFormWindow window = new SimpleFormWindow("Login", "You need a Java Edition account to play on this server.");

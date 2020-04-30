@@ -70,10 +70,14 @@ public class PaintingEntity extends Entity {
             double heightOffset = paintingName.getHeight() > 1 ? 0.5 : 0;
 
             switch (direction) {
-                case 0: return position.add(widthOffset, heightOffset, OFFSET);
-                case 1: return position.add(-OFFSET, heightOffset, widthOffset);
-                case 2: return position.add(-widthOffset, heightOffset, -OFFSET);
-                case 3: return position.add(OFFSET, heightOffset, -widthOffset);
+                case 0:
+                    return position.add(widthOffset, heightOffset, OFFSET);
+                case 1:
+                    return position.add(-OFFSET, heightOffset, widthOffset);
+                case 2:
+                    return position.add(-widthOffset, heightOffset, -OFFSET);
+                case 3:
+                    return position.add(OFFSET, heightOffset, -widthOffset);
             }
         }
         return position;

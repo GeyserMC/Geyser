@@ -30,13 +30,9 @@ import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class NbtItemStackTranslator {
 
-    public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) { }
 
-    }
-
-    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
-
-    }
+    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) { }
 
     public boolean acceptItem(ItemEntry itemEntry) {
         return true;
