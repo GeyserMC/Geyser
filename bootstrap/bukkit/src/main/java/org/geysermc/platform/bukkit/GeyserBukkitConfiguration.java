@@ -28,10 +28,10 @@ package org.geysermc.platform.bukkit;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
+import org.geysermc.common.FloodgateKeyLoader;
 import org.geysermc.common.IGeyserConfiguration;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -67,21 +67,8 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
     }
 
     public void loadFloodgate(GeyserBukkitPlugin plugin) {
-        floodgateKey = Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
-        if (!Files.exists(floodgateKey) && getRemote().getAuthType().equals("floodgate")) {
-            Plugin floodgate = Bukkit.getPluginManager().getPlugin("floodgate-bukkit");
-            if (floodgate != null) {
-                Path autoKey = floodgate.getDataFolder().toPath().resolve("public-key.pem");
-                if (Files.exists(autoKey)) {
-                    plugin.getGeyserLogger().info("Auto-loaded floodgate key");
-                    floodgateKey = autoKey;
-                } else {
-                    plugin.getGeyserLogger().error("Auth-type set to floodgate and the public key is missing!");
-                }
-            } else {
-                plugin.getGeyserLogger().error("Auth-type set to floodgate but floodgate is not installed!");
-            }
-        }
+        Plugin floodgate = Bukkit.getPluginManager().getPlugin("floodgate-bukkit");
+        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem")), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
     }
 
     @Override
