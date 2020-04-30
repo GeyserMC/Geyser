@@ -158,7 +158,7 @@ public class Toolbox {
                 byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
                 ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
                 try {
-                    com.nukkitx.nbt.tag.CompoundTag tag = (com.nukkitx.nbt.tag.CompoundTag) NbtUtils.createReaderLE(bais).readTag();
+                    CompoundTag tag = (CompoundTag) NbtUtils.createReaderLE(bais).readTag();
                     creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
                 } catch (IOException e) {
                     e.printStackTrace();

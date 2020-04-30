@@ -58,15 +58,16 @@ public class CatEntity extends TameableEntity {
                     break;
                 default:
                     variantColor = (int) entityMetadata.getValue();
+                    break;
             }
             metadata.put(EntityData.VARIANT, variantColor);
         }
-        if (entityMetadata.getId() == 21) {
-            // Needed or else wild cats are a red color
-            if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
-                metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
-            }
+
+        // Needed or else wild cats are a red color
+        if (entityMetadata.getId() == 21 && metadata.getFlags().getFlag(EntityFlag.TAMED)) {
+            metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
         }
+
         super.updateBedrockMetadata(entityMetadata, session);
     }
 }

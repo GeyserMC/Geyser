@@ -36,7 +36,10 @@ public class TeleportCache {
     private static final double ERROR = 0.2;
     private static final double ERROR_Y = 0.5;
 
-    private double x, y, z;
+    private double x;
+    private double y;
+    private double z;
+    
     private int teleportConfirmId;
 
     public boolean canConfirm(Vector3f position) {
