@@ -78,10 +78,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case START_SNEAK:
                 ClientPlayerStatePacket startSneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.getDownstream().getSession().send(startSneakPacket);
+                session.setSneaking(true);
                 break;
             case STOP_SNEAK:
                 ClientPlayerStatePacket stopSneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SNEAKING);
                 session.getDownstream().getSession().send(stopSneakPacket);
+                session.setSneaking(false);
                 break;
             case START_SPRINT:
                 ClientPlayerStatePacket startSprintPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);

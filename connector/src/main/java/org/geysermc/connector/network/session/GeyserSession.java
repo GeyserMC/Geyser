@@ -118,6 +118,10 @@ public class GeyserSession implements CommandSender {
     private GameMode gameMode = GameMode.SURVIVAL;
 
     private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
+
+    @Setter
+    private boolean sneaking;
+
     @Setter
     private boolean sprinting;
 
@@ -132,6 +136,12 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private String lastBlockPlacedId;
+
+    @Setter
+    private boolean interacting;
+
+    @Setter
+    private Vector3i lastInteractionPosition;
 
     @Setter
     private boolean switchingDimension = false;

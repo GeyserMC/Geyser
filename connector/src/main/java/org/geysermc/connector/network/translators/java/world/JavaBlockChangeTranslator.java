@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.sound.SoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 
@@ -42,14 +43,19 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
     @Override
     public void translate(ServerBlockChangePacket packet, GeyserSession session) {
         ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), packet.getRecord().getPosition());
+        this.checkInteract(session, packet);
+        this.checkPlace(session, packet);
+    }
+
+    private boolean checkPlace(GeyserSession session, ServerBlockChangePacket packet) {
         Vector3i lastPlacePos = session.getLastBlockPlacePosition();
         if (lastPlacePos == null) {
-            return;
+            return false;
         }
-        if (lastPlacePos.getX() != packet.getRecord().getPosition().getX()
+        if ((lastPlacePos.getX() != packet.getRecord().getPosition().getX()
                 || lastPlacePos.getY() != packet.getRecord().getPosition().getY()
-                || lastPlacePos.getZ() != packet.getRecord().getPosition().getZ()) {
-            return;
+                || lastPlacePos.getZ() != packet.getRecord().getPosition().getZ())) {
+            return false;
         }
 
         // We need to check if the identifier is the same, else a packet with the sound of what the
@@ -63,7 +69,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         if (!contains) {
             session.setLastBlockPlacePosition(null);
             session.setLastBlockPlacedId(null);
-            return;
+            return false;
         }
 
         // This is not sent from the server, so we need to send it this way
@@ -76,5 +82,22 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         session.getUpstream().sendPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
         session.setLastBlockPlacedId(null);
+        return true;
+    }
+
+    private void checkInteract(GeyserSession session, ServerBlockChangePacket packet) {
+        Vector3i lastInteractPos = session.getLastInteractionPosition();
+        if (lastInteractPos == null || !session.isInteracting()) {
+            return;
+        }
+        if ((lastInteractPos.getX() != packet.getRecord().getPosition().getX()
+                || lastInteractPos.getY() != packet.getRecord().getPosition().getY()
+                || lastInteractPos.getZ() != packet.getRecord().getPosition().getZ())) {
+            return;
+        }
+        String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(packet.getRecord().getBlock());
+        session.setInteracting(false);
+        session.setLastInteractionPosition(null);
+        SoundInteractionHandler.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
     }
 }

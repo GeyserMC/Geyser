@@ -32,7 +32,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -96,7 +96,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     // TODO: Opening doors also does not work as the player
                     effect.setType(LevelEventType.valueOf(geyserEffect.getBedrockName()));
                 } else if (geyserEffect.getType().equals("soundEvent")) {
-                    LevelSoundEvent2Packet soundEvent = new LevelSoundEvent2Packet();
+                    LevelSoundEventPacket soundEvent = new LevelSoundEventPacket();
                     // Separate case since each RecordEffectData in Java is an individual track in Bedrock
                     if (geyserEffect.getJavaName().equals("RECORD")) {
                         RecordEffectData recordEffectData = (RecordEffectData) packet.getData();

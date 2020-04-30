@@ -107,6 +107,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.setLastBlockPlacePosition(blockPos);
                             session.setLastBlockPlacedId(handItem.getJavaIdentifier());
                         }
+                        session.setLastInteractionPosition(packet.getBlockPosition());
+                        session.setInteracting(true);
                         break;
                     case 1:
                         if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemTranslator.SHIELD) {
