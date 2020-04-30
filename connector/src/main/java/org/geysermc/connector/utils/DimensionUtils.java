@@ -26,7 +26,8 @@
 package org.geysermc.connector.utils;
 
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.ChangeDimensionPacket;
+import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 

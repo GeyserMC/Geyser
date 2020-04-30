@@ -26,7 +26,6 @@
 package org.geysermc.platform.bukkit.command;
 
 import lombok.AllArgsConstructor;
-
 import org.bukkit.command.ConsoleCommandSender;
 import org.geysermc.connector.command.CommandSender;
 

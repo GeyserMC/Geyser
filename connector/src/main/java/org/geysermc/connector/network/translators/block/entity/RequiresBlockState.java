@@ -34,6 +34,7 @@ public interface RequiresBlockState {
 
     /**
      * Determines if block is part of class
+     *
      * @param blockState BlockState to be compared
      * @return true if part of the class
      */

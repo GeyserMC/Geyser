@@ -38,7 +38,7 @@ public class BedrockData {
 
     @Override
     public String toString() {
-        return version +'\0'+ username +'\0'+ xuid +'\0'+ deviceId +'\0'+ languageCode +'\0'+
-                inputMode +'\0'+ ip;
+        return version + '\0' + username + '\0' + xuid + '\0' + deviceId + '\0' + languageCode + '\0' +
+                inputMode + '\0' + ip;
     }
 }

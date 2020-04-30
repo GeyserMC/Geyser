@@ -40,7 +40,10 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Translator(packet = ServerDeclareCommandsPacket.class)
 public class JavaServerDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
@@ -58,7 +61,9 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             CommandNode node = packet.getNodes()[nodeIndex];
 
             // Make sure we don't have duplicated commands (happens if there is more than 1 root node)
-            if (commands.containsKey(nodeIndex)) { continue; }
+            if (commands.containsKey(nodeIndex)) {
+                continue;
+            }
 
             // Get and update the commandArgs list with the found arguments
             if (node.getChildIndices().length >= 1) {
@@ -80,7 +85,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
             String commandName = commands.get(commandID);
 
             // Create a basic alias
-            CommandEnumData aliases = new CommandEnumData( commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
+            CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", new String[]{commandName.toLowerCase()}, false);
 
             // Get and parse all params
             CommandParamData[][] params = getParams(packet.getNodes()[commandID], packet.getNodes());
@@ -106,8 +111,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
      * Build the command parameter array for the given command
      *
      * @param commandNode The command to build the parameters for
-     * @param allNodes Every command node
-     *
+     * @param allNodes    Every command node
      * @return An array of parameter option arrays
      */
     private CommandParamData[][] getParams(CommandNode commandNode, CommandNode[] allNodes) {
@@ -144,11 +148,12 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
      * Convert Java edition command types to Bedrock edition
      *
      * @param parser Command type to convert
-     *
      * @return Bedrock parameter data type
      */
     private CommandParamData.Type mapCommandType(CommandParser parser) {
-        if (parser == null) { return CommandParamData.Type.STRING; }
+        if (parser == null) {
+            return CommandParamData.Type.STRING;
+        }
 
         switch (parser) {
             case FLOAT:
@@ -251,7 +256,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
                         enumIndex = children.size();
 
                         // Create the new enum command
-                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[] { paramNode.getName() }, false);
+                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
                         children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, enumData, mapCommandType(paramNode.getParser()), null, Collections.emptyList())));
                     } else {
                         // Get the existing enum
@@ -265,7 +270,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
                         CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), enumOptions, false);
                         children.set(enumIndex, new ParamInfo(enumParamInfo.getParamNode(), new CommandParamData(enumParamInfo.getParamData().getName(), false, enumData, enumParamInfo.getParamData().getType(), null, Collections.emptyList())));
                     }
-                }else{
+                } else {
                     // Put the non-enum param into the list
                     children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, null, mapCommandType(paramNode.getParser()), null, Collections.emptyList())));
                 }
@@ -303,7 +308,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
 
                 // If we have no more child parameters just the child
                 if (childTree.size() == 0) {
-                    treeParamData.add(new CommandParamData[] { child.getParamData() });
+                    treeParamData.add(new CommandParamData[]{child.getParamData()});
                 }
             }
 

@@ -54,7 +54,8 @@ public class Objective {
 
     /**
      * /!\ This method is made for temporary objectives until the real objective is received
-     * @param scoreboard the scoreboard
+     *
+     * @param scoreboard    the scoreboard
      * @param objectiveName the name of the objective
      */
     public Objective(Scoreboard scoreboard, String objectiveName) {

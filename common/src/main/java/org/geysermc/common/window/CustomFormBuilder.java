@@ -26,7 +26,6 @@
 package org.geysermc.common.window;
 
 import lombok.Getter;
-import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.button.FormImage;
 import org.geysermc.common.window.component.FormComponent;
 import org.geysermc.common.window.response.CustomFormResponse;

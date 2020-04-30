@@ -3,7 +3,6 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
-
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
@@ -18,8 +17,8 @@ public class BlockEntityUtils {
             return "PistonArm";
 
         id = id.toLowerCase()
-            .replace("minecraft:", "")
-            .replace("_", " ");
+                .replace("minecraft:", "")
+                .replace("_", " ");
         String[] words = id.split(" ");
         for (int i = 0; i < words.length; i++) {
             words[i] = words[i].substring(0, 1).toUpperCase() + words[i].substring(1).toLowerCase();

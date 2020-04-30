@@ -33,7 +33,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class ProvidedSkin {
-    @Getter private byte[] skin;
+    @Getter
+    private byte[] skin;
 
     public ProvidedSkin(String internalUrl) {
         try {
@@ -55,7 +56,8 @@ public class ProvidedSkin {
             } finally {
                 try {
                     outputStream.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

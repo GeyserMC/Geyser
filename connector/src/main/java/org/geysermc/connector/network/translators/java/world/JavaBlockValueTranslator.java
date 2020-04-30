@@ -30,7 +30,6 @@ import com.github.steveice10.mc.protocol.data.game.world.block.value.EndGatewayV
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockValuePacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -44,7 +43,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         blockEventPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(),
                 packet.getPosition().getY(), packet.getPosition().getZ()));
         if (packet.getValue() instanceof ChestValue) {
-            ChestValue value = (ChestValue) packet.getValue() ;
+            ChestValue value = (ChestValue) packet.getValue();
             blockEventPacket.setEventType(1);
             blockEventPacket.setEventData(value.getViewers() > 0 ? 1 : 0);
             session.getUpstream().sendPacket(blockEventPacket);

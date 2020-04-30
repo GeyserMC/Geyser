@@ -25,30 +25,29 @@
 
 package org.geysermc.connector.network.translators;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.block.entity.*;
-import org.geysermc.connector.network.translators.inventory.*;
-import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
-import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.reflections.Reflections;
-
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-
+import com.nukkitx.protocol.bedrock.data.ContainerType;
 import lombok.Getter;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.block.entity.BlockEntity;
+import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.inventory.*;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.reflections.Reflections;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Translators {
 
@@ -73,7 +72,7 @@ public class Translators {
             }
 
             EMPTY_LEVEL_CHUNK_DATA = outputStream.toByteArray();
-        }catch (IOException e) {
+        } catch (IOException e) {
             throw new AssertionError("Unable to generate empty level chunk data");
         }
     }
@@ -81,12 +80,12 @@ public class Translators {
     @SuppressWarnings("unchecked")
     public static void start() {
         Reflections ref = new Reflections("org.geysermc.connector.network.translators");
-        
+
         for (Class<?> clazz : ref.getTypesAnnotatedWith(Translator.class)) {
             Class<?> packet = clazz.getAnnotation(Translator.class).packet();
-            
+
             GeyserConnector.getInstance().getLogger().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());
-            
+
             try {
                 if (Packet.class.isAssignableFrom(packet)) {
                     Class<? extends Packet> targetPacket = (Class<? extends Packet>) packet;
@@ -107,7 +106,7 @@ public class Translators {
                 GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated translator " + clazz.getCanonicalName() + ".");
             }
         }
-        
+
         itemTranslator = new ItemTranslator();
         itemTranslator.init();
         BlockTranslator.init();

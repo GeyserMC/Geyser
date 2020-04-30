@@ -72,7 +72,7 @@ public abstract class ItemStackTranslator {
             }
         }
 
-       CompoundTag bedrockTag = new CompoundTag(tag.getName(), javaValue);
+        CompoundTag bedrockTag = new CompoundTag(tag.getName(), javaValue);
         return bedrockTag;
     }
 

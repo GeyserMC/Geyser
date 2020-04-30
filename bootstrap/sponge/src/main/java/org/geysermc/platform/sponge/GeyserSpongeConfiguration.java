@@ -56,7 +56,7 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
         if (node.getNode("userAuths").getValue() == null)
             return;
 
-        List<String> userAuths = new ArrayList<String>(((LinkedHashMap)node.getNode("userAuths").getValue()).keySet());
+        List<String> userAuths = new ArrayList<String>(((LinkedHashMap) node.getNode("userAuths").getValue()).keySet());
         for (String key : userAuths) {
             userAuthInfo.put(key, new SpongeUserAuthenticationInfo(key));
         }

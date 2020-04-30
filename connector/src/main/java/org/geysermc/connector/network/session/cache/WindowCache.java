@@ -26,12 +26,9 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.nukkitx.protocol.bedrock.packet.ModalFormRequestPacket;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-
 import lombok.Getter;
-
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.network.session.GeyserSession;
 

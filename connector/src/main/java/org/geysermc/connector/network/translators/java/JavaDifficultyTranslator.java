@@ -25,12 +25,11 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDifficultyPacket;
+import com.nukkitx.protocol.bedrock.packet.SetDifficultyPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDifficultyPacket;
-import com.nukkitx.protocol.bedrock.packet.SetDifficultyPacket;
 
 @Translator(packet = ServerDifficultyPacket.class)
 public class JavaDifficultyTranslator extends PacketTranslator<ServerDifficultyPacket> {

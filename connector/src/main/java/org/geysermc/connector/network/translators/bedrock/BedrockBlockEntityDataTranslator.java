@@ -60,7 +60,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
                 StringBuilder newMessage = new StringBuilder();
                 // While Bedrock's sign lines are one string, Java's is an array of each line
                 // (Initialized all with empty strings because it complains about null)
-                String[] lines = new String[] {"", "", "", ""};
+                String[] lines = new String[]{"", "", "", ""};
                 int iterator = 0;
                 // This converts the message into the array'd message Java wants
                 for (char character : tag.getString("Text").toCharArray()) {

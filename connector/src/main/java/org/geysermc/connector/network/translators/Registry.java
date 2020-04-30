@@ -25,14 +25,13 @@
 
 package org.geysermc.connector.network.translators;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.github.steveice10.packetlib.packet.Packet;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Registry<T> {
     private final Map<Class<? extends T>, PacketTranslator<? extends T>> MAP = new HashMap<>();

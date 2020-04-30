@@ -27,17 +27,20 @@ package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.protocol.bedrock.data.ItemData;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
-
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.*;
+import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.network.translators.ItemStackTranslator;
+import org.geysermc.connector.network.translators.NbtItemStackTranslator;
 import org.geysermc.connector.utils.Toolbox;
 import org.reflections.Reflections;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ItemTranslator {

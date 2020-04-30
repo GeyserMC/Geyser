@@ -55,7 +55,6 @@ public class ChatColor {
      * Convert chat colour codes to terminal colours
      *
      * @param string The text to replace colours for
-     *
      * @return A string ready for terminal printing
      */
     public static String toANSI(String string) {
@@ -92,10 +91,9 @@ public class ChatColor {
      * Remove all colour formatting tags from a message
      *
      * @param message Message to remove colour tags from
-     *
      * @return The sanitised message
      */
     public static String stripColors(String message) {
-        return message = message.replaceAll("(&([a-fk-or0-9]))","").replaceAll("(§([a-fk-or0-9]))","").replaceAll("s/\\x1b\\[[0-9;]*[a-zA-Z]//g","");
+        return message = message.replaceAll("(&([a-fk-or0-9]))", "").replaceAll("(§([a-fk-or0-9]))", "").replaceAll("s/\\x1b\\[[0-9;]*[a-zA-Z]//g", "");
     }
 }

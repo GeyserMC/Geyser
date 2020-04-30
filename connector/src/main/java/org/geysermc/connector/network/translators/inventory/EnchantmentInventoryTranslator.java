@@ -36,5 +36,6 @@ public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) { }
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    }
 }

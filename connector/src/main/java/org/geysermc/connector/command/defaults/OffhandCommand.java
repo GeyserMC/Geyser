@@ -53,7 +53,7 @@ public class OffhandCommand extends GeyserCommand {
         // Make sure the sender is a Bedrock edition client
         if (sender instanceof GeyserSession) {
             GeyserSession session = (GeyserSession) sender;
-            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
+            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0, 0, 0),
                     BlockFace.DOWN);
             session.getDownstream().getSession().send(releaseItemPacket);
         }

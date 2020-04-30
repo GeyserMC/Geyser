@@ -71,7 +71,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
         }
         try {
             configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

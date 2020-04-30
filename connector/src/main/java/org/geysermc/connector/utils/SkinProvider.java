@@ -168,7 +168,8 @@ public class SkinProvider {
         byte[] skin = EMPTY_SKIN.getSkinData();
         try {
             skin = requestImage(textureUrl, null);
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
         return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false);
     }
 
@@ -176,7 +177,8 @@ public class SkinProvider {
         byte[] cape = new byte[0];
         try {
             cape = requestImage(capeUrl, provider);
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
 
         String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
 
@@ -248,7 +250,8 @@ public class SkinProvider {
     public static <T> T getOrDefault(CompletableFuture<T> future, T defaultValue, int timeoutInSeconds) {
         try {
             return future.get(timeoutInSeconds, TimeUnit.SECONDS);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return defaultValue;
     }
 
@@ -312,9 +315,12 @@ public class SkinProvider {
 
         public static String toRequestedType(CapeUrlType type, UUID uuid, String username) {
             switch (type) {
-                case UUID: return uuid.toString().replace("-", "");
-                case UUID_DASHED: return uuid.toString();
-                default: return username;
+                case UUID:
+                    return uuid.toString().replace("-", "");
+                case UUID_DASHED:
+                    return uuid.toString();
+                default:
+                    return username;
             }
         }
     }

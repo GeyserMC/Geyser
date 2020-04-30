@@ -40,7 +40,7 @@ public class FileUtils {
     /**
      * Load the given YAML file into the given class
      *
-     * @param src File to load
+     * @param src       File to load
      * @param valueType Class to load file into
      * @return The data as the given class
      * @throws IOException if the config could not be loaded
@@ -53,7 +53,7 @@ public class FileUtils {
     /**
      * Open the specified file or copy if from resources
      *
-     * @param name File and resource name
+     * @param name     File and resource name
      * @param fallback Formatting callback
      * @return File handle of the specified file
      * @throws IOException if the file failed to copy from resource
@@ -65,8 +65,8 @@ public class FileUtils {
     /**
      * Open the specified file or copy if from resources
      *
-     * @param file File to open
-     * @param name Name of the resource get if needed
+     * @param file   File to open
+     * @param name   Name of the resource get if needed
      * @param format Formatting callback
      * @return File handle of the specified file
      * @throws IOException if the file failed to copy from resource
@@ -81,7 +81,7 @@ public class FileUtils {
 
             input.read(bytes);
 
-            for(char c : format.apply(new String(bytes)).toCharArray()) {
+            for (char c : format.apply(new String(bytes)).toCharArray()) {
                 fos.write(c);
             }
 

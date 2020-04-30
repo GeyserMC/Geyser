@@ -26,7 +26,6 @@
 package org.geysermc.platform.bukkit;
 
 import lombok.AllArgsConstructor;
-
 import org.geysermc.common.logger.IGeyserLogger;
 
 import java.util.logging.Level;

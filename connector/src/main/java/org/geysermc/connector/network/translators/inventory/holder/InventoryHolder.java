@@ -31,6 +31,8 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 public abstract class InventoryHolder {
     public abstract void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
+
     public abstract void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
+
     public abstract void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
 }

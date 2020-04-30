@@ -25,13 +25,12 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 
 import java.nio.charset.StandardCharsets;
 
@@ -62,7 +61,7 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
         byte[] data = new byte[getVarIntLength(value)];
         int index = 0;
         do {
-            byte temp = (byte)(value & 0b01111111);
+            byte temp = (byte) (value & 0b01111111);
             value >>>= 7;
             if (value != 0) {
                 temp |= 0b10000000;

@@ -27,11 +27,8 @@ package org.geysermc.platform.velocity.command;
 
 import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.command.CommandSource;
-
 import lombok.AllArgsConstructor;
-
 import net.kyori.text.TextComponent;
-
 import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;

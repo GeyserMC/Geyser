@@ -25,14 +25,13 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
+import com.nukkitx.protocol.bedrock.packet.SetHealthPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
-import com.nukkitx.protocol.bedrock.packet.SetHealthPacket;
 
 @Translator(packet = ServerPlayerHealthPacket.class)
 public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHealthPacket> {

@@ -33,7 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 /**
  * Bare bones implementation of BedrockPacketHandler suitable for extension.
- *
+ * <p>
  * Logs and ignores all packets presented. Allows subclasses to override/implement only
  * packets of interest and limit boilerplate code.
  */

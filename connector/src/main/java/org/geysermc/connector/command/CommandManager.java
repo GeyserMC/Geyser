@@ -76,7 +76,7 @@ public abstract class CommandManager implements ICommandManager {
         } else {
             label = command.substring(0, command.indexOf(" ")).toLowerCase();
             String argLine = command.substring(command.indexOf(" " + 1));
-            args = argLine.contains(" ") ? argLine.split(" ") : new String[] { argLine };
+            args = argLine.contains(" ") ? argLine.split(" ") : new String[]{argLine};
         }
 
         GeyserCommand cmd = commands.get(label);

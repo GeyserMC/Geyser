@@ -36,8 +36,10 @@ import java.net.InetSocketAddress;
 
 @RequiredArgsConstructor
 public class UpstreamSession {
-    @Getter private final BedrockServerSession session;
-    @Getter @Setter
+    @Getter
+    private final BedrockServerSession session;
+    @Getter
+    @Setter
     private boolean initialized = false;
 
     public void sendPacket(@NonNull BedrockPacket packet) {

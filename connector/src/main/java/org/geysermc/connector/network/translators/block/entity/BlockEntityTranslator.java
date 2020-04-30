@@ -31,7 +31,6 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.Tag;
-
 import org.geysermc.connector.utils.BlockEntityUtils;
 
 import java.util.List;

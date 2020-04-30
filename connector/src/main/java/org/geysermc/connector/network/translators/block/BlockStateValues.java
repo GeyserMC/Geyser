@@ -47,7 +47,8 @@ public class BlockStateValues {
 
     /**
      * Determines if the block state contains Bedrock block information
-     * @param entry The String to JsonNode map used in BlockTranslator
+     *
+     * @param entry          The String to JsonNode map used in BlockTranslator
      * @param javaBlockState the Java Block State of the block
      */
     public static void storeBlockStateValues(Map.Entry<String, JsonNode> entry, BlockState javaBlockState) {
@@ -64,7 +65,7 @@ public class BlockStateValues {
         }
 
         JsonNode skullVariation = entry.getValue().get("variation");
-        if(skullVariation != null) {
+        if (skullVariation != null) {
             BlockStateValues.SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
         }
 

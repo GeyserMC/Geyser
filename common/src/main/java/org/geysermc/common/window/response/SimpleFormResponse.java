@@ -28,7 +28,6 @@ package org.geysermc.common.window.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.common.window.button.FormButton;
-import org.geysermc.common.window.response.FormResponse;
 
 @Getter
 @AllArgsConstructor

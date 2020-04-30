@@ -86,7 +86,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
     /**
      * Update the crafting grid for the player to hide/show the barriers in the creative inventory
-     * @param session Session of the player
+     *
+     * @param session   Session of the player
      * @param inventory Inventory of the player
      */
     public static void updateCraftingGrid(GeyserSession session, Inventory inventory) {
@@ -98,7 +99,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
             if (session.getGameMode() == GameMode.CREATIVE) {
                 slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, new ItemStack(Toolbox.BARRIER_INDEX)));
-            }else{
+            } else {
                 slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i)));
             }
 
@@ -228,14 +229,18 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) { }
+    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) { }
+    public void openInventory(GeyserSession session, Inventory inventory) {
+    }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) { }
+    public void closeInventory(GeyserSession session, Inventory inventory) {
+    }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) { }
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    }
 }

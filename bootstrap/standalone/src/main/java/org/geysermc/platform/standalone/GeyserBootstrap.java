@@ -54,7 +54,7 @@ public class GeyserBootstrap implements IGeyserBootstrap {
         geyserLogger = new GeyserLogger();
 
         LoopbackUtil.checkLoopback(geyserLogger);
-        
+
         try {
             File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserConfiguration.class);

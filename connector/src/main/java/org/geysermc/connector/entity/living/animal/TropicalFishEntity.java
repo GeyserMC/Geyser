@@ -84,7 +84,6 @@ public class TropicalFishEntity extends AbstractFishEntity {
          * Convert the variant number from Java into separate values
          *
          * @param varNumber Variant number from Java edition
-         *
          * @return The variant converted into TropicalFishVariant
          */
         public static TropicalFishVariant fromVariantNumber(int varNumber) {

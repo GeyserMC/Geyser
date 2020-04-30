@@ -1,4 +1,5 @@
 package org.geysermc.connector.network.translators;
+
 import java.util.Arrays;
 
 //Based off of ProtocolSupport's LegacyBiomeData.java https://github.com/ProtocolSupport/ProtocolSupport/blob/b2cad35977f3fcb65bee57b9e14fc9c975f71d32/src/protocolsupport/protocol/typeremapper/legacy/LegacyBiomeData.java
@@ -8,7 +9,7 @@ public class BiomeTranslator {
 
     public static byte[] toBedrockBiome(int[] biomeData) {
         byte[] bedrockData = new byte[256];
-        if(biomeData == null) {
+        if (biomeData == null) {
             return bedrockData;
         }
 

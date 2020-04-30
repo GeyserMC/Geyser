@@ -72,7 +72,7 @@ public class BlockUtils {
             speed *= toolBreakTimeBonus(toolType, toolTier, isWoolBlock);
             speed += toolEfficiencyLevel == 0 ? 0 : toolEfficiencyLevel * toolEfficiencyLevel + 1;
         } else if (toolType.equals("sword")) {
-            speed*= (isCobweb ? 15.0 : 1.5);
+            speed *= (isCobweb ? 15.0 : 1.5);
         }
         speed *= 1.0 + (0.2 * hasteLevel);
 

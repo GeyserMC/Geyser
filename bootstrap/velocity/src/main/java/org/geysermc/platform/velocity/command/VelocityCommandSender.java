@@ -28,11 +28,8 @@ package org.geysermc.platform.velocity.command;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
-
 import lombok.AllArgsConstructor;
-
 import net.kyori.text.TextComponent;
-
 import org.geysermc.connector.command.CommandSender;
 
 @AllArgsConstructor

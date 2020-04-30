@@ -25,18 +25,17 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.DimensionUtils;
-
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.DimensionUtils;
 
 @Translator(packet = ServerJoinGamePacket.class)
 public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacket> {

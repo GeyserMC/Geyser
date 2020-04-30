@@ -58,7 +58,7 @@ public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
         CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        tagBuilder.byteTag("facing", (byte)1);
+        tagBuilder.byteTag("facing", (byte) 1);
         return tagBuilder.buildRootTag();
     }
 }

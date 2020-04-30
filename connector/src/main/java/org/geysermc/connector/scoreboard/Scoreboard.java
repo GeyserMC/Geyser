@@ -32,7 +32,6 @@ import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.*;
@@ -121,7 +120,7 @@ public class Scoreboard {
         for (String objectiveId : new ArrayList<>(objectives.keySet())) {
             Objective objective = objectives.get(objectiveId);
             if (objective.isTemp()) {
-                session.getConnector().getLogger().debug("Ignoring temp Scoreboard Objective '"+ objectiveId +'\'');
+                session.getConnector().getLogger().debug("Ignoring temp Scoreboard Objective '" + objectiveId + '\'');
                 continue;
             }
 

@@ -80,6 +80,7 @@ public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
             LinkedHashMap compoundTag = (LinkedHashMap) tag.get("ExitPortal").getValue();
             com.github.steveice10.opennbt.tag.builtin.IntTag intTag = (com.github.steveice10.opennbt.tag.builtin.IntTag) compoundTag.get(axis);
             return intTag.getValue();
-        } return 0;
+        }
+        return 0;
     }
 }

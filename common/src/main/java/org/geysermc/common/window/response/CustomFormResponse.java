@@ -27,8 +27,6 @@ package org.geysermc.common.window.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.common.window.response.FormResponse;
-import org.geysermc.common.window.response.FormResponseData;
 
 import java.util.Map;
 

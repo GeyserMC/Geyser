@@ -25,9 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.scoreboard;
 
-import java.util.Arrays;
-import java.util.Set;
-
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -37,9 +36,8 @@ import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.scoreboard.UpdateType;
 import org.geysermc.connector.utils.MessageUtils;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
-
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import java.util.Arrays;
+import java.util.Set;
 
 @Translator(packet = ServerTeamPacket.class)
 public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
@@ -70,14 +68,14 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                 }
                 break;
             case ADD_PLAYER:
-                if(team != null){
+                if (team != null) {
                     team.addEntities(packet.getPlayers());
                 } else {
                     GeyserConnector.getInstance().getLogger().error("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
                 }
                 break;
             case REMOVE_PLAYER:
-                if(team != null){
+                if (team != null) {
                     team.removeEntities(packet.getPlayers());
                 } else {
                     GeyserConnector.getInstance().getLogger().error("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");

@@ -82,7 +82,8 @@ public class CustomFormWindow extends FormWindow {
         String toModify = "";
         try {
             toModify = new ObjectMapper().writeValueAsString(this);
-        } catch (JsonProcessingException e) { }
+        } catch (JsonProcessingException e) {
+        }
 
         //We need to replace this due to Java not supporting declaring class field 'default'
         return toModify.replace("defaultOptionIndex", "default")
@@ -108,8 +109,10 @@ public class CustomFormWindow extends FormWindow {
 
         List<String> componentResponses = new ArrayList<>();
         try {
-            componentResponses = new ObjectMapper().readValue(data, new TypeReference<List<String>>(){});
-        } catch (IOException e) { }
+            componentResponses = new ObjectMapper().readValue(data, new TypeReference<List<String>>() {
+            });
+        } catch (IOException e) {
+        }
 
         for (String response : componentResponses) {
             if (i >= content.size()) {

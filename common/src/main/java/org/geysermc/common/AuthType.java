@@ -18,7 +18,6 @@ public enum AuthType {
      * Convert the AuthType string (from config) to the enum, OFFLINE on fail
      *
      * @param name AuthType string
-     *
      * @return The converted AuthType
      */
     public static AuthType getByName(String name) {

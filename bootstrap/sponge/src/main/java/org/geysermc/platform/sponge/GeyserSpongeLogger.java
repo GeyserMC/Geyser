@@ -26,7 +26,6 @@
 package org.geysermc.platform.sponge;
 
 import lombok.AllArgsConstructor;
-
 import org.geysermc.common.logger.IGeyserLogger;
 import org.slf4j.Logger;
 

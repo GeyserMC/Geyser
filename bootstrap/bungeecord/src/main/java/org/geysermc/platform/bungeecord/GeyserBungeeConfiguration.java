@@ -26,7 +26,6 @@
 package org.geysermc.platform.bungeecord;
 
 import net.md_5.bungee.config.Configuration;
-
 import org.geysermc.common.IGeyserConfiguration;
 
 import java.io.File;

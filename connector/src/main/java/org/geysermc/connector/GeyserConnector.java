@@ -28,9 +28,7 @@ package org.geysermc.connector;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
-
 import lombok.Getter;
-
 import org.geysermc.common.AuthType;
 import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.common.PlatformType;

@@ -34,7 +34,6 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-
 import org.geysermc.common.window.CustomFormBuilder;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
@@ -179,7 +178,7 @@ public class LoginEncryptionUtils {
         if (!windowCache.getWindows().containsKey(formId))
             return false;
 
-        if(formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID) {
+        if (formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID) {
             FormWindow window = windowCache.getWindows().remove(formId);
             window.setResponse(formData.trim());
 
@@ -199,10 +198,10 @@ public class LoginEncryptionUtils {
                     windowCache.getWindows().clear();
                 } else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
                     SimpleFormResponse response = (SimpleFormResponse) window.getResponse();
-                    if(response != null) {
-                        if(response.getClickedButtonId() == 0) {
+                    if (response != null) {
+                        if (response.getClickedButtonId() == 0) {
                             showLoginDetailsWindow(session);
-                        } else if(response.getClickedButtonId() == 1) {
+                        } else if (response.getClickedButtonId() == 1) {
                             session.disconnect("Login is required");
                         }
                     }

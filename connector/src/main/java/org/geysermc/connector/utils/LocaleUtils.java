@@ -34,7 +34,10 @@ import org.geysermc.connector.GeyserConnector;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipFile;
 
 public class LocaleUtils {
@@ -214,7 +217,7 @@ public class LocaleUtils {
 
             // Write the file to the locale dir
             int data = inputStream.read();
-            while(data != -1){
+            while (data != -1) {
                 outputStream.write(data);
                 data = inputStream.read();
             }
@@ -237,7 +240,7 @@ public class LocaleUtils {
      * Translate the given language string into the given locale, or falls back to the default locale
      *
      * @param messageText Language string to translate
-     * @param locale Locale to translate to
+     * @param locale      Locale to translate to
      * @return Translated string or the original message if it was not found in the given locale
      */
     public static String getLocaleString(String messageText, String locale) {

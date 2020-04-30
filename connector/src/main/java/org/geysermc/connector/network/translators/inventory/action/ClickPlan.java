@@ -117,6 +117,7 @@ class ClickPlan {
     private static class ClickAction {
         final Click click;
         final int slot;
+
         ClickAction(Click click, int slot) {
             this.click = click;
             this.slot = slot;

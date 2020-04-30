@@ -25,15 +25,14 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
-import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 import org.geysermc.connector.utils.MessageUtils;
 
 @Translator(packet = CommandRequestPacket.class)

@@ -25,13 +25,12 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
 @Translator(packet = ShowCreditsPacket.class)
 public class BedrockShowCreditsTranslator extends PacketTranslator<ShowCreditsPacket> {

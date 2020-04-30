@@ -75,6 +75,7 @@ public class Pow2BitArray implements BitArray {
 
     /**
      * {@inheritDoc}
+     *
      * @return {@inheritDoc}
      */
     @Override

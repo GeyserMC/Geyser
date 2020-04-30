@@ -35,21 +35,20 @@ import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.MessageUtils;
-import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.UUID;
 
-@Getter @Setter
+@Getter
+@Setter
 public class PlayerEntity extends LivingEntity {
     private GameProfile profile;
     private UUID uuid;
@@ -101,7 +100,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     public void sendPlayer(GeyserSession session) {
-        if(session.getEntityCache().getPlayerEntity(uuid) == null)
+        if (session.getEntityCache().getPlayerEntity(uuid) == null)
             return;
         if (getLastSkinUpdate() == -1 && playerList) {
             PlayerListPacket playerList = new PlayerListPacket();

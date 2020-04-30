@@ -26,7 +26,6 @@
 package org.geysermc.platform.sponge.command;
 
 import lombok.AllArgsConstructor;
-
 import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;

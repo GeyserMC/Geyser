@@ -34,15 +34,15 @@ import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ToolItemEntry;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 public class Toolbox {
@@ -68,7 +68,7 @@ public class Toolbox {
 
         CompoundTag biomesTag;
 
-        try (NBTInputStream biomenbtInputStream = NbtUtils.createNetworkReader(biomestream)){
+        try (NBTInputStream biomenbtInputStream = NbtUtils.createNetworkReader(biomestream)) {
             biomesTag = (CompoundTag) biomenbtInputStream.readTag();
             BIOMES = biomesTag;
         } catch (Exception ex) {

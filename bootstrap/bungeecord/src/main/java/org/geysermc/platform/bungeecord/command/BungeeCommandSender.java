@@ -26,10 +26,8 @@
 package org.geysermc.platform.bungeecord.command;
 
 import lombok.AllArgsConstructor;
-
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-
 import org.geysermc.connector.command.CommandSender;
 
 @AllArgsConstructor

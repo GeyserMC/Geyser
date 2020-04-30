@@ -49,7 +49,8 @@ public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
                 default:
                     return slot;
             }
-        } return slot;
+        }
+        return slot;
     }
 
     @Override

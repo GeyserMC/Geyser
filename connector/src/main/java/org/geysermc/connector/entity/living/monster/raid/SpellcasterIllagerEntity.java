@@ -26,7 +26,6 @@
 package org.geysermc.connector.entity.living.monster.raid;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
