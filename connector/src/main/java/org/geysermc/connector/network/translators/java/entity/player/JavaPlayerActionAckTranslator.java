@@ -61,6 +61,9 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
                 break;
             case START_DIGGING:
+                if (session.getGameMode() == GameMode.CREATIVE) {
+                    break;
+                }
                 blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(packet.getNewState().getId());
                 levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
                 levelEvent.setPosition(Vector3f.from(
