@@ -41,27 +41,30 @@ public class CatEntity extends TameableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 18) {
-            // Different colors in Java and Bedrock for some reason
-            int variantColor;
-            switch ((int) entityMetadata.getValue()) {
-                case 0:
-                    variantColor = 8;
-                    break;
-                case 8:
-                    variantColor = 0;
-                    break;
-                case 9:
-                    variantColor = 10;
-                    break;
-                case 10:
-                    variantColor = 9;
-                    break;
-                default:
-                    variantColor = (int) entityMetadata.getValue();
+            // Ensure it's an int because of Hypixel shenanigans
+            if (entityMetadata.getValue() instanceof Integer) {
+                // Different colors in Java and Bedrock for some reason
+                int variantColor;
+                switch ((int) entityMetadata.getValue()) {
+                    case 0:
+                        variantColor = 8;
+                        break;
+                    case 8:
+                        variantColor = 0;
+                        break;
+                    case 9:
+                        variantColor = 10;
+                        break;
+                    case 10:
+                        variantColor = 9;
+                        break;
+                    default:
+                        variantColor = (int) entityMetadata.getValue();
+                }
+                metadata.put(EntityData.VARIANT, variantColor);
             }
-            metadata.put(EntityData.VARIANT, variantColor);
         }
-        if (entityMetadata.getId() == 21) {
+        if (entityMetadata.getId() == 21 && entityMetadata.getValue() instanceof Integer) {
             // Needed or else wild cats are a red color
             if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
                 metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());

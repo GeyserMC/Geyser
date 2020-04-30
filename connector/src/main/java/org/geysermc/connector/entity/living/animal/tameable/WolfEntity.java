@@ -41,12 +41,13 @@ public class WolfEntity extends TameableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
-        if (entityMetadata.getId() == 18) {
+        // Ensure it's a boolean because of Hypixel shenanigans
+        if (entityMetadata.getId() == 18 && entityMetadata.getValue() instanceof Boolean) {
             metadata.getFlags().setFlag(EntityFlag.INTERESTED, (boolean) entityMetadata.getValue());
         }
 
         //Reset wolf color
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 16 && entityMetadata.getValue() instanceof Byte) {
             byte xd = (byte) entityMetadata.getValue();
             boolean angry = (xd & 0x02) == 0x02;
             if (angry) {
@@ -56,7 +57,7 @@ public class WolfEntity extends TameableEntity {
 
         // Wolf collar color
         // Relies on EntityData.OWNER_EID being set in TameableEntity.java
-        if (entityMetadata.getId() == 19 && !metadata.getFlags().getFlag(EntityFlag.ANGRY)) {
+        if (entityMetadata.getId() == 19 && !metadata.getFlags().getFlag(EntityFlag.ANGRY) && entityMetadata.getValue() instanceof Integer) {
             metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
