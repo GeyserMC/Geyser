@@ -109,8 +109,11 @@ public class GeyserConnector {
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
         passthroughThread = new PingPassthroughThread(this);
-        if (config.isPingPassthrough())
-            generalThreadPool.scheduleAtFixedRate(passthroughThread, 1, 1, TimeUnit.SECONDS);
+        if (config.isPingPassthrough()) {
+            // Too many connection attempts can cause a broken pipe error on BungeeCord
+            int period = (platformType == PlatformType.BUNGEECORD) ? 5 : 1;
+            generalThreadPool.scheduleAtFixedRate(passthroughThread, 1, period, TimeUnit.SECONDS);
+        }
 
         bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
