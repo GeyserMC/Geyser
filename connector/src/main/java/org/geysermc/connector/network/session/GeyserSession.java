@@ -450,7 +450,7 @@ public class GeyserSession implements CommandSender {
             if (!teleportCache.canConfirm(position)) {
                 GeyserConnector.getInstance().getLogger().debug("Unconfirmed Teleport " + teleportCache.getTeleportConfirmId()
                         + " Ignore movement " + position + " expected " + teleportCache);
-                return true;
+                return false;
             }
             int teleportId = teleportCache.getTeleportConfirmId();
             teleportCache = null;
