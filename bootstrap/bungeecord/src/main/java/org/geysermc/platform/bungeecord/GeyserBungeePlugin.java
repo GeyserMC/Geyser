@@ -50,6 +50,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
     private GeyserBungeeCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeLogger geyserLogger;
+    private GeyserBungeePingPassthrough geyserBungeePingPassthrough;
 
     private GeyserConnector connector;
 
@@ -120,6 +121,8 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
 
         this.geyserCommandManager = new GeyserBungeeCommandManager(connector);
 
+        this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
+
         this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(connector));
     }
 
@@ -141,5 +144,10 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
     @Override
     public CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public GeyserBungeePingPassthrough getGeyserPingPassthrough() {
+        return geyserBungeePingPassthrough;
     }
 }

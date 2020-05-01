@@ -41,6 +41,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
     private GeyserBukkitCommandManager geyserCommandManager;
     private GeyserBukkitConfiguration geyserConfig;
     private GeyserBukkitLogger geyserLogger;
+    private GeyserBukkitPingPassthrough geyserBukkitPingPassthrough;
 
     private GeyserConnector connector;
 
@@ -65,6 +66,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
 
         this.geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
         this.connector = GeyserConnector.start(PlatformType.BUKKIT, this);
+        this.geyserBukkitPingPassthrough = new GeyserBukkitPingPassthrough();
 
         this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
 
@@ -89,5 +91,10 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
     @Override
     public CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public GeyserBukkitPingPassthrough getGeyserPingPassthrough() {
+        return geyserBukkitPingPassthrough;
     }
 }

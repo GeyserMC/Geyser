@@ -42,7 +42,6 @@ import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
-import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.net.InetSocketAddress;
@@ -72,7 +71,6 @@ public class GeyserConnector {
     private boolean shuttingDown = false;
 
     private final ScheduledExecutorService generalThreadPool;
-    private PingPassthroughThread passthroughThread;
 
     private BedrockServer bedrockServer;
     private PlatformType platformType;
@@ -107,13 +105,6 @@ public class GeyserConnector {
 
         remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
         authType = AuthType.getByName(config.getRemote().getAuthType());
-
-        passthroughThread = new PingPassthroughThread(this);
-        if (config.isPingPassthrough()) {
-            // Too many connection attempts can cause a broken pipe error on BungeeCord
-            int period = (platformType == PlatformType.BUNGEECORD) ? 5 : 1;
-            generalThreadPool.scheduleAtFixedRate(passthroughThread, 1, period, TimeUnit.SECONDS);
-        }
 
         bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));

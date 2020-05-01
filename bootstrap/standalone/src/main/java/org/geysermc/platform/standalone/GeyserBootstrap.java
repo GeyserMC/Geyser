@@ -36,12 +36,14 @@ import org.geysermc.platform.standalone.console.GeyserLogger;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class GeyserBootstrap implements IGeyserBootstrap {
 
     private GeyserCommandManager geyserCommandManager;
     private GeyserConfiguration geyserConfig;
     private GeyserLogger geyserLogger;
+    private GeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserConnector connector;
 
@@ -66,6 +68,10 @@ public class GeyserBootstrap implements IGeyserBootstrap {
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserCommandManager = new GeyserCommandManager(connector);
         geyserLogger.start();
+
+        geyserPingPassthrough = new GeyserPingPassthrough(connector);
+        connector.getGeneralThreadPool().scheduleAtFixedRate(geyserPingPassthrough, 1, 1, TimeUnit.SECONDS);
+
     }
 
     @Override
@@ -87,5 +93,10 @@ public class GeyserBootstrap implements IGeyserBootstrap {
     @Override
     public CommandManager getGeyserCommandManager() {
         return geyserCommandManager;
+    }
+
+    @Override
+    public GeyserPingPassthrough getGeyserPingPassthrough() {
+        return geyserPingPassthrough;
     }
 }

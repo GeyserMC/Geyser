@@ -24,35 +24,30 @@
  *
  */
 
-package org.geysermc.platform.bungeecord;
+package org.geysermc.platform.velocity;
 
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.config.ListenerInfo;
-import net.md_5.bungee.api.plugin.Listener;
+import com.velocitypowered.api.proxy.ProxyServer;
+import lombok.AllArgsConstructor;
+import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.common.IGeyserPingPassthrough;
 
-public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, Listener {
+@AllArgsConstructor
+public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
-    private final ListenerInfo listener;
-    private final ProxyServer proxyServer;
-
-    public GeyserBungeePingPassthrough(ProxyServer proxyServer) {
-        this.listener = proxyServer.getConfig().getListeners().iterator().next();;
-        this.proxyServer = proxyServer;
-    }
+    private ProxyServer server;
 
     @Override
     public String getMOTD() {
-        return listener.getMotd();
-    }
-
-    @Override
-    public int getCurrentPlayerCount() {
-        return proxyServer.getOnlineCount();
+        return LegacyComponentSerializer.INSTANCE.serialize(server.getConfiguration().getMotdComponent(), '§');
     }
 
     @Override
     public int getMaxPlayerCount() {
-        return proxyServer.getOnlineCount() + 1;
+        return server.getConfiguration().getShowMaxPlayers();
+    }
+
+    @Override
+    public int getCurrentPlayerCount() {
+        return server.getPlayerCount();
     }
 }

@@ -29,6 +29,7 @@ import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
+import org.geysermc.common.IGeyserPingPassthrough;
 import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
@@ -62,6 +63,7 @@ public class GeyserSpongePlugin implements IGeyserBootstrap {
     private GeyserSpongeCommandManager geyserCommandManager;
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
+    private GeyserSpongePingPassthrough geyserSpongePingPassthrough;
 
     private GeyserConnector connector;
 
@@ -107,6 +109,7 @@ public class GeyserSpongePlugin implements IGeyserBootstrap {
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
         this.connector = GeyserConnector.start(PlatformType.SPONGE, this);
         this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), connector);
+        this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
 
         Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(connector), "geyser");
     }
@@ -129,6 +132,11 @@ public class GeyserSpongePlugin implements IGeyserBootstrap {
     @Override
     public CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public GeyserSpongePingPassthrough getGeyserPingPassthrough() {
+        return geyserSpongePingPassthrough;
     }
 
     @Listener

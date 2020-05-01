@@ -62,6 +62,7 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
     private GeyserVelocityCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityLogger geyserLogger;
+    private GeyserVelocityPingPassthrough geyserPingPassthrough;
 
     private GeyserConnector connector;
 
@@ -93,6 +94,7 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
         this.commandManager.register(new GeyserVelocityCommandExecutor(connector), "geyser");
+        this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(server);
     }
 
     @Override
@@ -113,6 +115,11 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
     @Override
     public org.geysermc.connector.command.CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public GeyserVelocityPingPassthrough getGeyserPingPassthrough() {
+        return geyserPingPassthrough;
     }
 
     @Subscribe
