@@ -43,15 +43,15 @@ public class GeyserPingPassthrough implements IGeyserPingPassthrough, Runnable {
         this.connector = connector;
     }
 
-    private String MOTD;
-    private int maxPlayerCount;
-    private int currentPlayerCount;
+    private String motd;
+    private int maxPlayerCount = 0;
+    private int currentPlayerCount = 0;
 
     private Client client;
 
     @Override
     public String getMOTD() {
-        return MOTD;
+        return motd;
     }
 
     @Override
@@ -69,7 +69,7 @@ public class GeyserPingPassthrough implements IGeyserPingPassthrough, Runnable {
         try {
             this.client = new Client(connector.getConfig().getRemote().getAddress(), connector.getConfig().getRemote().getPort(), new MinecraftProtocol(SubProtocol.STATUS), new TcpSessionFactory());
             this.client.getSession().setFlag(MinecraftConstants.SERVER_INFO_HANDLER_KEY, (ServerInfoHandler) (session, info) -> {
-                this.MOTD = info.getDescription().getFullText();
+                this.motd = info.getDescription().getFullText();
                 this.currentPlayerCount = info.getPlayerInfo().getOnlinePlayers();
                 this.maxPlayerCount = info.getPlayerInfo().getMaxPlayers();
                 this.client.getSession().disconnect(null);

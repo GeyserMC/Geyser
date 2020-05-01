@@ -67,11 +67,11 @@ public class GeyserBootstrap implements IGeyserBootstrap {
 
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserCommandManager = new GeyserCommandManager(connector);
-        geyserLogger.start();
 
         geyserPingPassthrough = new GeyserPingPassthrough(connector);
         connector.getGeneralThreadPool().scheduleAtFixedRate(geyserPingPassthrough, 1, 1, TimeUnit.SECONDS);
 
+        geyserLogger.start();
     }
 
     @Override
