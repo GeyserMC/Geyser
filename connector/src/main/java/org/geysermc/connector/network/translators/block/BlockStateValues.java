@@ -41,8 +41,10 @@ public class BlockStateValues {
 
     private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
+    private static final Object2IntMap<BlockState> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
+    private static final Object2ByteMap<BlockState> SHULKERBOX_DIRECTIONS = new Object2ByteOpenHashMap<>();
 
     /**
      * Determines if the block state contains Bedrock block information
@@ -52,32 +54,44 @@ public class BlockStateValues {
     public static void storeBlockStateValues(Map.Entry<String, JsonNode> entry, BlockState javaBlockState) {
         JsonNode bannerColor = entry.getValue().get("banner_color");
         if (bannerColor != null) {
-            BlockStateValues.BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
+            BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
             return; // There will never be a banner color and a skull variant
         }
 
         JsonNode bedColor = entry.getValue().get("bed_color");
         if (bedColor != null) {
-            BlockStateValues.BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
+            BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
+            return;
+        }
+
+        JsonNode notePitch = entry.getValue().get("note_pitch");
+        if (notePitch != null) {
+            NOTEBLOCK_PITCHES.put(javaBlockState, entry.getValue().get("note_pitch").intValue());
             return;
         }
 
         JsonNode skullVariation = entry.getValue().get("variation");
         if(skullVariation != null) {
-            BlockStateValues.SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
+            SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
         }
 
         JsonNode skullRotation = entry.getValue().get("skull_rotation");
         if (skullRotation != null) {
-            BlockStateValues.SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
+            SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
+        }
+
+        JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
+        if (shulkerDirection != null) {
+            BlockStateValues.SHULKERBOX_DIRECTIONS.put(javaBlockState, (byte) shulkerDirection.intValue());
         }
     }
 
     /**
      * Banner colors are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
      * This gives an integer color that Bedrock can use.
+     *
      * @param state BlockState of the block
-     * @return banner color integer or -1 if no color
+     * @return Banner color integer or -1 if no color
      */
     public static int getBannerColor(BlockState state) {
         if (BANNER_COLORS.containsKey(state)) {
@@ -89,8 +103,9 @@ public class BlockStateValues {
     /**
      * Bed colors are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
      * This gives a byte color that Bedrock can use - Bedrock needs a byte in the final tag.
+     *
      * @param state BlockState of the block
-     * @return bed color byte or -1 if no color
+     * @return Bed color byte or -1 if no color
      */
     public static byte getBedColor(BlockState state) {
         if (BED_COLORS.containsKey(state)) {
@@ -100,10 +115,24 @@ public class BlockStateValues {
     }
 
     /**
+     * The note that noteblocks output when hit is part of the block state in Java but sent as a BlockEventPacket in Bedrock.
+     * This gives an integer pitch that Bedrock can use.
+     * @param state BlockState of the block
+     * @return note block note integer or -1 if not present
+     */
+    public static int getNoteblockPitch(BlockState state) {
+        if (NOTEBLOCK_PITCHES.containsKey(state)) {
+            return NOTEBLOCK_PITCHES.getInt(state);
+        }
+        return -1;
+    }
+
+    /**
      * Skull variations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
      * This gives a byte variant ID that Bedrock can use.
+     *
      * @param state BlockState of the block
-     * @return skull variant byte or -1 if no variant
+     * @return Skull variant byte or -1 if no variant
      */
     public static byte getSkullVariant(BlockState state) {
         if (SKULL_VARIANTS.containsKey(state)) {
@@ -113,9 +142,11 @@ public class BlockStateValues {
     }
 
     /**
+     * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     * This gives a byte rotation that Bedrock can use.
      *
      * @param state BlockState of the block
-     * @return skull rotation value or -1 if no value
+     * @return Skull rotation value or -1 if no value
      */
     public static byte getSkullRotation(BlockState state) {
         if (SKULL_ROTATIONS.containsKey(state)) {
@@ -124,4 +155,18 @@ public class BlockStateValues {
         return -1;
     }
 
+
+    /**
+     * Shulker box directions are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     * This gives a byte direction that Bedrock can use.
+     *
+     * @param state BlockState of the block
+     * @return Shulker direction value or -1 if no value
+     */
+    public static byte getShulkerBoxDirection(BlockState state) {
+        if (SHULKERBOX_DIRECTIONS.containsKey(state)) {
+            return SHULKERBOX_DIRECTIONS.getByte(state);
+        }
+        return -1;
+    }
 }

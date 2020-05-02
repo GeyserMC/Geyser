@@ -27,6 +27,7 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.*;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -121,18 +122,20 @@ public class MessageUtils {
     }
 
     public static String getBedrockMessage(Message message) {
-        Component component;
         if (isMessage(message.getText())) {
-            component = GsonComponentSerializer.INSTANCE.deserialize(message.getText());
+            return getBedrockMessage(message.getText());
         } else {
-            component = GsonComponentSerializer.INSTANCE.deserialize(message.toJsonString());
+            return getBedrockMessage(message.toJsonString());
         }
-        return LegacyComponentSerializer.legacy().serialize(component);
     }
 
     public static String getBedrockMessage(String message) {
-        Component component = GsonComponentSerializer.INSTANCE.deserialize(message);
+        Component component = phraseJavaMessage(message);
         return LegacyComponentSerializer.legacy().serialize(component);
+    }
+
+    public static Component phraseJavaMessage(String message) {
+        return GsonComponentSerializer.INSTANCE.deserialize(message);
     }
 
     public static String getJavaMessage(String message) {

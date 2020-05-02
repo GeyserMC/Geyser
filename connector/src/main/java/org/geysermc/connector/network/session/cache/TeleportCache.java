@@ -25,37 +25,23 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.Getter;
-import lombok.Setter;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
+import com.nukkitx.math.vector.Vector3f;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-public class InventoryCache {
+@AllArgsConstructor
+@Data
+public class TeleportCache {
 
-    private GeyserSession session;
+    private static final double ERROR = 0.2;
+    private static final double ERROR_Y = 0.5;
 
-    @Getter
-    @Setter
-    private Inventory openInventory;
+    private double x, y, z;
+    private int teleportConfirmId;
 
-    @Getter
-    private Int2ObjectMap<Inventory> inventories = new Int2ObjectOpenHashMap<>();
-
-    public InventoryCache(GeyserSession session) {
-        this.session = session;
-    }
-
-    public Inventory getPlayerInventory() {
-        return inventories.get(0);
-    }
-
-    public void cacheInventory(Inventory inventory) {
-        inventories.put(inventory.getId(), inventory);
-    }
-
-    public void uncacheInventory(int id) {
-        inventories.remove(id);
+    public boolean canConfirm(Vector3f position) {
+        return (Math.abs(this.x - position.getX()) < ERROR &&
+                Math.abs(this.y - position.getY()) < ERROR_Y &&
+                Math.abs(this.z - position.getZ()) < ERROR);
     }
 }

@@ -28,32 +28,31 @@ package org.geysermc.connector.network.translators.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
-import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.data.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.InventorySource;
+import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import it.unimi.dsi.fastutil.longs.LongArraySet;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.utils.Toolbox;
 
 import java.util.List;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
+
     public PlayerInventoryTranslator() {
         super(46);
     }
 
     @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
-        // Crafting grid
-        for (int i = 1; i < 5; i++) {
-            InventorySlotPacket slotPacket = new InventorySlotPacket();
-            slotPacket.setContainerId(ContainerId.CURSOR);
-            slotPacket.setSlot(i + 27);
-            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i)));
-            session.getUpstream().sendPacket(slotPacket);
-        }
+        updateCraftingGrid(session, inventory);
 
         InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
         inventoryContentPacket.setContainerId(ContainerId.INVENTORY);
@@ -84,6 +83,28 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         offhandPacket.setContainerId(ContainerId.OFFHAND);
         offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(45))});
         session.getUpstream().sendPacket(offhandPacket);
+    }
+
+    /**
+     * Update the crafting grid for the player to hide/show the barriers in the creative inventory
+     * @param session Session of the player
+     * @param inventory Inventory of the player
+     */
+    public static void updateCraftingGrid(GeyserSession session, Inventory inventory) {
+        // Crafting grid
+        for (int i = 1; i < 5; i++) {
+            InventorySlotPacket slotPacket = new InventorySlotPacket();
+            slotPacket.setContainerId(ContainerId.CURSOR);
+            slotPacket.setSlot(i + 27);
+
+            if (session.getGameMode() == GameMode.CREATIVE) {
+                slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, new ItemStack(Toolbox.BARRIER_INDEX)));
+            }else{
+                slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i)));
+            }
+
+            session.getUpstream().sendPacket(slotPacket);
+        }
     }
 
     @Override

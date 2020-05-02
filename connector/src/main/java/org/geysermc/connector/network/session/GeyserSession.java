@@ -30,6 +30,7 @@ import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsExcepti
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.packetlib.Client;
@@ -42,22 +43,14 @@ import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
-import com.nukkitx.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
-import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.geysermc.common.AuthType;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
@@ -91,8 +84,10 @@ public class GeyserSession implements CommandSender {
     private final UpstreamSession upstream;
     private RemoteServer remoteServer;
     private Client downstream;
-    @Setter private AuthData authData;
-    @Setter private BedrockClientData clientData;
+    @Setter
+    private AuthData authData;
+    @Setter
+    private BedrockClientData clientData;
 
     private PlayerEntity playerEntity;
     private PlayerInventory inventory;
@@ -102,6 +97,8 @@ public class GeyserSession implements CommandSender {
     private InventoryCache inventoryCache;
     private ScoreboardCache scoreboardCache;
     private WindowCache windowCache;
+    @Setter
+    private TeleportCache teleportCache;
 
     private DataCache<Packet> javaPacketCache;
 
@@ -166,7 +163,7 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setTag(CompoundTag.EMPTY);
+        entityPacket.setTag(Toolbox.ENTITY_IDENTIFIERS);
         upstream.sendPacket(entityPacket);
 
         InventoryContentPacket creativePacket = new InventoryContentPacket();
@@ -330,9 +327,15 @@ public class GeyserSession implements CommandSender {
                 downstream.getSession().disconnect(reason);
             }
             if (upstream != null && !upstream.isClosed()) {
+                connector.getPlayers().remove(this.upstream.getAddress());
                 upstream.disconnect(reason);
             }
         }
+
+        this.entityCache.getEntities().clear();
+        this.scoreboardCache.removeScoreboard();
+        this.inventoryCache.getInventories().clear();
+        this.windowCache.getWindows().clear();
 
         closed = true;
     }
@@ -440,5 +443,20 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setVanillaVersion("*");
         // startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacket(startGamePacket);
+    }
+
+    public boolean confirmTeleport(Vector3f position) {
+        if (teleportCache != null) {
+            if (!teleportCache.canConfirm(position)) {
+                GeyserConnector.getInstance().getLogger().debug("Unconfirmed Teleport " + teleportCache.getTeleportConfirmId()
+                        + " Ignore movement " + position + " expected " + teleportCache);
+                return false;
+            }
+            int teleportId = teleportCache.getTeleportConfirmId();
+            teleportCache = null;
+            ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(teleportId);
+            getDownstream().getSession().send(teleportConfirmPacket);
+        }
+        return true;
     }
 }

@@ -32,9 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -189,13 +187,10 @@ public class ChunkUtils {
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
         // Iterates through all block entity translators and determines if the block state needs to be saved
-        for (Map.Entry<String, BlockEntityTranslator> entry : Translators.getBlockEntityTranslators().entrySet()) {
-            if (entry.getValue() instanceof RequiresBlockState) {
-                RequiresBlockState requiresBlockState = (RequiresBlockState) entry.getValue();
-                if (requiresBlockState.isBlock(blockState)) {
-                    CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
-                    break; //No block will be a part of two classes
-                }
+        for (RequiresBlockState requiresBlockState : Translators.getRequiresBlockStateMap()) {
+            if (requiresBlockState.isBlock(blockState)) {
+                CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+                break; //No block will be a part of two classes
             }
         }
     }

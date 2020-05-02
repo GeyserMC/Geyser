@@ -91,7 +91,6 @@ public class ItemTranslator {
         ItemEntry javaItem = getItem(data);
 
         ItemStack itemStack;
-
         ItemStackTranslator itemStackTranslator = itemTranslators.get(javaItem.getJavaId());
         if (itemStackTranslator != null) {
             itemStack = itemStackTranslator.translateToJava(data, javaItem);
@@ -115,20 +114,21 @@ public class ItemTranslator {
         }
 
         ItemEntry bedrockItem = getItem(stack);
+        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), stack.getNbt() != null ? stack.getNbt().clone() : null);
 
-        if (stack.getNbt() != null) {
+        if (itemStack.getNbt() != null) {
             for (NbtItemStackTranslator translator : nbtItemTranslators) {
                 if (translator.acceptItem(bedrockItem)) {
-                    translator.translateToBedrock(stack.getNbt(), bedrockItem);
+                    translator.translateToBedrock(itemStack.getNbt(), bedrockItem);
                 }
             }
         }
 
         ItemStackTranslator itemStackTranslator = itemTranslators.get(bedrockItem.getJavaId());
         if (itemStackTranslator != null) {
-            return itemStackTranslator.translateToBedrock(stack, bedrockItem);
+            return itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
         } else {
-            return DEFAULT_TRANSLATOR.translateToBedrock(stack, bedrockItem);
+            return DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
         }
     }
 
