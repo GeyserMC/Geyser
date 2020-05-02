@@ -132,7 +132,6 @@ public class ItemFrameEntity extends Entity {
         else if (entityMetadata.getId() == 8) {
             rotation = ((int) entityMetadata.getValue()) * 45;
             if (cachedTag == null) {
-                session.getConnector().getLogger().warning("Cached item frame tag is null at " + bedrockPosition.toString());
                 updateBlock(session);
                 return;
             }
@@ -176,31 +175,26 @@ public class ItemFrameEntity extends Entity {
      * @param session GeyserSession
      */
     public void updateBlock(GeyserSession session) {
-        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-        updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setBlockPosition(bedrockPosition);
-        updateBlockPacket.setRuntimeId(bedrockRuntimeId);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        if (session.isSpawned()) {
+        session.getConnector().getGeneralThreadPool().schedule(() -> {
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.setDataLayer(0);
+            updateBlockPacket.setBlockPosition(bedrockPosition);
+            updateBlockPacket.setRuntimeId(bedrockRuntimeId);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
             session.getUpstream().sendPacket(updateBlockPacket);
-        } else {
-            session.getConnector().getGeneralThreadPool().schedule(() ->
-                    session.getUpstream().sendPacket(updateBlockPacket),
-                    5,
-                    TimeUnit.SECONDS);
-        }
 
-        BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
-        blockEntityDataPacket.setBlockPosition(bedrockPosition);
-        if (cachedTag != null) {
-            blockEntityDataPacket.setData(cachedTag);
-        } else {
-            blockEntityDataPacket.setData(getDefaultTag());
-        }
+            BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
+            blockEntityDataPacket.setBlockPosition(bedrockPosition);
+            if (cachedTag != null) {
+                blockEntityDataPacket.setData(cachedTag);
+            } else {
+                blockEntityDataPacket.setData(getDefaultTag());
+            }
 
-        session.getUpstream().sendPacket(blockEntityDataPacket);
+            session.getUpstream().sendPacket(blockEntityDataPacket);
+        }, 500, TimeUnit.MILLISECONDS);
     }
 
     /**
