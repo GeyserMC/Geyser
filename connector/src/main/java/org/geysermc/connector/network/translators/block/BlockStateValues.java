@@ -27,6 +27,8 @@ package org.geysermc.connector.network.translators.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -41,6 +43,7 @@ public class BlockStateValues {
 
     private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
+    private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Object2IntMap<BlockState> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
@@ -61,6 +64,11 @@ public class BlockStateValues {
         JsonNode bedColor = entry.getValue().get("bed_color");
         if (bedColor != null) {
             BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
+            return;
+        }
+
+        if (entry.getKey().contains("potted_")) {
+            FLOWER_POT_VALUES.put(javaBlockState.getId(), "minecraft:red_flower");
             return;
         }
 
@@ -112,6 +120,13 @@ public class BlockStateValues {
             return BED_COLORS.getByte(state);
         }
         return -1;
+    }
+
+    public static String getFlowerPotValue(BlockState state) {
+        if (FLOWER_POT_VALUES.containsKey(state.getId())) {
+            return FLOWER_POT_VALUES.get(state.getId());
+        }
+        return null;
     }
 
     /**

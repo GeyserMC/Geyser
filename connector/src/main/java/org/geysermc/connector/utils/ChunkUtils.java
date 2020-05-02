@@ -172,6 +172,11 @@ public class ChunkUtils {
         // Iterates through all block entity translators and determines if the block state needs to be saved
         for (RequiresBlockState requiresBlockState : Translators.getRequiresBlockStateMap()) {
             if (requiresBlockState.isBlock(blockState)) {
+                // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
+                if (requiresBlockState instanceof FlowerPotBlockEntityTranslator) {
+                    ((FlowerPotBlockEntityTranslator) requiresBlockState).updateBlock(session, blockState, position);
+                    break;
+                }
                 CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
                 break; //No block will be a part of two classes
             }

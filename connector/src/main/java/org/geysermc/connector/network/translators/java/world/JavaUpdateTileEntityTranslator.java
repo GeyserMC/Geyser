@@ -45,6 +45,7 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
 
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
+        System.out.println(packet.getType().name());
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
         // If not null then the BlockState is used in BlockEntityTranslator.translateTag()
