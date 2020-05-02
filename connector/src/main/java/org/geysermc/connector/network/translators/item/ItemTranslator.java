@@ -42,14 +42,14 @@ import java.util.stream.Collectors;
 
 public class ItemTranslator {
 
-    private static final Int2ObjectMap<ItemStackTranslator> itemTranslators = new Int2ObjectOpenHashMap<>();
-    private static List<NbtItemStackTranslator> nbtItemTranslators = new ArrayList<>();
-    private static final Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
-	
-	// Shield ID, used in Entity.java
+    private Int2ObjectMap<ItemStackTranslator> itemTranslators = new Int2ObjectOpenHashMap();
+    private List<NbtItemStackTranslator> nbtItemTranslators;
+    private Map<String, ItemEntry> javaIdentifierMap = new HashMap<>();
+
+    // Shield ID, used in Entity.java
     public static final int SHIELD = 829;
 
-    public static void init() {
+    public void init() {
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
@@ -84,7 +84,7 @@ public class ItemTranslator {
                 .sorted(Comparator.comparingInt(value -> loadedNbtItemTranslators.get(value))).collect(Collectors.toList());
     }
 
-    public static ItemStack translateToJava(GeyserSession session, ItemData data) {
+    public ItemStack translateToJava(GeyserSession session, ItemData data) {
         if (data == null) {
             return new ItemStack(0);
         }
@@ -108,12 +108,13 @@ public class ItemTranslator {
         return itemStack;
     }
 
-    public static ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
+    public ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
         if (stack == null) {
             return ItemData.AIR;
         }
 
         ItemEntry bedrockItem = getItem(stack);
+
         ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), stack.getNbt() != null ? stack.getNbt().clone() : null);
 
         if (itemStack.getNbt() != null) {
@@ -132,11 +133,11 @@ public class ItemTranslator {
         }
     }
 
-    public static ItemEntry getItem(ItemStack stack) {
+    public ItemEntry getItem(ItemStack stack) {
         return Toolbox.ITEM_ENTRIES.get(stack.getId());
     }
 
-    public static ItemEntry getItem(ItemData data) {
+    public ItemEntry getItem(ItemData data) {
         for (ItemEntry itemEntry : Toolbox.ITEM_ENTRIES.values()) {
             if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() || itemEntry.getJavaIdentifier().endsWith("potion"))) {
                 return itemEntry;

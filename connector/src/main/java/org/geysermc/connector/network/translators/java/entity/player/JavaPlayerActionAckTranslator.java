@@ -37,7 +37,6 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
@@ -66,7 +65,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 ItemEntry itemEntry = null;
                 CompoundTag nbtData = new CompoundTag("");
                 if (item != null) {
-                    itemEntry = ItemTranslator.getItem(item);
+                    itemEntry = Translators.getItemTranslator().getItem(item);
                     nbtData = item.getNbt();
                 }
                 double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry, nbtData, session.getPlayerEntity()) * 20);
