@@ -34,16 +34,7 @@ import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTInputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.ListTag;
-import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
-import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
-import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
@@ -63,6 +54,7 @@ public class BlockTranslator {
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
     private static final BiMap<String, BlockState> JAVA_ID_BLOCK_MAP = HashBiMap.create();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
+    private static final Object2IntMap<CompoundTag> ITEM_FRAMES = new Object2IntOpenHashMap<>();
 
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
@@ -204,6 +196,16 @@ public class BlockTranslator {
 
         paletteList.addAll(blockStateMap.values()); // Add any missing mappings that could crash the client
 
+        // Loop around again to find all item frame runtime IDs
+        int frameRuntimeId = 0;
+        for (CompoundTag tag : paletteList) {
+            CompoundTag blockTag = tag.getCompound("block");
+            if (blockTag.getString("name").equals("minecraft:frame")) {
+                ITEM_FRAMES.put(tag, frameRuntimeId);
+            }
+            frameRuntimeId++;
+        }
+
         BLOCKS = new ListTag<>("", CompoundTag.class, paletteList);
     }
 
@@ -253,6 +255,18 @@ public class BlockTranslator {
 
     public static BlockState getJavaBlockState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
+    }
+
+    public static int getItemFrame(CompoundTag tag) {
+        return ITEM_FRAMES.getOrDefault(tag, -1);
+    }
+
+    public static boolean isItemFrame(int bedrockBlockRuntimeId) {
+        return ITEM_FRAMES.values().contains(bedrockBlockRuntimeId);
+    }
+
+    public static int getBlockStateVersion() {
+        return BLOCK_STATE_VERSION;
     }
 
     public static BlockState getJavaBlockState(String javaId) {

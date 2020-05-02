@@ -32,15 +32,15 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.entity.*;
 import org.geysermc.connector.network.translators.Translators;
@@ -51,6 +51,7 @@ import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.AIR;
 import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
 
 public class ChunkUtils {
@@ -150,6 +151,20 @@ public class ChunkUtils {
     }
 
     public static void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
+
+        // Checks for item frames so they aren't tripped up and removed
+        if (ItemFrameEntity.positionContainsItemFrame(session, position) && blockState.equals(AIR)) {
+            ((ItemFrameEntity) session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, position))).updateBlock(session);
+            return;
+        } else if (ItemFrameEntity.positionContainsItemFrame(session, position)) {
+            Entity entity = session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, position));
+            if (entity != null) {
+                session.getEntityCache().removeEntity(entity, false);
+            } else {
+                ItemFrameEntity.removePosition(session, position);
+            }
+        }
+
         int blockId = BlockTranslator.getBedrockBlockId(blockState);
 
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
@@ -172,13 +187,10 @@ public class ChunkUtils {
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
         // Iterates through all block entity translators and determines if the block state needs to be saved
-        for (Map.Entry<String, BlockEntityTranslator> entry : Translators.getBlockEntityTranslators().entrySet()) {
-            if (entry.getValue() instanceof RequiresBlockState) {
-                RequiresBlockState requiresBlockState = (RequiresBlockState) entry.getValue();
-                if (requiresBlockState.isBlock(blockState)) {
-                    CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
-                    break; //No block will be a part of two classes
-                }
+        for (RequiresBlockState requiresBlockState : Translators.getRequiresBlockStateMap()) {
+            if (requiresBlockState.isBlock(blockState)) {
+                CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+                break; //No block will be a part of two classes
             }
         }
         session.getChunkCache().updateBlock(new Position(position.getX(), position.getY(), position.getZ()), blockState);
