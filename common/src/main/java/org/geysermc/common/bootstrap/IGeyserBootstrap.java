@@ -26,7 +26,7 @@
 package org.geysermc.common.bootstrap;
 
 import org.geysermc.common.IGeyserConfiguration;
-import org.geysermc.common.IGeyserPingPassthrough;
+import org.geysermc.common.ping.IGeyserPingPassthrough;
 import org.geysermc.common.command.ICommandManager;
 import org.geysermc.common.logger.IGeyserLogger;
 

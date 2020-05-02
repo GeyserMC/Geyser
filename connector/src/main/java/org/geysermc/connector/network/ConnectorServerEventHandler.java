@@ -26,14 +26,13 @@
 package org.geysermc.connector.network;
 
 import com.github.steveice10.mc.protocol.data.message.Message;
-import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 
 import org.geysermc.common.IGeyserConfiguration;
-import org.geysermc.common.IGeyserPingPassthrough;
-import org.geysermc.common.PlatformType;
+import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.common.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.MessageUtils;
@@ -60,15 +59,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
         IGeyserConfiguration config = connector.getConfig();
 
-        int currentPlayerCount = 0;
-        int maxPlayerCount = 0;
-        String serverMotd = null;
+        GeyserPingInfo pingInfo = null;
         if (connector.getConfig().isPingPassthrough()) {
             IGeyserPingPassthrough pingPassthrough = connector.getBootstrap().getGeyserPingPassthrough();
-
-            currentPlayerCount = pingPassthrough.getCurrentPlayerCount();
-            maxPlayerCount = pingPassthrough.getMaxPlayerCount();
-            serverMotd = pingPassthrough.getMOTD();
+            pingInfo = pingPassthrough.getPingInformation();
         }
 
         BedrockPong pong = new BedrockPong();
@@ -78,15 +72,15 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
         pong.setVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
         pong.setIpv4Port(config.getBedrock().getPort());
-        if (connector.getConfig().isPingPassthrough() && serverMotd != null) {
-            String[] motd = MessageUtils.getBedrockMessage(Message.fromString(serverMotd)).split("\n");
+        if (connector.getConfig().isPingPassthrough() && pingInfo != null && pingInfo.motd != null) {
+            String[] motd = MessageUtils.getBedrockMessage(Message.fromString(pingInfo.motd)).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
 
             pong.setMotd(mainMotd.trim());
             pong.setSubMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
-            pong.setPlayerCount(currentPlayerCount);
-            pong.setMaximumPlayerCount(maxPlayerCount);
+            pong.setPlayerCount(pingInfo.currentPlayerCount);
+            pong.setMaximumPlayerCount(pingInfo.maxPlayerCount);
         } else {
             pong.setPlayerCount(connector.getPlayers().size());
             pong.setMaximumPlayerCount(config.getMaxPlayers());

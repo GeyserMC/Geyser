@@ -29,7 +29,8 @@ package org.geysermc.platform.bungeecord;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Listener;
-import org.geysermc.common.IGeyserPingPassthrough;
+import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.common.ping.IGeyserPingPassthrough;
 
 public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, Listener {
 
@@ -42,17 +43,7 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
     }
 
     @Override
-    public String getMOTD() {
-        return listener.getMotd();
-    }
-
-    @Override
-    public int getCurrentPlayerCount() {
-        return proxyServer.getOnlineCount();
-    }
-
-    @Override
-    public int getMaxPlayerCount() {
-        return proxyServer.getOnlineCount() + 1;
+    public GeyserPingInfo getPingInformation() {
+        return new GeyserPingInfo(listener.getMotd(), proxyServer.getOnlineCount(), listener.getMaxPlayers());
     }
 }

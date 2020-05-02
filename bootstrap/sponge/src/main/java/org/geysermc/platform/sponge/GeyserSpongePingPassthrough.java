@@ -26,24 +26,18 @@
 
 package org.geysermc.platform.sponge;
 
-import org.geysermc.common.IGeyserPingPassthrough;
+import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.common.ping.IGeyserPingPassthrough;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
 
     @Override
-    public String getMOTD() {
-        return TextSerializers.LEGACY_FORMATTING_CODE.serialize(Sponge.getServer().getMotd());
-    }
-
-    @Override
-    public int getMaxPlayerCount() {
-        return Sponge.getServer().getMaxPlayers();
-    }
-
-    @Override
-    public int getCurrentPlayerCount() {
-        return Sponge.getServer().getOnlinePlayers().size();
+    public GeyserPingInfo getPingInformation() {
+        return new GeyserPingInfo(
+                TextSerializers.LEGACY_FORMATTING_CODE.serialize(Sponge.getServer().getMotd()),
+                Sponge.getServer().getOnlinePlayers().size(),
+                Sponge.getServer().getMaxPlayers());
     }
 }

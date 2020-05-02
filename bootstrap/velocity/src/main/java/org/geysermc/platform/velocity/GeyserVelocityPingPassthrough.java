@@ -29,7 +29,8 @@ package org.geysermc.platform.velocity;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.AllArgsConstructor;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
-import org.geysermc.common.IGeyserPingPassthrough;
+import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.common.ping.IGeyserPingPassthrough;
 
 @AllArgsConstructor
 public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
@@ -37,17 +38,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
     private ProxyServer server;
 
     @Override
-    public String getMOTD() {
-        return LegacyComponentSerializer.INSTANCE.serialize(server.getConfiguration().getMotdComponent(), '§');
-    }
-
-    @Override
-    public int getMaxPlayerCount() {
-        return server.getConfiguration().getShowMaxPlayers();
-    }
-
-    @Override
-    public int getCurrentPlayerCount() {
-        return server.getPlayerCount();
+    public GeyserPingInfo getPingInformation() {
+        return new GeyserPingInfo(
+                LegacyComponentSerializer.INSTANCE.serialize(server.getConfiguration().getMotdComponent(), '§'),
+                server.getPlayerCount(),
+                server.getConfiguration().getShowMaxPlayers()
+        );
     }
 }

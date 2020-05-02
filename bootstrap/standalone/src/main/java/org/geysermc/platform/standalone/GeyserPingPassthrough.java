@@ -32,7 +32,8 @@ import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.status.handler.ServerInfoHandler;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
-import org.geysermc.common.IGeyserPingPassthrough;
+import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.common.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.GeyserConnector;
 
 public class GeyserPingPassthrough implements IGeyserPingPassthrough, Runnable {
@@ -41,27 +42,16 @@ public class GeyserPingPassthrough implements IGeyserPingPassthrough, Runnable {
 
     public GeyserPingPassthrough(GeyserConnector connector) {
         this.connector = connector;
+        this.pingInfo = new GeyserPingInfo();
     }
 
-    private String motd;
-    private int maxPlayerCount = 0;
-    private int currentPlayerCount = 0;
+    private GeyserPingInfo pingInfo;
 
     private Client client;
 
     @Override
-    public String getMOTD() {
-        return motd;
-    }
-
-    @Override
-    public int getMaxPlayerCount() {
-        return maxPlayerCount;
-    }
-
-    @Override
-    public int getCurrentPlayerCount() {
-        return currentPlayerCount;
+    public GeyserPingInfo getPingInformation() {
+        return pingInfo;
     }
 
     @Override
@@ -69,9 +59,9 @@ public class GeyserPingPassthrough implements IGeyserPingPassthrough, Runnable {
         try {
             this.client = new Client(connector.getConfig().getRemote().getAddress(), connector.getConfig().getRemote().getPort(), new MinecraftProtocol(SubProtocol.STATUS), new TcpSessionFactory());
             this.client.getSession().setFlag(MinecraftConstants.SERVER_INFO_HANDLER_KEY, (ServerInfoHandler) (session, info) -> {
-                this.motd = info.getDescription().getFullText();
-                this.currentPlayerCount = info.getPlayerInfo().getOnlinePlayers();
-                this.maxPlayerCount = info.getPlayerInfo().getMaxPlayers();
+                pingInfo.motd = info.getDescription().getFullText();
+                pingInfo.currentPlayerCount = info.getPlayerInfo().getOnlinePlayers();
+                pingInfo.maxPlayerCount = info.getPlayerInfo().getMaxPlayers();
                 this.client.getSession().disconnect(null);
             });
 

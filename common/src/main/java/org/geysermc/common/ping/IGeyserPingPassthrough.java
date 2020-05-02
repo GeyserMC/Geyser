@@ -24,29 +24,17 @@
  *
  */
 
-package org.geysermc.platform.bukkit;
+package org.geysermc.common.ping;
 
-import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.server.ServerListPingEvent;
-import org.geysermc.common.ping.GeyserPingInfo;
-import org.geysermc.common.ping.IGeyserPingPassthrough;
+/**
+ * Interface that retrieves ping passthrough information from the Java server
+ */
+public interface IGeyserPingPassthrough {
 
-import java.net.InetAddress;
+    /**
+     * Get the MOTD of the server displayed on the multiplayer screen
+     * @return string of the MOTD
+     */
+    GeyserPingInfo getPingInformation();
 
-public class GeyserBukkitPingPassthrough implements IGeyserPingPassthrough {
-
-    @Override
-    public GeyserPingInfo getPingInformation() {
-        try {
-            // Currently makes Essentials complain about not being able to hide vanished players with an UnsupportedOperationException
-            ServerListPingEvent event = new ServerListPingEvent(
-                    InetAddress.getLocalHost(), Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers());
-            Bukkit.getPluginManager().callEvent(event);
-            return new GeyserPingInfo(event.getMotd(), event.getNumPlayers(), event.getMaxPlayers());
-        } catch (Exception e) {
-            return new GeyserPingInfo(null, 0, 0);
-        }
-    }
 }

@@ -24,29 +24,17 @@
  *
  */
 
-package org.geysermc.common;
+package org.geysermc.common.ping;
 
-/**
- * Interface that retrieves ping passthrough information from the Java server
- */
-public interface IGeyserPingPassthrough {
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
-    /**
-     * Get the MOTD of the server displayed on the multiplayer screen
-     * @return string of the MOTD
-     */
-    String getMOTD();
+@AllArgsConstructor
+@NoArgsConstructor
+public class GeyserPingInfo {
 
-    /**
-     * Get the maximum amount of players supported on the Minecraft server
-     * @return maximum allowed players on the server
-     */
-    int getMaxPlayerCount();
-
-    /**
-     * Get the current player count on the Minecraft server
-     * @return count of current player amount on the server
-     */
-    int getCurrentPlayerCount();
+    public String motd;
+    public int currentPlayerCount;
+    public int maxPlayerCount;
 
 }
