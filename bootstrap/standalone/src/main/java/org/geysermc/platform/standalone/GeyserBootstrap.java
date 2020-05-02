@@ -68,8 +68,11 @@ public class GeyserBootstrap implements IGeyserBootstrap {
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserCommandManager = new GeyserCommandManager(connector);
 
+        // Ensure delay is not zero
+        int interval = (geyserConfig.getPingPassthroughInterval() == 0) ? 1 : geyserConfig.getPingPassthroughInterval();
+        geyserLogger.debug("Scheduling ping passthrough at an interval of " + interval + " second(s).");
         geyserPingPassthrough = new GeyserPingPassthrough(connector);
-        connector.getGeneralThreadPool().scheduleAtFixedRate(geyserPingPassthrough, 1, 1, TimeUnit.SECONDS);
+        connector.getGeneralThreadPool().scheduleAtFixedRate(geyserPingPassthrough, 1, interval, TimeUnit.SECONDS);
 
         geyserLogger.start();
     }

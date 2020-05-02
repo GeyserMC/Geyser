@@ -51,6 +51,9 @@ public class GeyserConfiguration implements IGeyserConfiguration {
     @JsonProperty("ping-passthrough")
     private boolean pingPassthrough;
 
+    @JsonProperty("ping-passthrough-interval")
+    private int pingPassthroughInterval;
+
     @JsonProperty("max-players")
     private int maxPlayers;
 

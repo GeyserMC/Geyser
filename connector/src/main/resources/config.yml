@@ -43,6 +43,9 @@ floodgate-key-file: public-key.pem
 
 # Relay the MOTD, player count and max players from the remote server
 ping-passthrough: false
+# How often to ping the remote server, in seconds. Only relevant for standalone.
+# Increase if you are getting BrokenPipe errors
+ping-passthrough-interval: 1
 
 # Maximum amount of players that can connect
 max-players: 100
