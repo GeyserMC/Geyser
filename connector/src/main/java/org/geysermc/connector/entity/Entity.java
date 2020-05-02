@@ -158,11 +158,11 @@ public class Entity {
         session.getUpstream().sendPacket(moveEntityPacket);
     }
 
-    public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
-        moveAbsolute(session, position, Vector3f.from(yaw, pitch, yaw), isOnGround, teleported);
+    public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround) {
+        moveAbsolute(session, position, Vector3f.from(yaw, pitch, yaw), isOnGround);
     }
 
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
         setPosition(position);
         setRotation(rotation);
 
@@ -171,7 +171,7 @@ public class Entity {
         moveEntityPacket.setPosition(position);
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
-        moveEntityPacket.setTeleported(teleported);
+        moveEntityPacket.setTeleported(false);
 
         session.getUpstream().sendPacket(moveEntityPacket);
     }

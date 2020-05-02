@@ -34,6 +34,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
+import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -58,31 +59,23 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        // We need to parse the float as a string since casting a float to a double causes us to
-        // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
-        if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
-
-        Vector3f position = Vector3f.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
-                Double.parseDouble(Float.toString(packet.getPosition().getZ())));
-
-        if(!session.confirmTeleport(position)){
-            return;
-        }
-
         if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
             session.getConnector().getLogger().debug("Recalculating position...");
             recalculatePosition(session, entity, entity.getPosition());
             return;
         }
 
+        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
+        if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
+        // We need to parse the float as a string since casting a float to a double causes us to
+        // lose precision and thus, causes players to get stuck when walking near walls
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
-                packet.isOnGround(), position.getX(), position.getY(), position.getZ(), packet.getRotation().getY(), packet.getRotation().getX()
+                packet.isOnGround(), Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY, Double.parseDouble(Float.toString(packet.getPosition().getZ())), packet.getRotation().getY(), packet.getRotation().getX()
         );
 
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
-        entity.setPosition(position);
+        entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
         entity.setRotation(rotation);
 
         /*
