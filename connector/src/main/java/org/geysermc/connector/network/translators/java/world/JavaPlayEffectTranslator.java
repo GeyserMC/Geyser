@@ -81,6 +81,16 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         // Might need to be SHOOT
                         effect.setType(LevelEventType.PARTICLE_SMOKE);
                         break;
+                    case BLOCK_LAVA_EXTINGUISH:
+                        LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                        soundEventPacket.setSound(SoundEvent.EXTINGUISH_FIRE);
+                        soundEventPacket.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
+                        soundEventPacket.setIdentifier(":");
+                        soundEventPacket.setExtraData(-1);
+                        soundEventPacket.setBabySound(false);
+                        soundEventPacket.setRelativeVolumeDisabled(false);
+                        session.getUpstream().sendPacket(soundEventPacket);
+                        return;
                     default:
                         GeyserConnector.getInstance().getLogger().debug("No effect handling for particle effect: " + packet.getEffect());
                 }

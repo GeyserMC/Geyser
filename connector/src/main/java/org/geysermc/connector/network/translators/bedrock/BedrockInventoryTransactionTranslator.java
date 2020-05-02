@@ -50,6 +50,7 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
@@ -160,6 +161,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
                         session.getDownstream().getSession().send(interactPacket);
                         session.getDownstream().getSession().send(interactAtPacket);
+
+                        EntitySoundInteractionHandler.handleEntityInteraction(session, vector, entity);
                         break;
                     case 1: //Attack
                         ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),

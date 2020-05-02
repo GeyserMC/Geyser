@@ -38,8 +38,10 @@ public @interface SoundHandler {
 
     /**
      * The identifier(s) that the placed block must contain
-     * one of.
-     * Leave empty to ignore.
+     * one of. Leave empty to ignore.
+     *
+     * Only applies to interaction handlers that are an
+     * instance of {@link BlockSoundInteractionHandler}.
      *
      * @return the value the interacted block must contain
      */
@@ -47,12 +49,22 @@ public @interface SoundHandler {
 
     /**
      * The identifier(s) that the player's hand item
-     * must contain one of.
-     * Leave empty to ignore.
+     * must contain one of. Leave empty to ignore.
      *
      * @return the value the item in the player's hand must contain
      */
     String[] items() default {};
+
+    /**
+     * The identifier(s) that the interacted entity must have.
+     * Leave empty to ignore.
+     *
+     * Only applies to interaction handlers that are an
+     * instance of {@link BlockSoundInteractionHandler}.
+     *
+     * @return the value the item in the player's hand must contain
+     */
+    String[] entities() default {};
 
     /**
      * Controls if the interaction should still be

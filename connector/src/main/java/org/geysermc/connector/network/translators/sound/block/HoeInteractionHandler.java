@@ -24,23 +24,28 @@
  *
  */
 
-package org.geysermc.connector.network.translators.sound;
+package org.geysermc.connector.network.translators.sound.block;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
+import org.geysermc.connector.network.translators.sound.SoundHandler;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-@SoundHandler(blocks = "door")
-public class DoorSoundInteractionHandler implements SoundInteractionHandler {
+@SoundHandler(blocks = "farmland", items = "hoe", ignoreSneakingWhileHolding = true)
+public class HoeInteractionHandler implements BlockSoundInteractionHandler {
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(LevelEventType.SOUND_DOOR);
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setData(0);
-        session.getUpstream().sendPacket(levelEventPacket);
+        LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
+        levelSoundEventPacket.setPosition(position);
+        levelSoundEventPacket.setBabySound(false);
+        levelSoundEventPacket.setRelativeVolumeDisabled(false);
+        levelSoundEventPacket.setIdentifier(":");
+        levelSoundEventPacket.setSound(SoundEvent.ITEM_USE_ON);
+        levelSoundEventPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(identifier)));
+        session.getUpstream().sendPacket(levelSoundEventPacket);
     }
 }

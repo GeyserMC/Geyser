@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.sound.SoundInteractionHandler;
+import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 
@@ -103,6 +103,6 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(packet.getRecord().getBlock());
         session.setInteracting(false);
         session.setLastInteractionPosition(null);
-        SoundInteractionHandler.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
+        BlockSoundInteractionHandler.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
     }
 }

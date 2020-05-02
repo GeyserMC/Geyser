@@ -24,17 +24,18 @@
  *
  */
 
-package org.geysermc.connector.network.translators.sound;
+package org.geysermc.connector.network.translators.sound.block;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
-
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
+import org.geysermc.connector.network.translators.sound.SoundHandler;
 
 @SoundHandler(items = "bucket")
-public class BucketSoundInteractionHandler implements SoundInteractionHandler {
+public class BucketSoundInteractionHandler implements BlockSoundInteractionHandler {
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
