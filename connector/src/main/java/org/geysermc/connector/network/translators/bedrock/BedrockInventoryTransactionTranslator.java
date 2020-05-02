@@ -72,11 +72,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
                         if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId()) &&
-                                session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition())) != null) {
+                                session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
                             Vector3f vector = packet.getClickPosition();
-                            ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition()),
+                            ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
                                     InteractAction.INTERACT, Hand.MAIN_HAND);
-                            ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition()),
+                            ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
                                     InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
                             session.getDownstream().getSession().send(interactPacket);
                             session.getDownstream().getSession().send(interactAtPacket);
@@ -100,9 +100,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         break;
                     case 2:
 
-                        if (ItemFrameEntity.positionContainsItemFrame(packet.getBlockPosition()) &&
-                                session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition())) != null) {
-                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(packet.getBlockPosition()),
+                        if (ItemFrameEntity.positionContainsItemFrame(session, packet.getBlockPosition()) &&
+                                session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
+                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
                                     InteractAction.ATTACK);
                             session.getDownstream().getSession().send(attackPacket);
                             break;
