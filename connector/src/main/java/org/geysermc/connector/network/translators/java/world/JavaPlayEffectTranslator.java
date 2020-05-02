@@ -71,7 +71,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         break;
                     // TODO: Check these three
                     case EXPLOSION:
-                        effect.setType(LevelEventType.PARTICLE_EXPLODE);
+                        effect.setType(LevelEventType.PARTICLE_LARGE_EXPLOSION);
                         break;
                     case MOB_SPAWN:
                         effect.setType(LevelEventType.ENTITY_SPAWN);

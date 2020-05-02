@@ -77,7 +77,7 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
         } else {
             soundPacket.setExtraData(soundMapping.getExtraData());
         }
-        soundPacket.setIdentifier(":"); // ???
+        soundPacket.setIdentifier(soundMapping.getIdentifier()); // ???
         soundPacket.setBabySound(false); // might need to adjust this in the future
         soundPacket.setRelativeVolumeDisabled(false);
         session.getUpstream().sendPacket(soundPacket);
