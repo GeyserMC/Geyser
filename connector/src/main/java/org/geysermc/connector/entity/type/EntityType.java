@@ -147,7 +147,12 @@ public enum EntityType {
     COD(AbstractFishEntity.class, 112, 0.25f, 0.5f),
     PANDA(PandaEntity.class, 113, 1.25f, 1.125f, 1.825f),
     FOX(FoxEntity.class, 121, 0.5f, 1.25f),
-    BEE(BeeEntity.class, 122, 0.6f, 0.6f);
+    BEE(BeeEntity.class, 122, 0.6f, 0.6f),
+
+    /**
+     * Item frames are handled differently since they are a block in Bedrock.
+     */
+    ITEM_FRAME(ItemFrameEntity.class, 0, 0, 0);
 
     private Class<? extends Entity> entityClass;
     private final int type;
