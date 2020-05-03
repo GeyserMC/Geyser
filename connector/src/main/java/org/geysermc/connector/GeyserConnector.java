@@ -27,15 +27,16 @@ package org.geysermc.connector;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v389.Bedrock_v389;
+import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
 
 import lombok.Getter;
 
 import org.geysermc.common.AuthType;
+import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.common.PlatformType;
 import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.common.logger.IGeyserLogger;
-import org.geysermc.connector.command.GeyserCommandMap;
+import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
@@ -43,7 +44,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.Toolbox;
-import org.geysermc.common.IGeyserConfiguration;
 
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -52,7 +52,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
-import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector {
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v389.V389_CODEC;
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v390.V390_CODEC;
 
     public static final Properties GIT_PROPERTIES = loadGitProperties();
 
@@ -74,8 +73,6 @@ public class GeyserConnector {
 
     private RemoteServer remoteServer;
     private AuthType authType;
-
-    private GeyserCommandMap commandMap;
 
     private boolean shuttingDown = false;
 
@@ -113,7 +110,6 @@ public class GeyserConnector {
         Toolbox.init();
         Translators.start();
 
-        commandMap = new GeyserCommandMap(this);
         remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
@@ -187,8 +183,7 @@ public class GeyserConnector {
         players.clear();
         remoteServer = null;
         authType = null;
-        commandMap.getCommands().clear();
-        commandMap = null;
+        this.getCommandManager().getCommands().clear();
 
         bootstrap.getGeyserLogger().info("Geyser shutdown successfully.");
     }
@@ -216,6 +211,10 @@ public class GeyserConnector {
 
     public IGeyserConfiguration getConfig() {
         return bootstrap.getGeyserConfig();
+    }
+
+    public CommandManager getCommandManager() {
+        return (CommandManager) bootstrap.getGeyserCommandManager();
     }
 
     public static GeyserConnector getInstance() {

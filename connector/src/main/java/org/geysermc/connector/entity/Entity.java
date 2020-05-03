@@ -27,12 +27,15 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.EntityFlags;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -45,6 +48,7 @@ import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
@@ -120,6 +124,9 @@ public class Entity {
     }
 
     /**
+     * Despawns the entity
+     *
+     * @param session The GeyserSession
      * @return can be deleted
      */
     public boolean despawnEntity(GeyserSession session) {
@@ -151,11 +158,11 @@ public class Entity {
         session.getUpstream().sendPacket(moveEntityPacket);
     }
 
-    public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround) {
-        moveAbsolute(session, position, Vector3f.from(yaw, pitch, yaw), isOnGround);
+    public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
+        moveAbsolute(session, position, Vector3f.from(yaw, pitch, yaw), isOnGround, teleported);
     }
 
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         setPosition(position);
         setRotation(rotation);
 
@@ -164,7 +171,7 @@ public class Entity {
         moveEntityPacket.setPosition(position);
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
-        moveEntityPacket.setTeleported(false);
+        moveEntityPacket.setTeleported(teleported);
 
         session.getUpstream().sendPacket(moveEntityPacket);
     }
@@ -196,6 +203,28 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
+
+                    // Shield code
+                    if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
+                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemTranslator.SHIELD) ||
+                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == ItemTranslator.SHIELD)) {
+                            ClientPlayerUseItemPacket useItemPacket;
+                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
+                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemTranslator.SHIELD) {
+                                useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                            }
+                            // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
+                            else {
+                                useItemPacket = new ClientPlayerUseItemPacket(Hand.OFF_HAND);
+                            }
+                            session.getDownstream().getSession().send(useItemPacket);
+                        }
+                    } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
+                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
+                            metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
+                            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
+                            session.getDownstream().getSession().send(releaseItemPacket);
+                        }
                     // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
                     if ((xd & 0x20) == 0x20)
                         metadata.put(EntityData.SCALE, 0.0f);
@@ -218,6 +247,12 @@ public class Entity {
             case 5: // no gravity
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
                 break;
+            case 7: // blocking
+                if (entityMetadata.getType() == MetadataType.BYTE) {
+                    byte xd = (byte) entityMetadata.getValue();
+                    metadata.getFlags().setFlag(EntityFlag.BLOCKING, (xd & 0x01) == 0x01);
+                }
+                break;
         }
 
         updateBedrockMetadata(session);
@@ -234,6 +269,7 @@ public class Entity {
 
     /**
      * x = Pitch, y = HeadYaw, z = Yaw
+     * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {
         return Vector3f.from(rotation.getY(), rotation.getZ(), rotation.getX());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,13 +35,21 @@ public class PlayerInventory extends Inventory {
     @Setter
     private int heldItemSlot;
 
-    public PlayerInventory() {
-        super(0, null, 45);
+    @Getter
+    private ItemStack cursor;
 
+    public PlayerInventory() {
+        super(0, null, 46);
         heldItemSlot = 0;
     }
 
+    public void setCursor(ItemStack stack) {
+        if (stack != null && (stack.getId() == 0 || stack.getAmount() < 1))
+            stack = null;
+        cursor = stack;
+    }
+
     public ItemStack getItemInHand() {
-        return items[heldItemSlot];
+        return items[36 + heldItemSlot];
     }
 }

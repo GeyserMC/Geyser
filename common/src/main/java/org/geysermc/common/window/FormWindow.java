@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 
 package org.geysermc.common.window;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.window.response.FormResponse;
@@ -50,6 +51,7 @@ public abstract class FormWindow {
         this.response = response;
     }
 
+    @JsonIgnore
     public abstract String getJSONData();
 
     public abstract void setResponse(String response);

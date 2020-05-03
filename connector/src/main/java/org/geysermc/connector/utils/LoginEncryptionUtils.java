@@ -40,9 +40,12 @@ import net.minidev.json.JSONObject;
 import org.geysermc.common.window.CustomFormBuilder;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
+import org.geysermc.common.window.SimpleFormWindow;
+import org.geysermc.common.window.button.FormButton;
 import org.geysermc.common.window.component.InputComponent;
 import org.geysermc.common.window.component.LabelComponent;
 import org.geysermc.common.window.response.CustomFormResponse;
+import org.geysermc.common.window.response.SimpleFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.AuthData;
@@ -152,43 +155,60 @@ public class LoginEncryptionUtils {
         session.getUpstream().sendPacketImmediately(packet);
     }
 
-    private static int AUTH_FORM_ID = 1337;
+    private static int AUTH_FORM_ID = 1336;
+    private static int AUTH_DETAILS_FORM_ID = 1337;
 
     public static void showLoginWindow(GeyserSession session) {
-        CustomFormWindow window = new CustomFormBuilder("Login")
-                .addComponent(new LabelComponent("Minecraft: Java Edition account authentication."))
+        SimpleFormWindow window = new SimpleFormWindow("Login", "You need a Java Edition account to play on this server.");
+        window.getButtons().add(new FormButton("Login with Minecraft"));
+        window.getButtons().add(new FormButton("Disconnect"));
+
+        session.sendForm(window, AUTH_FORM_ID);
+    }
+
+    public static void showLoginDetailsWindow(GeyserSession session) {
+        CustomFormWindow window = new CustomFormBuilder("Login Details")
                 .addComponent(new LabelComponent("Enter the credentials for your Minecraft: Java Edition account below."))
                 .addComponent(new InputComponent("Email/Username", "account@geysermc.org", ""))
                 .addComponent(new InputComponent("Password", "123456", ""))
                 .build();
 
-        session.sendForm(window, AUTH_FORM_ID);
+        session.sendForm(window, AUTH_DETAILS_FORM_ID);
     }
 
-    public static boolean authenticateFromForm(GeyserSession session, GeyserConnector connector, String formData) {
+    public static boolean authenticateFromForm(GeyserSession session, GeyserConnector connector, int formId, String formData) {
         WindowCache windowCache = session.getWindowCache();
-        if (!windowCache.getWindows().containsKey(AUTH_FORM_ID))
+        if (!windowCache.getWindows().containsKey(formId))
             return false;
 
-        FormWindow window = windowCache.getWindows().remove(AUTH_FORM_ID);
-        window.setResponse(formData.trim());
+        if(formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID) {
+            FormWindow window = windowCache.getWindows().remove(formId);
+            window.setResponse(formData.trim());
 
-        if (!session.isLoggedIn()) {
-            if (window instanceof CustomFormWindow) {
-                CustomFormWindow customFormWindow = (CustomFormWindow) window;
-                if (!customFormWindow.getTitle().equals("Login"))
-                    return false;
+            if (!session.isLoggedIn()) {
+                if (formId == AUTH_DETAILS_FORM_ID && window instanceof CustomFormWindow) {
+                    CustomFormWindow customFormWindow = (CustomFormWindow) window;
 
-                CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
-                if (response != null) {
-                    String email = response.getInputResponses().get(2);
-                    String password = response.getInputResponses().get(3);
+                    CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
+                    if (response != null) {
+                        String email = response.getInputResponses().get(1);
+                        String password = response.getInputResponses().get(2);
 
-                    session.authenticate(email, password);
+                        session.authenticate(email, password);
+                    }
+
+                    // Clear windows so authentication data isn't accidentally cached
+                    windowCache.getWindows().clear();
+                } else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
+                    SimpleFormResponse response = (SimpleFormResponse) window.getResponse();
+                    if(response != null) {
+                        if(response.getClickedButtonId() == 0) {
+                            showLoginDetailsWindow(session);
+                        } else if(response.getClickedButtonId() == 1) {
+                            session.disconnect("Login is required");
+                        }
+                    }
                 }
-
-                // Clear windows so authentication data isn't accidentally cached
-                windowCache.getWindows().clear();
             }
         }
         return true;

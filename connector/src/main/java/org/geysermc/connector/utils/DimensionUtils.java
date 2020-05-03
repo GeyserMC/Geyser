@@ -38,6 +38,7 @@ public class DimensionUtils {
             return;
 
         session.getEntityCache().removeAllEntities();
+        session.getItemFrameCache().clear();
         if (session.getPendingDimSwitches().getAndIncrement() > 0) {
             ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
         }
@@ -61,6 +62,12 @@ public class DimensionUtils {
         session.getUpstream().sendPacket(stopSoundPacket);
     }
 
+    /**
+     * Map the Java edition dimension IDs to Bedrock edition
+     *
+     * @param javaDimension Dimension ID to convert
+     * @return Converted Bedrock edition dimension ID
+     */
     public static int javaToBedrock(int javaDimension) {
         switch (javaDimension) {
             case -1:

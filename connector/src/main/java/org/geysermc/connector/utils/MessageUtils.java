@@ -27,11 +27,16 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.*;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import net.kyori.text.Component;
+import net.kyori.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
+import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -58,10 +63,10 @@ public class MessageUtils {
                     strings.add(" - no permission or invalid command!");
                 }
 
-                List<String> furtherParams = getTranslationParams(translation.getTranslationParams());
+                List<String> furtherParams = getTranslationParams(translation.getTranslationParams(), locale);
                 if (locale != null) {
                     strings.add(insertParams(LocaleUtils.getLocaleString(translation.getTranslationKey(), locale), furtherParams));
-                }else{
+                } else {
                     strings.addAll(furtherParams);
                 }
             } else {
@@ -96,7 +101,11 @@ public class MessageUtils {
             messageText = LocaleUtils.getLocaleString(messageText, locale);
         }
 
-        StringBuilder builder = new StringBuilder(messageText);
+        StringBuilder builder = new StringBuilder();
+        builder.append(getFormat(message.getStyle().getFormats()));
+        builder.append(getColorOrParent(message.getStyle()));
+        builder.append(messageText);
+
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
             builder.append(getColorOrParent(msg.getStyle()));
@@ -113,9 +122,34 @@ public class MessageUtils {
     }
 
     public static String getBedrockMessage(Message message) {
-        return getTranslatedBedrockMessage(message, null, false);
+        if (isMessage(message.getText())) {
+            return getBedrockMessage(message.getText());
+        } else {
+            return getBedrockMessage(message.toJsonString());
+        }
     }
 
+    public static String getBedrockMessage(String message) {
+        Component component = phraseJavaMessage(message);
+        return LegacyComponentSerializer.legacy().serialize(component);
+    }
+
+    public static Component phraseJavaMessage(String message) {
+        return GsonComponentSerializer.INSTANCE.deserialize(message);
+    }
+
+    public static String getJavaMessage(String message) {
+        Component component = LegacyComponentSerializer.legacy().deserialize(message);
+        return GsonComponentSerializer.INSTANCE.serialize(component);
+    }
+
+    /**
+     * Inserts the given parameters into the given message both in sequence and as requested
+     *
+     * @param message Message containing possible parameter replacement strings
+     * @param params  A list of parameter strings
+     * @return Parsed message with all params inserted as needed
+     */
     public static String insertParams(String message, List<String> params) {
         String newMessage = message;
 
@@ -123,9 +157,9 @@ public class MessageUtils {
         Matcher m = p.matcher(message);
         while (m.find()) {
             try {
-                newMessage = newMessage.replaceFirst("%" + m.group(1) + "\\$s" , params.get(Integer.parseInt(m.group(1)) - 1));
+                newMessage = newMessage.replaceFirst("%" + m.group(1) + "\\$s", params.get(Integer.parseInt(m.group(1)) - 1));
             } catch (Exception e) {
-                // Couldnt find the param to replace
+                // Couldn't find the param to replace
             }
         }
 
@@ -136,16 +170,28 @@ public class MessageUtils {
         return newMessage;
     }
 
+    /**
+     * Gets the colour for the message style or fetches it from the parent (recursive)
+     *
+     * @param style The style to get the colour from
+     * @return Colour string to be used
+     */
     private static String getColorOrParent(MessageStyle style) {
         ChatColor chatColor = style.getColor();
 
-        if (chatColor == ChatColor.NONE) {
-            return getColor(style.getParent().getColor());
+        if (chatColor == ChatColor.NONE && style.getParent() != null) {
+            return getColorOrParent(style.getParent());
         }
 
         return getColor(chatColor);
     }
 
+    /**
+     * Convert a ChatColor into a string for inserting into messages
+     *
+     * @param color ChatColor to convert
+     * @return The converted color string
+     */
     private static String getColor(ChatColor color) {
         String base = "\u00a7";
         switch (color) {
@@ -208,6 +254,12 @@ public class MessageUtils {
         return base;
     }
 
+    /**
+     * Convert a list of ChatFormats into a string for inserting into messages
+     *
+     * @param formats ChatFormats to convert
+     * @return The converted chat formatting string
+     */
     private static String getFormat(List<ChatFormat> formats) {
         StringBuilder str = new StringBuilder();
         for (ChatFormat cf : formats) {
@@ -238,6 +290,12 @@ public class MessageUtils {
         return str.toString();
     }
 
+    /**
+     * Checks if the given text string is a json message
+     *
+     * @param text String to test
+     * @return True if its a valid message json string, false if not
+     */
     public static boolean isMessage(String text) {
         JsonParser parser = new JsonParser();
         try {
@@ -289,5 +347,22 @@ public class MessageUtils {
             }
         }
         return "";
+    }
+
+    /**
+     * Checks if the given message is over 256 characters (Java edition server chat limit) and sends a message to the user if it is
+     *
+     * @param message Message to check
+     * @param session GeyserSession for the user
+     * @return True if the message is too long, false if not
+     */
+    public static boolean isTooLong(String message, GeyserSession session) {
+        if (message.length() > 256) {
+            // TODO: Add Geyser localization and translate this based on language
+            session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+            return true;
+        }
+
+        return false;
     }
 }

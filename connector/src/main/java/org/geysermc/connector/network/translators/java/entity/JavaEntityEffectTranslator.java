@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -42,6 +43,7 @@ public class JavaEntityEffectTranslator extends PacketTranslator<ServerEntityEff
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+            ((PlayerEntity) entity).getEffectCache().addEffect(packet.getEffect(), packet.getAmplifier());
         }
         if (entity == null)
             return;
