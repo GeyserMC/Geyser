@@ -49,7 +49,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
-@Plugin(id = "geyser", name = GeyserConnector.NAME + "-Sponge", version = GeyserConnector.VERSION_STATIC, url = "https://geysermc.org", authors = "GeyserMC")
+@Plugin(id = "geyser", name = GeyserConnector.NAME + "-Sponge", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserSpongePlugin implements IGeyserBootstrap {
 
     @Inject

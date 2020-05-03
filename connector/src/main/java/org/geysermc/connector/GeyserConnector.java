@@ -64,8 +64,7 @@ public class GeyserConnector {
     public static final Properties GIT_PROPERTIES = loadGitProperties();
 
     public static final String NAME = "Geyser";
-    public static final String VERSION = getVersion();
-    public static final String VERSION_STATIC = "git";
+    public static final String VERSION = "DEV";
 
     private final Map<InetSocketAddress, GeyserSession> players = new HashMap<>();
 

@@ -191,6 +191,50 @@
                     </gitDescribe>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.3</version>
+                <executions>
+                    <execution>
+                        <id>add-version</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>${project.basedir}/src/main/java/org/geysermc/connector/GeyserConnector.java</include>
+                            </includes>
+                            <replacements>
+                                <replacement>
+                                    <token>VERSION = ".*"</token>
+                                    <value>VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
+                                </replacement>
+                            </replacements>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>remove-version</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>${project.basedir}/src/main/java/org/geysermc/connector/GeyserConnector.java</include>
+                            </includes>
+                            <replacements>
+                                <replacement>
+                                    <token>VERSION = ".*"</token>
+                                    <value>VERSION = "DEV"</value>
+                                </replacement>
+                            </replacements>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
