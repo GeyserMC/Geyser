@@ -66,7 +66,8 @@ public class SoundUtils {
                             brMap.has("bedrock_mapping") && brMap.get("bedrock_mapping").isTextual() ? brMap.get("bedrock_mapping").asText() : null,
                             brMap.has("playsound_mapping") && brMap.get("playsound_mapping").isTextual() ? brMap.get("playsound_mapping").asText() : null,
                             brMap.has("extra_data") && brMap.get("extra_data").isInt() ? brMap.get("extra_data").asInt() : -1,
-                            brMap.has("identifier") && brMap.get("identifier").isTextual() ? brMap.get("identifier").asText() : null
+                            brMap.has("identifier") && brMap.get("identifier").isTextual() ? brMap.get("identifier").asText() : null,
+                            brMap.has("level_event") && brMap.get("level_event").isBoolean() ? brMap.get("level_event").asBoolean() : false
                     )
             );
         }
@@ -102,13 +103,15 @@ public class SoundUtils {
         private final String playsound;
         private final int extraData;
         private String identifier;
+        private boolean levelEvent;
 
-        public SoundMapping(String java, String bedrock, String playsound, int extraData, String identifier) {
+        public SoundMapping(String java, String bedrock, String playsound, int extraData, String identifier, boolean levelEvent) {
             this.java = java;
             this.bedrock = bedrock == null || bedrock.equalsIgnoreCase("") ? null : bedrock;
             this.playsound = playsound == null || playsound.equalsIgnoreCase("") ? null : playsound;
             this.extraData = extraData;
             this.identifier = identifier == null || identifier.equalsIgnoreCase("") ? ":" : identifier;
+            this.levelEvent = levelEvent;
         }
     }
 }

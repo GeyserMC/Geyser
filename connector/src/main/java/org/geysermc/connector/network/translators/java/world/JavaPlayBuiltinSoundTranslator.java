@@ -27,7 +27,9 @@ package org.geysermc.connector.network.translators.java.world;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayBuiltinSoundPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -49,6 +51,14 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
             return;
         }
 
+        if (soundMapping.isLevelEvent()) {
+            LevelEventPacket levelEventPacket = new LevelEventPacket();
+            levelEventPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
+            levelEventPacket.setData(0);
+            levelEventPacket.setType(LevelEventType.valueOf(soundMapping.getBedrock()));
+            session.getUpstream().sendPacket(levelEventPacket);
+            return;
+        }
         LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
         SoundEvent sound = SoundUtils.toSoundEvent(soundMapping.getBedrock());
         if (sound == null) {
