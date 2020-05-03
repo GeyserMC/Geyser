@@ -64,7 +64,7 @@ public class GeyserConnector {
     public static final Properties GIT_PROPERTIES = loadGitProperties();
 
     public static final String NAME = "Geyser";
-    public static final String VERSION = "DEV";
+    public static final String VERSION = "DEV"; // A fallback for running in IDEs
 
     private final Map<InetSocketAddress, GeyserSession> players = new HashMap<>();
 
@@ -218,34 +218,5 @@ public class GeyserConnector {
 
     public static GeyserConnector getInstance() {
         return instance;
-    }
-
-    public static Properties loadGitProperties() {
-        InputStream gitPropertiesFile = GeyserConnector.class.getClassLoader().getResourceAsStream("git.properties");
-        if (gitPropertiesFile == null) { return null; }
-
-        Properties gitProperties = new Properties();
-        try {
-            gitProperties.load(gitPropertiesFile);
-        } catch (Exception e) {
-            getInstance().getLogger().debug("Failed to load git.properties");
-            return null;
-        }
-
-        return gitProperties;
-    }
-
-    private static String getVersion() {
-        String versionPrefix = "git-";
-
-        if (GIT_PROPERTIES != null) {
-            String commitID = GIT_PROPERTIES.getProperty("git.commit.id.abbrev");
-            String branch = GIT_PROPERTIES.getProperty("git.branch");
-            if (commitID != null) {
-                return versionPrefix + branch + "-" + commitID;
-            }
-        }
-
-        return versionPrefix + "unknown";
     }
 }
