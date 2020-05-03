@@ -35,8 +35,8 @@ import com.velocitypowered.api.plugin.Plugin;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.geysermc.common.PlatformType;
-import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandManager;
@@ -48,7 +48,7 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserConnector.NAME + "-Velocity", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
-public class GeyserVelocityPlugin implements IGeyserBootstrap {
+public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Inject
     private Logger logger;

@@ -41,6 +41,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ToolItemEntry;
+import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 
 import java.io.*;
 import java.util.*;
@@ -113,20 +114,23 @@ public class Toolbox {
                             entry.getValue().get("bedrock_id").intValue(),
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            entry.getValue().get("tool_tier").textValue()));
+                            entry.getValue().get("tool_tier").textValue(),
+                            entry.getValue().get("is_block").booleanValue()));
                 } else {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
                             entry.getKey(), itemIndex,
                             entry.getValue().get("bedrock_id").intValue(),
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            ""));
+                            "",
+                            entry.getValue().get("is_block").booleanValue()));
                 }
             } else {
                 ITEM_ENTRIES.put(itemIndex, new ItemEntry(
                         entry.getKey(), itemIndex,
                         entry.getValue().get("bedrock_id").intValue(),
-                        entry.getValue().get("bedrock_data").intValue()));
+                        entry.getValue().get("bedrock_data").intValue(),
+                        entry.getValue().get("is_block").booleanValue()));
             }
             if (entry.getKey().equals("minecraft:barrier")) {
                 BARRIER_INDEX = itemIndex;
@@ -135,8 +139,15 @@ public class Toolbox {
             itemIndex++;
         }
 
+        // Load particle/effect mappings
+        EffectUtils.init();
+        // Load sound mappings
+        SoundUtils.init();
         // Load the locale data
         LocaleUtils.init();
+
+        // Load sound handlers
+        SoundHandlerRegistry.init();
 
         /* Load creative items */
         stream = getResource("bedrock/creative_items.json");

@@ -42,17 +42,17 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.entity.*;
+import org.geysermc.connector.network.translators.world.block.entity.*;
 import org.geysermc.connector.network.translators.Translators;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.world.chunk.ChunkPosition;
-import org.geysermc.connector.world.chunk.ChunkSection;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
+import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.geysermc.connector.network.translators.block.BlockTranslator.AIR;
-import static org.geysermc.connector.network.translators.block.BlockTranslator.BEDROCK_WATER_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.AIR;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
 
 public class ChunkUtils {
 
@@ -193,6 +193,7 @@ public class ChunkUtils {
                 break; //No block will be a part of two classes
             }
         }
+        session.getChunkCache().updateBlock(new Position(position.getX(), position.getY(), position.getZ()), blockState);
     }
 
     public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {

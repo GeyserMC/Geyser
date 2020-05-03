@@ -25,19 +25,8 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.ItemFrameEntity;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.Translators;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.utils.InventoryUtils;
-
-import com.nukkitx.math.vector.Vector3f;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
@@ -47,7 +36,24 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
+
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
@@ -90,6 +96,35 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false);
                         session.getDownstream().getSession().send(blockPacket);
+                        Vector3i blockPos = packet.getBlockPosition();
+                        // TODO: Find a better way to do this?
+                        switch (packet.getFace()) {
+                            case 0:
+                                blockPos = blockPos.sub(0, 1, 0);
+                                break;
+                            case 1:
+                                blockPos = blockPos.add(0, 1, 0);
+                                break;
+                            case 2:
+                                blockPos = blockPos.sub(0, 0, 1);
+                                break;
+                            case 3:
+                                blockPos = blockPos.add(0, 0, 1);
+                                break;
+                            case 4:
+                                blockPos = blockPos.sub(1, 0, 0);
+                                break;
+                            case 5:
+                                blockPos = blockPos.add(1, 0, 0);
+                                break;
+                        }
+                        ItemEntry handItem = Translators.getItemTranslator().getItem(packet.getItemInHand());
+                        if (handItem.isBlock()) {
+                            session.setLastBlockPlacePosition(blockPos);
+                            session.setLastBlockPlacedId(handItem.getJavaIdentifier());
+                        }
+                        session.setLastInteractionPosition(packet.getBlockPosition());
+                        session.setInteracting(true);
                         break;
                     case 1:
                         if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemTranslator.SHIELD) {
@@ -106,6 +141,19 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     InteractAction.ATTACK);
                             session.getDownstream().getSession().send(attackPacket);
                             break;
+                        }
+
+                        BlockState blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
+                        double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(blockState.getId());
+                        if (session.getGameMode() == GameMode.CREATIVE || (session.getConnector().getConfig().isCacheChunks() && blockHardness == 0)) {
+                            session.setLastBlockPlacedId(null);
+                            session.setLastBlockPlacePosition(null);
+
+                            LevelEventPacket blockBreakPacket = new LevelEventPacket();
+                            blockBreakPacket.setType(LevelEventType.DESTROY);
+                            blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
+                            blockBreakPacket.setData(BlockTranslator.getBedrockBlockId(blockState));
+                            session.getUpstream().sendPacket(blockBreakPacket);
                         }
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
@@ -138,6 +186,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
                         session.getDownstream().getSession().send(interactPacket);
                         session.getDownstream().getSession().send(interactAtPacket);
+
+                        EntitySoundInteractionHandler.handleEntityInteraction(session, vector, entity);
                         break;
                     case 1: //Attack
                         ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
