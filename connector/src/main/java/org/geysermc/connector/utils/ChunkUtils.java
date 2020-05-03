@@ -190,8 +190,8 @@ public class ChunkUtils {
         for (RequiresBlockState requiresBlockState : Translators.getRequiresBlockStateMap()) {
             if (requiresBlockState.isBlock(blockState)) {
                 // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
-                if (requiresBlockState instanceof FlowerPotBlockEntityTranslator) {
-                    ((FlowerPotBlockEntityTranslator) requiresBlockState).updateBlock(session, blockState, position);
+                if (requiresBlockState instanceof BedrockOnlyBlockEntity) {
+                    ((BedrockOnlyBlockEntity) requiresBlockState).updateBlock(session, blockState, position);
                     break;
                 }
                 CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);

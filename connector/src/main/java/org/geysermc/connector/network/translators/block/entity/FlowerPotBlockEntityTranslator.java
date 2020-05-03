@@ -29,51 +29,47 @@ package org.geysermc.connector.network.translators.block.entity;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockStateValues;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.utils.BlockEntityUtils;
 
-import java.util.concurrent.TimeUnit;
-
-public class FlowerPotBlockEntityTranslator implements RequiresBlockState {
+public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
 
     @Override
     public boolean isBlock(BlockState blockState) {
         return BlockStateValues.getFlowerPotValue(blockState) != null;
     }
 
+    @Override
     public void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
-        BlockEntityDataPacket packet = new BlockEntityDataPacket();
-        packet.setBlockPosition(position);
-        packet.setData(
-                CompoundTagBuilder.builder()
-                    .intTag("x", position.getX())
-                    .intTag("y", position.getY())
-                    .intTag("z", position.getZ())
-                    .byteTag("isMovable", (byte) 1)
-                    .stringTag("id", "FlowerPot")
-                    .tag(
-                            CompoundTagBuilder.builder()
-                                .stringTag("name", "minecraft:red_flower")
-                                .intTag("version", 17760256)
-                                .tag(
-                                        CompoundTagBuilder.builder()
-                                        .stringTag("flower_type", "cornflower")
-                                        .build("states")
-                                )
-                                .build("PlantBlock")
-                    ).buildRootTag()
-        );
-        System.out.println(packet.getData().toString());
+        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
+                .intTag("x", position.getX())
+                .intTag("y", position.getY())
+                .intTag("z", position.getZ())
+                .byteTag("isMovable", (byte) 1)
+                .stringTag("id", "FlowerPot")
+                .tag(
+                    CompoundTagBuilder.builder()
+                            .stringTag("name", "minecraft:red_flower")
+                            .intTag("version", BlockTranslator.getBlockStateVersion())
+                            .tag(
+                                    CompoundTagBuilder.builder()
+                                            .stringTag("flower_type", "cornflower")
+                                            .build("states")
+                            )
+                            .build("PlantBlock")
+                );
+        BlockEntityUtils.updateBlockEntity(session, tagBuilder.buildRootTag(), position);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-        updateBlockPacket.setBlockPosition(position);
-        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(blockState));
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
         updateBlockPacket.setDataLayer(0);
-        session.getUpstream().sendPacket(packet);
-        session.getConnector().getGeneralThreadPool().schedule(() -> session.getUpstream().sendPacket(updateBlockPacket), 25, TimeUnit.MILLISECONDS);
+        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(blockState));
+        updateBlockPacket.setBlockPosition(position);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+        session.getUpstream().sendPacket(updateBlockPacket);
     }
 }
