@@ -36,7 +36,6 @@ public class ItemEntry {
 
     private final String javaIdentifier;
     private final int javaId;
-
     private final int bedrockId;
     private final int bedrockData;
 

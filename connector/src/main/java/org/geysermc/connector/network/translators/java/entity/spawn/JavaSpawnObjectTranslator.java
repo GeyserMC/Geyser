@@ -29,8 +29,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import com.github.steveice10.mc.protocol.data.game.entity.type.object.FallingBlockData;
+import com.github.steveice10.mc.protocol.data.game.entity.type.object.HangingDirection;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.FallingBlockEntity;
+import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -46,8 +48,6 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
 
     @Override
     public void translate(ServerSpawnObjectPacket packet, GeyserSession session) {
-        if (packet.getType() == ObjectType.ITEM_FRAME)
-            return;
 
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
@@ -65,6 +65,10 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
             if (packet.getType() == ObjectType.FALLING_BLOCK) {
                 entity = new FallingBlockEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                         type, position, motion, rotation, ((FallingBlockData) packet.getData()).getId());
+            } else if (packet.getType() == ObjectType.ITEM_FRAME) {
+                // Item frames need the hanging direction
+                entity = new ItemFrameEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                        type, position, motion, rotation, (HangingDirection) packet.getData());
             } else {
                 Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, EntityType.class,
                         Vector3f.class, Vector3f.class, Vector3f.class);
