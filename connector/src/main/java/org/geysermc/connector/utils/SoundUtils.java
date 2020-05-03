@@ -91,10 +91,6 @@ public class SoundUtils {
         }
     }
 
-    public static double processCoordinate(double f) {
-        return (f / 3D) * 8D;
-    }
-
     @Data
     @ToString
     public static class SoundMapping {
