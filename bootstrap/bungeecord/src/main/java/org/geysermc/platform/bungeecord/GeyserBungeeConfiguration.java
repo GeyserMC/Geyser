@@ -25,8 +25,9 @@
 
 package org.geysermc.platform.bungeecord;
 
+import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
-
+import org.geysermc.common.FloodgateKeyLoader;
 import org.geysermc.common.IGeyserConfiguration;
 
 import java.io.File;
@@ -46,6 +47,8 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
 
     private Map<String, BungeeUserAuthenticationInfo> userAuthInfo = new HashMap<>();
 
+    private Path floodgateKey;
+
     public GeyserBungeeConfiguration(File dataFolder, Configuration config) {
         this.dataFolder = dataFolder;
         this.config = config;
@@ -60,6 +63,11 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
         for (String key : config.getSection("userAuths").getKeys()) {
             userAuthInfo.put(key, new BungeeUserAuthenticationInfo(key));
         }
+    }
+
+    public void loadFloodgate(GeyserBungeePlugin plugin) {
+        Plugin floodgate = plugin.getProxy().getPluginManager().getPlugin("floodgate-bungee");
+        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem")), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
     }
 
     @Override
@@ -109,7 +117,7 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
 
     @Override
     public Path getFloodgateKeyFile() {
-        return Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
+        return floodgateKey;
     }
 
     @Override

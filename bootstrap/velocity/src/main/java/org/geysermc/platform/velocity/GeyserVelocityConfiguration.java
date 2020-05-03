@@ -27,13 +27,18 @@ package org.geysermc.platform.velocity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.velocitypowered.api.plugin.PluginContainer;
+import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.common.FloodgateKeyLoader;
 import org.geysermc.common.IGeyserConfiguration;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Optional;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
@@ -67,9 +72,16 @@ public class GeyserVelocityConfiguration implements IGeyserConfiguration {
 
     private MetricsInfo metrics;
 
+    private Path floodgateKey;
+
+    public void loadFloodgate(GeyserVelocityPlugin plugin, ProxyServer proxyServer, File dataFolder) {
+        Optional<PluginContainer> floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
+        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), floodgateKeyFile.isEmpty() ? floodgateKeyFile : "public-key.pem"), floodgate.get(), Paths.get("plugins/floodgate/"));
+    }
+
     @Override
     public Path getFloodgateKeyFile() {
-        return Paths.get(floodgateKeyFile);
+        return floodgateKey;
     }
 
     @Getter
