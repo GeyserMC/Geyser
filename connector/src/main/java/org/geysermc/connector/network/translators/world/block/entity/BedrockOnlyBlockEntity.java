@@ -44,6 +44,12 @@ public interface BedrockOnlyBlockEntity {
      */
     void updateBlock(GeyserSession session, BlockState blockState, Vector3i position);
 
+    /**
+     * Get the tag of the Bedrock-only block entity
+     * @param position Bedrock position of block.
+     * @param blockState Java BlockState of block.
+     * @return Bedrock tag, or null if not a Bedrock-only Block Entity
+     */
     static CompoundTag getTag(Vector3i position, BlockState blockState) {
         if (new FlowerPotBlockEntityTranslator().isBlock(blockState)) {
             return FlowerPotBlockEntityTranslator.getTag(blockState, position);
