@@ -25,6 +25,10 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
+import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientSettingsPacket;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -37,6 +41,9 @@ import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Translator(packet = ServerJoinGamePacket.class)
 public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacket> {
@@ -66,6 +73,11 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         session.getUpstream().sendPacket(entityDataPacket);
 
         session.setRenderDistance(packet.getViewDistance());
+
+        //We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
+        List<SkinPart> skinParts = Arrays.asList(SkinPart.values());
+        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket("en_GB", (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, Hand.MAIN_HAND);
+        session.getDownstream().getSession().send(clientSettingsPacket);
 
         if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
             DimensionUtils.switchDimension(session, packet.getDimension());
