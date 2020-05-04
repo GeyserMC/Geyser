@@ -25,7 +25,10 @@
 
 package org.geysermc.platform.bukkit;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
+import org.geysermc.connector.FloodgateKeyLoader;
 import org.geysermc.connector.GeyserConfiguration;
 
 import java.io.File;
@@ -45,6 +48,8 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
 
     private Map<String, BukkitUserAuthenticationInfo> userAuthInfo = new HashMap<>();
 
+    private Path floodgateKey;
+
     public GeyserBukkitConfiguration(File dataFolder, FileConfiguration config) {
         this.dataFolder = dataFolder;
         this.config = config;
@@ -59,6 +64,11 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
         for (String key : config.getConfigurationSection("userAuths").getKeys(false)) {
             userAuthInfo.put(key, new BukkitUserAuthenticationInfo(key));
         }
+    }
+
+    public void loadFloodgate(GeyserBukkitPlugin plugin) {
+        Plugin floodgate = Bukkit.getPluginManager().getPlugin("floodgate-bukkit");
+        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem")), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
     }
 
     @Override
@@ -108,7 +118,7 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
 
     @Override
     public Path getFloodgateKeyFile() {
-        return Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
+        return floodgateKey;
     }
 
     @Override
