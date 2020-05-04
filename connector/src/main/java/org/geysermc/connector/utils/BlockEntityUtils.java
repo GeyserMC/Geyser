@@ -6,7 +6,7 @@ import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
-import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 
 public class BlockEntityUtils {
 

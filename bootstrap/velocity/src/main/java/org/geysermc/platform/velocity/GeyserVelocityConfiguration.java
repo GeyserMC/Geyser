@@ -31,8 +31,8 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.common.FloodgateKeyLoader;
-import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.connector.FloodgateKeyLoader;
+import org.geysermc.connector.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -42,7 +42,7 @@ import java.util.Optional;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
-public class GeyserVelocityConfiguration implements IGeyserConfiguration {
+public class GeyserVelocityConfiguration implements GeyserConfiguration {
 
     private BedrockConfiguration bedrock;
     private RemoteConfiguration remote;
@@ -69,6 +69,9 @@ public class GeyserVelocityConfiguration implements IGeyserConfiguration {
 
     @JsonProperty("default-locale")
     private String defaultLocale;
+
+    @JsonProperty("cache-chunks")
+    private boolean cacheChunks;
 
     private MetricsInfo metrics;
 

@@ -36,7 +36,7 @@ import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.block.entity.NoteblockBlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.NoteblockBlockEntityTranslator;
 
 import java.util.concurrent.TimeUnit;
 

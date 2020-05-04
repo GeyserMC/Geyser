@@ -36,7 +36,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.LocaleUtils;
 
@@ -82,7 +82,7 @@ public class BlockInventoryHolder extends InventoryHolder {
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         Vector3i holderPos = inventory.getHolderPosition();
         Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        BlockState realBlock = session.getChunkCache().getBlockAt(pos);
+        BlockState realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);

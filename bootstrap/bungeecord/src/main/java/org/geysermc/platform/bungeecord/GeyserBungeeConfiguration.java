@@ -27,8 +27,8 @@ package org.geysermc.platform.bungeecord;
 
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
-import org.geysermc.common.FloodgateKeyLoader;
-import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.connector.FloodgateKeyLoader;
+import org.geysermc.connector.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -36,7 +36,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserBungeeConfiguration implements IGeyserConfiguration {
+public class GeyserBungeeConfiguration implements GeyserConfiguration {
 
     private File dataFolder;
     private Configuration config;
@@ -118,6 +118,11 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
     @Override
     public Path getFloodgateKeyFile() {
         return floodgateKey;
+    }
+
+    @Override
+    public boolean isCacheChunks() {
+        return config.getBoolean("cache-chunks", false);
     }
 
     @Override

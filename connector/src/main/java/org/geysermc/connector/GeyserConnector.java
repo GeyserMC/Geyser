@@ -32,16 +32,15 @@ import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
 import lombok.Getter;
 
 import org.geysermc.common.AuthType;
-import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.common.PlatformType;
-import org.geysermc.common.bootstrap.IGeyserBootstrap;
-import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -76,19 +75,19 @@ public class GeyserConnector {
 
     private BedrockServer bedrockServer;
     private PlatformType platformType;
-    private IGeyserBootstrap bootstrap;
+    private GeyserBootstrap bootstrap;
 
     private Metrics metrics;
 
-    private GeyserConnector(PlatformType platformType, IGeyserBootstrap bootstrap) {
+    private GeyserConnector(PlatformType platformType, GeyserBootstrap bootstrap) {
         long startupTime = System.currentTimeMillis();
 
         instance = this;
 
         this.bootstrap = bootstrap;
 
-        IGeyserLogger logger = bootstrap.getGeyserLogger();
-        IGeyserConfiguration config = bootstrap.getGeyserConfig();
+        GeyserLogger logger = bootstrap.getGeyserLogger();
+        GeyserConfiguration config = bootstrap.getGeyserConfig();
 
         this.platformType = platformType;
 
@@ -191,7 +190,7 @@ public class GeyserConnector {
         players.remove(player.getSocketAddress());
     }
 
-    public static GeyserConnector start(PlatformType platformType, IGeyserBootstrap bootstrap) {
+    public static GeyserConnector start(PlatformType platformType, GeyserBootstrap bootstrap) {
         return new GeyserConnector(platformType, bootstrap);
     }
 
@@ -200,16 +199,20 @@ public class GeyserConnector {
         bootstrap.onEnable();
     }
 
-    public IGeyserLogger getLogger() {
+    public GeyserLogger getLogger() {
         return bootstrap.getGeyserLogger();
     }
 
-    public IGeyserConfiguration getConfig() {
+    public GeyserConfiguration getConfig() {
         return bootstrap.getGeyserConfig();
     }
 
     public CommandManager getCommandManager() {
-        return (CommandManager) bootstrap.getGeyserCommandManager();
+        return bootstrap.getGeyserCommandManager();
+    }
+
+    public WorldManager getWorldManager() {
+        return bootstrap.getWorldManager();
     }
 
     public static GeyserConnector getInstance() {

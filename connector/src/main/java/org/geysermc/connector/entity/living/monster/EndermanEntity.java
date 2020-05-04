@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class EndermanEntity extends MonsterEntity {
 
