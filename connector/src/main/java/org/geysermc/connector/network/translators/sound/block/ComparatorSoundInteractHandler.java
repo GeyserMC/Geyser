@@ -33,15 +33,16 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 
-@SoundHandler(blocks = {"door", "fence_gate"})
-public class DoorSoundInteractionHandler implements BlockSoundInteractionHandler {
+@SoundHandler(blocks = "comparator")
+public class ComparatorSoundInteractHandler implements BlockSoundInteractionHandler {
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
+        boolean powered = identifier.contains("mode=compare");
         LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(LevelEventType.SOUND_DOOR);
         levelEventPacket.setPosition(position);
-        levelEventPacket.setData(0);
+        levelEventPacket.setType(LevelEventType.REDSTONE_TRIGGER);
+        levelEventPacket.setData(powered ? 500 : 550);
         session.getUpstream().sendPacket(levelEventPacket);
     }
 }

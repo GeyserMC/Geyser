@@ -57,7 +57,6 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
             } else {
                 switch (particleEffect) {
                     // TODO: BREAK_SPLASH_POTION has additional data
-                    // TODO: Block break doesn't work when you're the player.
                     case BONEMEAL_GROW:
                         effect.setType(LevelEventType.BONEMEAL);
                         BonemealGrowEffectData growEffectData = (BonemealGrowEffectData) packet.getData();
@@ -69,7 +68,6 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
                         effect.setData(BlockTranslator.getBedrockBlockId(breakBlockEffectData.getBlockState()));
                         break;
-                    // TODO: Check these three
                     case EXPLOSION:
                         effect.setType(LevelEventType.PARTICLE_LARGE_EXPLOSION);
                         break;
@@ -81,7 +79,24 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         // Might need to be SHOOT
                         effect.setType(LevelEventType.PARTICLE_SMOKE);
                         break;
+                    case COMPOSTER:
+                        effect.setType(LevelEventType.BONEMEAL);
+
+                        ComposterEffectData composterEffectData = (ComposterEffectData) packet.getData();
+                        LevelSoundEventPacket soundEvent = new LevelSoundEventPacket();
+                        soundEvent.setSound(SoundEvent.valueOf("COMPOSTER_" + composterEffectData.name()));
+                        soundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
+                        soundEvent.setIdentifier(":");
+                        soundEvent.setExtraData(-1);
+                        soundEvent.setBabySound(false);
+                        soundEvent.setRelativeVolumeDisabled(false);
+                        session.getUpstream().sendPacket(soundEvent);
+                        break;
                     case BLOCK_LAVA_EXTINGUISH:
+                        effect.setType(LevelEventType.SHOOT);
+                        effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY() + 1, packet.getPosition().getZ()));
+                        session.getUpstream().sendPacket(effect);
+
                         LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
                         soundEventPacket.setSound(SoundEvent.EXTINGUISH_FIRE);
                         soundEventPacket.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
@@ -103,7 +118,6 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
             if (geyserEffect != null) {
                 // Some events are LevelEventTypes, some are SoundEvents.
                 if (geyserEffect.getType().equals("soundLevel")) {
-                    // TODO: Opening doors also does not work as the player
                     effect.setType(LevelEventType.valueOf(geyserEffect.getBedrockName()));
                 } else if (geyserEffect.getType().equals("soundEvent")) {
                     LevelSoundEventPacket soundEvent = new LevelSoundEventPacket();

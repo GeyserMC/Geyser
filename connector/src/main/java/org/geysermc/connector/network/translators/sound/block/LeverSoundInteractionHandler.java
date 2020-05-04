@@ -42,7 +42,7 @@ public class LeverSoundInteractionHandler implements BlockSoundInteractionHandle
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setPosition(position);
         levelEventPacket.setType(LevelEventType.REDSTONE_TRIGGER);
-        levelEventPacket.setData(powered ? 500 : 600);
+        levelEventPacket.setData(powered ? 600 : 500);
         session.getUpstream().sendPacket(levelEventPacket);
     }
 }

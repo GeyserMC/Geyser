@@ -34,6 +34,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.SoundUtils;
 
 @Translator(packet = ServerPlayBuiltinSoundPacket.class)
@@ -72,22 +73,23 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
                             + " was not a playable level sound, or has yet to be mapped to an enum in "
                             + "NukkitX SoundEvent ");
 
-        } else {
-            session.getConnector().getLogger().debug("[Builtin] Sound for original " + packetSound + " to mappings " + soundPacket
-                            + " was not found in NukkitX SoundEvent, but original packet sound name was.");
         }
-
         soundPacket.setSound(sound);
         soundPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
+        soundPacket.setIdentifier(soundMapping.getIdentifier());
         if (sound == SoundEvent.NOTE) {
             // Minecraft Wiki: 2^(x/12) = Java pitch where x is -12 to 12
             // Java sends the note value as above starting with -12 and ending at 12
             // Bedrock has a number for each type of note, then proceeds up the scale by adding to that number
             soundPacket.setExtraData(soundMapping.getExtraData() + (int)(Math.round((Math.log10(packet.getPitch()) / Math.log10(2)) * 12)) + 12);
+        } else if (sound == SoundEvent.PLACE && soundMapping.getExtraData() == -1) {
+            soundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(soundMapping.getIdentifier())));
+            soundPacket.setIdentifier(":");
         } else {
             soundPacket.setExtraData(soundMapping.getExtraData());
         }
-        soundPacket.setIdentifier(soundMapping.getIdentifier()); // ???
+
+
         soundPacket.setBabySound(false); // might need to adjust this in the future
         soundPacket.setRelativeVolumeDisabled(false);
         session.getUpstream().sendPacket(soundPacket);
