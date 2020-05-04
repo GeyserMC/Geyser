@@ -37,6 +37,9 @@ public class GeyserBukkitWorldManager extends WorldManager {
 
     @Override
     public BlockState getBlockAt(GeyserSession session, int x, int y, int z) {
-        return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getName()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
+        if (session.getPlayerEntity() == null) {
+            return BlockTranslator.AIR;
+        }
+        return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
     }
 }
