@@ -17,6 +17,9 @@ public class BlockEntityUtils {
         if (id.contains("piston_head"))
             return "PistonArm";
 
+        if (id.contains("trapped_chest"))
+            return "Chest";
+
         id = id.toLowerCase()
             .replace("minecraft:", "")
             .replace("_", " ");
