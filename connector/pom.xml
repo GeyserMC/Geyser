@@ -209,7 +209,7 @@
                             <replacements>
                                 <replacement>
                                     <token>VERSION = ".*"</token>
-                                    <value>VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
+                                    <value>VERSION = "${project.version} (git-${git.branch}-${git.commit.id.abbrev})"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
