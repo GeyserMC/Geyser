@@ -34,8 +34,8 @@ import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.block.entity.*;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.*;
 import org.geysermc.connector.network.translators.inventory.*;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
@@ -121,7 +121,7 @@ public class Translators {
     }
 
     private static void registerBlockEntityTranslators() {
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.block.entity");
 
         for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
 

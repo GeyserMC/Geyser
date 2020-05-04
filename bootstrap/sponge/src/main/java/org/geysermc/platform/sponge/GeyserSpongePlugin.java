@@ -30,8 +30,8 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 import org.geysermc.common.PlatformType;
-import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandExecutor;
@@ -50,7 +50,7 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserConnector.NAME + "-Sponge", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
-public class GeyserSpongePlugin implements IGeyserBootstrap {
+public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Inject
     private Logger logger;

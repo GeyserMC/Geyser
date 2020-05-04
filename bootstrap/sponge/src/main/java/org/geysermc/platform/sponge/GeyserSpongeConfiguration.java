@@ -26,15 +26,17 @@
 package org.geysermc.platform.sponge;
 
 import lombok.AllArgsConstructor;
+
 import ninja.leaping.configurate.ConfigurationNode;
-import org.geysermc.common.IGeyserConfiguration;
+
+import org.geysermc.connector.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class GeyserSpongeConfiguration implements IGeyserConfiguration {
+public class GeyserSpongeConfiguration implements GeyserConfiguration {
 
     private File dataFolder;
     private ConfigurationNode node;
@@ -110,6 +112,11 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     @Override
     public Path getFloodgateKeyFile() {
         return Paths.get(dataFolder.toString(), node.getNode("floodgate-key-file").getString("public-key.pem"));
+    }
+
+    @Override
+    public boolean isCacheChunks() {
+        return node.getNode("cache-chunks").getBoolean(false);
     }
 
     @Override

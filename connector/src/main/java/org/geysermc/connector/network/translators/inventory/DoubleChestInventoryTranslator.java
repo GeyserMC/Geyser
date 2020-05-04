@@ -35,7 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
@@ -112,7 +112,7 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
     public void closeInventory(GeyserSession session, Inventory inventory) {
         Vector3i holderPos = inventory.getHolderPosition();
         Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        BlockState realBlock = session.getChunkCache().getBlockAt(pos);
+        BlockState realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
@@ -121,7 +121,7 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
 
         holderPos = holderPos.add(Vector3i.UNIT_X);
         pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        realBlock = session.getChunkCache().getBlockAt(pos);
+        realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);

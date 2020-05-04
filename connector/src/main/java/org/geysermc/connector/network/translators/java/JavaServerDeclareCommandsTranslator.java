@@ -59,6 +59,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
 
             // Make sure we don't have duplicated commands (happens if there is more than 1 root node)
             if (commands.containsKey(nodeIndex)) { continue; }
+            if (commands.containsValue(node.getName())) { continue; }
 
             // Get and update the commandArgs list with the found arguments
             if (node.getChildIndices().length >= 1) {

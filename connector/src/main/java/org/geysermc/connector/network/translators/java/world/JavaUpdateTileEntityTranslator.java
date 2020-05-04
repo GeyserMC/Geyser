@@ -30,8 +30,8 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.block.entity.BlockEntity;
-import org.geysermc.connector.network.translators.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
+import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 
