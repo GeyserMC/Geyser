@@ -27,14 +27,15 @@ package org.geysermc.connector.network.translators.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.nukkitx.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.geysermc.connector.network.translators.block.entity.FlowerPotBlockEntityTranslator;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -69,7 +70,8 @@ public class BlockStateValues {
         }
 
         if (entry.getKey().contains("potted_")) {
-            FLOWER_POT_VALUES.put(javaBlockState.getId(), "minecraft:red_flower");
+            System.out.println(entry.getKey().replace("potted_", ""));
+            FLOWER_POT_VALUES.put(javaBlockState.getId(), entry.getKey().replace("potted_", ""));
             return;
         }
 
@@ -123,11 +125,8 @@ public class BlockStateValues {
         return -1;
     }
 
-    public static String getFlowerPotValue(BlockState state) {
-        if (FLOWER_POT_VALUES.containsKey(state.getId())) {
-            return FLOWER_POT_VALUES.get(state.getId());
-        }
-        return null;
+    public static Int2ObjectMap<String> getFlowerPotValues() {
+        return FLOWER_POT_VALUES;
     }
 
     /**

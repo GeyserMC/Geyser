@@ -29,8 +29,8 @@ package org.geysermc.connector.network.translators.block.entity;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
-import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.block.BlockStateValues;
 import org.geysermc.connector.network.translators.block.BlockTranslator;
@@ -40,7 +40,7 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
 
     @Override
     public boolean isBlock(BlockState blockState) {
-        return BlockStateValues.getFlowerPotValue(blockState) != null;
+        return BlockStateValues.getFlowerPotValues().containsKey(blockState.getId());
     }
 
     @Override
@@ -50,18 +50,15 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
                 .intTag("y", position.getY())
                 .intTag("z", position.getZ())
                 .byteTag("isMovable", (byte) 1)
-                .stringTag("id", "FlowerPot")
-                .tag(
-                    CompoundTagBuilder.builder()
-                            .stringTag("name", "minecraft:red_flower")
-                            .intTag("version", BlockTranslator.getBlockStateVersion())
-                            .tag(
-                                    CompoundTagBuilder.builder()
-                                            .stringTag("flower_type", "cornflower")
-                                            .build("states")
-                            )
-                            .build("PlantBlock")
-                );
+                .stringTag("id", "FlowerPot");
+        String name = BlockStateValues.getFlowerPotValues().get(blockState.getId());
+        System.out.println(name);
+        if (name != null) {
+            CompoundTag plant = null;
+            if (plant != null) {
+                tagBuilder.tag(plant.toBuilder().build("PlantBlock"));
+            }
+        }
         BlockEntityUtils.updateBlockEntity(session, tagBuilder.buildRootTag(), position);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
