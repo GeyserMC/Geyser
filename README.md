@@ -34,8 +34,6 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
   - [ ] Cartography Table
   - [ ] Stonecutter
   - [ ] Villager Trading
-- Sounds
-- Block Particles
 - Some Entity Flags
 
 ## Compiling
