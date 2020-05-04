@@ -153,6 +153,11 @@ public class BlockTranslator {
 
             BlockStateValues.storeBlockStateValues(entry, javaBlockState);
 
+            // Get the tag needed for non-empty flower pots
+            if (entry.getValue().get("pottable") != null) {
+                BlockStateValues.getFlowerPotBlocks().put(entry.getKey().split("\\[")[0], buildBedrockState(entry.getValue()));
+            }
+
             if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = bedrockRuntimeId;
             }

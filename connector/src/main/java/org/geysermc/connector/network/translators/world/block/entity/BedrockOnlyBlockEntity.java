@@ -24,10 +24,11 @@
  *
  */
 
-package org.geysermc.connector.network.translators.block.entity;
+package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.tag.CompoundTag;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -43,4 +44,12 @@ public interface BedrockOnlyBlockEntity {
      */
     void updateBlock(GeyserSession session, BlockState blockState, Vector3i position);
 
+    static CompoundTag getTag(Vector3i position, BlockState blockState) {
+        if (new FlowerPotBlockEntityTranslator().isBlock(blockState)) {
+            return FlowerPotBlockEntityTranslator.getTag(blockState, position);
+        } else if (PistonBlockEntityTranslator.isBlock(blockState)) {
+            return PistonBlockEntityTranslator.getTag(blockState, position);
+        }
+        return null;
+    }
 }

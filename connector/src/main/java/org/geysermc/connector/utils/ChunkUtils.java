@@ -35,11 +35,13 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.entity.*;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -67,6 +69,9 @@ public class ChunkUtils {
         CompoundTag[] blockEntities = column.getTileEntities();
         // Temporarily stores positions of BlockState values per chunk load
         Map<Position, BlockState> blockEntityPositions = new HashMap<>();
+
+        // Temporarily stores compound tags of Bedrock-only block entities
+        ObjectArrayList<com.nukkitx.nbt.tag.CompoundTag> bedrockOnlyBlockEntities = new ObjectArrayList<>();
 
         for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
@@ -99,6 +104,13 @@ public class ChunkUtils {
                             section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
                         }
 
+                        // Check if block is piston or flower - only block entities in Bedrock
+                        if (BlockStateValues.getFlowerPotValues().containsKey(blockState.getId()) ||
+                                BlockStateValues.getPistonValues().containsKey(blockState.getId())) {
+                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+                            bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(Vector3i.from(pos.getX(), pos.getY(), pos.getZ()), blockState));
+                        }
+
                         if (BlockTranslator.isWaterlogged(blockState)) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);
                         }
@@ -108,8 +120,9 @@ public class ChunkUtils {
 
         }
 
-        com.nukkitx.nbt.tag.CompoundTag[] bedrockBlockEntities = new com.nukkitx.nbt.tag.CompoundTag[blockEntities.length];
-        for (int i = 0; i < blockEntities.length; i++) {
+        com.nukkitx.nbt.tag.CompoundTag[] bedrockBlockEntities = new com.nukkitx.nbt.tag.CompoundTag[blockEntities.length + bedrockOnlyBlockEntities.size()];
+        int i = 0;
+        while (i < blockEntities.length) {
             CompoundTag tag = blockEntities[i];
             String tagName;
             if (!tag.contains("id")) {
@@ -121,8 +134,14 @@ public class ChunkUtils {
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
             BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
-            BlockState blockState = blockEntityPositions.get(new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue()));
+            Position pos = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
+            BlockState blockState = blockEntityPositions.get(pos);
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
+            i++;
+        }
+        for (com.nukkitx.nbt.tag.CompoundTag tag : bedrockOnlyBlockEntities) {
+            bedrockBlockEntities[i] = tag;
+            i++;
         }
 
         chunkData.blockEntities = bedrockBlockEntities;

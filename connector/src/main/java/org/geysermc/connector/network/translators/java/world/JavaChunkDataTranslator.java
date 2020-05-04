@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java.world;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -43,8 +44,12 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.block.entity.FlowerPotBlockEntityTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
@@ -108,6 +113,13 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
                 }
                 chunkData.getLoadBlockEntitiesLater().clear();
+
+//                for (Map.Entry<Vector3i, BlockState> entry : chunkData.getFlowerPots().entrySet()) {
+//                    System.out.println("yee");
+//                    new FlowerPotBlockEntityTranslator().updateBlock(session, entry.getValue(), entry.getKey());
+//                }
+//                chunkData.getFlowerPots().clear();
+
                 session.getChunkCache().addToCache(packet.getColumn());
             } catch (Exception ex) {
                 ex.printStackTrace();
