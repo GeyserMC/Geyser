@@ -74,9 +74,10 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
 
         session.setRenderDistance(packet.getViewDistance());
 
-        //We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
+        // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
+        String locale = session.getClientData().getLanguageCode();
         List<SkinPart> skinParts = Arrays.asList(SkinPart.values());
-        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket("en_GB", (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, Hand.MAIN_HAND);
+        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, Hand.MAIN_HAND);
         session.getDownstream().getSession().send(clientSettingsPacket);
 
         if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
