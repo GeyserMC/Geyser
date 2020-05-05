@@ -36,6 +36,7 @@ public class ResourcePack {
 	if (!directory.exists()) {
 	    directory.mkdir();
 	}
+	
         for(File file : directory.listFiles()) {
             if(file.getName().endsWith(".zip") || file.getName().endsWith(".mcpack")) {
                 ResourcePack pack = new ResourcePack();
