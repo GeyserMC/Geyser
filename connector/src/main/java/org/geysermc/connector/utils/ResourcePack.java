@@ -32,8 +32,8 @@ public class ResourcePack {
         }
 
         File directory = new File("packs");
-		
-		if(!directory.exists()){
+
+		if (!directory.exists()) {
 			directory.mkdir();
 		}
         for(File file : directory.listFiles()) {
