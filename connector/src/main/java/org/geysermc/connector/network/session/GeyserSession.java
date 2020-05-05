@@ -66,6 +66,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.utils.Toolbox;
+import org.geysermc.connector.world.WorldBorder;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
 
@@ -155,6 +156,9 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private int craftSlot = 0;
+
+    @Setter
+    private WorldBorder worldBorder; // Im just going to shove this here until i move some stuff around
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
@@ -390,6 +394,17 @@ public class GeyserSession implements CommandSender {
         textPacket.setMessage(message);
 
         upstream.sendPacket(textPacket);
+    }
+
+    public void sendActionBar(String text) {
+        SetTitlePacket setTitlePacket = new SetTitlePacket();
+        setTitlePacket.setType(SetTitlePacket.Type.SET_ACTIONBAR_MESSAGE);
+        setTitlePacket.setText(text);
+        setTitlePacket.setFadeInTime(0);
+        setTitlePacket.setStayTime(0);
+        setTitlePacket.setFadeOutTime(0);
+
+        upstream.sendPacket(setTitlePacket);
     }
 
     @Override
