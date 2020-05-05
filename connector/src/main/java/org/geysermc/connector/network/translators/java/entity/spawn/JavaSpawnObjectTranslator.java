@@ -25,13 +25,15 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
 import com.github.steveice10.mc.protocol.data.game.entity.type.object.FallingBlockData;
 import com.github.steveice10.mc.protocol.data.game.entity.type.object.HangingDirection;
+import com.github.steveice10.mc.protocol.data.game.entity.type.object.ObjectType;
+import com.github.steveice10.mc.protocol.data.game.entity.type.object.ProjectileData;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnObjectPacket;
+import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.FallingBlockEntity;
+import org.geysermc.connector.entity.FishingHookEntity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,9 +41,8 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.EntityUtils;
 
-import com.github.steveice10.mc.protocol.data.game.entity.type.object.ObjectType;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnObjectPacket;
-import com.nukkitx.math.vector.Vector3f;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 @Translator(packet = ServerSpawnObjectPacket.class)
 public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjectPacket> {
@@ -69,6 +70,10 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
                 // Item frames need the hanging direction
                 entity = new ItemFrameEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                         type, position, motion, rotation, (HangingDirection) packet.getData());
+            } else if (packet.getType() == ObjectType.FISHING_BOBBER) {
+                // Fishing bobbers need the owner for the line
+                entity = new FishingHookEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                        type, position, motion, rotation, (ProjectileData) packet.getData());
             } else {
                 Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, EntityType.class,
                         Vector3f.class, Vector3f.class, Vector3f.class);

@@ -110,7 +110,7 @@ public enum EntityType {
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
     CAT(CatEntity.class, 75, 0.35f, 0.3f),
     SHULKER_BULLET(Entity.class, 76, 0f),
-    FISHING_BOBBER(Entity.class, 77, 0f, 0f, 0f, 0f, "minecraft:fishing_hook"),
+    FISHING_BOBBER(FishingHookEntity.class, 77, 0f, 0f, 0f, 0f, "minecraft:fishing_hook"),
     CHALKBOARD(Entity.class, 78, 0f),
     DRAGON_FIREBALL(ItemedFireballEntity.class, 79, 0f),
     ARROW(ArrowEntity.class, 80, 0.25f, 0.25f),
