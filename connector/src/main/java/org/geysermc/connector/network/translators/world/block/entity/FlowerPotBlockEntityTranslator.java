@@ -71,7 +71,6 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
                 .stringTag("id", "FlowerPot");
         // Get the Java name of the plant inside. e.g. minecraft:oak_sapling
         String name = BlockStateValues.getFlowerPotValues().get(blockState.getId());
-        System.out.println(name);
         if (name != null) {
             // Get the Bedrock CompoundTag of the block.
             // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
