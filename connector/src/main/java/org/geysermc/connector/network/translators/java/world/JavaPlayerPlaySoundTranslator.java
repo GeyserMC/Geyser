@@ -72,7 +72,7 @@ public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySo
         playSoundPacket.setVolume(packet.getVolume());
         playSoundPacket.setPitch(packet.getPitch());
 
-        session.getUpstream().sendPacket(playSoundPacket);
+        session.sendPacket(playSoundPacket);
         session.getConnector().getLogger().debug("[PlaySound] Packet sent - " + packet.toString() + " --> " + playSoundPacket);
     }
 }

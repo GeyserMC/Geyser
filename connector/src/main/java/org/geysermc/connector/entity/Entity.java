@@ -119,7 +119,7 @@ public class Entity {
         addEntityPacket.getMetadata().putAll(metadata);
 
         valid = true;
-        session.getUpstream().sendPacket(addEntityPacket);
+        session.sendPacket(addEntityPacket);
 
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
@@ -135,7 +135,7 @@ public class Entity {
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(geyserId);
-        session.getUpstream().sendPacket(removeEntityPacket);
+        session.sendPacket(removeEntityPacket);
 
         valid = false;
         return true;
@@ -156,7 +156,7 @@ public class Entity {
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(false);
 
-        session.getUpstream().sendPacket(moveEntityPacket);
+        session.sendPacket(moveEntityPacket);
     }
 
     public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
@@ -174,7 +174,7 @@ public class Entity {
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 
-        session.getUpstream().sendPacket(moveEntityPacket);
+        session.sendPacket(moveEntityPacket);
     }
 
     public void updateBedrockAttributes(GeyserSession session) {
@@ -191,7 +191,7 @@ public class Entity {
         UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
         updateAttributesPacket.setRuntimeEntityId(geyserId);
         updateAttributesPacket.setAttributes(attributes);
-        session.getUpstream().sendPacket(updateAttributesPacket);
+        session.sendPacket(updateAttributesPacket);
     }
 
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
@@ -218,13 +218,13 @@ public class Entity {
                             else {
                                 useItemPacket = new ClientPlayerUseItemPacket(Hand.OFF_HAND);
                             }
-                            session.getDownstream().getSession().send(useItemPacket);
+                            session.sendRemotePacket(useItemPacket);
                         }
                     } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
                             metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
                             metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
                             ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
-                            session.getDownstream().getSession().send(releaseItemPacket);
+                            session.sendRemotePacket(releaseItemPacket);
                         }
                     // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
                     if ((xd & 0x20) == 0x20)
@@ -265,7 +265,7 @@ public class Entity {
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
-        session.getUpstream().sendPacket(entityDataPacket);
+        session.sendPacket(entityDataPacket);
     }
 
     /**

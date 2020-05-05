@@ -55,7 +55,7 @@ public class PaintingEntity extends Entity {
         addPaintingPacket.setName(paintingName.getBedrockName());
         addPaintingPacket.setPosition(fixOffset(true));
         addPaintingPacket.setDirection(direction);
-        session.getUpstream().sendPacket(addPaintingPacket);
+        session.sendPacket(addPaintingPacket);
 
         valid = true;
 

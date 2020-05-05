@@ -152,7 +152,7 @@ public class LoginEncryptionUtils {
 
         ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
         packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token).serialize());
-        session.getUpstream().sendPacketImmediately(packet);
+        session.sendPacketImmediately(packet);
     }
 
     private static int AUTH_FORM_ID = 1336;

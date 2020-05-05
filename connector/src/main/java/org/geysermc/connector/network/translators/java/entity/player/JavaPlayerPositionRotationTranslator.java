@@ -62,18 +62,18 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             respawnPacket.setRuntimeEntityId(entity.getGeyserId());
             respawnPacket.setPosition(pos);
             respawnPacket.setState(RespawnPacket.State.SERVER_READY);
-            session.getUpstream().sendPacket(respawnPacket);
+            session.sendPacket(respawnPacket);
 
             EntityEventPacket eventPacket = new EntityEventPacket();
             eventPacket.setRuntimeEntityId(entity.getGeyserId());
             eventPacket.setType(EntityEventType.RESPAWN);
             eventPacket.setData(0);
-            session.getUpstream().sendPacket(eventPacket);
+            session.sendPacket(eventPacket);
 
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
             entityDataPacket.getMetadata().putAll(entity.getMetadata());
-            session.getUpstream().sendPacket(entityDataPacket);
+            session.sendPacket(entityDataPacket);
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -81,11 +81,11 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
 
-            session.getUpstream().sendPacket(movePlayerPacket);
+            session.sendPacket(movePlayerPacket);
             session.setSpawned(true);
 
             ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
-            session.getDownstream().getSession().send(teleportConfirmPacket);
+            session.sendRemotePacket(teleportConfirmPacket);
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
@@ -107,7 +107,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
                 entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), true, true);
             } else {
                 ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
-                session.getDownstream().getSession().send(teleportConfirmPacket);
+                session.sendRemotePacket(teleportConfirmPacket);
             }
         }
     }

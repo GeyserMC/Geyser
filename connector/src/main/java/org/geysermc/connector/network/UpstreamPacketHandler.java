@@ -58,10 +58,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        session.getUpstream().sendPacket(playStatus);
+        session.sendPacket(playStatus);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
-        session.getUpstream().sendPacket(resourcePacksInfo);
+        session.sendPacket(resourcePacksInfo);
         return true;
     }
 
@@ -77,7 +77,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stack.setExperimental(false);
                 stack.setForcedToAccept(false);
                 stack.setGameVersion("*");
-                session.getUpstream().sendPacket(stack);
+                session.sendPacket(stack);
                 break;
             default:
                 session.disconnect("disconnectionScreen.resourcePack");

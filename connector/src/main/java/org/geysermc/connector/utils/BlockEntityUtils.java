@@ -49,6 +49,6 @@ public class BlockEntityUtils {
         BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
         blockEntityPacket.setBlockPosition(position);
         blockEntityPacket.setData(blockEntity);
-        session.getUpstream().sendPacket(blockEntityPacket);
+        session.sendPacket(blockEntityPacket);
     }
 }

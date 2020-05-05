@@ -54,7 +54,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         InventoryContentPacket contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(inventory.getId());
         contentPacket.setContents(bedrockItems);
-        session.getUpstream().sendPacket(contentPacket);
+        session.sendPacket(contentPacket);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         slotPacket.setContainerId(inventory.getId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
         slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(javaSlot)));
-        session.getUpstream().sendPacket(slotPacket);
+        session.sendPacket(slotPacket);
         return true;
     }
 }

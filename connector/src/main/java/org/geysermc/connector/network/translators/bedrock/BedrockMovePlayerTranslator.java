@@ -55,7 +55,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             moveEntityBack.setRotation(entity.getBedrockRotation());
             moveEntityBack.setTeleported(true);
             moveEntityBack.setOnGround(true);
-            session.getUpstream().sendPacketImmediately(moveEntityBack);
+            session.sendPacketImmediately(moveEntityBack);
             return;
         }
 
@@ -97,7 +97,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         if (!colliding)
          */
-        session.getDownstream().getSession().send(playerPositionRotationPacket);
+        session.sendRemotePacket(playerPositionRotationPacket);
     }
 
     public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
@@ -130,13 +130,13 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
         entityDataPacket.getMetadata().putAll(entity.getMetadata());
-        session.getUpstream().sendPacket(entityDataPacket);
+        session.sendPacket(entityDataPacket);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
-        session.getUpstream().sendPacket(movePlayerPacket);
+        session.sendPacket(movePlayerPacket);
     }
 }

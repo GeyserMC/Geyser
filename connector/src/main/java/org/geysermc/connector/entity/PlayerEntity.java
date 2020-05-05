@@ -94,7 +94,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.getMetadata().putAll(metadata);
 
         valid = true;
-        session.getUpstream().sendPacket(addPlayerPacket);
+        session.sendPacket(addPlayerPacket);
 
         updateEquipment(session);
         updateBedrockAttributes(session);
@@ -108,7 +108,7 @@ public class PlayerEntity extends LivingEntity {
                 PlayerListPacket playerList = new PlayerListPacket();
                 playerList.setAction(PlayerListPacket.Action.ADD);
                 playerList.getEntries().add(SkinUtils.buildDefaultEntry(profile, geyserId));
-                session.getUpstream().sendPacket(playerList);
+                session.sendPacket(playerList);
             }
         }
 
@@ -124,7 +124,7 @@ public class PlayerEntity extends LivingEntity {
                 PlayerListPacket playerList = new PlayerListPacket();
                 playerList.setAction(PlayerListPacket.Action.REMOVE);
                 playerList.getEntries().add(new PlayerListPacket.Entry(uuid));
-                session.getUpstream().sendPacket(playerList);
+                session.sendPacket(playerList);
             });
         }
     }
@@ -145,7 +145,7 @@ public class PlayerEntity extends LivingEntity {
             movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
         }
 
-        session.getUpstream().sendPacket(movePlayerPacket);
+        session.sendPacket(movePlayerPacket);
     }
 
     @Override
@@ -159,7 +159,7 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
-        session.getUpstream().sendPacket(movePlayerPacket);
+        session.sendPacket(movePlayerPacket);
     }
 
     @Override

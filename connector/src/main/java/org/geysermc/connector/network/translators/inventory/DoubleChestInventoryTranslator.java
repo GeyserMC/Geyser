@@ -60,7 +60,7 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         blockPacket.setBlockPosition(position);
         blockPacket.setRuntimeId(blockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-        session.getUpstream().sendPacket(blockPacket);
+        session.sendPacket(blockPacket);
 
         CompoundTag tag = CompoundTag.builder()
                 .stringTag("id", "Chest")
@@ -73,14 +73,14 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(position);
-        session.getUpstream().sendPacket(dataPacket);
+        session.sendPacket(dataPacket);
 
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(pairPosition);
         blockPacket.setRuntimeId(blockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-        session.getUpstream().sendPacket(blockPacket);
+        session.sendPacket(blockPacket);
 
         tag = CompoundTag.builder()
                 .stringTag("id", "Chest")
@@ -93,7 +93,7 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(pairPosition);
-        session.getUpstream().sendPacket(dataPacket);
+        session.sendPacket(dataPacket);
 
         inventory.setHolderPosition(position);
     }
@@ -105,7 +105,7 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         containerOpenPacket.setType((byte) ContainerType.CONTAINER.id());
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        session.getUpstream().sendPacket(containerOpenPacket);
+        session.sendPacket(containerOpenPacket);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
         blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
-        session.getUpstream().sendPacket(blockPacket);
+        session.sendPacket(blockPacket);
 
         holderPos = holderPos.add(Vector3i.UNIT_X);
         pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
@@ -126,7 +126,7 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
         blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
-        session.getUpstream().sendPacket(blockPacket);
+        session.sendPacket(blockPacket);
     }
 
     @Override

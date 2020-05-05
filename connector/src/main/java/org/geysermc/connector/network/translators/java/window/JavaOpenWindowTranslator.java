@@ -55,11 +55,11 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             if (openInventory != null) {
                 ContainerClosePacket closePacket = new ContainerClosePacket();
                 closePacket.setWindowId((byte)openInventory.getId());
-                session.getUpstream().sendPacket(closePacket);
+                session.sendPacket(closePacket);
                 Translators.getInventoryTranslators().get(openInventory.getWindowType()).closeInventory(session, openInventory);
             }
             ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
-            session.getDownstream().getSession().send(closeWindowPacket);
+            session.sendRemotePacket(closeWindowPacket);
             return;
         }
 

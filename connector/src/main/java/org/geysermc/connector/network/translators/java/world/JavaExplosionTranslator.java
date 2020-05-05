@@ -52,7 +52,7 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
             levelEventPacket.setType(LevelEventType.PARTICLE_LARGE_EXPLOSION);
             levelEventPacket.setData(0);
             levelEventPacket.setPosition(pos.toFloat());
-            session.getUpstream().sendPacket(levelEventPacket);
+            session.sendPacket(levelEventPacket);
             ChunkUtils.updateBlock(session, BlockTranslator.AIR, pos.toInt());
         }
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
@@ -62,6 +62,6 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
         levelSoundEventPacket.setSound(SoundEvent.EXPLODE);
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-        session.getUpstream().sendPacket(levelSoundEventPacket);
+        session.sendPacket(levelSoundEventPacket);
     }
 }

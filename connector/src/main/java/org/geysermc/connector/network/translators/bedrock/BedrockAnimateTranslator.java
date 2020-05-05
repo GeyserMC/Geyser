@@ -49,7 +49,7 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             case SWING_ARM:
                 // Delay so entity damage can be processed first
                 session.getConnector().getGeneralThreadPool().schedule(() ->
-                        session.getDownstream().getSession().send(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
+                        session.sendRemotePacket(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
                         25,
                         TimeUnit.MILLISECONDS
                 );

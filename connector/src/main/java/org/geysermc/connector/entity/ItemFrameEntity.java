@@ -149,7 +149,7 @@ public class ItemFrameEntity extends Entity {
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        session.getUpstream().sendPacket(updateBlockPacket);
+        session.sendPacket(updateBlockPacket);
         session.getItemFrameCache().remove(position, entityId);
         valid = false;
         return true;
@@ -179,7 +179,7 @@ public class ItemFrameEntity extends Entity {
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-            session.getUpstream().sendPacket(updateBlockPacket);
+            session.sendPacket(updateBlockPacket);
 
             BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
             blockEntityDataPacket.setBlockPosition(bedrockPosition);
@@ -189,7 +189,7 @@ public class ItemFrameEntity extends Entity {
                 blockEntityDataPacket.setData(getDefaultTag());
             }
 
-            session.getUpstream().sendPacket(blockEntityDataPacket);
+            session.sendPacket(blockEntityDataPacket);
         }, 500, TimeUnit.MILLISECONDS);
     }
 
