@@ -44,7 +44,7 @@ public abstract class InventoryUpdater {
         InventoryContentPacket contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(ContainerId.INVENTORY);
         contentPacket.setContents(bedrockItems);
-        session.sendPacket(contentPacket);
+        session.sendUpstreamPacket(contentPacket);
     }
 
     public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
@@ -53,7 +53,7 @@ public abstract class InventoryUpdater {
             slotPacket.setContainerId(ContainerId.INVENTORY);
             slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
             slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(javaSlot)));
-            session.sendPacket(slotPacket);
+            session.sendUpstreamPacket(slotPacket);
             return true;
         }
         return false;

@@ -52,12 +52,12 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 }
                 ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                         InteractAction.INTERACT, Hand.MAIN_HAND);
-                session.sendRemotePacket(interactPacket);
+                session.sendDownstreamPacket(interactPacket);
                 break;
             case DAMAGE:
                 ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                         InteractAction.ATTACK, Hand.MAIN_HAND);
-                session.sendRemotePacket(attackPacket);
+                session.sendDownstreamPacket(attackPacket);
                 break;
         }
     }

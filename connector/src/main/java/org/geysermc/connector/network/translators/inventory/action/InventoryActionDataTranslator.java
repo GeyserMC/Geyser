@@ -94,7 +94,7 @@ public class InventoryActionDataTranslator {
                             ClientPlayerActionPacket actionPacket = new ClientPlayerActionPacket(
                                     sourceAction.getToItem().getCount() == 0 ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                     new Position(0, 0, 0), BlockFace.DOWN);
-                            session.sendRemotePacket(actionPacket);
+                            session.sendDownstreamPacket(actionPacket);
                             ItemStack item = session.getInventory().getItem(heldSlot);
                             if (item != null) {
                                 session.getInventory().setItem(heldSlot, new ItemStack(item.getId(), item.getAmount() - 1, item.getNbt()));
@@ -110,14 +110,14 @@ public class InventoryActionDataTranslator {
                                     inventory.getTransactionId().getAndIncrement(),
                                     javaSlot, null, WindowAction.DROP_ITEM,
                                     DropItemParam.DROP_SELECTED_STACK);
-                            session.sendRemotePacket(dropPacket);
+                            session.sendDownstreamPacket(dropPacket);
                         } else {
                             for (int i = 0; i < dropAmount; i++) {
                                 ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(),
                                         inventory.getTransactionId().getAndIncrement(),
                                         javaSlot, null, WindowAction.DROP_ITEM,
                                         DropItemParam.DROP_FROM_SELECTED);
-                                session.sendRemotePacket(dropPacket);
+                                session.sendDownstreamPacket(dropPacket);
                             }
                         }
                         ItemStack item = session.getInventory().getItem(javaSlot);
@@ -129,7 +129,7 @@ public class InventoryActionDataTranslator {
                         ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(inventory.getId(), inventory.getTransactionId().getAndIncrement(),
                                 -999, null, WindowAction.CLICK_ITEM,
                                 dropAmount > 1 ? ClickItemParam.LEFT_CLICK : ClickItemParam.RIGHT_CLICK);
-                        session.sendRemotePacket(dropPacket);
+                        session.sendDownstreamPacket(dropPacket);
                         ItemStack cursor = session.getInventory().getCursor();
                         if (cursor != null) {
                             session.getInventory().setCursor(new ItemStack(cursor.getId(), dropAmount > 1 ? 0 : cursor.getAmount() - 1, cursor.getNbt()));
@@ -180,7 +180,7 @@ public class InventoryActionDataTranslator {
                                     inventory.getTransactionId().getAndIncrement(),
                                     javaSlot, InventoryUtils.REFRESH_ITEM, WindowAction.SHIFT_CLICK_ITEM,
                                     ShiftClickItemParam.LEFT_CLICK);
-                            session.sendRemotePacket(shiftClickPacket);
+                            session.sendDownstreamPacket(shiftClickPacket);
                             translator.updateInventory(session, inventory);
                             return;
                         }
@@ -266,7 +266,7 @@ public class InventoryActionDataTranslator {
                             inventory.getTransactionId().getAndIncrement(),
                             fromSlot, InventoryUtils.REFRESH_ITEM, WindowAction.SHIFT_CLICK_ITEM,
                             ShiftClickItemParam.LEFT_CLICK);
-                    session.sendRemotePacket(shiftClickPacket);
+                    session.sendDownstreamPacket(shiftClickPacket);
                     translator.updateInventory(session, inventory);
                     return;
                 } else if (translator.getSlotType(fromSlot) == SlotType.OUTPUT) {

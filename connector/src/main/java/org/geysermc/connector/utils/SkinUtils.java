@@ -177,12 +177,12 @@ public class SkinUtils {
                                     PlayerListPacket playerRemovePacket = new PlayerListPacket();
                                     playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
                                     playerRemovePacket.getEntries().add(updatedEntry);
-                                    session.sendPacket(playerRemovePacket);
+                                    session.sendUpstreamPacket(playerRemovePacket);
 
                                     PlayerListPacket playerAddPacket = new PlayerListPacket();
                                     playerAddPacket.setAction(PlayerListPacket.Action.ADD);
                                     playerAddPacket.getEntries().add(updatedEntry);
-                                    session.sendPacket(playerAddPacket);
+                                    session.sendUpstreamPacket(playerAddPacket);
                                 }
                             }
                         } catch (Exception e) {

@@ -59,7 +59,7 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
         containerOpenPacket.setType((byte) ContainerType.WORKBENCH.id());
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        session.sendPacket(containerOpenPacket);
+        session.sendUpstreamPacket(containerOpenPacket);
     }
 
     @Override

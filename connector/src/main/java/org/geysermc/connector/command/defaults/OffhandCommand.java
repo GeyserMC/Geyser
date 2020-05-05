@@ -55,7 +55,7 @@ public class OffhandCommand extends GeyserCommand {
             GeyserSession session = (GeyserSession) sender;
             ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
                     BlockFace.DOWN);
-            session.sendRemotePacket(releaseItemPacket);
+            session.sendDownstreamPacket(releaseItemPacket);
         }
     }
 }

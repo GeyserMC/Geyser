@@ -90,7 +90,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             }
         }
         craftingDataPacket.getPotionMixData().addAll(POTION_MIXES);
-        session.sendPacket(craftingDataPacket);
+        session.sendUpstreamPacket(craftingDataPacket);
     }
 
     //TODO: rewrite

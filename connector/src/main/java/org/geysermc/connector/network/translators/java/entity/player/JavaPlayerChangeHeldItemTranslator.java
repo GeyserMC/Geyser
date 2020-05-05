@@ -40,7 +40,7 @@ public class JavaPlayerChangeHeldItemTranslator extends PacketTranslator<ServerP
         hotbarPacket.setContainerId(0);
         hotbarPacket.setSelectedHotbarSlot(packet.getSlot());
         hotbarPacket.setSelectHotbarSlot(true);
-        session.sendPacket(hotbarPacket);
+        session.sendUpstreamPacket(hotbarPacket);
 
         session.getInventory().setHeldItemSlot(packet.getSlot());
     }

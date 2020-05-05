@@ -44,7 +44,7 @@ public class BrewingInventoryTranslator extends BlockInventoryTranslator {
         dataPacket.setWindowId((byte) inventory.getId());
         dataPacket.setProperty(ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL);
         dataPacket.setValue(20);
-        session.sendPacket(dataPacket);
+        session.sendUpstreamPacket(dataPacket);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class BrewingInventoryTranslator extends BlockInventoryTranslator {
                 return;
         }
         dataPacket.setValue(value);
-        session.sendPacket(dataPacket);
+        session.sendUpstreamPacket(dataPacket);
     }
 
     @Override

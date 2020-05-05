@@ -96,8 +96,8 @@ public class LivingEntity extends Entity {
         offHandPacket.setInventorySlot(0);
         offHandPacket.setContainerId(ContainerId.OFFHAND);
 
-        session.sendPacket(armorEquipmentPacket);
-        session.sendPacket(handPacket);
-        session.sendPacket(offHandPacket);
+        session.sendUpstreamPacket(armorEquipmentPacket);
+        session.sendUpstreamPacket(handPacket);
+        session.sendUpstreamPacket(offHandPacket);
     }
 }

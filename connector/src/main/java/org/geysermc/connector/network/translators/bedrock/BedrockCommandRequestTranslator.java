@@ -53,7 +53,7 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
             }
 
             ClientChatPacket chatPacket = new ClientChatPacket(message);
-            session.sendRemotePacket(chatPacket);
+            session.sendDownstreamPacket(chatPacket);
         }
     }
 }

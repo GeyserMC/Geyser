@@ -56,7 +56,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         bedrockPacket.setPlayerPermission(PlayerPermission.MEMBER);
-        session.sendPacket(bedrockPacket);
+        session.sendUpstreamPacket(bedrockPacket);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
@@ -64,13 +64,13 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
-        session.sendPacket(playerGameTypePacket);
+        session.sendUpstreamPacket(playerGameTypePacket);
         session.setGameMode(packet.getGameMode());
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
         entityDataPacket.getMetadata().putAll(entity.getMetadata());
-        session.sendPacket(entityDataPacket);
+        session.sendUpstreamPacket(entityDataPacket);
 
         session.setRenderDistance(packet.getViewDistance());
 
@@ -78,7 +78,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         String locale = session.getClientData().getLanguageCode();
         List<SkinPart> skinParts = Arrays.asList(SkinPart.values());
         ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, Hand.MAIN_HAND);
-        session.sendRemotePacket(clientSettingsPacket);
+        session.sendDownstreamPacket(clientSettingsPacket);
 
         if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
             DimensionUtils.switchDimension(session, packet.getDimension());

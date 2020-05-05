@@ -34,7 +34,6 @@ import com.nukkitx.protocol.bedrock.data.InventorySource;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import it.unimi.dsi.fastutil.longs.LongArraySet;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
@@ -66,7 +65,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             contents[i - 36] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
         }
         inventoryContentPacket.setContents(contents);
-        session.sendPacket(inventoryContentPacket);
+        session.sendUpstreamPacket(inventoryContentPacket);
 
         // Armor
         InventoryContentPacket armorContentPacket = new InventoryContentPacket();
@@ -76,13 +75,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             contents[i - 5] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
         }
         armorContentPacket.setContents(contents);
-        session.sendPacket(armorContentPacket);
+        session.sendUpstreamPacket(armorContentPacket);
 
         // Offhand
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
         offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(45))});
-        session.sendPacket(offhandPacket);
+        session.sendUpstreamPacket(offhandPacket);
     }
 
     /**
@@ -103,7 +102,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i)));
             }
 
-            session.sendPacket(slotPacket);
+            session.sendUpstreamPacket(slotPacket);
         }
     }
 
@@ -126,12 +125,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setSlot(slot + 27);
             }
             slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(slot)));
-            session.sendPacket(slotPacket);
+            session.sendUpstreamPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
             offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(slot))});
-            session.sendPacket(offhandPacket);
+            session.sendUpstreamPacket(offhandPacket);
         }
     }
 
@@ -204,7 +203,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                             javaItem = Translators.getItemTranslator().translateToJava(session, action.getToItem());
                         }
                         ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(javaSlot, javaItem);
-                        session.sendRemotePacket(creativePacket);
+                        session.sendDownstreamPacket(creativePacket);
                         inventory.setItem(javaSlot, javaItem);
                         break;
                     case ContainerId.CURSOR:
@@ -217,7 +216,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                                 && action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
                             javaItem = Translators.getItemTranslator().translateToJava(session, action.getToItem());
                             ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, javaItem);
-                            session.sendRemotePacket(creativeDropPacket);
+                            session.sendDownstreamPacket(creativeDropPacket);
                         }
                         break;
                 }

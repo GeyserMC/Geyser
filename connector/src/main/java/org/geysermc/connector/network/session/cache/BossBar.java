@@ -62,7 +62,7 @@ public class BossBar {
         bossEventPacket.setOverlay(overlay);
         bossEventPacket.setDarkenSky(darkenSky);
 
-        session.sendPacket(bossEventPacket);
+        session.sendUpstreamPacket(bossEventPacket);
     }
 
     public void updateTitle(Message title) {
@@ -72,7 +72,7 @@ public class BossBar {
         bossEventPacket.setAction(BossEventPacket.Action.TITLE);
         bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getClientData().getLanguageCode()));
 
-        session.sendPacket(bossEventPacket);
+        session.sendUpstreamPacket(bossEventPacket);
     }
 
     public void updateHealth(float health) {
@@ -82,7 +82,7 @@ public class BossBar {
         bossEventPacket.setAction(BossEventPacket.Action.HEALTH_PERCENTAGE);
         bossEventPacket.setHealthPercentage(health);
 
-        session.sendPacket(bossEventPacket);
+        session.sendUpstreamPacket(bossEventPacket);
     }
 
     public void removeBossBar() {
@@ -90,7 +90,7 @@ public class BossBar {
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.HIDE);
 
-        session.sendPacket(bossEventPacket);
+        session.sendUpstreamPacket(bossEventPacket);
         removeBossEntity();
     }
 
@@ -109,13 +109,13 @@ public class BossBar {
         addEntityPacket.setMotion(Vector3f.ZERO);
         addEntityPacket.getMetadata().put(EntityData.SCALE, 0.01F); // scale = 0 doesn't work?
 
-        session.sendPacket(addEntityPacket);
+        session.sendUpstreamPacket(addEntityPacket);
     }
 
     private void removeBossEntity() {
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(entityId);
 
-        session.sendPacket(removeEntityPacket);
+        session.sendUpstreamPacket(removeEntityPacket);
     }
 }

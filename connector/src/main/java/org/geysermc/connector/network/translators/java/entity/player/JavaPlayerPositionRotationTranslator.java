@@ -62,18 +62,18 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             respawnPacket.setRuntimeEntityId(entity.getGeyserId());
             respawnPacket.setPosition(pos);
             respawnPacket.setState(RespawnPacket.State.SERVER_READY);
-            session.sendPacket(respawnPacket);
+            session.sendUpstreamPacket(respawnPacket);
 
             EntityEventPacket eventPacket = new EntityEventPacket();
             eventPacket.setRuntimeEntityId(entity.getGeyserId());
             eventPacket.setType(EntityEventType.RESPAWN);
             eventPacket.setData(0);
-            session.sendPacket(eventPacket);
+            session.sendUpstreamPacket(eventPacket);
 
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
             entityDataPacket.getMetadata().putAll(entity.getMetadata());
-            session.sendPacket(entityDataPacket);
+            session.sendUpstreamPacket(entityDataPacket);
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -81,11 +81,11 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
 
-            session.sendPacket(movePlayerPacket);
+            session.sendUpstreamPacket(movePlayerPacket);
             session.setSpawned(true);
 
             ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
-            session.sendRemotePacket(teleportConfirmPacket);
+            session.sendDownstreamPacket(teleportConfirmPacket);
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
@@ -107,7 +107,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
                 entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), true, true);
             } else {
                 ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
-                session.sendRemotePacket(teleportConfirmPacket);
+                session.sendDownstreamPacket(teleportConfirmPacket);
             }
         }
     }

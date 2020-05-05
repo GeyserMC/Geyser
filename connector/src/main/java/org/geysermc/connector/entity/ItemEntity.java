@@ -50,7 +50,7 @@ public class ItemEntity extends Entity {
             itemPacket.setFromFishing(false);
             itemPacket.getMetadata().putAll(metadata);
             itemPacket.setItemInHand(Translators.getItemTranslator().translateToBedrock(session, (ItemStack) entityMetadata.getValue()));
-            session.sendPacket(itemPacket);
+            session.sendUpstreamPacket(itemPacket);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);

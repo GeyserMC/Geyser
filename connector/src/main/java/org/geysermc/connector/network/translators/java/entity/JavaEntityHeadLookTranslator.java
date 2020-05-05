@@ -55,14 +55,14 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
             moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
             moveEntityAbsolutePacket.setPosition(entity.getPosition());
             moveEntityAbsolutePacket.setRotation(entity.getBedrockRotation());
-            session.sendPacket(moveEntityAbsolutePacket);
+            session.sendUpstreamPacket(moveEntityAbsolutePacket);
         } else {
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
             movePlayerPacket.setPosition(entity.getPosition());
             movePlayerPacket.setRotation(entity.getBedrockRotation());
             movePlayerPacket.setMode(MovePlayerPacket.Mode.ROTATION);
-            session.sendPacket(movePlayerPacket);
+            session.sendUpstreamPacket(movePlayerPacket);
         }
     }
 }

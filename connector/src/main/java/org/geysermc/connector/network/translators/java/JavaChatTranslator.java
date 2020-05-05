@@ -76,6 +76,6 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
             textPacket.setMessage(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, false));
         }
 
-        session.sendPacket(textPacket);
+        session.sendUpstreamPacket(textPacket);
     }
 }

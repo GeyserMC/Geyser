@@ -104,8 +104,8 @@ class ClickPlan {
                         break;
                 }
             }
-            session.sendRemotePacket(clickPacket);
-            session.sendRemotePacket(new ClientConfirmTransactionPacket(inventory.getId(), actionId, true));
+            session.sendDownstreamPacket(clickPacket);
+            session.sendDownstreamPacket(new ClientConfirmTransactionPacket(inventory.getId(), actionId, true));
         }
 
         /*if (refresh) {

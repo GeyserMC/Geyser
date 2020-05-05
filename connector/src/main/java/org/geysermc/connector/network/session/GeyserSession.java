@@ -484,7 +484,7 @@ public class GeyserSession implements CommandSender {
             int teleportId = teleportCache.getTeleportConfirmId();
             teleportCache = null;
             ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(teleportId);
-            sendRemotePacket(teleportConfirmPacket);
+            sendDownstreamPacket(teleportConfirmPacket);
         }
         return true;
     }
@@ -493,7 +493,7 @@ public class GeyserSession implements CommandSender {
      * Queue a packet to be sent to player.
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
-    public void sendPacket(BedrockPacket packet) {
+    public void sendUpstreamPacket(BedrockPacket packet) {
         if (upstream != null && !upstream.isClosed()) {
             upstream.sendPacket(packet);
         }
@@ -503,7 +503,7 @@ public class GeyserSession implements CommandSender {
      * Send a packet immediately to the player.
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
-    public void sendPacketImmediately(BedrockPacket packet) {
+    public void sendUpstreamPacketImmediately(BedrockPacket packet) {
         if (upstream != null && !upstream.isClosed()) {
             upstream.sendPacketImmediately(packet);
         }
@@ -513,7 +513,7 @@ public class GeyserSession implements CommandSender {
      * Send a packet to the remote server.
      * @param packet the java edition packet from MCProtocolLib
      */
-    public void sendRemotePacket(Packet packet) {
+    public void sendDownstreamPacket(Packet packet) {
         if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
             downstream.getSession().send(packet);
         }

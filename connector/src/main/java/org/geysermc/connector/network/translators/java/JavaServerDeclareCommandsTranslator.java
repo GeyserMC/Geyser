@@ -100,7 +100,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         GeyserConnector.getInstance().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
 
         // Finally, send the commands to the client
-        session.sendPacket(availableCommandsPacket);
+        session.sendUpstreamPacket(availableCommandsPacket);
     }
 
     /**
