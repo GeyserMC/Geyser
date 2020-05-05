@@ -52,7 +52,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                 particle.setType(LevelEventType.DESTROY);
                 particle.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
                 particle.setData(BlockTranslator.getBedrockBlockId(((BlockParticleData) packet.getParticle().getData()).getBlockState()));
-                session.getUpstream().sendPacket(particle);
+                session.sendUpstreamPacket(particle);
                 break;
             case FALLING_DUST:
                 //In fact, FallingDustParticle should have data like DustParticle,
@@ -60,7 +60,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                 particle.setType(LevelEventType.PARTICLE_FALLING_DUST);
                 particle.setData(BlockTranslator.getBedrockBlockId(((FallingDustParticleData)packet.getParticle().getData()).getBlockState()));
                 particle.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-                session.getUpstream().sendPacket(particle);
+                session.sendUpstreamPacket(particle);
                 break;
             case ITEM:
                 ItemStack javaItem = ((ItemParticleData)packet.getParticle().getData()).getItemStack();
@@ -70,7 +70,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                 particle.setType(LevelEventType.PARTICLE_ITEM_BREAK);
                 particle.setData(id << 16 | damage);
                 particle.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-                session.getUpstream().sendPacket(particle);
+                session.sendUpstreamPacket(particle);
                 break;
             case DUST:
                 DustParticleData data = (DustParticleData)packet.getParticle().getData();
@@ -80,14 +80,14 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                 particle.setType(LevelEventType.PARTICLE_FALLING_DUST);
                 particle.setData(((0xff) << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff));
                 particle.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-                session.getUpstream().sendPacket(particle);
+                session.sendUpstreamPacket(particle);
                 break;
             default:
                 LevelEventType typeParticle = EffectUtils.getParticleLevelEventType(packet.getParticle().getType());
                 if (typeParticle != null) {
                     particle.setType(typeParticle);
                     particle.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-                    session.getUpstream().sendPacket(particle);
+                    session.sendUpstreamPacket(particle);
                 } else {
                     String stringParticle = EffectUtils.getParticleString(packet.getParticle().getType());
                     if (stringParticle != null) {
@@ -95,7 +95,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                         stringPacket.setIdentifier(stringParticle);
                         stringPacket.setDimensionId(session.getPlayerEntity().getDimension());
                         stringPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-                        session.getUpstream().sendPacket(stringPacket);
+                        session.sendUpstreamPacket(stringPacket);
                     }
                 }
                 break;

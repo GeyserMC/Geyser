@@ -53,7 +53,7 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        session.getUpstream().sendPacket(updateBlockPacket);
+        session.sendUpstreamPacket(updateBlockPacket);
     }
 
     /**

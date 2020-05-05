@@ -36,6 +36,6 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
     @Override
     public void translate(LevelSoundEventPacket packet, GeyserSession session) {
         // lol what even :thinking:
-        session.getUpstream().sendPacket(packet);
+        session.sendUpstreamPacket(packet);
     }
 }

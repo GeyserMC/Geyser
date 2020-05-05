@@ -156,7 +156,7 @@ public class ChunkUtils {
             NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
             chunkPublisherUpdatePacket.setPosition(position);
             chunkPublisherUpdatePacket.setRadius(session.getRenderDistance() << 4);
-            session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
+            session.sendUpstreamPacket(chunkPublisherUpdatePacket);
 
             session.setLastChunkPosition(newChunkPos);
         }
@@ -188,7 +188,7 @@ public class ChunkUtils {
         updateBlockPacket.setBlockPosition(position);
         updateBlockPacket.setRuntimeId(blockId);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        session.getUpstream().sendPacket(updateBlockPacket);
+        session.sendUpstreamPacket(updateBlockPacket);
 
         UpdateBlockPacket waterPacket = new UpdateBlockPacket();
         waterPacket.setDataLayer(1);
@@ -198,7 +198,7 @@ public class ChunkUtils {
         } else {
             waterPacket.setRuntimeId(0);
         }
-        session.getUpstream().sendPacket(waterPacket);
+        session.sendUpstreamPacket(waterPacket);
 
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
@@ -228,7 +228,7 @@ public class ChunkUtils {
                 data.setSubChunksLength(0);
                 data.setData(Translators.EMPTY_LEVEL_CHUNK_DATA);
                 data.setCachingEnabled(false);
-                session.getUpstream().sendPacket(data);
+                session.sendUpstreamPacket(data);
 
                 if (forceUpdate) {
                     Vector3i pos = Vector3i.from(chunkX + x << 4, 80, chunkZ + z << 4);
@@ -236,7 +236,7 @@ public class ChunkUtils {
                     blockPacket.setBlockPosition(pos);
                     blockPacket.setDataLayer(0);
                     blockPacket.setRuntimeId(1);
-                    session.getUpstream().sendPacket(blockPacket);
+                    session.sendUpstreamPacket(blockPacket);
                 }
             }
         }

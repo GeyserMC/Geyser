@@ -52,6 +52,6 @@ public class JavaEntityRemoveEffectTranslator extends PacketTranslator<ServerEnt
         mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
         mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
         mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(packet.getEffect()));
-        session.getUpstream().sendPacket(mobEffectPacket);
+        session.sendUpstreamPacket(mobEffectPacket);
     }
 }

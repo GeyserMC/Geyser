@@ -90,12 +90,12 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         soundEvent.setExtraData(-1);
                         soundEvent.setBabySound(false);
                         soundEvent.setRelativeVolumeDisabled(false);
-                        session.getUpstream().sendPacket(soundEvent);
+                        session.sendUpstreamPacket(soundEvent);
                         break;
                     case BLOCK_LAVA_EXTINGUISH:
                         effect.setType(LevelEventType.SHOOT);
                         effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY() + 1, packet.getPosition().getZ()));
-                        session.getUpstream().sendPacket(effect);
+                        session.sendUpstreamPacket(effect);
 
                         LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
                         soundEventPacket.setSound(SoundEvent.EXTINGUISH_FIRE);
@@ -104,14 +104,14 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         soundEventPacket.setExtraData(-1);
                         soundEventPacket.setBabySound(false);
                         soundEventPacket.setRelativeVolumeDisabled(false);
-                        session.getUpstream().sendPacket(soundEventPacket);
+                        session.sendUpstreamPacket(soundEventPacket);
                         return;
                     default:
                         GeyserConnector.getInstance().getLogger().debug("No effect handling for particle effect: " + packet.getEffect());
                 }
             }
             effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-            session.getUpstream().sendPacket(effect);
+            session.sendUpstreamPacket(effect);
         } else if (packet.getEffect() instanceof SoundEffect) {
             SoundEffect soundEffect = (SoundEffect) packet.getEffect();
             Effect geyserEffect = EffectUtils.EFFECTS.get(soundEffect.name());
@@ -131,7 +131,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEvent.setExtraData(geyserEffect.getData());
                     soundEvent.setIdentifier(geyserEffect.getIdentifier());
                     soundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-                    session.getUpstream().sendPacket(soundEvent);
+                    session.sendUpstreamPacket(soundEvent);
                 }
             } else {
                 GeyserConnector.getInstance().getLogger().debug("No effect handling for sound effect: " + packet.getEffect());
@@ -139,7 +139,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
         }
         if (effect.getType() != null) {
             effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-            session.getUpstream().sendPacket(effect);
+            session.sendUpstreamPacket(effect);
         }
 
     }

@@ -187,7 +187,7 @@ public class Scoreboard {
             if (objective.getUpdateType() == REMOVE || update) {
                 RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
                 removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
-                session.getUpstream().sendPacket(removeObjectivePacket);
+                session.sendUpstreamPacket(removeObjectivePacket);
                 if (objective.getUpdateType() == REMOVE) {
                     objectives.remove(objective.getObjectiveName()); // now we can deregister
                 }
@@ -199,7 +199,7 @@ public class Scoreboard {
                 displayObjectivePacket.setCriteria("dummy");
                 displayObjectivePacket.setDisplaySlot(objective.getDisplaySlot());
                 displayObjectivePacket.setSortOrder(1); // ??
-                session.getUpstream().sendPacket(displayObjectivePacket);
+                session.sendUpstreamPacket(displayObjectivePacket);
             }
             objective.setUpdateType(NOTHING);
         }
@@ -208,21 +208,21 @@ public class Scoreboard {
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(SetScorePacket.Action.REMOVE);
             setScorePacket.setInfos(removeScores);
-            session.getUpstream().sendPacket(setScorePacket);
+            session.sendUpstreamPacket(setScorePacket);
         }
 
         if (!addScores.isEmpty()) {
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(SetScorePacket.Action.SET);
             setScorePacket.setInfos(addScores);
-            session.getUpstream().sendPacket(setScorePacket);
+            session.sendUpstreamPacket(setScorePacket);
         }
     }
 
     public void despawnObjective(Objective objective) {
         RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
         removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
-        session.getUpstream().sendPacket(removeObjectivePacket);
+        session.sendUpstreamPacket(removeObjectivePacket);
         objectives.remove(objective.getDisplayName());
 
         List<ScoreInfo> toRemove = new ArrayList<>();
@@ -238,7 +238,7 @@ public class Scoreboard {
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(SetScorePacket.Action.REMOVE);
             setScorePacket.setInfos(toRemove);
-            session.getUpstream().sendPacket(setScorePacket);
+            session.sendUpstreamPacket(setScorePacket);
         }
     }
 

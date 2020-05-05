@@ -49,7 +49,7 @@ public class DimensionUtils {
         changeDimensionPacket.setDimension(bedrockDimension);
         changeDimensionPacket.setRespawn(true);
         changeDimensionPacket.setPosition(pos.toFloat());
-        session.getUpstream().sendPacket(changeDimensionPacket);
+        session.sendUpstreamPacket(changeDimensionPacket);
         player.setDimension(bedrockDimension);
         player.setPosition(pos.toFloat());
         session.setSpawned(false);
@@ -59,7 +59,7 @@ public class DimensionUtils {
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
         stopSoundPacket.setStoppingAllSound(true);
         stopSoundPacket.setSoundName("");
-        session.getUpstream().sendPacket(stopSoundPacket);
+        session.sendUpstreamPacket(stopSoundPacket);
     }
 
     /**

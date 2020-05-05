@@ -50,6 +50,6 @@ public class MilkCowSoundInteractionHandler implements EntitySoundInteractionHan
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setSound(SoundEvent.MILK);
         levelSoundEventPacket.setExtraData(-1);
-        session.getUpstream().sendPacket(levelSoundEventPacket);
+        session.sendUpstreamPacket(levelSoundEventPacket);
     }
 }

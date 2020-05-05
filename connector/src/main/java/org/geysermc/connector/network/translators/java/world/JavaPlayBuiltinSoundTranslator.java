@@ -57,7 +57,7 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
             levelEventPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
             levelEventPacket.setData(0);
             levelEventPacket.setType(LevelEventType.valueOf(soundMapping.getBedrock()));
-            session.getUpstream().sendPacket(levelEventPacket);
+            session.sendUpstreamPacket(levelEventPacket);
             return;
         }
         LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
@@ -92,7 +92,7 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
 
         soundPacket.setBabySound(false); // might need to adjust this in the future
         soundPacket.setRelativeVolumeDisabled(false);
-        session.getUpstream().sendPacket(soundPacket);
+        session.sendUpstreamPacket(soundPacket);
         session.getConnector().getLogger().debug("Packet sent - " + packet.toString() + " --> " + soundPacket.toString());
     }
 }

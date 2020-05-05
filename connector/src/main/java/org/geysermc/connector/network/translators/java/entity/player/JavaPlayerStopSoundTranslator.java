@@ -68,7 +68,7 @@ public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSo
         // packet not mapped in the library
         stopSoundPacket.setStoppingAllSound(false);
 
-        session.getUpstream().sendPacket(stopSoundPacket);
+        session.sendUpstreamPacket(stopSoundPacket);
         session.getConnector().getLogger().debug("[StopSound] Packet sent - " + packet.toString() + " --> " + stopSoundPacket);
     }
 }
