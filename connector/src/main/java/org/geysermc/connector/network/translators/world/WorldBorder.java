@@ -52,7 +52,7 @@ public class WorldBorder {
     private @NonNull int warningBlocks;
 
     // Runs the onTick method
-    ScheduledFuture<?> worldBorderTask;
+    private ScheduledFuture<?> worldBorderTask;
 
     private double minX;
     private double minZ;
