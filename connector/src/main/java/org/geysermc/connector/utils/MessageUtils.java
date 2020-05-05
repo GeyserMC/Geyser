@@ -27,18 +27,15 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.*;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import net.kyori.text.Component;
 import net.kyori.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,9 +108,20 @@ public class MessageUtils {
             builder.append(getColorOrParent(msg.getStyle()));
             if (!(msg.getText() == null)) {
                 boolean isTranslationMessage = (msg instanceof TranslationMessage);
-                builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
+                String extraText = "";
+
+                if (isTranslationMessage) {
+                    List<String> paramsTranslated =  getTranslationParams(((TranslationMessage) msg).getTranslationParams(), locale);
+                    extraText = insertParams(getTranslatedBedrockMessage(msg, locale, isTranslationMessage), paramsTranslated);
+                } else {
+                    extraText = getTranslatedBedrockMessage(msg, locale, isTranslationMessage);
+                }
+
+                builder.append(extraText);
+                builder.append("\u00a7r");
             }
         }
+
         return builder.toString();
     }
 
@@ -164,8 +172,10 @@ public class MessageUtils {
         }
 
         for (String text : params) {
-            newMessage = newMessage.replaceFirst("%s", text);
+            newMessage = newMessage.replaceFirst("%s", text.replaceAll("%s", "%r"));
         }
+
+        newMessage = newMessage.replaceAll("%r", "MISSING!");
 
         return newMessage;
     }
