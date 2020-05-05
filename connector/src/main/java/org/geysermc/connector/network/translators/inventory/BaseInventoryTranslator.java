@@ -25,19 +25,12 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.ItemData;
-import org.geysermc.common.ChatColor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class BaseInventoryTranslator extends InventoryTranslator{
