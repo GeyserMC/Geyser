@@ -51,7 +51,7 @@ public class WorldBorder {
     private @NonNull int warningTime;
     private @NonNull int warningBlocks;
 
-    // Holds if onTick should be calculated or not
+    // Runs the onTick method
     ScheduledFuture<?> worldBorderTask;
 
     private double minX;
