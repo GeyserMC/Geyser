@@ -47,8 +47,7 @@ public class GeyserBukkitWorldManager extends WorldManager {
 
     @Override
     public void setGameRule(GeyserSession session, String name, Object value) {
-        World world = Bukkit.getWorld("world");
-        world.setGameRuleValue(name, (String) value);
+        Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().setGameRuleValue(name, (String) value);
     }
 
     @Override
