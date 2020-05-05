@@ -27,9 +27,12 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -37,6 +40,7 @@ import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -97,5 +101,20 @@ public class InventoryUtils {
         if (item1 == null || item2 == null)
             return false;
         return item1.equals(item2, false, true, true);
+    }
+
+    /**
+     * Returns a barrier block with custom name and lore to explain why
+     * part of the inventory is unusable.
+     */
+    public static ItemData createUnusableSpaceBlock(String description) {
+        CompoundTagBuilder root = CompoundTagBuilder.builder();
+        CompoundTagBuilder display = CompoundTagBuilder.builder();
+
+        display.stringTag("Name", ChatColor.RESET + "Unusable inventory space");
+        display.listTag("Lore", StringTag.class, Collections.singletonList(new StringTag("", ChatColor.RESET + ChatColor.DARK_PURPLE + description)));
+
+        root.tag(display.build("display"));
+        return ItemData.of(-161, (short) 0, 1, root.buildRootTag());
     }
 }
