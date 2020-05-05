@@ -114,7 +114,6 @@ public class MessageUtils {
                 builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
             }
         }
-        builder.append("\u00a7r"); // Mimic Java text by resetting formats
         return builder.toString();
     }
 
