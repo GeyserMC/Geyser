@@ -27,15 +27,18 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.*;
-import com.google.gson.*;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import net.kyori.text.Component;
 import net.kyori.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,7 +105,6 @@ public class MessageUtils {
         builder.append(getFormat(message.getStyle().getFormats()));
         builder.append(getColorOrParent(message.getStyle()));
         builder.append(messageText);
-        builder.append("\u00a7r"); // Mimic Java text by resetting formats
 
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
