@@ -24,11 +24,10 @@
  *
  */
 
-package org.geysermc.connector.world;
+package org.geysermc.connector.network.translators.world;
 
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -38,17 +37,22 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class WorldBorder {
     private @NonNull Vector2f center;
-    private @NonNull double radius;
     private @NonNull double oldRadius;
     private @NonNull double newRadius;
     private @NonNull long speed;
     private @NonNull int warningTime;
     private @NonNull int warningBlocks;
+
+    // Holds if onTick should be calculated or not
+    ScheduledFuture<?> worldBorderTask;
 
     private double minX;
     private double minZ;
@@ -64,13 +68,24 @@ public class WorldBorder {
 
     /**
      * Updates the min and max positions of the world border.
-     * This should be called every time there is a modifcation to either the center coordinates or the radius.
+     * This should be called every time there is a modification to either the center coordinates or the radius.
      */
-    public void update() {
+    public void update(GeyserSession session) {
         this.minX = Math.max(center.getX() - newRadius / 2.0D, -newRadius);
         this.minZ = Math.max(center.getY() - newRadius / 2.0D, -newRadius);
         this.maxX = Math.min(center.getX() + newRadius / 2.0D, newRadius);
         this.maxZ = Math.min(center.getY() + newRadius / 2.0D, newRadius);
+        if (worldBorderTask != null) {
+            worldBorderTask.cancel(false);
+        }
+
+        // If world border is at that number then it's 'disabled', no need to run tasks for it
+        // https://minecraft.gamepedia.com/World_border#Commands
+        if (!(newRadius >= 59999967)) {
+            worldBorderTask = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() ->
+                    onTick(session), 1, 50, TimeUnit.MILLISECONDS
+            );
+        }
     }
 
     /**
@@ -82,10 +97,7 @@ public class WorldBorder {
 
         float entityDistance = (float) getDistanceToEdge(entity);
 
-        if ((double) entityDistance < distance) {
-            return true;
-        }
-        return false;
+        return (double) entityDistance < distance;
     }
 
     /**

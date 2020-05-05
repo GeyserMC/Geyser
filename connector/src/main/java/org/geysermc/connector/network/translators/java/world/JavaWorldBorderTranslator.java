@@ -32,7 +32,7 @@ import com.nukkitx.math.vector.Vector2f;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.world.WorldBorder;
+import org.geysermc.connector.network.translators.world.WorldBorder;
 
 @Translator(packet = ServerWorldBorderPacket.class)
 public class JavaWorldBorderTranslator extends PacketTranslator<ServerWorldBorderPacket> {
@@ -42,19 +42,23 @@ public class JavaWorldBorderTranslator extends PacketTranslator<ServerWorldBorde
         WorldBorder worldBorder = session.getWorldBorder();
 
         if(packet.getAction() != WorldBorderAction.INITIALIZE && worldBorder == null) {
+            if (session.getWorldBorder().getWorldBorderTask() != null) {
+                session.getWorldBorder().getWorldBorderTask().cancel(false);
+            }
             return;
         }
 
         switch(packet.getAction()) {
             case INITIALIZE:
                 // should be getCenterZ()
-                worldBorder = new WorldBorder(Vector2f.from(packet.getCenterX(), packet.getCenterY()), packet.getRadius(), packet.getOldRadius(), packet.getNewRadius(),
+                worldBorder = new WorldBorder(Vector2f.from(packet.getCenterX(), packet.getCenterY()), packet.getOldRadius(), packet.getNewRadius(),
                         packet.getSpeed(), packet.getWarningTime(), packet.getWarningTime());
 
                 session.setWorldBorder(worldBorder);
                 break;
             case SET_SIZE:
-                worldBorder.setRadius(packet.getRadius());
+                worldBorder.setOldRadius(packet.getRadius());
+                worldBorder.setNewRadius(packet.getRadius());
                 break;
             case LERP_SIZE:
                 worldBorder.setOldRadius(packet.getOldRadius());
@@ -73,6 +77,6 @@ public class JavaWorldBorderTranslator extends PacketTranslator<ServerWorldBorde
                 return;
         }
 
-        worldBorder.update();
+        worldBorder.update(session);
     }
 }
