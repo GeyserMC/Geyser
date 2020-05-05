@@ -491,6 +491,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Queue a packet to be sent to player.
+     *
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
@@ -501,6 +502,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Send a packet immediately to the player.
+     * 
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
@@ -511,6 +513,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Send a packet to the remote server.
+     *
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamPacket(Packet packet) {
