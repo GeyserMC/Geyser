@@ -337,7 +337,10 @@ public class GeyserSession implements CommandSender {
                                 playerEntity.setUsername(profile.getName());
                                 playerEntity.setUuid(profile.getId());
 
-                                SkinUtils.handleBedrockSkin(playerEntity, clientData);
+                                // Check if they are not using a linked account
+                                if (!playerEntity.getUuid().toString().startsWith("00000000-0000-0000")) {
+                                    SkinUtils.handleBedrockSkin(playerEntity, clientData);
+                                }
                             }
 
                             Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
