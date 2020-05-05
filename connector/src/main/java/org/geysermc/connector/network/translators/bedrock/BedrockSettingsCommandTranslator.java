@@ -27,6 +27,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import com.nukkitx.protocol.bedrock.packet.GameRulesChangedPacket;
 import com.nukkitx.protocol.bedrock.packet.SettingsCommandPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -90,7 +91,7 @@ public class BedrockSettingsCommandTranslator extends PacketTranslator<SettingsC
 
         session.getConnector().getWorldManager().setGameRule(session, gameRuleMap.get(args[0]), args[1]);
 
-        // TODO: check if the game rule was changed successfully, but this is needed for now
+        // TODO: check if the game rule was changed successfully
         session.sendGameRule(args[0], args[1]);
     }
 }

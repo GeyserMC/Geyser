@@ -95,7 +95,6 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private InventoryCache inventoryCache;
-    private ScoreboardCache scoreboardCache;
     private WindowCache windowCache;
     @Setter
     private TeleportCache teleportCache;
@@ -166,7 +165,6 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
-        this.scoreboardCache = new ScoreboardCache(this);
         this.windowCache = new WindowCache(this);
         this.worldCache = new WorldCache(this);
 
@@ -363,9 +361,9 @@ public class GeyserSession implements CommandSender {
 
         this.chunkCache = null;
         this.entityCache = null;
-        this.scoreboardCache = null;
         this.inventoryCache = null;
         this.windowCache = null;
+        this.worldCache = null;
 
         closed = true;
     }

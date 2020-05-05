@@ -48,7 +48,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
     public void translate(ServerTeamPacket packet, GeyserSession session) {
         GeyserConnector.getInstance().getLogger().debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
 
-        Scoreboard scoreboard = session.getScoreboardCache().getScoreboard();
+        Scoreboard scoreboard = session.getWorldCache().getScoreboard();
         Team team = scoreboard.getTeam(packet.getTeamName());
         switch (packet.getAction()) {
             case CREATE:

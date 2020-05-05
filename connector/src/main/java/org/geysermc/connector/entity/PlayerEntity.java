@@ -216,7 +216,7 @@ public class PlayerEntity extends LivingEntity {
 
         if (entityMetadata.getId() == 2) {
             // System.out.println(session.getScoreboardCache().getScoreboard().getObjectives().keySet());
-            for (Team team : session.getScoreboardCache().getScoreboard().getTeams().values()) {
+            for (Team team : session.getWorldCache().getScoreboard().getTeams().values()) {
                 // session.getConnector().getLogger().info("team name " + team.getName());
                 // session.getConnector().getLogger().info("team entities " + team.getEntities());
             }
@@ -225,7 +225,7 @@ public class PlayerEntity extends LivingEntity {
             if (name != null) {
                 username = MessageUtils.getBedrockMessage(name);
             }
-            Team team = session.getScoreboardCache().getScoreboard().getTeamFor(username);
+            Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
                 // session.getConnector().getLogger().info("team name es " + team.getName() + " with prefix " + team.getPrefix() + " and suffix " + team.getSuffix());
                 metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());

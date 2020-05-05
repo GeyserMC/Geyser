@@ -33,9 +33,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.scoreboard.Objective;
+import org.geysermc.connector.scoreboard.Scoreboard;
+
+import java.util.Collection;
 
 @Getter
-@RequiredArgsConstructor
 public class WorldCache {
     private final GeyserSession session;
 
@@ -43,6 +46,24 @@ public class WorldCache {
     private Difficulty difficulty = Difficulty.EASY;
 
     private boolean showCoordinates = true;
+
+    private Scoreboard scoreboard;
+
+    public WorldCache(GeyserSession session) {
+        this.session = session;
+        this.scoreboard = new Scoreboard(session);
+    }
+
+    public void removeScoreboard() {
+        if (scoreboard != null) {
+            Collection<Objective> objectives = scoreboard.getObjectives().values();
+            scoreboard = new Scoreboard(session);
+
+            for (Objective objective : objectives) {
+                scoreboard.despawnObjective(objective);
+            }
+        }
+    }
 
     public void setShowCoordinates(boolean value) {
         showCoordinates = value;
