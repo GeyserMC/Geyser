@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.geysermc.connector.entity.type.EntityType;
@@ -85,24 +84,4 @@ public class VillagerEntity extends AbstractMerchantEntity {
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
-
-    @Override
-    public void spawnEntity(GeyserSession session) {
-        AddEntityPacket addEntityPacket = new AddEntityPacket();
-        // "v2" or else it's the legacy villager
-        addEntityPacket.setIdentifier("minecraft:villager_v2");
-        addEntityPacket.setRuntimeEntityId(geyserId);
-        addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(position);
-        addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(getBedrockRotation());
-        addEntityPacket.setEntityType(entityType.getType());
-        addEntityPacket.getMetadata().putAll(metadata);
-
-        valid = true;
-        session.getUpstream().sendPacket(addEntityPacket);
-
-        session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
-    }
-
 }

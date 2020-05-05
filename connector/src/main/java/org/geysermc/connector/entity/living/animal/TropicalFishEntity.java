@@ -54,24 +54,6 @@ public class TropicalFishEntity extends AbstractFishEntity {
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
-    @Override
-    public void spawnEntity(GeyserSession session) {
-        AddEntityPacket addEntityPacket = new AddEntityPacket();
-        addEntityPacket.setIdentifier("minecraft:tropicalfish");
-        addEntityPacket.setRuntimeEntityId(geyserId);
-        addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(position);
-        addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(getBedrockRotation());
-        addEntityPacket.setEntityType(entityType.getType());
-        addEntityPacket.getMetadata().putAll(metadata);
-
-        valid = true;
-        session.getUpstream().sendPacket(addEntityPacket);
-
-        session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
-    }
-
     @Getter
     @AllArgsConstructor
     private static class TropicalFishVariant {

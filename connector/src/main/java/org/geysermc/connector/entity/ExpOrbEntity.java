@@ -26,9 +26,13 @@
 package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.SpawnExperienceOrbPacket;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class ExpOrbEntity extends Entity {
 
@@ -42,11 +46,7 @@ public class ExpOrbEntity extends Entity {
 
     @Override
     public void spawnEntity(GeyserSession session) {
-        SpawnExperienceOrbPacket spawnExpOrbPacket = new SpawnExperienceOrbPacket();
-        spawnExpOrbPacket.setPosition(position);
-        spawnExpOrbPacket.setAmount(amount);
-
-        valid = true;
-        session.getUpstream().sendPacket(spawnExpOrbPacket);
+        this.metadata.put(EntityData.EXPERIENCE_VALUE, amount);
+        super.spawnEntity(session);
     }
 }
