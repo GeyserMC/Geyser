@@ -148,12 +148,6 @@ public class SkinUtils {
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             GameProfileData data = GameProfileData.from(entity.getProfile());
 
-            // Check if the entity is a bedrock player
-            if (entity.getEntityId() == -1) {
-                // Handle offline and floodgate mode bedrock skins
-                SkinUtils.handleBedrockSkin(entity, session.getClientData());
-            }
-
             SkinProvider.requestSkinAndCape(entity.getUuid(), data.getSkinUrl(), data.getCapeUrl())
                     .whenCompleteAsync((skinAndCape, throwable) -> {
                         try {
