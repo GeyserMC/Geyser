@@ -54,7 +54,7 @@ public abstract class ItemStackTranslator {
     public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
         if (itemData == null) return null;
         if (itemData.getTag() == null) {
-            return new ItemStack(itemEntry.getJavaId(), itemData.getCount());
+            return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), new com.github.steveice10.opennbt.tag.builtin.CompoundTag(""));
         }
         return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), this.translateToJavaNBT(itemData.getTag()));
     }
@@ -126,7 +126,7 @@ public abstract class ItemStackTranslator {
 
         if (tag instanceof StringTag) {
             StringTag stringTag = (StringTag) tag;
-            return new com.nukkitx.nbt.tag.StringTag(stringTag.getName(), MessageUtils.getBedrockMessage(Message.fromString(stringTag.getValue())));
+            return new com.nukkitx.nbt.tag.StringTag(stringTag.getName(), stringTag.getValue());
         }
 
         if (tag instanceof ListTag) {

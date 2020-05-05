@@ -170,7 +170,7 @@ public class SkinUtils {
                                 cape = SkinProvider.getOrDefault(SkinProvider.requestUnofficialCape(
                                         cape, entity.getUuid(),
                                         entity.getUsername(), false
-                                ), SkinProvider.EMPTY_CAPE, SkinProvider.UnofficalCape.VALUES.length * 3);
+                                ), SkinProvider.EMPTY_CAPE, SkinProvider.CapeProvider.VALUES.length * 3);
                             }
 
                             SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""));

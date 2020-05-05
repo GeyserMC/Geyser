@@ -30,7 +30,7 @@ import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 
-import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.MessageUtils;
@@ -55,7 +55,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
         connector.getLogger().debug(inetSocketAddress + " has pinged you!");
 
-        IGeyserConfiguration config = connector.getConfig();
+        GeyserConfiguration config = connector.getConfig();
         ServerStatusInfo serverInfo = connector.getPassthroughThread().getInfo();
 
         BedrockPong pong = new BedrockPong();
@@ -101,11 +101,6 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             if (player != null) {
                 player.disconnect(disconnectReason.name());
                 connector.removePlayer(player);
-
-                player.getEntityCache().clear();
-                player.getInventoryCache().getInventories().clear();
-                player.getWindowCache().getWindows().clear();
-                player.getScoreboardCache().removeScoreboard();
             }
         });
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);

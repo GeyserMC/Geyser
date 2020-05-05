@@ -41,6 +41,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ToolItemEntry;
+import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 
 import java.io.*;
 import java.util.*;
@@ -54,6 +55,8 @@ public class Toolbox {
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
 
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
+
+    public static CompoundTag ENTITY_IDENTIFIERS;
 
     public static int BARRIER_INDEX = 0;
 
@@ -111,20 +114,23 @@ public class Toolbox {
                             entry.getValue().get("bedrock_id").intValue(),
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            entry.getValue().get("tool_tier").textValue()));
+                            entry.getValue().get("tool_tier").textValue(),
+                            entry.getValue().get("is_block").booleanValue()));
                 } else {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
                             entry.getKey(), itemIndex,
                             entry.getValue().get("bedrock_id").intValue(),
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            ""));
+                            "",
+                            entry.getValue().get("is_block").booleanValue()));
                 }
             } else {
                 ITEM_ENTRIES.put(itemIndex, new ItemEntry(
                         entry.getKey(), itemIndex,
                         entry.getValue().get("bedrock_id").intValue(),
-                        entry.getValue().get("bedrock_data").intValue()));
+                        entry.getValue().get("bedrock_data").intValue(),
+                        entry.getValue().get("is_block").booleanValue()));
             }
             if (entry.getKey().equals("minecraft:barrier")) {
                 BARRIER_INDEX = itemIndex;
@@ -133,9 +139,17 @@ public class Toolbox {
             itemIndex++;
         }
 
+        // Load particle/effect mappings
+        EffectUtils.init();
+        // Load sound mappings
+        SoundUtils.init();
         // Load the locale data
         LocaleUtils.init();
 
+        // Load sound handlers
+        SoundHandlerRegistry.init();
+
+        /* Load creative items */
         stream = getResource("bedrock/creative_items.json");
 
         JsonNode creativeItemEntries;
@@ -165,6 +179,16 @@ public class Toolbox {
             }
         }
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
+
+
+        /* Load entity identifiers */
+        stream = Toolbox.getResource("bedrock/entity_identifiers.dat");
+
+        try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
+            ENTITY_IDENTIFIERS = (CompoundTag) nbtInputStream.readTag();
+        } catch (Exception e) {
+            throw new AssertionError("Unable to get entities from entity identifiers", e);
+        }
     }
 
     /**

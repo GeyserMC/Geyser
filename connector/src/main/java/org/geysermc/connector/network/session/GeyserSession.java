@@ -30,6 +30,8 @@ import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsExcepti
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.packetlib.Client;
@@ -38,26 +40,17 @@ import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.TrigMath;
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector2i;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
-import com.nukkitx.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
-import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
-
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.geysermc.common.AuthType;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
@@ -69,7 +62,7 @@ import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.Registry;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.SkinUtils;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -92,8 +85,10 @@ public class GeyserSession implements CommandSender {
     private final UpstreamSession upstream;
     private RemoteServer remoteServer;
     private Client downstream;
-    @Setter private AuthData authData;
-    @Setter private BedrockClientData clientData;
+    @Setter
+    private AuthData authData;
+    @Setter
+    private BedrockClientData clientData;
 
     private PlayerEntity playerEntity;
     private PlayerInventory inventory;
@@ -103,6 +98,14 @@ public class GeyserSession implements CommandSender {
     private InventoryCache inventoryCache;
     private ScoreboardCache scoreboardCache;
     private WindowCache windowCache;
+    @Setter
+    private TeleportCache teleportCache;
+
+    /**
+     * A map of Vector3i positions to Java entity IDs.
+     * Used for translating Bedrock block actions to Java entity actions.
+     */
+    private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
 
     private DataCache<Packet> javaPacketCache;
 
@@ -121,11 +124,30 @@ public class GeyserSession implements CommandSender {
     private GameMode gameMode = GameMode.SURVIVAL;
 
     private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
+
+    @Setter
+    private boolean sneaking;
+
     @Setter
     private boolean sprinting;
 
     @Setter
     private boolean jumping;
+
+    @Setter
+    private BlockState breakingBlock;
+
+    @Setter
+    private Vector3i lastBlockPlacePosition;
+
+    @Setter
+    private String lastBlockPlacedId;
+
+    @Setter
+    private boolean interacting;
+
+    @Setter
+    private Vector3i lastInteractionPosition;
 
     @Setter
     private boolean switchingDimension = false;
@@ -167,7 +189,7 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setTag(CompoundTag.EMPTY);
+        entityPacket.setTag(Toolbox.ENTITY_IDENTIFIERS);
         upstream.sendPacket(entityPacket);
 
         InventoryContentPacket creativePacket = new InventoryContentPacket();
@@ -341,10 +363,11 @@ public class GeyserSession implements CommandSender {
             }
         }
 
-        this.entityCache.getEntities().clear();
-        this.scoreboardCache.removeScoreboard();
-        this.inventoryCache.getInventories().clear();
-        this.windowCache.getWindows().clear();
+        this.chunkCache = null;
+        this.entityCache = null;
+        this.scoreboardCache = null;
+        this.inventoryCache = null;
+        this.windowCache = null;
 
         closed = true;
     }
@@ -452,5 +475,20 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setVanillaVersion("*");
         // startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacket(startGamePacket);
+    }
+
+    public boolean confirmTeleport(Vector3d position) {
+        if (teleportCache != null) {
+            if (!teleportCache.canConfirm(position)) {
+                GeyserConnector.getInstance().getLogger().debug("Unconfirmed Teleport " + teleportCache.getTeleportConfirmId()
+                        + " Ignore movement " + position + " expected " + teleportCache);
+                return false;
+            }
+            int teleportId = teleportCache.getTeleportConfirmId();
+            teleportCache = null;
+            ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(teleportId);
+            getDownstream().getSession().send(teleportConfirmPacket);
+        }
+        return true;
     }
 }
