@@ -102,7 +102,6 @@ public class MessageUtils {
         builder.append(getFormat(message.getStyle().getFormats()));
         builder.append(getColorOrParent(message.getStyle()));
         builder.append(messageText);
-        builder.append("\u00a7r"); // Mimic Java text by resetting formats
 
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
@@ -112,6 +111,7 @@ public class MessageUtils {
                 builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
             }
         }
+        builder.append("\u00a7r"); // Mimic Java text by resetting formats
         return builder.toString();
     }
 
