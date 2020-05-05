@@ -98,7 +98,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 levelChunkPacket.setChunkX(packet.getColumn().getX());
                 levelChunkPacket.setChunkZ(packet.getColumn().getZ());
                 levelChunkPacket.setData(payload);
-                session.getUpstream().sendPacket(levelChunkPacket);
+                session.sendUpstreamPacket(levelChunkPacket);
 
                 // Some block entities need to be loaded in later or else text doesn't show (signs) or they crash the game (end gateway blocks)
                 for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.getLoadBlockEntitiesLater().object2IntEntrySet()) {

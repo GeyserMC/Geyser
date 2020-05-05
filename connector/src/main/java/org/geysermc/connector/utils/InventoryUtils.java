@@ -84,7 +84,7 @@ public class InventoryUtils {
         cursorPacket.setContainerId(ContainerId.CURSOR);
         cursorPacket.setSlot(0);
         cursorPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, session.getInventory().getCursor()));
-        session.getUpstream().sendPacket(cursorPacket);
+        session.sendUpstreamPacket(cursorPacket);
     }
 
     public static boolean canStack(ItemStack item1, ItemStack item2) {

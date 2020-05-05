@@ -84,8 +84,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     InteractAction.INTERACT, Hand.MAIN_HAND);
                             ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
                                     InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
-                            session.getDownstream().getSession().send(interactPacket);
-                            session.getDownstream().getSession().send(interactAtPacket);
+                            session.sendDownstreamPacket(interactPacket);
+                            session.sendDownstreamPacket(interactAtPacket);
                             break;
                         }
 
@@ -95,7 +95,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false);
-                        session.getDownstream().getSession().send(blockPacket);
+                        session.sendDownstreamPacket(blockPacket);
                         Vector3i blockPos = packet.getBlockPosition();
                         // TODO: Find a better way to do this?
                         switch (packet.getFace()) {
@@ -131,7 +131,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             break;
                         } // Handled in Entity.java
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                        session.getDownstream().getSession().send(useItemPacket);
+                        session.sendDownstreamPacket(useItemPacket);
                         break;
                     case 2:
                         BlockState blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
@@ -144,21 +144,21 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             blockBreakPacket.setType(LevelEventType.DESTROY);
                             blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
                             blockBreakPacket.setData(BlockTranslator.getBedrockBlockId(blockState));
-                            session.getUpstream().sendPacket(blockBreakPacket);
+                            session.sendUpstreamPacket(blockBreakPacket);
                         }
 
                         if (ItemFrameEntity.positionContainsItemFrame(session, packet.getBlockPosition()) &&
                                 session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
                             ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
                                     InteractAction.ATTACK);
-                            session.getDownstream().getSession().send(attackPacket);
+                            session.sendDownstreamPacket(attackPacket);
                             break;
                         }
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
                         Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
                         ClientPlayerActionPacket breakPacket = new ClientPlayerActionPacket(action, pos, BlockFace.values()[packet.getFace()]);
-                        session.getDownstream().getSession().send(breakPacket);
+                        session.sendDownstreamPacket(breakPacket);
                         break;
                 }
                 break;
@@ -167,7 +167,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
                     ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0),
                             BlockFace.DOWN);
-                    session.getDownstream().getSession().send(releaseItemPacket);
+                    session.sendDownstreamPacket(releaseItemPacket);
                 }
                 break;
             case ITEM_USE_ON_ENTITY:
@@ -183,15 +183,15 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 InteractAction.INTERACT, Hand.MAIN_HAND);
                         ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                                 InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
-                        session.getDownstream().getSession().send(interactPacket);
-                        session.getDownstream().getSession().send(interactAtPacket);
+                        session.sendDownstreamPacket(interactPacket);
+                        session.sendDownstreamPacket(interactAtPacket);
 
                         EntitySoundInteractionHandler.handleEntityInteraction(session, vector, entity);
                         break;
                     case 1: //Attack
                         ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                                 InteractAction.ATTACK);
-                        session.getDownstream().getSession().send(attackPacket);
+                        session.sendDownstreamPacket(attackPacket);
                         break;
                 }
                 break;

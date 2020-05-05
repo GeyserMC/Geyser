@@ -51,7 +51,7 @@ public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFra
         Vector3i position = Vector3i.from(packet.getBlockPosition().getX(), y, packet.getBlockPosition().getZ());
         ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, position),
                 InteractAction.ATTACK, Hand.MAIN_HAND);
-        session.getDownstream().getSession().send(interactPacket);
+        session.sendDownstreamPacket(interactPacket);
     }
 
 }

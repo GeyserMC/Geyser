@@ -35,8 +35,6 @@ import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
 
-import net.minidev.json.JSONObject;
-
 import org.geysermc.common.window.CustomFormBuilder;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
@@ -152,7 +150,7 @@ public class LoginEncryptionUtils {
 
         ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
         packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token).serialize());
-        session.getUpstream().sendPacketImmediately(packet);
+        session.sendUpstreamPacketImmediately(packet);
     }
 
     private static int AUTH_FORM_ID = 1336;

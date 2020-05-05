@@ -42,6 +42,6 @@ public class DoorSoundInteractionHandler implements BlockSoundInteractionHandler
         levelEventPacket.setType(LevelEventType.SOUND_DOOR);
         levelEventPacket.setPosition(position);
         levelEventPacket.setData(0);
-        session.getUpstream().sendPacket(levelEventPacket);
+        session.sendUpstreamPacket(levelEventPacket);
     }
 }

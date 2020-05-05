@@ -29,6 +29,7 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
+import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
@@ -42,6 +43,7 @@ import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.*;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
@@ -158,6 +160,8 @@ public class GeyserSession implements CommandSender {
     @Setter
     private int craftSlot = 0;
 
+    private MinecraftProtocol protocol;
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -229,7 +233,6 @@ public class GeyserSession implements CommandSender {
         // new thread so clients don't timeout
         new Thread(() -> {
             try {
-                MinecraftProtocol protocol;
                 if (password != null && !password.isEmpty()) {
                     protocol = new MinecraftProtocol(username, password);
                 } else {
@@ -331,7 +334,7 @@ public class GeyserSession implements CommandSender {
                                 lastDimPacket = null;
                             }
 
-                            // From #490 like this until thats merged then will update
+                            // Required, or else Floodgate players break with Bukkit chunk caching
                             if (event.getPacket() instanceof LoginSuccessPacket) {
                                 GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
                                 playerEntity.setUsername(profile.getName());
@@ -495,8 +498,47 @@ public class GeyserSession implements CommandSender {
             int teleportId = teleportCache.getTeleportConfirmId();
             teleportCache = null;
             ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(teleportId);
-            getDownstream().getSession().send(teleportConfirmPacket);
+            sendDownstreamPacket(teleportConfirmPacket);
         }
         return true;
+    }
+
+    /**
+     * Queue a packet to be sent to player.
+     *
+     * @param packet the bedrock packet from the NukkitX protocol lib
+     */
+    public void sendUpstreamPacket(BedrockPacket packet) {
+        if (upstream != null && !upstream.isClosed()) {
+            upstream.sendPacket(packet);
+        } else {
+            connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
+        }
+    }
+
+    /**
+     * Send a packet immediately to the player.
+     * 
+     * @param packet the bedrock packet from the NukkitX protocol lib
+     */
+    public void sendUpstreamPacketImmediately(BedrockPacket packet) {
+        if (upstream != null && !upstream.isClosed()) {
+            upstream.sendPacketImmediately(packet);
+        } else {
+            connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
+        }
+    }
+
+    /**
+     * Send a packet to the remote server.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     */
+    public void sendDownstreamPacket(Packet packet) {
+        if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
+            downstream.getSession().send(packet);
+        } else {
+            connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
+        }
     }
 }
