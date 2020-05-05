@@ -497,6 +497,8 @@ public class GeyserSession implements CommandSender {
     public void sendUpstreamPacket(BedrockPacket packet) {
         if (upstream != null && !upstream.isClosed()) {
             upstream.sendPacket(packet);
+        } else {
+            connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
         }
     }
 
@@ -508,6 +510,8 @@ public class GeyserSession implements CommandSender {
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
         if (upstream != null && !upstream.isClosed()) {
             upstream.sendPacketImmediately(packet);
+        } else {
+            connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
         }
     }
 
@@ -519,6 +523,8 @@ public class GeyserSession implements CommandSender {
     public void sendDownstreamPacket(Packet packet) {
         if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
             downstream.getSession().send(packet);
+        } else {
+            connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
         }
     }
 }
