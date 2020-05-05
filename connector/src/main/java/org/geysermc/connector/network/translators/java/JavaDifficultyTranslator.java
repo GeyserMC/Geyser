@@ -40,5 +40,7 @@ public class JavaDifficultyTranslator extends PacketTranslator<ServerDifficultyP
         SetDifficultyPacket setDifficultyPacket = new SetDifficultyPacket();
         setDifficultyPacket.setDifficulty(packet.getDifficulty().ordinal());
         session.getUpstream().sendPacket(setDifficultyPacket);
+
+        session.getWorldCache().setDifficulty(packet.getDifficulty());
     }
 }

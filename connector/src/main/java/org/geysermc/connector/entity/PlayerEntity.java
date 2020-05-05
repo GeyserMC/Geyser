@@ -27,12 +27,14 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 
@@ -47,6 +49,8 @@ import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.utils.SkinUtils;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter @Setter
@@ -57,6 +61,13 @@ public class PlayerEntity extends LivingEntity {
     private long lastSkinUpdate = -1;
     private boolean playerList = true;
     private final EntityEffectCache effectCache;
+
+    private int opPermissionLevel = 0;
+    private PlayerPermission playerPermission = PlayerPermission.MEMBER;
+    private boolean canFly = false;
+    private boolean flying = false;
+    private boolean noClip = false;
+    private boolean worldImmutable = false;
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
@@ -88,7 +99,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
         addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
-        addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.VISITOR);
+        addPlayerPacket.getAdventureSettings().setPlayerPermission(playerPermission);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
@@ -99,6 +110,38 @@ public class PlayerEntity extends LivingEntity {
         updateEquipment(session);
         updateBedrockAttributes(session);
     }
+
+    public void sendAdventureSettings(GeyserSession session) {
+        if(opPermissionLevel >= 2) {
+            playerPermission = PlayerPermission.OPERATOR;
+        } else {
+            playerPermission = PlayerPermission.MEMBER;
+        }
+
+        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+        adventureSettingsPacket.setUniqueEntityId(geyserId);
+        adventureSettingsPacket.setPlayerPermission(playerPermission);
+        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
+
+        Set<AdventureSettingsPacket.Flag> flags = new HashSet<>();
+        if(canFly) {
+            flags.add(AdventureSettingsPacket.Flag.MAY_FLY);
+        }
+        if(flying) {
+            flags.add(AdventureSettingsPacket.Flag.FLYING);
+        }
+        if(worldImmutable) {
+            flags.add(AdventureSettingsPacket.Flag.IMMUTABLE_WORLD);
+        }
+        if(noClip) {
+            flags.add(AdventureSettingsPacket.Flag.NO_CLIP);
+        }
+        flags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
+
+        adventureSettingsPacket.getFlags().addAll(flags);
+        session.getUpstream().sendPacket(adventureSettingsPacket);
+    }
+
 
     public void sendPlayer(GeyserSession session) {
         if(session.getEntityCache().getPlayerEntity(uuid) == null)

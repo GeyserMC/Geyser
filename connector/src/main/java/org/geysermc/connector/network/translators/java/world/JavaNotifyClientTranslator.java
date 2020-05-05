@@ -38,6 +38,7 @@ import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -51,7 +52,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
 
     @Override
     public void translate(ServerNotifyClientPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
+        PlayerEntity entity = session.getPlayerEntity();
         if (entity == null)
             return;
 
@@ -73,30 +74,15 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case CHANGE_GAMEMODE:
                 Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
                 GameMode gameMode = (GameMode) packet.getValue();
-                if (gameMode == GameMode.ADVENTURE)
-                    playerFlags.add(AdventureSettingsPacket.Flag.IMMUTABLE_WORLD);
 
-                if (gameMode == GameMode.CREATIVE)
-                    playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
-
-                if (gameMode == GameMode.SPECTATOR) {
-                    playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
-                    playerFlags.add(AdventureSettingsPacket.Flag.NO_CLIP);
-                    playerFlags.add(AdventureSettingsPacket.Flag.FLYING);
-                }
-
-                playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
+                entity.setNoClip(gameMode == GameMode.SPECTATOR);
+                entity.setWorldImmutable(gameMode == GameMode.ADVENTURE);
+                entity.sendAdventureSettings(session);
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
                 session.getUpstream().sendPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
-
-                AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-                adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
-                adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
-                adventureSettingsPacket.getFlags().addAll(playerFlags);
-                session.getUpstream().sendPacket(adventureSettingsPacket);
 
                 EntityDataMap metadata = entity.getMetadata();
                 metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR);

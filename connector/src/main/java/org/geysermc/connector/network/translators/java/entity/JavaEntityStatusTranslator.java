@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -49,6 +50,32 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
         switch (packet.getStatus()) {
+            case PLAYER_ENABLE_REDUCED_DEBUG:
+                session.setReducedDebugInfo(true);
+                return;
+            case PLAYER_DISABLE_REDUCED_DEBUG:
+                session.setReducedDebugInfo(false);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_0:
+                ((PlayerEntity) entity).setOpPermissionLevel(0);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_1:
+                ((PlayerEntity) entity).setOpPermissionLevel(1);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_2:
+                ((PlayerEntity) entity).setOpPermissionLevel(2);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_3:
+                ((PlayerEntity) entity).setOpPermissionLevel(3);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_4:
+                ((PlayerEntity) entity).setOpPermissionLevel(4);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
                 entityEventPacket.setType(EntityEventType.HURT_ANIMATION);

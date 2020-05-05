@@ -29,6 +29,7 @@ import java.util.Set;
 
 import com.nukkitx.protocol.bedrock.data.CommandPermission;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -47,7 +48,7 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
 
     @Override
     public void translate(ServerPlayerAbilitiesPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
+        PlayerEntity entity = session.getPlayerEntity();
         if (entity == null)
             return;
 
@@ -59,20 +60,8 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
         entityDataPacket.getMetadata().putAll(metadata);
         session.getUpstream().sendPacket(entityDataPacket);
 
-        Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
-        playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
-        if (packet.isCanFly())
-            playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
-
-        if (packet.isFlying())
-            playerFlags.add(AdventureSettingsPacket.Flag.FLYING);
-
-        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
-        // Required or the packet simply is not sent
-        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
-        adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
-        adventureSettingsPacket.getFlags().addAll(playerFlags);
-        session.getUpstream().sendPacket(adventureSettingsPacket);
+        entity.setCanFly(packet.isCanFly());
+        entity.setFlying(packet.isFlying());
+        entity.sendAdventureSettings(session);
     }
 }

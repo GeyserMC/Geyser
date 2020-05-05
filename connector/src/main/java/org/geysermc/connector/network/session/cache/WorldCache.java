@@ -24,34 +24,28 @@
  *
  */
 
-package org.geysermc.connector.network.translators.world;
+package org.geysermc.connector.network.session.cache;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-
+import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import com.nukkitx.protocol.bedrock.data.GameRuleData;
+import com.nukkitx.protocol.bedrock.packet.GameRulesChangedPacket;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 
-/**
- * Class that manages or retrieves various information
- * from the world. Everything in this class should be
- * safe to return null or an empty value in the event
- * that chunk caching or anything of the sort is disabled
- * on the standalone version of Geyser.
- */
-public abstract class WorldManager {
+@Getter
+@RequiredArgsConstructor
+public class WorldCache {
+    private final GeyserSession session;
 
-    /**
-     * Gets the {@link BlockState} at the specified location
-     *
-     * @param session the session
-     * @param x the x coordinate to get the block at
-     * @param y the y coordinate to get the block at
-     * @param z the z coordinate to get the block at
-     * @return the block state at the specified location
-     */
-    public abstract BlockState getBlockAt(GeyserSession session, int x, int y, int z);
+    @Setter
+    private Difficulty difficulty = Difficulty.EASY;
 
-    public abstract void setGameRule(GeyserSession session, String name, Object value);
+    private boolean showCoordinates = true;
 
-    public abstract void setPlayerGameMode(GeyserSession session, GameMode gameMode);
+    public void setShowCoordinates(boolean value) {
+        showCoordinates = value;
+        session.sendGameRule("showcoordinates", value);
+    }
 }

@@ -99,6 +99,7 @@ public class GeyserSession implements CommandSender {
     private WindowCache windowCache;
     @Setter
     private TeleportCache teleportCache;
+    private WorldCache worldCache;
 
     /**
      * A map of Vector3i positions to Java entity IDs.
@@ -156,6 +157,8 @@ public class GeyserSession implements CommandSender {
     @Setter
     private int craftSlot = 0;
 
+    private boolean reducedDebugInfo = false;
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -165,6 +168,7 @@ public class GeyserSession implements CommandSender {
         this.inventoryCache = new InventoryCache(this);
         this.scoreboardCache = new ScoreboardCache(this);
         this.windowCache = new WindowCache(this);
+        this.worldCache = new WorldCache(this);
 
         this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
         this.inventory = new PlayerInventory();
@@ -484,5 +488,16 @@ public class GeyserSession implements CommandSender {
             getDownstream().getSession().send(teleportConfirmPacket);
         }
         return true;
+    }
+
+    public void setReducedDebugInfo(boolean value) {
+        worldCache.setShowCoordinates(!value);
+        reducedDebugInfo = value;
+    }
+
+    public void sendGameRule(String gameRule, Object value) {
+        GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
+        gameRulesChangedPacket.getGameRules().add(new GameRuleData<>(gameRule, value));
+        upstream.sendPacket(gameRulesChangedPacket);
     }
 }

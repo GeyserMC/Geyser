@@ -26,9 +26,11 @@
 
 package org.geysermc.platform.bukkit.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -41,5 +43,16 @@ public class GeyserBukkitWorldManager extends WorldManager {
             return BlockTranslator.AIR;
         }
         return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
+    }
+
+    @Override
+    public void setGameRule(GeyserSession session, String name, Object value) {
+        World world = Bukkit.getWorld("world");
+        world.setGameRuleValue(name, (String) value);
+    }
+
+    @Override
+    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
+        Bukkit.getPlayer(session.getPlayerEntity().getUsername()).setGameMode(org.bukkit.GameMode.valueOf(gameMode.name()));
     }
 }
