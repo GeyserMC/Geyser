@@ -24,36 +24,36 @@
  *
  */
 
-package org.geysermc.connector.network.translators.world;
+package org.geysermc.connector.network.translators.bedrock.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-
+import com.nukkitx.protocol.bedrock.packet.SetDefaultGameTypePacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-/**
- * Class that manages or retrieves various information
- * from the world. Everything in this class should be
- * safe to return null or an empty value in the event
- * that chunk caching or anything of the sort is disabled
- * on the standalone version of Geyser.
- */
-public abstract class WorldManager {
+@Translator(packet = SetDefaultGameTypePacket.class)
+public class BedrockDefaultGameTypeTranslator extends PacketTranslator<SetDefaultGameTypePacket> {
+
+    @Override
+    public void translate(SetDefaultGameTypePacket packet, GeyserSession session) {
+        // Tell the server to update the default game mode and then its up to the server whether it happens or not
+        GameMode gameMode = getGameMode(packet.getGamemode());
+        if(gameMode != null) {
+            session.getConnector().getWorldManager().setDefaultGameMode(session, gameMode);
+        }
+    }
 
     /**
-     * Gets the {@link BlockState} at the specified location
-     *
-     * @param session the session
-     * @param x the x coordinate to get the block at
-     * @param y the y coordinate to get the block at
-     * @param z the z coordinate to get the block at
-     * @return the block state at the specified location
+     * This point of this method is because sometimes the bedrock client sends weird values.
      */
-    public abstract BlockState getBlockAt(GeyserSession session, int x, int y, int z);
-
-    public abstract void setGameRule(GeyserSession session, String name, Object value);
-
-    public abstract void setPlayerGameMode(GeyserSession session, GameMode gameMode);
-
-    public abstract void setDefaultGameMode(GeyserSession session, GameMode gameMode);
+    private GameMode getGameMode(int mode) {
+        switch(mode) {
+            case 0: return GameMode.SURVIVAL;
+            case 1: return GameMode.CREATIVE;
+            case 2: return GameMode.ADVENTURE;
+            case 3: return GameMode.SPECTATOR;
+        }
+        return null;
+    }
 }

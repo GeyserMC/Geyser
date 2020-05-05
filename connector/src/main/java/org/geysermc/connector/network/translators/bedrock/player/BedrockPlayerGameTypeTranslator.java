@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;

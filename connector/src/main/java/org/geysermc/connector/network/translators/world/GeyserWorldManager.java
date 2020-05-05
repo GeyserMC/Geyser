@@ -48,4 +48,9 @@ public class GeyserWorldManager extends WorldManager {
     public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
         session.getDownstream().getSession().send(new ClientChatPacket("/gamemode " + gameMode.name().toLowerCase()));
     }
+
+    @Override
+    public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
+        session.getDownstream().getSession().send(new ClientChatPacket("/defaultgamemode " + gameMode.name().toLowerCase()));
+    }
 }

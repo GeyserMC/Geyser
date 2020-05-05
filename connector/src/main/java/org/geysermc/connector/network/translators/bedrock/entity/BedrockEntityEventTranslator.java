@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.entity;
 
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
