@@ -115,6 +115,6 @@ public class InventoryUtils {
         display.listTag("Lore", StringTag.class, Collections.singletonList(new StringTag("", ChatColor.RESET + ChatColor.DARK_PURPLE + description)));
 
         root.tag(display.build("display"));
-        return ItemData.of(-161, (short) 0, 1, root.buildRootTag());
+        return ItemData.of(Toolbox.ITEM_ENTRIES.get(Toolbox.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.buildRootTag());
     }
 }
