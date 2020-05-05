@@ -32,11 +32,11 @@ public class ResourcePack {
         }
 
         File directory = new File("packs");
-
-	if (!directory.exists()) {
-	    directory.mkdir();
-	}
-	
+            
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+        
         for(File file : directory.listFiles()) {
             if(file.getName().endsWith(".zip") || file.getName().endsWith(".mcpack")) {
                 ResourcePack pack = new ResourcePack();
