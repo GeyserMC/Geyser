@@ -211,7 +211,7 @@ public class SkinUtils {
     public static void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData) {
         GameProfileData data = GameProfileData.from(playerEntity.getProfile());
 
-        GeyserConnector.getInstance().getLogger().info("Registering my skin: " + playerEntity.getUsername());
+        GeyserConnector.getInstance().getLogger().info("Registering bedrock skin for " + playerEntity.getUsername() + " (" + playerEntity.getUuid() + ")");
 
         try {
             byte[] skinBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getSkinData().getBytes("UTF-8"));
@@ -223,7 +223,7 @@ public class SkinUtils {
             if (skinBytes.length <= (128 * 128 * 4)) {
                 SkinProvider.storeBedrockSkin(playerEntity.getUuid(), data.getSkinUrl(), skinBytes);
             } else {
-                GeyserConnector.getInstance().getLogger().info("Unable to load skin for '" + playerEntity.getUsername() + "' as they are using a customised skin");
+                GeyserConnector.getInstance().getLogger().info("Unable to load bedrock skin for '" + playerEntity.getUsername() + "' as they are using a customised skin");
                 GeyserConnector.getInstance().getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());
             }
             SkinProvider.storeBedrockGeometry(playerEntity.getUuid(), geometryNameBytes, geometryBytes);

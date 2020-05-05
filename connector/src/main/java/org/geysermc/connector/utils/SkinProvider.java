@@ -178,22 +178,16 @@ public class SkinProvider {
     }
 
     public static void storeBedrockSkin(UUID playerID, String skinID, byte[] skinData) {
-        GeyserConnector.getInstance().getLogger().debug("Storing bedrock skin: " + skinID + " (" + skinData.length + ")" + " (" + playerID + ")");
-
         Skin skin = new Skin(playerID, skinID, skinData, System.currentTimeMillis(), true);
         cachedSkins.put(playerID, skin);
     }
 
     public static void storeBedrockCape(UUID playerID, byte[] capeData) {
-        GeyserConnector.getInstance().getLogger().debug("Storing bedrock cape: " + playerID.toString() + " (" + capeData.length + ")");
-
         Cape cape = new Cape(playerID.toString() + ".Bedrock", playerID.toString(), capeData, System.currentTimeMillis(), false);
         cachedCapes.put(playerID.toString() + ".Bedrock", cape);
     }
 
     public static void storeBedrockGeometry(UUID playerID, byte[] geometryName, byte[] geometryData) {
-        GeyserConnector.getInstance().getLogger().debug("Storing bedrock geometry: " + playerID.toString() + " (" + geometryData.length + ")");
-
         SkinGeometry geometry = new SkinGeometry(new String(geometryName), new String(geometryData));
         cachedGeometry.put(playerID, geometry);
     }
