@@ -93,6 +93,7 @@ public class Entity {
         setPosition(position);
 
         metadata.put(EntityData.SCALE, 1f);
+        metadata.put(EntityData.COLOR, 0);
         metadata.put(EntityData.MAX_AIR, (short) 400);
         metadata.put(EntityData.AIR, (short) 0);
         metadata.put(EntityData.LEAD_HOLDER_EID, -1L);
