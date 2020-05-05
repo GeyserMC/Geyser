@@ -35,6 +35,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTelepo
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
+import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
@@ -330,6 +331,13 @@ public class GeyserSession implements CommandSender {
                             } else if (lastDimPacket != null) {
                                 Registry.JAVA.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
                                 lastDimPacket = null;
+                            }
+
+                            // Required, or else Floodgate players break with Bukkit chunk caching
+                            if (event.getPacket() instanceof LoginSuccessPacket) {
+                                GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
+                                playerEntity.setUsername(profile.getName());
+                                playerEntity.setUuid(profile.getId());
                             }
 
                             Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
