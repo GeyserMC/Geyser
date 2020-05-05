@@ -27,11 +27,17 @@ package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import com.nukkitx.nbt.tag.CompoundTag;
+import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
+import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteMap;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -41,7 +47,11 @@ public class BlockStateValues {
 
     private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
+    private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
+    private static final Map<String, CompoundTag> FLOWER_POT_BLOCKS = new HashMap<>();
     private static final Object2IntMap<BlockState> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
+    private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
+    private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
     private static final Object2ByteMap<BlockState> SHULKERBOX_DIRECTIONS = new Object2ByteOpenHashMap<>();
@@ -64,9 +74,22 @@ public class BlockStateValues {
             return;
         }
 
+        if (entry.getKey().contains("potted_")) {
+            System.out.println(entry.getKey().replace("potted_", ""));
+            FLOWER_POT_VALUES.put(javaBlockState.getId(), entry.getKey().replace("potted_", ""));
+            return;
+        }
+
         JsonNode notePitch = entry.getValue().get("note_pitch");
         if (notePitch != null) {
             NOTEBLOCK_PITCHES.put(javaBlockState, entry.getValue().get("note_pitch").intValue());
+            return;
+        }
+
+        if (entry.getKey().contains("piston")) {
+            // True if extended, false if not
+            PISTON_VALUES.put(javaBlockState.getId(), entry.getKey().contains("extended=true"));
+            IS_STICKY_PISTON.put(javaBlockState.getId(), entry.getKey().contains("sticky"));
             return;
         }
 
@@ -115,6 +138,22 @@ public class BlockStateValues {
     }
 
     /**
+     * Get the Int2ObjectMap of flower pot block states to containing plant
+     * @return Int2ObjectMap of flower pot values
+     */
+    public static Int2ObjectMap<String> getFlowerPotValues() {
+        return FLOWER_POT_VALUES;
+    }
+
+    /**
+     * Get the map of contained flower pot plants to Bedrock CompoundTag
+     * @return Map of flower pot blocks.
+     */
+    public static Map<String, CompoundTag> getFlowerPotBlocks() {
+        return FLOWER_POT_BLOCKS;
+    }
+
+    /**
      * The note that noteblocks output when hit is part of the block state in Java but sent as a BlockEventPacket in Bedrock.
      * This gives an integer pitch that Bedrock can use.
      * @param state BlockState of the block
@@ -125,6 +164,18 @@ public class BlockStateValues {
             return NOTEBLOCK_PITCHES.getInt(state);
         }
         return -1;
+    }
+
+    /**
+     * Get the Int2BooleanMap showing if a piston block state is extended or not.
+     * @return the Int2BooleanMap of piston extensions.
+     */
+    public static Int2BooleanMap getPistonValues() {
+        return PISTON_VALUES;
+    }
+
+    public static boolean isStickyPiston(BlockState blockState) {
+        return IS_STICKY_PISTON.get(blockState.getId());
     }
 
     /**

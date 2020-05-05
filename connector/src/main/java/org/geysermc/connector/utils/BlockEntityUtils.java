@@ -42,8 +42,12 @@ public class BlockEntityUtils {
     }
 
     public static void updateBlockEntity(GeyserSession session, com.nukkitx.nbt.tag.CompoundTag blockEntity, Position position) {
+        updateBlockEntity(session, blockEntity, Vector3i.from(position.getX(), position.getY(), position.getZ()));
+    }
+
+    public static void updateBlockEntity(GeyserSession session, com.nukkitx.nbt.tag.CompoundTag blockEntity, Vector3i position) {
         BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
-        blockEntityPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
+        blockEntityPacket.setBlockPosition(position);
         blockEntityPacket.setData(blockEntity);
         session.getUpstream().sendPacket(blockEntityPacket);
     }
