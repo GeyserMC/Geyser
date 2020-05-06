@@ -37,7 +37,7 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(name = "Banner", delay = false, regex = "banner")
+@BlockEntity(name = "Banner", regex = "banner")
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override

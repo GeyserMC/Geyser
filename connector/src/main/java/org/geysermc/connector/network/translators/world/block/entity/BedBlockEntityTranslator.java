@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(name = "Bed", delay = false, regex = "bed")
+@BlockEntity(name = "Bed", regex = "bed")
 public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
