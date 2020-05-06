@@ -155,7 +155,7 @@ public class SkinUtils {
                                 cape = SkinProvider.getOrDefault(SkinProvider.requestUnofficialCape(
                                         cape, entity.getUuid(),
                                         entity.getUsername(), false
-                                ), SkinProvider.EMPTY_CAPE, SkinProvider.UnofficalCape.VALUES.length * 3);
+                                ), SkinProvider.EMPTY_CAPE, SkinProvider.CapeProvider.VALUES.length * 3);
                             }
 
                             if (entity.getLastSkinUpdate() < skin.getRequestedOn()) {
@@ -177,12 +177,12 @@ public class SkinUtils {
                                     PlayerListPacket playerRemovePacket = new PlayerListPacket();
                                     playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
                                     playerRemovePacket.getEntries().add(updatedEntry);
-                                    session.getUpstream().sendPacket(playerRemovePacket);
+                                    session.sendUpstreamPacket(playerRemovePacket);
 
                                     PlayerListPacket playerAddPacket = new PlayerListPacket();
                                     playerAddPacket.setAction(PlayerListPacket.Action.ADD);
                                     playerAddPacket.getEntries().add(updatedEntry);
-                                    session.getUpstream().sendPacket(playerAddPacket);
+                                    session.sendUpstreamPacket(playerAddPacket);
                                 }
                             }
                         } catch (Exception e) {

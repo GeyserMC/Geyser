@@ -83,7 +83,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position);
+        addPlayerPacket.setPosition(position.clone().sub(0, EntityType.PLAYER.getOffset(), 0));
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
@@ -94,19 +94,21 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.getMetadata().putAll(metadata);
 
         valid = true;
-        session.getUpstream().sendPacket(addPlayerPacket);
+        session.sendUpstreamPacket(addPlayerPacket);
 
         updateEquipment(session);
         updateBedrockAttributes(session);
     }
 
     public void sendPlayer(GeyserSession session) {
+        if(session.getEntityCache().getPlayerEntity(uuid) == null)
+            return;
         if (getLastSkinUpdate() == -1) {
             if (playerList) {
                 PlayerListPacket playerList = new PlayerListPacket();
                 playerList.setAction(PlayerListPacket.Action.ADD);
                 playerList.getEntries().add(SkinUtils.buildDefaultEntry(profile, geyserId));
-                session.getUpstream().sendPacket(playerList);
+                session.sendUpstreamPacket(playerList);
             }
         }
 
@@ -122,13 +124,13 @@ public class PlayerEntity extends LivingEntity {
                 PlayerListPacket playerList = new PlayerListPacket();
                 playerList.setAction(PlayerListPacket.Action.REMOVE);
                 playerList.getEntries().add(new PlayerListPacket.Entry(uuid));
-                session.getUpstream().sendPacket(playerList);
+                session.sendUpstreamPacket(playerList);
             });
         }
     }
 
     @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         setPosition(position);
         setRotation(rotation);
 
@@ -137,9 +139,13 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setPosition(this.position);
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+        movePlayerPacket.setMode(teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
 
-        session.getUpstream().sendPacket(movePlayerPacket);
+        if (teleported) {
+            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
+        }
+
+        session.sendUpstreamPacket(movePlayerPacket);
     }
 
     @Override
@@ -153,7 +159,7 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
-        session.getUpstream().sendPacket(movePlayerPacket);
+        session.sendUpstreamPacket(movePlayerPacket);
     }
 
     @Override

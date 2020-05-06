@@ -25,22 +25,25 @@
 
 package org.geysermc.platform.bukkit;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
-import org.geysermc.common.command.ICommandManager;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
+import org.geysermc.platform.bukkit.world.GeyserBukkitWorldManager;
 
 import java.util.UUID;
 
-public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
+public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
 
     private GeyserBukkitCommandManager geyserCommandManager;
     private GeyserBukkitConfiguration geyserConfig;
     private GeyserBukkitLogger geyserLogger;
+    private GeyserBukkitWorldManager geyserWorldManager;
 
     private GeyserConnector connector;
 
@@ -54,10 +57,23 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
             saveConfig();
         }
 
+        // Don't change the ip if its listening on all interfaces
+        // By default this should be 127.0.0.1 but may need to be changed in some circumstances
+        if (!Bukkit.getIp().equals("0.0.0.0")) {
+            getConfig().set("remote.address", Bukkit.getIp());
+        }
+
+        getConfig().set("remote.port", Bukkit.getPort());
+        saveConfig();
+
         this.geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
+
+        geyserConfig.loadFloodgate(this);
+
         this.connector = GeyserConnector.start(PlatformType.BUKKIT, this);
 
         this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
+        this.geyserWorldManager = new GeyserBukkitWorldManager();
 
         this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));
     }
@@ -80,5 +96,10 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
     @Override
     public CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public WorldManager getWorldManager() {
+        return this.geyserWorldManager;
     }
 }

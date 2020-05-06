@@ -57,7 +57,7 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
         entityDataPacket.getMetadata().putAll(metadata);
-        session.getUpstream().sendPacket(entityDataPacket);
+        session.sendUpstreamPacket(entityDataPacket);
 
         Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
         playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
@@ -73,6 +73,6 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
         adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
         adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
         adventureSettingsPacket.getFlags().addAll(playerFlags);
-        session.getUpstream().sendPacket(adventureSettingsPacket);
+        session.sendUpstreamPacket(adventureSettingsPacket);
     }
 }

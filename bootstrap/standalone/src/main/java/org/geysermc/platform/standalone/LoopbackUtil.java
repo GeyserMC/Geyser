@@ -6,14 +6,13 @@ import java.nio.file.OpenOption;
 import java.nio.file.Paths;
 
 import org.geysermc.common.ChatColor;
-import org.geysermc.platform.standalone.console.GeyserLogger;
 
 public class LoopbackUtil {
     private static final String checkExemption = "powershell -Command \"CheckNetIsolation LoopbackExempt -s\""; // Java's Exec feature runs as CMD, NetIsolation is only accessible from PowerShell.
     private static final String loopbackCommand = "powershell -Command \"CheckNetIsolation LoopbackExempt -a -n='Microsoft.MinecraftUWP_8wekyb3d8bbwe'\"";
     private static final String startScript = "powershell -Command \"Start-Process 'cmd' -ArgumentList /c,%temp%/loopback_minecraft.bat -Verb runAs\"";
 
-    public static void checkLoopback(GeyserLogger geyserLogger) {
+    public static void checkLoopback(GeyserStandaloneLogger geyserLogger) {
         if (System.getProperty("os.name").equalsIgnoreCase("Windows 10")) {
             try {
                 Process process = Runtime.getRuntime().exec(checkExemption);

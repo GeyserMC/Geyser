@@ -27,13 +27,13 @@ package org.geysermc.platform.bukkit;
 
 import lombok.AllArgsConstructor;
 
-import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserLogger;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @AllArgsConstructor
-public class GeyserBukkitLogger implements IGeyserLogger {
+public class GeyserBukkitLogger implements GeyserLogger {
 
     private Logger logger;
     private boolean debugMode;

@@ -58,7 +58,7 @@ public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
                 return;
         }
         dataPacket.setValue(value);
-        session.getUpstream().sendPacket(dataPacket);
+        session.sendUpstreamPacket(dataPacket);
     }
 
     @Override

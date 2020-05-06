@@ -32,9 +32,10 @@ import java.util.Map;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.block.BlockTranslator;
-import org.geysermc.connector.network.translators.block.entity.*;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.*;
 import org.geysermc.connector.network.translators.inventory.*;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
@@ -60,6 +61,9 @@ public class Translators {
 
     @Getter
     private static Map<String, BlockEntityTranslator> blockEntityTranslators = new HashMap<>();
+
+    @Getter
+    private static ObjectArrayList<RequiresBlockState> requiresBlockStateMap = new ObjectArrayList<>();
 
     private static final CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
@@ -117,7 +121,7 @@ public class Translators {
     }
 
     private static void registerBlockEntityTranslators() {
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.block.entity");
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.block.entity");
 
         for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
 
@@ -128,6 +132,18 @@ public class Translators {
             } catch (InstantiationException | IllegalAccessException e) {
                 GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block entity " + clazz.getCanonicalName() + ".");
             }
+        }
+
+        for (Class<?> clazz : ref.getSubTypesOf(RequiresBlockState.class)) {
+
+            GeyserConnector.getInstance().getLogger().debug("Found block entity that requires block state: " + clazz.getCanonicalName());
+
+            try {
+                requiresBlockStateMap.add((RequiresBlockState) clazz.newInstance());
+            } catch (InstantiationException | IllegalAccessException e) {
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate required block state " + clazz.getCanonicalName() + ".");
+            }
+
         }
     }
 
