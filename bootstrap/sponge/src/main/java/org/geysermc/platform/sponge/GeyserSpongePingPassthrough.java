@@ -35,9 +35,13 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
 
     @Override
     public GeyserPingInfo getPingInformation() {
-        return new GeyserPingInfo(
+        GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
                 TextSerializers.LEGACY_FORMATTING_CODE.serialize(Sponge.getServer().getMotd()),
                 Sponge.getServer().getOnlinePlayers().size(),
                 Sponge.getServer().getMaxPlayers());
+        Sponge.getServer().getOnlinePlayers().forEach(player -> {
+            geyserPingInfo.addPlayer(player.getName());
+        });
+        return geyserPingInfo;
     }
 }

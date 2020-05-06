@@ -44,6 +44,10 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
     @Override
     public GeyserPingInfo getPingInformation() {
-        return new GeyserPingInfo(listener.getMotd(), proxyServer.getOnlineCount(), listener.getMaxPlayers());
+        GeyserPingInfo geyserPingInfo = new GeyserPingInfo(listener.getMotd(), proxyServer.getOnlineCount(), listener.getMaxPlayers());
+        proxyServer.getPlayers().forEach(proxiedPlayer -> {
+            geyserPingInfo.addPlayer(proxiedPlayer.getName());
+        });
+        return geyserPingInfo;
     }
 }

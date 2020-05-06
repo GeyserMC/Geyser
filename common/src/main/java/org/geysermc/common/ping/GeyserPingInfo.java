@@ -26,10 +26,12 @@
 
 package org.geysermc.common.ping;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
+import java.util.ArrayList;
+import java.util.Collection;
+
 @NoArgsConstructor
 public class GeyserPingInfo {
 
@@ -37,4 +39,16 @@ public class GeyserPingInfo {
     public int currentPlayerCount;
     public int maxPlayerCount;
 
+    @Getter
+    private Collection<String> players = new ArrayList<>();
+
+    public GeyserPingInfo(String motd, int currentPlayerCount, int maxPlayerCount) {
+        this.motd = motd;
+        this.currentPlayerCount = currentPlayerCount;
+        this.maxPlayerCount = maxPlayerCount;
+    }
+
+    public void addPlayer(String username) {
+        players.add(username);
+    }
 }

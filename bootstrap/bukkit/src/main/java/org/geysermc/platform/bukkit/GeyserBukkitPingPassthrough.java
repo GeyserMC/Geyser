@@ -44,7 +44,11 @@ public class GeyserBukkitPingPassthrough implements IGeyserPingPassthrough {
             ServerListPingEvent event = new ServerListPingEvent(
                     InetAddress.getLocalHost(), Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers());
             Bukkit.getPluginManager().callEvent(event);
-            return new GeyserPingInfo(event.getMotd(), event.getNumPlayers(), event.getMaxPlayers());
+            GeyserPingInfo geyserPingInfo = new GeyserPingInfo(event.getMotd(), event.getNumPlayers(), event.getMaxPlayers());
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                geyserPingInfo.addPlayer(player.getName());
+            });
+            return geyserPingInfo;
         } catch (Exception e) {
             return new GeyserPingInfo(null, 0, 0);
         }

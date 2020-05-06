@@ -39,10 +39,14 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
     @Override
     public GeyserPingInfo getPingInformation() {
-        return new GeyserPingInfo(
+        GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
                 LegacyComponentSerializer.INSTANCE.serialize(server.getConfiguration().getMotdComponent(), '§'),
                 server.getPlayerCount(),
                 server.getConfiguration().getShowMaxPlayers()
         );
+        server.getAllPlayers().forEach(player -> {
+            geyserPingInfo.addPlayer(player.getUsername());
+        });
+        return geyserPingInfo;
     }
 }
