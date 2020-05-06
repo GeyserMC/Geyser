@@ -47,8 +47,11 @@ public class GeyserVelocityConfiguration implements IGeyserConfiguration {
 
     private Map<String, UserAuthenticationInfo> userAuths;
 
-    @JsonProperty("ping-passthrough")
-    private boolean pingPassthrough;
+    @JsonProperty("passthrough-motd")
+    private boolean isPassthroughMotd;
+
+    @JsonProperty("passthrough-player-counts")
+    private boolean isPassthroughPlayerCounts;
 
     @JsonProperty("max-players")
     private int maxPlayers;

@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network;
 
+import com.github.steveice10.mc.protocol.data.message.Message;
 import com.nukkitx.protocol.bedrock.*;
 
 import io.netty.buffer.ByteBuf;
@@ -36,6 +37,7 @@ import org.geysermc.common.ping.GeyserPingInfo;
 import org.geysermc.common.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.MessageUtils;
 
 import java.net.InetSocketAddress;
 
@@ -60,7 +62,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         IGeyserConfiguration config = connector.getConfig();
 
         GeyserPingInfo pingInfo = null;
-        if (connector.getConfig().isPingPassthrough()) {
+        if (connector.getConfig().isPassthroughMotd() || connector.getConfig().isPassthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = connector.getBootstrap().getGeyserPingPassthrough();
             pingInfo = pingPassthrough.getPingInformation();
         }
@@ -70,19 +72,28 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setGameType("Default");
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
-        pong.setVersion(null); // Remove version from MOTD Line
+        pong.setVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
         pong.setIpv4Port(config.getBedrock().getPort());
-        if (connector.getConfig().isPingPassthrough() && pingInfo != null) {
+
+        if (connector.getConfig().isPassthroughMotd() && pingInfo != null) {
+            String[] motd = MessageUtils.getBedrockMessage(Message.fromString(pingInfo.motd)).split("\n");
+            String mainMotd = motd[0]; // First line of the motd.
+            String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
+
+            pong.setMotd(mainMotd.trim());
+            pong.setSubMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
+        } else {
+            pong.setMotd(config.getBedrock().getMotd1());
+            pong.setSubMotd(config.getBedrock().getMotd2());
+        }
+
+        if (connector.getConfig().isPassthroughPlayerCounts() && pingInfo != null) {
             pong.setPlayerCount(pingInfo.currentPlayerCount);
             pong.setMaximumPlayerCount(pingInfo.maxPlayerCount);
         } else {
             pong.setPlayerCount(connector.getPlayers().size());
             pong.setMaximumPlayerCount(config.getMaxPlayers());
         }
-
-        // Java MOTDs never look good on bedrock so why both getting them from ping pass through
-        pong.setMotd(config.getBedrock().getMotd1());
-        pong.setSubMotd(config.getBedrock().getMotd2());
 
         //Bedrock will not even attempt a connection if the client thinks the server is full
         //so we have to fake it not being full

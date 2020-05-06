@@ -77,8 +77,13 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public boolean isPingPassthrough() {
-        return config.getBoolean("ping-passthrough", false);
+    public boolean isPassthroughMotd() {
+        return config.getBoolean("passthrough-motd", false);
+    }
+
+    @Override
+    public boolean isPassthroughPlayerCounts() {
+        return config.getBoolean("passthrough-player-counts", false);
     }
 
     @Override

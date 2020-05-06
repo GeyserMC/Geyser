@@ -48,8 +48,11 @@ public class GeyserConfiguration implements IGeyserConfiguration {
 
     private Map<String, UserAuthenticationInfo> userAuths;
 
-    @JsonProperty("ping-passthrough")
-    private boolean pingPassthrough;
+    @JsonProperty("passthrough-motd")
+    private boolean isPassthroughMotd;
+
+    @JsonProperty("passthrough-player-counts")
+    private boolean isPassthroughPlayerCounts;
 
     @JsonProperty("ping-passthrough-interval")
     private int pingPassthroughInterval;

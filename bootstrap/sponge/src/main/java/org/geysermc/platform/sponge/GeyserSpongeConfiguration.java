@@ -78,8 +78,13 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public boolean isPingPassthrough() {
-        return node.getNode("ping-passthrough").getBoolean(false);
+    public boolean isPassthroughMotd() {
+        return node.getNode("passthrough-motd").getBoolean(false);
+    }
+
+    @Override
+    public boolean isPassthroughPlayerCounts() {
+        return node.getNode("passthrough-player-counts").getBoolean(false);
     }
 
     @Override

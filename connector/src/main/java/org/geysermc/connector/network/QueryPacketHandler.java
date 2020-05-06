@@ -26,10 +26,12 @@
 
 package org.geysermc.connector.network;
 
+import com.github.steveice10.mc.protocol.data.message.Message;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import org.geysermc.common.ping.GeyserPingInfo;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.utils.MessageUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -54,7 +56,6 @@ public class QueryPacketHandler {
     private InetSocketAddress sender;
     private byte type;
     private int sessionId;
-    private int payload;
     private byte[] token;
 
     /**
@@ -135,12 +136,23 @@ public class QueryPacketHandler {
         ByteArrayOutputStream query = new ByteArrayOutputStream();
 
         GeyserPingInfo pingInfo = null;
+        String motd;
         String currentPlayerCount;
         String maxPlayerCount;
 
-        // If ping pass through is enabled lets get players from the server
-        if (connector.getConfig().isPingPassthrough()) {
+        if (connector.getConfig().isPassthroughMotd() || connector.getConfig().isPassthroughPlayerCounts()) {
             pingInfo = connector.getBootstrap().getGeyserPingPassthrough().getPingInformation();
+        }
+
+        if (connector.getConfig().isPassthroughMotd() && pingInfo != null) {
+            String[] javaMotd = MessageUtils.getBedrockMessage(Message.fromString(pingInfo.motd)).split("\n");
+            motd = javaMotd[0].trim(); // First line of the motd.
+        } else {
+            motd = connector.getConfig().getBedrock().getMotd1();
+        }
+
+        // If passthrough player counts is enabled lets get players from the server
+        if (connector.getConfig().isPassthroughPlayerCounts() && pingInfo != null) {
             currentPlayerCount = String.valueOf(pingInfo.currentPlayerCount);
             maxPlayerCount = String.valueOf(pingInfo.maxPlayerCount);
         } else {
@@ -150,12 +162,12 @@ public class QueryPacketHandler {
 
         // Create a hashmap of all game data needed in the query
         HashMap<String, String> gameData = new HashMap<String, String>();
-        gameData.put("hostname", connector.getConfig().getBedrock().getMotd1());
+        gameData.put("hostname", motd);
         gameData.put("gametype", "SMP");
         gameData.put("game_id", "MINECRAFT");
-        gameData.put("version", connector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+        gameData.put("version", GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
         gameData.put("plugins", "");
-        gameData.put("map", connector.NAME);
+        gameData.put("map", GeyserConnector.NAME);
         gameData.put("numplayers", currentPlayerCount);
         gameData.put("maxplayers", maxPlayerCount);
         gameData.put("hostport", String.valueOf(connector.getConfig().getBedrock().getPort()));

@@ -36,7 +36,9 @@ public interface IGeyserConfiguration {
 
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
 
-    boolean isPingPassthrough();
+    boolean isPassthroughMotd();
+
+    boolean isPassthroughPlayerCounts();
 
     int getMaxPlayers();
 

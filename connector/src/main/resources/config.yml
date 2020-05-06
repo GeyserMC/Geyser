@@ -12,7 +12,7 @@ bedrock:
   address: 0.0.0.0
   # The port that will listen for connections
   port: 19132
-  # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients
+  # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. Irrelevant if "passthrough-motd" is set to true
   motd1: "GeyserMC"
   motd2: "Another GeyserMC forced host."
 remote:
@@ -41,10 +41,12 @@ floodgate-key-file: public-key.pem
 #    email: herpderp@derpherp.com
 #    password: dooooo
 
-# Relay the MOTD, player count and max players from the remote server
-ping-passthrough: false
+# Relay the MOTD from the remote server
+passthrough-motd: false
+# Relay the player count and max players from the remote server
+passthrough-player-counts: false
 # How often to ping the remote server, in seconds. Only relevant for standalone.
-# Increase if you are getting BrokenPipe errors
+# Increase if you are getting BrokenPipe errors with any ping passthrough
 ping-passthrough-interval: 1
 
 # Maximum amount of players that can connect
