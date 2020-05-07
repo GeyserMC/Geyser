@@ -175,7 +175,7 @@ public class LocaleUtils {
             try {
                 localeObj = Toolbox.JSON_MAPPER.readTree(localeStream);
             } catch (Exception e) {
-                throw new AssertionError("Unable to load Java edition lang map for " + locale, e);
+                throw new AssertionError("Unable to load Java edition locale map for " + locale, e);
             }
 
             // Parse all the locale fields
@@ -189,7 +189,7 @@ public class LocaleUtils {
             // Insert the locale into the mappings
             LOCALE_MAPPINGS.put(locale.toLowerCase(), langMap);
         } else {
-            GeyserConnector.getInstance().getLogger().warning("Missing locale file: " + locale);
+            GeyserConnector.getInstance().getLogger().warning("Missing MC locale file: " + locale);
         }
     }
 

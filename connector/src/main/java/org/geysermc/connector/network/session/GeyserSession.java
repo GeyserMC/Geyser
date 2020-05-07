@@ -69,6 +69,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.utils.Toolbox;
+import org.geysermc.connector.utils.TranslationUtils;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
 
@@ -307,6 +308,8 @@ public class GeyserSession implements CommandSender {
 
                         // Download and load the language for the player
                         LocaleUtils.downloadAndLoadLocale(locale);
+
+                        TranslationUtils.loadGeyserLocale(locale);
                     }
 
                     @Override

@@ -25,31 +25,32 @@
 
 package org.geysermc.connector.network.translators;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.world.block.entity.*;
-import org.geysermc.connector.network.translators.inventory.*;
-import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
-import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.reflections.Reflections;
-
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-
+import com.nukkitx.protocol.bedrock.data.ContainerType;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.inventory.*;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
+import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.RequiresBlockState;
+import org.geysermc.connector.utils.TranslationUtils;
+import org.reflections.Reflections;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Translators {
 
@@ -105,10 +106,10 @@ public class Translators {
                     Registry.registerBedrock(targetPacket, translator);
 
                 } else {
-                    GeyserConnector.getInstance().getLogger().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
+                    GeyserConnector.getInstance().getLogger().error(TranslationUtils.getLocaleStringLog("geyser.network.translator.invalid_target", clazz.getCanonicalName()));
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated translator " + clazz.getCanonicalName() + ".");
+                GeyserConnector.getInstance().getLogger().error(TranslationUtils.getLocaleStringLog("geyser.network.translator.failed", clazz.getCanonicalName()));
             }
         }
         
