@@ -111,7 +111,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             try {
                 ConfigurationProvider.getProvider(YamlConfiguration.class).save(configuration, new File(getDataFolder(), "config.yml"));
             } catch (IOException ex) {
-                getLogger().log(Level.SEVERE, "Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+                getLogger().log(Level.SEVERE, TranslationUtils.getLocaleStringLog("geyser.config.failed"), ex);
                 return;
             }
         }
