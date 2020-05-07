@@ -25,12 +25,12 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.common.ChatColor;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.TranslationUtils;
 
 public class ReloadCommand extends GeyserCommand {
 
@@ -46,9 +46,10 @@ public class ReloadCommand extends GeyserCommand {
         if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
             return;
         }
-        sender.sendMessage(ChatColor.YELLOW + "Reloading Geyser configurations... all connected bedrock clients will be kicked.");
+        // TODO: Alter this to get the locale for the user if sent by a player
+        sender.sendMessage(TranslationUtils.getLocaleStringLog("geyser.commands.reload.message"));
         for (GeyserSession session : connector.getPlayers().values()) {
-            session.disconnect("Geyser has been reloaded... sorry for the inconvenience!");
+            session.disconnect(TranslationUtils.getLocaleStringPly("geyser.commands.reload.kick", session.getClientData().getLanguageCode()));
         }
         connector.reload();
     }

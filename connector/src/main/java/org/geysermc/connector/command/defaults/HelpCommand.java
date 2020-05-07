@@ -29,6 +29,7 @@ import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.utils.TranslationUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +49,8 @@ public class HelpCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        sender.sendMessage("---- Showing Help For: Geyser (Page 1/1) ----");
+        // TODO: Alter this to get the locale for the user if sent by a player
+        sender.sendMessage(TranslationUtils.getLocaleStringLog("geyser.commands.help.header", 1, 1));
         Map<String, GeyserCommand> cmds = connector.getCommandManager().getCommands();
         List<String> commands = connector.getCommandManager().getCommands().keySet().stream().sorted().collect(Collectors.toList());
         commands.forEach(cmd -> sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmd + ChatColor.WHITE + ": " + cmds.get(cmd).getDescription()));
