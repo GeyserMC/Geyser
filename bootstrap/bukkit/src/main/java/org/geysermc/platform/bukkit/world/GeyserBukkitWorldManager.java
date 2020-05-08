@@ -58,9 +58,6 @@ public class GeyserBukkitWorldManager extends WorldManager {
                     if (blockStates.length == 1) {
                         name = blockStates[0];
                     } else {
-                        for (int i = 0; i < blockStates.length; i++) {
-                            System.out.println("Data mapping: " + blockStates[i]);
-                        }
                         int data = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getData();
                         if (data <= blockStates.length) {
                             name = blockStates[data];
