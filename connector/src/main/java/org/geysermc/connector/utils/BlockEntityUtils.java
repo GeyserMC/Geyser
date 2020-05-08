@@ -13,13 +13,13 @@ public class BlockEntityUtils {
 
     public static String getBedrockBlockEntityId(String id) {
         // These are the only exceptions when it comes to block entity ids
-        if(id.contains("piston_head"))
+        if (id.contains("piston_head"))
             return "PistonArm";
 
-        if(id.contains("trapped_chest"))
+        if (id.contains("trapped_chest"))
             return "Chest";
 
-        if(id.contains("EnderChest"))
+        if (id.contains("EnderChest"))
             return "EnderChest";
 
         id = id.toLowerCase()
