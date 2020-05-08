@@ -24,22 +24,14 @@
  *
  */
 
-package org.geysermc.connector.network.translators.world;
+package org.geysermc.connector.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.nukkitx.math.vector.Vector3i;
-import org.geysermc.connector.network.session.GeyserSession;
+import com.nukkitx.protocol.bedrock.data.ContainerType;
 
-public class CachedChunkManager extends WorldManager {
+public class BlastFurnaceInventoryTranslator extends FurnaceInventoryTranslator {
 
-    @Override
-    public BlockState getBlockAt(GeyserSession session, int x, int y, int z) {
-        return session.getChunkCache().getBlockAt(new Position(x, y, z));
+    public BlastFurnaceInventoryTranslator() {
+        super("minecraft:blast_furnace[facing=north,lit=true]", ContainerType.BLAST_FURNACE);
     }
 
-    @Override
-    public Vector3i getFacingBlock(GeyserSession session) {
-        return Vector3i.ZERO;
-    }
 }

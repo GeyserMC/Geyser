@@ -37,6 +37,10 @@ public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
         super(3, "minecraft:furnace[facing=north,lit=false]", ContainerType.FURNACE, new ContainerInventoryUpdater());
     }
 
+    public FurnaceInventoryTranslator(String identifier, ContainerType type) {
+        super(3, identifier, type, new ContainerInventoryUpdater());
+    }
+
     @Override
     public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();

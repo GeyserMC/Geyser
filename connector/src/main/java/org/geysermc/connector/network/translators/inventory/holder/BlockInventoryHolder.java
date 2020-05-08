@@ -42,13 +42,23 @@ import org.geysermc.connector.utils.LocaleUtils;
 
 @AllArgsConstructor
 public class BlockInventoryHolder extends InventoryHolder {
-    private final int blockId;
+    private int blockId;
     private final ContainerType containerType;
 
     @Override
     public void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-        Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        position = position.add(Vector3i.UP);
+        Vector3i position = Vector3i.ZERO;
+        // Get actual position of block if chunks are cached
+        if (session.getConnector().getConfig().isCacheChunks()) {
+            position = session.getConnector().getBootstrap().getWorldManager().getFacingBlock(session);
+        }
+        // ZERO means that the block was not retrieved
+        if (position == Vector3i.ZERO) {
+            position = session.getPlayerEntity().getPosition().toInt();
+            position = position.add(Vector3i.UP);
+        } else {
+            blockId = BlockTranslator.getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ()));
+        }
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
@@ -57,15 +67,17 @@ public class BlockInventoryHolder extends InventoryHolder {
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
 
-        CompoundTag tag = CompoundTag.builder()
-                .intTag("x", position.getX())
-                .intTag("y", position.getY())
-                .intTag("z", position.getZ())
-                .stringTag("CustomName", LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode())).buildRootTag();
-        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
-        dataPacket.setData(tag);
-        dataPacket.setBlockPosition(position);
-        session.sendUpstreamPacket(dataPacket);
+        if (position == Vector3i.ZERO) {
+            CompoundTag tag = CompoundTag.builder()
+                    .intTag("x", position.getX())
+                    .intTag("y", position.getY())
+                    .intTag("z", position.getZ())
+                    .stringTag("CustomName", LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode())).buildRootTag();
+            BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+            dataPacket.setData(tag);
+            dataPacket.setBlockPosition(position);
+            session.sendUpstreamPacket(dataPacket);
+        }
     }
 
     @Override

@@ -161,10 +161,9 @@ public class Translators {
         inventoryTranslators.put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
         //inventoryTranslators.put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
 
-        InventoryTranslator furnace = new FurnaceInventoryTranslator();
-        inventoryTranslators.put(WindowType.FURNACE, furnace);
-        inventoryTranslators.put(WindowType.BLAST_FURNACE, furnace);
-        inventoryTranslators.put(WindowType.SMOKER, furnace);
+        inventoryTranslators.put(WindowType.FURNACE, new FurnaceInventoryTranslator());
+        inventoryTranslators.put(WindowType.BLAST_FURNACE, new BlastFurnaceInventoryTranslator());
+        inventoryTranslators.put(WindowType.SMOKER, new SmokerInventoryTranslator());
 
         InventoryUpdater containerUpdater = new ContainerInventoryUpdater();
         inventoryTranslators.put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, containerUpdater));
