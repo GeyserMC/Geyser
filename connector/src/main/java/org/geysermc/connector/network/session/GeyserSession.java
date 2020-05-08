@@ -69,7 +69,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.utils.Toolbox;
-import org.geysermc.connector.utils.TranslationUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
 
@@ -210,9 +210,9 @@ public class GeyserSession implements CommandSender {
     public void login() {
         if (connector.getAuthType() != AuthType.ONLINE) {
             if (connector.getAuthType() == AuthType.OFFLINE) {
-                connector.getLogger().info(TranslationUtils.getLocaleStringLog("geyser.auth.login.offline"));
+                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.offline"));
             } else {
-                connector.getLogger().info(TranslationUtils.getLocaleStringLog("geyser.auth.login.floodgate"));
+                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.floodgate"));
             }
             authenticate(authData.getName());
         }
@@ -224,7 +224,7 @@ public class GeyserSession implements CommandSender {
 
     public void authenticate(String username, String password) {
         if (loggedIn) {
-            connector.getLogger().severe(TranslationUtils.getLocaleStringLog("geyser.auth.already_loggedin", username));
+            connector.getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.auth.already_loggedin", username));
             return;
         }
 
@@ -249,13 +249,13 @@ public class GeyserSession implements CommandSender {
                                 PublicKey.class
                         );
                     } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
-                        connector.getLogger().error(TranslationUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), e);
+                        connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), e);
                     }
                     publicKey = key;
                 } else publicKey = null;
 
                 if (publicKey != null) {
-                    connector.getLogger().info(TranslationUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
                 }
 
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
@@ -276,7 +276,7 @@ public class GeyserSession implements CommandSender {
                                         upstream.getSession().getAddress().getAddress().getHostAddress()
                                 ));
                             } catch (Exception e) {
-                                connector.getLogger().error(TranslationUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                                connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
                             }
 
                             HandshakePacket handshakePacket = event.getPacket();
@@ -293,7 +293,7 @@ public class GeyserSession implements CommandSender {
                     public void connected(ConnectedEvent event) {
                         loggingIn = false;
                         loggedIn = true;
-                        connector.getLogger().info(TranslationUtils.getLocaleStringLog("geyser.network.remote.connect", authData.getName(), protocol.getProfile().getName(), remoteServer.getAddress()));
+                        connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect", authData.getName(), protocol.getProfile().getName(), remoteServer.getAddress()));
                         playerEntity.setUuid(protocol.getProfile().getId());
                         playerEntity.setUsername(protocol.getProfile().getName());
 
@@ -309,14 +309,14 @@ public class GeyserSession implements CommandSender {
                         // Download and load the language for the player
                         LocaleUtils.downloadAndLoadLocale(locale);
 
-                        TranslationUtils.loadGeyserLocale(locale);
+                        LanguageUtils.loadGeyserLocale(locale);
                     }
 
                     @Override
                     public void disconnected(DisconnectedEvent event) {
                         loggingIn = false;
                         loggedIn = false;
-                        connector.getLogger().info(TranslationUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteServer.getAddress(), event.getReason()));
+                        connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteServer.getAddress(), event.getReason()));
                         if (event.getCause() != null) {
                             event.getCause().printStackTrace();
                         }
@@ -351,8 +351,8 @@ public class GeyserSession implements CommandSender {
                 downstream.getSession().connect();
                 connector.addPlayer(this);
             } catch (InvalidCredentialsException | IllegalArgumentException e) {
-                connector.getLogger().info(TranslationUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
-                disconnect(TranslationUtils.getLocaleStringPly("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
+                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
+                disconnect(LanguageUtils.getLocaleStringPly("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
@@ -381,7 +381,7 @@ public class GeyserSession implements CommandSender {
     }
 
     public void close() {
-        disconnect(TranslationUtils.getLocaleStringPly("geyser.network.close", getClientData().getLanguageCode()));
+        disconnect(LanguageUtils.getLocaleStringPly("geyser.network.close", getClientData().getLanguageCode()));
     }
 
     public void setAuthenticationData(AuthData authData) {

@@ -44,7 +44,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.RequiresBlockState;
-import org.geysermc.connector.utils.TranslationUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;
 
 import java.io.ByteArrayOutputStream;
@@ -106,10 +106,10 @@ public class Translators {
                     Registry.registerBedrock(targetPacket, translator);
 
                 } else {
-                    GeyserConnector.getInstance().getLogger().error(TranslationUtils.getLocaleStringLog("geyser.network.translator.invalid_target", clazz.getCanonicalName()));
+                    GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.invalid_target", clazz.getCanonicalName()));
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error(TranslationUtils.getLocaleStringLog("geyser.network.translator.failed", clazz.getCanonicalName()));
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.failed", clazz.getCanonicalName()));
             }
         }
         

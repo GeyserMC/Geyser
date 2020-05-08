@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class TranslationUtils {
+public class LanguageUtils {
 
     private static final Map<String, Properties> LOCALE_MAPPINGS = new HashMap<>();
 

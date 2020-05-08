@@ -34,7 +34,7 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
-import org.geysermc.connector.utils.TranslationUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
 
@@ -66,7 +66,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             try (InputStream in = getResourceAsStream("config.yml")) {
                 Files.copy(in, file.toPath());
             } catch (IOException ex) {
-                getLogger().log(Level.SEVERE, TranslationUtils.getLocaleStringLog("geyser.config.failed"), ex);
+                getLogger().log(Level.SEVERE, LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
                 return;
             }
         }
@@ -77,7 +77,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
 
         if (configuration == null) {
-            getLogger().severe(TranslationUtils.getLocaleStringLog("geyser.config.failed"));
+            getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
             return;
         }
 
@@ -111,7 +111,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             try {
                 ConfigurationProvider.getProvider(YamlConfiguration.class).save(configuration, new File(getDataFolder(), "config.yml"));
             } catch (IOException ex) {
-                getLogger().log(Level.SEVERE, TranslationUtils.getLocaleStringLog("geyser.config.failed"), ex);
+                getLogger().log(Level.SEVERE, LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
                 return;
             }
         }

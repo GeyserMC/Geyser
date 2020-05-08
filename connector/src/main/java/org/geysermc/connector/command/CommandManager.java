@@ -29,7 +29,7 @@ import lombok.Getter;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.*;
-import org.geysermc.connector.utils.TranslationUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,16 +45,16 @@ public abstract class CommandManager {
     public CommandManager(GeyserConnector connector) {
         this.connector = connector;
 
-        registerCommand(new HelpCommand(connector, "help", TranslationUtils.getLocaleStringLog("geyser.commands.help.desc"), "geyser.command.help"));
-        registerCommand(new ListCommand(connector, "list", TranslationUtils.getLocaleStringLog("geyser.commands.list.desc"), "geyser.command.list"));
-        registerCommand(new ReloadCommand(connector, "reload", TranslationUtils.getLocaleStringLog("geyser.commands.reload.desc"), "geyser.command.reload"));
-        registerCommand(new StopCommand(connector, "stop", TranslationUtils.getLocaleStringLog("geyser.commands.stop.desc"), "geyser.command.stop"));
-        registerCommand(new OffhandCommand(connector, "offhand", TranslationUtils.getLocaleStringLog("geyser.commands.offhand.desc"), "geyser.command.offhand"));
+        registerCommand(new HelpCommand(connector, "help", LanguageUtils.getLocaleStringLog("geyser.commands.help.desc"), "geyser.command.help"));
+        registerCommand(new ListCommand(connector, "list", LanguageUtils.getLocaleStringLog("geyser.commands.list.desc"), "geyser.command.list"));
+        registerCommand(new ReloadCommand(connector, "reload", LanguageUtils.getLocaleStringLog("geyser.commands.reload.desc"), "geyser.command.reload"));
+        registerCommand(new StopCommand(connector, "stop", LanguageUtils.getLocaleStringLog("geyser.commands.stop.desc"), "geyser.command.stop"));
+        registerCommand(new OffhandCommand(connector, "offhand", LanguageUtils.getLocaleStringLog("geyser.commands.offhand.desc"), "geyser.command.offhand"));
     }
 
     public void registerCommand(GeyserCommand command) {
         commands.put(command.getName(), command);
-        connector.getLogger().debug(TranslationUtils.getLocaleStringLog("geyser.commands.registered", command.getName()));
+        connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.commands.registered", command.getName()));
 
         if (command.getAliases().isEmpty())
             return;
@@ -82,7 +82,7 @@ public abstract class CommandManager {
 
         GeyserCommand cmd = commands.get(label);
         if (cmd == null) {
-            connector.getLogger().error(TranslationUtils.getLocaleStringLog("geyser.commands.invalid"));
+            connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.invalid"));
             return;
         }
 

@@ -40,7 +40,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.EntityUtils;
-import org.geysermc.connector.utils.TranslationUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -57,7 +57,7 @@ public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnObjec
 
         EntityType type = EntityUtils.toBedrockEntity(packet.getType());
         if (type == null) {
-            session.getConnector().getLogger().warning(TranslationUtils.getLocaleStringLog("geyser.entity.type_null", packet.getType()));
+            session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.entity.type_null", packet.getType()));
             return;
         }
 

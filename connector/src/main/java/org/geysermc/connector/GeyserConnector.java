@@ -41,7 +41,7 @@ import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.Toolbox;
-import org.geysermc.connector.utils.TranslationUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
@@ -92,7 +92,7 @@ public class GeyserConnector {
 
         logger.info("******************************************");
         logger.info("");
-        logger.info(TranslationUtils.getLocaleStringLog("geyser.core.load", NAME, VERSION));
+        logger.info(LanguageUtils.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         logger.info("******************************************");
 
@@ -114,9 +114,9 @@ public class GeyserConnector {
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
-                logger.info(TranslationUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), config.getBedrock().getPort()));
+                logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), config.getBedrock().getPort()));
             } else {
-                logger.severe(TranslationUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), config.getBedrock().getPort()));
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), config.getBedrock().getPort()));
                 throwable.printStackTrace();
             }
         }).join();
@@ -130,18 +130,18 @@ public class GeyserConnector {
         }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        logger.info(TranslationUtils.getLocaleStringLog("geyser.core.done", new DecimalFormat("#.###").format(completeTime)));
+        logger.info(LanguageUtils.getLocaleStringLog("geyser.core.done", new DecimalFormat("#.###").format(completeTime)));
     }
 
     public void shutdown() {
-        bootstrap.getGeyserLogger().info(TranslationUtils.getLocaleStringLog("geyser.core.shutdown"));
+        bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown"));
         shuttingDown = true;
 
         if (players.size() >= 1) {
-            bootstrap.getGeyserLogger().info(TranslationUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));
+            bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));
 
             for (GeyserSession playerSession : players.values()) {
-                playerSession.disconnect(TranslationUtils.getLocaleStringLog("geyser.core.shutdown.kick.message"));
+                playerSession.disconnect(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.message"));
             }
 
             CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {
@@ -165,7 +165,7 @@ public class GeyserConnector {
             // Block and wait for the future to complete
             try {
                 future.get();
-                bootstrap.getGeyserLogger().info(TranslationUtils.getLocaleStringLog("geyser.core.shutdown.kick.done"));
+                bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.done"));
             } catch (Exception e) {
                 // Quietly fail
             }
@@ -178,7 +178,7 @@ public class GeyserConnector {
         authType = null;
         this.getCommandManager().getCommands().clear();
 
-        bootstrap.getGeyserLogger().info(TranslationUtils.getLocaleStringLog("geyser.core.shutdown.done"));
+        bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
     }
 
     public void addPlayer(GeyserSession player) {

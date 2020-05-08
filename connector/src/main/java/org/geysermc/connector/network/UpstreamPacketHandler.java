@@ -33,7 +33,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
-import org.geysermc.connector.utils.TranslationUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -48,10 +48,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(LoginPacket loginPacket) {
         if (loginPacket.getProtocolVersion() > GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
-            session.disconnect(TranslationUtils.getLocaleStringPly("geyser.network.outdated.server", session.getClientData().getLanguageCode(), GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
+            session.disconnect(LanguageUtils.getLocaleStringPly("geyser.network.outdated.server", session.getClientData().getLanguageCode(), GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
             return true;
         } else if (loginPacket.getProtocolVersion() < GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
-            session.disconnect(TranslationUtils.getLocaleStringPly("geyser.network.outdated.client", session.getClientData().getLanguageCode(), GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
+            session.disconnect(LanguageUtils.getLocaleStringPly("geyser.network.outdated.client", session.getClientData().getLanguageCode(), GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
             return true;
         }
 
@@ -71,7 +71,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         switch (packet.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
-                connector.getLogger().info(TranslationUtils.getLocaleStringLog("geyser.network.connect", session.getAuthData().getName()));
+                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.connect", session.getAuthData().getName()));
                 break;
             case HAVE_ALL_PACKS:
                 ResourcePackStackPacket stack = new ResourcePackStackPacket();
@@ -98,7 +98,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             GeyserConfiguration.IUserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
 
             if (info != null) {
-                connector.getLogger().info(TranslationUtils.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().getName()));
+                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().getName()));
                 session.authenticate(info.getEmail(), info.getPassword());
 
                 // TODO send a message to bedrock user telling them they are connected (if nothing like a motd
@@ -121,7 +121,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return true;
         }
         if (session.isLoggingIn()) {
-            session.sendMessage(TranslationUtils.getLocaleStringPly("geyser.auth.login.wait", session.getClientData().getLanguageCode()));
+            session.sendMessage(LanguageUtils.getLocaleStringPly("geyser.auth.login.wait", session.getClientData().getLanguageCode()));
         }
 
         return translateAndDefault(packet);

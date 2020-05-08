@@ -146,7 +146,7 @@ public class Toolbox {
         // Load the locale data
         LocaleUtils.init();
         // Load the locale data
-        TranslationUtils.init();
+        LanguageUtils.init();
 
         // Load sound handlers
         SoundHandlerRegistry.init();

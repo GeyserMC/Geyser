@@ -30,7 +30,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.TranslationUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 public class ReloadCommand extends GeyserCommand {
 
@@ -46,10 +46,18 @@ public class ReloadCommand extends GeyserCommand {
         if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
             return;
         }
-        // TODO: Alter this to get the locale for the user if sent by a player
-        sender.sendMessage(TranslationUtils.getLocaleStringLog("geyser.commands.reload.message"));
+
+        String message = "";
+        if (sender instanceof GeyserSession) {
+            message = LanguageUtils.getLocaleStringPly("geyser.commands.reload.message", ((GeyserSession) sender).getClientData().getLanguageCode());
+        } else {
+            message = LanguageUtils.getLocaleStringLog("geyser.commands.reload.message");
+        }
+
+        sender.sendMessage(message);
+
         for (GeyserSession session : connector.getPlayers().values()) {
-            session.disconnect(TranslationUtils.getLocaleStringPly("geyser.commands.reload.kick", session.getClientData().getLanguageCode()));
+            session.disconnect(LanguageUtils.getLocaleStringPly("geyser.commands.reload.kick", session.getClientData().getLanguageCode()));
         }
         connector.reload();
     }
