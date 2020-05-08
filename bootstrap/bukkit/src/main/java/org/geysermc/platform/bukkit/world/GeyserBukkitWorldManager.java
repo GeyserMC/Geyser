@@ -28,18 +28,43 @@ package org.geysermc.platform.bukkit.world;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 
+import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
+import us.myles.ViaVersion.protocols.protocol1_15to1_14_4.data.MappingData;
 
+@AllArgsConstructor
 public class GeyserBukkitWorldManager extends WorldManager {
 
+    // Since ProtocolSupport isn't supported (at least with Floodgate) as of the time of this code, you need ViaVersion to connect to an older server.
+    // However, there is a possibility that Geyser can connect to a server without ViaVersion on Spigot, so this is the precaution
+    private final boolean isViaVersion;
+
     @Override
+    @SuppressWarnings("deprecation")
     public BlockState getBlockAt(GeyserSession session, int x, int y, int z) {
         if (session.getPlayerEntity() == null) {
             return BlockTranslator.AIR;
         }
-        return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
+        try {
+            return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
+        } catch (NoSuchMethodError ex) {
+            if (isViaVersion) {
+                Block block = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z);
+                // Black magic that gets the old block state ID
+                int oldBlockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
+                // Convert block state from old version -> 1.13 -> 1.13.1 -> 1.14 -> 1.15
+                int thirteenBlockId = us.myles.ViaVersion.protocols.protocol1_13to1_12_2.data.MappingData.blockMappings.getNewBlock(oldBlockId);
+                int thirteenPointOneBlockId = Protocol1_13_1To1_13.getNewBlockStateId(thirteenBlockId);
+                int fourteenBlockId = us.myles.ViaVersion.protocols.protocol1_14to1_13_2.data.MappingData.blockStateMappings.getNewBlock(thirteenPointOneBlockId);
+                return new BlockState(MappingData.blockStateMappings.getNewBlock(fourteenBlockId));
+            } else {
+                return BlockTranslator.AIR;
+            }
+        }
     }
 }
