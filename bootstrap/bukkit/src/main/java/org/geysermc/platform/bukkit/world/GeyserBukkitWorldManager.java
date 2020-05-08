@@ -32,14 +32,49 @@ import org.bukkit.Bukkit;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.platform.bukkit.GeyserBukkitLogger;
+import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.data.BlockIdData;
 
 public class GeyserBukkitWorldManager extends WorldManager {
+
+    private final GeyserBukkitLogger logger;
+
+    public GeyserBukkitWorldManager(GeyserBukkitLogger logger) {
+        this.logger = logger;
+    }
 
     @Override
     public BlockState getBlockAt(GeyserSession session, int x, int y, int z) {
         if (session.getPlayerEntity() == null) {
             return BlockTranslator.AIR;
         }
-        return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
+        try {
+            return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
+        } catch (NoSuchMethodError ex) {
+            if (BlockIdData.blockIdMapping != null) {
+                String name = BlockIdData.numberIdToString.get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getType().getId());
+                if (BlockIdData.blockIdMapping.containsKey(name)) {
+                    String[] blockStates = BlockIdData.blockIdMapping.get(name);
+                    if (blockStates.length == 1) {
+                        name = blockStates[0];
+                    } else {
+                        for (int i = 0; i < blockStates.length; i++) {
+                            System.out.println("Data mapping: " + blockStates[i]);
+                        }
+                        int data = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getData();
+                        if (data <= blockStates.length) {
+                            name = blockStates[data];
+                        }
+                    }
+                }
+                BlockState blockState = BlockTranslator.getJavaIdBlockMap().get("minecraft:" + name);
+                if (blockState == null) {
+                    logger.debug("Block State was null while trying to get block " + name + " for player " + session.getPlayerEntity().getUsername());
+                    return BlockTranslator.AIR;
+                }
+                return blockState;
+            }
+            return BlockTranslator.AIR;
+        }
     }
 }

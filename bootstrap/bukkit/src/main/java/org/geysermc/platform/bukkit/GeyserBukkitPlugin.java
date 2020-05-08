@@ -35,6 +35,7 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
 import org.geysermc.platform.bukkit.world.GeyserBukkitWorldManager;
+import us.myles.ViaVersion.api.Via;
 
 import java.util.UUID;
 
@@ -73,7 +74,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         this.connector = GeyserConnector.start(PlatformType.BUKKIT, this);
 
         this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
-        this.geyserWorldManager = new GeyserBukkitWorldManager();
+        this.geyserWorldManager = new GeyserBukkitWorldManager(getGeyserLogger());
 
         this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));
     }
