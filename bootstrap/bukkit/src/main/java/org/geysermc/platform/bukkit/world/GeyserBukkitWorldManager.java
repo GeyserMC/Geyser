@@ -40,8 +40,9 @@ import us.myles.ViaVersion.protocols.protocol1_15to1_14_4.data.MappingData;
 @AllArgsConstructor
 public class GeyserBukkitWorldManager extends WorldManager {
 
-    // Since ProtocolSupport isn't supported (at least with Floodgate) as of the time of this code, you need ViaVersion to connect to an older server.
-    // However, there is a possibility that Geyser can connect to a server without ViaVersion on Spigot, so this is the precaution
+    private final boolean isLegacy;
+    // You need ViaVersion to connect to an older server with Geyser.
+    // However, we still check for ViaVersion in case there's some other way that gets Geyser on a pre-1.13 Bukkit server
     private final boolean isViaVersion;
 
     @Override
@@ -50,9 +51,7 @@ public class GeyserBukkitWorldManager extends WorldManager {
         if (session.getPlayerEntity() == null) {
             return BlockTranslator.AIR;
         }
-        try {
-            return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
-        } catch (NoSuchMethodError ex) {
+        if (isLegacy) {
             if (isViaVersion) {
                 Block block = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z);
                 // Black magic that gets the old block state ID
@@ -66,5 +65,6 @@ public class GeyserBukkitWorldManager extends WorldManager {
                 return BlockTranslator.AIR;
             }
         }
+        return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
     }
 }

@@ -76,16 +76,22 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
 
         boolean isViaVersion = false;
+        // Used to determine if Block.getBlockData() is present.
+        boolean isLegacy = !isCompatible(Bukkit.getServer().getVersion(), "1.13.0");
+        if (isLegacy)
+            geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected.");
+
         if (Bukkit.getPluginManager().getPlugin("ViaVersion") != null) {
-            // TODO: Update if ViaVersion updates or Minecraft updates
-            if (!Via.getAPI().getVersion().equals("3.0.0-SNAPSHOT") && !Bukkit.getServer().getVersion().contains("1.15.2")) {
-                geyserLogger.info("ViaVersion detected but not ViaVersion-ABSTRACTION. Please update your ViaVersion plugin for compatibility with Geyser. You can safely ignore this message if you are on 1.13 or above.");
+            // TODO: Update when ViaVersion updates
+            // API changes between 2.2.3 and 3.0.0-SNAPSHOT require this check
+            if (!Via.getAPI().getVersion().equals("3.0.0-SNAPSHOT") && isLegacy) {
+                geyserLogger.info("ViaVersion detected but not ViaVersion-ABSTRACTION. Please update your ViaVersion plugin for compatibility with Geyser.");
             } else {
                 isViaVersion = true;
             }
         }
 
-        this.geyserWorldManager = new GeyserBukkitWorldManager(isViaVersion);
+        this.geyserWorldManager = new GeyserBukkitWorldManager(isLegacy, isViaVersion);
 
         this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));
     }
@@ -113,5 +119,39 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public WorldManager getWorldManager() {
         return this.geyserWorldManager;
+    }
+
+    public boolean isCompatible(String version, String whichVersion) {
+        int[] currentVersion = parseVersion(version);
+        int[] otherVersion = parseVersion(whichVersion);
+        int length = Math.max(currentVersion.length, otherVersion.length);
+        for (int index = 0; index < length; index = index + 1) {
+            int self = (index < currentVersion.length) ? currentVersion[index] : 0;
+            int other = (index < otherVersion.length) ? otherVersion[index] : 0;
+
+            if (self != other) {
+                return (self - other) > 0;
+            }
+        }
+        return true;
+    }
+
+    private int[] parseVersion(String versionParam) {
+        versionParam = (versionParam == null) ? "" : versionParam;
+        if (versionParam.contains("(MC: ")) {
+            versionParam = versionParam.split("\\(MC: ")[1];
+            versionParam = versionParam.split("\\)")[0];
+        }
+        String[] stringArray = versionParam.split("[_.-]");
+        int[] temp = new int[stringArray.length];
+        for (int index = 0; index <= (stringArray.length - 1); index = index + 1) {
+            String t = stringArray[index].replaceAll("\\D", "");
+            try {
+                temp[index] = Integer.parseInt(t);
+            } catch(NumberFormatException ex) {
+                temp[index] = 0;
+            }
+        }
+        return temp;
     }
 }
