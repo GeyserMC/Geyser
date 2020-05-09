@@ -58,10 +58,10 @@ public class GeyserBukkitWorldManager extends WorldManager {
                 // Black magic that gets the old block state ID
                 int oldBlockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
                 // Convert block state from old version -> 1.13 -> 1.13.1 -> 1.14 -> 1.15
-                int thirteenBlockId = us.myles.ViaVersion.protocols.protocol1_13to1_12_2.data.MappingData.blockMappings.getNewBlock(oldBlockId);
+                int thirteenBlockId = us.myles.ViaVersion.protocols.protocol1_13to1_12_2.data.MappingData.blockMappings.getNewId(oldBlockId);
                 int thirteenPointOneBlockId = Protocol1_13_1To1_13.getNewBlockStateId(thirteenBlockId);
-                int fourteenBlockId = us.myles.ViaVersion.protocols.protocol1_14to1_13_2.data.MappingData.blockStateMappings.getNewBlock(thirteenPointOneBlockId);
-                return new BlockState(MappingData.blockStateMappings.getNewBlock(fourteenBlockId));
+                int fourteenBlockId = us.myles.ViaVersion.protocols.protocol1_14to1_13_2.data.MappingData.blockStateMappings.getNewId(thirteenPointOneBlockId);
+                return new BlockState(MappingData.blockStateMappings.getNewId(fourteenBlockId));
             } else {
                 return BlockTranslator.AIR;
             }

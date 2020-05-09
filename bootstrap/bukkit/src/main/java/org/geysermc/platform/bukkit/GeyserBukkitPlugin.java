@@ -35,6 +35,7 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
 import org.geysermc.platform.bukkit.world.GeyserBukkitWorldManager;
+import us.myles.ViaVersion.api.Via;
 
 import java.util.UUID;
 
@@ -73,7 +74,18 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         this.connector = GeyserConnector.start(PlatformType.BUKKIT, this);
 
         this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
-        this.geyserWorldManager = new GeyserBukkitWorldManager(Bukkit.getPluginManager().getPlugin("ViaVersion") != null);
+
+        boolean isViaVersion = false;
+        if (Bukkit.getPluginManager().getPlugin("ViaVersion") != null) {
+            // TODO: Update if ViaVersion updates or Minecraft updates
+            if (!Via.getAPI().getVersion().equals("3.0.0-SNAPSHOT") && !Bukkit.getServer().getVersion().contains("1.15.2")) {
+                geyserLogger.info("ViaVersion detected but not ViaVersion-ABSTRACTION. Please update your ViaVersion plugin for compatibility with Geyser. You can safely ignore this message if you are on 1.13 or above.");
+            } else {
+                isViaVersion = true;
+            }
+        }
+
+        this.geyserWorldManager = new GeyserBukkitWorldManager(isViaVersion);
 
         this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));
     }
