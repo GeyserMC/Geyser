@@ -127,7 +127,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setInteracting(true);
                         break;
                     case 1:
-                        if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemTranslator.SHIELD) {
+                        if (session.getInventory() != null &&
+                                session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36) != null &&
+                                session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemTranslator.SHIELD) {
                             break;
                         } // Handled in Entity.java
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
