@@ -26,6 +26,7 @@
 package org.geysermc.platform.bukkit;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
@@ -34,6 +35,7 @@ import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
+import org.geysermc.platform.bukkit.world.GeyserBukkitBlockPlaceListener;
 import org.geysermc.platform.bukkit.world.GeyserBukkitWorldManager;
 
 import java.util.UUID;
@@ -43,6 +45,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
     private GeyserBukkitCommandManager geyserCommandManager;
     private GeyserBukkitConfiguration geyserConfig;
     private GeyserBukkitLogger geyserLogger;
+    private GeyserBukkitBlockPlaceListener blockPlaceListener;
     private GeyserBukkitWorldManager geyserWorldManager;
 
     private GeyserConnector connector;
@@ -74,6 +77,8 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
         this.geyserWorldManager = new GeyserBukkitWorldManager();
+        this.blockPlaceListener = new GeyserBukkitBlockPlaceListener(connector);
+        Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
         this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));
     }
