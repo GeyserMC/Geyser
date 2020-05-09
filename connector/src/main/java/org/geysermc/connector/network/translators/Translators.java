@@ -131,7 +131,7 @@ public class Translators {
             try {
                 blockEntityTranslators.put(clazz.getAnnotation(BlockEntity.class).name(), (BlockEntityTranslator) clazz.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block entity " + clazz.getCanonicalName() + ".");
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.block_entity.failed", clazz.getCanonicalName()));
             }
         }
 
@@ -142,7 +142,7 @@ public class Translators {
             try {
                 requiresBlockStateMap.add((RequiresBlockState) clazz.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate required block state " + clazz.getCanonicalName() + ".");
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.block_state.failed", clazz.getCanonicalName()));
             }
 
         }

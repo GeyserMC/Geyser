@@ -76,7 +76,7 @@ public class LocaleUtils {
 
             // Make sure we definitely got a version
             if (latestInfoURL.isEmpty()) {
-                throw new Exception("Unable to get latest Minecraft version");
+                throw new Exception(LanguageUtils.getLocaleStringLog("geyser.locale.fail.latest_version"));
             }
 
             // Get the individual version manifest
@@ -102,7 +102,7 @@ public class LocaleUtils {
                 ASSET_MAP.put(entry.getKey(), asset);
             }
         } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().info("Failed to load locale asset cache: " + (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace()));
+            GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
         }
     }
 
@@ -116,7 +116,7 @@ public class LocaleUtils {
 
         // Check the locale isn't already loaded
         if (!ASSET_MAP.containsKey("minecraft/lang/" + locale + ".json") && !locale.equals("en_us")) {
-            GeyserConnector.getInstance().getLogger().warning("Invalid locale requested to download and load: " + locale);
+            GeyserConnector.getInstance().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.locale.fail.invalid", locale));
             return;
         }
 
@@ -167,7 +167,7 @@ public class LocaleUtils {
             try {
                 localeStream = new FileInputStream(localeFile);
             } catch (FileNotFoundException e) {
-                throw new AssertionError("Unable to load locale: " + locale + " (" + e.getMessage() + ")");
+                throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.locale.fail.file", locale, e.getMessage()));
             }
 
             // Parse the file as json
@@ -175,7 +175,7 @@ public class LocaleUtils {
             try {
                 localeObj = Toolbox.JSON_MAPPER.readTree(localeStream);
             } catch (Exception e) {
-                throw new AssertionError("Unable to load Java edition locale map for " + locale, e);
+                throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.locale.fail.json", locale), e);
             }
 
             // Parse all the locale fields
@@ -189,7 +189,7 @@ public class LocaleUtils {
             // Insert the locale into the mappings
             LOCALE_MAPPINGS.put(locale.toLowerCase(), langMap);
         } else {
-            GeyserConnector.getInstance().getLogger().warning("Missing MC locale file: " + locale);
+            GeyserConnector.getInstance().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.locale.fail.missing", locale));
         }
     }
 
@@ -201,7 +201,7 @@ public class LocaleUtils {
     private static void downloadEN_US(File localeFile) {
         try {
             // Let the user know we are downloading the JAR
-            GeyserConnector.getInstance().getLogger().info("Downloading Minecraft JAR to extract en_us locale, please wait... (this may take some time depending on the speed of your internet connection)");
+            GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.locale.download.en_us"));
             GeyserConnector.getInstance().getLogger().debug("Download URL: " + smallestURL);
 
             // Download the smallest JAR (client or server)
@@ -229,7 +229,7 @@ public class LocaleUtils {
             // Delete the nolonger needed client/server jar
             Files.delete(Paths.get("tmp_locale.jar"));
         } catch (Exception e) {
-            throw new AssertionError("Unable to download and extract en_us locale!", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.locale.fail.en_us"), e);
         }
     }
 

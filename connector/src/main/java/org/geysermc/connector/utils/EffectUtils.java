@@ -79,7 +79,7 @@ public class EffectUtils {
                             + entry.getValue().asText()
                             + ", it will take effect.");
                 } catch (IllegalArgumentException e2){
-                    GeyserConnector.getInstance().getLogger().warning("Fail to map particle " + entry.getKey() + "=>" + entry.getValue().asText());
+                    GeyserConnector.getInstance().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.particle.failed_map", entry.getKey(), entry.getValue().asText()));
                 }
             }
         }

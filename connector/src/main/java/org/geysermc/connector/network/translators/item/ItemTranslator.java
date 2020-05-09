@@ -34,6 +34,7 @@ import org.geysermc.connector.GeyserConnector;
 
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.*;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.Toolbox;
 import org.reflections.Reflections;
 
@@ -69,14 +70,13 @@ public class ItemTranslator {
                 for (ItemEntry item : appliedItems) {
                     ItemStackTranslator registered = itemTranslators.get(item.getJavaId());
                     if (registered != null) {
-                        GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName() + "." +
-                                " Item translator " + registered.getClass().getCanonicalName() + " is already registered for the item " + item.getJavaIdentifier());
+                        GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.item.already_registered", clazz.getCanonicalName(), registered.getClass().getCanonicalName(), item.getJavaIdentifier()));
                         continue;
                     }
                     itemTranslators.put(item.getJavaId(), itemStackTranslator);
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName() + ".");
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.item.failed", clazz.getCanonicalName()));
             }
         }
 

@@ -186,7 +186,7 @@ public class SkinUtils {
                                 }
                             }
                         } catch (Exception e) {
-                            GeyserConnector.getInstance().getLogger().error("Failed getting skin for " + entity.getUuid(), e);
+                            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                         }
 
                         if (skinAndCapeConsumer != null) skinAndCapeConsumer.accept(skinAndCape);

@@ -64,7 +64,7 @@ public class Toolbox {
         /* Load biomes */
         InputStream biomestream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/biome_definitions.dat");
         if (biomestream == null) {
-            throw new AssertionError("Unable to find bedrock/biome_definitions.dat");
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.biome_file"));
         }
 
         CompoundTag biomesTag;
@@ -73,7 +73,7 @@ public class Toolbox {
             biomesTag = (CompoundTag) biomenbtInputStream.readTag();
             BIOMES = biomesTag;
         } catch (Exception ex) {
-            GeyserConnector.getInstance().getLogger().warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
+            GeyserConnector.getInstance().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.biome_read"));
             throw new AssertionError(ex);
         }
 
@@ -87,7 +87,7 @@ public class Toolbox {
         try {
             itemEntries = JSON_MAPPER.readValue(stream, itemEntriesType);
         } catch (Exception e) {
-            throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_bedrock"), e);
         }
 
         for (JsonNode entry : itemEntries) {
@@ -100,7 +100,7 @@ public class Toolbox {
         try {
             items = JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
-            throw new AssertionError("Unable to load Java runtime item IDs", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
         }
 
         int itemIndex = 0;
@@ -158,7 +158,7 @@ public class Toolbox {
         try {
             creativeItemEntries = JSON_MAPPER.readTree(stream).get("items");
         } catch (Exception e) {
-            throw new AssertionError("Unable to load creative items", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
         }
 
         List<ItemData> creativeItems = new ArrayList<>();
@@ -189,7 +189,7 @@ public class Toolbox {
         try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
             ENTITY_IDENTIFIERS = (CompoundTag) nbtInputStream.readTag();
         } catch (Exception e) {
-            throw new AssertionError("Unable to get entities from entity identifiers", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.entity"), e);
         }
     }
 
@@ -202,7 +202,7 @@ public class Toolbox {
     public static InputStream getResource(String resource) {
         InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream(resource);
         if (stream == null) {
-            throw new AssertionError("Unable to find resource: " + resource);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.resource", resource));
         }
         return stream;
     }

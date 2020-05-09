@@ -65,13 +65,13 @@ public class LanguageUtils {
             try {
                 localeProp.load(localeStream);
             } catch (Exception e) {
-                throw new AssertionError("Unable to load Geyser locale map for " + locale, e);
+                throw new AssertionError(getLocaleStringLog("geyser.language.load_failed", locale), e);
             }
 
             // Insert the locale into the mappings
             LOCALE_MAPPINGS.put(locale, localeProp);
         } else {
-            GeyserConnector.getInstance().getLogger().warning("Missing Geyser locale file: " + locale);
+            GeyserConnector.getInstance().getLogger().warning(getLocaleStringLog("geyser.language.missing_file", locale));
         }
     }
 
