@@ -49,8 +49,8 @@ public class ArmorStandEntity extends LivingEntity {
             if ((xd & 0x01) == 0x01) {
                 GeyserConnector.getInstance().getLogger().debug("S: " + metadata.get(EntityData.SCALE));
 
-                if (metadata.get(EntityData.SCALE) == null || (metadata.get(EntityData.SCALE) != null && !metadata.get(EntityData.SCALE).equals(0.5f))) {
-                    metadata.put(EntityData.SCALE, 0.5f);
+                if (metadata.get(EntityData.SCALE) == null || (metadata.get(EntityData.SCALE) != null && !metadata.get(EntityData.SCALE).equals(0.55f))) {
+                    metadata.put(EntityData.SCALE, 0.55f);
                 }
 
                 if (metadata.get(EntityData.BOUNDING_BOX_WIDTH) != null && metadata.get(EntityData.BOUNDING_BOX_WIDTH).equals(0.5f)) {
