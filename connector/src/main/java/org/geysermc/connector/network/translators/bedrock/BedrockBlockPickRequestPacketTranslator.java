@@ -64,17 +64,18 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
                 continue;
             }
             ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
-            if (item.getJavaIdentifier().equals(targetIdentifier)) {
-                PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
-                hotbarPacket.setContainerId(0);
-                // Java inventory slot to hotbar slot ID
-                hotbarPacket.setSelectedHotbarSlot(i - 36);
-                hotbarPacket.setSelectHotbarSlot(true);
-                session.sendUpstreamPacket(hotbarPacket);
-                session.getInventory().setHeldItemSlot(i - 36);
-                // Don't check inventory if item was in hotbar
-                return;
-            }
+            // If this isn't the item we're looking for
+            if (!item.getJavaIdentifier().equals(targetIdentifier)) continue;
+            
+            PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
+            hotbarPacket.setContainerId(0);
+            // Java inventory slot to hotbar slot ID
+            hotbarPacket.setSelectedHotbarSlot(i - 36);
+            hotbarPacket.setSelectHotbarSlot(true);
+            session.sendUpstreamPacket(hotbarPacket);
+            session.getInventory().setHeldItemSlot(i - 36);
+            // Don't check inventory if item was in hotbar
+            return;
         }
 
         // Check inventory for item
@@ -83,11 +84,12 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
                 continue;
             }
             ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
-            if (item.getJavaIdentifier().equals(targetIdentifier)) {
-                ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
-                session.sendDownstreamPacket(packetToSend);
-                break;
-            }
+            
+            if (!item.getJavaIdentifier().equals(targetIdentifier)) continue;
+            
+            ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
+            session.sendDownstreamPacket(packetToSend);
+            return;
         }
     }
 }
