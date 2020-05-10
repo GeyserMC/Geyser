@@ -49,7 +49,7 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
         BlockState blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
 
         // Check if block is null for safety
-        if (blockToPick == null || blockToPick.getId() == null) return;
+        if (blockToPick == null) return;
         
         // Block is air - chunk caching is probably off
         if (blockToPick.getId() == 0) return;
