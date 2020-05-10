@@ -12,10 +12,11 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
 
     @Override
     public void translate(PlayerInputPacket packet, GeyserSession session) {
+        System.out.println("Steering vehicle...");
         ClientSteerVehiclePacket clientSteerVehiclePacket = new ClientSteerVehiclePacket(
                 packet.getInputMotion().getX(), packet.getInputMotion().getY(), packet.isJumping(), packet.isSneaking()
         );
 
-        session.getDownstream().getSession().send(clientSteerVehiclePacket);
+        session.sendDownstreamPacket(clientSteerVehiclePacket);
     }
 }

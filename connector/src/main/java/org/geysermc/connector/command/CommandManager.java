@@ -26,7 +26,7 @@
 package org.geysermc.connector.command;
 
 import lombok.Getter;
-import org.geysermc.common.command.ICommandManager;
+
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.*;
 
@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class CommandManager implements ICommandManager {
+public abstract class CommandManager {
 
     @Getter
     private final Map<String, GeyserCommand> commands = Collections.synchronizedMap(new HashMap<>());
@@ -87,4 +87,12 @@ public abstract class CommandManager implements ICommandManager {
 
         cmd.execute(sender, args);
     }
+
+    /**
+     * Returns the description of the given command
+     *
+     * @param command Command to get the description for
+     * @return Command description
+     */
+    public abstract String getDescription(String command);
 }

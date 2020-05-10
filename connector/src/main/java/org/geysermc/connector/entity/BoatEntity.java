@@ -112,7 +112,7 @@ public class BoatEntity extends Entity {
 //                ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
 //                        entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity.getBedrockRotation().getX() + 10f, 0
 //                );
-//                session.getDownstream().getSession().send(clientVehicleMovePacket);
+//                session.sendDownstreamPacket(clientVehicleMovePacket);
             session.getConnector().getGeneralThreadPool().schedule(() ->
                             updateRightPaddle(session, entityMetadata),
                     100,

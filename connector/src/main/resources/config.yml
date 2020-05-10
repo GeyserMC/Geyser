@@ -60,6 +60,15 @@ allow-third-party-capes: true
 # The default locale if we dont have the one the client requested
 default-locale: en_us
 
+# Configures if chunk caching should be enabled or not. This keeps an individual
+# record of each block the client loads in. While this feature does allow for a few
+# things such as block break animations to show up in creative mode and among others,
+# it is HIGHLY recommended you disable this on a production environment as it can eat
+# up a lot of RAM. However, when using the Bukkit version of Geyser, support for features
+# or implementations this allows is automatically enabled without the additional caching as
+# Geyser has direct access to the server itself.
+cache-chunks: false
+
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
 # what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.

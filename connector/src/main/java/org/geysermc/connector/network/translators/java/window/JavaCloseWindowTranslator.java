@@ -39,7 +39,7 @@ public class JavaCloseWindowTranslator extends PacketTranslator<ServerCloseWindo
     public void translate(ServerCloseWindowPacket packet, GeyserSession session) {
         ContainerClosePacket closePacket = new ContainerClosePacket();
         closePacket.setWindowId((byte)packet.getWindowId());
-        session.getUpstream().sendPacket(closePacket);
+        session.sendUpstreamPacket(closePacket);
         InventoryUtils.closeInventory(session, packet.getWindowId());
     }
 }

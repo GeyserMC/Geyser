@@ -55,7 +55,7 @@ public class JavaEntityRotationTranslator extends PacketTranslator<ServerEntityR
             moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
             moveEntityAbsolutePacket.setPosition(entity.getPosition());
             moveEntityAbsolutePacket.setRotation(entity.getBedrockRotation());
-            session.getUpstream().sendPacket(moveEntityAbsolutePacket);
+            session.sendUpstreamPacket(moveEntityAbsolutePacket);
         } else {
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -63,7 +63,7 @@ public class JavaEntityRotationTranslator extends PacketTranslator<ServerEntityR
             movePlayerPacket.setRotation(entity.getBedrockRotation());
             movePlayerPacket.setOnGround(packet.isOnGround());
             movePlayerPacket.setMode(MovePlayerPacket.Mode.ROTATION);
-            session.getUpstream().sendPacket(movePlayerPacket);
+            session.sendUpstreamPacket(movePlayerPacket);
         }
     }
 }

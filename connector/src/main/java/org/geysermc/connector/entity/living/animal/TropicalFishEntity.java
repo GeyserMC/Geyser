@@ -28,7 +28,6 @@ package org.geysermc.connector.entity.living.animal;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.entity.living.AbstractFishEntity;
@@ -52,24 +51,6 @@ public class TropicalFishEntity extends AbstractFishEntity {
             metadata.put(EntityData.COLOR_2, variant.getPatternColor()); // Pattern color 0-15
         }
         super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public void spawnEntity(GeyserSession session) {
-        AddEntityPacket addEntityPacket = new AddEntityPacket();
-        addEntityPacket.setIdentifier("minecraft:tropicalfish");
-        addEntityPacket.setRuntimeEntityId(geyserId);
-        addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(position);
-        addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(getBedrockRotation());
-        addEntityPacket.setEntityType(entityType.getType());
-        addEntityPacket.getMetadata().putAll(metadata);
-
-        valid = true;
-        session.getUpstream().sendPacket(addEntityPacket);
-
-        session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
 
     @Getter

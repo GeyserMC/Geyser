@@ -35,8 +35,8 @@ import com.velocitypowered.api.plugin.Plugin;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.geysermc.common.PlatformType;
-import org.geysermc.common.bootstrap.IGeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandManager;
@@ -48,13 +48,13 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserConnector.NAME + "-Velocity", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
-public class GeyserVelocityPlugin implements IGeyserBootstrap {
+public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Inject
     private Logger logger;
 
     @Inject
-    private ProxyServer server;
+    private ProxyServer proxyServer;
 
     @Inject
     private CommandManager commandManager;
@@ -67,8 +67,9 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
 
     @Override
     public void onEnable() {
+        File configDir = new File("plugins/" + GeyserConnector.NAME + "-Velocity/");
+
         try {
-            File configDir = new File("plugins/" + GeyserConnector.NAME + "-Velocity/");
             if (!configDir.exists())
                 configDir.mkdir();
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
@@ -78,17 +79,20 @@ public class GeyserVelocityPlugin implements IGeyserBootstrap {
             ex.printStackTrace();
         }
 
-        InetSocketAddress javaAddr = server.getBoundAddress();
+        InetSocketAddress javaAddr = proxyServer.getBoundAddress();
 
         // Don't change the ip if its listening on all interfaces
         // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-        if (!javaAddr.getHostString().equals("0.0.0.0")) {
+        if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
             geyserConfig.getRemote().setAddress(javaAddr.getHostString());
         }
 
         geyserConfig.getRemote().setPort(javaAddr.getPort());
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
+
+        geyserConfig.loadFloodgate(this, proxyServer, configDir);
+
         this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);

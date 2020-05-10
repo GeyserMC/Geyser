@@ -66,7 +66,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             EntityLink.Type type = rider ? EntityLink.Type.RIDER : EntityLink.Type.PASSENGER;
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             linkPacket.setEntityLink(new EntityLink(entity.getGeyserId(), passenger.getGeyserId(), type, false));
-            session.getUpstream().sendPacket(linkPacket);
+            session.sendUpstreamPacket(linkPacket);
             passengers.add(passengerId);
 
             passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
@@ -88,7 +88,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             if (Arrays.stream(packet.getPassengerIds()).noneMatch(id -> id == passengerId)) {
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
                 linkPacket.setEntityLink(new EntityLink(entity.getGeyserId(), passenger.getGeyserId(), EntityLink.Type.REMOVE, false));
-                session.getUpstream().sendPacket(linkPacket);
+                session.sendUpstreamPacket(linkPacket);
                 passengers.remove(passenger.getEntityId());
 
                 this.updateOffset(passenger, entity.getEntityType(), session, false, false);
