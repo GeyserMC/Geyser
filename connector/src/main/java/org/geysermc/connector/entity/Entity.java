@@ -203,6 +203,7 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
+                    metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
                     // Shield code
@@ -221,16 +222,11 @@ public class Entity {
                             session.sendDownstreamPacket(useItemPacket);
                         }
                     } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
-                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                            metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
-                            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
-                            session.sendDownstreamPacket(releaseItemPacket);
-                        }
-                    // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    if ((xd & 0x20) == 0x20)
-                        metadata.put(EntityData.SCALE, 0.0f);
-                    else
-                        metadata.put(EntityData.SCALE, scale);
+                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
+                        metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
+                        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
+                        session.sendDownstreamPacket(releaseItemPacket);
+                    }
                 }
                 break;
             case 2: // custom name
