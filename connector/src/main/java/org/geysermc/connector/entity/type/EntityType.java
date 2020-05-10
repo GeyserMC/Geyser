@@ -47,7 +47,7 @@ public enum EntityType {
     WOLF(WolfEntity.class, 14, 0.85f, 0.6f),
     VILLAGER(VillagerEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:villager_v2"),
     MOOSHROOM(AnimalEntity.class, 16, 1.4f, 0.9f),
-    SQUID(WaterEntity.class, 17, 0.8f),
+    SQUID(SquidEntity.class, 17, 0.8f),
     RABBIT(RabbitEntity.class, 18, 0.5f, 0.4f),
     BAT(AmbientEntity.class, 19, 0.9f, 0.5f),
     IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
