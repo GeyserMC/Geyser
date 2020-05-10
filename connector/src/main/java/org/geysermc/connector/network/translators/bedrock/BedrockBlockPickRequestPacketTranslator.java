@@ -54,7 +54,6 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
         if (inventory == null) inventory = session.getInventory();
 
         String targetIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockToPick).split("\\[")[0];
-        System.out.println(targetIdentifier);
         ItemTranslator itemTranslator = new ItemTranslator();
 
         for (int i = 36; i < 45; i++) { // Check hotbar for item
