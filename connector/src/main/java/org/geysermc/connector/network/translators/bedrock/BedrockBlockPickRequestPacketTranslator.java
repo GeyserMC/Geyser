@@ -49,11 +49,15 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
         BlockState blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
         
         // Block is air - chunk caching is probably off
-        if (blockToPick.getId() == 0) return;
+        if (blockToPick.getId() == 0) {
+            return;
+        }
 
         // Get the inventory to choose a slot to pick
         Inventory inventory = session.getInventoryCache().getOpenInventory();
-        if (inventory == null) inventory = session.getInventory();
+        if (inventory == null) {
+            inventory = session.getInventory();
+        }
 
         String targetIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockToPick).split("\\[")[0];
         ItemTranslator itemTranslator = new ItemTranslator();
@@ -65,7 +69,9 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
             }
             ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
             // If this isn't the item we're looking for
-            if (!item.getJavaIdentifier().equals(targetIdentifier)) continue;
+            if (!item.getJavaIdentifier().equals(targetIdentifier)) {
+                continue;
+            }
             
             PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
             hotbarPacket.setContainerId(0);
@@ -84,8 +90,10 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
                 continue;
             }
             ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
-            
-            if (!item.getJavaIdentifier().equals(targetIdentifier)) continue;
+            // If this isn't the item we're looking for
+            if (!item.getJavaIdentifier().equals(targetIdentifier)) {
+                continue;
+            }
             
             ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
             session.sendDownstreamPacket(packetToSend);
