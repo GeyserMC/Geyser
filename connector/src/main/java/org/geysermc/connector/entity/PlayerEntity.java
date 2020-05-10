@@ -207,7 +207,6 @@ public class PlayerEntity extends LivingEntity {
 
         // Parrot occupying shoulder
         if (entityMetadata.getId() == 18 || entityMetadata.getId() == 19) {
-            System.out.println(entityMetadata.getValue());
             CompoundTag tag = (CompoundTag) entityMetadata.getValue();
             if (tag != null && !tag.isEmpty()) {
                 // The parrot is a separate entity in Bedrock, but part of the player entity in Java
