@@ -47,9 +47,6 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
     public void translate(BlockPickRequestPacket packet, GeyserSession session) {
         Vector3i vector = packet.getBlockPosition();
         BlockState blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
-
-        // Check if block is null for safety
-        if (blockToPick == null) return;
         
         // Block is air - chunk caching is probably off
         if (blockToPick.getId() == 0) return;
@@ -63,31 +60,33 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
 
         // Check hotbar for item
         for (int i = 36; i < 45; i++) {
-            if (inventory.getItem(i) != null) {
-                ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
-                if (item.getJavaIdentifier().equals(targetIdentifier)) {
-                    PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
-                    hotbarPacket.setContainerId(0);
-                    // Java inventory slot to hotbar slot ID
-                    hotbarPacket.setSelectedHotbarSlot(i - 36);
-                    hotbarPacket.setSelectHotbarSlot(true);
-                    session.sendUpstreamPacket(hotbarPacket);
-                    session.getInventory().setHeldItemSlot(i - 36);
-                    // Don't check inventory if item was in hotbar
-                    return;
-                }
+            if (inventory.getItem(i) == null) {
+                continue;
+            }
+            ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
+            if (item.getJavaIdentifier().equals(targetIdentifier)) {
+                PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
+                hotbarPacket.setContainerId(0);
+                // Java inventory slot to hotbar slot ID
+                hotbarPacket.setSelectedHotbarSlot(i - 36);
+                hotbarPacket.setSelectHotbarSlot(true);
+                session.sendUpstreamPacket(hotbarPacket);
+                session.getInventory().setHeldItemSlot(i - 36);
+                // Don't check inventory if item was in hotbar
+                return;
             }
         }
 
         // Check inventory for item
         for (int i = 9; i < 36; i++) {
-            if (inventory.getItem(i) != null) {
-                ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
-                if (item.getJavaIdentifier().equals(targetIdentifier)) {
-                    ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
-                    session.sendDownstreamPacket(packetToSend);
-                    break;
-                }
+            if (inventory.getItem(i) == null) {
+                continue;
+            }
+            ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
+            if (item.getJavaIdentifier().equals(targetIdentifier)) {
+                ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
+                session.sendDownstreamPacket(packetToSend);
+                break;
             }
         }
     }
