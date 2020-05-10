@@ -3,6 +3,7 @@ name: ${outputName}-Bukkit
 author: ${project.organization.name}
 website: ${project.organization.url}
 version: ${project.version}
+softdepend: ["ViaVersion"]
 commands:
   geyser:
     description: The main command for Geyser.

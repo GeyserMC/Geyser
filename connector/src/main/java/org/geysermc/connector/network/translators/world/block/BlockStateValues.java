@@ -47,6 +47,7 @@ public class BlockStateValues {
 
     private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
+    private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Map<String, CompoundTag> FLOWER_POT_BLOCKS = new HashMap<>();
     private static final Object2IntMap<BlockState> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
@@ -71,6 +72,15 @@ public class BlockStateValues {
         JsonNode bedColor = entry.getValue().get("bed_color");
         if (bedColor != null) {
             BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
+            return;
+        }
+
+        if (entry.getValue().get("double_chest_position") != null) {
+            boolean isX = (entry.getValue().get("x") != null);
+            boolean isDirectionPositive = ((entry.getValue().get("x") != null && entry.getValue().get("x").asBoolean()) ||
+                    (entry.getValue().get("z") != null && entry.getValue().get("z").asBoolean()));
+            boolean isLeft = (entry.getValue().get("double_chest_position").asText().contains("left"));
+            DOUBLE_CHEST_VALUES.put(javaBlockState.getId(), new DoubleChestValue(isX, isDirectionPositive, isLeft));
             return;
         }
 
@@ -134,6 +144,15 @@ public class BlockStateValues {
             return BED_COLORS.getByte(state);
         }
         return -1;
+    }
+
+    /**
+     * All double chest values are part of the block state in Java and part of the block entity tag in Bedrock.
+     * This gives the DoubleChestValue that can be calculated into the final tag.
+     * @return The map of all DoubleChestValues.
+     */
+    public static Int2ObjectMap<DoubleChestValue> getDoubleChestValues() {
+        return DOUBLE_CHEST_VALUES;
     }
 
     /**
