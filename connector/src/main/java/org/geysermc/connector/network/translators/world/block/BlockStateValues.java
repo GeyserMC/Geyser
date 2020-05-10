@@ -48,6 +48,7 @@ public class BlockStateValues {
     private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
     private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
+    private static int ENCHANTMENT_TABLE_ID = 0;
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Map<String, CompoundTag> FLOWER_POT_BLOCKS = new HashMap<>();
     private static final Object2IntMap<BlockState> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
@@ -81,6 +82,11 @@ public class BlockStateValues {
                     (entry.getValue().get("z") != null && entry.getValue().get("z").asBoolean()));
             boolean isLeft = (entry.getValue().get("double_chest_position").asText().contains("left"));
             DOUBLE_CHEST_VALUES.put(javaBlockState.getId(), new DoubleChestValue(isX, isDirectionPositive, isLeft));
+            return;
+        }
+
+        if (entry.getKey().equals("minecraft:enchanting_table")) {
+            ENCHANTMENT_TABLE_ID = javaBlockState.getId();
             return;
         }
 
@@ -153,6 +159,13 @@ public class BlockStateValues {
      */
     public static Int2ObjectMap<DoubleChestValue> getDoubleChestValues() {
         return DOUBLE_CHEST_VALUES;
+    }
+
+    /**
+     * @return The Java block state ID of the enchantment table
+     */
+    public static int getEnchantmentTableId() {
+        return ENCHANTMENT_TABLE_ID;
     }
 
     /**

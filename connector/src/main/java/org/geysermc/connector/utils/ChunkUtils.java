@@ -87,19 +87,19 @@ public class ChunkUtils {
                         BlockState blockState = chunk.get(x, y, z);
                         int id = BlockTranslator.getBedrockBlockId(blockState);
 
+                        Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+
                         // Check to see if the name is in BlockTranslator.getBlockEntityString, and therefore must be handled differently
                         if (BlockTranslator.getBlockEntityString(blockState) != null) {
-                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
                             blockEntityPositions.put(pos, blockState);
                         }
 
                         section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
 
-                        // Check if block is piston or flower - only block entities in Bedrock
-                        if (BlockStateValues.getFlowerPotValues().containsKey(blockState.getId()) ||
-                                BlockStateValues.getPistonValues().containsKey(blockState.getId())) {
-                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(Vector3i.from(pos.getX(), pos.getY(), pos.getZ()), blockState));
+                        // Check for block entities that only exist on Bedrock
+                        com.nukkitx.nbt.tag.CompoundTag tag = BedrockOnlyBlockEntity.getTag(Vector3i.from(pos.getX(), pos.getY(), pos.getZ()), blockState);
+                        if (tag != null) {
+                            bedrockOnlyBlockEntities.add(tag);
                         }
 
                         if (BlockTranslator.isWaterlogged(blockState)) {

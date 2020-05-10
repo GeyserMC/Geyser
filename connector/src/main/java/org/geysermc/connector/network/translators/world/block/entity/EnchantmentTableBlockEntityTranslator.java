@@ -28,37 +28,35 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.utils.BlockEntityUtils;
 
 /**
- * Implemented only if a block is a block entity in Bedrock and not Java Edition.
+ * The enchantment table requires a block entity tag in order to show the floating book
  */
-public interface BedrockOnlyBlockEntity {
+public class EnchantmentTableBlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
 
-    /**
-     * Update the block on Bedrock Edition.
-     * @param session GeyserSession.
-     * @param blockState The Java block state.
-     * @param position The Bedrock block position.
-     */
-    void updateBlock(GeyserSession session, BlockState blockState, Vector3i position);
+    @Override
+    public boolean isBlock(BlockState blockState) {
+        return BlockStateValues.getEnchantmentTableId() != 0 && blockState.getId() == BlockStateValues.getEnchantmentTableId();
+    }
 
-    /**
-     * Get the tag of the Bedrock-only block entity
-     * @param position Bedrock position of block.
-     * @param blockState Java BlockState of block.
-     * @return Bedrock tag, or null if not a Bedrock-only Block Entity
-     */
-    static CompoundTag getTag(Vector3i position, BlockState blockState) {
-        // The reason this mess of code exists is because there's so few, and the piston is updated differently
-        if (new FlowerPotBlockEntityTranslator().isBlock(blockState)) {
-            return FlowerPotBlockEntityTranslator.getTag(blockState, position);
-        } else if (PistonBlockEntityTranslator.isBlock(blockState)) {
-            return PistonBlockEntityTranslator.getTag(blockState, position);
-        } else if (new EnchantmentTableBlockEntityTranslator().isBlock(blockState)) {
-            return EnchantmentTableBlockEntityTranslator.getTag(position);
-        }
-        return null;
+    @Override
+    public void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
+        BlockEntityUtils.updateBlockEntity(session, getTag(position), position);
+    }
+
+    public static CompoundTag getTag(Vector3i position) {
+        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
+                .intTag("x", position.getX())
+                .intTag("y", position.getY())
+                .intTag("z", position.getZ())
+                .byteTag("isMovable", (byte) 1)
+                .stringTag("id", "EnchantTable")
+                .floatTag("rott", 0.0f);
+        return tagBuilder.buildRootTag();
     }
 }
