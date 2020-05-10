@@ -48,30 +48,39 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
         Vector3i vector = packet.getBlockPosition();
         BlockState blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
 
-        if (blockToPick.getId() == 0) return; // Block is air - chunk caching is probably off
+        // Check if block is null for safety
+        if (blockToPick == null || blockToPick.getId() == null) return;
+        
+        // Block is air - chunk caching is probably off
+        if (blockToPick.getId() == 0) return;
 
-        Inventory inventory = session.getInventoryCache().getOpenInventory(); // Get the inventory to choose a slot to pick
+        // Get the inventory to choose a slot to pick
+        Inventory inventory = session.getInventoryCache().getOpenInventory();
         if (inventory == null) inventory = session.getInventory();
 
         String targetIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockToPick).split("\\[")[0];
         ItemTranslator itemTranslator = new ItemTranslator();
 
-        for (int i = 36; i < 45; i++) { // Check hotbar for item
+        // Check hotbar for item
+        for (int i = 36; i < 45; i++) {
             if (inventory.getItem(i) != null) {
                 ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
                 if (item.getJavaIdentifier().equals(targetIdentifier)) {
                     PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
                     hotbarPacket.setContainerId(0);
-                    hotbarPacket.setSelectedHotbarSlot(i - 36); // Java inventory slot to hotbar slot ID
+                    // Java inventory slot to hotbar slot ID
+                    hotbarPacket.setSelectedHotbarSlot(i - 36);
                     hotbarPacket.setSelectHotbarSlot(true);
                     session.sendUpstreamPacket(hotbarPacket);
                     session.getInventory().setHeldItemSlot(i - 36);
-                    return; // Don't check inventory if item was in hotbar
+                    // Don't check inventory if item was in hotbar
+                    return;
                 }
             }
         }
 
-        for (int i = 9; i < 36; i++) { // Check inventory for item
+        // Check inventory for item
+        for (int i = 9; i < 36; i++) {
             if (inventory.getItem(i) != null) {
                 ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
                 if (item.getJavaIdentifier().equals(targetIdentifier)) {
