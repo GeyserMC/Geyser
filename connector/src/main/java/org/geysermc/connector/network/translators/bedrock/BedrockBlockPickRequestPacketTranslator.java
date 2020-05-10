@@ -38,7 +38,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.Translators;
 
 @Translator(packet = BlockPickRequestPacket.class)
 public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<BlockPickRequestPacket> {
@@ -60,7 +60,7 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
         }
 
         String targetIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockToPick).split("\\[")[0];
-        ItemTranslator itemTranslator = new ItemTranslator();
+        ItemTranslator itemTranslator = Translators.getItemTranslator();
 
         // Check hotbar for item
         for (int i = 36; i < 45; i++) {
