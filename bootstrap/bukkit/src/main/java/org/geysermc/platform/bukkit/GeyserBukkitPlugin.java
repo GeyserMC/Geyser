@@ -34,6 +34,7 @@ import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
+import org.geysermc.platform.bukkit.world.GeyserBukkitBlockPlaceListener;
 import org.geysermc.platform.bukkit.world.GeyserBukkitWorldManager;
 import us.myles.ViaVersion.api.Via;
 
@@ -44,6 +45,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
     private GeyserBukkitCommandManager geyserCommandManager;
     private GeyserBukkitConfiguration geyserConfig;
     private GeyserBukkitLogger geyserLogger;
+    private GeyserBukkitBlockPlaceListener blockPlaceListener;
     private GeyserBukkitWorldManager geyserWorldManager;
 
     private GeyserConnector connector;
@@ -92,6 +94,8 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         this.geyserWorldManager = new GeyserBukkitWorldManager(isLegacy, isViaVersion);
+        this.blockPlaceListener = new GeyserBukkitBlockPlaceListener(connector);
+        Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
         this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));
     }
