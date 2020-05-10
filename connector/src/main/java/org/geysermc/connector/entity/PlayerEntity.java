@@ -233,8 +233,6 @@ public class PlayerEntity extends LivingEntity {
             } else {
                 Entity parrot = (entityMetadata.getId() == 18 ? leftParrot : rightParrot);
                 if (parrot != null) {
-                    SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                    linkPacket.setEntityLink(new EntityLink(parrot.getGeyserId(), geyserId, EntityLink.Type.REMOVE, false));
                     parrot.despawnEntity(session);
                     if (entityMetadata.getId() == 18) {
                         leftParrot = null;
