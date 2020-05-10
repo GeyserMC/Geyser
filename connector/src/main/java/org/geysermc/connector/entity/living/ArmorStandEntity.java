@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -43,8 +44,28 @@ public class ArmorStandEntity extends LivingEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getType() == MetadataType.BYTE) {
             byte xd = (byte) entityMetadata.getValue();
-            if ((xd & 0x01) == 0x01 && (metadata.get(EntityData.SCALE) != null && !metadata.get(EntityData.SCALE).equals(0.0f))) {
-                metadata.put(EntityData.SCALE, .55f);
+
+            // isSmall
+            if ((xd & 0x01) == 0x01) {
+                GeyserConnector.getInstance().getLogger().debug("S: " + metadata.get(EntityData.SCALE));
+
+                if (metadata.get(EntityData.SCALE) == null || (metadata.get(EntityData.SCALE) != null && !metadata.get(EntityData.SCALE).equals(0.5f))) {
+                    metadata.put(EntityData.SCALE, 0.5f);
+                }
+
+                if (metadata.get(EntityData.BOUNDING_BOX_WIDTH) != null && metadata.get(EntityData.BOUNDING_BOX_WIDTH).equals(0.5f)) {
+                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.25f);
+                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.9875f);
+                }
+            } else if (metadata.get(EntityData.BOUNDING_BOX_WIDTH) != null && metadata.get(EntityData.BOUNDING_BOX_WIDTH).equals(0.25f)) {
+                metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+                metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
+            }
+
+            // setMarker
+            if ((xd & 0x10) == 0x10 && (metadata.get(EntityData.BOUNDING_BOX_WIDTH) != null && !metadata.get(EntityData.BOUNDING_BOX_WIDTH).equals(0.0f))) {
+                metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
+                metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
             }
         }
         super.updateBedrockMetadata(entityMetadata, session);
