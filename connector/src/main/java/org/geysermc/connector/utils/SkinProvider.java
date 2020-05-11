@@ -223,7 +223,9 @@ public class SkinProvider {
 
         // if the requested image is an cape
         if (provider != null) {
-            image = image.getWidth() > 64 ? scale(image) : image;
+            while(image.getWidth() > 64) {
+                image = scale(image);
+            }
             BufferedImage newImage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_RGB);
             Graphics g = newImage.createGraphics();
             g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
