@@ -42,7 +42,7 @@ public class GeyserPingPassthrough implements IGeyserPingPassthrough, Runnable {
 
     public GeyserPingPassthrough(GeyserConnector connector) {
         this.connector = connector;
-        this.pingInfo = new GeyserPingInfo();
+        this.pingInfo = new GeyserPingInfo(null, 0, 0);
     }
 
     private GeyserPingInfo pingInfo;
@@ -59,9 +59,7 @@ public class GeyserPingPassthrough implements IGeyserPingPassthrough, Runnable {
         try {
             this.client = new Client(connector.getConfig().getRemote().getAddress(), connector.getConfig().getRemote().getPort(), new MinecraftProtocol(SubProtocol.STATUS), new TcpSessionFactory());
             this.client.getSession().setFlag(MinecraftConstants.SERVER_INFO_HANDLER_KEY, (ServerInfoHandler) (session, info) -> {
-                pingInfo.motd = info.getDescription().getFullText();
-                pingInfo.currentPlayerCount = info.getPlayerInfo().getOnlinePlayers();
-                pingInfo.maxPlayerCount = info.getPlayerInfo().getMaxPlayers();
+                this.pingInfo = new GeyserPingInfo(info.getDescription().getFullText(), info.getPlayerInfo().getOnlinePlayers(), info.getPlayerInfo().getMaxPlayers());
                 this.client.getSession().disconnect(null);
             });
 

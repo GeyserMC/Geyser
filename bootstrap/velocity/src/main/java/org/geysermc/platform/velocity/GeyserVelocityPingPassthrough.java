@@ -26,27 +26,70 @@
 
 package org.geysermc.platform.velocity;
 
+import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.network.ProtocolVersion;
+import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.server.ServerPing;
 import lombok.AllArgsConstructor;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.common.ping.GeyserPingInfo;
 import org.geysermc.common.ping.IGeyserPingPassthrough;
 
+import java.net.Inet4Address;
+import java.net.InetSocketAddress;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+
 @AllArgsConstructor
 public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
-    private ProxyServer server;
+    private static final GeyserInboundConnection FAKE_INBOUND_CONNECTION = new GeyserInboundConnection();
+
+    private final ProxyServer server;
 
     @Override
     public GeyserPingInfo getPingInformation() {
+        ProxyPingEvent event;
+        try {
+            event = server.getEventManager().fire(new ProxyPingEvent(FAKE_INBOUND_CONNECTION, ServerPing.builder().build())).get();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
-                LegacyComponentSerializer.INSTANCE.serialize(server.getConfiguration().getMotdComponent(), '§'),
-                server.getPlayerCount(),
-                server.getConfiguration().getShowMaxPlayers()
+                LegacyComponentSerializer.INSTANCE.serialize(event.getPing().getDescription(), '§'),
+                event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getOnline(),
+                event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getMax()
         );
-        server.getAllPlayers().forEach(player -> {
-            geyserPingInfo.addPlayer(player.getUsername());
+        event.getPing().getPlayers().get().getSample().forEach(player -> {
+            geyserPingInfo.addPlayer(player.getName());
         });
         return geyserPingInfo;
     }
+
+    private static class GeyserInboundConnection implements InboundConnection {
+
+        private static final InetSocketAddress FAKE_REMOTE = new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69);
+
+        @Override
+        public InetSocketAddress getRemoteAddress() {
+            return FAKE_REMOTE;
+        }
+
+        @Override
+        public Optional<InetSocketAddress> getVirtualHost() {
+            return Optional.empty();
+        }
+
+        @Override
+        public boolean isActive() {
+            return false;
+        }
+
+        @Override
+        public ProtocolVersion getProtocolVersion() {
+            return ProtocolVersion.MAXIMUM_VERSION;
+        }
+    }
+
 }
