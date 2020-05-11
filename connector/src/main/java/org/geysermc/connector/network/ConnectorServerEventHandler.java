@@ -72,10 +72,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setGameType("Default");
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
-        pong.setVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+        pong.setVersion(null); // Server tries to connect either way and it looks better
         pong.setIpv4Port(config.getBedrock().getPort());
 
-        if (connector.getConfig().isPassthroughMotd() && pingInfo != null) {
+        if (connector.getConfig().isPassthroughMotd() && pingInfo != null && pingInfo.motd != null) {
             String[] motd = MessageUtils.getBedrockMessage(Message.fromString(pingInfo.motd)).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.

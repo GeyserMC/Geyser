@@ -26,6 +26,7 @@
 
 package org.geysermc.platform.bukkit;
 
+import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.server.ServerListPingEvent;
@@ -37,7 +38,10 @@ import java.net.InetAddress;
 import java.util.Collections;
 import java.util.Iterator;
 
+@AllArgsConstructor
 public class GeyserBukkitPingPassthrough implements IGeyserPingPassthrough {
+
+    private GeyserBukkitLogger logger;
 
     @Override
     public GeyserPingInfo getPingInformation() {
@@ -50,11 +54,12 @@ public class GeyserBukkitPingPassthrough implements IGeyserPingPassthrough {
             });
             return geyserPingInfo;
         } catch (Exception e) {
+            logger.debug("Error while getting Bukkit ping passthrough: " + e.toString());
             return new GeyserPingInfo(null, 0, 0);
         }
     }
 
-    // These methods are unimplemented on spigot api by default so we add stubs so plugins dont complain
+    // These methods are unimplemented on spigot api by default so we add stubs so plugins don't complain
     private static class GeyserPingEvent extends ServerListPingEvent {
 
         public GeyserPingEvent(InetAddress address, String motd, int numPlayers, int maxPlayers) {

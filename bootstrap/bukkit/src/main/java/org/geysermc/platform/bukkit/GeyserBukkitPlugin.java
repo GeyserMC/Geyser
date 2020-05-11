@@ -66,7 +66,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements IGeyserBootstrap {
 
         this.geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
         this.connector = GeyserConnector.start(PlatformType.BUKKIT, this);
-        this.geyserBukkitPingPassthrough = new GeyserBukkitPingPassthrough();
+        this.geyserBukkitPingPassthrough = new GeyserBukkitPingPassthrough(geyserLogger);
 
         this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
 
