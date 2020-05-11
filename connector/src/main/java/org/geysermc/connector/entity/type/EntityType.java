@@ -83,7 +83,7 @@ public enum EntityType {
     GUARDIAN(GuardianEntity.class, 49, 0.85f),
     ELDER_GUARDIAN(GuardianEntity.class, 50, 1.9975f),
     NPC(PlayerEntity.class, 51, 1.8f, 0.6f, 0.6f, 1.62f),
-    WITHER(MonsterEntity.class, 52, 3.5f, 0.9f),
+    WITHER(WitherEntity.class, 52, 3.5f, 0.9f),
     ENDER_DRAGON(EnderDragonEntity.class, 53, 4f, 13f),
     SHULKER(ShulkerEntity.class, 54, 1f, 1f),
     ENDERMITE(MonsterEntity.class, 55, 0.3f, 0.4f),
