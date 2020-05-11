@@ -209,8 +209,6 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
-                    metadata.put(EntityData.SCALE, scale);
-
                     if ((xd & 0x20) == 0x20) {
                         if (this.is(ArmorStandEntity.class)) {
                             metadata.put(EntityData.SCALE, 0.0f);
