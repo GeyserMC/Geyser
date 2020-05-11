@@ -341,7 +341,7 @@ public class GeyserSession implements CommandSender {
                                 playerEntity.setUuid(profile.getId());
 
                                 // Check if they are not using a linked account
-                                if (!playerEntity.getUuid().toString().startsWith("00000000-0000-0000")) {
+                                if (connector.getAuthType() == AuthType.OFFLINE || playerEntity.getUuid().toString().startsWith("00000000-0000-0000")) {
                                     SkinUtils.handleBedrockSkin(playerEntity, clientData);
                                 }
                             }
