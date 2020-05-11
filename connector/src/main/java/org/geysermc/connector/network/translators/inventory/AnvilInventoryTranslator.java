@@ -41,7 +41,8 @@ import java.util.List;
 
 public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     public AnvilInventoryTranslator() {
-        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, new CursorInventoryUpdater());
+        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, new CursorInventoryUpdater(),
+                "minecraft:chipped_anvil", "minecraft:damaged_anvil");
     }
 
     @Override

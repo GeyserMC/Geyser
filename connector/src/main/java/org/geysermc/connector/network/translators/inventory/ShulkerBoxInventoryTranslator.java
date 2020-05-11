@@ -24,22 +24,23 @@
  *
  */
 
-package org.geysermc.connector.network.translators.world;
+package org.geysermc.connector.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.nukkitx.math.vector.Vector3i;
-import org.geysermc.connector.network.session.GeyserSession;
+import com.nukkitx.protocol.bedrock.data.ContainerType;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
-public class CachedChunkManager extends WorldManager {
+public class ShulkerBoxInventoryTranslator extends BlockInventoryTranslator {
 
-    @Override
-    public BlockState getBlockAt(GeyserSession session, int x, int y, int z) {
-        return session.getChunkCache().getBlockAt(new Position(x, y, z));
+    private static final ObjectArrayList<String> SHULKER_BOX_TYPES = new ObjectArrayList<>();
+
+    public ShulkerBoxInventoryTranslator(InventoryUpdater updater) {
+        super(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, updater,
+                SHULKER_BOX_TYPES.toArray(new String[SHULKER_BOX_TYPES.size()]));
     }
 
-    @Override
-    public Vector3i getFacingBlock(GeyserSession session) {
-        return session.getLastInteractionPosition();
+    public static void addShulkerBoxColor(String name) {
+        SHULKER_BOX_TYPES.add(name.split("\\[")[0]);
     }
+
 }

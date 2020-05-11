@@ -30,6 +30,7 @@ import org.geysermc.connector.network.translators.inventory.updater.ChestInvento
 
 public class SingleChestInventoryTranslator extends BlockInventoryTranslator {
     public SingleChestInventoryTranslator(int size) {
-        super(size, "minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER, new ChestInventoryUpdater(27));
+        super(size, "minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER, new ChestInventoryUpdater(27),
+                "minecraft:barrel", "minecraft:ender_chest", "minecraft:trapped_chest");
     }
 }

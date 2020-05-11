@@ -24,22 +24,29 @@
  *
  */
 
-package org.geysermc.connector.network.translators.world;
+package org.geysermc.connector.network.translators.world.block;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.nukkitx.math.vector.Vector3i;
-import org.geysermc.connector.network.session.GeyserSession;
+import lombok.AllArgsConstructor;
 
-public class CachedChunkManager extends WorldManager {
+/**
+ * This stores all values of double chests that are part of the Java block state.
+ */
+@AllArgsConstructor
+public class DoubleChestValue {
 
-    @Override
-    public BlockState getBlockAt(GeyserSession session, int x, int y, int z) {
-        return session.getChunkCache().getBlockAt(new Position(x, y, z));
-    }
+    /**
+     * If true, then chest is facing east/west; if false, south/north
+     */
+    public boolean isFacingEast;
 
-    @Override
-    public Vector3i getFacingBlock(GeyserSession session) {
-        return session.getLastInteractionPosition();
-    }
+    /**
+     * If true, direction is positive (east/south); if false, direction is negative (west/north)
+     */
+    public boolean isDirectionPositive;
+
+    /**
+     * If true, chest is the left of a pair; if false, chest is the right of a pair.
+     */
+    public boolean isLeft;
+
 }

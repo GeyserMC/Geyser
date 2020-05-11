@@ -166,9 +166,9 @@ public class Translators {
         inventoryTranslators.put(WindowType.SMOKER, new SmokerInventoryTranslator());
 
         InventoryUpdater containerUpdater = new ContainerInventoryUpdater();
-        inventoryTranslators.put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, containerUpdater));
+        inventoryTranslators.put(WindowType.GENERIC_3X3, new DispenserInventoryTranslator(containerUpdater));
         inventoryTranslators.put(WindowType.HOPPER, new BlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, containerUpdater));
-        inventoryTranslators.put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, containerUpdater));
+        inventoryTranslators.put(WindowType.SHULKER_BOX, new ShulkerBoxInventoryTranslator(containerUpdater));
         //inventoryTranslators.put(WindowType.BEACON, new BlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO
     }
 }

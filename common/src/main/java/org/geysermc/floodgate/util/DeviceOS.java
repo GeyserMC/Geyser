@@ -43,7 +43,8 @@ public enum DeviceOS {
     ORBIS("PS4"),
     NX("Switch"),
     SWITCH("Switch"),
-    XBOX_ONE("Xbox One");
+    XBOX_ONE("Xbox One"),
+    WIN_PHONE("Windows Phone");
 
     private static final DeviceOS[] VALUES = values();
 

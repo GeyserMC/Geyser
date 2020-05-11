@@ -33,41 +33,57 @@ import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.SingleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.LocaleUtils;
 
 @AllArgsConstructor
 public class BlockInventoryHolder extends InventoryHolder {
-    private int blockId;
+    private final int blockId;
     private final ContainerType containerType;
+    private final ObjectArrayList<String> compatibleBlocks;
 
     @Override
     public void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-        Vector3i position = Vector3i.ZERO;
-        // Get actual position of block if chunks are cached
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            position = session.getConnector().getBootstrap().getWorldManager().getFacingBlock(session);
-        }
-        // ZERO means that the block was not retrieved
-        if (position == Vector3i.ZERO) {
+        Vector3i position = session.getLastInteractionPosition();
+        boolean isCreatingNewBlock = false;
+        int newBlockId = 0;
+        //BlockState worldBlockId = session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ());
+        //String javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(worldBlockId);
+        String javaBlockId = session.getLastInteractionBlockId();
+        System.out.println(javaBlockId);
+        if (javaBlockId != null) {
+            String isolatedBlockId = javaBlockId.split("\\[")[0];
+            String thisBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(BlockTranslator.getJavaBlockState(blockId)).split("\\[")[0];
+            if ((isolatedBlockId.equals(thisBlockId)) || (compatibleBlocks != null && compatibleBlocks.contains(isolatedBlockId))) {
+                newBlockId = BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(javaBlockId));
+            } else {
+                // Reset position to player because this is the wrong block
+                position = session.getPlayerEntity().getPosition().toInt();
+                position = position.add(Vector3i.UP);
+                isCreatingNewBlock = true;
+            }
+        } else {
+            // Reset position to player because this is the wrong block
             position = session.getPlayerEntity().getPosition().toInt();
             position = position.add(Vector3i.UP);
-        } else {
-            blockId = BlockTranslator.getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ()));
+            isCreatingNewBlock = true;
         }
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(isCreatingNewBlock ? blockId : newBlockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
 
-        if (position == Vector3i.ZERO) {
+        if (isCreatingNewBlock) {
             CompoundTag tag = CompoundTag.builder()
                     .intTag("x", position.getX())
                     .intTag("y", position.getY())

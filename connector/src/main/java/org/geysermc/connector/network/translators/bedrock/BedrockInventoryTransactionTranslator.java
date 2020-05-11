@@ -196,5 +196,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 }
                 break;
         }
+        session.setLastInteractionPosition(packet.getBlockPosition());
+        System.out.println("Block runtime: " + packet.getBlockRuntimeId());
+        session.setLastInteractionBlockId(BlockTranslator.getJavaIdBlockMap().inverse().get(BlockTranslator.getJavaBlockState(packet.getBlockRuntimeId())));
+        System.out.println("Interacted with block: " + session.getLastInteractionBlockId());
     }
 }

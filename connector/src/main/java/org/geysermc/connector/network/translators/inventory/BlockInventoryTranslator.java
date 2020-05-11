@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -34,16 +35,31 @@ import org.geysermc.connector.network.translators.inventory.holder.BlockInventor
 import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
+import java.util.Arrays;
+
 public class BlockInventoryTranslator extends BaseInventoryTranslator {
     private final InventoryHolder holder;
     private final InventoryUpdater updater;
 
-    public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater) {
+    public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater, String... compatibleBlocks) {
         super(size);
         BlockState javaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
         int blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
-        this.holder = new BlockInventoryHolder(blockId, containerType);
         this.updater = updater;
+        ObjectArrayList<String> compatibleBlocksList;
+        if (compatibleBlocks.length > 0) {
+            // There are other blocks that can be used with this inventory translator
+            compatibleBlocksList = new ObjectArrayList<>();
+            compatibleBlocksList.addAll(Arrays.asList(compatibleBlocks));
+        } else {
+            // Only one type of block can be used
+            compatibleBlocksList = null;
+        }
+        this.holder = new BlockInventoryHolder(blockId, containerType, compatibleBlocksList);
+    }
+
+    public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater) {
+        this(size, javaBlockIdentifier, containerType, updater, new String[0]);
     }
 
     @Override
