@@ -53,7 +53,7 @@ public class EnderDragonEntity extends InsentientEntity {
                     entityEventPacket.setType(EntityEventType.DRAGON_FLAMING);
                     entityEventPacket.setRuntimeEntityId(geyserId);
                     entityEventPacket.setData(0);
-                    session.getUpstream().sendPacket(entityEventPacket);
+                    session.sendUpstreamPacket(entityEventPacket);
                 case 6:
                 case 7:
                     metadata.getFlags().setFlag(EntityFlag.SITTING, true);
@@ -79,7 +79,7 @@ public class EnderDragonEntity extends InsentientEntity {
         addEntityPacket.getAttributes().add(new Attribute("minecraft:health", 0.0f, 200f, 200f, 200f));
 
         valid = true;
-        session.getUpstream().sendPacket(addEntityPacket);
+        session.sendUpstreamPacket(addEntityPacket);
 
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }

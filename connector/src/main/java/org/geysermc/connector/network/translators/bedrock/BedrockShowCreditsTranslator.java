@@ -40,7 +40,7 @@ public class BedrockShowCreditsTranslator extends PacketTranslator<ShowCreditsPa
     public void translate(ShowCreditsPacket packet, GeyserSession session) {
         if (packet.getStatus() == ShowCreditsPacket.Status.END_CREDITS) {
             ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
-            session.getDownstream().getSession().send(javaRespawnPacket);
+            session.sendDownstreamPacket(javaRespawnPacket);
         }
     }
 }

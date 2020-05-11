@@ -35,24 +35,28 @@ import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityDataMap;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.*;
-
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -93,6 +97,7 @@ public class Entity {
         setPosition(position);
 
         metadata.put(EntityData.SCALE, 1f);
+        metadata.put(EntityData.COLOR, 0);
         metadata.put(EntityData.MAX_AIR, (short) 400);
         metadata.put(EntityData.AIR, (short) 0);
         metadata.put(EntityData.LEAD_HOLDER_EID, -1L);
@@ -108,7 +113,7 @@ public class Entity {
 
     public void spawnEntity(GeyserSession session) {
         AddEntityPacket addEntityPacket = new AddEntityPacket();
-        addEntityPacket.setIdentifier("minecraft:" + entityType.name().toLowerCase());
+        addEntityPacket.setIdentifier(entityType.getIdentifier());
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
@@ -118,7 +123,7 @@ public class Entity {
         addEntityPacket.getMetadata().putAll(metadata);
 
         valid = true;
-        session.getUpstream().sendPacket(addEntityPacket);
+        session.sendUpstreamPacket(addEntityPacket);
 
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
@@ -134,7 +139,7 @@ public class Entity {
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(geyserId);
-        session.getUpstream().sendPacket(removeEntityPacket);
+        session.sendUpstreamPacket(removeEntityPacket);
 
         valid = false;
         return true;
@@ -155,7 +160,7 @@ public class Entity {
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(false);
 
-        session.getUpstream().sendPacket(moveEntityPacket);
+        session.sendUpstreamPacket(moveEntityPacket);
     }
 
     public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
@@ -173,7 +178,7 @@ public class Entity {
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 
-        session.getUpstream().sendPacket(moveEntityPacket);
+        session.sendUpstreamPacket(moveEntityPacket);
     }
 
     public void updateBedrockAttributes(GeyserSession session) {
@@ -190,7 +195,7 @@ public class Entity {
         UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
         updateAttributesPacket.setRuntimeEntityId(geyserId);
         updateAttributesPacket.setAttributes(attributes);
-        session.getUpstream().sendPacket(updateAttributesPacket);
+        session.sendUpstreamPacket(updateAttributesPacket);
     }
 
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
@@ -203,6 +208,16 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
+
+                    metadata.put(EntityData.SCALE, scale);
+
+                    if ((xd & 0x20) == 0x20) {
+                        if (this.is(ArmorStandEntity.class)) {
+                            metadata.put(EntityData.SCALE, 0.0f);
+                        } else {
+                            metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
+                        }
+                    }
 
                     // Shield code
                     if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
@@ -217,19 +232,14 @@ public class Entity {
                             else {
                                 useItemPacket = new ClientPlayerUseItemPacket(Hand.OFF_HAND);
                             }
-                            session.getDownstream().getSession().send(useItemPacket);
+                            session.sendDownstreamPacket(useItemPacket);
                         }
                     } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
-                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                            metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
-                            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
-                            session.getDownstream().getSession().send(releaseItemPacket);
-                        }
-                    // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    if ((xd & 0x20) == 0x20)
-                        metadata.put(EntityData.SCALE, 0.0f);
-                    else
-                        metadata.put(EntityData.SCALE, scale);
+                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
+                        metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
+                        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
+                        session.sendDownstreamPacket(releaseItemPacket);
+                    }
                 }
                 break;
             case 2: // custom name
@@ -264,11 +274,12 @@ public class Entity {
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
-        session.getUpstream().sendPacket(entityDataPacket);
+        session.sendUpstreamPacket(entityDataPacket);
     }
 
     /**
      * x = Pitch, y = HeadYaw, z = Yaw
+     *
      * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {

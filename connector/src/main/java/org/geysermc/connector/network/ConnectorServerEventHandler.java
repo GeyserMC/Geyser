@@ -27,14 +27,11 @@ package org.geysermc.connector.network;
 
 import com.github.steveice10.mc.protocol.data.message.Message;
 import com.nukkitx.protocol.bedrock.*;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
-import org.geysermc.common.IGeyserConfiguration;
 import org.geysermc.common.ping.GeyserPingInfo;
 import org.geysermc.common.ping.IGeyserPingPassthrough;
+import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.MessageUtils;
@@ -43,7 +40,7 @@ import java.net.InetSocketAddress;
 
 public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public ConnectorServerEventHandler(GeyserConnector connector) {
         this.connector = connector;
@@ -59,10 +56,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
         connector.getLogger().debug(inetSocketAddress + " has pinged you!");
 
-        IGeyserConfiguration config = connector.getConfig();
+        GeyserConfiguration config = connector.getConfig();
 
         GeyserPingInfo pingInfo = null;
-        if (connector.getConfig().isPassthroughMotd() || connector.getConfig().isPassthroughPlayerCounts()) {
+        if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = connector.getBootstrap().getGeyserPingPassthrough();
             pingInfo = pingPassthrough.getPingInformation();
         }
@@ -75,7 +72,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setVersion(null); // Server tries to connect either way and it looks better
         pong.setIpv4Port(config.getBedrock().getPort());
 
-        if (connector.getConfig().isPassthroughMotd() && pingInfo != null && pingInfo.motd != null) {
+        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.motd != null) {
             String[] motd = MessageUtils.getBedrockMessage(Message.fromString(pingInfo.motd)).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
@@ -87,7 +84,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setSubMotd(config.getBedrock().getMotd2());
         }
 
-        if (connector.getConfig().isPassthroughPlayerCounts() && pingInfo != null) {
+        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
             pong.setPlayerCount(pingInfo.currentPlayerCount);
             pong.setMaximumPlayerCount(pingInfo.maxPlayerCount);
         } else {
@@ -115,11 +112,6 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             if (player != null) {
                 player.disconnect(disconnectReason.name());
                 connector.removePlayer(player);
-
-                player.getEntityCache().clear();
-                player.getInventoryCache().getInventories().clear();
-                player.getWindowCache().getWindows().clear();
-                player.getScoreboardCache().removeScoreboard();
             }
         });
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);

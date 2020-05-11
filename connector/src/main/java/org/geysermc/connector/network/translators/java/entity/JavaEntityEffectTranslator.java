@@ -55,6 +55,6 @@ public class JavaEntityEffectTranslator extends PacketTranslator<ServerEntityEff
         mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
         mobEffectPacket.setParticles(packet.isShowParticles());
         mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(packet.getEffect()));
-        session.getUpstream().sendPacket(mobEffectPacket);
+        session.sendUpstreamPacket(mobEffectPacket);
     }
 }

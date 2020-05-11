@@ -51,7 +51,7 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public GeyserPingInfo getPingInformation() {
-        // come on sponge, this is in commons, why not expose it :(
+        // come on Sponge, this is in commons, why not expose it :(
         ClientPingServerEvent event;
         try {
             if(SpongeStatusResponse_create == null) {

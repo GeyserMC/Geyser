@@ -57,14 +57,14 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
-        session.getUpstream().sendPacket(playerGameTypePacket);
+        session.sendUpstreamPacket(playerGameTypePacket);
         session.setGameMode(packet.getGamemode());
 
         LevelEventPacket stopRainPacket = new LevelEventPacket();
         stopRainPacket.setType(LevelEventType.STOP_RAIN);
         stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
         stopRainPacket.setPosition(Vector3f.ZERO);
-        session.getUpstream().sendPacket(stopRainPacket);
+        session.sendUpstreamPacket(stopRainPacket);
 
         if (entity.getDimension() != DimensionUtils.javaToBedrock(packet.getDimension())) {
             DimensionUtils.switchDimension(session, packet.getDimension());

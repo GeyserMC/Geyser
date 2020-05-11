@@ -25,9 +25,10 @@
 
 package org.geysermc.platform.bungeecord;
 
+import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
-
-import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.connector.FloodgateKeyLoader;
+import org.geysermc.connector.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -35,7 +36,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserBungeeConfiguration implements IGeyserConfiguration {
+public class GeyserBungeeConfiguration implements GeyserConfiguration {
 
     private File dataFolder;
     private Configuration config;
@@ -45,6 +46,8 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
     private BungeeMetricsInfo metricsInfo;
 
     private Map<String, BungeeUserAuthenticationInfo> userAuthInfo = new HashMap<>();
+
+    private Path floodgateKey;
 
     public GeyserBungeeConfiguration(File dataFolder, Configuration config) {
         this.dataFolder = dataFolder;
@@ -60,6 +63,11 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
         for (String key : config.getSection("userAuths").getKeys()) {
             userAuthInfo.put(key, new BungeeUserAuthenticationInfo(key));
         }
+    }
+
+    public void loadFloodgate(GeyserBungeePlugin plugin) {
+        Plugin floodgate = plugin.getProxy().getPluginManager().getPlugin("floodgate-bungee");
+        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem")), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
     }
 
     @Override
@@ -114,7 +122,12 @@ public class GeyserBungeeConfiguration implements IGeyserConfiguration {
 
     @Override
     public Path getFloodgateKeyFile() {
-        return Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
+        return floodgateKey;
+    }
+
+    @Override
+    public boolean isCacheChunks() {
+        return config.getBoolean("cache-chunks", false);
     }
 
     @Override

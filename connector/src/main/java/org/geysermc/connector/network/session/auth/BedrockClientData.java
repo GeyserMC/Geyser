@@ -24,6 +24,10 @@ public class BedrockClientData {
     private String skinId;
     @JsonProperty(value = "SkinData")
     private String skinData;
+    @JsonProperty(value = "SkinImageHeight")
+    private int skinImageHeight;
+    @JsonProperty(value = "SkinImageWidth")
+    private int skinImageWidth;
     @JsonProperty(value = "CapeId")
     private String capeId;
     @JsonProperty(value = "CapeData")

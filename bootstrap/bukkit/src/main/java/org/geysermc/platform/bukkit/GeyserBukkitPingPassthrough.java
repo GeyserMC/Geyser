@@ -41,7 +41,7 @@ import java.util.Iterator;
 @AllArgsConstructor
 public class GeyserBukkitPingPassthrough implements IGeyserPingPassthrough {
 
-    private GeyserBukkitLogger logger;
+    private final GeyserBukkitLogger logger;
 
     @Override
     public GeyserPingInfo getPingInformation() {

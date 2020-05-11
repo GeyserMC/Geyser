@@ -28,7 +28,7 @@ package org.geysermc.connector.network;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.common.AuthType;
-import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Registry;
@@ -58,10 +58,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        session.getUpstream().sendPacket(playStatus);
+        session.sendUpstreamPacket(playStatus);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
-        session.getUpstream().sendPacket(resourcePacksInfo);
+        session.sendUpstreamPacket(resourcePacksInfo);
         return true;
     }
 
@@ -77,7 +77,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stack.setExperimental(false);
                 stack.setForcedToAccept(false);
                 stack.setGameVersion("*");
-                session.getUpstream().sendPacket(stack);
+                session.sendUpstreamPacket(stack);
                 break;
             default:
                 session.disconnect("disconnectionScreen.resourcePack");
@@ -94,7 +94,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean couldLoginUserByName(String bedrockUsername) {
         if (connector.getConfig().getUserAuths() != null) {
-            IGeyserConfiguration.IUserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
+            GeyserConfiguration.IUserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
 
             if (info != null) {
                 connector.getLogger().info("using stored credentials for bedrock user " + session.getAuthData().getName());

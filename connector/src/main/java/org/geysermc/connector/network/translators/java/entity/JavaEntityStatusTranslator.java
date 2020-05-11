@@ -96,6 +96,6 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
         }
 
-        session.getUpstream().sendPacket(entityEventPacket);
+        session.sendUpstreamPacket(entityEventPacket);
     }
 }

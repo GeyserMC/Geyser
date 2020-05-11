@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.session.cache;
 
+import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,7 +40,7 @@ public class TeleportCache {
     private double x, y, z;
     private int teleportConfirmId;
 
-    public boolean canConfirm(Vector3f position) {
+    public boolean canConfirm(Vector3d position) {
         return (Math.abs(this.x - position.getX()) < ERROR &&
                 Math.abs(this.y - position.getY()) < ERROR_Y &&
                 Math.abs(this.z - position.getZ()) < ERROR);
