@@ -26,28 +26,153 @@
 
 package org.geysermc.platform.bungeecord;
 
+import lombok.AllArgsConstructor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.ServerPing;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
+import net.md_5.bungee.api.connection.PendingConnection;
+import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
+import net.md_5.bungee.protocol.ProtocolConstants;
 import org.geysermc.common.ping.GeyserPingInfo;
 import org.geysermc.common.ping.IGeyserPingPassthrough;
 
+import java.net.Inet4Address;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Arrays;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+@AllArgsConstructor
 public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, Listener {
 
-    private final ListenerInfo listener;
-    private final ProxyServer proxyServer;
+    private static final GeyserPendingConnection PENDING_CONNECTION = new GeyserPendingConnection();
 
-    public GeyserBungeePingPassthrough(ProxyServer proxyServer) {
-        this.listener = proxyServer.getConfig().getListeners().iterator().next();;
-        this.proxyServer = proxyServer;
-    }
+    private final ProxyServer proxyServer;
 
     @Override
     public GeyserPingInfo getPingInformation() {
-        GeyserPingInfo geyserPingInfo = new GeyserPingInfo(listener.getMotd(), proxyServer.getOnlineCount(), listener.getMaxPlayers());
-        proxyServer.getPlayers().forEach(proxiedPlayer -> {
+        CompletableFuture<ProxyPingEvent> future = new CompletableFuture<>();
+        proxyServer.getPluginManager().callEvent(new ProxyPingEvent(PENDING_CONNECTION, getPingInfo(), (event, throwable) -> {
+            if (throwable != null) future.completeExceptionally(throwable);
+            else future.complete(event);
+        }));
+        ProxyPingEvent event = future.join();
+        GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
+                event.getResponse().getDescription(),
+                event.getResponse().getPlayers().getOnline(),
+                event.getResponse().getPlayers().getMax()
+        );
+        Arrays.stream(event.getResponse().getPlayers().getSample()).forEach(proxiedPlayer -> {
             geyserPingInfo.addPlayer(proxiedPlayer.getName());
         });
         return geyserPingInfo;
     }
+
+    // This is static so pending connection can use it
+    private static ListenerInfo getDefaultListener() {
+        return ProxyServer.getInstance().getConfig().getListeners().iterator().next();
+    }
+
+    private ServerPing getPingInfo() {
+        return new ServerPing(
+                new ServerPing.Protocol(proxyServer.getName() + " " + proxyServer.getGameVersion(), ProtocolConstants.SUPPORTED_VERSION_IDS.get(ProtocolConstants.SUPPORTED_VERSION_IDS.size() - 1)),
+                new ServerPing.Players(getDefaultListener().getMaxPlayers(), proxyServer.getOnlineCount(), null),
+                getDefaultListener().getMotd(), proxyServer.getConfig().getFaviconObject()
+        );
+    }
+
+    private static class GeyserPendingConnection implements PendingConnection {
+
+        private static final UUID FAKE_UUID = UUID.fromString("geyser!internal");
+        private static final InetSocketAddress FAKE_REMOTE = new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69);
+
+        @Override
+        public String getName() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int getVersion() {
+            return ProtocolConstants.SUPPORTED_VERSION_IDS.get(ProtocolConstants.SUPPORTED_VERSION_IDS.size() - 1);
+        }
+
+        @Override
+        public InetSocketAddress getVirtualHost() {
+            return null;
+        }
+
+        @Override
+        public ListenerInfo getListener() {
+            return getDefaultListener();
+        }
+
+        @Override
+        public String getUUID() {
+            return FAKE_UUID.toString();
+        }
+
+        @Override
+        public UUID getUniqueId() {
+            return FAKE_UUID;
+        }
+
+        @Override
+        public void setUniqueId(UUID uuid) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isOnlineMode() {
+            return true;
+        }
+
+        @Override
+        public void setOnlineMode(boolean b) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isLegacy() {
+            return false;
+        }
+
+        @Override
+        public InetSocketAddress getAddress() {
+            return FAKE_REMOTE;
+        }
+
+        @Override
+        public SocketAddress getSocketAddress() {
+            return getAddress();
+        }
+
+        @Override
+        public void disconnect(String s) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void disconnect(BaseComponent... baseComponents) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void disconnect(BaseComponent baseComponent) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isConnected() {
+            return false;
+        }
+
+        @Override
+        public Unsafe unsafe() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
 }

@@ -27,22 +27,22 @@
 package org.geysermc.platform.bukkit;
 
 import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
+import org.bukkit.entity.Player;
 import org.bukkit.event.server.ServerListPingEvent;
+import org.bukkit.util.CachedServerIcon;
 import org.geysermc.common.ping.GeyserPingInfo;
 import org.geysermc.common.ping.IGeyserPingPassthrough;
 
 import java.net.InetAddress;
+import java.util.Collections;
+import java.util.Iterator;
 
 public class GeyserBukkitPingPassthrough implements IGeyserPingPassthrough {
 
     @Override
     public GeyserPingInfo getPingInformation() {
         try {
-            // Currently makes Essentials complain about not being able to hide vanished players with an UnsupportedOperationException
-            ServerListPingEvent event = new ServerListPingEvent(
-                    InetAddress.getLocalHost(), Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers());
+            ServerListPingEvent event = new GeyserPingEvent(InetAddress.getLocalHost(), Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers());
             Bukkit.getPluginManager().callEvent(event);
             GeyserPingInfo geyserPingInfo = new GeyserPingInfo(event.getMotd(), event.getNumPlayers(), event.getMaxPlayers());
             Bukkit.getOnlinePlayers().forEach(player -> {
@@ -53,4 +53,22 @@ public class GeyserBukkitPingPassthrough implements IGeyserPingPassthrough {
             return new GeyserPingInfo(null, 0, 0);
         }
     }
+
+    // These methods are unimplemented on spigot api by default so we add stubs so plugins dont complain
+    private static class GeyserPingEvent extends ServerListPingEvent {
+
+        public GeyserPingEvent(InetAddress address, String motd, int numPlayers, int maxPlayers) {
+            super(address, motd, numPlayers, maxPlayers);
+        }
+
+        @Override
+        public void setServerIcon(CachedServerIcon icon) throws IllegalArgumentException, UnsupportedOperationException {
+        }
+
+        @Override
+        public Iterator<Player> iterator() throws UnsupportedOperationException {
+            return Collections.EMPTY_LIST.iterator();
+        }
+    }
+
 }
