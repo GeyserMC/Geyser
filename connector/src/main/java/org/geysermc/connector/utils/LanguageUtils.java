@@ -84,7 +84,7 @@ public class LanguageUtils {
      */
     public static String getLocaleStringLog(String key, Object... values) {
         Properties properties = LOCALE_MAPPINGS.get(DEFAULT_LOCALE.toLowerCase());
-        return MessageFormat.format(properties.getProperty(key, "MISSING LANGUAGE KEY: " + key), values);
+        return MessageFormat.format(properties.getProperty(key, "MISSING LANGUAGE KEY: " + key).replace("&", "\u00a7"), values);
     }
 
     /**
@@ -104,7 +104,7 @@ public class LanguageUtils {
         }
 
         Properties properties = LOCALE_MAPPINGS.get(locale);
-        return MessageFormat.format(properties.getProperty(key, properties.getProperty(DEFAULT_LOCALE, "MISSING LANGUAGE KEY: " + key)), values);
+        return MessageFormat.format(properties.getProperty(key, properties.getProperty(DEFAULT_LOCALE, "MISSING LANGUAGE KEY: " + key)).replace("&", "\u00a7"), values);
     }
 
     public static void init() {
