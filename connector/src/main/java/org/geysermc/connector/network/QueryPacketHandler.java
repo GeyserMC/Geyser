@@ -83,7 +83,7 @@ public class QueryPacketHandler {
      * @return
      */
     private boolean isQueryPacket(ByteBuf buffer) {
-        return buffer.readUnsignedShort() == 65277;
+        return (buffer.readableBytes() >= 2) ? buffer.readUnsignedShort() == 65277 : false;
     }
 
     /**
@@ -199,7 +199,11 @@ public class QueryPacketHandler {
 
     private byte[] getPlayers() {
         ByteArrayOutputStream query = new ByteArrayOutputStream();
-        GeyserPingInfo pingInfo = connector.getBootstrap().getGeyserPingPassthrough().getPingInformation();
+
+        GeyserPingInfo pingInfo = null;
+        if (connector.getConfig().isPassthroughMotd() || connector.getConfig().isPassthroughPlayerCounts()) {
+            pingInfo = connector.getBootstrap().getGeyserPingPassthrough().getPingInformation();
+        }
 
         try {
             // Start the player section
@@ -207,9 +211,11 @@ public class QueryPacketHandler {
             query.write(new byte[]{0x00, 0x00});
 
             // Fill player names
-            for(String username : pingInfo.getPlayers()) {
-                query.write(username.getBytes());
-                query.write((byte) 0x00);
+            if(pingInfo != null) {
+                for (String username : pingInfo.getPlayers()) {
+                    query.write(username.getBytes());
+                    query.write((byte) 0x00);
+                }
             }
 
             // Final byte to show the end of the player data
