@@ -215,6 +215,8 @@ public class Entity {
                         } else {
                             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
                         }
+                    } else {
+                        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
                     }
 
                     // Shield code
