@@ -51,5 +51,12 @@ public abstract class WorldManager {
      */
     public abstract BlockState getBlockAt(GeyserSession session, int x, int y, int z);
 
-    public abstract Vector3i getFacingBlock(GeyserSession session);
+//    /**
+//     * Gets the block that the user is facing towards.
+//     * Implemented separately because Bukkit methods give better results.
+//     *
+//     * @param session the session
+//     * @return the block coordinates
+//     */
+//    public abstract Vector3i getFacingBlock(GeyserSession session);
 }

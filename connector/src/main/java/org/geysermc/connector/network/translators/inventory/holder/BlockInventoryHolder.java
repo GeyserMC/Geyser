@@ -45,7 +45,7 @@ import org.geysermc.connector.utils.LocaleUtils;
 
 @AllArgsConstructor
 public class BlockInventoryHolder extends InventoryHolder {
-    private final int blockId;
+    private final String blockId;
     private final ContainerType containerType;
     private final ObjectArrayList<String> compatibleBlocks;
 
@@ -54,31 +54,38 @@ public class BlockInventoryHolder extends InventoryHolder {
         Vector3i position = session.getLastInteractionPosition();
         boolean isCreatingNewBlock = false;
         int newBlockId = 0;
-        //BlockState worldBlockId = session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ());
-        //String javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(worldBlockId);
-        String javaBlockId = session.getLastInteractionBlockId();
+        String javaBlockId;
+        if (session.getConnector().getConfig().isCacheChunks()) {
+            // More reliable
+            javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ()));
+        } else {
+            // Less reliable - doesn't work with ender chests
+            javaBlockId = session.getLastBlockPlacedId();
+        }
         System.out.println(javaBlockId);
         if (javaBlockId != null) {
             String isolatedBlockId = javaBlockId.split("\\[")[0];
-            String thisBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(BlockTranslator.getJavaBlockState(blockId)).split("\\[")[0];
+            String thisBlockId = blockId.split("\\[")[0];
             if ((isolatedBlockId.equals(thisBlockId)) || (compatibleBlocks != null && compatibleBlocks.contains(isolatedBlockId))) {
                 newBlockId = BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(javaBlockId));
             } else {
-                // Reset position to player because this is the wrong block
-                position = session.getPlayerEntity().getPosition().toInt();
-                position = position.add(Vector3i.UP);
+                System.out.println(isolatedBlockId + " is not equal at all to " + thisBlockId);
                 isCreatingNewBlock = true;
             }
         } else {
+            isCreatingNewBlock = true;
+        }
+
+        if (isCreatingNewBlock) {
             // Reset position to player because this is the wrong block
             position = session.getPlayerEntity().getPosition().toInt();
             position = position.add(Vector3i.UP);
-            isCreatingNewBlock = true;
         }
+
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(isCreatingNewBlock ? blockId : newBlockId);
+        blockPacket.setRuntimeId(isCreatingNewBlock ? BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(blockId)) : newBlockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);

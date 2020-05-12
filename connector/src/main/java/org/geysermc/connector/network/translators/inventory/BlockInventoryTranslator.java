@@ -44,7 +44,6 @@ public class BlockInventoryTranslator extends BaseInventoryTranslator {
     public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater, String... compatibleBlocks) {
         super(size);
         BlockState javaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
-        int blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
         this.updater = updater;
         ObjectArrayList<String> compatibleBlocksList;
         if (compatibleBlocks.length > 0) {
@@ -55,7 +54,7 @@ public class BlockInventoryTranslator extends BaseInventoryTranslator {
             // Only one type of block can be used
             compatibleBlocksList = null;
         }
-        this.holder = new BlockInventoryHolder(blockId, containerType, compatibleBlocksList);
+        this.holder = new BlockInventoryHolder(javaBlockIdentifier, containerType, compatibleBlocksList);
     }
 
     public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater) {

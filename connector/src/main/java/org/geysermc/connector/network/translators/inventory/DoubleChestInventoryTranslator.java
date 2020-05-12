@@ -40,62 +40,121 @@ import org.geysermc.connector.network.translators.inventory.updater.ChestInvento
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
 public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
-    private final int blockId;
     private final InventoryUpdater updater;
 
     public DoubleChestInventoryTranslator(int size) {
         super(size);
-        BlockState javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
-        this.blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
         this.updater = new ChestInventoryUpdater(54);
     }
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
-        Vector3i position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
-        Vector3i pairPosition = position.add(Vector3i.UNIT_X);
+        Vector3i position = session.getLastInteractionPosition();
+        Vector3i pairPosition = Vector3i.ZERO;
+        boolean isCreatingNewBlock = false;
+        int newBlockId = 0;
+        String javaBlockId;
+        if (session.getConnector().getConfig().isCacheChunks()) {
+            // More reliable
+            javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ()));
+        } else {
+            // Less reliable - doesn't work with ender chests
+            javaBlockId = session.getLastBlockPlacedId();
+        }
+        System.out.println(javaBlockId);
+        String blockId = "minecraft:chest[facing=north,type=single,waterlogged=false]";
+        String otherPairBlockId = blockId;
+        if (javaBlockId != null) {
+            String isolatedBlockId = javaBlockId.split("\\[")[0];
+            String thisBlockId = blockId.split("\\[")[0];
+            if (isolatedBlockId.equals(thisBlockId)) {
+                newBlockId = BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(javaBlockId));
+                if (javaBlockId.contains("type=left")) {
+                    if (javaBlockId.contains("facing=north")) {
+                        pairPosition = position.add(Vector3i.UNIT_X);
+                    } else if (javaBlockId.contains("facing=south")) {
+                        pairPosition = position.sub(Vector3i.UNIT_X);
+                    } else if (javaBlockId.contains("facing=east")) {
+                        pairPosition = position.add(Vector3i.UNIT_Z);
+                    } else if (javaBlockId.contains("facing=west")) {
+                        pairPosition = position.sub(Vector3i.UNIT_Z);
+                    }
+                    otherPairBlockId = javaBlockId.replace("type=left", "type=right");
+                } else if (javaBlockId.contains("type=right")) {
+                    if (javaBlockId.contains("facing=north")) {
+                        pairPosition = position.sub(Vector3i.UNIT_X);
+                    } else if (javaBlockId.contains("facing=south")) {
+                        pairPosition = position.add(Vector3i.UNIT_X);
+                    } else if (javaBlockId.contains("facing=east")) {
+                        pairPosition = position.sub(Vector3i.UNIT_Z);
+                    } else if (javaBlockId.contains("facing=west")) {
+                        pairPosition = position.add(Vector3i.UNIT_Z);
+                    }
+                    otherPairBlockId = javaBlockId.replace("type=right", "type=left");
+                } else {
+                    // Chest type is single
+                    isCreatingNewBlock = true;
+                }
+            } else {
+                System.out.println(isolatedBlockId + " is not equal at all to " + thisBlockId);
+                isCreatingNewBlock = true;
+            }
+        } else {
+            isCreatingNewBlock = true;
+        }
+
+        if (isCreatingNewBlock) {
+            // Reset position to player because this is the wrong block
+            position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
+            pairPosition = position.add(Vector3i.UNIT_X);
+            otherPairBlockId = blockId;
+        }
 
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(isCreatingNewBlock ? BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(blockId)) : newBlockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
-        CompoundTag tag = CompoundTag.builder()
-                .stringTag("id", "Chest")
-                .intTag("x", position.getX())
-                .intTag("y", position.getY())
-                .intTag("z", position.getZ())
-                .intTag("pairx", pairPosition.getX())
-                .intTag("pairz", pairPosition.getZ())
-                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
-        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
-        dataPacket.setData(tag);
-        dataPacket.setBlockPosition(position);
-        session.sendUpstreamPacket(dataPacket);
+        if (isCreatingNewBlock) {
+            CompoundTag tag = CompoundTag.builder()
+                    .stringTag("id", "Chest")
+                    .intTag("x", position.getX())
+                    .intTag("y", position.getY())
+                    .intTag("z", position.getZ())
+                    .intTag("pairx", pairPosition.getX())
+                    .intTag("pairz", pairPosition.getZ())
+                    .stringTag("CustomName", inventory.getTitle()).buildRootTag();
+            BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+            dataPacket.setData(tag);
+            dataPacket.setBlockPosition(position);
+            session.sendUpstreamPacket(dataPacket);
+        }
 
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(pairPosition);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(otherPairBlockId)));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
-        tag = CompoundTag.builder()
-                .stringTag("id", "Chest")
-                .intTag("x", pairPosition.getX())
-                .intTag("y", pairPosition.getY())
-                .intTag("z", pairPosition.getZ())
-                .intTag("pairx", position.getX())
-                .intTag("pairz", position.getZ())
-                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
-        dataPacket = new BlockEntityDataPacket();
-        dataPacket.setData(tag);
-        dataPacket.setBlockPosition(pairPosition);
-        session.sendUpstreamPacket(dataPacket);
+        //if (isCreatingNewBlock) {
+            CompoundTag tag = CompoundTag.builder()
+                    .stringTag("id", "Chest")
+                    .intTag("x", pairPosition.getX())
+                    .intTag("y", pairPosition.getY())
+                    .intTag("z", pairPosition.getZ())
+                    .intTag("pairx", position.getX())
+                    .intTag("pairz", position.getZ())
+                    .stringTag("CustomName", inventory.getTitle()).buildRootTag();
+            BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+            dataPacket.setData(tag);
+            dataPacket.setBlockPosition(pairPosition);
+            session.sendUpstreamPacket(dataPacket);
 
-        inventory.setHolderPosition(position);
+            inventory.setHolderPosition(position);
+        //}
     }
 
     @Override

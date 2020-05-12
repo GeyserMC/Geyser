@@ -123,7 +123,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.setLastBlockPlacePosition(blockPos);
                             session.setLastBlockPlacedId(handItem.getJavaIdentifier());
                         }
-                        session.setLastInteractionPosition(packet.getBlockPosition());
                         session.setInteracting(true);
                         break;
                     case 1:
@@ -198,7 +197,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         }
         session.setLastInteractionPosition(packet.getBlockPosition());
         System.out.println("Block runtime: " + packet.getBlockRuntimeId());
-        session.setLastInteractionBlockId(BlockTranslator.getJavaIdBlockMap().inverse().get(BlockTranslator.getJavaBlockState(packet.getBlockRuntimeId())));
+        // Micro-efficiency
+        if (!session.getConnector().getConfig().isCacheChunks())
+            session.setLastInteractionBlockId(BlockTranslator.getJavaIdBlockMap().inverse().get(BlockTranslator.getJavaBlockState(packet.getBlockRuntimeId())));
         System.out.println("Interacted with block: " + session.getLastInteractionBlockId());
     }
 }

@@ -38,8 +38,8 @@ public class CachedChunkManager extends WorldManager {
         return session.getChunkCache().getBlockAt(new Position(x, y, z));
     }
 
-    @Override
-    public Vector3i getFacingBlock(GeyserSession session) {
-        return session.getLastInteractionPosition();
-    }
+//    @Override
+//    public Vector3i getFacingBlock(GeyserSession session) {
+//        return session.getLastInteractionPosition();
+//    }
 }

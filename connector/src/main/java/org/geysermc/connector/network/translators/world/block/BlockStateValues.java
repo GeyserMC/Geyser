@@ -117,7 +117,7 @@ public class BlockStateValues {
         JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
         if (shulkerDirection != null) {
             BlockStateValues.SHULKERBOX_DIRECTIONS.put(javaBlockState, (byte) shulkerDirection.intValue());
-            // So we don't have to manually map every kind of shulker box
+            // So we don't have to manually map every kind of shulker box for inventories
             ShulkerBoxInventoryTranslator.addShulkerBoxColor(entry.getKey());
         }
     }
