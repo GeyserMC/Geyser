@@ -51,28 +51,28 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
     public void prepareInventory(GeyserSession session, Inventory inventory) {
         Vector3i position = session.getLastInteractionPosition();
         Vector3i pairPosition = Vector3i.ZERO;
-        boolean isCreatingNewBlock = false;
         int newBlockId = 0;
         String javaBlockId;
         if (session.getConnector().getConfig().isCacheChunks()) {
-            // More reliable
+            // More reliable to use chunk caching
             if (position != null) {
                 javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ()));
             } else {
                 javaBlockId = "minecraft:air";
-                isCreatingNewBlock = true;
+                inventory.setCreatingNewBlock(true);
             }
         } else {
-            javaBlockId = session.getLastBlockPlacedId();
+            // Currently doesn't work with double chests - likes to give out wrong block IDs
+            javaBlockId = session.getLastInteractionBlockId();
         }
         String blockId = "minecraft:chest[facing=north,type=single,waterlogged=false]";
         String otherPairBlockId = blockId;
-        if (javaBlockId != null && !isCreatingNewBlock) {
+        if (javaBlockId != null && !inventory.isCreatingNewBlock()) {
             String isolatedBlockId = javaBlockId.split("\\[")[0];
-            String thisBlockId = blockId.split("\\[")[0];
-            if (isolatedBlockId.equals(thisBlockId)) {
+            if (isolatedBlockId.equals("minecraft:chest") || isolatedBlockId.equals("minecraft:trapped_chest")) {
                 newBlockId = BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(javaBlockId));
                 if (javaBlockId.contains("type=left")) {
+                    // Using the Java block ID, figure out where the other chest is located
                     if (javaBlockId.contains("facing=north")) {
                         pairPosition = position.add(Vector3i.UNIT_X);
                     } else if (javaBlockId.contains("facing=south")) {
@@ -96,43 +96,31 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
                     otherPairBlockId = javaBlockId.replace("type=right", "type=left");
                 } else {
                     // Chest type is single
-                    isCreatingNewBlock = true;
+                    inventory.setCreatingNewBlock(true);
                 }
             } else {
-                System.out.println(isolatedBlockId + " is not equal at all to " + thisBlockId);
-                isCreatingNewBlock = true;
+                inventory.setCreatingNewBlock(true);
             }
         } else {
-            isCreatingNewBlock = true;
+            inventory.setCreatingNewBlock(true);
         }
 
-        if (isCreatingNewBlock) {
+        if (inventory.isCreatingNewBlock()) {
             // Reset position to player because this is the wrong block
             position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
             pairPosition = position.add(Vector3i.UNIT_X);
-            otherPairBlockId = blockId;
         }
 
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(isCreatingNewBlock ? BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(blockId)) : newBlockId);
+        blockPacket.setRuntimeId(inventory.isCreatingNewBlock() ? BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(blockId)) : newBlockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
-        if (isCreatingNewBlock) {
-            CompoundTag tag = CompoundTag.builder()
-                    .stringTag("id", "Chest")
-                    .intTag("x", position.getX())
-                    .intTag("y", position.getY())
-                    .intTag("z", position.getZ())
-                    .intTag("pairx", pairPosition.getX())
-                    .intTag("pairz", pairPosition.getZ())
-                    .stringTag("CustomName", inventory.getTitle()).buildRootTag();
-            BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
-            dataPacket.setData(tag);
-            dataPacket.setBlockPosition(position);
-            session.sendUpstreamPacket(dataPacket);
+        // Only needed when making a new block
+        if (inventory.isCreatingNewBlock()) {
+            sendBlockEntityDataPacket(session, position, pairPosition, inventory);
         }
 
         blockPacket = new UpdateBlockPacket();
@@ -142,18 +130,8 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
-        CompoundTag tag = CompoundTag.builder()
-                .stringTag("id", "Chest")
-                .intTag("x", pairPosition.getX())
-                .intTag("y", pairPosition.getY())
-                .intTag("z", pairPosition.getZ())
-                .intTag("pairx", position.getX())
-                .intTag("pairz", position.getZ())
-                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
-        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
-        dataPacket.setData(tag);
-        dataPacket.setBlockPosition(pairPosition);
-        session.sendUpstreamPacket(dataPacket);
+        // Always needed
+        sendBlockEntityDataPacket(session, pairPosition, position, inventory);
 
         inventory.setHolderPosition(position);
     }
@@ -170,23 +148,25 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        Vector3i holderPos = inventory.getHolderPosition();
-        Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        BlockState realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
-        UpdateBlockPacket blockPacket = new UpdateBlockPacket();
-        blockPacket.setDataLayer(0);
-        blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
-        session.sendUpstreamPacket(blockPacket);
+        if (inventory.isCreatingNewBlock()) {
+            Vector3i holderPos = inventory.getHolderPosition();
+            Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
+            BlockState realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
+            UpdateBlockPacket blockPacket = new UpdateBlockPacket();
+            blockPacket.setDataLayer(0);
+            blockPacket.setBlockPosition(holderPos);
+            blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
+            session.sendUpstreamPacket(blockPacket);
 
-        holderPos = holderPos.add(Vector3i.UNIT_X);
-        pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
-        blockPacket = new UpdateBlockPacket();
-        blockPacket.setDataLayer(0);
-        blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
-        session.sendUpstreamPacket(blockPacket);
+            holderPos = holderPos.add(Vector3i.UNIT_X);
+            pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
+            realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
+            blockPacket = new UpdateBlockPacket();
+            blockPacket.setDataLayer(0);
+            blockPacket.setBlockPosition(holderPos);
+            blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
+            session.sendUpstreamPacket(blockPacket);
+        }
     }
 
     @Override
@@ -197,5 +177,20 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         updater.updateSlot(this, session, inventory, slot);
+    }
+
+    private void sendBlockEntityDataPacket(GeyserSession session, Vector3i blockPosition, Vector3i otherBlockPosition, Inventory inventory) {
+        CompoundTag tag = CompoundTag.builder()
+                .stringTag("id", "Chest")
+                .intTag("x", blockPosition.getX())
+                .intTag("y", blockPosition.getY())
+                .intTag("z", blockPosition.getZ())
+                .intTag("pairx", otherBlockPosition.getX())
+                .intTag("pairz", otherBlockPosition.getZ())
+                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
+        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+        dataPacket.setData(tag);
+        dataPacket.setBlockPosition(blockPosition);
+        session.sendUpstreamPacket(dataPacket);
     }
 }

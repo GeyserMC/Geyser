@@ -66,6 +66,10 @@ public class Inventory {
     @Getter
     protected AtomicInteger transactionId = new AtomicInteger(1);
 
+    @Getter
+    @Setter
+    protected boolean isCreatingNewBlock = false;
+
     public Inventory(int id, WindowType windowType, int size) {
         this("Inventory", id, windowType, size);
     }

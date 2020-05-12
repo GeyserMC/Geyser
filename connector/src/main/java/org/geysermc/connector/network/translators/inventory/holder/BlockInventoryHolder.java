@@ -50,34 +50,33 @@ public class BlockInventoryHolder extends InventoryHolder {
     @Override
     public void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         Vector3i position = session.getLastInteractionPosition();
-        boolean isCreatingNewBlock = false;
         int newBlockId = 0;
         String javaBlockId;
         if (session.getConnector().getConfig().isCacheChunks()) {
-            // More reliable
+            // More reliable to use chunk caching
             if (position != null) {
                 javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ()));
             } else {
                 javaBlockId = "minecraft:air";
-                isCreatingNewBlock = true;
+                inventory.setCreatingNewBlock(true);
             }
         } else {
             // Less reliable - doesn't work with ender chests
-            javaBlockId = session.getLastBlockPlacedId();
+            javaBlockId = session.getLastInteractionBlockId();
         };
-        if (javaBlockId != null && !isCreatingNewBlock) {
+        if (javaBlockId != null && !inventory.isCreatingNewBlock()) {
             String isolatedBlockId = javaBlockId.split("\\[")[0];
             String thisBlockId = blockId.split("\\[")[0];
             if ((isolatedBlockId.equals(thisBlockId)) || (compatibleBlocks != null && compatibleBlocks.contains(isolatedBlockId))) {
                 newBlockId = BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(javaBlockId));
             } else {
-                isCreatingNewBlock = true;
+                inventory.setCreatingNewBlock(true);
             }
         } else {
-            isCreatingNewBlock = true;
+            inventory.setCreatingNewBlock(true);
         }
 
-        if (isCreatingNewBlock) {
+        if (inventory.isCreatingNewBlock()) {
             // Reset position to player because this is the wrong block
             position = session.getPlayerEntity().getPosition().toInt();
             position = position.add(Vector3i.UP);
@@ -86,12 +85,12 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(isCreatingNewBlock ? BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(blockId)) : newBlockId);
+        blockPacket.setRuntimeId(inventory.isCreatingNewBlock() ? BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(blockId)) : newBlockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
 
-        if (isCreatingNewBlock) {
+        if (inventory.isCreatingNewBlock()) {
             CompoundTag tag = CompoundTag.builder()
                     .intTag("x", position.getX())
                     .intTag("y", position.getY())
@@ -116,13 +115,15 @@ public class BlockInventoryHolder extends InventoryHolder {
 
     @Override
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-        Vector3i holderPos = inventory.getHolderPosition();
-        Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        BlockState realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
-        UpdateBlockPacket blockPacket = new UpdateBlockPacket();
-        blockPacket.setDataLayer(0);
-        blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
-        session.sendUpstreamPacket(blockPacket);
+        if (inventory.isCreatingNewBlock()) {
+            Vector3i holderPos = inventory.getHolderPosition();
+            Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
+            BlockState realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
+            UpdateBlockPacket blockPacket = new UpdateBlockPacket();
+            blockPacket.setDataLayer(0);
+            blockPacket.setBlockPosition(holderPos);
+            blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
+            session.sendUpstreamPacket(blockPacket);
+        }
     }
 }
