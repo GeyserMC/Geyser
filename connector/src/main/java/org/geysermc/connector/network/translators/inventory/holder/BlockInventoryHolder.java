@@ -57,19 +57,22 @@ public class BlockInventoryHolder extends InventoryHolder {
         String javaBlockId;
         if (session.getConnector().getConfig().isCacheChunks()) {
             // More reliable
-            javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ()));
+            if (position != null) {
+                javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(session.getConnector().getWorldManager().getBlockAt(session, position.getX(), position.getY(), position.getZ()));
+            } else {
+                javaBlockId = "minecraft:air";
+                isCreatingNewBlock = true;
+            }
         } else {
             // Less reliable - doesn't work with ender chests
             javaBlockId = session.getLastBlockPlacedId();
-        }
-        System.out.println(javaBlockId);
-        if (javaBlockId != null) {
+        };
+        if (javaBlockId != null && !isCreatingNewBlock) {
             String isolatedBlockId = javaBlockId.split("\\[")[0];
             String thisBlockId = blockId.split("\\[")[0];
             if ((isolatedBlockId.equals(thisBlockId)) || (compatibleBlocks != null && compatibleBlocks.contains(isolatedBlockId))) {
                 newBlockId = BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(javaBlockId));
             } else {
-                System.out.println(isolatedBlockId + " is not equal at all to " + thisBlockId);
                 isCreatingNewBlock = true;
             }
         } else {
