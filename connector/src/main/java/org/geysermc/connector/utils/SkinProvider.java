@@ -35,10 +35,10 @@ import org.geysermc.connector.GeyserConnector;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
@@ -322,7 +322,23 @@ public class SkinProvider {
         private String geometryData;
 
         public static SkinGeometry getLegacy(String name) {
-            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"" + name + "\"}}", "");
+            return getEars(name); //new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"" + name + "\"}}", "");
+        }
+
+        public static SkinGeometry getEars(String name) {
+            InputStream earsStream = Toolbox.getResource("bedrock/skin/geometry.humanoid.ears.json");
+
+            StringBuilder textBuilder = new StringBuilder();
+            try (Reader reader = new BufferedReader(new InputStreamReader(earsStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
+                int c = 0;
+                while ((c = reader.read()) != -1) {
+                    textBuilder.append((char) c);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.ears\"}}", textBuilder.toString());
         }
     }
 
