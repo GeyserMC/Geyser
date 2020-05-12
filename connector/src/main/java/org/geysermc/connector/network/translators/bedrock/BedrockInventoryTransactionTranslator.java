@@ -60,6 +60,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     @Override
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
+
+        session.setLastInteractionPosition(packet.getBlockPosition());
+        // Micro-efficiency
+        if (!session.getConnector().getConfig().isCacheChunks())
+            session.setLastInteractionBlockId(BlockTranslator.getJavaIdBlockMap().inverse().get(BlockTranslator.getJavaBlockState(packet.getBlockRuntimeId())));
+
         switch (packet.getTransactionType()) {
             case NORMAL:
                 Inventory inventory = session.getInventoryCache().getOpenInventory();
@@ -195,11 +201,5 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 }
                 break;
         }
-        session.setLastInteractionPosition(packet.getBlockPosition());
-        System.out.println("Block runtime: " + packet.getBlockRuntimeId());
-        // Micro-efficiency
-        if (!session.getConnector().getConfig().isCacheChunks())
-            session.setLastInteractionBlockId(BlockTranslator.getJavaIdBlockMap().inverse().get(BlockTranslator.getJavaBlockState(packet.getBlockRuntimeId())));
-        System.out.println("Interacted with block: " + session.getLastInteractionBlockId());
     }
 }

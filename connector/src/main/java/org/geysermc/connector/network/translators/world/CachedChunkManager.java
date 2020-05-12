@@ -36,5 +36,4 @@ public class CachedChunkManager extends WorldManager {
     public BlockState getBlockAt(GeyserSession session, int x, int y, int z) {
         return session.getChunkCache().getBlockAt(new Position(x, y, z));
     }
-
 }

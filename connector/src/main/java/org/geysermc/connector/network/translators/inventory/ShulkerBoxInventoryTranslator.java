@@ -40,7 +40,9 @@ public class ShulkerBoxInventoryTranslator extends BlockInventoryTranslator {
     }
 
     public static void addShulkerBoxColor(String name) {
-        SHULKER_BOX_TYPES.add(name.split("\\[")[0]);
+        String trimmedName = name.split("\\[")[0];
+        if (!SHULKER_BOX_TYPES.contains(trimmedName))
+            SHULKER_BOX_TYPES.add(trimmedName);
     }
 
 }
