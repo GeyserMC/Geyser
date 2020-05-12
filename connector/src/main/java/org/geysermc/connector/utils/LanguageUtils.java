@@ -38,7 +38,7 @@ public class LanguageUtils {
 
     private static final Map<String, Properties> LOCALE_MAPPINGS = new HashMap<>();
 
-    private static final String DEFAULT_LOCALE = (GeyserConnector.getInstance().getConfig().getDefaultLocale() != null && !GeyserConnector.getInstance().getConfig().getDefaultLocale().toLowerCase().equals("en_gb") ? GeyserConnector.getInstance().getConfig().getDefaultLocale() : "en_us");
+    private static String DEFAULT_LOCALE = (GeyserConnector.getInstance().getConfig().getDefaultLocale() != null ? GeyserConnector.getInstance().getConfig().getDefaultLocale() : "en_us");
 
     static {
         loadGeyserLocale(DEFAULT_LOCALE);
@@ -50,12 +50,7 @@ public class LanguageUtils {
      * @param locale Locale to load
      */
     public static void loadGeyserLocale(String locale) {
-        locale = locale.toLowerCase();
-
-        // No point having 2 separate files
-        if (locale.equals("en_gb")) {
-            locale = "en_us";
-        }
+        locale = cleanLocale(locale);
 
         InputStream localeStream = LocaleUtils.class.getClassLoader().getResourceAsStream("languages/" + locale + ".properties");
 
@@ -71,7 +66,13 @@ public class LanguageUtils {
             // Insert the locale into the mappings
             LOCALE_MAPPINGS.put(locale, localeProp);
         } else {
-            GeyserConnector.getInstance().getLogger().warning(getLocaleStringLog("geyser.language.missing_file", locale));
+            if (locale.toLowerCase().equals(DEFAULT_LOCALE.toLowerCase())) {
+                // The default locale was invalid fallback to en_us
+                DEFAULT_LOCALE = "en_us";
+                loadGeyserLocale(DEFAULT_LOCALE);
+            } else {
+                GeyserConnector.getInstance().getLogger().warning(getLocaleStringLog("geyser.language.missing_file", locale));
+            }
         }
     }
 
@@ -83,8 +84,7 @@ public class LanguageUtils {
      * @return Translated string or the original message if it was not found in the given locale
      */
     public static String getLocaleStringLog(String key, Object... values) {
-        Properties properties = LOCALE_MAPPINGS.get(DEFAULT_LOCALE.toLowerCase());
-        return MessageFormat.format(properties.getProperty(key, "MISSING LANGUAGE KEY: " + key).replace("&", "\u00a7"), values);
+        return getLocaleStringPly(key, DEFAULT_LOCALE, values);
     }
 
     /**
@@ -96,15 +96,19 @@ public class LanguageUtils {
      * @return Translated string or the original message if it was not found in the given locale
      */
     public static String getLocaleStringPly(String key, String locale, Object... values) {
-        locale = locale.toLowerCase();
-
-        // No point having 2 separate files
-        if (locale.equals("en_gb")) {
-            locale = "en_us";
-        }
+        locale = cleanLocale(locale);
 
         Properties properties = LOCALE_MAPPINGS.get(locale);
-        return MessageFormat.format(properties.getProperty(key, properties.getProperty(DEFAULT_LOCALE, "MISSING LANGUAGE KEY: " + key)).replace("&", "\u00a7"), values);
+        return MessageFormat.format(properties.getProperty(key, properties.getProperty(cleanLocale(DEFAULT_LOCALE), "MISSING LANGUAGE KEY: " + key)).replace("&", "\u00a7"), values);
+    }
+
+    private static String cleanLocale(String locale) {
+        try {
+            String[] parts = locale.toLowerCase().split("_");
+            return parts[0] + "_" + parts[1].toUpperCase();
+        } catch (Exception e) {
+            return locale;
+        }
     }
 
     public static void init() {
