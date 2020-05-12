@@ -28,7 +28,6 @@ package org.geysermc.connector.network.translators.world;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 
-import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -50,13 +49,4 @@ public abstract class WorldManager {
      * @return the block state at the specified location
      */
     public abstract BlockState getBlockAt(GeyserSession session, int x, int y, int z);
-
-//    /**
-//     * Gets the block that the user is facing towards.
-//     * Implemented separately because Bukkit methods give better results.
-//     *
-//     * @param session the session
-//     * @return the block coordinates
-//     */
-//    public abstract Vector3i getFacingBlock(GeyserSession session);
 }

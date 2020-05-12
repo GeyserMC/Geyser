@@ -67,16 +67,4 @@ public class GeyserBukkitWorldManager extends WorldManager {
         }
         return BlockTranslator.getJavaIdBlockMap().get(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString());
     }
-
-//    @Override
-//    public Vector3i getFacingBlock(GeyserSession session) {
-//        if (session.getPlayerEntity() == null) {
-//            return Vector3i.ZERO;
-//        }
-//        Block block = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getTargetBlockExact(20);
-//        if (block != null) {
-//            return Vector3i.from(block.getX(), block.getY(), block.getZ());
-//        }
-//        return Vector3i.ZERO;
-//    }
 }
