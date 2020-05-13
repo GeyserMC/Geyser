@@ -45,7 +45,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
 
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());;
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
         LongOpenHashSet passengers = entity.getPassengers().clone();
@@ -94,6 +94,13 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 this.updateOffset(passenger, entity.getEntityType(), session, false, false);
             }
         }
+
+        if (entity.getEntityType() == EntityType.HORSE) {
+            entity.getMetadata().put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(0.0f, 2.3200102f, -0.2f));
+            entity.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
+
+            entity.updateBedrockMetadata(session);
+        }
     }
 
     private void updateOffset(Entity passenger, EntityType mountType, GeyserSession session, boolean rider, boolean riding) {
@@ -112,6 +119,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             case HORSE:
             case MULE:
                 yOffset = 2.3f;
+                break;
+            case LLAMA:
+            case TRADER_LLAMA:
+                yOffset = 2.5f;
                 break;
             case PIG:
                 yOffset = 1.85001f;

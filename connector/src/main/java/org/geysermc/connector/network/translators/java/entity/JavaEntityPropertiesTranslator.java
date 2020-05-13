@@ -47,6 +47,7 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
         if (entity == null) return;
 
         for (Attribute attribute : packet.getAttributes()) {
+            System.out.println("Packet attribute: " + attribute.getType().name());
             switch (attribute.getType()) {
                 case GENERIC_MAX_HEALTH:
                     entity.getAttributes().put(AttributeType.MAX_HEALTH, AttributeType.MAX_HEALTH.getAttribute((float) AttributeUtils.calculateValue(attribute)));
@@ -67,6 +68,11 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
                 case GENERIC_KNOCKBACK_RESISTANCE:
                     entity.getAttributes().put(AttributeType.KNOCKBACK_RESISTANCE, AttributeType.KNOCKBACK_RESISTANCE.getAttribute((float) AttributeUtils.calculateValue(attribute)));
                     break;
+                case HORSE_JUMP_STRENGTH:
+                    entity.getAttributes().put(AttributeType.HORSE_JUMP_STRENGTH, AttributeType.HORSE_JUMP_STRENGTH.getAttribute((float) AttributeUtils.calculateValue(attribute)));
+                    break;
+                default:
+                    session.getConnector().getLogger().warning("UNHANDLED ATTRIBUTE! " + attribute.getType().name());
             }
         }
 
