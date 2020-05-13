@@ -88,7 +88,7 @@ public class SkinUtils {
                                                             String geometryName, String geometryData) {
         SerializedSkin serializedSkin = SerializedSkin.of(
                 skinId, geometryName, ImageData.of(skinData), Collections.emptyList(),
-                ImageData.of(capeData), geometryData, "", true, false, false, capeId, uuid.toString()
+                ImageData.of(capeData), geometryData, "", true, false, true, capeId, uuid.toString()
         );
 
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
