@@ -84,7 +84,7 @@
                     "rotation" : [ 0.0, 0.0, 0.0 ],
                     "cubes": [
                         {
-                            "origin": [ 4.0, 11.5, -2.0 ],
+                            "origin": [ 4.0, 12, -2.0 ],
                             "size": [ 3, 12, 4 ],
                             "uv": [ 32, 48 ]
                         }
@@ -97,7 +97,7 @@
                     "rotation" : [ 0.0, 0.0, 0.0 ],
                     "cubes": [
                         {
-                            "origin": [ -7.0, 11.5, -2.0 ],
+                            "origin": [ -7.0, 12, -2.0 ],
                             "size": [ 3, 12, 4 ],
                             "uv": [ 40, 16 ]
                         }
@@ -240,7 +240,7 @@
                 }
             ],
             "description": {
-                "identifier": "geometry.humanoid.ears",
+                "identifier": "geometry.humanoid.earsSlim",
                 "texture_height": 64,
                 "texture_width": 64
             }
