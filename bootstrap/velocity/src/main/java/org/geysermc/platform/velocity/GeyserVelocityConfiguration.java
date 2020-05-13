@@ -67,6 +67,9 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
     @JsonProperty("allow-third-party-capes")
     private boolean allowThirdPartyCapes;
 
+    @JsonProperty("allow-third-party-ears")
+    private boolean allowThirdPartyEars;
+
     @JsonProperty("default-locale")
     private String defaultLocale;
 

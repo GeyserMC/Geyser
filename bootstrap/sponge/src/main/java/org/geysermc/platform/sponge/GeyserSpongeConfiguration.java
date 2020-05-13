@@ -105,6 +105,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowThirdPartyEars() {
+        return node.getNode("allow-third-party-ears").getBoolean(false);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return node.getNode("default-locale").getString("en_us");
     }

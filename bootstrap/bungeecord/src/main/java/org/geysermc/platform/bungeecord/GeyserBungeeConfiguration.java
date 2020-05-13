@@ -111,6 +111,11 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowThirdPartyEars() {
+        return config.getBoolean("allow-third-party-ears", false);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return config.getString("default-locale", "en_us");
     }

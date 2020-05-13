@@ -61,6 +61,7 @@ public class SkinProvider {
     public static final SkinGeometry EMPTY_GEOMETRY = SkinProvider.SkinGeometry.getLegacy(false);
     private static Map<UUID, SkinGeometry> cachedGeometry = new ConcurrentHashMap<>();
 
+    public static final boolean ALLOW_THIRD_PARTY_EARS = GeyserConnector.getInstance().getConfig().isAllowThirdPartyEars();
     public static String EARS_GEOMETRY;
     public static String EARS_GEOMETRY_SLIM;
 

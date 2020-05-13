@@ -173,7 +173,7 @@ public class SkinUtils {
                             ), geometry, 3);
 
                             // Not a bedrock player check for ears
-                            if (geometry.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_CAPES) {
+                            if (geometry.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_EARS) {
                                 boolean isEars = false;
 
                                 // Its deadmau5, gotta support his skin :)

@@ -57,6 +57,10 @@ general-thread-pool: 32
 # OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
 allow-third-party-capes: true
 
+# Allow third party deadmau5 ears to be visible. Currently allowing:
+# MinecraftCapes
+allow-third-party-ears: false
+
 # The default locale if we dont have the one the client requested
 default-locale: en_us
 
