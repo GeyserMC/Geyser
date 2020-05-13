@@ -152,7 +152,12 @@ public enum EntityType {
     /**
      * Item frames are handled differently since they are a block in Bedrock.
      */
-    ITEM_FRAME(ItemFrameEntity.class, 0, 0, 0);
+    ITEM_FRAME(ItemFrameEntity.class, 0, 0, 0),
+
+    /**
+     * Not an entity in Bedrock, so we replace it with a Pillager
+     */
+    ILLUSIONER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager");
 
     private Class<? extends Entity> entityClass;
     private final int type;
