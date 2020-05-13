@@ -61,8 +61,44 @@ public class SkinProvider {
     public static final SkinGeometry EMPTY_GEOMETRY = SkinProvider.SkinGeometry.getLegacy(false);
     private static Map<UUID, SkinGeometry> cachedGeometry = new ConcurrentHashMap<>();
 
+    public static String EARS_GEOMETRY;
+    public static String EARS_GEOMETRY_SLIM;
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final int CACHE_INTERVAL = 8 * 60 * 1000; // 8 minutes
+
+    static {
+        /* Load in the normal ears geometry */
+        InputStream earsStream = Toolbox.getResource("bedrock/skin/geometry.humanoid.ears.json");
+
+        StringBuilder earsDataBuilder = new StringBuilder();
+        try (Reader reader = new BufferedReader(new InputStreamReader(earsStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
+            int c = 0;
+            while ((c = reader.read()) != -1) {
+                earsDataBuilder.append((char) c);
+            }
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load ears geometry", e);
+        }
+
+        EARS_GEOMETRY = earsDataBuilder.toString();
+
+
+        /* Load in the slim ears geometry */
+        earsStream = Toolbox.getResource("bedrock/skin/geometry.humanoid.earsSlim.json");
+
+        earsDataBuilder = new StringBuilder();
+        try (Reader reader = new BufferedReader(new InputStreamReader(earsStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
+            int c = 0;
+            while ((c = reader.read()) != -1) {
+                earsDataBuilder.append((char) c);
+            }
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load ears geometry", e);
+        }
+
+        EARS_GEOMETRY_SLIM = earsDataBuilder.toString();
+    }
 
     public static boolean hasSkinCached(UUID uuid) {
         return cachedSkins.containsKey(uuid);
@@ -187,6 +223,15 @@ public class SkinProvider {
         return future;
     }
 
+    /**
+     * Try and find an ear texture for a Java player
+     *
+     * @param officialSkin The current players skin
+     * @param playerId The players UUID
+     * @param username The players username
+     * @param newThread Should we start in a new thread
+     * @return The updated skin with ears
+     */
     public static CompletableFuture<Skin> requestUnofficialEars(Skin officialSkin, UUID playerId, String username, boolean newThread) {
         for (EarsProvider provider : EarsProvider.VALUES) {
             Skin skin1 = getOrDefault(
@@ -222,14 +267,26 @@ public class SkinProvider {
     }
 
     public static void storeBedrockGeometry(UUID playerID, byte[] geometryName, byte[] geometryData) {
-        SkinGeometry geometry = new SkinGeometry(new String(geometryName), new String(geometryData), true);
+        SkinGeometry geometry = new SkinGeometry(new String(geometryName), new String(geometryData), false);
         cachedGeometry.put(playerID, geometry);
     }
 
+    /**
+     * Stores the ajusted skin with the ear texture to the cache
+     *
+     * @param playerID The UUID to cache it against
+     * @param skin The skin to cache
+     */
     public static void storeEarSkin(UUID playerID, Skin skin) {
         cachedSkins.put(playerID, skin);
     }
 
+    /**
+     * Stores the geometry for a Java player with ears
+     *
+     * @param playerID The UUID to cache it against
+     * @param isSlim If the player is using an slim base
+     */
     public static void storeEarGeometry(UUID playerID, boolean isSlim) {
         cachedGeometry.put(playerID, SkinGeometry.getEars(isSlim));
     }
@@ -259,44 +316,42 @@ public class SkinProvider {
         );
     }
 
+    /**
+     * Get the ears texture and place it on the skin from the given URL
+     *
+     * @param existingSkin The players current skin
+     * @param earsUrl The URL to get the ears texture from
+     * @param provider The ears texture provider
+     * @return The updated skin with ears
+     */
     private static Skin supplyEars(Skin existingSkin, String earsUrl, EarsProvider provider) {
         try {
+            // Get the ears texture
             BufferedImage ears = ImageIO.read(new URL(earsUrl));
             if (ears == null) throw new NullPointerException();
 
-            // We have ears!
-
+            // Convert the skin data to a BufferedImage
             int height = (existingSkin.getSkinData().length / 4 / 64);
             BufferedImage skinImage = imageDataToBufferedImage(existingSkin.getSkinData(), 64, height);
 
+            // Create a new image with the ears texture over it
             BufferedImage newSkin = new BufferedImage(skinImage.getWidth(), skinImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = (Graphics2D) newSkin.getGraphics();
             g.drawImage(skinImage, 0, 0, null);
             g.drawImage(ears, 24, 0, null);
 
-            File outputfile = new File(existingSkin.getSkinOwner() + "_ears.png");
-            ImageIO.write(newSkin, "png", outputfile);
-
-
+            // Turn the buffered image back into an array of bytes
             byte[] data = bufferedImageToImageData(newSkin);
             skinImage.flush();
 
-            /*
-            private UUID skinOwner;
-            private String textureUrl;
-            private byte[] skinData;
-            private long requestedOn;
-            private boolean updated;
-            private boolean ears;
-            */
-
+            // Create a new skin object with the new infomation
             return new Skin(
                     existingSkin.getSkinOwner(),
                     existingSkin.getTextureUrl(),
                     data,
                     System.currentTimeMillis(),
                     true,
-                    true//cape.length == 0
+                    true
             );
         } catch (Exception ignored) {} // just ignore I guess
 
@@ -351,13 +406,27 @@ public class SkinProvider {
         return resized;
     }
 
+    /**
+     * Get the RGBA int for a given index in some image data
+     *
+     * @param index Index to get
+     * @param data Image data to find in
+     * @return An int representing RGBA
+     */
     private static int getRGBA(int index, byte[] data) {
         return (data[index] & 0xFF) << 16 | (data[index + 1] & 0xFF) << 8 |
                 data[index + 2] & 0xFF | (data[index + 3] & 0xFF) << 24;
     }
 
-    private static BufferedImage imageDataToBufferedImage(byte[] imageData, int imageWidth, int imageHeight) {
-        // Do some strange byte[] to BufferedImage conversion magic courtesy of Tim203
+    /**
+     * Convert a byte[] to a BufferedImage
+     *
+     * @param imageData The byte[] to convert
+     * @param imageWidth The width of the target image
+     * @param imageHeight The height of the target image
+     * @return The converted BufferedImage
+     */
+    public static BufferedImage imageDataToBufferedImage(byte[] imageData, int imageWidth, int imageHeight) {
         BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
         int index = 0;
         for (int y = 0; y < imageHeight; y++) {
@@ -370,7 +439,13 @@ public class SkinProvider {
         return image;
     }
 
-    private static byte[] bufferedImageToImageData(BufferedImage image) {
+    /**
+     * Convert a BufferedImage to a byte[]
+     *
+     * @param image The BufferedImage to convert
+     * @return The converted byte[]
+     */
+    public static byte[] bufferedImageToImageData(BufferedImage image) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream(image.getWidth() * 4 + image.getHeight() * 4);
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
@@ -433,24 +508,24 @@ public class SkinProvider {
         private String geometryData;
         private boolean failed;
 
+        /**
+         * Generate generic geometry
+         *
+         * @param isSlim Should it be the alex model
+         * @return The generic geometry object
+         */
         public static SkinGeometry getLegacy(boolean isSlim) {
             return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.custom" + (isSlim ? "Slim" : "") + "\"}}", "", true);
         }
 
+        /**
+         * Generate basic geometry with ears
+         *
+         * @param isSlim Should it be the alex model
+         * @return The generated geometry for the ears model
+         */
         public static SkinGeometry getEars(boolean isSlim) {
-            InputStream earsStream = Toolbox.getResource("bedrock/skin/geometry.humanoid.ears.json");
-
-            StringBuilder textBuilder = new StringBuilder();
-            try (Reader reader = new BufferedReader(new InputStreamReader(earsStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
-                int c = 0;
-                while ((c = reader.read()) != -1) {
-                    textBuilder.append((char) c);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.ears\"}}", textBuilder.toString(), false);
+            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.ears" + (isSlim ? "Slim" : "") + "\"}}", (isSlim ? EARS_GEOMETRY_SLIM : EARS_GEOMETRY), false);
         }
     }
 

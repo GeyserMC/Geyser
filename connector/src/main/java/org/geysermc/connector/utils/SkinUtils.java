@@ -176,10 +176,11 @@ public class SkinUtils {
                             if (geometry.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_CAPES) {
                                 boolean isEars = false;
 
+                                // Its deadmau5, gotta support his skin :)
                                 if (entity.getUuid().toString().equals("1e18d5ff-643d-45c8-b509-43b8461d8614")) {
-                                    // Its deadmau5, gotta support his skin :)
                                     isEars = true;
                                 } else {
+                                    // Get the ears texture for the player
                                     skin = SkinProvider.getOrDefault(SkinProvider.requestUnofficialEars(
                                             skin, entity.getUuid(), entity.getUsername(), false
                                     ), skin, 3);
@@ -187,13 +188,15 @@ public class SkinUtils {
                                     isEars = skin.isEars();
                                 }
 
+                                // Does the skin have an ears texture
                                 if (isEars) {
+                                    // Get the new geometry
                                     geometry = SkinProvider.SkinGeometry.getEars(data.isAlex());
 
+                                    // Store the skin and geometry for the ears
                                     SkinProvider.storeEarSkin(entity.getUuid(), skin);
                                     SkinProvider.storeEarGeometry(entity.getUuid(), data.isAlex());
                                 }
-
                             }
 
                             if (entity.getLastSkinUpdate() < skin.getRequestedOn()) {
