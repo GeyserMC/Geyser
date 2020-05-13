@@ -174,11 +174,20 @@ public class SkinUtils {
 
                             // Not a bedrock player check for ears
                             if (geometry.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_CAPES) {
-                                skin = SkinProvider.getOrDefault(SkinProvider.requestUnofficialEars(
-                                        skin, entity.getUuid(), entity.getUsername(), false
-                                ), skin, 3);
+                                boolean isEars = false;
 
-                                if (skin.isEars()) {
+                                if (entity.getUuid().toString().equals("1e18d5ff-643d-45c8-b509-43b8461d8614")) {
+                                    // Its deadmau5, gotta support his skin :)
+                                    isEars = true;
+                                } else {
+                                    skin = SkinProvider.getOrDefault(SkinProvider.requestUnofficialEars(
+                                            skin, entity.getUuid(), entity.getUsername(), false
+                                    ), skin, 3);
+
+                                    isEars = skin.isEars();
+                                }
+
+                                if (isEars) {
                                     geometry = SkinProvider.SkinGeometry.getEars(data.isAlex());
 
                                     SkinProvider.storeEarSkin(entity.getUuid(), skin);
