@@ -16,6 +16,6 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
                 packet.getInputMotion().getX(), packet.getInputMotion().getY(), packet.isJumping(), packet.isSneaking()
         );
 
-        session.getDownstream().getSession().send(clientSteerVehiclePacket);
+        session.sendDownstreamPacket(clientSteerVehiclePacket);
     }
 }

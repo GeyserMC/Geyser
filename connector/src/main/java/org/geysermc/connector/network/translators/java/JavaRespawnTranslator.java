@@ -53,16 +53,18 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         // Max health must be divisible by two in bedrock
         entity.getAttributes().put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(maxHealth, (maxHealth % 2 == 1 ? maxHealth + 1 : maxHealth)));
 
+        session.getInventoryCache().setOpenInventory(null);
+
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
-        session.getUpstream().sendPacket(playerGameTypePacket);
+        session.sendUpstreamPacket(playerGameTypePacket);
         session.setGameMode(packet.getGamemode());
 
         LevelEventPacket stopRainPacket = new LevelEventPacket();
         stopRainPacket.setType(LevelEventType.STOP_RAIN);
         stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
         stopRainPacket.setPosition(Vector3f.ZERO);
-        session.getUpstream().sendPacket(stopRainPacket);
+        session.sendUpstreamPacket(stopRainPacket);
 
         if (entity.getDimension() != DimensionUtils.javaToBedrock(packet.getDimension())) {
             DimensionUtils.switchDimension(session, packet.getDimension());

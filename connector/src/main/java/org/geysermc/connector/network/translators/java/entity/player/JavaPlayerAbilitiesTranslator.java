@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.java.entity.player;
 
 import java.util.Set;
 
+import com.nukkitx.protocol.bedrock.data.CommandPermission;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -56,7 +57,7 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
         entityDataPacket.getMetadata().putAll(metadata);
-        session.getUpstream().sendPacket(entityDataPacket);
+        session.sendUpstreamPacket(entityDataPacket);
 
         Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
         playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
@@ -68,8 +69,10 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
 
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
         adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
+        // Required or the packet simply is not sent
+        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
         adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
         adventureSettingsPacket.getFlags().addAll(playerFlags);
-        session.getUpstream().sendPacket(adventureSettingsPacket);
+        session.sendUpstreamPacket(adventureSettingsPacket);
     }
 }

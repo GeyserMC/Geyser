@@ -25,25 +25,27 @@
 
 package org.geysermc.connector.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
+import lombok.NoArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 
 public class SkinProvider {
-    public static final Gson GSON = new GsonBuilder().create();
     public static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserConnector.getInstance().getConfig().isAllowThirdPartyCapes();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
 
@@ -56,6 +58,10 @@ public class SkinProvider {
     private static Map<String, Cape> cachedCapes = new ConcurrentHashMap<>();
     private static Map<String, CompletableFuture<Cape>> requestedCapes = new ConcurrentHashMap<>();
 
+    public static final SkinGeometry EMPTY_GEOMETRY = SkinProvider.SkinGeometry.getLegacy("geometry.humanoid");
+    private static Map<UUID, SkinGeometry> cachedGeometry = new ConcurrentHashMap<>();
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final int CACHE_INTERVAL = 8 * 60 * 1000; // 8 minutes
 
     public static boolean hasSkinCached(UUID uuid) {
@@ -78,9 +84,10 @@ public class SkinProvider {
         return CompletableFuture.supplyAsync(() -> {
             long time = System.currentTimeMillis();
 
+            CapeProvider provider = capeUrl != null ? CapeProvider.MINECRAFT : null;
             SkinAndCape skinAndCape = new SkinAndCape(
                     getOrDefault(requestSkin(playerId, skinUrl, false), EMPTY_SKIN, 5),
-                    getOrDefault(requestCape(capeUrl, false), EMPTY_CAPE, 5)
+                    getOrDefault(requestCape(capeUrl, provider, false), EMPTY_CAPE, 5)
             );
 
             GeyserConnector.getInstance().getLogger().debug("Took " + (System.currentTimeMillis() - time) + "ms for " + playerId);
@@ -116,11 +123,11 @@ public class SkinProvider {
         return future;
     }
 
-    public static CompletableFuture<Cape> requestCape(String capeUrl, boolean newThread) {
+    public static CompletableFuture<Cape> requestCape(String capeUrl, CapeProvider provider, boolean newThread) {
         if (capeUrl == null || capeUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_CAPE);
         if (requestedCapes.containsKey(capeUrl)) return requestedCapes.get(capeUrl); // already requested
 
-        boolean officialCape = capeUrl.startsWith("https://textures.minecraft.net");
+        boolean officialCape = provider == CapeProvider.MINECRAFT;
         boolean validCache = (System.currentTimeMillis() - CACHE_INTERVAL) < cachedCapes.getOrDefault(capeUrl, EMPTY_CAPE).getRequestedOn();
 
         if ((cachedCapes.containsKey(capeUrl) && officialCape) || validCache) {
@@ -130,14 +137,14 @@ public class SkinProvider {
 
         CompletableFuture<Cape> future;
         if (newThread) {
-            future = CompletableFuture.supplyAsync(() -> supplyCape(capeUrl), EXECUTOR_SERVICE)
+            future = CompletableFuture.supplyAsync(() -> supplyCape(capeUrl, provider), EXECUTOR_SERVICE)
                     .whenCompleteAsync((cape, throwable) -> {
                         cachedCapes.put(capeUrl, cape);
                         requestedCapes.remove(capeUrl);
                     });
             requestedCapes.put(capeUrl, future);
         } else {
-            Cape cape = supplyCape(capeUrl); // blocking
+            Cape cape = supplyCape(capeUrl, provider); // blocking
             future = CompletableFuture.completedFuture(cape);
             cachedCapes.put(capeUrl, cape);
         }
@@ -147,9 +154,9 @@ public class SkinProvider {
     public static CompletableFuture<Cape> requestUnofficialCape(Cape officialCape, UUID playerId,
                                                                 String username, boolean newThread) {
         if (officialCape.isFailed() && ALLOW_THIRD_PARTY_CAPES) {
-            for (UnofficalCape cape : UnofficalCape.VALUES) {
+            for (CapeProvider provider : CapeProvider.VALUES) {
                 Cape cape1 = getOrDefault(
-                        requestCape(cape.getUrlFor(playerId, username), newThread),
+                        requestCape(provider.getUrlFor(playerId, username), provider, newThread),
                         EMPTY_CAPE, 4
                 );
                 if (!cape1.isFailed()) {
@@ -160,18 +167,43 @@ public class SkinProvider {
         return CompletableFuture.completedFuture(officialCape);
     }
 
+    public static CompletableFuture<Cape> requestBedrockCape(UUID playerID, boolean newThread) {
+        Cape bedrockCape = cachedCapes.getOrDefault(playerID.toString() + ".Bedrock", EMPTY_CAPE);
+        return CompletableFuture.completedFuture(bedrockCape);
+    }
+
+    public static CompletableFuture<SkinGeometry> requestBedrockGeometry(SkinGeometry currentGeometry, UUID playerID, boolean newThread) {
+        SkinGeometry bedrockGeometry = cachedGeometry.getOrDefault(playerID, currentGeometry);
+        return CompletableFuture.completedFuture(bedrockGeometry);
+    }
+
+    public static void storeBedrockSkin(UUID playerID, String skinID, byte[] skinData) {
+        Skin skin = new Skin(playerID, skinID, skinData, System.currentTimeMillis(), true);
+        cachedSkins.put(playerID, skin);
+    }
+
+    public static void storeBedrockCape(UUID playerID, byte[] capeData) {
+        Cape cape = new Cape(playerID.toString() + ".Bedrock", playerID.toString(), capeData, System.currentTimeMillis(), false);
+        cachedCapes.put(playerID.toString() + ".Bedrock", cape);
+    }
+
+    public static void storeBedrockGeometry(UUID playerID, byte[] geometryName, byte[] geometryData) {
+        SkinGeometry geometry = new SkinGeometry(new String(geometryName), new String(geometryData));
+        cachedGeometry.put(playerID, geometry);
+    }
+
     private static Skin supplySkin(UUID uuid, String textureUrl) {
         byte[] skin = EMPTY_SKIN.getSkinData();
         try {
-            skin = requestImage(textureUrl, false);
+            skin = requestImage(textureUrl, null);
         } catch (Exception ignored) {} // just ignore I guess
         return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false);
     }
 
-    private static Cape supplyCape(String capeUrl) {
+    private static Cape supplyCape(String capeUrl, CapeProvider provider) {
         byte[] cape = new byte[0];
         try {
-            cape = requestImage(capeUrl, true);
+            cape = requestImage(capeUrl, provider);
         } catch (Exception ignored) {} // just ignore I guess
 
         String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
@@ -185,11 +217,12 @@ public class SkinProvider {
         );
     }
 
-    private static byte[] requestImage(String imageUrl, boolean cape) throws Exception {
-        BufferedImage image = ImageIO.read(new URL(imageUrl));
+    private static byte[] requestImage(String imageUrl, CapeProvider provider) throws Exception {
+        BufferedImage image = downloadImage(imageUrl, provider);
         GeyserConnector.getInstance().getLogger().debug("Downloaded " + imageUrl);
 
-        if (cape) {
+        // if the requested image is an cape
+        if (provider != null) {
             image = image.getWidth() > 64 ? scale(image) : image;
             BufferedImage newImage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_RGB);
             Graphics g = newImage.createGraphics();
@@ -213,7 +246,25 @@ public class SkinProvider {
         }
     }
 
-    private static BufferedImage scale (BufferedImage bufferedImage) {
+    private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {
+        if (provider == CapeProvider.FIVEZIG)
+            return readFiveZigCape(imageUrl);
+        BufferedImage image = ImageIO.read(new URL(imageUrl));
+        if (image == null) throw new NullPointerException();
+        return image;
+    }
+
+    private static BufferedImage readFiveZigCape(String url) throws IOException {
+        JsonNode element = OBJECT_MAPPER.readTree(WebUtils.getBody(url));
+        if (element != null && element.isObject()) {
+            JsonNode capeElement = element.get("d");
+            if (capeElement == null || capeElement.isNull()) return null;
+            return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(capeElement.textValue())));
+        }
+        return null;
+    }
+
+    private static BufferedImage scale(BufferedImage bufferedImage) {
         BufferedImage resized = new BufferedImage(bufferedImage.getWidth() / 2, bufferedImage.getHeight() / 2, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = resized.createGraphics();
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -262,18 +313,31 @@ public class SkinProvider {
         private boolean failed;
     }
 
+    @AllArgsConstructor
+    @Getter
+    public static class SkinGeometry {
+        private String geometryName;
+        private String geometryData;
+
+        public static SkinGeometry getLegacy(String name) {
+            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"" + name + "\"}}", "");
+        }
+    }
+
     /*
      * Sorted by 'priority'
      */
     @AllArgsConstructor
+    @NoArgsConstructor
     @Getter
-    public enum UnofficalCape {
+    public enum CapeProvider {
+        MINECRAFT,
         OPTIFINE("http://s.optifine.net/capes/%s.png", CapeUrlType.USERNAME),
-        LABYMOD("http://capes.labymod.net/capes/%s.png", CapeUrlType.UUID_DASHED),
-        FIVEZIG("http://textures.5zig.net/2/%s", CapeUrlType.UUID),
+        LABYMOD("https://www.labymod.net/page/php/getCapeTexture.php?uuid=%s", CapeUrlType.UUID_DASHED),
+        FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
         MINECRAFTCAPES("https://www.minecraftcapes.co.uk/getCape/%s", CapeUrlType.UUID);
 
-        public static final UnofficalCape[] VALUES = values();
+        public static final CapeProvider[] VALUES = Arrays.copyOfRange(values(), 1, 5);
         private String url;
         private CapeUrlType type;
 

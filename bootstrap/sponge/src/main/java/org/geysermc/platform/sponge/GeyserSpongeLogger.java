@@ -27,11 +27,11 @@ package org.geysermc.platform.sponge;
 
 import lombok.AllArgsConstructor;
 
-import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserLogger;
 import org.slf4j.Logger;
 
 @AllArgsConstructor
-public class GeyserSpongeLogger implements IGeyserLogger {
+public class GeyserSpongeLogger implements GeyserLogger {
 
     private Logger logger;
     private boolean debugMode;

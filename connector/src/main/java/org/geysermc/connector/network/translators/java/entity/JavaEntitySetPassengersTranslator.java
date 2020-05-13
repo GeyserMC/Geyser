@@ -45,7 +45,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
 
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());;
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
         LongOpenHashSet passengers = entity.getPassengers().clone();
@@ -66,7 +66,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             EntityLink.Type type = rider ? EntityLink.Type.RIDER : EntityLink.Type.PASSENGER;
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             linkPacket.setEntityLink(new EntityLink(entity.getGeyserId(), passenger.getGeyserId(), type, false));
-            session.getUpstream().sendPacket(linkPacket);
+            session.sendUpstreamPacket(linkPacket);
             passengers.add(passengerId);
 
             passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
@@ -88,11 +88,18 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             if (Arrays.stream(packet.getPassengerIds()).noneMatch(id -> id == passengerId)) {
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
                 linkPacket.setEntityLink(new EntityLink(entity.getGeyserId(), passenger.getGeyserId(), EntityLink.Type.REMOVE, false));
-                session.getUpstream().sendPacket(linkPacket);
+                session.sendUpstreamPacket(linkPacket);
                 passengers.remove(passenger.getEntityId());
 
                 this.updateOffset(passenger, entity.getEntityType(), session, false, false);
             }
+        }
+
+        if (entity.getEntityType() == EntityType.HORSE) {
+            entity.getMetadata().put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(0.0f, 2.3200102f, -0.2f));
+            entity.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
+
+            entity.updateBedrockMetadata(session);
         }
     }
 
@@ -112,6 +119,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             case HORSE:
             case MULE:
                 yOffset = 2.3f;
+                break;
+            case LLAMA:
+            case TRADER_LLAMA:
+                yOffset = 2.5f;
                 break;
             case PIG:
                 yOffset = 1.85001f;

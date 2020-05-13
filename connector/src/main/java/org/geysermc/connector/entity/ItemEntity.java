@@ -49,8 +49,8 @@ public class ItemEntity extends Entity {
             itemPacket.setUniqueEntityId(geyserId);
             itemPacket.setFromFishing(false);
             itemPacket.getMetadata().putAll(metadata);
-            itemPacket.setItemInHand(Translators.getItemTranslator().translateToBedrock((ItemStack) entityMetadata.getValue()));
-            session.getUpstream().sendPacket(itemPacket);
+            itemPacket.setItemInHand(Translators.getItemTranslator().translateToBedrock(session, (ItemStack) entityMetadata.getValue()));
+            session.sendUpstreamPacket(itemPacket);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);

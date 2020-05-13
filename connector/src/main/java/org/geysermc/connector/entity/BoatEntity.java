@@ -48,16 +48,16 @@ public class BoatEntity extends Entity {
     }
 
     @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround) {
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         // Rotation is basically only called when entering/exiting a boat.
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), Vector3f.from(rotation.getX(), 0, rotation.getZ() + 90), isOnGround);
+        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), Vector3f.from(rotation.getX(), 0, rotation.getZ() + 90), isOnGround, teleported);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 10) {
-            metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
+            metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         } else if (entityMetadata.getId() == 11) {
             isPaddlingLeft = (boolean) entityMetadata.getValue();
             if (!isPaddlingLeft) {
@@ -68,7 +68,7 @@ public class BoatEntity extends Entity {
                 // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
                 paddleTimeLeft = 0f;
                 session.getConnector().getGeneralThreadPool().execute(() ->
-                                updateLeftPaddle(session, entityMetadata)
+                        updateLeftPaddle(session, entityMetadata)
                 );
             }
         }
@@ -112,7 +112,7 @@ public class BoatEntity extends Entity {
 //                ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
 //                        entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity.getBedrockRotation().getX() + 10f, 0
 //                );
-//                session.getDownstream().getSession().send(clientVehicleMovePacket);
+//                session.sendDownstreamPacket(clientVehicleMovePacket);
             session.getConnector().getGeneralThreadPool().schedule(() ->
                             updateRightPaddle(session, entityMetadata),
                     100,

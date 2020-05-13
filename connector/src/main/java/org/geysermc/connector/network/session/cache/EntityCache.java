@@ -25,10 +25,7 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.*;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
@@ -60,13 +57,19 @@ public class EntityCache {
     }
 
     public void spawnEntity(Entity entity) {
-        cacheEntity(entity);
-        entity.spawnEntity(session);
+        if (cacheEntity(entity)) {
+            entity.spawnEntity(session);
+        }
     }
 
-    public void cacheEntity(Entity entity) {
-        entityIdTranslations.put(entity.getEntityId(), entity.getGeyserId());
-        entities.put(entity.getGeyserId(), entity);
+    public boolean cacheEntity(Entity entity) {
+        // Check to see if the entity exists, otherwise we can end up with duplicated mobs
+        if (!entityIdTranslations.containsKey(entity.getEntityId())) {
+            entityIdTranslations.put(entity.getEntityId(), entity.getGeyserId());
+            entities.put(entity.getGeyserId(), entity);
+            return true;
+        }
+        return false;
     }
 
     public boolean removeEntity(Entity entity, boolean force) {

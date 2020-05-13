@@ -25,14 +25,6 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
-
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValue;
@@ -43,13 +35,16 @@ import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
-import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
-
+import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.PlayerInventoryTranslator;
+
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Translator(packet = ServerNotifyClientPacket.class)
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
@@ -66,14 +61,14 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 startRainPacket.setType(LevelEventType.START_RAIN);
                 startRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
                 startRainPacket.setPosition(Vector3f.ZERO);
-                session.getUpstream().sendPacket(startRainPacket);
+                session.sendUpstreamPacket(startRainPacket);
                 break;
             case STOP_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
                 stopRainPacket.setType(LevelEventType.STOP_RAIN);
                 stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
                 stopRainPacket.setPosition(Vector3f.ZERO);
-                session.getUpstream().sendPacket(stopRainPacket);
+                session.sendUpstreamPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:
                 Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
@@ -94,14 +89,14 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
-                session.getUpstream().sendPacket(playerGameTypePacket);
+                session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
 
                 AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
                 adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
                 adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
                 adventureSettingsPacket.getFlags().addAll(playerFlags);
-                session.getUpstream().sendPacket(adventureSettingsPacket);
+                session.sendUpstreamPacket(adventureSettingsPacket);
 
                 EntityDataMap metadata = entity.getMetadata();
                 metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR);
@@ -109,19 +104,23 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
                 entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
                 entityDataPacket.getMetadata().putAll(metadata);
-                session.getUpstream().sendPacket(entityDataPacket);
+                session.sendUpstreamPacket(entityDataPacket);
+
+                // Update the crafting grid to add/remove barriers for creative inventory
+                PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());
+
                 break;
             case ENTER_CREDITS:
                 switch ((EnterCreditsValue) packet.getValue()) {
                     case SEEN_BEFORE:
                         ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
-                        session.getDownstream().getSession().send(javaRespawnPacket);
+                        session.sendDownstreamPacket(javaRespawnPacket);
                         break;
                     case FIRST_TIME:
                         ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
                         showCreditsPacket.setStatus(ShowCreditsPacket.Status.START_CREDITS);
                         showCreditsPacket.setRuntimeEntityId(entity.getGeyserId());
-                        session.getUpstream().sendPacket(showCreditsPacket);
+                        session.sendUpstreamPacket(showCreditsPacket);
                         break;
                 }
                 break;
