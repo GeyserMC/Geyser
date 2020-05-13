@@ -56,6 +56,7 @@ public class GeyserBukkitBlockPlaceListener implements Listener {
                 session.sendUpstreamPacket(placeBlockSoundPacket);
                 session.setLastBlockPlacePosition(null);
                 session.setLastBlockPlacedId(null);
+                break;
             }
         }
     }
