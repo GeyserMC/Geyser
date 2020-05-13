@@ -29,8 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.attribute.Attribute;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -39,14 +37,12 @@ public class WitherEntity extends MonsterEntity {
     public WitherEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
-        // After WITHER_AERIAL_ATTACK gets fixed in NukkitX/Protocol this can be uncommented
-        // It hides the withers shield
-        //metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
+        metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        long targetID = -1;
+        long targetID = 0;
 
         if (entityMetadata.getId() >= 15 && entityMetadata.getId() <= 17) {
             Entity entity = session.getEntityCache().getEntityByJavaId((int) entityMetadata.getValue());
@@ -69,19 +65,11 @@ public class WitherEntity extends MonsterEntity {
             metadata.put(EntityData.WITHER_INVULNERABLE_TICKS, (int) entityMetadata.getValue());
 
             // Show the shield for the first few seconds of spawning (like Java)
-            if ((int) entityMetadata.getValue() >= 175) {
-                //metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 0);
+            if ((int) entityMetadata.getValue() >= 165) {
+                metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 0);
             } else {
-                //metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
+                metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
             }
-        }
-
-        // If less than 50% health show shield
-        Attribute health = attributes.get(AttributeType.HEALTH);
-        if ((health.getValue() <= health.getMaximum() / 2) || health.getMaximum() == 300f) {
-            //metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 0);
-        } else {
-            //metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
