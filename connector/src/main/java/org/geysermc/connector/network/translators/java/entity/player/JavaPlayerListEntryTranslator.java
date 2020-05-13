@@ -57,16 +57,16 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape -> {
                         GeyserConnector.getInstance().getLogger().debug("Loading Local Bedrock Java Skin Data");
                     });
+                } else {
+                    playerEntity = new PlayerEntity(
+                            entry.getProfile(),
+                            -1,
+                            session.getEntityCache().getNextEntityId().incrementAndGet(),
+                            Vector3f.ZERO,
+                            Vector3f.ZERO,
+                            Vector3f.ZERO
+                    );
                 }
-
-                playerEntity = new PlayerEntity(
-                        entry.getProfile(),
-                        -1,
-                        session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        Vector3f.ZERO,
-                        Vector3f.ZERO,
-                        Vector3f.ZERO
-                );
 
                 playerEntity.setPlayerList(true);
                 playerEntity.setValid(true);
