@@ -48,7 +48,7 @@ public class GuardianEntity extends MonsterEntity {
 
             if (entity != null) {
                 metadata.put(EntityData.TARGET_EID, entity.getGeyserId());
-            }else{
+            } else {
                 metadata.put(EntityData.TARGET_EID, (long) 0);
             }
         }
