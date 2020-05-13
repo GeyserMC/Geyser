@@ -117,6 +117,8 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 yOffset = 2.1f;
                 break;
             case HORSE:
+            case SKELETON_HORSE:
+            case ZOMBIE_HORSE:
             case MULE:
                 yOffset = 2.3f;
                 break;
