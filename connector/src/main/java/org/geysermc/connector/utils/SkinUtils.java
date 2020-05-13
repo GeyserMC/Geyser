@@ -224,6 +224,10 @@ public class SkinUtils {
                                     playerAddPacket.setAction(PlayerListPacket.Action.ADD);
                                     playerAddPacket.getEntries().add(updatedEntry);
                                     session.sendUpstreamPacket(playerAddPacket);
+
+                                    if(entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
+                                        session.fetchOurSkin(updatedEntry);
+                                    }
                                 }
                             }
                         } catch (Exception e) {
