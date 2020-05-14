@@ -26,6 +26,12 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
+import com.nukkitx.nbt.CompoundTagBuilder;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ItemUtils {
 
@@ -43,5 +49,78 @@ public class ItemUtils {
             return enchantmentLevel;
         }
         return 0;
+    }
+
+    /**
+     * Convert a list of patterns from Java nbt to Bedrock nbt
+     *
+     * @param patterns The patterns to convert
+     * @return The new converted patterns
+     */
+    public static com.nukkitx.nbt.tag.ListTag convertBannerPattern(ListTag patterns) {
+        List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
+        for (com.github.steveice10.opennbt.tag.builtin.Tag patternTag : patterns.getValue()) {
+            com.nukkitx.nbt.tag.CompoundTag newPatternTag = getBedrockBannerPattern((CompoundTag) patternTag);
+            if (newPatternTag != null) {
+                tagsList.add(newPatternTag);
+            }
+        }
+
+        return new com.nukkitx.nbt.tag.ListTag<>("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
+    }
+
+    /**
+     * Convert the Java edition banner pattern nbt to Bedrock edition, null if the pattern doesn't exist
+     *
+     * @param pattern Java edition pattern nbt
+     * @return The Bedrock edition format pattern nbt
+     */
+    public static com.nukkitx.nbt.tag.CompoundTag getBedrockBannerPattern(CompoundTag pattern) {
+        String patternName = (String) pattern.get("Pattern").getValue();
+
+        // Return null if its the globe pattern as it doesn't exist on bedrock
+        if (patternName.equals("glb")) {
+            return null;
+        }
+
+        return CompoundTagBuilder.builder()
+                .intTag("Color", 15 - (int) pattern.get("Color").getValue())
+                .stringTag("Pattern", (String) pattern.get("Pattern").getValue())
+                .stringTag("Pattern", patternName)
+                .buildRootTag();
+    }
+
+    /**
+     * Convert a list of patterns from Bedrock nbt to Java nbt
+     *
+     * @param patterns The patterns to convert
+     * @return The new converted patterns
+     */
+    public static ListTag convertBannerPattern(com.nukkitx.nbt.tag.ListTag patterns) {
+        List<Tag> tagsList = new ArrayList<>();
+        for (Object patternTag : patterns.getValue()) {
+            CompoundTag newPatternTag = getJavaBannerPattern((com.nukkitx.nbt.tag.CompoundTag) patternTag);
+            if (newPatternTag != null) {
+                tagsList.add(newPatternTag);
+            }
+        }
+
+        return new ListTag("Patterns", tagsList);
+    }
+
+    /**
+     * Convert the Bedrock edition banner pattern nbt to Java edition
+     *
+     * @param pattern Bedorck edition pattern nbt
+     * @return The Java edition format pattern nbt
+     */
+    public static CompoundTag getJavaBannerPattern(com.nukkitx.nbt.tag.CompoundTag pattern) {
+        String patternName = (String) pattern.get("Pattern").getValue();
+
+        Map<String, Tag> tags = new HashMap<>();
+        tags.put("Color", new IntTag("Color", 15 - pattern.getInt("Color")));
+        tags.put("Pattern", new StringTag("Pattern", pattern.getString("Pattern")));
+
+        return new CompoundTag("", tags);
     }
 }
