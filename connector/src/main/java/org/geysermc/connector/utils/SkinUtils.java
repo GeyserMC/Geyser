@@ -115,6 +115,9 @@ public class SkinUtils {
          * @return The built GameProfileData
          */
         public static GameProfileData from(GameProfile profile) {
+            // Fallback to the offline mode of working it out
+            boolean isAlex = ((profile.getId().hashCode() % 2) == 1);
+
             try {
                 GameProfile.Property skinProperty = profile.getProperty("textures");
 
@@ -124,7 +127,7 @@ public class SkinUtils {
                 JsonNode skinTexture = textures.get("SKIN");
                 String skinUrl = skinTexture.get("url").asText();
 
-                boolean isAlex = skinTexture.has("metadata");
+                isAlex = skinTexture.has("metadata");
 
                 String capeUrl = null;
                 if (textures.has("CAPE")) {
@@ -138,7 +141,7 @@ public class SkinUtils {
                     GeyserConnector.getInstance().getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
                 }
                 // return default skin with default cape when texture data is invalid
-                return new GameProfileData(SkinProvider.EMPTY_SKIN.getTextureUrl(), SkinProvider.EMPTY_CAPE.getTextureUrl(), false);
+                return new GameProfileData((isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl()), SkinProvider.EMPTY_CAPE.getTextureUrl(), isAlex);
             }
         }
     }
@@ -265,15 +268,5 @@ public class SkinUtils {
         } catch (Exception e) {
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
         }
-    }
-
-    /**
-     * Create a basic geometry json for the given name
-     *
-     * @param geometryName Geometry name to use
-     * @return Geometry data as a json string
-     */
-    private static String getLegacySkinGeometry(String geometryName) {
-        return "{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}";
     }
 }

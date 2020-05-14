@@ -51,6 +51,8 @@ public class SkinProvider {
 
     public static final byte[] STEVE_SKIN = new ProvidedSkin("bedrock/skin/skin_steve.png").getSkin();
     public static final Skin EMPTY_SKIN = new Skin(-1, "steve", STEVE_SKIN);
+    public static final byte[] ALEX_SKIN = new ProvidedSkin("bedrock/skin/skin_alex.png").getSkin();
+    public static final Skin EMPTY_SKIN_ALEX = new Skin(-1, "alex", ALEX_SKIN);
     private static Map<UUID, Skin> cachedSkins = new ConcurrentHashMap<>();
     private static Map<UUID, CompletableFuture<Skin>> requestedSkins = new ConcurrentHashMap<>();
 
@@ -209,14 +211,8 @@ public class SkinProvider {
 
         CompletableFuture<Skin> future;
         if (newThread) {
-            /*future = CompletableFuture.supplyAsync(() -> supplyCape(earsUrl, provider), EXECUTOR_SERVICE)
-                    .whenCompleteAsync((cape, throwable) -> {
-                        cachedCapes.put(earsUrl, cape);
-                        requestedCapes.remove(earsUrl);
-                    });
-            requestedCapes.put(earsUrl, future);*/
-
-            future = CompletableFuture.completedFuture(skin);
+            future = CompletableFuture.supplyAsync(() -> supplyEars(skin, earsUrl, provider), EXECUTOR_SERVICE)
+                    .whenCompleteAsync((outSkin, throwable) -> { });
         } else {
             Skin ears = supplyEars(skin, earsUrl, provider); // blocking
             future = CompletableFuture.completedFuture(ears);
