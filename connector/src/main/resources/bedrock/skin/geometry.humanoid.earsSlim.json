@@ -197,7 +197,7 @@
                 {
                     "name" : "rightItem",
                     "parent" : "rightArm",
-                    "pivot" : [ -6.0, 14.5, 1.0 ],
+                    "pivot" : [ -6.0, 15.0, 1.0 ],
                     "rotation" : [ 0.0, 0.0, 0.0 ],
                     "cubes" : []
                 },
@@ -205,7 +205,7 @@
                 {
                     "name" : "leftItem",
                     "parent" : "leftArm",
-                    "pivot" : [ 6.0, 14.5, 1.0 ],
+                    "pivot" : [ 6.0, 15.0, 1.0 ],
                     "rotation" : [ 0.0, 0.0, 0.0 ],
                     "cubes" : []
                 },
