@@ -123,7 +123,7 @@ public enum EntityType {
     ENDER_PEARL(ThrowableEntity.class, 87, 0.25f),
     LEASH_KNOT(Entity.class, 88, 0.5f, 0.375f),
     WITHER_SKULL(Entity.class, 89, 0.3125f),
-    BOAT(Entity.class, 90, 0.7f, 1.6f, 1.6f, 0.35f),
+    BOAT(BoatEntity.class, 90, 0.7f, 1.6f, 1.6f, 0.35f),
     WITHER_SKULL_DANGEROUS(Entity.class, 91, 0f),
     LIGHTNING_BOLT(Entity.class, 93, 0f),
     SMALL_FIREBALL(ItemedFireballEntity.class, 94, 0.3125f),
