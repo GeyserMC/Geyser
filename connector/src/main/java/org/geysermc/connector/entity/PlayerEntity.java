@@ -26,14 +26,12 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityLink;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 
 import lombok.Getter;
@@ -47,6 +45,8 @@ import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.utils.SkinUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -208,6 +208,17 @@ public class PlayerEntity extends LivingEntity {
                 // session.getConnector().getLogger().info("team name es " + team.getName() + " with prefix " + team.getPrefix() + " and suffix " + team.getSuffix());
                 metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());
             }
+        }
+
+        // Extra hearts - is not metadata but an attribute on Bedrock
+        if (entityMetadata.getId() == 14) {
+            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+            attributesPacket.setRuntimeEntityId(geyserId);
+            List<Attribute> attributes = new ArrayList<>();
+            // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
+            attributes.add(new Attribute("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f));
+            attributesPacket.setAttributes(attributes);
+            session.sendUpstreamPacket(attributesPacket);
         }
 
         // Parrot occupying shoulder
