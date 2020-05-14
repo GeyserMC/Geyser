@@ -26,18 +26,24 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.message.Message;
+import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.protocol.bedrock.data.ItemData;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
-
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.*;
+import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.network.translators.ItemStackTranslator;
+import org.geysermc.connector.network.translators.NbtItemStackTranslator;
+import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.Toolbox;
 import org.reflections.Reflections;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ItemTranslator {
@@ -105,6 +111,7 @@ public class ItemTranslator {
                 }
             }
         }
+
         return itemStack;
     }
 
@@ -125,12 +132,37 @@ public class ItemTranslator {
             }
         }
 
+        ItemData itemData;
         ItemStackTranslator itemStackTranslator = itemTranslators.get(bedrockItem.getJavaId());
         if (itemStackTranslator != null) {
-            return itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
+            itemData = itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
         } else {
-            return DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
+            itemData = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
         }
+
+        try {
+            // Get the display name of the item
+            String name = itemData.getTag().getCompound("display").getString("Name");
+
+            // Check if its a message to translate
+            if (MessageUtils.isMessage(name)) {
+                // Get the translated name
+                name = MessageUtils.getTranslatedBedrockMessage(Message.fromString(name), session.getClientData().getLanguageCode());
+
+                // Build the new display tag
+                CompoundTagBuilder displayBuilder = itemData.getTag().getCompound("display").toBuilder();
+                displayBuilder.stringTag("Name", name);
+
+                // Build the new root tag
+                CompoundTagBuilder builder = itemData.getTag().toBuilder();
+                builder.tag(displayBuilder.build("display"));
+
+                // Create a new item with the original data + updated name
+                itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.buildRootTag());
+            }
+        } catch (Exception e) { }
+
+        return itemData;
     }
 
     public ItemEntry getItem(ItemStack stack) {
