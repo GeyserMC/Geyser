@@ -43,6 +43,7 @@ public class FireworkEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 8 && !entityMetadata.getValue().equals(OptionalInt.empty()) && ((OptionalInt) entityMetadata.getValue()).getAsInt() == session.getPlayerEntity().getEntityId()) {
+            //Checks if the firework has an entity ID (used when a player is gliding) and checks to make sure the player that is gliding is the one getting sent the packet or else every player near the gliding player will boost too.
             PlayerEntity entity = session.getPlayerEntity();
             float yaw = entity.getRotation().getX();
             float pitch = entity.getRotation().getY();
@@ -51,7 +52,7 @@ public class FireworkEntity extends Entity {
                     -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,
                     -Math.sin(Math.toRadians(pitch)) * 2,
                     Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2));
-
+            //Need to update the EntityMotionPacket or else the player won't boost
             SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
             entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
             entityMotionPacket.setMotion(entity.getMotion());
