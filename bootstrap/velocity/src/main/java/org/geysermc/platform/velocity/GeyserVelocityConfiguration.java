@@ -79,7 +79,7 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
 
     public void loadFloodgate(GeyserVelocityPlugin plugin, ProxyServer proxyServer, File dataFolder) {
         Optional<PluginContainer> floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
-        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), floodgateKeyFile.isEmpty() ? floodgateKeyFile : "public-key.pem"), floodgate.get(), Paths.get("plugins/floodgate/"));
+        floodgate.ifPresent(it -> floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), floodgateKeyFile.isEmpty() ? floodgateKeyFile : "public-key.pem"), it, Paths.get("plugins/floodgate/")));
     }
 
     @Override

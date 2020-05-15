@@ -63,8 +63,9 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     );
                 }
 
-                session.getEntityCache().addPlayerEntity(playerEntity);
                 playerEntity.setPlayerList(true);
+                playerEntity.setValid(true);
+                session.getEntityCache().addPlayerEntity(playerEntity);
 
                 translate.getEntries().add(SkinUtils.buildCachedEntry(entry.getProfile(), playerEntity.getGeyserId()));
             } else {

@@ -32,7 +32,7 @@ import com.nukkitx.nbt.tag.Tag;
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(name = "Empty", delay = false, regex = "")
+@BlockEntity(name = "Empty", regex = "")
 public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override

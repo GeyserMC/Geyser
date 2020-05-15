@@ -114,9 +114,13 @@ public class BlockUtils {
             correctTool = correctTool(blockToolType, toolType);
         }
         int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(nbtData, "minecraft:efficiency");
-        int hasteLevel = player.getEffectCache().getEffectLevel(Effect.FASTER_DIG);
-        int miningFatigueLevel = player.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
+        int hasteLevel = 0;
+        int miningFatigueLevel = 0;
 
+        if (player != null) {
+            hasteLevel = player.getEffectCache().getEffectLevel(Effect.FASTER_DIG);
+            miningFatigueLevel = player.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
+        }
         // TODO implement these checks and material check if possible
         //boolean insideOfWaterWithoutAquaAffinity = player.isInsideOfWater() &&
         //        Optional.ofNullable(player.getInventory().getHelmet().getEnchantment(Enchantment.ID_WATER_WORKER))

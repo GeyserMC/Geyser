@@ -32,24 +32,43 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class GuardianEntity extends MonsterEntity {
+public class WitherEntity extends MonsterEntity {
 
-    public GuardianEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public WitherEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        long targetID = 0;
+
+        if (entityMetadata.getId() >= 15 && entityMetadata.getId() <= 17) {
             Entity entity = session.getEntityCache().getEntityByJavaId((int) entityMetadata.getValue());
             if (entity == null && session.getPlayerEntity().getEntityId() == (Integer) entityMetadata.getValue()) {
                 entity = session.getPlayerEntity();
             }
 
             if (entity != null) {
-                metadata.put(EntityData.TARGET_EID, entity.getGeyserId());
+                targetID = entity.getGeyserId();
+            }
+        }
+
+        if (entityMetadata.getId() == 15) {
+            metadata.put(EntityData.WITHER_TARGET_1, targetID);
+        } else if (entityMetadata.getId() == 16) {
+            metadata.put(EntityData.WITHER_TARGET_2, targetID);
+        } else if (entityMetadata.getId() == 17) {
+            metadata.put(EntityData.WITHER_TARGET_3, targetID);
+        } else if (entityMetadata.getId() == 18) {
+            metadata.put(EntityData.WITHER_INVULNERABLE_TICKS, (int) entityMetadata.getValue());
+
+            // Show the shield for the first few seconds of spawning (like Java)
+            if ((int) entityMetadata.getValue() >= 165) {
+                metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 0);
             } else {
-                metadata.put(EntityData.TARGET_EID, (long) 0);
+                metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
             }
         }
 

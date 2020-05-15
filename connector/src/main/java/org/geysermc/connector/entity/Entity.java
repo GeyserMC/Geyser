@@ -35,24 +35,28 @@ import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityDataMap;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.*;
-
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -94,7 +98,7 @@ public class Entity {
 
         metadata.put(EntityData.SCALE, 1f);
         metadata.put(EntityData.COLOR, 0);
-        metadata.put(EntityData.MAX_AIR, (short) 400);
+        metadata.put(EntityData.MAX_AIR, (short) 300);
         metadata.put(EntityData.AIR, (short) 0);
         metadata.put(EntityData.LEAD_HOLDER_EID, -1L);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
@@ -205,6 +209,16 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
+                    if ((xd & 0x20) == 0x20) {
+                        if (this.is(ArmorStandEntity.class)) {
+                            metadata.put(EntityData.SCALE, 0.0f);
+                        } else {
+                            metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
+                        }
+                    } else {
+                        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
+                    }
+
                     // Shield code
                     if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
                         if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemTranslator.SHIELD) ||
@@ -221,16 +235,18 @@ public class Entity {
                             session.sendDownstreamPacket(useItemPacket);
                         }
                     } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
-                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                            metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
-                            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
-                            session.sendDownstreamPacket(releaseItemPacket);
-                        }
-                    // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    if ((xd & 0x20) == 0x20)
-                        metadata.put(EntityData.SCALE, 0.0f);
-                    else
-                        metadata.put(EntityData.SCALE, scale);
+                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
+                        metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
+                        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
+                        session.sendDownstreamPacket(releaseItemPacket);
+                    }
+                }
+                break;
+            case 1: // Air/bubbles
+                if ((int) entityMetadata.getValue() == 300) {
+                    metadata.put(EntityData.AIR, (short) 0); // Otherwise the bubble counter remains in the UI
+                } else {
+                    metadata.put(EntityData.AIR, (short) (int) entityMetadata.getValue());
                 }
                 break;
             case 2: // custom name
@@ -270,6 +286,7 @@ public class Entity {
 
     /**
      * x = Pitch, y = HeadYaw, z = Yaw
+     *
      * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {

@@ -31,10 +31,10 @@ import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.event.session.*;
@@ -68,6 +68,7 @@ import org.geysermc.connector.network.translators.Registry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.SkinUtils;
 import org.geysermc.connector.utils.Toolbox;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.floodgate.util.BedrockData;
@@ -341,6 +342,11 @@ public class GeyserSession implements CommandSender {
                                 GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
                                 playerEntity.setUsername(profile.getName());
                                 playerEntity.setUuid(profile.getId());
+
+                                // Check if they are not using a linked account
+                                if (connector.getAuthType() == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
+                                    SkinUtils.handleBedrockSkin(playerEntity, clientData);
+                                }
                             }
 
                             Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);

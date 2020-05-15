@@ -23,23 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block.entity;
+package org.geysermc.connector.entity.living;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.nukkitx.math.vector.Vector3f;
+import org.geysermc.connector.entity.type.EntityType;
 
-@Retention(value = RetentionPolicy.RUNTIME)
-public @interface BlockEntity {
+public class SquidEntity extends WaterEntity {
 
-    /**
-     * The block entity name
-     * @return the name of the block entity
-     */
-    String name();
-
-    /**
-     * The search term used in BlockTranslator
-     * @return the search term used in BlockTranslator
-     */
-    String regex();
+    public SquidEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
+    }
 }
