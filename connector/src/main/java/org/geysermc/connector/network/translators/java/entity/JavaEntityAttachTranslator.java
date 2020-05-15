@@ -36,6 +36,9 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
+/**
+ * Called when a leash is attached, removed or updated from an entity
+ */
 @Translator(packet = ServerEntityAttachPacket.class)
 public class JavaEntityAttachTranslator extends PacketTranslator<ServerEntityAttachPacket> {
 
