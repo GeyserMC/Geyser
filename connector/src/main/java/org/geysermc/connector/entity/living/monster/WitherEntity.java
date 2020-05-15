@@ -23,27 +23,55 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal.horse;
+package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class HorseEntity extends AbstractHorseEntity {
+public class WitherEntity extends MonsterEntity {
 
-    public HorseEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public WitherEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 18) {
-            metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
-            metadata.put(EntityData.MARK_VARIANT, (((int) entityMetadata.getValue()) >> 8) % 5);
+        long targetID = 0;
+
+        if (entityMetadata.getId() >= 15 && entityMetadata.getId() <= 17) {
+            Entity entity = session.getEntityCache().getEntityByJavaId((int) entityMetadata.getValue());
+            if (entity == null && session.getPlayerEntity().getEntityId() == (Integer) entityMetadata.getValue()) {
+                entity = session.getPlayerEntity();
+            }
+
+            if (entity != null) {
+                targetID = entity.getGeyserId();
+            }
         }
+
+        if (entityMetadata.getId() == 15) {
+            metadata.put(EntityData.WITHER_TARGET_1, targetID);
+        } else if (entityMetadata.getId() == 16) {
+            metadata.put(EntityData.WITHER_TARGET_2, targetID);
+        } else if (entityMetadata.getId() == 17) {
+            metadata.put(EntityData.WITHER_TARGET_3, targetID);
+        } else if (entityMetadata.getId() == 18) {
+            metadata.put(EntityData.WITHER_INVULNERABLE_TICKS, (int) entityMetadata.getValue());
+
+            // Show the shield for the first few seconds of spawning (like Java)
+            if ((int) entityMetadata.getValue() >= 165) {
+                metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 0);
+            } else {
+                metadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
+            }
+        }
+
         super.updateBedrockMetadata(entityMetadata, session);
     }
 }

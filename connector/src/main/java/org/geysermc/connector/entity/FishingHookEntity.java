@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.type.object.ProjectileData;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
@@ -43,5 +44,21 @@ public class FishingHookEntity extends Entity {
                 return;
             }
         }
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 7) {
+            Entity entity = session.getEntityCache().getEntityByJavaId((Integer) entityMetadata.getValue() - 1);
+            if (entity == null && session.getPlayerEntity().getEntityId() == (Integer) entityMetadata.getValue() - 1) {
+                entity = session.getPlayerEntity();
+            }
+
+            if (entity != null) {
+                metadata.put(EntityData.TARGET_EID, entity.getGeyserId());
+            }
+        }
+
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

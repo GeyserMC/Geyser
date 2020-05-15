@@ -56,6 +56,23 @@ public class BoatEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+
+        // Time since last hit
+        if (entityMetadata.getId() == 7) {
+            metadata.put(EntityData.HURT_TIME, entityMetadata.getValue());
+        }
+
+        // Rocking direction
+        if (entityMetadata.getId() == 8) {
+            metadata.put(EntityData.HURT_DIRECTION, entityMetadata.getValue());
+        }
+
+        // 'Health' in Bedrock, damage taken in Java
+        if (entityMetadata.getId() == 9) {
+            // Not exactly health but it makes motion in Bedrock
+            metadata.put(EntityData.HEALTH, 40 - ((int) (float) entityMetadata.getValue()));
+        }
+
         if (entityMetadata.getId() == 10) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         } else if (entityMetadata.getId() == 11) {

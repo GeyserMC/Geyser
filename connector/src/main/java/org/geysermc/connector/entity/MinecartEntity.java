@@ -25,7 +25,9 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -33,6 +35,26 @@ public class MinecartEntity extends Entity {
 
     public MinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+
+        if (entityMetadata.getId() == 7) {
+            metadata.put(EntityData.HEALTH, entityMetadata.getValue());
+        }
+
+        // Direction in which the minecart is shaking
+        if (entityMetadata.getId() == 8) {
+            metadata.put(EntityData.HURT_DIRECTION, entityMetadata.getValue());
+        }
+
+        // Power in Java, time in Bedrock
+        if (entityMetadata.getId() == 9) {
+            metadata.put(EntityData.HURT_TIME, Math.min((int) (float) entityMetadata.getValue(), 15));
+        }
+
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 
     @Override
