@@ -31,6 +31,7 @@ import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
 
 import java.io.File;
@@ -59,7 +60,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
         } catch (IOException ex) {
-            geyserLogger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             System.exit(0);
         }
 

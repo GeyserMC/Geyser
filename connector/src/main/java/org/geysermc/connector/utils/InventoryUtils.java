@@ -111,7 +111,8 @@ public class InventoryUtils {
         CompoundTagBuilder root = CompoundTagBuilder.builder();
         CompoundTagBuilder display = CompoundTagBuilder.builder();
 
-        display.stringTag("Name", ChatColor.RESET + "Unusable inventory space");
+        // Not ideal to use log here but we dont get a session
+        display.stringTag("Name", ChatColor.RESET + LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.name"));
         display.listTag("Lore", StringTag.class, Collections.singletonList(new StringTag("", ChatColor.RESET + ChatColor.DARK_PURPLE + description)));
 
         root.tag(display.build("display"));

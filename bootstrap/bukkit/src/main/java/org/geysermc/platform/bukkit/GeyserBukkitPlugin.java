@@ -32,6 +32,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
 import org.geysermc.platform.bukkit.world.GeyserBukkitBlockPlaceListener;
@@ -87,7 +88,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
             // TODO: Update when ViaVersion updates
             // API changes between 2.2.3 and 3.0.0-SNAPSHOT require this check
             if (!Via.getAPI().getVersion().equals("3.0.0-SNAPSHOT") && isLegacy) {
-                geyserLogger.info("ViaVersion detected but not ViaVersion-ABSTRACTION. Please update your ViaVersion plugin for compatibility with Geyser.");
+                geyserLogger.info(LanguageUtils.getLocaleStringLog("geyser.bootstrap.viaversion.update"));
             } else {
                 isViaVersion = true;
             }

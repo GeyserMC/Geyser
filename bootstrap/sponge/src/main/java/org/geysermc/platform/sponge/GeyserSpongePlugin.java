@@ -34,6 +34,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandManager;
 import org.slf4j.Logger;
@@ -74,7 +75,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         try {
             configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (file) -> file.replaceAll("generateduuid", UUID.randomUUID().toString()));
         } catch (IOException ex) {
-            logger.warn("Failed to copy config.yml from jar path!");
+            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
         }
 
@@ -84,7 +85,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             config = loader.load();
             this.geyserConfig = new GeyserSpongeConfiguration(configDir, config);
         } catch (IOException ex) {
-            logger.warn("Failed to load config.yml!");
+            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
             return;
         }

@@ -38,6 +38,7 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandManager;
 import org.slf4j.Logger;
@@ -75,7 +76,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
         } catch (IOException ex) {
-            logger.warn("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
         }
 

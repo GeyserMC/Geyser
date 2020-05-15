@@ -26,13 +26,14 @@
 package org.geysermc.platform.bukkit.command;
 
 import lombok.AllArgsConstructor;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +49,14 @@ public class GeyserBukkitCommandExecutor implements TabExecutor {
         if (args.length > 0) {
             if (getCommand(args[0]) != null) {
                 if (!sender.hasPermission(getCommand(args[0]).getPermission())) {
-                    sender.sendMessage(ChatColor.RED + "You do not have permission to execute this command!");
+                    String message = "";
+                    if (sender instanceof GeyserSession) {
+                        message = LanguageUtils.getLocaleStringPly("geyser.bootstrap.command.permission_fail", ((GeyserSession) sender).getClientData().getLanguageCode());
+                    } else {
+                        message = LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail");
+                    }
+
+                    sender.sendMessage(ChatColor.RED + message);
                     return true;
                 }
                 getCommand(args[0]).execute(new BukkitCommandSender(sender), args);

@@ -34,11 +34,11 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 @AllArgsConstructor
 public class ChestInventoryUpdater extends InventoryUpdater {
-    private static final ItemData UNUSUABLE_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(
-            "This slot does not exist in the inventory\non Java Edition, as there is less\nrows than possible in Bedrock");
+    private static final ItemData UNUSUABLE_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.slot"));
 
     private final int paddedSize;
 
