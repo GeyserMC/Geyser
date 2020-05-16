@@ -27,6 +27,7 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
@@ -35,6 +36,7 @@ import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
@@ -263,6 +265,22 @@ public class Entity {
                 break;
             case 5: // no gravity
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
+                break;
+            case 6: // Pose change
+                if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
+                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
+                    // Has to be a byte or it does not work
+                    metadata.put(EntityData.CAN_START_SLEEP, (byte) 2);
+                    // TODO: Figure out this value
+                    metadata.put(EntityData.BED_RESPAWN_POS, Vector3i.from(position.getFloorX(), position.getFloorY() - 2, position.getFloorZ()));
+                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
+                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
+                } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
+                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, false);
+                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, getEntityType().getWidth());
+                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, getEntityType().getHeight());
+                    metadata.put(EntityData.CAN_START_SLEEP, (byte) 0);
+                }
                 break;
             case 7: // blocking
                 if (entityMetadata.getType() == MetadataType.BYTE) {
