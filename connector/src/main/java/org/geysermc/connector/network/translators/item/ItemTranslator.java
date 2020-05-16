@@ -49,9 +49,6 @@ public class ItemTranslator {
     // Shield ID, used in Entity.java
     public static final int SHIELD = 829;
 
-    //Firework ID, used in FireworkEntity.java
-    public static final int FIREWORK_ROCKET = 778;
-
     public void init() {
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
 
