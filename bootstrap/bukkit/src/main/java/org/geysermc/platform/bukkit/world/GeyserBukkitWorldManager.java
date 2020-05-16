@@ -29,13 +29,13 @@ package org.geysermc.platform.bukkit.world;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.platform.bukkit.GeyserBukkitPlugin;
 import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
 import us.myles.ViaVersion.protocols.protocol1_15to1_14_4.data.MappingData;
 
@@ -72,5 +72,23 @@ public class GeyserBukkitWorldManager extends WorldManager {
         } else {
             return BlockTranslator.AIR;
         }
+    }
+
+    @Override
+    public int[] getBiomeDataAt(GeyserSession session, int x, int z) {
+        if (session.getPlayerEntity() == null) {
+            return null;
+        }
+        int[] biomeData = new int[1024];
+        ChunkSnapshot chunk = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getChunkAt(x, z).getChunkSnapshot(true, true, true);
+        for (int localX = 0; localX < 16; localX = localX + 4) {
+            for (int localY = 0; localY < 255; localY = localY + 4) {
+                for (int localZ = 0; localZ < 16; localZ = localZ + 4) {
+                    biomeData[((localY >> 2) & 63) << 4 | ((localZ >> 2) & 3) << 2 | ((localX >> 2) & 3)] =
+                            chunk.getBiome(localX, localZ).ordinal();
+                }
+            }
+        }
+        return biomeData;
     }
 }
