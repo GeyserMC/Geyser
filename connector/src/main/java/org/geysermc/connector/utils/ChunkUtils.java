@@ -76,7 +76,6 @@ public class ChunkUtils {
         for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
             Chunk chunk = chunks[chunkY];
-            ChunkSection section = chunkData.sections[chunkY];
 
             // Chunk is null and caching chunks is off or this isn't a non-full chunk
             if (chunk == null && (!session.getConnector().getConfig().isCacheChunks() || !isNonFullChunk))
@@ -86,6 +85,7 @@ public class ChunkUtils {
             if (chunk != null && chunk.isEmpty())
                 continue;
 
+            ChunkSection section = chunkData.sections[chunkY];
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
