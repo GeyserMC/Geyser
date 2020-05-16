@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
@@ -52,7 +53,9 @@ import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.AttributeUtils;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
@@ -271,8 +274,18 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
                     // Has to be a byte or it does not work
                     metadata.put(EntityData.CAN_START_SLEEP, (byte) 2);
-                    // TODO: Figure out this value
-                    metadata.put(EntityData.BED_RESPAWN_POS, Vector3i.from(position.getFloorX(), position.getFloorY() - 2, position.getFloorZ()));
+                    if (entityId == session.getPlayerEntity().getEntityId()) {
+                        Vector3i lastInteractionPos = session.getLastInteractionPosition();
+                        metadata.put(EntityData.BED_RESPAWN_POS, lastInteractionPos);
+                        if (session.getConnector().getConfig().isCacheChunks()) {
+                            BlockState bed = session.getConnector().getWorldManager().getBlockAt(session, lastInteractionPos.getX(),
+                                    lastInteractionPos.getY(), lastInteractionPos.getZ());
+                            // Bed has to be updated, or else player is floating in the air
+                            ChunkUtils.updateBlock(session, bed, lastInteractionPos);
+                        }
+                    } else {
+                        metadata.put(EntityData.BED_RESPAWN_POS, Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ()));
+                    }
                     metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
                     metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
                 } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {

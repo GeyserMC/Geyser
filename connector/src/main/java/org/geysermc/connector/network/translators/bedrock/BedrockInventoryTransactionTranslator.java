@@ -132,6 +132,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         } // Handled in Entity.java
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                         session.sendDownstreamPacket(useItemPacket);
+                        // Used for sleeping in beds
+                        session.setLastInteractionPosition(packet.getBlockPosition());
                         break;
                     case 2:
                         BlockState blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
