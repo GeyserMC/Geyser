@@ -29,11 +29,17 @@ package org.geysermc.connector.network.translators.world;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
 
 public class CachedChunkManager extends WorldManager {
 
     @Override
     public BlockState getBlockAt(GeyserSession session, int x, int y, int z) {
         return session.getChunkCache().getBlockAt(new Position(x, y, z));
+    }
+
+    @Override
+    public int[] getBiomeDataAt(GeyserSession session, int x, int z) {
+        return session.getChunkCache().getChunks().get(new ChunkPosition(x, z)).getBiomeData();
     }
 }

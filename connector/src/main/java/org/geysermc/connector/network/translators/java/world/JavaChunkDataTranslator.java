@@ -39,10 +39,12 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 
@@ -55,12 +57,18 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        if (packet.getColumn().getBiomeData() == null) //Non-full chunk
+        boolean isNonFullChunk = false;
+        if (packet.getColumn().getBiomeData() == null && !session.getConnector().getConfig().isCacheChunks()) {
+            //Non-full chunk
             return;
+        } else if (packet.getColumn().getBiomeData() == null) {
+            isNonFullChunk = true;
+        }
 
+        boolean finalIsNonFullChunk = isNonFullChunk;
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, packet.getColumn(), finalIsNonFullChunk);
                 ByteBuf byteBuf = Unpooled.buffer(32);
                 ChunkSection[] sections = chunkData.sections;
 
@@ -75,7 +83,12 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     section.writeToNetwork(byteBuf);
                 }
 
-                byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
+                byte[] bedrockBiome;
+                if (packet.getColumn().getBiomeData() == null) {
+                    bedrockBiome = BiomeTranslator.toBedrockBiome(session.getConnector().getWorldManager().getBiomeDataAt(session, packet.getColumn().getX(), packet.getColumn().getZ()));
+                } else {
+                    bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
+                }
 
                 byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
                 byteBuf.writeByte(0); // Border blocks - Edu edition only
@@ -108,7 +121,8 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
                 }
                 chunkData.getLoadBlockEntitiesLater().clear();
-                session.getChunkCache().addToCache(packet.getColumn());
+                if (session.getConnector().getWorldManager().getClass() == GeyserBootstrap.DEFAULT_CHUNK_MANAGER.getClass())
+                    session.getChunkCache().addToCache(packet.getColumn());
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

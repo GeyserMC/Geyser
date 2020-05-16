@@ -61,7 +61,7 @@ public class ChunkUtils {
      */
     public static final Map<Position, BlockState> CACHED_BLOCK_ENTITIES = new HashMap<>();
 
-    public static ChunkData translateToBedrock(Column column) {
+    public static ChunkData translateToBedrock(GeyserSession session, Column column, boolean isNonFullChunk) {
         ChunkData chunkData = new ChunkData();
         Chunk[] chunks = column.getChunks();
         chunkData.sections = new ChunkSection[chunks.length];
@@ -76,15 +76,27 @@ public class ChunkUtils {
         for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
             Chunk chunk = chunks[chunkY];
+            ChunkSection section = chunkData.sections[chunkY];
 
-            if (chunk == null || chunk.isEmpty())
+            if (chunk != null && chunk.isEmpty())
                 continue;
 
-            ChunkSection section = chunkData.sections[chunkY];
+            if (chunk == null && !session.getConnector().getConfig().isCacheChunks())
+                continue;
+
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
-                        BlockState blockState = chunk.get(x, y, z);
+                        BlockState blockState;
+                        // If a non-full chunk, then grab the block that should be here to create a 'full' chunk
+                        if (chunk == null && isNonFullChunk && session.getConnector().getConfig().isCacheChunks()) {
+                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+                            blockState = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
+                        } else if (chunk == null) {
+                            continue;
+                        } else {
+                            blockState = chunk.get(x, y, z);
+                        }
                         int id = BlockTranslator.getBedrockBlockId(blockState);
 
                         // Check to see if the name is in BlockTranslator.getBlockEntityString, and therefore must be handled differently
