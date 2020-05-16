@@ -28,6 +28,7 @@ package org.geysermc.common.main;
 
 import javax.swing.*;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class IGeyserMain {
@@ -45,7 +46,12 @@ public class IGeyserMain {
     private String createMessage() {
         String message = "";
 
-        InputStream helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("help.txt");
+        InputStream helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("languages/" + Locale.getDefault().toString() + ".help.txt");
+
+        if (helpStream == null) {
+            helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("languages/en_US.help.txt");
+        }
+
         Scanner help = new Scanner(helpStream).useDelimiter("\\Z");
         String line = "";
         while (help.hasNext()) {
