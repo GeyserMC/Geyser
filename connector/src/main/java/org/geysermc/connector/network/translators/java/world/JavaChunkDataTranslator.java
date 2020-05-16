@@ -57,18 +57,15 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        boolean isNonFullChunk = false;
-        if (packet.getColumn().getBiomeData() == null && !session.getConnector().getConfig().isCacheChunks()) {
-            //Non-full chunk
+        if (packet.getColumn().getBiomeData() == null && !session.getConnector().getConfig().isCacheChunks()) //Non-full chunk without chunk caching
             return;
-        } else if (packet.getColumn().getBiomeData() == null) {
-            isNonFullChunk = true;
-        }
 
-        boolean finalIsNonFullChunk = isNonFullChunk;
+        // Non-full chunks don't have all the chunk data, and Bedrock won't accept that
+        final boolean isNonFullChunk = (packet.getColumn().getBiomeData() == null);
+
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, packet.getColumn(), finalIsNonFullChunk);
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, packet.getColumn(), isNonFullChunk);
                 ByteBuf byteBuf = Unpooled.buffer(32);
                 ChunkSection[] sections = chunkData.sections;
 

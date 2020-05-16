@@ -78,10 +78,12 @@ public class ChunkUtils {
             Chunk chunk = chunks[chunkY];
             ChunkSection section = chunkData.sections[chunkY];
 
-            if (chunk != null && chunk.isEmpty())
+            // Chunk is null and caching chunks is off or this isn't a non-full chunk
+            if (chunk == null && (!session.getConnector().getConfig().isCacheChunks() || !isNonFullChunk))
                 continue;
 
-            if (chunk == null && !session.getConnector().getConfig().isCacheChunks())
+            // If chunk is empty then no need to process
+            if (chunk != null && chunk.isEmpty())
                 continue;
 
             for (int x = 0; x < 16; x++) {
@@ -89,11 +91,9 @@ public class ChunkUtils {
                     for (int z = 0; z < 16; z++) {
                         BlockState blockState;
                         // If a non-full chunk, then grab the block that should be here to create a 'full' chunk
-                        if (chunk == null && isNonFullChunk && session.getConnector().getConfig().isCacheChunks()) {
+                        if (chunk == null) {
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
                             blockState = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
-                        } else if (chunk == null) {
-                            continue;
                         } else {
                             blockState = chunk.get(x, y, z);
                         }

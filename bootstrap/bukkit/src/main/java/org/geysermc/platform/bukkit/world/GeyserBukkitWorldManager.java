@@ -32,7 +32,6 @@ import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -84,6 +83,7 @@ public class GeyserBukkitWorldManager extends WorldManager {
         for (int localX = 0; localX < 16; localX = localX + 4) {
             for (int localY = 0; localY < 255; localY = localY + 4) {
                 for (int localZ = 0; localZ < 16; localZ = localZ + 4) {
+                    // Index is based on wiki.vg's index requirements
                     biomeData[((localY >> 2) & 63) << 4 | ((localZ >> 2) & 3) << 2 | ((localX >> 2) & 3)] =
                             chunk.getBiome(localX, localZ).ordinal();
                 }
