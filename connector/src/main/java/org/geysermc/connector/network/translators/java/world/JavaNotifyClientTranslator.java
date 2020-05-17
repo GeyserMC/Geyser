@@ -31,10 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValu
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.entity.Entity;
@@ -124,6 +121,12 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                         break;
                 }
                 break;
+            case AFFECTED_BY_ELDER_GUARDIAN:
+                EntityEventPacket eventPacket = new EntityEventPacket();
+                eventPacket.setType(EntityEventType.ELDER_GUARDIAN_CURSE);
+                eventPacket.setData(0);
+                eventPacket.setRuntimeEntityId(entity.getGeyserId());
+                session.sendUpstreamPacket(eventPacket);
             default:
                 break;
         }

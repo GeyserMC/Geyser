@@ -82,7 +82,7 @@ public enum EntityType {
     HUSK(ZombieEntity.class, 47, 1.8f, 0.6f, 0.6f, 1.62f),
     WITHER_SKELETON(AbstractSkeletonEntity.class, 48, 2.4f, 0.7f),
     GUARDIAN(GuardianEntity.class, 49, 0.85f),
-    ELDER_GUARDIAN(GuardianEntity.class, 50, 1.9975f),
+    ELDER_GUARDIAN(ElderGuardianEntity.class, 50, 1.9975f),
     NPC(PlayerEntity.class, 51, 1.8f, 0.6f, 0.6f, 1.62f),
     WITHER(WitherEntity.class, 52, 3.5f, 0.9f),
     ENDER_DRAGON(EnderDragonEntity.class, 53, 4f, 13f),
