@@ -284,7 +284,7 @@ public class Entity {
                             ChunkUtils.updateBlock(session, bed, lastInteractionPos);
                         }
                     } else {
-                        metadata.put(EntityData.BED_RESPAWN_POS, Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ()));
+                        metadata.put(EntityData.BED_RESPAWN_POS, Vector3i.from(position.getFloorX(), position.getFloorY() - 2, position.getFloorZ()));
                     }
                     metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
                     metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
