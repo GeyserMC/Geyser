@@ -30,6 +30,7 @@ import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsExcepti
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
@@ -150,7 +151,16 @@ public class GeyserSession implements CommandSender {
     private boolean interacting;
 
     @Setter
+    private long lastInteractedVillagerEid;
+
+    @Setter
     private Vector3i lastInteractionPosition;
+
+    @Setter
+    private ItemStack firstTradeSlot;
+
+    @Setter
+    private ItemStack secondTradeSlot;
 
     @Setter
     private boolean switchingDimension = false;

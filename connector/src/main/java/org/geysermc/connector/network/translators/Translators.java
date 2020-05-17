@@ -159,6 +159,7 @@ public class Translators {
         inventoryTranslators.put(WindowType.ANVIL, new AnvilInventoryTranslator());
         inventoryTranslators.put(WindowType.CRAFTING, new CraftingInventoryTranslator());
         inventoryTranslators.put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
+        inventoryTranslators.put(WindowType.MERCHANT, new MerchantInventoryTranslator());
         //inventoryTranslators.put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
 
         InventoryTranslator furnace = new FurnaceInventoryTranslator();

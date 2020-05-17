@@ -160,6 +160,51 @@ public class ItemTranslator {
                 .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
     }
 
+    /**
+     * Checks if an {@link ItemStack} is equal to another item stack
+     *
+     * @param itemStack the item stack to check
+     * @param equalsItemStack the item stack to check if equal to
+     * @param checkAmount if the amount should be taken into account
+     * @param trueIfAmountIsGreater if this should return true if the amount of the
+     *                              first item stack is greater than that of the second
+     * @param checkNbt if NBT data should be checked
+     * @return if an item stack is equal to another item stack
+     */
+    public boolean equals(ItemStack itemStack, ItemStack equalsItemStack, boolean checkAmount, boolean trueIfAmountIsGreater, boolean checkNbt) {
+        if (itemStack.getId() != equalsItemStack.getId()) {
+            return false;
+        }
+        if (checkAmount) {
+            if (trueIfAmountIsGreater) {
+                if (itemStack.getAmount() < equalsItemStack.getAmount()) {
+                    return false;
+                }
+            } else {
+                if (itemStack.getAmount() != equalsItemStack.getAmount()) {
+                    return false;
+                }
+            }
+        }
+
+        if (!checkNbt) {
+            return true;
+        }
+        if ((itemStack.getNbt() == null || itemStack.getNbt().isEmpty()) && (equalsItemStack.getNbt() != null && !equalsItemStack.getNbt().isEmpty())) {
+            return false;
+        }
+
+        if ((itemStack.getNbt() != null && !itemStack.getNbt().isEmpty() && (equalsItemStack.getNbt() == null || !equalsItemStack.getNbt().isEmpty()))) {
+            return false;
+        }
+
+        if (itemStack.getNbt() != null && equalsItemStack.getNbt() != null) {
+            return itemStack.getNbt().equals(equalsItemStack.getNbt());
+        }
+
+        return true;
+    }
+
     private static final ItemStackTranslator DEFAULT_TRANSLATOR = new ItemStackTranslator() {
         @Override
         public List<ItemEntry> getAppliedItems() {

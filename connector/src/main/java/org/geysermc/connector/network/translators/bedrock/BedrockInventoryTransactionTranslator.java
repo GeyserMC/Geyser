@@ -44,6 +44,7 @@ import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.entity.living.merchant.VillagerEntity;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -187,6 +188,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(interactAtPacket);
 
                         EntitySoundInteractionHandler.handleEntityInteraction(session, vector, entity);
+
+                        if (entity instanceof VillagerEntity) {
+                            session.setLastInteractedVillagerEid(packet.getRuntimeEntityId());
+                        }
                         break;
                     case 1: //Attack
                         ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
