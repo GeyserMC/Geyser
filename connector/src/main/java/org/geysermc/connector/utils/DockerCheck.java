@@ -44,7 +44,7 @@ public class DockerCheck {
             }
 
             if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
-                bootstrap.getGeyserLogger().debug("We are on a unix system, checking for docker...");
+                bootstrap.getGeyserLogger().debug("We are on a Unix system, checking for Docker...");
 
                 ProcessBuilder processBuilder = new ProcessBuilder();
                 processBuilder.command("bash", "-c", "cat /proc/1/cgroup");
@@ -63,7 +63,7 @@ public class DockerCheck {
                 int exitVal = process.waitFor();
                 if (exitVal == 0) {
                     if (output.toString().contains("docker")) {
-                        bootstrap.getGeyserLogger().warning("You are most likely in a docker container, this may cause connection issues from geyser to java");
+                        bootstrap.getGeyserLogger().warning("You are most likely in a Docker container, this may cause connection issues from Geyser to the Java server");
                         bootstrap.getGeyserLogger().warning("We recommended using the following IP as the remote address: " + ipAddress);
                     }
                 }
