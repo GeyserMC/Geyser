@@ -28,9 +28,9 @@ package org.geysermc.connector.utils;
 
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class DockerCheck {
     public static void Check(GeyserBootstrap bootstrap) {
@@ -46,26 +46,11 @@ public class DockerCheck {
             if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
                 bootstrap.getGeyserLogger().debug("We are on a Unix system, checking for Docker...");
 
-                ProcessBuilder processBuilder = new ProcessBuilder();
-                processBuilder.command("bash", "-c", "cat /proc/1/cgroup");
+                String output = new String(Files.readAllBytes(Paths.get("/proc/1/cgroup")));
 
-                Process process = processBuilder.start();
-
-                StringBuilder output = new StringBuilder();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    output.append(line + "\n");
-                }
-
-                int exitVal = process.waitFor();
-                if (exitVal == 0) {
-                    if (output.toString().contains("docker")) {
-                        bootstrap.getGeyserLogger().warning("You are most likely in a Docker container, this may cause connection issues from Geyser to the Java server");
-                        bootstrap.getGeyserLogger().warning("We recommended using the following IP as the remote address: " + ipAddress);
-                    }
+                if (output.contains("docker")) {
+                    bootstrap.getGeyserLogger().warning("You are most likely in a Docker container, this may cause connection issues from Geyser to the Java server");
+                    bootstrap.getGeyserLogger().warning("We recommended using the following IP as the remote address: " + ipAddress);
                 }
             }
         } catch (Exception e) { } // Ignore any errors, inc ip failed to fetch, process could not run or access denied
