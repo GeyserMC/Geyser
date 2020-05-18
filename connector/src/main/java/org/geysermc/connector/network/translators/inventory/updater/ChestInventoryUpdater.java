@@ -48,7 +48,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
 
         ItemData[] bedrockItems = new ItemData[paddedSize];
         for (int i = 0; i < bedrockItems.length; i++) {
-            if (i <= translator.size) {
+            if (i < translator.size) {
                 bedrockItems[i] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
             } else {
                 bedrockItems[i] = UNUSUABLE_SPACE_BLOCK;

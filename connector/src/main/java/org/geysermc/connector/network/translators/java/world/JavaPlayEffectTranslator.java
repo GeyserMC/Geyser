@@ -140,8 +140,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                             textPacket.setSourceName(null);
                             textPacket.setMessage("record.nowPlaying");
                             List<String> params = new ArrayList<>();
-                            // Couldn't figure out how to set this to Bedrock translation so it just uses the Java translation
-                            String recordString =  "item.minecraft." + EffectUtils.RECORDS.get(recordEffectData.getRecordId()).name().toLowerCase().replace("record_", "music_disc_") + ".desc";
+                            String recordString = "%item." + EffectUtils.RECORDS.get(recordEffectData.getRecordId()).name().toLowerCase() + ".desc";
                             params.add(LocaleUtils.getLocaleString(recordString, session.getClientData().getLanguageCode()));
                             textPacket.setParameters(params);
                             session.sendUpstreamPacket(textPacket);
