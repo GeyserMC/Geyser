@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
 import com.nukkitx.math.vector.Vector3d;
 import org.geysermc.common.ChatColor;
 import org.geysermc.connector.entity.Entity;

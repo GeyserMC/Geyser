@@ -60,7 +60,6 @@ import java.util.Map;
 @Getter
 @Setter
 public class Entity {
-
     protected long entityId;
     protected long geyserId;
 

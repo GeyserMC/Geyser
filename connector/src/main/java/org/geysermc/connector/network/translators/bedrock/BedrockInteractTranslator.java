@@ -64,6 +64,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
             case LEAVE_VEHICLE:
                 ClientPlayerStatePacket sneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
+                session.setRidingVehicleEntity(null);
                 break;
         }
     }

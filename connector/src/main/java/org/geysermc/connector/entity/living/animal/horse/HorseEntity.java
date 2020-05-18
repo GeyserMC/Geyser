@@ -46,4 +46,5 @@ public class HorseEntity extends AbstractHorseEntity {
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
 }

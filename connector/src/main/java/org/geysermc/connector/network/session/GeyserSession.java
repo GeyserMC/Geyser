@@ -158,9 +158,6 @@ public class GeyserSession implements CommandSender {
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
 
-    /**
-     * Don't use as a guarantee for if the player is riding in a vehicle
-     */
     @Setter
     private Entity ridingVehicleEntity;
 
