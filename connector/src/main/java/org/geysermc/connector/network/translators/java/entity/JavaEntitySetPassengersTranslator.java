@@ -54,6 +54,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passengerId == session.getPlayerEntity().getEntityId()) {
                 passenger = session.getPlayerEntity();
+                session.setRidingVehicleEntity(entity);
             }
             // Passenger hasn't loaded in and entity link needs to be set later
             if (passenger == null && passengerId != 0) {
@@ -69,9 +70,16 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             session.sendUpstreamPacket(linkPacket);
             passengers.add(passengerId);
 
-            passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
-            passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 90);
-            passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, !passengers.isEmpty() ? -90 : 0);
+            // Head rotation on boats
+            if (entity.getEntityType() == EntityType.BOAT) {
+                passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
+                passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
+                passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, !passengers.isEmpty() ? -90f : 0f);
+            } else {
+                passenger.getMetadata().remove(EntityData.RIDER_ROTATION_LOCKED);
+                passenger.getMetadata().remove(EntityData.RIDER_MAX_ROTATION);
+                passenger.getMetadata().remove(EntityData.RIDER_MIN_ROTATION);
+            }
 
             passenger.updateBedrockMetadata(session);
             this.updateOffset(passenger, entity.getEntityType(), session, rider, true);
