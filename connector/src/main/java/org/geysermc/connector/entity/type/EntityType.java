@@ -160,6 +160,8 @@ public enum EntityType {
      */
     ILLUSIONER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager");
 
+    private static final EntityType[] VALUES = values();
+
     private Class<? extends Entity> entityClass;
     private final int type;
     private final float height;
@@ -194,5 +196,15 @@ public enum EntityType {
         this.length = length;
         this.offset = offset + 0.00001f;
         this.identifier = identifier;
+    }
+
+    public static EntityType getFromIdentifier(String identifier) {
+        for (EntityType type : VALUES) {
+            if (type.identifier.equals(identifier)) {
+                return type;
+            }
+        }
+
+        return null;
     }
 }
