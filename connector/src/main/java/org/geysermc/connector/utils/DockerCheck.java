@@ -33,7 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class DockerCheck {
-    public static void Check(GeyserBootstrap bootstrap) {
+    public static void check(GeyserBootstrap bootstrap) {
         try {
             String OS = System.getProperty("os.name").toLowerCase();
             String ipAddress = InetAddress.getLocalHost().getHostAddress();

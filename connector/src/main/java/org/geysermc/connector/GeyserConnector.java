@@ -104,7 +104,7 @@ public class GeyserConnector {
         Translators.start();
 
         if (platformType != PlatformType.STANDALONE) {
-            DockerCheck.Check(bootstrap);
+            DockerCheck.check(bootstrap);
         }
 
         remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
