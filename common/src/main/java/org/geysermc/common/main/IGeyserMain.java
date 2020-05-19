@@ -28,6 +28,7 @@ package org.geysermc.common.main;
 
 import javax.swing.*;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -36,7 +37,7 @@ public class IGeyserMain {
     public void displayMessage() {
         String message = createMessage();
 
-        if (System.console() == null) {
+        if (System.console() == null && !isHeadless()) {
             JOptionPane.showMessageDialog(null, message, "GeyserMC Plugin: " + this.getPluginType(), JOptionPane.ERROR_MESSAGE);
         }
 
@@ -64,6 +65,16 @@ public class IGeyserMain {
         }
 
         return message;
+    }
+
+    private boolean isHeadless() {
+        try {
+            Class<?> graphicsEnvironment = Class.forName("java.awt.GraphicsEnvironment");
+            Method isHeadless = graphicsEnvironment.getDeclaredMethod("isHeadless");
+            return (Boolean)isHeadless.invoke(null);
+        } catch (Exception ex) { }
+
+        return true;
     }
 
     private void printMessage(String message) {
