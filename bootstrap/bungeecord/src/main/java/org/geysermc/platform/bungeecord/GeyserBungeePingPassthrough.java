@@ -88,7 +88,7 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
     private static class GeyserPendingConnection implements PendingConnection {
 
-        private static final UUID FAKE_UUID = UUID.fromString("00000000-0000-0000-a70e-fe4692c60c72");
+        private static final UUID FAKE_UUID = UUID.nameUUIDFromBytes("geyser!internal".getBytes());
         private static final InetSocketAddress FAKE_REMOTE = new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69);
 
         @Override
