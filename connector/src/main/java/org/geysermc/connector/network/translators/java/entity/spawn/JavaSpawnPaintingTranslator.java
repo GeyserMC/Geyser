@@ -43,7 +43,7 @@ public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPai
     @Override
     public void translate(ServerSpawnPaintingPacket packet, GeyserSession session) {
         Vector3f position = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
-        
+
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> { // #slowdownbrother, just don't execute it directly
             PaintingEntity entity = new PaintingEntity(
                     packet.getEntityId(),
