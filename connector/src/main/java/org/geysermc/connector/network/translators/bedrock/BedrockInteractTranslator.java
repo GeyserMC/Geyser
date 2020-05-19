@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.nukkitx.protocol.bedrock.data.EntityData;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -65,6 +66,43 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 ClientPlayerStatePacket sneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
                 session.setRidingVehicleEntity(null);
+                break;
+            case MOUSEOVER:
+                // Handle the buttons for mobile - "Mount", etc
+                if (packet.getRuntimeEntityId() != 0) {
+                    Entity interactEntity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+                    if (interactEntity == null)
+                        return;
+
+                    String interactiveTag;
+                    switch (interactEntity.getEntityType()) {
+                        case HORSE:
+                        case SKELETON_HORSE:
+                        case ZOMBIE_HORSE:
+                        case DONKEY:
+                        case LLAMA:
+                        case TRADER_LLAMA:
+                            interactiveTag = "action.interact.mount";
+                            break;
+                        case BOAT:
+                            interactiveTag = "action.interact.ride.boat";
+                            break;
+                        case MINECART:
+                            interactiveTag = "action.interact.ride.minecart";
+                            break;
+                        default:
+                            return; // No need to process any further since there is no interactive tag
+                    }
+                    session.getPlayerEntity().getMetadata().put(EntityData.INTERACTIVE_TAG, interactiveTag);
+                    session.getPlayerEntity().updateBedrockMetadata(session);
+                } else {
+                    if (!(session.getPlayerEntity().getMetadata().get(EntityData.INTERACTIVE_TAG) == null) ||
+                    !(session.getPlayerEntity().getMetadata().get(EntityData.INTERACTIVE_TAG) == "")) {
+                        // No interactive tag should be sent
+                        session.getPlayerEntity().getMetadata().remove(EntityData.INTERACTIVE_TAG);
+                        session.getPlayerEntity().updateBedrockMetadata(session);
+                    }
+                }
                 break;
         }
     }
