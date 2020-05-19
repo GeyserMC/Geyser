@@ -44,6 +44,7 @@ public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPai
     public void translate(ServerSpawnPaintingPacket packet, GeyserSession session) {
         Vector3f position = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> { // #slowdownbrother, just don't execute it directly
+
             PaintingEntity entity = new PaintingEntity(
                     packet.getEntityId(),
                     session.getEntityCache().getNextEntityId().incrementAndGet(),
@@ -51,11 +52,14 @@ public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPai
             )
                     .setPaintingName(PaintingType.getByPaintingType(packet.getPaintingType()))
                     .setDirection(packet.getDirection().ordinal());
+            
+            //Add delay because for some reason without it paintings will bug sometimes
             try {
                 TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException e) {
                 throw new IllegalStateException(e);
             }
+
             session.getEntityCache().spawnEntity(entity);
         });
     }
