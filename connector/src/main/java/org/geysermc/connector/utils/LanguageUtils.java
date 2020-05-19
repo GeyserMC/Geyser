@@ -102,6 +102,12 @@ public class LanguageUtils {
         return MessageFormat.format(properties.getProperty(key, properties.getProperty(cleanLocale(DEFAULT_LOCALE), "MISSING LANGUAGE KEY: " + key)).replace("&", "\u00a7"), values);
     }
 
+    /**
+     * Cleans up and formats a locale string
+     *
+     * @param locale The locale to format
+     * @return The formatted locale
+     */
     private static String cleanLocale(String locale) {
         try {
             String[] parts = locale.toLowerCase().split("_");
