@@ -26,18 +26,11 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.window.ClickItemParam;
-import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
-import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientSelectTradePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import org.geysermc.connector.entity.living.merchant.VillagerEntity;
+import com.nukkitx.protocol.bedrock.data.InventorySource;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
@@ -81,6 +74,14 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
+    public SlotType getSlotType(int javaSlot) {
+        if (javaSlot == 2) {
+            return SlotType.OUTPUT;
+        }
+        return SlotType.NORMAL;
+    }
+
+    @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
 
     }
@@ -93,8 +94,6 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
         session.setLastInteractedVillagerEid(-1);
-        session.setFirstTradeSlot(null);
-        session.setSecondTradeSlot(null);
     }
 
     @Override
@@ -109,60 +108,10 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        InventoryActionData result = null;
-
-        VillagerEntity villager = (VillagerEntity) session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
-        if (villager == null) {
-            session.getConnector().getLogger().debug("Could not find villager with entity id: " + session.getLastInteractedVillagerEid());
-            return;
-        }
-
-        // We need to store the trade slot data in the session itself as data
-        // needs to persist beyond this translateActions method since the client
-        // sends multiple packets for this
-        for (InventoryActionData data : actions) {
-            if (data.getSlot() == 4 && session.getFirstTradeSlot() == null && data.getSource().getContainerId() == ContainerId.CURSOR) {
-                session.setFirstTradeSlot(Translators.getItemTranslator().translateToJava(session, data.getToItem()));
+        for (InventoryActionData action : actions) {
+            if (action.getSource().getType() == InventorySource.Type.NON_IMPLEMENTED_TODO) {
+                return;
             }
-
-            if (data.getSlot() == 5 && session.getSecondTradeSlot() == null && data.getToItem() != null && data.getSource().getContainerId() == ContainerId.CURSOR) {
-                session.setSecondTradeSlot(Translators.getItemTranslator().translateToJava(session, data.getToItem()));
-            }
-            if (data.getSlot() == 50 && result == null) {
-                result = data;
-            }
-        }
-
-        if (result == null || session.getFirstTradeSlot() == null) {
-            super.translateActions(session, inventory, actions);
-            return;
-        }
-
-        ItemStack resultSlot = Translators.getItemTranslator().translateToJava(session, result.getToItem());
-        for (int i = 0; i < villager.getVillagerTrades().length; i++) {
-            VillagerTrade trade = villager.getVillagerTrades()[i];
-            if (!Translators.getItemTranslator().equals(session.getFirstTradeSlot(), trade.getFirstInput(), true, true, false) || !Translators.getItemTranslator().equals(resultSlot, trade.getOutput(), true, false, false)) {
-                continue;
-            }
-
-            if (session.getSecondTradeSlot() != null && trade.getSecondInput() != null && !Translators.getItemTranslator().equals(session.getSecondTradeSlot(), trade.getSecondInput(), true, false, false)) {
-                continue;
-            }
-
-            ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(i);
-            session.sendDownstreamPacket(selectTradePacket);
-
-            ClientWindowActionPacket tradeAction = new ClientWindowActionPacket(
-                    inventory.getId(),
-                    inventory.getTransactionId().getAndIncrement(),
-                    this.bedrockSlotToJava(result),
-                    null,
-                    WindowAction.CLICK_ITEM,
-                    ClickItemParam.LEFT_CLICK
-            );
-            session.sendDownstreamPacket(tradeAction);
-            break;
-
         }
 
         super.translateActions(session, inventory, actions);

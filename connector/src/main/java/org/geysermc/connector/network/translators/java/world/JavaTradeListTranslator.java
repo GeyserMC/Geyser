@@ -56,12 +56,13 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
             return;
         }
         villager.setVillagerTrades(packet.getTrades());
-        villager.getMetadata().put(EntityData.TRADE_XP, packet.getExperience());
         villager.getMetadata().put(EntityData.TRADE_TIER, packet.getVillagerLevel() - 1);
+        villager.getMetadata().put(EntityData.MAX_TRADE_TIER, 4);
+        villager.getMetadata().put(EntityData.TRADE_XP, packet.getExperience());
         villager.updateBedrockMetadata(session);
 
         UpdateTradePacket updateTradePacket = new UpdateTradePacket();
-        updateTradePacket.setTradeTier(packet.getVillagerLevel() + 1);
+        updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
         updateTradePacket.setWindowId((short) packet.getWindowId());
         updateTradePacket.setWindowType((short) ContainerType.TRADING.id());
         updateTradePacket.setDisplayName("Villager");
@@ -75,41 +76,62 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         for (VillagerTrade trade : packet.getTrades()) {
             CompoundTagBuilder recipe = CompoundTagBuilder.builder();
             recipe.intTag("maxUses", trade.getMaxUses());
-            recipe.intTag("traderExp", packet.getExperience());
+            recipe.intTag("traderExp", trade.getXp());
             recipe.floatTag("priceMultiplierA", trade.getPriceMultiplier());
-            recipe.tag(getItemTag(session, trade.getOutput(), "sell"));
+            recipe.tag(getItemTag(session, trade.getOutput(), "sell", 0));
             recipe.floatTag("priceMultiplierB", 0.0f);
-            recipe.intTag("buyCountB", 0);
-            recipe.intTag("buyCountA", trade.getOutput().getAmount());
+            recipe.intTag("buyCountB", trade.getSecondInput() != null ? trade.getSecondInput().getAmount() : 0);
+            recipe.intTag("buyCountA", trade.getFirstInput().getAmount());
             recipe.intTag("demand", trade.getDemand());
             recipe.intTag("tier", packet.getVillagerLevel() - 1);
-            recipe.tag(getItemTag(session, trade.getFirstInput(), "buyA"));
+            recipe.tag(getItemTag(session, trade.getFirstInput(), "buyA", trade.getSpecialPrice()));
             if (trade.getSecondInput() != null) {
-                recipe.tag(getItemTag(session, trade.getSecondInput(), "buyB"));
+                recipe.tag(getItemTag(session, trade.getSecondInput(), "buyB", 0));
             }
             recipe.intTag("uses", trade.getNumUses());
-            recipe.byteTag("rewardExp", (byte) trade.getXp());
+            recipe.byteTag("rewardExp", (byte) 1);
             tags.add(recipe.buildRootTag());
         }
+
+        //Hidden trade to fix visual experience bug
+        if (packet.getVillagerLevel() < 5) {
+            tags.add(CompoundTagBuilder.builder()
+                    .intTag("maxUses", 0)
+                    .intTag("traderExp", 0)
+                    .floatTag("priceMultiplierA", 0.0f)
+                    .floatTag("priceMultiplierB", 0.0f)
+                    .intTag("buyCountB", 0)
+                    .intTag("buyCountA", 0)
+                    .intTag("demand", 0)
+                    .intTag("tier", 5)
+                    .intTag("uses", 0)
+                    .byteTag("rewardExp", (byte) 0)
+                    .buildRootTag());
+        }
+
         builder.listTag("Recipes", CompoundTag.class, tags);
         List<CompoundTag> expTags = new ArrayList<>();
         expTags.add(CompoundTagBuilder.builder().intTag("0", 0).buildRootTag());
-        expTags.add(CompoundTagBuilder.builder().intTag("1", 10).buildRootTag());
-        expTags.add(CompoundTagBuilder.builder().intTag("2", 60).buildRootTag());
-        expTags.add(CompoundTagBuilder.builder().intTag("3", 160).buildRootTag());
-        expTags.add(CompoundTagBuilder.builder().intTag("4", 310).buildRootTag());
+        expTags.add(CompoundTagBuilder.builder().intTag("1", 11).buildRootTag());
+        expTags.add(CompoundTagBuilder.builder().intTag("2", 71).buildRootTag());
+        expTags.add(CompoundTagBuilder.builder().intTag("3", 151).buildRootTag());
+        expTags.add(CompoundTagBuilder.builder().intTag("4", 251).buildRootTag());
         builder.listTag("TierExpRequirements", CompoundTag.class, expTags);
         updateTradePacket.setOffers(builder.buildRootTag());
         session.sendUpstreamPacket(updateTradePacket);
     }
 
-    private CompoundTag getItemTag(GeyserSession session, ItemStack stack, String name) {
+    private CompoundTag getItemTag(GeyserSession session, ItemStack stack, String name, int specialPrice) {
         ItemData itemData = Translators.getItemTranslator().translateToBedrock(session, stack);
         ItemEntry itemEntry = Translators.getItemTranslator().getItem(stack);
         CompoundTagBuilder builder = CompoundTagBuilder.builder();
-        builder.byteTag("Count", (byte) itemData.getCount());
+        builder.byteTag("Count", (byte) (Math.max(itemData.getCount() + specialPrice, 1)));
         builder.shortTag("Damage", itemData.getDamage());
-        builder.stringTag("Name", itemEntry.getJavaIdentifier());
+        builder.shortTag("id", (short) itemEntry.getBedrockId());
+        if (itemData.getTag() != null) {
+            CompoundTag tag = itemData.getTag().toBuilder().build("tag");
+            builder.tag(tag);
+        }
         return builder.build(name);
     }
 }
