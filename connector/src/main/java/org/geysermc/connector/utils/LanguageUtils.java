@@ -52,7 +52,7 @@ public class LanguageUtils {
     public static void loadGeyserLocale(String locale) {
         locale = cleanLocale(locale);
 
-        InputStream localeStream = LocaleUtils.class.getClassLoader().getResourceAsStream("languages/" + locale + ".properties");
+        InputStream localeStream = LocaleUtils.class.getClassLoader().getResourceAsStream("languages/texts/" + locale + ".properties");
 
         // Load the locale
         if (localeStream != null) {

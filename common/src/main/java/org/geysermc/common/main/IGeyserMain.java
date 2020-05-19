@@ -46,10 +46,10 @@ public class IGeyserMain {
     private String createMessage() {
         String message = "";
 
-        InputStream helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("languages/" + Locale.getDefault().toString() + ".help.txt");
+        InputStream helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("languages/run-help/" + Locale.getDefault().toString() + ".txt");
 
         if (helpStream == null) {
-            helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("languages/en_US.help.txt");
+            helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("languages/run-help/en_US.txt");
         }
 
         Scanner help = new Scanner(helpStream).useDelimiter("\\Z");
