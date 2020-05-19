@@ -29,6 +29,7 @@ package org.geysermc.connector.network.translators.bedrock;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientSelectTradePacket;
+import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.living.merchant.VillagerEntity;
 import org.geysermc.connector.inventory.Inventory;
@@ -57,9 +58,11 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 }
                 Inventory openInventory = session.getInventoryCache().getOpenInventory();
                 if (openInventory != null && openInventory.getWindowType() == WindowType.MERCHANT) {
-                    if (packet.getData() > 0 && packet.getData() < villager.getVillagerTrades().length) {
+                    if (packet.getData() >= 0 && packet.getData() < villager.getVillagerTrades().length) {
                         VillagerTrade trade = villager.getVillagerTrades()[packet.getData()];
                         openInventory.setItem(2, trade.getOutput());
+                        villager.getMetadata().put(EntityData.TRADE_XP, trade.getXp() + villager.getMetadata().getInt(EntityData.TRADE_XP));
+                        villager.updateBedrockMetadata(session);
                     }
                 }
                 return;
