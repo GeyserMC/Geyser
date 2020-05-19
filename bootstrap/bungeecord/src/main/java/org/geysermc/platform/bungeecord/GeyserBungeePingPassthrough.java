@@ -65,9 +65,11 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
                 event.getResponse().getPlayers().getOnline(),
                 event.getResponse().getPlayers().getMax()
         );
-        Arrays.stream(event.getResponse().getPlayers().getSample()).forEach(proxiedPlayer -> {
-            geyserPingInfo.addPlayer(proxiedPlayer.getName());
-        });
+        if (event.getResponse().getPlayers().getSample() != null) {
+            Arrays.stream(event.getResponse().getPlayers().getSample()).forEach(proxiedPlayer -> {
+                geyserPingInfo.addPlayer(proxiedPlayer.getName());
+            });
+        }
         return geyserPingInfo;
     }
 
@@ -86,7 +88,7 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
     private static class GeyserPendingConnection implements PendingConnection {
 
-        private static final UUID FAKE_UUID = UUID.fromString("geyser!internal");
+        private static final UUID FAKE_UUID = UUID.fromString("00000000-0000-0000-a70e-fe4692c60c72");
         private static final InetSocketAddress FAKE_REMOTE = new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69);
 
         @Override
