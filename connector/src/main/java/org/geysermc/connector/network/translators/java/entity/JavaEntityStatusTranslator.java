@@ -49,6 +49,8 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
         switch (packet.getStatus()) {
+            case LIVING_DROWN:
+                entityEventPacket.setData(9);
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
                 entityEventPacket.setType(EntityEventType.HURT_ANIMATION);
