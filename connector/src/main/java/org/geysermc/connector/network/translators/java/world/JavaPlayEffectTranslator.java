@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -40,6 +41,10 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.effect.Effect;
 import org.geysermc.connector.utils.EffectUtils;
+import org.geysermc.connector.utils.LocaleUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Translator(packet = ServerPlayEffectPacket.class)
 public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectPacket> {
@@ -125,6 +130,21 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     if (geyserEffect.getJavaName().equals("RECORD")) {
                         RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
                         soundEvent.setSound(EffectUtils.RECORDS.get(recordEffectData.getRecordId()));
+                        if (EffectUtils.RECORDS.get(recordEffectData.getRecordId()) != SoundEvent.STOP_RECORD) {
+                            // Send text packet as it seems to be handled in Java Edition client-side.
+                            TextPacket textPacket = new TextPacket();
+                            textPacket.setType(TextPacket.Type.JUKEBOX_POPUP);
+                            textPacket.setNeedsTranslation(true);
+                            textPacket.setXuid("");
+                            textPacket.setPlatformChatId("");
+                            textPacket.setSourceName(null);
+                            textPacket.setMessage("record.nowPlaying");
+                            List<String> params = new ArrayList<>();
+                            String recordString = "%item." + EffectUtils.RECORDS.get(recordEffectData.getRecordId()).name().toLowerCase() + ".desc";
+                            params.add(LocaleUtils.getLocaleString(recordString, session.getClientData().getLanguageCode()));
+                            textPacket.setParameters(params);
+                            session.sendUpstreamPacket(textPacket);
+                        }
                     } else {
                         soundEvent.setSound(SoundEvent.valueOf(geyserEffect.getBedrockName()));
                     }

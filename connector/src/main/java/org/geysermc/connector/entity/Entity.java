@@ -98,7 +98,7 @@ public class Entity {
 
         metadata.put(EntityData.SCALE, 1f);
         metadata.put(EntityData.COLOR, 0);
-        metadata.put(EntityData.MAX_AIR, (short) 400);
+        metadata.put(EntityData.MAX_AIR, (short) 300);
         metadata.put(EntityData.AIR, (short) 0);
         metadata.put(EntityData.LEAD_HOLDER_EID, -1L);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
@@ -209,14 +209,14 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
-                    metadata.put(EntityData.SCALE, scale);
-
                     if ((xd & 0x20) == 0x20) {
                         if (this.is(ArmorStandEntity.class)) {
                             metadata.put(EntityData.SCALE, 0.0f);
                         } else {
                             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
                         }
+                    } else {
+                        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
                     }
 
                     // Shield code
@@ -240,6 +240,13 @@ public class Entity {
                         ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
                         session.sendDownstreamPacket(releaseItemPacket);
                     }
+                }
+                break;
+            case 1: // Air/bubbles
+                if ((int) entityMetadata.getValue() == 300) {
+                    metadata.put(EntityData.AIR, (short) 0); // Otherwise the bubble counter remains in the UI
+                } else {
+                    metadata.put(EntityData.AIR, (short) (int) entityMetadata.getValue());
                 }
                 break;
             case 2: // custom name

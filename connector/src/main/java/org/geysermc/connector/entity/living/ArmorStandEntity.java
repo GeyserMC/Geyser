@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -47,9 +46,7 @@ public class ArmorStandEntity extends LivingEntity {
 
             // isSmall
             if ((xd & 0x01) == 0x01) {
-                GeyserConnector.getInstance().getLogger().debug("S: " + metadata.get(EntityData.SCALE));
-
-                if (metadata.get(EntityData.SCALE) == null || (metadata.get(EntityData.SCALE) != null && !metadata.get(EntityData.SCALE).equals(0.55f))) {
+                if (metadata.getFloat(EntityData.SCALE) != 0.55f && metadata.getFloat(EntityData.SCALE) != 0.0f) {
                     metadata.put(EntityData.SCALE, 0.55f);
                 }
 

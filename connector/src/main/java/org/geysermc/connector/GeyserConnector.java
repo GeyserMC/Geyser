@@ -39,6 +39,7 @@ import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.world.WorldManager;
+import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.Toolbox;
 
 import java.net.InetSocketAddress;
@@ -99,6 +100,10 @@ public class GeyserConnector {
 
         Toolbox.init();
         Translators.start();
+
+        if (platformType != PlatformType.STANDALONE) {
+            DockerCheck.check(bootstrap);
+        }
 
         remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
         authType = AuthType.getByName(config.getRemote().getAuthType());
