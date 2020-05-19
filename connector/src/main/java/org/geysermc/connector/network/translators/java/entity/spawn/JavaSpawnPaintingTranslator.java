@@ -35,13 +35,14 @@ import org.geysermc.connector.utils.PaintingType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPaintingPacket;
 import com.nukkitx.math.vector.Vector3f;
 
+import java.util.concurrent.TimeUnit;
+
 @Translator(packet = ServerSpawnPaintingPacket.class)
 public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPaintingPacket> {
 
     @Override
     public void translate(ServerSpawnPaintingPacket packet, GeyserSession session) {
         Vector3f position = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
-
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> { // #slowdownbrother, just don't execute it directly
             PaintingEntity entity = new PaintingEntity(
                     packet.getEntityId(),
@@ -50,7 +51,11 @@ public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPai
             )
                     .setPaintingName(PaintingType.getByPaintingType(packet.getPaintingType()))
                     .setDirection(packet.getDirection().ordinal());
-
+            try {
+                TimeUnit.MILLISECONDS.sleep(100);
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(e);
+            }
             session.getEntityCache().spawnEntity(entity);
         });
     }
