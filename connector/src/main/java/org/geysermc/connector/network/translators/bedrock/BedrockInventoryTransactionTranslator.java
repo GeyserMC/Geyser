@@ -188,10 +188,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(interactAtPacket);
 
                         EntitySoundInteractionHandler.handleEntityInteraction(session, vector, entity);
-
-                        if (entity instanceof VillagerEntity) {
-                            session.setLastInteractedVillagerEid(packet.getRuntimeEntityId());
-                        }
                         break;
                     case 1: //Attack
                         ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),

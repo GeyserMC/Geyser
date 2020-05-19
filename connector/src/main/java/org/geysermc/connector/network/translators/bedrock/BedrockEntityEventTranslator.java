@@ -31,7 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientSelectTradePacket;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.connector.entity.living.merchant.VillagerEntity;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -51,15 +51,12 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
                 session.getDownstream().getSession().send(selectTradePacket);
 
-                VillagerEntity villager = (VillagerEntity) session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
-                if (villager == null) {
-                    session.getConnector().getLogger().debug("Could not find villager with entity id: " + session.getLastInteractedVillagerEid());
-                    return;
-                }
+                Entity villager = session.getPlayerEntity();
                 Inventory openInventory = session.getInventoryCache().getOpenInventory();
                 if (openInventory != null && openInventory.getWindowType() == WindowType.MERCHANT) {
-                    if (packet.getData() >= 0 && packet.getData() < villager.getVillagerTrades().length) {
-                        VillagerTrade trade = villager.getVillagerTrades()[packet.getData()];
+                    VillagerTrade[] trades = session.getVillagerTrades();
+                    if (trades != null && packet.getData() >= 0 && packet.getData() < trades.length) {
+                        VillagerTrade trade = session.getVillagerTrades()[packet.getData()];
                         openInventory.setItem(2, trade.getOutput());
                         villager.getMetadata().put(EntityData.TRADE_XP, trade.getXp() + villager.getMetadata().getInt(EntityData.TRADE_XP));
                         villager.updateBedrockMetadata(session);

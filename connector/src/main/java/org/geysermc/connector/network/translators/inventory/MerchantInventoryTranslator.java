@@ -93,7 +93,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        session.setLastInteractedVillagerEid(-1);
+        session.setVillagerTrades(null);
     }
 
     @Override

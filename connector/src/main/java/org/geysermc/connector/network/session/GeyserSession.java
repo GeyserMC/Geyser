@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
@@ -151,9 +152,6 @@ public class GeyserSession implements CommandSender {
     private boolean interacting;
 
     @Setter
-    private long lastInteractedVillagerEid;
-
-    @Setter
     private Vector3i lastInteractionPosition;
 
     @Setter
@@ -163,6 +161,9 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private int craftSlot = 0;
+
+    @Setter
+    private VillagerTrade[] villagerTrades;
 
     private MinecraftProtocol protocol;
 

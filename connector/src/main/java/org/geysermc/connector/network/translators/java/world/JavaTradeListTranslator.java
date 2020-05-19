@@ -35,7 +35,7 @@ import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.UpdateTradePacket;
-import org.geysermc.connector.entity.living.merchant.VillagerEntity;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -50,12 +50,8 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
 
     @Override
     public void translate(ServerTradeListPacket packet, GeyserSession session) {
-        VillagerEntity villager = (VillagerEntity) session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
-        if (villager == null) {
-            session.getConnector().getLogger().debug("Could not find villager with entity id: " + session.getLastInteractedVillagerEid());
-            return;
-        }
-        villager.setVillagerTrades(packet.getTrades());
+        Entity villager = session.getPlayerEntity();
+        session.setVillagerTrades(packet.getTrades());
         villager.getMetadata().put(EntityData.TRADE_TIER, packet.getVillagerLevel() - 1);
         villager.getMetadata().put(EntityData.MAX_TRADE_TIER, 4);
         villager.getMetadata().put(EntityData.TRADE_XP, packet.getExperience());
@@ -70,7 +66,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         updateTradePacket.setScreen2(true);
         updateTradePacket.setWilling(true);
         updateTradePacket.setPlayerUniqueEntityId(session.getPlayerEntity().getGeyserId());
-        updateTradePacket.setTraderUniqueEntityId(session.getLastInteractedVillagerEid());
+        updateTradePacket.setTraderUniqueEntityId(session.getPlayerEntity().getGeyserId());
         CompoundTagBuilder builder = CompoundTagBuilder.builder();
         List<CompoundTag> tags = new ArrayList<>();
         for (VillagerTrade trade : packet.getTrades()) {
@@ -94,7 +90,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         }
 
         //Hidden trade to fix visual experience bug
-        if (packet.getVillagerLevel() < 5) {
+        if (packet.isRegularVillager() && packet.getVillagerLevel() < 5) {
             tags.add(CompoundTagBuilder.builder()
                     .intTag("maxUses", 0)
                     .intTag("traderExp", 0)
@@ -112,10 +108,10 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         builder.listTag("Recipes", CompoundTag.class, tags);
         List<CompoundTag> expTags = new ArrayList<>();
         expTags.add(CompoundTagBuilder.builder().intTag("0", 0).buildRootTag());
-        expTags.add(CompoundTagBuilder.builder().intTag("1", 11).buildRootTag());
-        expTags.add(CompoundTagBuilder.builder().intTag("2", 71).buildRootTag());
-        expTags.add(CompoundTagBuilder.builder().intTag("3", 151).buildRootTag());
-        expTags.add(CompoundTagBuilder.builder().intTag("4", 251).buildRootTag());
+        expTags.add(CompoundTagBuilder.builder().intTag("1", 10).buildRootTag());
+        expTags.add(CompoundTagBuilder.builder().intTag("2", 70).buildRootTag());
+        expTags.add(CompoundTagBuilder.builder().intTag("3", 150).buildRootTag());
+        expTags.add(CompoundTagBuilder.builder().intTag("4", 250).buildRootTag());
         builder.listTag("TierExpRequirements", CompoundTag.class, expTags);
         updateTradePacket.setOffers(builder.buildRootTag());
         session.sendUpstreamPacket(updateTradePacket);
