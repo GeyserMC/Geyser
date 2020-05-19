@@ -33,6 +33,8 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandManager;
@@ -62,7 +64,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     private GeyserSpongeCommandManager geyserCommandManager;
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
-    private GeyserSpongePingPassthrough geyserSpongePingPassthrough;
+    private IGeyserPingPassthrough geyserSpongePingPassthrough;
 
     private GeyserConnector connector;
 
@@ -107,9 +109,14 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
         this.connector = GeyserConnector.start(PlatformType.SPONGE, this);
-        this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), connector);
-        this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
 
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        } else {
+            this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
+        }
+
+        this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), connector);
         Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(connector), "geyser");
     }
 
@@ -134,7 +141,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserSpongePingPassthrough getGeyserPingPassthrough() {
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserSpongePingPassthrough;
     }
 

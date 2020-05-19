@@ -41,6 +41,10 @@ public interface GeyserConfiguration {
 
     boolean isPassthroughPlayerCounts();
 
+    boolean isLegacyPingPassthrough();
+
+    int getPingPassthroughInterval();
+
     int getMaxPlayers();
 
     boolean isDebugMode();

@@ -26,24 +26,25 @@
 package org.geysermc.platform.standalone;
 
 import org.geysermc.common.PlatformType;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     private GeyserCommandManager geyserCommandManager;
     private GeyserStandaloneConfiguration geyserConfig;
     private GeyserStandaloneLogger geyserLogger;
-    private GeyserStandalonePingPassthrough geyserPingPassthrough;
+    private IGeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserConnector connector;
 
@@ -68,13 +69,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserCommandManager = new GeyserCommandManager(connector);
 
-        if (geyserConfig.isPassthroughMotd() || geyserConfig.isPassthroughPlayerCounts()) {
-            // Ensure delay is not zero
-            int interval = (geyserConfig.getPingPassthroughInterval() == 0) ? 1 : geyserConfig.getPingPassthroughInterval();
-            geyserLogger.debug("Scheduling ping passthrough at an interval of " + interval + " second(s).");
-            geyserPingPassthrough = new GeyserStandalonePingPassthrough(connector);
-            connector.getGeneralThreadPool().scheduleAtFixedRate(geyserPingPassthrough, 1, interval, TimeUnit.SECONDS);
-        }
+        geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
         geyserLogger.start();
     }
@@ -101,7 +96,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserStandalonePingPassthrough getGeyserPingPassthrough() {
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserPingPassthrough;
     }
 }

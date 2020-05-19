@@ -26,7 +26,7 @@
 
 package org.geysermc.connector.bootstrap;
 
-import org.geysermc.common.ping.IGeyserPingPassthrough;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.CommandManager;

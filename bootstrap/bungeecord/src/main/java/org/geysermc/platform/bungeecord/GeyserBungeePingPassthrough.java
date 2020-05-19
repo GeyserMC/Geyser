@@ -36,7 +36,7 @@ import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.geysermc.common.ping.GeyserPingInfo;
-import org.geysermc.common.ping.IGeyserPingPassthrough;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;

@@ -32,9 +32,10 @@ import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import lombok.AllArgsConstructor;
+import net.kyori.text.TextComponent;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.common.ping.GeyserPingInfo;
-import org.geysermc.common.ping.IGeyserPingPassthrough;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
@@ -52,7 +53,9 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
     public GeyserPingInfo getPingInformation() {
         ProxyPingEvent event;
         try {
-            event = server.getEventManager().fire(new ProxyPingEvent(FAKE_INBOUND_CONNECTION, ServerPing.builder().build())).get();
+            event = server.getEventManager().fire(new ProxyPingEvent(FAKE_INBOUND_CONNECTION, ServerPing.builder()
+                    .description(server.getConfiguration().getMotdComponent()).onlinePlayers(server.getPlayerCount())
+                    .maximumPlayers(server.getConfiguration().getShowMaxPlayers()).build())).get();
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }

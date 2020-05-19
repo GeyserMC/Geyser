@@ -97,6 +97,16 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isLegacyPingPassthrough() {
+        return config.getBoolean("legacy-ping-passthrough", false);
+    }
+
+    @Override
+    public int getPingPassthroughInterval() {
+        return config.getInt("ping-passthrough-interval", 3);
+    }
+
+    @Override
     public int getMaxPlayers() {
         return config.getInt("max-players", 10);
     }
