@@ -28,6 +28,7 @@ package org.geysermc.platform.bukkit;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
+import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
@@ -55,6 +56,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         saveDefaultConfig();
 
         this.geyserConfig = new GeyserBukkitConfiguration(getDataFolder(), getConfig());
+        GeyserConfiguration.CheckGeyserConfiguration(geyserConfig, geyserLogger);
         if (geyserConfig.getMetrics().getUniqueId().equals("generateduuid")) {
             getConfig().set("metrics.uuid", UUID.randomUUID().toString());
             saveConfig();

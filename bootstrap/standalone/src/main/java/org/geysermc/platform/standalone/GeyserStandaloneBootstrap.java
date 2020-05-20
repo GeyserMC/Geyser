@@ -62,6 +62,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             geyserLogger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
             System.exit(0);
         }
+        GeyserConfiguration.CheckGeyserConfiguration(geyserConfig, geyserLogger);
 
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserCommandManager = new GeyserCommandManager(connector);
