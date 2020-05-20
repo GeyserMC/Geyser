@@ -72,6 +72,7 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
             case TAMEABLE_TAMING_SUCCEEDED:
                 entityEventPacket.setType(EntityEventType.TAME_SUCCESS);
+                break;
             case ZOMBIE_VILLAGER_CURE:
                 entityEventPacket.setType(EntityEventType.ZOMBIE_VILLAGER_CURE);
                 break;
