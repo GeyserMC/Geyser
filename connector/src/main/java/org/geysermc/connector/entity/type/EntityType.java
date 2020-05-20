@@ -107,7 +107,7 @@ public enum EntityType {
     EYE_OF_ENDER(Entity.class, 70, 0.25f, 0.25f, 0f, 0f, "minecraft:eye_of_ender_signal"),
     END_CRYSTAL(EnderCrystalEntity.class, 71, 0f, 0f, 0f, 0f, "minecraft:ender_crystal"),
     FIREWORK_ROCKET(FireworkEntity.class, 72, 0.25f),
-    TRIDENT(TridentEntityAbstract.class, 73, 0f, 0f, 0f, 0f, "minecraft:thrown_trident"),
+    TRIDENT(TridentEntity.class, 73, 0f, 0f, 0f, 0f, "minecraft:thrown_trident"),
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
     CAT(CatEntity.class, 75, 0.35f, 0.3f),
     SHULKER_BULLET(Entity.class, 76, 0.3125f),

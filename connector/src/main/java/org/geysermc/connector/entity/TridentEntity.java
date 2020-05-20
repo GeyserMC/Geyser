@@ -31,9 +31,9 @@ import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class TridentEntityAbstract extends AbstractArrowEntity {
+public class TridentEntity extends AbstractArrowEntity {
 
-    public TridentEntityAbstract(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public TridentEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
