@@ -46,7 +46,7 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
 
         SoundUtils.SoundMapping soundMapping = SoundUtils.fromJava(packetSound);
         if (soundMapping == null) {
-            session.getConnector().getLogger().debug("[Builtin] Sound mapping " + packetSound + "not found - " + packet.toString());
+            session.getConnector().getLogger().debug("[Builtin] Sound mapping " + packetSound + " not found - " + packet.toString());
             return;
         }
 
