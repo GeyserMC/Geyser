@@ -94,7 +94,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         this.geyserWorldManager = new GeyserBukkitWorldManager(isLegacy, isViaVersion);
-        this.blockPlaceListener = new GeyserBukkitBlockPlaceListener(connector);
+        this.blockPlaceListener = new GeyserBukkitBlockPlaceListener(connector, isLegacy, isViaVersion);
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
         this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));

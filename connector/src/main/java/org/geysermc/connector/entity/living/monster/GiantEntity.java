@@ -25,34 +25,15 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
-import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
 
-public class GuardianEntity extends MonsterEntity {
+public class GiantEntity extends MonsterEntity {
 
-    public GuardianEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public GiantEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-    }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            Entity entity = session.getEntityCache().getEntityByJavaId((int) entityMetadata.getValue());
-            if (entity == null && session.getPlayerEntity().getEntityId() == (Integer) entityMetadata.getValue()) {
-                entity = session.getPlayerEntity();
-            }
-
-            if (entity != null) {
-                metadata.put(EntityData.TARGET_EID, entity.getGeyserId());
-            } else {
-                metadata.put(EntityData.TARGET_EID, (long) 0);
-            }
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
+        metadata.put(EntityData.SCALE, 6f);
     }
 }

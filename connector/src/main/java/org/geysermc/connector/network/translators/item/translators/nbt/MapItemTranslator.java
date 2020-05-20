@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
+import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -42,6 +43,7 @@ public class MapItemTranslator extends NbtItemStackTranslator {
         if (mapId != null) {
             itemTag.put(new StringTag("map_uuid", mapId.getValue().toString()));
             itemTag.put(new IntTag("map_name_index", mapId.getValue()));
+            itemTag.put(new ByteTag("map_display_players", (byte) 1));
             itemTag.remove("map");
         }
     }

@@ -98,7 +98,7 @@ public class Entity {
 
         metadata.put(EntityData.SCALE, 1f);
         metadata.put(EntityData.COLOR, 0);
-        metadata.put(EntityData.MAX_AIR, (short) 400);
+        metadata.put(EntityData.MAX_AIR, (short) 300);
         metadata.put(EntityData.AIR, (short) 0);
         metadata.put(EntityData.LEAD_HOLDER_EID, -1L);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
@@ -240,6 +240,13 @@ public class Entity {
                         ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
                         session.sendDownstreamPacket(releaseItemPacket);
                     }
+                }
+                break;
+            case 1: // Air/bubbles
+                if ((int) entityMetadata.getValue() == 300) {
+                    metadata.put(EntityData.AIR, (short) 0); // Otherwise the bubble counter remains in the UI
+                } else {
+                    metadata.put(EntityData.AIR, (short) (int) entityMetadata.getValue());
                 }
                 break;
             case 2: // custom name
