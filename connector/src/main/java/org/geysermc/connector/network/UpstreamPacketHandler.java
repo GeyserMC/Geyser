@@ -117,7 +117,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 LoginEncryptionUtils.showLoginWindow(session);
             }
             // else we were able to log the user in
-            return true;
         }
         return translateAndDefault(packet);
     }
