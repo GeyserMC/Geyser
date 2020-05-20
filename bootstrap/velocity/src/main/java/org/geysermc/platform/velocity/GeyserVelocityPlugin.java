@@ -91,7 +91,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         geyserConfig.getRemote().setPort(javaAddr.getPort());
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
-        GeyserConfiguration.CheckGeyserConfiguration(geyserConfig, geyserLogger);
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         geyserConfig.loadFloodgate(this, proxyServer, configDir);
 

@@ -95,7 +95,7 @@ public interface GeyserConfiguration {
 
     int getConfigVersion();
 
-    static void CheckGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {
+    static void checkGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {
         if (geyserConfig.getConfigVersion() < CURRENT_CONFIG_VERSION) {
             geyserLogger.warning("Your Geyser config is out of date! Please regenerate your config when possible.");
         } else if (geyserConfig.getConfigVersion() > CURRENT_CONFIG_VERSION) {

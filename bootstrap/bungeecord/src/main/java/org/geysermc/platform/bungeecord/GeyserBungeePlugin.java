@@ -117,7 +117,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
 
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
-        GeyserConfiguration.CheckGeyserConfiguration(geyserConfig, geyserLogger);
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         geyserConfig.loadFloodgate(this);
 
