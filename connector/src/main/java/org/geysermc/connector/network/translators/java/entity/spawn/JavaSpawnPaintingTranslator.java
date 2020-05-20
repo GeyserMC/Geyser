@@ -53,8 +53,7 @@ public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPai
                     .setPaintingName(PaintingType.getByPaintingType(packet.getPaintingType()))
                     .setDirection(packet.getDirection().ordinal());
 
-            //Add delay because for some reason without it paintings will bug sometimes
-            session.getConnector().getGeneralThreadPool().schedule(() -> session.getEntityCache().spawnEntity(entity), 100, TimeUnit.MILLISECONDS);
+            session.getEntityCache().spawnEntity(entity);
         });
     }
 }
