@@ -32,7 +32,7 @@ import java.util.Map;
 public interface GeyserConfiguration {
 
     // Modify this when you update the config
-    int CURRENT_CONFIG_VERSION = 1;
+    int CURRENT_CONFIG_VERSION = 2;
 
     IBedrockConfiguration getBedrock();
 
@@ -55,6 +55,8 @@ public interface GeyserConfiguration {
     String getDefaultLocale();
 
     Path getFloodgateKeyFile();
+
+    boolean isAboveBedrockNetherBuilding();
 
     boolean isCacheChunks();
 

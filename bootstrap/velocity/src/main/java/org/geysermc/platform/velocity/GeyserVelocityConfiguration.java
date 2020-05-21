@@ -76,6 +76,9 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
     @JsonProperty("cache-chunks")
     private boolean cacheChunks;
 
+    @JsonProperty("above-bedrock-nether-building")
+    private boolean aboveBedrockNetherBuilding;
+
     private MetricsInfo metrics;
 
     private Path floodgateKey;

@@ -125,6 +125,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return node.getNode("above-bedrock-nether-building").getBoolean(false);
+    }
+
+    @Override
     public SpongeMetricsInfo getMetrics() {
         return metricsInfo;
     }

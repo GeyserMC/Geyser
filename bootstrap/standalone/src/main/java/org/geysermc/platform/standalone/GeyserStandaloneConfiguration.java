@@ -71,6 +71,9 @@ public class GeyserStandaloneConfiguration implements GeyserConfiguration {
     @JsonProperty("cache-chunks")
     private boolean cacheChunks;
 
+    @JsonProperty("above-bedrock-nether-building")
+    private boolean isAboveBedrockNetherBuilding;
+
     private MetricsInfo metrics;
 
     @Override

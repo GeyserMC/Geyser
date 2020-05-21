@@ -66,7 +66,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         stopRainPacket.setPosition(Vector3f.ZERO);
         session.sendUpstreamPacket(stopRainPacket);
 
-        if (entity.getDimension() != DimensionUtils.javaToBedrock(packet.getDimension())) {
+        if (entity.getDimension() != DimensionUtils.javaToBedrock(packet.getDimension(), session.getConnector().getConfig().isAboveBedrockNetherBuilding())) {
             DimensionUtils.switchDimension(session, packet.getDimension());
         } else {
             if (session.isManyDimPackets()) { //reloading world

@@ -73,6 +73,11 @@ default-locale: en_us
 # Geyser has direct access to the server itself.
 cache-chunks: false
 
+# Bedrock prevents building and displaying blocks above Y127 in the Nether -
+# enabling this config option works around that by changing the Nether dimension ID
+# to the End ID
+above-bedrock-nether-building: false
+
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
 # what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.
