@@ -86,6 +86,11 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isCommandSuggestions() {
+        return config.getBoolean("command-suggestions", true);
+    }
+
+    @Override
     public boolean isPassthroughMotd() {
         return config.getBoolean("passthrough-motd", false);
     }
@@ -216,5 +221,10 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
         public String getUniqueId() {
             return config.getString("metrics.uuid", "generateduuid");
         }
+    }
+
+    @Override
+    public int getConfigVersion() {
+        return config.getInt("config-version", 0);
     }
 }

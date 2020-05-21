@@ -35,6 +35,7 @@ import com.velocitypowered.api.plugin.Plugin;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.geysermc.common.PlatformType;
+import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
@@ -93,6 +94,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         geyserConfig.getRemote().setPort(javaAddr.getPort());
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         geyserConfig.loadFloodgate(this, proxyServer, configDir);
 

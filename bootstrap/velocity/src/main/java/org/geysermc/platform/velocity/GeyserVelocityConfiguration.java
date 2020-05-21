@@ -52,6 +52,9 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
 
     private Map<String, UserAuthenticationInfo> userAuths;
 
+    @JsonProperty("command-suggestions")
+    private boolean commandSuggestions;
+
     @JsonProperty("passthrough-motd")
     private boolean isPassthroughMotd;
 
@@ -136,4 +139,7 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
         @JsonProperty("uuid")
         private String uniqueId;
     }
+
+    @JsonProperty("config-version")
+    private int configVersion;
 }

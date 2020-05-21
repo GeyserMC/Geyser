@@ -41,6 +41,10 @@ floodgate-key-file: public-key.pem
 #    email: herpderp@derpherp.com
 #    password: dooooo
 
+# Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
+# Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.
+command-suggestions: true
+
 # Relay the MOTD from the remote server.
 passthrough-motd: false
 # Relay the player count and max players from the remote server.
@@ -85,3 +89,6 @@ metrics:
   enabled: true
   # UUID of server, don't change!
   uuid: generateduuid
+
+# DO NOT TOUCH!
+config-version: 2
