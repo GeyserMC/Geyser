@@ -56,8 +56,7 @@ public class BoatEntity extends Entity {
 
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        if (rotation.getZ() != 90.0f) rotation = rotation.add(0, 0, rotation.getX() + 90);
-        super.moveRelative(session, relX, relY, relZ, Vector3f.from(0, 0, rotation.getX() + 90), isOnGround);
+        super.moveRelative(session, relX, relY, relZ, Vector3f.from(0, 0, rotation.getZ()), isOnGround);
     }
 
     @Override
