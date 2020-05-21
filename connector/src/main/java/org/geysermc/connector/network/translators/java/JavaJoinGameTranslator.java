@@ -80,8 +80,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, Hand.MAIN_HAND);
         session.sendDownstreamPacket(clientSettingsPacket);
 
-        if (DimensionUtils.javaToBedrock(packet.getDimension(), session.getConnector().getConfig().isAboveBedrockNetherBuilding())
-                != entity.getDimension()) {
+        if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
             DimensionUtils.switchDimension(session, packet.getDimension());
         }
     }

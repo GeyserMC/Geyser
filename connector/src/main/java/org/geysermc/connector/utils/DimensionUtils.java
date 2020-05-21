@@ -31,8 +31,12 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class DimensionUtils {
+
+    // Changes if the above-bedrock Nether building workaround is applied
+    private static int BEDROCK_NETHER_ID = 1;
+
     public static void switchDimension(GeyserSession session, int javaDimension) {
-        int bedrockDimension = javaToBedrock(javaDimension, session.getConnector().getConfig().isAboveBedrockNetherBuilding());
+        int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
         if (bedrockDimension == player.getDimension())
             return;
@@ -66,21 +70,21 @@ public class DimensionUtils {
      * Map the Java edition dimension IDs to Bedrock edition
      *
      * @param javaDimension Dimension ID to convert
-     * @param isAboveBedrockNetherBuilding whether the workaround for above-bedrock Nether building should be applied
      * @return Converted Bedrock edition dimension ID
      */
-    public static int javaToBedrock(int javaDimension, boolean isAboveBedrockNetherBuilding) {
+    public static int javaToBedrock(int javaDimension) {
         switch (javaDimension) {
             case -1:
-                // Change dimension ID to the End to allow for building above Bedrock
-                if (isAboveBedrockNetherBuilding) {
-                    return 2;
-                }
-                return 1;
+                return BEDROCK_NETHER_ID;
             case 1:
                 return 2;
             default:
                 return javaDimension;
         }
+    }
+
+    public static void changeBedrockNetherId() {
+        // Change dimension ID to the End to allow for building above Bedrock
+        BEDROCK_NETHER_ID = 2;
     }
 }
