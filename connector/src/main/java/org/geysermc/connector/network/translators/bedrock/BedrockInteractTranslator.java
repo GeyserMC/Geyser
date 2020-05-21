@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -68,7 +69,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 session.setRidingVehicleEntity(null);
                 break;
             case MOUSEOVER:
-                // Handle the buttons for mobile - "Mount", etc
+                // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
                 if (packet.getRuntimeEntityId() != 0) {
                     Entity interactEntity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
                     if (interactEntity == null)
@@ -76,13 +77,22 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
                     String interactiveTag;
                     switch (interactEntity.getEntityType()) {
+                        case PIG:
+                            if (interactEntity.getMetadata().getFlags().getFlag(EntityFlag.SADDLED)) {
+                                interactiveTag = "action.interact.mount";
+                            } else interactiveTag = "";
+                            break;
                         case HORSE:
                         case SKELETON_HORSE:
                         case ZOMBIE_HORSE:
                         case DONKEY:
                         case LLAMA:
                         case TRADER_LLAMA:
-                            interactiveTag = "action.interact.mount";
+                            if (interactEntity.getMetadata().getFlags().getFlag(EntityFlag.TAMED)) {
+                                interactiveTag = "action.interact.ride.horse";
+                            } else {
+                                interactiveTag = "action.interact.mount";
+                            }
                             break;
                         case BOAT:
                             interactiveTag = "action.interact.ride.boat";
