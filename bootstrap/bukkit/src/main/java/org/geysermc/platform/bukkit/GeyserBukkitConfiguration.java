@@ -87,6 +87,11 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isCommandSuggestions() {
+        return config.getBoolean("command-suggestions", true);
+    }
+
+    @Override
     public boolean isPingPassthrough() {
         return config.getBoolean("ping-passthrough", false);
     }
@@ -202,5 +207,10 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
         public String getUniqueId() {
             return config.getString("metrics.uuid", "generateduuid");
         }
+    }
+
+    @Override
+    public int getConfigVersion() {
+        return config.getInt("config-version", 0);
     }
 }

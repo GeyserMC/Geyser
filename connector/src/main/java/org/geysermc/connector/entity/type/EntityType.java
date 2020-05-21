@@ -64,6 +64,7 @@ public enum EntityType {
     PARROT(ParrotEntity.class, 30, 0.9f, 0.5f),
     DOLPHIN(WaterEntity.class, 31, 0.6f, 0.9f),
     ZOMBIE(ZombieEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f),
+    GIANT(GiantEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:zombie"),
     CREEPER(CreeperEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
     SKELETON(AbstractSkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
     SPIDER(SpiderEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
@@ -81,7 +82,7 @@ public enum EntityType {
     HUSK(ZombieEntity.class, 47, 1.8f, 0.6f, 0.6f, 1.62f),
     WITHER_SKELETON(AbstractSkeletonEntity.class, 48, 2.4f, 0.7f),
     GUARDIAN(GuardianEntity.class, 49, 0.85f),
-    ELDER_GUARDIAN(GuardianEntity.class, 50, 1.9975f),
+    ELDER_GUARDIAN(ElderGuardianEntity.class, 50, 1.9975f),
     NPC(PlayerEntity.class, 51, 1.8f, 0.6f, 0.6f, 1.62f),
     WITHER(WitherEntity.class, 52, 3.5f, 0.9f),
     ENDER_DRAGON(EnderDragonEntity.class, 53, 4f, 13f),
@@ -103,17 +104,18 @@ public enum EntityType {
     MOVING_BLOCK(Entity.class, 67, 0f),
     EXPERIENCE_BOTTLE(ThrowableEntity.class, 68, 0.25f, 0.25f, 0f, 0f, "minecraft:xp_bottle"),
     EXPERIENCE_ORB(ExpOrbEntity.class, 69, 0f, 0f, 0f, 0f, "minecraft:xp_orb"),
-    EYE_OF_ENDER(Entity.class, 70, 0.25f),
+    EYE_OF_ENDER(Entity.class, 70, 0.25f, 0.25f, 0f, 0f, "minecraft:eye_of_ender_signal"),
     END_CRYSTAL(EnderCrystalEntity.class, 71, 0f, 0f, 0f, 0f, "minecraft:ender_crystal"),
-    FIREWORK_ROCKET(Entity.class, 72, 0.25f),
-    TRIDENT(ArrowEntity.class, 73, 0f),
+    FIREWORK_ROCKET(FireworkEntity.class, 72, 0.25f),
+    TRIDENT(TridentEntity.class, 73, 0f, 0f, 0f, 0f, "minecraft:thrown_trident"),
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
     CAT(CatEntity.class, 75, 0.35f, 0.3f),
     SHULKER_BULLET(Entity.class, 76, 0.3125f),
     FISHING_BOBBER(FishingHookEntity.class, 77, 0f, 0f, 0f, 0f, "minecraft:fishing_hook"),
     CHALKBOARD(Entity.class, 78, 0f),
     DRAGON_FIREBALL(ItemedFireballEntity.class, 79, 1.0f),
-    ARROW(ArrowEntity.class, 80, 0.25f, 0.25f),
+    ARROW(TippedArrowEntity.class, 80, 0.25f, 0.25f),
+    SPECTRAL_ARROW(AbstractArrowEntity.class, 80, 0.25f, 0.25f, 0.25f, 0f, "minecraft:arrow"),
     SNOWBALL(ThrowableEntity.class, 81, 0.25f),
     EGG(ThrowableEntity.class, 82, 0.25f),
     PAINTING(PaintingEntity.class, 83, 0f),
@@ -159,6 +161,8 @@ public enum EntityType {
      */
     ILLUSIONER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager");
 
+    private static final EntityType[] VALUES = values();
+
     private Class<? extends Entity> entityClass;
     private final int type;
     private final float height;
@@ -193,5 +197,15 @@ public enum EntityType {
         this.length = length;
         this.offset = offset + 0.00001f;
         this.identifier = identifier;
+    }
+
+    public static EntityType getFromIdentifier(String identifier) {
+        for (EntityType type : VALUES) {
+            if (type.identifier.equals(identifier)) {
+                return type;
+            }
+        }
+
+        return null;
     }
 }
