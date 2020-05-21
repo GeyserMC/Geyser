@@ -81,7 +81,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         // Used to determine if Block.getBlockData() is present.
         boolean isLegacy = !isCompatible(Bukkit.getServer().getVersion(), "1.13.0");
         if (isLegacy)
-            geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected.");
+            geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected; falling back to ViaVersion for block state retrieval.");
 
         if (Bukkit.getPluginManager().getPlugin("ViaVersion") != null) {
             // TODO: Update when ViaVersion updates
@@ -93,7 +93,11 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
 
-        this.geyserWorldManager = new GeyserBukkitWorldManager(isLegacy, isViaVersion);
+        boolean use3dBiomes = isCompatible(Bukkit.getServer().getVersion(), "1.15.0");
+        if (!use3dBiomes) {
+            geyserLogger.debug("Legacy version of Minecraft (1.14.4 or older) detected; not using 3D biomes.");
+        }
+        this.geyserWorldManager = new GeyserBukkitWorldManager(isLegacy, use3dBiomes, isViaVersion);
         this.blockPlaceListener = new GeyserBukkitBlockPlaceListener(connector, isLegacy, isViaVersion);
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 

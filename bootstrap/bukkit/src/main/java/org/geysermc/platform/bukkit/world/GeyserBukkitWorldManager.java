@@ -42,6 +42,7 @@ import us.myles.ViaVersion.protocols.protocol1_15to1_14_4.data.MappingData;
 public class GeyserBukkitWorldManager extends WorldManager {
 
     private final boolean isLegacy;
+    private final boolean use3dBiomes;
     // You need ViaVersion to connect to an older server with Geyser.
     // However, we still check for ViaVersion in case there's some other way that gets Geyser on a pre-1.13 Bukkit server
     private final boolean isViaVersion;
@@ -74,6 +75,7 @@ public class GeyserBukkitWorldManager extends WorldManager {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public int[] getBiomeDataAt(GeyserSession session, int x, int z) {
         if (session.getPlayerEntity() == null) {
             return null;
@@ -84,8 +86,13 @@ public class GeyserBukkitWorldManager extends WorldManager {
             for (int localY = 0; localY < 255; localY = localY + 4) {
                 for (int localZ = 0; localZ < 16; localZ = localZ + 4) {
                     // Index is based on wiki.vg's index requirements
-                    biomeData[((localY >> 2) & 63) << 4 | ((localZ >> 2) & 3) << 2 | ((localX >> 2) & 3)] =
-                            chunk.getBiome(localX, localZ).ordinal();
+                    final int i = ((localY >> 2) & 63) << 4 | ((localZ >> 2) & 3) << 2 | ((localX >> 2) & 3);
+                    // 3D biomes didn't exist until 1.15
+                    if (use3dBiomes) {
+                        biomeData[i] = chunk.getBiome(localX, localY, localZ).ordinal();
+                    } else {
+                        biomeData[i] = chunk.getBiome(localX, localZ).ordinal();
+                    }
                 }
             }
         }
