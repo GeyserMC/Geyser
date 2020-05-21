@@ -110,15 +110,19 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    public boolean handle(MovePlayerPacket packet) {
+    public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthData().getName())) {
                 LoginEncryptionUtils.showLoginWindow(session);
             }
             // else we were able to log the user in
-            return true;
         }
+        return translateAndDefault(packet);
+    }
+
+    @Override
+    public boolean handle(MovePlayerPacket packet) {
         if (session.isLoggingIn()) {
             session.sendMessage("Please wait until you are logged in...");
         }
