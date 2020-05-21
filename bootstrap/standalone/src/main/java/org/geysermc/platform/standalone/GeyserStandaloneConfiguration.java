@@ -47,6 +47,9 @@ public class GeyserStandaloneConfiguration implements GeyserConfiguration {
 
     private Map<String, UserAuthenticationInfo> userAuths;
 
+    @JsonProperty("command-suggestions")
+    private boolean isCommandSuggestions;
+
     @JsonProperty("ping-passthrough")
     private boolean pingPassthrough;
 
@@ -112,4 +115,7 @@ public class GeyserStandaloneConfiguration implements GeyserConfiguration {
         @JsonProperty("uuid")
         private String uniqueId;
     }
+
+    @JsonProperty("config-version")
+    private int configVersion;
 }
