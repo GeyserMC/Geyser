@@ -35,8 +35,6 @@ import org.geysermc.connector.utils.PaintingType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPaintingPacket;
 import com.nukkitx.math.vector.Vector3f;
 
-import java.util.concurrent.TimeUnit;
-
 @Translator(packet = ServerSpawnPaintingPacket.class)
 public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPaintingPacket> {
 
