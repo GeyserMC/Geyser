@@ -74,11 +74,17 @@ public class GeyserStandaloneConfiguration implements GeyserConfiguration {
     @JsonProperty("allow-third-party-capes")
     private boolean allowThirdPartyCapes;
 
+    @JsonProperty("allow-third-party-ears")
+    private boolean allowThirdPartyEars;
+
     @JsonProperty("default-locale")
     private String defaultLocale;
 
     @JsonProperty("cache-chunks")
     private boolean cacheChunks;
+
+    @JsonProperty("above-bedrock-nether-building")
+    private boolean isAboveBedrockNetherBuilding;
 
     private MetricsInfo metrics;
 

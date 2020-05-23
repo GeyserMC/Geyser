@@ -53,7 +53,7 @@ public class SkinUtils {
         GameProfileData data = GameProfileData.from(profile);
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
 
-        SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""));
+        SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
 
         return buildEntryManually(
                 profile.getId(),
@@ -88,7 +88,7 @@ public class SkinUtils {
                                                             String geometryName, String geometryData) {
         SerializedSkin serializedSkin = SerializedSkin.of(
                 skinId, geometryName, ImageData.of(skinData), Collections.emptyList(),
-                ImageData.of(capeData), geometryData, "", true, false, false, capeId, uuid.toString()
+                ImageData.of(capeData), geometryData, "", true, false, !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, uuid.toString()
         );
 
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
@@ -115,6 +115,9 @@ public class SkinUtils {
          * @return The built GameProfileData
          */
         public static GameProfileData from(GameProfile profile) {
+            // Fallback to the offline mode of working it out
+            boolean isAlex = ((profile.getId().hashCode() % 2) == 1);
+
             try {
                 GameProfile.Property skinProperty = profile.getProperty("textures");
 
@@ -124,7 +127,7 @@ public class SkinUtils {
                 JsonNode skinTexture = textures.get("SKIN");
                 String skinUrl = skinTexture.get("url").asText();
 
-                boolean isAlex = skinTexture.has("metadata");
+                isAlex = skinTexture.has("metadata");
 
                 String capeUrl = null;
                 if (textures.has("CAPE")) {
@@ -138,7 +141,7 @@ public class SkinUtils {
                     GeyserConnector.getInstance().getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
                 }
                 // return default skin with default cape when texture data is invalid
-                return new GameProfileData(SkinProvider.EMPTY_SKIN.getTextureUrl(), SkinProvider.EMPTY_CAPE.getTextureUrl(), false);
+                return new GameProfileData((isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl()), SkinProvider.EMPTY_CAPE.getTextureUrl(), isAlex);
             }
         }
     }
@@ -167,10 +170,37 @@ public class SkinUtils {
                                 ), SkinProvider.EMPTY_CAPE, SkinProvider.CapeProvider.VALUES.length * 3);
                             }
 
-                            SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy("geometry.humanoid.custom" + (data.isAlex() ? "Slim" : ""));
+                            SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
                             geometry = SkinProvider.getOrDefault(SkinProvider.requestBedrockGeometry(
                                     geometry, entity.getUuid(), false
                             ), geometry, 3);
+
+                            // Not a bedrock player check for ears
+                            if (geometry.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_EARS) {
+                                boolean isEars = false;
+
+                                // Its deadmau5, gotta support his skin :)
+                                if (entity.getUuid().toString().equals("1e18d5ff-643d-45c8-b509-43b8461d8614")) {
+                                    isEars = true;
+                                } else {
+                                    // Get the ears texture for the player
+                                    skin = SkinProvider.getOrDefault(SkinProvider.requestUnofficialEars(
+                                            skin, entity.getUuid(), entity.getUsername(), false
+                                    ), skin, 3);
+
+                                    isEars = skin.isEars();
+                                }
+
+                                // Does the skin have an ears texture
+                                if (isEars) {
+                                    // Get the new geometry
+                                    geometry = SkinProvider.SkinGeometry.getEars(data.isAlex());
+
+                                    // Store the skin and geometry for the ears
+                                    SkinProvider.storeEarSkin(entity.getUuid(), skin);
+                                    SkinProvider.storeEarGeometry(entity.getUuid(), data.isAlex());
+                                }
+                            }
 
                             if (entity.getLastSkinUpdate() < skin.getRequestedOn()) {
                                 entity.setLastSkinUpdate(skin.getRequestedOn());
@@ -197,6 +227,10 @@ public class SkinUtils {
                                     playerAddPacket.setAction(PlayerListPacket.Action.ADD);
                                     playerAddPacket.getEntries().add(updatedEntry);
                                     session.sendUpstreamPacket(playerAddPacket);
+
+                                    if(entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
+                                        session.fetchOurSkin(updatedEntry);
+                                    }
                                 }
                             }
                         } catch (Exception e) {
@@ -217,8 +251,8 @@ public class SkinUtils {
             byte[] skinBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getSkinData().getBytes("UTF-8"));
             byte[] capeBytes = clientData.getCapeData();
 
-            byte[] geometryNameBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getGeometryName().getBytes("UTF-8"));
-            byte[] geometryBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getGeometryData().getBytes("UTF-8"));
+            byte[] geometryNameBytes = Base64.getDecoder().decode(clientData.getGeometryName().getBytes("UTF-8"));
+            byte[] geometryBytes = Base64.getDecoder().decode(clientData.getGeometryData().getBytes("UTF-8"));
 
             if (skinBytes.length <= (128 * 128 * 4) && !clientData.isPersonaSkin()) {
                 SkinProvider.storeBedrockSkin(playerEntity.getUuid(), data.getSkinUrl(), skinBytes);
@@ -234,15 +268,5 @@ public class SkinUtils {
         } catch (Exception e) {
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
         }
-    }
-
-    /**
-     * Create a basic geometry json for the given name
-     *
-     * @param geometryName Geometry name to use
-     * @return Geometry data as a json string
-     */
-    private static String getLegacySkinGeometry(String geometryName) {
-        return "{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}";
     }
 }

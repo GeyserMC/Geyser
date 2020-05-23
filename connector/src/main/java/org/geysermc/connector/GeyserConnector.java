@@ -39,6 +39,11 @@ import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.world.WorldManager;
+<<<<<<< HEAD
+=======
+import org.geysermc.connector.thread.PingPassthroughThread;
+import org.geysermc.connector.utils.DimensionUtils;
+>>>>>>> 22a1073e548bd9c0c23abb95f36087671b498116
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -107,6 +112,9 @@ public class GeyserConnector {
 
         remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
         authType = AuthType.getByName(config.getRemote().getAuthType());
+
+        if (config.isAboveBedrockNetherBuilding())
+            DimensionUtils.changeBedrockNetherId(); // Apply End dimension ID workaround to Nether
 
         bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));

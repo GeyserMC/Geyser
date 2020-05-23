@@ -125,6 +125,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowThirdPartyEars() {
+        return node.getNode("allow-third-party-ears").getBoolean(false);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return node.getNode("default-locale").getString("en_us");
     }
@@ -137,6 +142,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     @Override
     public boolean isCacheChunks() {
         return node.getNode("cache-chunks").getBoolean(false);
+    }
+
+    @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return node.getNode("above-bedrock-nether-building").getBoolean(false);
     }
 
     @Override
