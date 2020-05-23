@@ -92,8 +92,23 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
     }
 
     @Override
-    public boolean isPingPassthrough() {
-        return config.getBoolean("ping-passthrough", false);
+    public boolean isPassthroughMotd() {
+        return config.getBoolean("passthrough-motd", false);
+    }
+
+    @Override
+    public boolean isPassthroughPlayerCounts() {
+        return config.getBoolean("passthrough-player-counts", false);
+    }
+
+    @Override
+    public boolean isLegacyPingPassthrough() {
+        return config.getBoolean("legacy-ping-passthrough", false);
+    }
+
+    @Override
+    public int getPingPassthroughInterval() {
+        return config.getInt("ping-passthrough-interval", 3);
     }
 
     @Override

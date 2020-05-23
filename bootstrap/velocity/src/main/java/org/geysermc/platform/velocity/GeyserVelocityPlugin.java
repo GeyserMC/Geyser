@@ -38,6 +38,8 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandManager;
@@ -63,6 +65,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private GeyserVelocityCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityLogger geyserLogger;
+    private IGeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserConnector connector;
 
@@ -99,6 +102,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
         this.commandManager.register(new GeyserVelocityCommandExecutor(connector), "geyser");
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        } else {
+            this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
+        }
     }
 
     @Override
@@ -119,6 +127,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Override
     public org.geysermc.connector.command.CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
+        return geyserPingPassthrough;
     }
 
     @Subscribe

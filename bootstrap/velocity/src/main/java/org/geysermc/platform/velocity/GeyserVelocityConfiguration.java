@@ -55,8 +55,17 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
     @JsonProperty("command-suggestions")
     private boolean commandSuggestions;
 
-    @JsonProperty("ping-passthrough")
-    private boolean pingPassthrough;
+    @JsonProperty("passthrough-motd")
+    private boolean isPassthroughMotd;
+
+    @JsonProperty("passthrough-player-counts")
+    private boolean isPassthroughPlayerCounts;
+
+    @JsonProperty("legacy-ping-passthrough")
+    private boolean isLegacyPingPassthrough;
+
+    @JsonProperty("ping-passthrough-interval")
+    private int pingPassthroughInterval;
 
     @JsonProperty("max-players")
     private int maxPlayers;

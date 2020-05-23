@@ -35,6 +35,8 @@ import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
 
@@ -51,6 +53,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private GeyserBungeeCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeLogger geyserLogger;
+    private IGeyserPingPassthrough geyserBungeePingPassthrough;
 
     private GeyserConnector connector;
 
@@ -125,6 +128,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserBungeeCommandManager(connector);
 
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        } else {
+            this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
+        }
+
         this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(connector));
     }
 
@@ -146,5 +155,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
+        return geyserBungeePingPassthrough;
     }
 }
