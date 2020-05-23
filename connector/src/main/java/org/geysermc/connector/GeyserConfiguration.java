@@ -52,6 +52,8 @@ public interface GeyserConfiguration {
 
     boolean isAllowThirdPartyCapes();
 
+    boolean isAllowThirdPartyEars();
+
     String getDefaultLocale();
 
     Path getFloodgateKeyFile();
