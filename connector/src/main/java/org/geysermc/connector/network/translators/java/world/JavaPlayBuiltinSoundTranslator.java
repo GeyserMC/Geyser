@@ -45,10 +45,8 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
         String packetSound = packet.getSound().getName();
 
         SoundUtils.SoundMapping soundMapping = SoundUtils.fromJava(packetSound);
-        session.getConnector().getLogger().debug("[Builtin] Sound mapping " + packetSound + " -> "
-                        + soundMapping + (soundMapping == null ? "[not found]" : "")
-                        + " - " + packet.toString());
         if (soundMapping == null) {
+            session.getConnector().getLogger().debug("[Builtin] Sound mapping " + packetSound + " not found - " + packet.toString());
             return;
         }
 
@@ -93,6 +91,5 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
         soundPacket.setBabySound(false); // might need to adjust this in the future
         soundPacket.setRelativeVolumeDisabled(false);
         session.sendUpstreamPacket(soundPacket);
-        session.getConnector().getLogger().debug("Packet sent - " + packet.toString() + " --> " + soundPacket.toString());
     }
 }

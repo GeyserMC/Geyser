@@ -86,6 +86,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         case SKELETON_HORSE:
                         case ZOMBIE_HORSE:
                         case DONKEY:
+                        case MULE:
                         case LLAMA:
                         case TRADER_LLAMA:
                             if (interactEntity.getMetadata().getFlags().getFlag(EntityFlag.TAMED)) {

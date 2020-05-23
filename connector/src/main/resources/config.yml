@@ -61,6 +61,10 @@ general-thread-pool: 32
 # OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
 allow-third-party-capes: true
 
+# Allow third party deadmau5 ears to be visible. Currently allowing:
+# MinecraftCapes
+allow-third-party-ears: false
+
 # The default locale if we dont have the one the client requested
 default-locale: en_us
 
@@ -72,6 +76,12 @@ default-locale: en_us
 # or implementations this allows is automatically enabled without the additional caching as
 # Geyser has direct access to the server itself.
 cache-chunks: false
+
+# Bedrock prevents building and displaying blocks above Y127 in the Nether -
+# enabling this config option works around that by changing the Nether dimension ID
+# to the End ID. The main downside to this is that the sky will resemble that of
+# the end sky in the nether, but ultimately it's the only way for this feature to work.
+above-bedrock-nether-building: false
 
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
