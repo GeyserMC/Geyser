@@ -75,7 +75,8 @@ cache-chunks: false
 
 # Bedrock prevents building and displaying blocks above Y127 in the Nether -
 # enabling this config option works around that by changing the Nether dimension ID
-# to the End ID
+# to the End ID. The main downside to this is that the sky will resemble that of
+# the end sky in the nether, but ultimately it's the only way for this feature to work.
 above-bedrock-nether-building: false
 
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
