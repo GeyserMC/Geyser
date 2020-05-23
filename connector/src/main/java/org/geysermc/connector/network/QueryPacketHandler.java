@@ -80,7 +80,7 @@ public class QueryPacketHandler {
     /**
      * Checks the packet is in fact a query packet
      * @param buffer Query data
-     * @return
+     * @return if the packet is a query packet
      */
     private boolean isQueryPacket(ByteBuf buffer) {
         return (buffer.readableBytes() >= 2) ? buffer.readUnsignedShort() == 65277 : false;
@@ -130,7 +130,7 @@ public class QueryPacketHandler {
 
     /**
      * Gets the game data for the query
-     * @return
+     * @return the game data for the query
      */
     private byte[] getGameData() {
         ByteArrayOutputStream query = new ByteArrayOutputStream();
@@ -161,7 +161,7 @@ public class QueryPacketHandler {
         }
 
         // Create a hashmap of all game data needed in the query
-        HashMap<String, String> gameData = new HashMap<String, String>();
+        Map<String, String> gameData = new HashMap<String, String>();
         gameData.put("hostname", motd);
         gameData.put("gametype", "SMP");
         gameData.put("game_id", "MINECRAFT");
@@ -251,9 +251,9 @@ public class QueryPacketHandler {
      * Gets an MD5 token for the current IP/Port.
      * This should reset every 30 seconds but a new one is generated per instance
      * Seems wasteful to code something in to clear it when it has no use.
-     * @param token
-     * @param address
-     * @return
+     * @param token the token
+     * @param address the address
+     * @return an MD5 token for the current IP/Port
      */
     public static byte[] getTokenString(byte[] token, InetAddress address) {
         try {
