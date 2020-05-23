@@ -39,11 +39,7 @@ import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.world.WorldManager;
-<<<<<<< HEAD
-=======
-import org.geysermc.connector.thread.PingPassthroughThread;
 import org.geysermc.connector.utils.DimensionUtils;
->>>>>>> 22a1073e548bd9c0c23abb95f36087671b498116
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.Toolbox;
 
