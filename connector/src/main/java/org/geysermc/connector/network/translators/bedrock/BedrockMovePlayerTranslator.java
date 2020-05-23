@@ -85,6 +85,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
         entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
         entity.setRotation(rotation);
+        entity.setOnGround(packet.isOnGround());
 
         /*
         boolean colliding = false;

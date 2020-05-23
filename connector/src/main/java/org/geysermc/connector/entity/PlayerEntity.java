@@ -57,6 +57,7 @@ public class PlayerEntity extends LivingEntity {
     private String username;
     private long lastSkinUpdate = -1;
     private boolean playerList = true;
+    private boolean onGround;
     private final EntityEffectCache effectCache;
 
     private Entity leftParrot;
@@ -143,6 +144,8 @@ public class PlayerEntity extends LivingEntity {
         setPosition(position);
         setRotation(rotation);
 
+        this.onGround = isOnGround;
+
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
         movePlayerPacket.setPosition(this.position);
@@ -167,6 +170,8 @@ public class PlayerEntity extends LivingEntity {
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
         setRotation(rotation);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+
+        this.onGround = isOnGround;
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
