@@ -103,7 +103,6 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         }
         String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(packet.getRecord().getBlock());
         session.setInteracting(false);
-        session.setLastInteractionPosition(null);
         BlockSoundInteractionHandler.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
     }
 }

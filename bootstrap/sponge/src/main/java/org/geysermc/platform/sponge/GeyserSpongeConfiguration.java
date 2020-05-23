@@ -80,6 +80,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isCommandSuggestions() {
+        return node.getNode("command-suggestions").getBoolean(true);
+    }
+
+    @Override
     public boolean isPingPassthrough() {
         return node.getNode("ping-passthrough").getBoolean(false);
     }
@@ -105,6 +110,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowThirdPartyEars() {
+        return node.getNode("allow-third-party-ears").getBoolean(false);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return node.getNode("default-locale").getString("en_us");
     }
@@ -117,6 +127,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     @Override
     public boolean isCacheChunks() {
         return node.getNode("cache-chunks").getBoolean(false);
+    }
+
+    @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return node.getNode("above-bedrock-nether-building").getBoolean(false);
     }
 
     @Override
@@ -201,5 +216,10 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         public String getUniqueId() {
             return node.getNode("metrics").getNode("uuid").getString("generateduuid");
         }
+    }
+
+    @Override
+    public int getConfigVersion() {
+        return node.getNode("config-version").getInt(0);
     }
 }

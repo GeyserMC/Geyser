@@ -41,6 +41,10 @@ floodgate-key-file: public-key.pem
 #    email: herpderp@derpherp.com
 #    password: dooooo
 
+# Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
+# Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.
+command-suggestions: true
+
 # Relay the MOTD, player count and max players from the remote server
 ping-passthrough: false
 
@@ -57,6 +61,10 @@ general-thread-pool: 32
 # OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
 allow-third-party-capes: true
 
+# Allow third party deadmau5 ears to be visible. Currently allowing:
+# MinecraftCapes
+allow-third-party-ears: false
+
 # The default locale if we dont have the one the client requested
 default-locale: en_us
 
@@ -69,6 +77,12 @@ default-locale: en_us
 # Geyser has direct access to the server itself.
 cache-chunks: false
 
+# Bedrock prevents building and displaying blocks above Y127 in the Nether -
+# enabling this config option works around that by changing the Nether dimension ID
+# to the End ID. The main downside to this is that the sky will resemble that of
+# the end sky in the nether, but ultimately it's the only way for this feature to work.
+above-bedrock-nether-building: false
+
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
 # what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.
@@ -78,3 +92,6 @@ metrics:
   enabled: true
   # UUID of server, don't change!
   uuid: generateduuid
+
+# DO NOT TOUCH!
+config-version: 1

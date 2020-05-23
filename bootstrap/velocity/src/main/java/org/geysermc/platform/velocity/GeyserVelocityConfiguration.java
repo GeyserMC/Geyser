@@ -52,6 +52,9 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
 
     private Map<String, UserAuthenticationInfo> userAuths;
 
+    @JsonProperty("command-suggestions")
+    private boolean commandSuggestions;
+
     @JsonProperty("ping-passthrough")
     private boolean pingPassthrough;
 
@@ -67,11 +70,17 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
     @JsonProperty("allow-third-party-capes")
     private boolean allowThirdPartyCapes;
 
+    @JsonProperty("allow-third-party-ears")
+    private boolean allowThirdPartyEars;
+
     @JsonProperty("default-locale")
     private String defaultLocale;
 
     @JsonProperty("cache-chunks")
     private boolean cacheChunks;
+
+    @JsonProperty("above-bedrock-nether-building")
+    private boolean aboveBedrockNetherBuilding;
 
     private MetricsInfo metrics;
 
@@ -127,4 +136,7 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
         @JsonProperty("uuid")
         private String uniqueId;
     }
+
+    @JsonProperty("config-version")
+    private int configVersion;
 }

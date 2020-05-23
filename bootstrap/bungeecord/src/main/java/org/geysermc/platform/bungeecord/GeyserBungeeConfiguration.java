@@ -86,6 +86,11 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isCommandSuggestions() {
+        return config.getBoolean("command-suggestions", true);
+    }
+
+    @Override
     public boolean isPingPassthrough() {
         return config.getBoolean("ping-passthrough", false);
     }
@@ -111,6 +116,11 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowThirdPartyEars() {
+        return config.getBoolean("allow-third-party-ears", false);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return config.getString("default-locale", "en_us");
     }
@@ -123,6 +133,11 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
     @Override
     public boolean isCacheChunks() {
         return config.getBoolean("cache-chunks", false);
+    }
+
+    @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return config.getBoolean("above-bedrock-nether-building", false);
     }
 
     @Override
@@ -201,5 +216,10 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
         public String getUniqueId() {
             return config.getString("metrics.uuid", "generateduuid");
         }
+    }
+
+    @Override
+    public int getConfigVersion() {
+        return config.getInt("config-version", 0);
     }
 }

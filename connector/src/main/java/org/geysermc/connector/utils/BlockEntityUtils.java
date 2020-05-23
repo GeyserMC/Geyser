@@ -22,6 +22,10 @@ public class BlockEntityUtils {
         if (id.contains("EnderChest"))
             return "EnderChest";
 
+        if (id.contains("enchanting_table")) {
+            return "EnchantTable";
+        }
+
         id = id.toLowerCase()
             .replace("minecraft:", "")
             .replace("_", " ");

@@ -35,6 +35,7 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -42,6 +43,7 @@ import org.geysermc.connector.utils.FireworkColor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalInt;
 
 public class FireworkEntity extends Entity {
 
@@ -111,6 +113,22 @@ public class FireworkEntity extends Entity {
             fireworksBuilder.tag(new com.nukkitx.nbt.tag.ListTag<>("Explosions", com.nukkitx.nbt.tag.CompoundTag.class, explosions));
 
             metadata.put(EntityData.DISPLAY_ITEM, CompoundTagBuilder.builder().tag(fireworksBuilder.build("Fireworks")).buildRootTag());
+        } else if (entityMetadata.getId() == 8 && !entityMetadata.getValue().equals(OptionalInt.empty()) && ((OptionalInt) entityMetadata.getValue()).getAsInt() == session.getPlayerEntity().getEntityId()) {
+            //Checks if the firework has an entity ID (used when a player is gliding) and checks to make sure the player that is gliding is the one getting sent the packet or else every player near the gliding player will boost too.
+            PlayerEntity entity = session.getPlayerEntity();
+            float yaw = entity.getRotation().getX();
+            float pitch = entity.getRotation().getY();
+            //Uses math from NukkitX
+            entity.setMotion(Vector3f.from(
+                    -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,
+                    -Math.sin(Math.toRadians(pitch)) * 2,
+                    Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2));
+            //Need to update the EntityMotionPacket or else the player won't boost
+            SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+            entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
+            entityMotionPacket.setMotion(entity.getMotion());
+
+            session.sendUpstreamPacket(entityMotionPacket);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);

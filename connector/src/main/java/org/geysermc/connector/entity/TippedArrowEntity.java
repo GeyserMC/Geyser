@@ -23,32 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.monster;
+package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
 
-public class CreeperEntity extends MonsterEntity {
+public class TippedArrowEntity extends AbstractArrowEntity {
 
-    public CreeperEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public TippedArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-    }
-
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
-            metadata.getFlags().setFlag(EntityFlag.IGNITED, (int) entityMetadata.getValue() == 1);
-        }
-        if (entityMetadata.getId() == 16) {
-            metadata.getFlags().setFlag(EntityFlag.POWERED, (boolean) entityMetadata.getValue());
-        }
-        if (entityMetadata.getId() == 17) {
-            metadata.getFlags().setFlag(EntityFlag.IGNITED, (boolean) entityMetadata.getValue());
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 }
