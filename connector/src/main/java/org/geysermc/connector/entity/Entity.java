@@ -27,14 +27,17 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
@@ -50,7 +53,9 @@ import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.AttributeUtils;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
@@ -263,6 +268,32 @@ public class Entity {
                 break;
             case 5: // no gravity
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
+                break;
+            case 6: // Pose change
+                if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
+                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
+                    // Has to be a byte or it does not work
+                    metadata.put(EntityData.CAN_START_SLEEP, (byte) 2);
+                    if (entityId == session.getPlayerEntity().getEntityId()) {
+                        Vector3i lastInteractionPos = session.getLastInteractionPosition();
+                        metadata.put(EntityData.BED_RESPAWN_POS, lastInteractionPos);
+                        if (session.getConnector().getConfig().isCacheChunks()) {
+                            BlockState bed = session.getConnector().getWorldManager().getBlockAt(session, lastInteractionPos.getX(),
+                                    lastInteractionPos.getY(), lastInteractionPos.getZ());
+                            // Bed has to be updated, or else player is floating in the air
+                            ChunkUtils.updateBlock(session, bed, lastInteractionPos);
+                        }
+                    } else {
+                        metadata.put(EntityData.BED_RESPAWN_POS, Vector3i.from(position.getFloorX(), position.getFloorY() - 2, position.getFloorZ()));
+                    }
+                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
+                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
+                } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
+                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, false);
+                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, getEntityType().getWidth());
+                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, getEntityType().getHeight());
+                    metadata.put(EntityData.CAN_START_SLEEP, (byte) 0);
+                }
                 break;
             case 7: // blocking
                 if (entityMetadata.getType() == MetadataType.BYTE) {
