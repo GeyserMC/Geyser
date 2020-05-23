@@ -99,7 +99,7 @@ public enum EntityType {
     TRIPOD_CAMERA(Entity.class, 62, 0f),
     PLAYER(PlayerEntity.class, 63, 1.8f, 0.6f, 0.6f, 1.62f),
     ITEM(ItemEntity.class, 64, 0.25f, 0.25f),
-    TNT(TNTEntity.class, 65, 0.98f, 0.98f),
+    PRIMED_TNT(TNTEntity.class, 65, 0.98f, 0.98f, 0.98f, 0f, "minecraft:tnt"),
     FALLING_BLOCK(FallingBlockEntity.class, 66, 0.98f, 0.98f),
     MOVING_BLOCK(Entity.class, 67, 0f),
     THROWN_EXP_BOTTLE(ThrowableEntity.class, 68, 0.25f, 0.25f, 0f, 0f, "minecraft:xp_bottle"),
