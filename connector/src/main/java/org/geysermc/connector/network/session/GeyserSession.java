@@ -58,6 +58,7 @@ import org.geysermc.common.AuthType;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
@@ -156,6 +157,9 @@ public class GeyserSession implements CommandSender {
     private boolean switchingDimension = false;
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
+
+    @Setter
+    private Entity ridingVehicleEntity;
 
     @Setter
     private int craftSlot = 0;

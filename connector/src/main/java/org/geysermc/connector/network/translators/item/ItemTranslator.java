@@ -48,6 +48,8 @@ public class ItemTranslator {
 
     // Shield ID, used in Entity.java
     public static final int SHIELD = 829;
+    // Boat ID, used in BedrockInventoryTransactionTranslator.java
+    public static final int BOAT = 333;
 
     public void init() {
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");

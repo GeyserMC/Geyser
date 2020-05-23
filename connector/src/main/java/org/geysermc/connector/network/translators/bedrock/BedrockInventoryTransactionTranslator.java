@@ -96,6 +96,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false);
                         session.sendDownstreamPacket(blockPacket);
+
+                        // Otherwise boats will not be able to be placed in survival
+                       if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemTranslator.BOAT) {
+                           ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                           session.sendDownstreamPacket(itemPacket);
+                       }
+
                         Vector3i blockPos = packet.getBlockPosition();
                         // TODO: Find a better way to do this?
                         switch (packet.getFace()) {
