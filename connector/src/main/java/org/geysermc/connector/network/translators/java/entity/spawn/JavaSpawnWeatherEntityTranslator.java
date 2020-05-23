@@ -35,7 +35,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.Serve
 import com.nukkitx.math.vector.Vector3f;
 
 @Translator(packet = ServerSpawnWeatherEntityPacket.class)
-public class JavaSpawnGlobalEntityTranslator extends PacketTranslator<ServerSpawnWeatherEntityPacket> {
+public class JavaSpawnWeatherEntityTranslator extends PacketTranslator<ServerSpawnWeatherEntityPacket> {
 
     @Override
     public void translate(ServerSpawnWeatherEntityPacket packet, GeyserSession session) {

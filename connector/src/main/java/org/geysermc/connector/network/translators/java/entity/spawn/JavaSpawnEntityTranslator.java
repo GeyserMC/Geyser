@@ -27,8 +27,8 @@ package org.geysermc.connector.network.translators.java.entity.spawn;
 
 import com.github.steveice10.mc.protocol.data.game.entity.object.FallingBlockData;
 import com.github.steveice10.mc.protocol.data.game.entity.object.HangingDirection;
-import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
@@ -44,7 +44,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 @Translator(packet = ServerSpawnEntityPacket.class)
-public class JavaSpawnObjectTranslator extends PacketTranslator<ServerSpawnEntityPacket> {
+public class JavaSpawnEntityTranslator extends PacketTranslator<ServerSpawnEntityPacket> {
 
     @Override
     public void translate(ServerSpawnEntityPacket packet, GeyserSession session) {

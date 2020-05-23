@@ -38,7 +38,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 @Translator(packet = ServerSpawnLivingEntityPacket.class)
-public class JavaSpawnMobTranslator extends PacketTranslator<ServerSpawnLivingEntityPacket> {
+public class JavaSpawnLivingEntityTranslator extends PacketTranslator<ServerSpawnLivingEntityPacket> {
 
     @Override
     public void translate(ServerSpawnLivingEntityPacket packet, GeyserSession session) {
