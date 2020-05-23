@@ -40,6 +40,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.thread.PingPassthroughThread;
+import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.Toolbox;
 
@@ -113,6 +114,9 @@ public class GeyserConnector {
         passthroughThread = new PingPassthroughThread(this);
         if (config.isPingPassthrough())
             generalThreadPool.scheduleAtFixedRate(passthroughThread, 1, 1, TimeUnit.SECONDS);
+
+        if (config.isAboveBedrockNetherBuilding())
+            DimensionUtils.changeBedrockNetherId(); // Apply End dimension ID workaround to Nether
 
         bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));

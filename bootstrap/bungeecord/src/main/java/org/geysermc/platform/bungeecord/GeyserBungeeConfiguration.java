@@ -131,6 +131,11 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return config.getBoolean("above-bedrock-nether-building", false);
+    }
+
+    @Override
     public BungeeMetricsInfo getMetrics() {
         return metricsInfo;
     }

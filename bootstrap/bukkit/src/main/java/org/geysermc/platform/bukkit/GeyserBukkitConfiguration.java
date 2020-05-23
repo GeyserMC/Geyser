@@ -132,6 +132,11 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return config.getBoolean("above-bedrock-nether-building", false);
+    }
+
+    @Override
     public IMetricsInfo getMetrics() {
         return metricsInfo;
     }
