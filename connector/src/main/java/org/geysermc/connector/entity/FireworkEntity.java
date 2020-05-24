@@ -67,8 +67,13 @@ public class FireworkEntity extends Entity {
             {
                 for (Tag effect : ((ListTag) fireworks.get("Explosions")).getValue()) {
                     CompoundTag effectData = (CompoundTag) effect;
-                    CompoundTagBuilder effectBuilder = CompoundTagBuilder.builder();
 
+                    try {
+                        GeyserConnector.getInstance().getLogger().debug("Effect: " + new ObjectMapper().writeValueAsString(effect));
+                    } catch (JsonProcessingException e) {
+                    }
+
+                    CompoundTagBuilder effectBuilder = CompoundTagBuilder.builder();
                     if (effectData.get("Type") != null) {
                         effectBuilder.byteTag("FireworkType", (Byte) effectData.get("Type").getValue());
                     }
