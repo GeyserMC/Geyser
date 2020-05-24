@@ -37,25 +37,27 @@ public class EnchantedBookTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
-        if (itemTag.contains("StoredEnchantments")) {
-            Tag enchTag = itemTag.get("StoredEnchantments");
-            if (enchTag instanceof ListTag) {
-                enchTag = new ListTag("Enchantments", ((ListTag) enchTag).getValue());
-                itemTag.remove("StoredEnchantments");
-                itemTag.put(enchTag);
-            }
+        if (!itemTag.contains("StoredEnchantments")) {
+            return;
+        }
+        Tag enchTag = itemTag.get("StoredEnchantments");
+        if (enchTag instanceof ListTag) {
+            enchTag = new ListTag("Enchantments", ((ListTag) enchTag).getValue());
+            itemTag.remove("StoredEnchantments");
+            itemTag.put(enchTag);
         }
     }
 
     @Override
     public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
-        if (itemTag.contains("Enchantments")) {
-            Tag enchTag = itemTag.get("Enchantments");
-            if (enchTag instanceof ListTag) {
-                enchTag = new ListTag("StoredEnchantments", ((ListTag) enchTag).getValue());
-                itemTag.remove("Enchantments");
-                itemTag.put(enchTag);
-            }
+        if (!itemTag.contains("Enchantments")) {
+            return;
+        }
+        Tag enchTag = itemTag.get("Enchantments");
+        if (enchTag instanceof ListTag) {
+            enchTag = new ListTag("StoredEnchantments", ((ListTag) enchTag).getValue());
+            itemTag.remove("Enchantments");
+            itemTag.put(enchTag);
         }
     }
 
