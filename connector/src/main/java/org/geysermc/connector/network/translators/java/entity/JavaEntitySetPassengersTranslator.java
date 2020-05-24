@@ -137,6 +137,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             case PIG:
                 yOffset = 1.85001f;
                 break;
+            case ARMOR_STAND:
+                yOffset = 1.3f;
+                break;
         }
         Vector3f offset = Vector3f.from(0f, yOffset, 0f);
         if (rider) {
