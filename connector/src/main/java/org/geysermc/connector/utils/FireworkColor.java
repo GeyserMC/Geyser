@@ -29,6 +29,7 @@ package org.geysermc.connector.utils;
 import lombok.Getter;
 
 public enum FireworkColor {
+    // Vanilla colors
     BLACK((byte) 0, 1973019),
     RED((byte) 1, 11743532),
     GREEN((byte) 2, 3887386),
@@ -44,7 +45,26 @@ public enum FireworkColor {
     LIGHT_BLUE((byte) 12, 6719955),
     MAGENTA((byte) 13, 12801229),
     ORANGE((byte) 14, 15435844),
-    WHITE((byte) 15, 15790320);
+    WHITE((byte) 15, 15790320),
+
+    // Bukkit colors
+    BUKKIT_WHITE((byte) 15, 0xFFFFFF),
+    BUKKIT_SILVER((byte) 7, 0xC0C0C0),
+    BUKKIT_GRAY((byte) 8, 0x808080),
+    BUKKIT_BLACK((byte) 0, 0x000000),
+    BUKKIT_RED((byte) 1, 0xFF0000),
+    BUKKIT_MAROON((byte) 1, 0x800000), // No perfect map but this is as close as it can be
+    BUKKIT_YELLOW((byte) 11, 0xFFFF00),
+    BUKKIT_OLIVE((byte) 2, 0x808000), // No perfect map but this is as close as it can be
+    BUKKIT_LIME((byte) 10, 0x00FF00),
+    BUKKIT_GREEN((byte) 2, 0x008000),
+    BUKKIT_AQUA((byte) 12, 0x00FFFF),
+    BUKKIT_TEAL((byte) 6, 0x008080),
+    BUKKIT_BLUE((byte) 4, 0x0000FF),
+    BUKKIT_NAVY((byte) 4, 0x000080), // No perfect map but this is as close as it can be
+    BUKKIT_FUCHSIA((byte) 9, 0xFF00FF), // No perfect map but this is as close as it can be
+    BUKKIT_PURPLE((byte) 5, 0x800080),
+    BUKKIT_ORANGE((byte) 14, 0xFFA500);
 
     private static final FireworkColor[] VALUES = values();
 
@@ -65,7 +85,7 @@ public enum FireworkColor {
             }
         }
 
-        return null;
+        return WHITE;
     }
 
     public static FireworkColor fromBedrockID(int id) {
@@ -75,6 +95,6 @@ public enum FireworkColor {
             }
         }
 
-        return null;
+        return WHITE;
     }
 }
