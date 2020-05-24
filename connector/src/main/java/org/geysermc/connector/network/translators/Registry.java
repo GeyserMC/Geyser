@@ -28,6 +28,8 @@ package org.geysermc.connector.network.translators;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateLightPacket;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -39,6 +41,12 @@ public class Registry<T> {
 
     public static final Registry<Packet> JAVA = new Registry<>();
     public static final Registry<BedrockPacket> BEDROCK = new Registry<>();
+
+    private static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
+
+    static {
+        IGNORED_PACKETS.add(ServerUpdateLightPacket.class);
+    }
 
     public static void registerJava(Class<? extends Packet> targetPacket, PacketTranslator<? extends Packet> translator) {
         JAVA.MAP.put(targetPacket, translator);
@@ -56,7 +64,8 @@ public class Registry<T> {
                     ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
                     return true;
                 } else {
-                    GeyserConnector.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
+                    if (!IGNORED_PACKETS.contains(clazz))
+                        GeyserConnector.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
                 }
             } catch (Throwable ex) {
                 GeyserConnector.getInstance().getLogger().error("Could not translate packet " + packet.getClass().getSimpleName(), ex);

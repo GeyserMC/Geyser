@@ -52,15 +52,11 @@ public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySo
         }
 
         SoundUtils.SoundMapping soundMapping = SoundUtils.fromJava(packetSound.replace("minecraft:", ""));
-        session.getConnector().getLogger()
-                .debug("[PlaySound] Sound mapping " + packetSound + " -> "
-                        + soundMapping + (soundMapping == null ? "[not found]" : "")
-                        + " - " + packet.toString());
         String playsound;
         if(soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
             session.getConnector().getLogger()
-                    .debug("[PlaySound] Defaulting to sound server gave us.");
+                    .debug("[PlaySound] Defaulting to sound server gave us for " + packet.toString());
             playsound = packetSound;
         } else {
             playsound = soundMapping.getPlaysound();
@@ -73,6 +69,5 @@ public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySo
         playSoundPacket.setPitch(packet.getPitch());
 
         session.sendUpstreamPacket(playSoundPacket);
-        session.getConnector().getLogger().debug("[PlaySound] Packet sent - " + packet.toString() + " --> " + playSoundPacket);
     }
 }

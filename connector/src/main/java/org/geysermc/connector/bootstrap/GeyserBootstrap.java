@@ -26,6 +26,7 @@
 
 package org.geysermc.connector.bootstrap;
 
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.CommandManager;
@@ -66,6 +67,13 @@ public interface GeyserBootstrap {
      * @return The current CommandManager
      */
     CommandManager getGeyserCommandManager();
+
+    /**
+     * Returns the current PingPassthrough manager
+     *
+     * @return The current PingPassthrough manager
+     */
+    IGeyserPingPassthrough getGeyserPingPassthrough();
 
     /**
      * Returns the current WorldManager

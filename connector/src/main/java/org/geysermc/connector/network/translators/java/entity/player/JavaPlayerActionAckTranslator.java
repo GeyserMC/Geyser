@@ -79,7 +79,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                     itemEntry = Translators.getItemTranslator().getItem(item);
                     nbtData = item.getNbt();
                 }
-                double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry, nbtData, session.getPlayerEntity()) * 20);
+                double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry, nbtData, session) * 20);
                 levelEvent.setData((int) (65535 / breakTime));
                 session.setBreakingBlock(packet.getNewState());
                 session.sendUpstreamPacket(levelEvent);

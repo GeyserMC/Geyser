@@ -50,7 +50,7 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
 
         entity.setRotation(Vector3f.from(entity.getRotation().getX(), entity.getRotation().getY(), packet.getHeadYaw()));
 
-        if (entity.getEntityType() != EntityType.PLAYER) {
+        if (entity.getEntityType() != EntityType.PLAYER && entity.getEntityType() != EntityType.PAINTING) {
             MoveEntityAbsolutePacket moveEntityAbsolutePacket = new MoveEntityAbsolutePacket();
             moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
             moveEntityAbsolutePacket.setPosition(entity.getPosition());

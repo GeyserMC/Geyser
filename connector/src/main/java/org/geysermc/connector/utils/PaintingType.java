@@ -57,7 +57,7 @@ public enum PaintingType {
     DONKEY_KONG("DonkeyKong", 4, 3),
     POINTER("Pointer", 4, 4),
     PIG_SCENE("Pigscene", 4, 4),
-    BURNING_SKULL("Flaming Skull", 4, 4); // burning skull on java edition, flaming skull on bedrock
+    BURNING_SKULL("BurningSkull", 4, 4);
 
     private static final PaintingType[] VALUES = values();
     private String bedrockName;

@@ -27,7 +27,7 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.entity.type.object.HangingDirection;
+import com.github.steveice10.mc.protocol.data.game.entity.object.HangingDirection;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -87,9 +87,12 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         session.getItemFrameCache().put(bedrockPosition, entityId);
-        updateBlock(session);
+        // Delay is required, or else loading in frames on chunk load is sketchy at best
+        session.getConnector().getGeneralThreadPool().schedule(() -> {
+            updateBlock(session);
+            session.getConnector().getLogger().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
+        }, 500, TimeUnit.MILLISECONDS);
         valid = true;
-        session.getConnector().getLogger().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
     }
 
     @Override
@@ -170,27 +173,24 @@ public class ItemFrameEntity extends Entity {
      * @param session GeyserSession.
      */
     public void updateBlock(GeyserSession session) {
-        // Delay is required, or else loading in frames on chunk load is sketchy at best
-        session.getConnector().getGeneralThreadPool().schedule(() -> {
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.setDataLayer(0);
-            updateBlockPacket.setBlockPosition(bedrockPosition);
-            updateBlockPacket.setRuntimeId(bedrockRuntimeId);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-            session.sendUpstreamPacket(updateBlockPacket);
+        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+        updateBlockPacket.setDataLayer(0);
+        updateBlockPacket.setBlockPosition(bedrockPosition);
+        updateBlockPacket.setRuntimeId(bedrockRuntimeId);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+        session.sendUpstreamPacket(updateBlockPacket);
 
-            BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
-            blockEntityDataPacket.setBlockPosition(bedrockPosition);
-            if (cachedTag != null) {
-                blockEntityDataPacket.setData(cachedTag);
-            } else {
-                blockEntityDataPacket.setData(getDefaultTag());
-            }
+        BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
+        blockEntityDataPacket.setBlockPosition(bedrockPosition);
+        if (cachedTag != null) {
+            blockEntityDataPacket.setData(cachedTag);
+        } else {
+            blockEntityDataPacket.setData(getDefaultTag());
+        }
 
-            session.sendUpstreamPacket(blockEntityDataPacket);
-        }, 500, TimeUnit.MILLISECONDS);
+        session.sendUpstreamPacket(blockEntityDataPacket);
     }
 
     /**

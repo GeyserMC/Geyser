@@ -58,6 +58,7 @@ import org.geysermc.common.AuthType;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
@@ -158,6 +159,9 @@ public class GeyserSession implements CommandSender {
     private ServerRespawnPacket lastDimPacket = null;
 
     @Setter
+    private Entity ridingVehicleEntity;
+
+    @Setter
     private int craftSlot = 0;
 
     @Setter
@@ -208,6 +212,17 @@ public class GeyserSession implements CommandSender {
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
+    }
+
+    public void fetchOurSkin(PlayerListPacket.Entry entry) {
+        PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
+        playerSkinPacket.setUuid(authData.getUUID());
+        playerSkinPacket.setSkin(entry.getSkin());
+        playerSkinPacket.setOldSkinName("OldName");
+        playerSkinPacket.setNewSkinName("NewName");
+        playerSkinPacket.setTrustedSkin(true);
+        upstream.sendPacket(playerSkinPacket);
+        getConnector().getLogger().debug("Sending skin for " + playerEntity.getUsername() + " " + authData.getUUID());
     }
 
     public void login() {
