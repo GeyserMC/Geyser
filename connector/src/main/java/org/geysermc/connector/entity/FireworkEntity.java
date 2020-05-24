@@ -60,54 +60,54 @@ public class FireworkEntity extends Entity {
             CompoundTag fireworks = tag.get("Fireworks");
 
             CompoundTagBuilder fireworksBuilder = CompoundTagBuilder.builder();
-            fireworksBuilder.byteTag("Flight", (Byte) fireworks.get("Flight").getValue());
+            if (fireworks.get("Flight") != null) {
+                fireworksBuilder.byteTag("Flight", (Byte) fireworks.get("Flight").getValue());
+            }
 
             List<com.nukkitx.nbt.tag.CompoundTag> explosions = new ArrayList<>();
-            for (Tag effect : ((ListTag) fireworks.get("Explosions")).getValue()) {
-                CompoundTag effectData = (CompoundTag) effect;
+            if (fireworks.get("Explosions") != null) {
+                for (Tag effect : ((ListTag) fireworks.get("Explosions")).getValue()) {
+                    CompoundTag effectData = (CompoundTag) effect;
+                    CompoundTagBuilder effectBuilder = CompoundTagBuilder.builder();
 
-                try {
-                    GeyserConnector.getInstance().getLogger().debug("Effect: " + new ObjectMapper().writeValueAsString(effect));
-                } catch (JsonProcessingException e) { }
-
-                CompoundTagBuilder effectBuilder = CompoundTagBuilder.builder();
-                if (effectData.get("Type") != null) {
-                    effectBuilder.byteTag("FireworkType", (Byte) effectData.get("Type").getValue());
-                }
-
-                if (effectData.get("Colors") != null) {
-                    int[] oldColors = (int[]) effectData.get("Colors").getValue();
-                    byte[] colors = new byte[oldColors.length];
-
-                    int i = 0;
-                    for (int color : oldColors) {
-                        colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                    if (effectData.get("Type") != null) {
+                        effectBuilder.byteTag("FireworkType", (Byte) effectData.get("Type").getValue());
                     }
 
-                    effectBuilder.byteArrayTag("FireworkColor", colors);
-                }
+                    if (effectData.get("Colors") != null) {
+                        int[] oldColors = (int[]) effectData.get("Colors").getValue();
+                        byte[] colors = new byte[oldColors.length];
 
-                if (effectData.get("FadeColors") != null) {
-                    int[] oldColors = (int[]) effectData.get("FadeColors").getValue();
-                    byte[] colors = new byte[oldColors.length];
+                        int i = 0;
+                        for (int color : oldColors) {
+                            colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                        }
 
-                    int i = 0;
-                    for (int color : oldColors) {
-                        colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                        effectBuilder.byteArrayTag("FireworkColor", colors);
                     }
 
-                    effectBuilder.byteArrayTag("FireworkFade", colors);
-                }
+                    if (effectData.get("FadeColors") != null) {
+                        int[] oldColors = (int[]) effectData.get("FadeColors").getValue();
+                        byte[] colors = new byte[oldColors.length];
 
-                if (effectData.get("Trail") != null) {
-                    effectBuilder.byteTag("FireworkTrail", (Byte) effectData.get("Trail").getValue());
-                }
+                        int i = 0;
+                        for (int color : oldColors) {
+                            colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                        }
 
-                if (effectData.get("Flicker") != null) {
-                    effectBuilder.byteTag("FireworkFlicker", (Byte) effectData.get("Flicker").getValue());
-                }
+                        effectBuilder.byteArrayTag("FireworkFade", colors);
+                    }
 
-                explosions.add(effectBuilder.buildRootTag());
+                    if (effectData.get("Trail") != null) {
+                        effectBuilder.byteTag("FireworkTrail", (Byte) effectData.get("Trail").getValue());
+                    }
+
+                    if (effectData.get("Flicker") != null) {
+                        effectBuilder.byteTag("FireworkFlicker", (Byte) effectData.get("Flicker").getValue());
+                    }
+
+                    explosions.add(effectBuilder.buildRootTag());
+                }
             }
 
             fireworksBuilder.tag(new com.nukkitx.nbt.tag.ListTag<>("Explosions", com.nukkitx.nbt.tag.CompoundTag.class, explosions));
