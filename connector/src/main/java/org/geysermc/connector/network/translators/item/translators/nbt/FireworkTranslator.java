@@ -39,49 +39,51 @@ public class FireworkTranslator extends NbtItemStackTranslator {
         CompoundTag fireworks = itemTag.get("Fireworks");
 
         ListTag explosions = fireworks.get("Explosions");
-        for (Tag effect : explosions.getValue()) {
-            CompoundTag effectData = (CompoundTag) effect;
+        if (explosions != null) {
+            for (Tag effect : explosions.getValue()) {
+                CompoundTag effectData = (CompoundTag) effect;
 
-            CompoundTag newEffectData = new CompoundTag("");
+                CompoundTag newEffectData = new CompoundTag("");
 
-            if (effectData.get("Type") != null) {
-                newEffectData.put(new ByteTag("FireworkType", (Byte) effectData.get("Type").getValue()));
-            }
-
-            if (effectData.get("Colors") != null) {
-                int[] oldColors = (int[]) effectData.get("Colors").getValue();
-                byte[] colors = new byte[oldColors.length];
-
-                int i = 0;
-                for (int color : oldColors) {
-                    colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                if (effectData.get("Type") != null) {
+                    newEffectData.put(new ByteTag("FireworkType", (Byte) effectData.get("Type").getValue()));
                 }
 
-                newEffectData.put(new ByteArrayTag("FireworkColor", colors));
-            }
+                if (effectData.get("Colors") != null) {
+                    int[] oldColors = (int[]) effectData.get("Colors").getValue();
+                    byte[] colors = new byte[oldColors.length];
 
-            if (effectData.get("FadeColors") != null) {
-                int[] oldColors = (int[]) effectData.get("FadeColors").getValue();
-                byte[] colors = new byte[oldColors.length];
+                    int i = 0;
+                    for (int color : oldColors) {
+                        colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                    }
 
-                int i = 0;
-                for (int color : oldColors) {
-                    colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                    newEffectData.put(new ByteArrayTag("FireworkColor", colors));
                 }
 
-                newEffectData.put(new ByteArrayTag("FireworkFade", colors));
-            }
+                if (effectData.get("FadeColors") != null) {
+                    int[] oldColors = (int[]) effectData.get("FadeColors").getValue();
+                    byte[] colors = new byte[oldColors.length];
 
-            if (effectData.get("Trail") != null) {
-                newEffectData.put(new ByteTag("FireworkTrail", (Byte) effectData.get("Trail").getValue()));
-            }
+                    int i = 0;
+                    for (int color : oldColors) {
+                        colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                    }
 
-            if (effectData.get("Flicker") != null) {
-                newEffectData.put(new ByteTag("FireworkFlicker", (Byte) effectData.get("Flicker").getValue()));
-            }
+                    newEffectData.put(new ByteArrayTag("FireworkFade", colors));
+                }
 
-            explosions.remove(effect);
-            explosions.add(newEffectData);
+                if (effectData.get("Trail") != null) {
+                    newEffectData.put(new ByteTag("FireworkTrail", (Byte) effectData.get("Trail").getValue()));
+                }
+
+                if (effectData.get("Flicker") != null) {
+                    newEffectData.put(new ByteTag("FireworkFlicker", (Byte) effectData.get("Flicker").getValue()));
+                }
+
+                explosions.remove(effect);
+                explosions.add(newEffectData);
+            }
         }
     }
 
