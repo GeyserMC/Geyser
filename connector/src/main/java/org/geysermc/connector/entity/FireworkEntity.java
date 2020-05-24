@@ -60,9 +60,7 @@ public class FireworkEntity extends Entity {
             CompoundTag fireworks = tag.get("Fireworks");
 
             CompoundTagBuilder fireworksBuilder = CompoundTagBuilder.builder();
-            if(fireworks.get("Flight") != null) {
-                fireworksBuilder.byteTag("Flight", (Byte) fireworks.get("Flight").getValue());
-            }
+            fireworksBuilder.byteTag("Flight", (Byte) fireworks.get("Flight").getValue());
 
             List<com.nukkitx.nbt.tag.CompoundTag> explosions = new ArrayList<>();
             if (fireworks.get("Explosions") != null) {
