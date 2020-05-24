@@ -38,12 +38,6 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
-        // This needs sorting to allow for the bedrock client to successfully know the crossbow is loaded
-        // https://github.com/NukkitX/Protocol/pull/41
-        // Unknown EntityEvent 74 in packet EntityEventPacket(runtimeEntityId=7, type=null, data=0)
-        // [CLIENT BOUND]  -  EntityEventPacket(runtimeEntityId=7, type=null, data=0)
-        // [CLIENT BOUND]  -  CompletedUsingItemPacket(itemId=471, action=UNKNOWN)
-
         if (itemTag.get("ChargedProjectiles") != null) {
             ListTag chargedProjectiles = itemTag.get("ChargedProjectiles");
             if (!chargedProjectiles.getValue().isEmpty()) {
