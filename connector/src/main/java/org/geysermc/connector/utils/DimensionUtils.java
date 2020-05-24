@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
@@ -58,6 +59,16 @@ public class DimensionUtils {
         player.setPosition(pos.toFloat());
         session.setSpawned(false);
         session.setLastChunkPosition(null);
+
+        for (Effect effect : session.getPlayerEntity().getEffectCache().getEntityEffects().keySet()) {
+            MobEffectPacket mobEffectPacket = new MobEffectPacket();
+            mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
+            mobEffectPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+            mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
+            session.sendUpstreamPacket(mobEffectPacket);
+        }
+        // Effects are re-sent from server
+        session.getPlayerEntity().getEffectCache().getEntityEffects().clear();
 
         //let java server handle portal travel sound
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
