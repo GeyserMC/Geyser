@@ -77,6 +77,8 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserConfig.getRemote().setAddress(Bukkit.getIp());
         }
 
+        geyserConfig.getRemote().setPort(Bukkit.getPort());
+
         this.geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
