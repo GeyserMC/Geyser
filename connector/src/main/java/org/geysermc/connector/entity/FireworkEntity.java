@@ -25,8 +25,6 @@
 
 package org.geysermc.connector.entity;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -36,7 +34,6 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FireworkColor;
@@ -57,6 +54,11 @@ public class FireworkEntity extends Entity {
         if (entityMetadata.getId() == 7) {
             ItemStack item = (ItemStack) entityMetadata.getValue();
             CompoundTag tag = item.getNbt();
+
+            if (tag == null) {
+                return;
+            }
+
             CompoundTag fireworks = tag.get("Fireworks");
 
             CompoundTagBuilder fireworksBuilder = CompoundTagBuilder.builder();
