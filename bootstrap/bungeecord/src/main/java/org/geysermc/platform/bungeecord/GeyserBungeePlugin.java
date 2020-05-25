@@ -43,9 +43,7 @@ import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.nio.file.Files;
 import java.util.UUID;
 import java.util.logging.Level;
 
