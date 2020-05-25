@@ -28,15 +28,14 @@ package org.geysermc.connector.network;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.common.AuthType;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserConfiguration;
-import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
-	private GeyserBootstrap bootstrap;
+
     public UpstreamPacketHandler(GeyserConnector connector, GeyserSession session) {
         super(connector, session);
     }
@@ -112,10 +111,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
-        if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
+        if (!session.isLoggedIn() && !session.isLoggingIn() && (session.getConnector().getAuthType() == AuthType.ONLINE || session.getConnector().getAuthType() == AuthType.SMART)) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthData().getName())) {
-                LoginEncryptionUtils.showLoginWindow(session,AuthType.getByName(GeyserConnector.getInstance().getConfig().getRemote().getAuthType()));
+                LoginEncryptionUtils.showLoginWindow(session);
             }
             // else we were able to log the user in
         }
