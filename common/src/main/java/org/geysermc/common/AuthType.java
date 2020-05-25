@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum AuthType {
     OFFLINE,
     ONLINE,
+    SMART,
     FLOODGATE;
 
     public static final AuthType[] VALUES = values();

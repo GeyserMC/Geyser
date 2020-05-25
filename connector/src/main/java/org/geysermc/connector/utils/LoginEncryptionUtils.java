@@ -34,6 +34,7 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
+import org.geysermc.common.AuthType;
 import org.geysermc.common.window.CustomFormBuilder;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
@@ -44,6 +45,8 @@ import org.geysermc.common.window.component.LabelComponent;
 import org.geysermc.common.window.response.CustomFormResponse;
 import org.geysermc.common.window.response.SimpleFormResponse;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
@@ -60,7 +63,7 @@ import java.util.UUID;
 
 public class LoginEncryptionUtils {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-
+    private static GeyserBootstrap bootstrap;
     private static boolean validateChainData(JsonNode data) throws Exception {
         ECPublicKey lastKey = null;
         boolean validChain = false;
@@ -155,12 +158,15 @@ public class LoginEncryptionUtils {
     private static int AUTH_FORM_ID = 1336;
     private static int AUTH_DETAILS_FORM_ID = 1337;
 
-    public static void showLoginWindow(GeyserSession session) {
-        SimpleFormWindow window = new SimpleFormWindow("Login", "You need a Java Edition account to play on this server.");
-        window.getButtons().add(new FormButton("Login with Minecraft"));
-        window.getButtons().add(new FormButton("Disconnect"));
-
-        session.sendForm(window, AUTH_FORM_ID);
+    public static void showLoginWindow(GeyserSession session, AuthType mode) {
+    	if(mode == AuthType.SMART){
+            SimpleFormWindow window = new SimpleFormWindow("Login", "Please choose a way to join the server");
+            window.getButtons().add(new FormButton("Online"));
+            window.getButtons().add(new FormButton("Offline"));
+            window.getButtons().add(new FormButton("Disconnect"));
+            session.sendForm(window, AUTH_FORM_ID);
+        }
+        else showLoginDetailsWindow(session);
     }
 
     public static void showLoginDetailsWindow(GeyserSession session) {
@@ -175,6 +181,7 @@ public class LoginEncryptionUtils {
 
     public static boolean authenticateFromForm(GeyserSession session, GeyserConnector connector, int formId, String formData) {
         WindowCache windowCache = session.getWindowCache();
+        GeyserConfiguration config = bootstrap.getGeyserConfig();
         if (!windowCache.getWindows().containsKey(formId))
             return false;
 
@@ -204,10 +211,12 @@ public class LoginEncryptionUtils {
                         if (response.getClickedButtonId() == 0) {
                             showLoginDetailsWindow(session);
                         } else if (response.getClickedButtonId() == 1) {
+                            session.login();
+                        } else if (response.getClickedButtonId() == 2) {
                             session.disconnect("Login is required");
                         }
                     } else {
-                        showLoginWindow(session);
+                        showLoginWindow(session,AuthType.getByName(config.getRemote().getAuthType()));
                     }
                 }
             }

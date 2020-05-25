@@ -20,7 +20,7 @@ remote:
   address: 127.0.0.1
   # The port of the remote (Java Edition) server
   port: 25565
-  # Authentication type. Can be offline, online, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).
+  # Authentication type. Can be offline, online, smart, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).
   auth-type: online
 
 # Floodgate uses encryption to ensure use from authorised sources.
@@ -103,4 +103,4 @@ metrics:
   uuid: generateduuid
 
 # DO NOT TOUCH!
-config-version: 3
+config-version: 4
