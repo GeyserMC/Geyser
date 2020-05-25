@@ -39,7 +39,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
-import org.geysermc.connector.utils.Toolbox;
+import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
 import java.io.InputStream;
@@ -73,7 +73,7 @@ public class BlockTranslator {
 
     static {
         /* Load block palette */
-        InputStream stream = Toolbox.getResource("bedrock/runtime_block_states.dat");
+        InputStream stream = FileUtils.getResource("bedrock/runtime_block_states.dat");
 
         ListTag<CompoundTag> blocksTag;
         try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
@@ -90,10 +90,10 @@ public class BlockTranslator {
             }
         }
 
-        stream = Toolbox.getResource("mappings/blocks.json");
+        stream = FileUtils.getResource("mappings/blocks.json");
         JsonNode blocks;
         try {
-            blocks = Toolbox.JSON_MAPPER.readTree(stream);
+            blocks = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }

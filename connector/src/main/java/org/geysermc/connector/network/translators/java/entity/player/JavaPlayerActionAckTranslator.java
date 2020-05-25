@@ -35,7 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.utils.BlockUtils;
@@ -76,7 +76,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 ItemEntry itemEntry = null;
                 CompoundTag nbtData = new CompoundTag("");
                 if (item != null) {
-                    itemEntry = Translators.getItemTranslator().getItem(item);
+                    itemEntry = ItemRegistry.getItem(item);
                     nbtData = item.getNbt();
                 }
                 double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry, nbtData, session) * 20);

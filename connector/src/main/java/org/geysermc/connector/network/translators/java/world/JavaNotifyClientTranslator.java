@@ -42,6 +42,7 @@ import org.geysermc.connector.network.translators.inventory.PlayerInventoryTrans
 
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerNotifyClientPacket.class)
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
@@ -80,6 +81,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                     playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
                     playerFlags.add(AdventureSettingsPacket.Flag.NO_CLIP);
                     playerFlags.add(AdventureSettingsPacket.Flag.FLYING);
+                    gameMode = GameMode.CREATIVE; // spectator doesnt exist on bedrock
                 }
 
                 playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
@@ -89,14 +91,18 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
 
-                AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-                adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
-                adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
-                adventureSettingsPacket.getFlags().addAll(playerFlags);
-                session.sendUpstreamPacket(adventureSettingsPacket);
+                // We need to delay this because otherwise it's overridden by the adventure settings from the abilities packet
+                session.getConnector().getGeneralThreadPool().schedule(() -> {
+                    AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+                    adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
+                    adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
+                    adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
+                    adventureSettingsPacket.getFlags().addAll(playerFlags);
+                    session.sendUpstreamPacket(adventureSettingsPacket);
+                }, 50, TimeUnit.MILLISECONDS);
 
                 EntityDataMap metadata = entity.getMetadata();
-                metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR);
+                metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE);
 
                 SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
                 entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -105,7 +111,6 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());
-
                 break;
             case ENTER_CREDITS:
                 switch ((EnterCreditsValue) packet.getValue()) {

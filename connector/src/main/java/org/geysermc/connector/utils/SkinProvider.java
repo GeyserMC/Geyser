@@ -72,7 +72,7 @@ public class SkinProvider {
 
     static {
         /* Load in the normal ears geometry */
-        InputStream earsStream = Toolbox.getResource("bedrock/skin/geometry.humanoid.ears.json");
+        InputStream earsStream = FileUtils.getResource("bedrock/skin/geometry.humanoid.ears.json");
 
         StringBuilder earsDataBuilder = new StringBuilder();
         try (Reader reader = new BufferedReader(new InputStreamReader(earsStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
@@ -88,7 +88,7 @@ public class SkinProvider {
 
 
         /* Load in the slim ears geometry */
-        earsStream = Toolbox.getResource("bedrock/skin/geometry.humanoid.earsSlim.json");
+        earsStream = FileUtils.getResource("bedrock/skin/geometry.humanoid.earsSlim.json");
 
         earsDataBuilder = new StringBuilder();
         try (Reader reader = new BufferedReader(new InputStreamReader(earsStream, Charset.forName(StandardCharsets.UTF_8.name())))) {

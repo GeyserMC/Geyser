@@ -38,10 +38,10 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.utils.Toolbox;
 
 import java.util.concurrent.TimeUnit;
 
@@ -98,12 +98,12 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
-            ItemData itemData = Translators.getItemTranslator().translateToBedrock(session, (ItemStack) entityMetadata.getValue());
-            ItemEntry itemEntry = Translators.getItemTranslator().getItem((ItemStack) entityMetadata.getValue());
+            ItemData itemData = ItemTranslator.translateToBedrock((ItemStack) entityMetadata.getValue());
+            ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
             CompoundTagBuilder builder = CompoundTag.builder();
 
             String blockName = "";
-            for (StartGamePacket.ItemEntry startGamePacketItemEntry: Toolbox.ITEMS) {
+            for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
                 if (startGamePacketItemEntry.getId() == (short) itemEntry.getBedrockId()) {
                     blockName = startGamePacketItemEntry.getIdentifier();
                     break;
