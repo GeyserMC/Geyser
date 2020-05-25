@@ -49,9 +49,9 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
@@ -65,12 +65,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case NORMAL:
                 Inventory inventory = session.getInventoryCache().getOpenInventory();
                 if (inventory == null) inventory = session.getInventory();
-                Translators.getInventoryTranslators().get(inventory.getWindowType()).translateActions(session, inventory, packet.getActions());
+                InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType()).translateActions(session, inventory, packet.getActions());
                 break;
             case INVENTORY_MISMATCH:
                 Inventory inv = session.getInventoryCache().getOpenInventory();
                 if (inv == null) inv = session.getInventory();
-                Translators.getInventoryTranslators().get(inv.getWindowType()).updateInventory(session, inv);
+                InventoryTranslator.INVENTORY_TRANSLATORS.get(inv.getWindowType()).updateInventory(session, inv);
                 InventoryUtils.updateCursor(session);
                 break;
             case ITEM_USE:
@@ -99,7 +99,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(blockPacket);
 
                         // Otherwise boats will not be able to be placed in survival
-                       if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemTranslator.BOAT) {
+                       if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BOAT) {
                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                            session.sendDownstreamPacket(itemPacket);
                        }
@@ -126,7 +126,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 blockPos = blockPos.add(1, 0, 0);
                                 break;
                         }
-                        ItemEntry handItem = Translators.getItemTranslator().getItem(packet.getItemInHand());
+                        ItemEntry handItem = ItemRegistry.getItem(packet.getItemInHand());
                         if (handItem.isBlock()) {
                             session.setLastBlockPlacePosition(blockPos);
                             session.setLastBlockPlacedId(handItem.getJavaIdentifier());
@@ -136,7 +136,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         break;
                     case 1:
                         ItemStack shieldSlot = session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36);
-                        if (shieldSlot != null && shieldSlot.getId() == ItemTranslator.SHIELD) {
+                        if (shieldSlot != null && shieldSlot.getId() == ItemRegistry.SHIELD) {
                             break;
                         } // Handled in Entity.java
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);

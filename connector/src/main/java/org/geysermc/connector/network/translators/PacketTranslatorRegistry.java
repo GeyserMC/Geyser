@@ -35,33 +35,59 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
+import org.reflections.Reflections;
 
-public class Registry<T> {
-    private final Map<Class<? extends T>, PacketTranslator<? extends T>> MAP = new HashMap<>();
+public class PacketTranslatorRegistry<T> {
+    private final Map<Class<? extends T>, PacketTranslator<? extends T>> translators = new HashMap<>();
 
-    public static final Registry<Packet> JAVA = new Registry<>();
-    public static final Registry<BedrockPacket> BEDROCK = new Registry<>();
+    public static final PacketTranslatorRegistry<Packet> JAVA_TRANSLATOR = new PacketTranslatorRegistry<>();
+    public static final PacketTranslatorRegistry<BedrockPacket> BEDROCK_TRANSLATOR = new PacketTranslatorRegistry<>();
 
     private static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
 
     static {
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators");
+
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(Translator.class)) {
+            Class<?> packet = clazz.getAnnotation(Translator.class).packet();
+
+            GeyserConnector.getInstance().getLogger().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());
+
+            try {
+                if (Packet.class.isAssignableFrom(packet)) {
+                    Class<? extends Packet> targetPacket = (Class<? extends Packet>) packet;
+                    PacketTranslator<? extends Packet> translator = (PacketTranslator<? extends Packet>) clazz.newInstance();
+
+                    JAVA_TRANSLATOR.translators.put(targetPacket, translator);
+                } else if (BedrockPacket.class.isAssignableFrom(packet)) {
+                    Class<? extends BedrockPacket> targetPacket = (Class<? extends BedrockPacket>) packet;
+                    PacketTranslator<? extends BedrockPacket> translator = (PacketTranslator<? extends BedrockPacket>) clazz.newInstance();
+
+                    BEDROCK_TRANSLATOR.translators.put(targetPacket, translator);
+                } else {
+                    GeyserConnector.getInstance().getLogger().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
+                }
+            } catch (InstantiationException | IllegalAccessException e) {
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated translator " + clazz.getCanonicalName() + ".");
+            }
+        }
+
         IGNORED_PACKETS.add(ServerUpdateLightPacket.class);
     }
 
-    public static void registerJava(Class<? extends Packet> targetPacket, PacketTranslator<? extends Packet> translator) {
-        JAVA.MAP.put(targetPacket, translator);
+    private PacketTranslatorRegistry() {
     }
 
-    public static void registerBedrock(Class<? extends BedrockPacket> targetPacket, PacketTranslator<? extends BedrockPacket> translator) {
-        BEDROCK.MAP.put(targetPacket, translator);
+    public static void init() {
+        // no-op
     }
 
     @SuppressWarnings("unchecked")
     public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
         if (!session.getUpstream().isClosed() && !session.isClosed()) {
             try {
-                if (MAP.containsKey(clazz)) {
-                    ((PacketTranslator<P>) MAP.get(clazz)).translate(packet, session);
+                if (translators.containsKey(clazz)) {
+                    ((PacketTranslator<P>) translators.get(clazz)).translate(packet, session);
                     return true;
                 } else {
                     if (!IGNORED_PACKETS.contains(clazz))

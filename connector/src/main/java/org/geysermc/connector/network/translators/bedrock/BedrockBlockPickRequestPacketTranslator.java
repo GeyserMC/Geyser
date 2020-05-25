@@ -31,15 +31,13 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientMoveI
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
-import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.Translators;
 
 @Translator(packet = BlockPickRequestPacket.class)
 public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<BlockPickRequestPacket> {
@@ -61,14 +59,13 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
         }
 
         String targetIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockToPick).split("\\[")[0];
-        ItemTranslator itemTranslator = Translators.getItemTranslator();
 
         // Check hotbar for item
         for (int i = 36; i < 45; i++) {
             if (inventory.getItem(i) == null) {
                 continue;
             }
-            ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
+            ItemEntry item = ItemRegistry.getItem(inventory.getItem(i));
             // If this isn't the item we're looking for
             if (!item.getJavaIdentifier().equals(targetIdentifier)) {
                 continue;
@@ -90,7 +87,7 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
             if (inventory.getItem(i) == null) {
                 continue;
             }
-            ItemEntry item = itemTranslator.getItem(inventory.getItem(i));
+            ItemEntry item = ItemRegistry.getItem(inventory.getItem(i));
             // If this isn't the item we're looking for
             if (!item.getJavaIdentifier().equals(targetIdentifier)) {
                 continue;

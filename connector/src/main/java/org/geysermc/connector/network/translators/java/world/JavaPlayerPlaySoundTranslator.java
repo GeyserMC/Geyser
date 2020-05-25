@@ -34,7 +34,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.SoundUtils;
+import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
 @Translator(packet = ServerPlaySoundPacket.class)
 public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPacket> {
@@ -51,7 +51,7 @@ public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySo
             return;
         }
 
-        SoundUtils.SoundMapping soundMapping = SoundUtils.fromJava(packetSound.replace("minecraft:", ""));
+        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound.replace("minecraft:", ""));
         String playsound;
         if(soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping

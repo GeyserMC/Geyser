@@ -32,11 +32,48 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.Tag;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.BlockEntityUtils;
+import org.reflections.Reflections;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class BlockEntityTranslator {
+
+    public static final Map<String, BlockEntityTranslator> BLOCK_ENTITY_TRANSLATORS = new HashMap<>();
+    public static ObjectArrayList<RequiresBlockState> REQUIRES_BLOCK_STATE_LIST = new ObjectArrayList<>();
+
+    protected BlockEntityTranslator() {
+    }
+
+    public static void init() {
+        // no-op
+    }
+
+    static {
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.block.entity");
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
+            GeyserConnector.getInstance().getLogger().debug("Found annotated block entity: " + clazz.getCanonicalName());
+
+            try {
+                BLOCK_ENTITY_TRANSLATORS.put(clazz.getAnnotation(BlockEntity.class).name(), (BlockEntityTranslator) clazz.newInstance());
+            } catch (InstantiationException | IllegalAccessException e) {
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block entity " + clazz.getCanonicalName() + ".");
+            }
+        }
+        for (Class<?> clazz : ref.getSubTypesOf(RequiresBlockState.class)) {
+            GeyserConnector.getInstance().getLogger().debug("Found block entity that requires block state: " + clazz.getCanonicalName());
+
+            try {
+                REQUIRES_BLOCK_STATE_LIST.add((RequiresBlockState) clazz.newInstance());
+            } catch (InstantiationException | IllegalAccessException e) {
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate required block state " + clazz.getCanonicalName() + ".");
+            }
+        }
+    }
 
     public abstract List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState);
 
