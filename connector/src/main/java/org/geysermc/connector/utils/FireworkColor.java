@@ -48,6 +48,7 @@ public enum FireworkColor {
     WHITE((byte) 15, 15790320),
 
     // Bukkit colors
+    // https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Color.html
     BUKKIT_WHITE((byte) 15, 0xFFFFFF),
     BUKKIT_SILVER((byte) 7, 0xC0C0C0),
     BUKKIT_GRAY((byte) 8, 0x808080),
