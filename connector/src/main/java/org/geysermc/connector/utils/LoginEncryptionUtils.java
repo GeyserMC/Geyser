@@ -166,7 +166,12 @@ public class LoginEncryptionUtils {
             window.getButtons().add(new FormButton("Disconnect"));
             session.sendForm(window, AUTH_FORM_ID);
         }
-        else showLoginDetailsWindow(session);
+        else {
+            SimpleFormWindow window = new SimpleFormWindow("Login", "You need a Java Edition account to play on this server.");
+            window.getButtons().add(new FormButton("Login with Minecraft"));
+            window.getButtons().add(new FormButton("Disconnect"));
+            session.sendForm(window, AUTH_FORM_ID);
+        }
     }
 
     public static void showLoginDetailsWindow(GeyserSession session) {
@@ -208,12 +213,23 @@ public class LoginEncryptionUtils {
                 } else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
                     SimpleFormResponse response = (SimpleFormResponse) window.getResponse();
                     if (response != null) {
-                        if (response.getClickedButtonId() == 0) {
-                            showLoginDetailsWindow(session);
-                        } else if (response.getClickedButtonId() == 1) {
-                            session.login();
-                        } else if (response.getClickedButtonId() == 2) {
-                            session.disconnect("Login is required");
+                    	if(GeyserConnector.getInstance().getConfig().getRemote().getAuthType() == "smart"){
+                       	 if (response.getClickedButtonId() == 0) {
+             	               showLoginDetailsWindow(session);
+          	              } else if (response.getClickedButtonId() == 1) {
+        	                    session.login();
+        	                } else if (response.getClickedButtonId() == 2) {
+    	                        session.disconnect("Login is required");
+        	                }
+                              else showLoginDetailsWindow(session);
+                        }
+                        else{
+                        	if (response.getClickedButtonId() == 0) {
+             	               showLoginDetailsWindow(session);
+          	              } else if (response.getClickedButtonId() == 1) {
+    	                        session.disconnect("Login is required");
+                            }
+        	                else showLoginDetailsWindow(session);
                         }
                     } else {
                         showLoginWindow(session,AuthType.getByName(config.getRemote().getAuthType()));

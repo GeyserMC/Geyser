@@ -103,4 +103,4 @@ metrics:
   uuid: generateduuid
 
 # DO NOT TOUCH!
-config-version: 4
+config-version: 3

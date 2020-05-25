@@ -235,6 +235,7 @@ public class GeyserSession implements CommandSender {
             authenticate(authData.getName());
         }
     }
+    
     public void authenticate(String username) {
         authenticate(username, "");
     }
