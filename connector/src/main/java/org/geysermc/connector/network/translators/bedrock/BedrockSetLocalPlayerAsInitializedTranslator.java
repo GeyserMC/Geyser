@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import org.geysermc.common.AuthType;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -40,7 +41,11 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
         if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);
-                session.login();
+
+                // This shouldnt be called with smart auth as it will be called manually later
+                if (session.getConnector().getAuthType() != AuthType.SMART) {
+                    session.login();
+                }
 
                 for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
                     if (!entity.isValid()) {
