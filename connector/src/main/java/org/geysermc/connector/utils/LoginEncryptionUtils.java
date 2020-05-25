@@ -167,6 +167,7 @@ public class LoginEncryptionUtils {
             window.getButtons().add(new FormButton("Login with Minecraft"));
         }
         window.getButtons().add(new FormButton("Disconnect"));
+
         session.sendForm(window, AUTH_FORM_ID);
     }
 
