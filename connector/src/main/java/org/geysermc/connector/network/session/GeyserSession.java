@@ -166,6 +166,10 @@ public class GeyserSession implements CommandSender {
     @Setter
     private int craftSlot = 0;
 
+    @Getter
+    @Setter
+    private boolean started;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -185,32 +189,17 @@ public class GeyserSession implements CommandSender {
 
         this.spawned = false;
         this.loggedIn = false;
+        this.started = false;
 
         this.inventoryCache.getInventories().put(0, inventory);
     }
 
     public void connect(RemoteServer remoteServer) {
         startGame();
+        login();
         this.remoteServer = remoteServer;
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
-
-        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setTag(BiomeTranslator.BIOMES);
-        upstream.sendPacket(biomeDefinitionListPacket);
-
-        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
-        upstream.sendPacket(entityPacket);
-
-        InventoryContentPacket creativePacket = new InventoryContentPacket();
-        creativePacket.setContainerId(ContainerId.CREATIVE);
-        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
-        upstream.sendPacket(creativePacket);
-
-        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-        upstream.sendPacket(playStatusPacket);
     }
 
     public void fetchOurSkin(PlayerListPacket.Entry entry) {

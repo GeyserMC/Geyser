@@ -25,11 +25,19 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
+import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
+import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.BiomeTranslator;
+import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.SkinUtils;
 
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
@@ -88,6 +96,26 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
 
         if (packet.getAction() == PlayerListEntryAction.REMOVE_PLAYER || session.getUpstream().isInitialized()) {
             session.sendUpstreamPacket(translate);
+        }
+
+        if (!session.isStarted()) {
+            session.setStarted(true);
+            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+            biomeDefinitionListPacket.setTag(BiomeTranslator.BIOMES);
+            session.sendUpstreamPacket(biomeDefinitionListPacket);
+
+            AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
+            entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
+            session.sendUpstreamPacket(entityPacket);
+
+            InventoryContentPacket creativePacket = new InventoryContentPacket();
+            creativePacket.setContainerId(ContainerId.CREATIVE);
+            creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
+            session.sendUpstreamPacket(creativePacket);
+
+            PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+            playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+            session.sendUpstreamPacket(playStatusPacket);
         }
     }
 }
