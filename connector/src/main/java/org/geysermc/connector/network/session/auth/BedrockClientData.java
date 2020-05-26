@@ -40,8 +40,12 @@ public class BedrockClientData {
     private boolean capeOnClassicSkin;
     @JsonProperty(value = "SkinResourcePatch")
     private String geometryName;
+    @JsonProperty(value = "SkinGeometryName")
+    private String legacyGeometryName;
     @JsonProperty(value = "SkinGeometryData")
     private String geometryData;
+    @JsonProperty(value = "SkinGeometry")
+    private String legacyGeometryData;
     @JsonProperty(value = "PersonaSkin")
     private boolean personaSkin;
     @JsonProperty(value = "PremiumSkin")
@@ -78,6 +82,9 @@ public class BedrockClientData {
     private String skinColor;
     @JsonProperty(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
+
+    @JsonProperty(value = "TenantId")
+    private String tenantId;
 
     public enum UIProfile {
         @JsonEnumDefaultValue

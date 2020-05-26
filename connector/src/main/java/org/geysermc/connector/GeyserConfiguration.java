@@ -79,6 +79,9 @@ public interface GeyserConfiguration {
         String getMotd1();
 
         String getMotd2();
+
+        String getEdition();
+
     }
 
     interface IRemoteConfiguration {

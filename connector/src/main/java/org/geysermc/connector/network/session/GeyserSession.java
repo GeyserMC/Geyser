@@ -476,6 +476,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
         startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", true));
+        startGamePacket.getGamerules().add(new GameRuleData<>("codebuilder", false));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(true);

@@ -47,7 +47,7 @@ public class LocaleUtils {
 
     private static String smallestURL = "";
 
-    static {
+    public static void init() {
         // Create the locales folder
         File localesFolder = new File("locales/");
         localesFolder.mkdir();
@@ -248,9 +248,6 @@ public class LocaleUtils {
         return localeStrings.getOrDefault(messageText, messageText);
     }
 
-    public static void init() {
-        // no-op
-    }
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)

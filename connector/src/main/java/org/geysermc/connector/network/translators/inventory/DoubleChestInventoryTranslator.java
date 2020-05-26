@@ -40,14 +40,20 @@ import org.geysermc.connector.network.translators.inventory.updater.ChestInvento
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
 public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
-    private final int blockId;
+    private Integer blockId;
     private final InventoryUpdater updater;
 
     public DoubleChestInventoryTranslator(int size) {
         super(size);
-        BlockState javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
-        this.blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
         this.updater = new ChestInventoryUpdater(54);
+    }
+
+    private int getBlockId() {
+        if (blockId == null) {
+            BlockState javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
+            blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
+        }
+        return blockId;
     }
 
     @Override
@@ -58,7 +64,7 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(getBlockId());
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
@@ -78,7 +84,7 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(pairPosition);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(getBlockId());
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 

@@ -181,6 +181,11 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
         public String getMotd2() {
             return config.getString("bedrock.motd2", "GeyserMC");
         }
+
+        @Override
+        public String getEdition() {
+            return config.getString("bedrock.edition", "bedrock");
+        }
     }
 
     public class BungeeRemoteConfiguration implements IRemoteConfiguration {

@@ -39,16 +39,16 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
+import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.FileUtils;
-import org.reflections.Reflections;
 
 import java.io.InputStream;
 import java.util.*;
 
 public class BlockTranslator {
-    public static final ListTag<CompoundTag> BLOCKS;
+    public static ListTag<CompoundTag> BLOCKS;
     public static final BlockState AIR = new BlockState(0);
-    public static final int BEDROCK_WATER_ID;
+    public static int BEDROCK_WATER_ID;
 
     private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
     private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
@@ -67,13 +67,24 @@ public class BlockTranslator {
 
     // For block breaking animation math
     public static final IntSet JAVA_RUNTIME_WOOL_IDS = new IntOpenHashSet();
-    public static final int JAVA_RUNTIME_COBWEB_ID;
+    public static int JAVA_RUNTIME_COBWEB_ID;
 
     private static final int BLOCK_STATE_VERSION = 17760256;
 
-    static {
+    public static Register REGISTER = new Register();
+    private static Shim SHIM;
+
+    public static class Register {
+
+        public Register shim(Shim shim) {
+            SHIM = shim;
+            return this;
+        }
+    }
+
+    public static void init() {
         /* Load block palette */
-        InputStream stream = FileUtils.getResource("bedrock/runtime_block_states.dat");
+        InputStream stream = FileUtils.getResource("data/runtime_block_states.dat");
 
         ListTag<CompoundTag> blocksTag;
         try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
@@ -85,7 +96,15 @@ public class BlockTranslator {
         Map<CompoundTag, CompoundTag> blockStateMap = new HashMap<>();
 
         for (CompoundTag tag : blocksTag.getValue()) {
-            if (blockStateMap.putIfAbsent(tag.getCompound("block"), tag) != null) {
+            CompoundTagBuilder tagBuilder = CompoundTag.builder();
+
+            tagBuilder.tag(tag.getCompound("block"));
+
+            if (tag.getShort("meta", (short) -1) != -1) {
+                tagBuilder.shortTag("meta", tag.getShort("meta"));
+            }
+
+            if (blockStateMap.putIfAbsent(tagBuilder.build("ref"), tag) != null) {
                 throw new AssertionError("Duplicate block states in Bedrock palette");
             }
         }
@@ -100,9 +119,6 @@ public class BlockTranslator {
         Object2IntMap<CompoundTag> addedStatesMap = new Object2IntOpenHashMap<>();
         addedStatesMap.defaultReturnValue(-1);
         List<CompoundTag> paletteList = new ArrayList<>();
-
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.block.entity");
-        ref.getTypesAnnotatedWith(BlockEntity.class);
 
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;
@@ -142,11 +158,11 @@ public class BlockTranslator {
             // Used for adding all "special" Java block states to block state map
             String identifier;
             String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
-            for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
-                identifier = clazz.getAnnotation(BlockEntity.class).regex();
+            for (Map.Entry<String, BlockEntityTranslator> blockEntityEntry : BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.entrySet() ) {
+                identifier = blockEntityEntry.getValue().getClass().getAnnotation(BlockEntity.class).regex();
                 // Endswith, or else the block bedrock gets picked up for bed
                 if (bedrock_identifer.endsWith(identifier) && !identifier.equals("")) {
-                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, clazz.getAnnotation(BlockEntity.class).name());
+                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, blockEntityEntry.getKey());
                     break;
                 }
             }
@@ -217,11 +233,11 @@ public class BlockTranslator {
     private BlockTranslator() {
     }
 
-    public static void init() {
-        // no-op
-    }
-
     private static CompoundTag buildBedrockState(JsonNode node) {
+        if (SHIM != null) {
+            return SHIM.buildBedrockState(node);
+        }
+
         CompoundTagBuilder tagBuilder = CompoundTag.builder();
         tagBuilder.stringTag("name", node.get("bedrock_identifier").textValue())
                 .intTag("version", BlockTranslator.BLOCK_STATE_VERSION);
@@ -247,7 +263,12 @@ public class BlockTranslator {
                 }
             }
         }
-        return tagBuilder.tag(statesBuilder.build("states")).build("block");
+        tagBuilder.tag(statesBuilder.build("states"));
+
+        tagBuilder = CompoundTagBuilder.builder()
+                .tag(tagBuilder.build("block"));
+
+        return tagBuilder.build("ref");
     }
 
     public static int getBedrockBlockId(BlockState state) {
@@ -292,5 +313,9 @@ public class BlockTranslator {
 
     public static BlockState getJavaWaterloggedState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(1 << 31 | bedrockId);
+    }
+
+    public interface Shim {
+        CompoundTag buildBedrockState(JsonNode node);
     }
 }

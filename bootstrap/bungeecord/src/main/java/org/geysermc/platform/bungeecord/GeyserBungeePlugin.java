@@ -124,7 +124,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this);
 
-        this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
+        try {
+            this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
+        } catch (GeyserConnector.GeyserConnectorException e) {
+            getLogger().log(Level.SEVERE, e.getMessage(), e.getCause());
+            return;
+        }
 
         this.geyserCommandManager = new GeyserBungeeCommandManager(connector);
 

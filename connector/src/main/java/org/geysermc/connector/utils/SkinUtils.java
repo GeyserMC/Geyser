@@ -49,6 +49,17 @@ import java.util.function.Consumer;
 
 public class SkinUtils {
 
+    public static Register REGISTER = new Register();
+    private static Shim SHIM;
+
+    public static class Register {
+
+        public Register shim(Shim shim) {
+            SHIM = shim;
+            return this;
+        }
+    }
+
     public static PlayerListPacket.Entry buildCachedEntry(GameProfile profile, long geyserId) {
         GameProfileData data = GameProfileData.from(profile);
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
@@ -256,6 +267,11 @@ public class SkinUtils {
     }
 
     public static void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData) {
+        if (SHIM != null) {
+            SHIM.handleBedrockSkin(playerEntity, clientData);
+            return;
+        }
+
         GameProfileData data = GameProfileData.from(playerEntity.getProfile());
 
         GeyserConnector.getInstance().getLogger().info("Registering bedrock skin for " + playerEntity.getUsername() + " (" + playerEntity.getUuid() + ")");
@@ -281,5 +297,9 @@ public class SkinUtils {
         } catch (Exception e) {
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
         }
+    }
+
+    public interface Shim {
+        void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData);
     }
 }

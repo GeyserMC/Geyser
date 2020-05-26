@@ -37,8 +37,7 @@ import org.geysermc.connector.utils.InventoryUtils;
 
 @AllArgsConstructor
 public class ChestInventoryUpdater extends InventoryUpdater {
-    private static final ItemData UNUSUABLE_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(
-            "This slot does not exist in the inventory\non Java Edition, as there is less\nrows than possible in Bedrock");
+    private static ItemData UNUSUABLE_SPACE_BLOCK;
 
     private final int paddedSize;
 
@@ -51,7 +50,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
             if (i < translator.size) {
                 bedrockItems[i] = ItemTranslator.translateToBedrock(inventory.getItem(i));
             } else {
-                bedrockItems[i] = UNUSUABLE_SPACE_BLOCK;
+                bedrockItems[i] = getUnusuableSpaceBlock();
             }
         }
 
@@ -72,5 +71,13 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         slotPacket.setItem(ItemTranslator.translateToBedrock(inventory.getItem(javaSlot)));
         session.sendUpstreamPacket(slotPacket);
         return true;
+    }
+
+    private static ItemData getUnusuableSpaceBlock() {
+        if (UNUSUABLE_SPACE_BLOCK == null) {
+            UNUSUABLE_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(
+                    "This slot does not exist in the inventory\non Java Edition, as there is less\nrows than possible in Bedrock");
+        }
+        return UNUSUABLE_SPACE_BLOCK;
     }
 }

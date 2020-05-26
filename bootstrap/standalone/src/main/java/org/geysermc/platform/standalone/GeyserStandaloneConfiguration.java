@@ -101,6 +101,8 @@ public class GeyserStandaloneConfiguration implements GeyserConfiguration {
 
         private String motd1;
         private String motd2;
+
+        private String edition;
     }
 
     @Getter

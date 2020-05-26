@@ -54,7 +54,7 @@ public class ItemRegistry {
 
     private static final Map<String, ItemEntry> JAVA_IDENTIFIER_MAP = new HashMap<>();
 
-    public static final ItemData[] CREATIVE_ITEMS;
+    public static ItemData[] CREATIVE_ITEMS;
 
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
@@ -67,12 +67,8 @@ public class ItemRegistry {
     public static int BARRIER_INDEX = 0;
 
     public static void init() {
-        // no-op
-    }
-
-    static {
         /* Load item palette */
-        InputStream stream = FileUtils.getResource("bedrock/items.json");
+        InputStream stream = FileUtils.getResource("data/items.json");
 
         TypeReference<List<JsonNode>> itemEntriesType = new TypeReference<List<JsonNode>>() {
         };
@@ -134,7 +130,7 @@ public class ItemRegistry {
         }
 
         /* Load creative items */
-        stream = FileUtils.getResource("bedrock/creative_items.json");
+        stream = FileUtils.getResource("data/creative_items.json");
 
         JsonNode creativeItemEntries;
         try {

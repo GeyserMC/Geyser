@@ -35,30 +35,40 @@ import org.geysermc.connector.network.translators.inventory.holder.InventoryHold
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
 public class BlockInventoryTranslator extends BaseInventoryTranslator {
-    private final InventoryHolder holder;
+    private InventoryHolder holder;
     private final InventoryUpdater updater;
+    private final String javaBlockIdentifier;
+    private final ContainerType containerType;
 
     public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater) {
         super(size);
-        BlockState javaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
-        int blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
-        this.holder = new BlockInventoryHolder(blockId, containerType);
+        this.javaBlockIdentifier = javaBlockIdentifier;
+        this.containerType = containerType;
         this.updater = updater;
+    }
+
+    private InventoryHolder getHolder() {
+        if (holder == null) {
+            BlockState javaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
+            int blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
+            this.holder = new BlockInventoryHolder(blockId, containerType);
+        }
+        return this.holder;
     }
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
-        holder.prepareInventory(this, session, inventory);
+        getHolder().prepareInventory(this, session, inventory);
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-        holder.openInventory(this, session, inventory);
+        getHolder().openInventory(this, session, inventory);
     }
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory);
+        getHolder().closeInventory(this, session, inventory);
     }
 
     @Override

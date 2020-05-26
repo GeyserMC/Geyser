@@ -46,49 +46,33 @@ import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
 
-    private static final Int2ObjectMap<ItemTranslator> ITEM_STACK_TRANSLATORS = new Int2ObjectOpenHashMap<>();
-    private static final List<NbtItemStackTranslator> NBT_TRANSLATORS;
+    private static Int2ObjectMap<ItemTranslator> ITEM_STACK_TRANSLATORS = new Int2ObjectOpenHashMap();
+    private static List<NbtItemStackTranslator> NBT_TRANSLATORS = new ArrayList<>();
+
+    public static final Register REGISTER = new Register();
 
     protected ItemTranslator() {
     }
 
-    public static void init() {
-        // no-op
-    }
-
-    static {
-        /* Load item translators */
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
-
-        Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
-            int priority = clazz.getAnnotation(ItemRemapper.class).priority();
-
-            GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());
-
-            try {
-                if (NbtItemStackTranslator.class.isAssignableFrom(clazz)) {
-                    NbtItemStackTranslator nbtItemTranslator = (NbtItemStackTranslator) clazz.newInstance();
-                    loadedNbtItemTranslators.put(nbtItemTranslator, priority);
-                    continue;
-                }
-                ItemTranslator itemStackTranslator = (ItemTranslator) clazz.newInstance();
-                List<ItemEntry> appliedItems = itemStackTranslator.getAppliedItems();
-                for (ItemEntry item : appliedItems) {
-                    ItemTranslator registered = ITEM_STACK_TRANSLATORS.get(item.getJavaId());
-                    if (registered != null) {
-                        GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName() + "." +
-                                " Item translator " + registered.getClass().getCanonicalName() + " is already registered for the item " + item.getJavaIdentifier());
-                        continue;
-                    }
-                    ITEM_STACK_TRANSLATORS.put(item.getJavaId(), itemStackTranslator);
-                }
-            } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName() + ".");
-            }
+    public static class Register {
+        public Register nbtItemStackTranslator(NbtItemStackTranslator translator) {
+            NBT_TRANSLATORS.add(translator);
+            return this;
         }
 
-        NBT_TRANSLATORS = loadedNbtItemTranslators.keySet().stream().sorted(Comparator.comparingInt(loadedNbtItemTranslators::get)).collect(Collectors.toList());
+        public Register itemTranslator(ItemTranslator translator) {
+            List<ItemEntry> appliedItems = translator.getAppliedItems();
+            for (ItemEntry item : appliedItems) {
+                ItemTranslator registered = ITEM_STACK_TRANSLATORS.get(item.getJavaId());
+                if (registered != null) {
+                    GeyserConnector.getInstance().getLogger().error("Could not instantiate item translator " + translator.getClass().getCanonicalName() + "." +
+                            " Item translator " + registered.getClass().getCanonicalName() + " is already registered for the item " + item.getJavaIdentifier());
+                    continue;
+                }
+                ITEM_STACK_TRANSLATORS.put(item.getJavaId(), translator);
+            }
+            return this;
+        }
     }
 
     public static ItemStack translateToJava(ItemData data) {

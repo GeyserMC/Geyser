@@ -31,6 +31,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import org.geysermc.common.ping.GeyserPingInfo;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserEdition;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -165,7 +166,7 @@ public class QueryPacketHandler {
         gameData.put("hostname", motd);
         gameData.put("gametype", "SMP");
         gameData.put("game_id", "MINECRAFT");
-        gameData.put("version", GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+        gameData.put("version", GeyserEdition.INSTANCE.getCodec().getMinecraftVersion());
         gameData.put("plugins", "");
         gameData.put("map", GeyserConnector.NAME);
         gameData.put("numplayers", currentPlayerCount);

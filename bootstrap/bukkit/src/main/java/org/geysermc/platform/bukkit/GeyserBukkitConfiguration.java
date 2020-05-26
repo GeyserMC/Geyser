@@ -182,6 +182,11 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
         public String getMotd2() {
             return config.getString("bedrock.motd2", "GeyserMC");
         }
+
+        @Override
+        public String getEdition() {
+            return config.getString("edition", "bedrock");
+        }
     }
 
     public class BukkitRemoteConfiguration implements IRemoteConfiguration {

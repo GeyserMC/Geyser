@@ -38,24 +38,19 @@ public class SoundHandlerRegistry {
 
     static final Map<SoundHandler, SoundInteractionHandler<?>> INTERACTION_HANDLERS = new HashMap<>();
 
-    static {
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.sound");
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(SoundHandler.class)) {
-            try {
-                SoundInteractionHandler<?> interactionHandler = (SoundInteractionHandler<?>) clazz.newInstance();
-                SoundHandler annotation = clazz.getAnnotation(SoundHandler.class);
-                INTERACTION_HANDLERS.put(annotation, interactionHandler);
-            } catch (InstantiationException | IllegalAccessException ex) {
-                ex.printStackTrace();
+    public static final Register REGISTER = new Register();
+
+    public static class Register {
+        public Register soundInteractionHandler(SoundInteractionHandler<?> translator) {
+            SoundHandler annotation = translator.getClass().getAnnotation(SoundHandler.class);
+            if (annotation != null) {
+                INTERACTION_HANDLERS.put(annotation, translator);
             }
+            return this;
         }
     }
 
     private SoundHandlerRegistry() {
-    }
-
-    public static void init() {
-        // no-op
     }
 
     /**

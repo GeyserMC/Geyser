@@ -40,16 +40,12 @@ import java.util.Map;
 
 public class SoundRegistry {
 
-    private static final Map<String, SoundMapping> SOUNDS;
+    private static Map<String, SoundMapping> SOUNDS;
 
     private SoundRegistry() {
     }
 
     public static void init() {
-        // no-op
-    }
-
-    static {
         /* Load sound mappings */
         InputStream stream  = FileUtils.getResource("mappings/sounds.json");
         JsonNode soundsTree;

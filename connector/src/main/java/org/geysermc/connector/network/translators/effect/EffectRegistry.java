@@ -53,10 +53,6 @@ public class EffectRegistry {
     private static Map<ParticleType, String> particleStringMap = new HashMap<>();
 
     public static void init() {
-        // no-op
-    }
-
-    static {
         /* Load particles */
         InputStream particleStream = FileUtils.getResource("mappings/particles.json");
         JsonNode particleEntries;

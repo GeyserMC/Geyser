@@ -37,7 +37,7 @@ public class ProvidedSkin {
 
     public ProvidedSkin(String internalUrl) {
         try {
-            BufferedImage image = ImageIO.read(ProvidedSkin.class.getClassLoader().getResource(internalUrl));
+            BufferedImage image = ImageIO.read(FileUtils.getResource(internalUrl));
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream(image.getWidth() * 4 + image.getHeight() * 4);
             try {

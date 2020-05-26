@@ -61,6 +61,17 @@ import java.util.UUID;
 public class LoginEncryptionUtils {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
+    public static Register REGISTER = new Register();
+    private static Shim SHIM;
+
+    public static class Register {
+
+        public Register shim(Shim shim) {
+            SHIM = shim;
+            return this;
+        }
+    }
+
     private static boolean validateChainData(JsonNode data) throws Exception {
         ECPublicKey lastKey = null;
         boolean validChain = false;
@@ -139,6 +150,11 @@ public class LoginEncryptionUtils {
     }
 
     private static void startEncryptionHandshake(GeyserSession session, PublicKey key) throws Exception {
+        if (SHIM != null) {
+            SHIM.startEncryptionHandshake(session, key);
+            return;
+        }
+
         KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
         generator.initialize(new ECGenParameterSpec("secp384r1"));
         KeyPair serverKeyPair = generator.generateKeyPair();
@@ -213,6 +229,10 @@ public class LoginEncryptionUtils {
             }
         }
         return true;
+    }
+
+    public interface Shim {
+        void startEncryptionHandshake(GeyserSession session, PublicKey key) throws Exception;
     }
 
 }

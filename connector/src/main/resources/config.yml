@@ -15,6 +15,10 @@ bedrock:
   # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. Irrelevant if "passthrough-motd" is set to true
   motd1: "GeyserMC"
   motd2: "Another GeyserMC forced host."
+
+  # Edition - bedrock or education
+  edition: bedrock
+
 remote:
   # The IP address of the remote (Java Edition) server
   address: 127.0.0.1

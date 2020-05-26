@@ -28,6 +28,7 @@ package org.geysermc.connector.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserEdition;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -133,7 +134,8 @@ public class FileUtils {
      * @return InputStream of the given resource
      */
     public static InputStream getResource(String resource) {
-        InputStream stream = FileUtils.class.getClassLoader().getResourceAsStream(resource);
+        String resourceName = GeyserEdition.INSTANCE.getEdition() + "/" + resource;
+        InputStream stream = FileUtils.class.getClassLoader().getResourceAsStream(resourceName);
         if (stream == null) {
             throw new AssertionError("Unable to find resource: " + resource);
         }
