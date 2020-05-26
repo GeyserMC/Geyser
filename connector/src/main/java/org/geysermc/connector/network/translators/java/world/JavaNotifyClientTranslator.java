@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.UnmappedValueException;
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValue;
@@ -70,7 +71,13 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 break;
             case CHANGE_GAMEMODE:
                 Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
-                GameMode gameMode = (GameMode) packet.getValue();
+                GameMode gameMode;
+                try {
+                   gameMode = (GameMode) packet.getValue();
+                } catch (UnmappedValueException e) {
+                    session.getConnector().getLogger().warning("Invalid gamemode found! Defaulting to survival.");
+                    gameMode = GameMode.SURVIVAL;
+                }
                 if (gameMode == GameMode.ADVENTURE)
                     playerFlags.add(AdventureSettingsPacket.Flag.IMMUTABLE_WORLD);
 
