@@ -48,7 +48,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotLogger geyserLogger;
-    private IGeyserPingPassthrough geyserBukkitPingPassthrough;
+    private IGeyserPingPassthrough geyserSpigotPingPassthrough;
     private GeyserSpigotBlockPlaceListener blockPlaceListener;
     private GeyserSpigotWorldManager geyserWorldManager;
 
@@ -81,9 +81,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         this.connector = GeyserConnector.start(PlatformType.SPIGOT, this);
 
         if (geyserConfig.isLegacyPingPassthrough()) {
-            this.geyserBukkitPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+            this.geyserSpigotPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
         } else {
-            this.geyserBukkitPingPassthrough = new GeyserSpigotPingPassthrough(geyserLogger);
+            this.geyserSpigotPingPassthrough = new GeyserSpigotPingPassthrough(geyserLogger);
         }
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(this, connector);
@@ -133,7 +133,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
-        return geyserBukkitPingPassthrough;
+        return geyserSpigotPingPassthrough;
     }
 
     @Override
