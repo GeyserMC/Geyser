@@ -24,13 +24,12 @@
  *
  */
 
-package org.geysermc.platform.standalone;
+package org.geysermc.platform.standalone.gui;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.platform.standalone.GeyserStandaloneLogger;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
-import org.geysermc.platform.standalone.gui.ColorPane;
 
 import javax.swing.*;
 import javax.swing.text.Document;
