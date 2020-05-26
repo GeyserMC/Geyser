@@ -54,7 +54,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             return;
 
         if (!session.isSpawned()) {
-            Vector3f pos = Vector3f.from(packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ());
+            Vector3f pos = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
             entity.setPosition(pos);
             entity.setRotation(Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw()));
 
