@@ -46,6 +46,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private GeyserStandaloneLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
 
+    private GeyserStandaloneGUI gui;
+
     private GeyserConnector connector;
 
     public static void main(String[] args) {
@@ -55,9 +57,10 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public void onEnable() {
         if (System.console() == null) {
-            GeyserStandaloneGUI gui = new GeyserStandaloneGUI();
+            gui = new GeyserStandaloneGUI();
             gui.redirectSystemStreams();
         }
+
         geyserLogger = new GeyserStandaloneLogger();
 
         LoopbackUtil.checkLoopback(geyserLogger);
@@ -73,6 +76,10 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserCommandManager = new GeyserCommandManager(connector);
+
+        if (gui != null) {
+            gui.setupCommands(geyserLogger, geyserCommandManager);
+        }
 
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
