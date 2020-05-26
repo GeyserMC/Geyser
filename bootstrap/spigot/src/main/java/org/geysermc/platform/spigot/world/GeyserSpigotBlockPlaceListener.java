@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.platform.bukkit.world;
+package org.geysermc.platform.spigot.world;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
@@ -39,7 +39,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 @AllArgsConstructor
-public class GeyserBukkitBlockPlaceListener implements Listener {
+public class GeyserSpigotBlockPlaceListener implements Listener {
 
     private final GeyserConnector connector;
     private final boolean isLegacy;
@@ -55,7 +55,7 @@ public class GeyserBukkitBlockPlaceListener implements Listener {
                 placeBlockSoundPacket.setBabySound(false);
                 String javaBlockId;
                 if (isLegacy) {
-                    javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(GeyserBukkitWorldManager.getLegacyBlock(session,
+                    javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(GeyserSpigotWorldManager.getLegacyBlock(session,
                             event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ(), isViaVersion));
                 } else {
                     javaBlockId = event.getBlockPlaced().getBlockData().getAsString();

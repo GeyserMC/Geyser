@@ -23,42 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.bukkit.command;
+package org.geysermc.platform.spigot.command;
 
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandMap;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandManager;
-import org.geysermc.platform.bukkit.GeyserBukkitPlugin;
+import lombok.AllArgsConstructor;
 
-import java.lang.reflect.Field;
+import org.bukkit.command.ConsoleCommandSender;
+import org.geysermc.connector.command.CommandSender;
 
-public class GeyserBukkitCommandManager extends CommandManager {
+@AllArgsConstructor
+public class SpigotCommandSender implements CommandSender {
 
-    private static CommandMap COMMAND_MAP;
+    private org.bukkit.command.CommandSender handle;
 
-    static {
-        try {
-            Field cmdMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-            cmdMapField.setAccessible(true);
-            COMMAND_MAP = (CommandMap) cmdMapField.get(Bukkit.getServer());
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private GeyserBukkitPlugin plugin;
-
-    public GeyserBukkitCommandManager(GeyserBukkitPlugin plugin, GeyserConnector connector) {
-        super(connector);
-
-        this.plugin = plugin;
+    @Override
+    public String getName() {
+        return handle.getName();
     }
 
     @Override
-    public String getDescription(String command) {
-        Command cmd = COMMAND_MAP.getCommand(command.replace("/", ""));
-        return cmd != null ? cmd.getDescription() : "";
+    public void sendMessage(String message) {
+        handle.sendMessage(message);
+    }
+
+    @Override
+    public boolean isConsole() {
+        return handle instanceof ConsoleCommandSender;
     }
 }

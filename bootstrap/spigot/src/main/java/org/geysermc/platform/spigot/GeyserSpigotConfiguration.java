@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.bukkit;
+package org.geysermc.platform.spigot;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -37,7 +37,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserBukkitConfiguration implements GeyserConfiguration {
+public class GeyserSpigotConfiguration implements GeyserConfiguration {
 
     private FileConfiguration config;
     private File dataFolder;
@@ -50,7 +50,7 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
 
     private Path floodgateKey;
 
-    public GeyserBukkitConfiguration(File dataFolder, FileConfiguration config) {
+    public GeyserSpigotConfiguration(File dataFolder, FileConfiguration config) {
         this.dataFolder = dataFolder;
         this.config = config;
 
@@ -66,7 +66,7 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
         }
     }
 
-    public void loadFloodgate(GeyserBukkitPlugin plugin) {
+    public void loadFloodgate(GeyserSpigotPlugin plugin) {
         Plugin floodgate = Bukkit.getPluginManager().getPlugin("floodgate-bukkit");
         floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem")), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
     }

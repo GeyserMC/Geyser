@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.platform.bukkit;
+package org.geysermc.platform.spigot;
 
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
@@ -39,9 +39,9 @@ import java.util.Collections;
 import java.util.Iterator;
 
 @AllArgsConstructor
-public class GeyserBukkitPingPassthrough implements IGeyserPingPassthrough {
+public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
 
-    private final GeyserBukkitLogger logger;
+    private final GeyserSpigotLogger logger;
 
     @Override
     public GeyserPingInfo getPingInformation() {

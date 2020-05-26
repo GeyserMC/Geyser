@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.bukkit.command;
+package org.geysermc.platform.spigot.command;
 
 import lombok.AllArgsConstructor;
 
@@ -39,7 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @AllArgsConstructor
-public class GeyserBukkitCommandExecutor implements TabExecutor {
+public class GeyserSpigotCommandExecutor implements TabExecutor {
 
     private GeyserConnector connector;
 
@@ -51,11 +51,11 @@ public class GeyserBukkitCommandExecutor implements TabExecutor {
                     sender.sendMessage(ChatColor.RED + "You do not have permission to execute this command!");
                     return true;
                 }
-                getCommand(args[0]).execute(new BukkitCommandSender(sender), args);
+                getCommand(args[0]).execute(new SpigotCommandSender(sender), args);
                 return true;
             }
         } else {
-            getCommand("help").execute(new BukkitCommandSender(sender), args);
+            getCommand("help").execute(new SpigotCommandSender(sender), args);
             return true;
         }
         return true;

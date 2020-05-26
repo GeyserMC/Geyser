@@ -24,14 +24,14 @@
  *
  */
 
-package org.geysermc.platform.bukkit;
+package org.geysermc.platform.spigot;
 
 import org.geysermc.common.main.IGeyserMain;
 
-public class GeyserBukkitMain extends IGeyserMain {
+public class GeyserSpigotMain extends IGeyserMain {
 
     public static void main(String[] args) {
-        new GeyserBukkitMain().displayMessage();
+        new GeyserSpigotMain().displayMessage();
     }
 
     public String getPluginType() {

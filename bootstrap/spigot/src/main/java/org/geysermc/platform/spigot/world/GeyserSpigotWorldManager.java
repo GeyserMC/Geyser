@@ -24,23 +24,21 @@
  *
  */
 
-package org.geysermc.platform.bukkit.world;
+package org.geysermc.platform.spigot.world;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.platform.bukkit.GeyserBukkitPlugin;
 import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
 import us.myles.ViaVersion.protocols.protocol1_15to1_14_4.data.MappingData;
 
 @AllArgsConstructor
-public class GeyserBukkitWorldManager extends WorldManager {
+public class GeyserSpigotWorldManager extends WorldManager {
 
     private final boolean isLegacy;
     // You need ViaVersion to connect to an older server with Geyser.

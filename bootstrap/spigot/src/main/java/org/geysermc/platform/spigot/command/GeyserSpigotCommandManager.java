@@ -23,59 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.bukkit;
+package org.geysermc.platform.spigot.command;
 
-import lombok.AllArgsConstructor;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandManager;
+import org.geysermc.platform.spigot.GeyserSpigotPlugin;
 
-import org.geysermc.connector.GeyserLogger;
+import java.lang.reflect.Field;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+public class GeyserSpigotCommandManager extends CommandManager {
 
-@AllArgsConstructor
-public class GeyserBukkitLogger implements GeyserLogger {
+    private static CommandMap COMMAND_MAP;
 
-    private Logger logger;
-    private boolean debugMode;
+    static {
+        try {
+            Field cmdMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            cmdMapField.setAccessible(true);
+            COMMAND_MAP = (CommandMap) cmdMapField.get(Bukkit.getServer());
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            ex.printStackTrace();
+        }
+    }
 
-    @Override
-    public void severe(String message) {
-        logger.severe(message);
+    private GeyserSpigotPlugin plugin;
+
+    public GeyserSpigotCommandManager(GeyserSpigotPlugin plugin, GeyserConnector connector) {
+        super(connector);
+
+        this.plugin = plugin;
     }
 
     @Override
-    public void severe(String message, Throwable error) {
-        logger.log(Level.SEVERE, message, error);
-    }
-
-    @Override
-    public void error(String message) {
-        logger.warning(message);
-    }
-
-    @Override
-    public void error(String message, Throwable error) {
-        logger.log(Level.WARNING, message, error);
-    }
-
-    @Override
-    public void warning(String message) {
-        error(message);
-    }
-
-    @Override
-    public void info(String message) {
-        logger.info(message);
-    }
-
-    @Override
-    public void debug(String message) {
-        if (debugMode)
-            info(message);
-    }
-
-    @Override
-    public void setDebug(boolean debug) {
-        debugMode = debug;
+    public String getDescription(String command) {
+        Command cmd = COMMAND_MAP.getCommand(command.replace("/", ""));
+        return cmd != null ? cmd.getDescription() : "";
     }
 }

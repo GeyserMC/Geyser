@@ -23,30 +23,59 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.bukkit.command;
+package org.geysermc.platform.spigot;
 
 import lombok.AllArgsConstructor;
 
-import org.bukkit.command.ConsoleCommandSender;
-import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.GeyserLogger;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @AllArgsConstructor
-public class BukkitCommandSender implements CommandSender {
+public class GeyserSpigotLogger implements GeyserLogger {
 
-    private org.bukkit.command.CommandSender handle;
+    private Logger logger;
+    private boolean debugMode;
 
     @Override
-    public String getName() {
-        return handle.getName();
+    public void severe(String message) {
+        logger.severe(message);
     }
 
     @Override
-    public void sendMessage(String message) {
-        handle.sendMessage(message);
+    public void severe(String message, Throwable error) {
+        logger.log(Level.SEVERE, message, error);
     }
 
     @Override
-    public boolean isConsole() {
-        return handle instanceof ConsoleCommandSender;
+    public void error(String message) {
+        logger.warning(message);
+    }
+
+    @Override
+    public void error(String message, Throwable error) {
+        logger.log(Level.WARNING, message, error);
+    }
+
+    @Override
+    public void warning(String message) {
+        error(message);
+    }
+
+    @Override
+    public void info(String message) {
+        logger.info(message);
+    }
+
+    @Override
+    public void debug(String message) {
+        if (debugMode)
+            info(message);
+    }
+
+    @Override
+    public void setDebug(boolean debug) {
+        debugMode = debug;
     }
 }
