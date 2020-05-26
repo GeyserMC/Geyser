@@ -137,6 +137,16 @@ public class MessageUtils {
         }
     }
 
+    public static String getBedrockMessageLenient(String message) {
+        if(isMessage(message)){
+            return getBedrockMessage(message);
+        }else{
+            final JsonObject obj = new JsonObject();
+            obj.addProperty("text", message);
+            return getBedrockMessage(obj.toString());
+        }
+    }
+
     public static String getBedrockMessage(String message) {
         Component component = phraseJavaMessage(message);
         return LegacyComponentSerializer.legacy().serialize(component);
