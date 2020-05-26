@@ -293,12 +293,6 @@ public class Entity {
                     metadata.put(EntityData.CAN_START_SLEEP, (byte) 0);
                 }
                 break;
-            case 7: // blocking
-                if (entityMetadata.getType() == MetadataType.BYTE) {
-                    byte xd = (byte) entityMetadata.getValue();
-                    metadata.getFlags().setFlag(EntityFlag.BLOCKING, (xd & 0x01) == 0x01);
-                }
-                break;
         }
 
         updateBedrockMetadata(session);
