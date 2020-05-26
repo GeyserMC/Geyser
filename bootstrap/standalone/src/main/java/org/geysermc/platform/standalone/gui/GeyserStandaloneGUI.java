@@ -36,6 +36,8 @@ import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Map;
@@ -62,8 +64,21 @@ public class GeyserStandaloneGUI {
     public void redirectSystemStreams() {
         // Create the frame and setup basic settings
         JFrame frame = new JFrame("Geyser Standalone");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setSize(800, 400);
+
+        // Show a confirm dialog on close
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we)
+            {
+                String buttons[] = {"Yes", "No"};
+                int result = JOptionPane.showOptionDialog(null, "Are you sure you want to exit?", frame.getTitle(), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, buttons, buttons[1]);
+                if (result == 0) {
+                    GeyserConnector.getInstance().getBootstrap().onDisable();
+                }
+            }
+        });
 
         Container cp = frame.getContentPane();
 
