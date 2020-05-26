@@ -25,17 +25,17 @@
 
 package org.geysermc.connector.network.translators;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateLightPacket;
+import com.github.steveice10.packetlib.packet.Packet;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-
-import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
 import org.reflections.Reflections;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class PacketTranslatorRegistry<T> {
     private final Map<Class<? extends T>, PacketTranslator<? extends T>> translators = new HashMap<>();
@@ -73,6 +73,7 @@ public class PacketTranslatorRegistry<T> {
         }
 
         IGNORED_PACKETS.add(ServerUpdateLightPacket.class);
+        IGNORED_PACKETS.add(ServerKeepAlivePacket.class);
     }
 
     private PacketTranslatorRegistry() {
