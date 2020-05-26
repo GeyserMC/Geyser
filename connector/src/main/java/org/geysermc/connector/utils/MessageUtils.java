@@ -145,9 +145,9 @@ public class MessageUtils {
      * @return Bedrock formatted message
      */
     public static String getBedrockMessageLenient(String message) {
-        if(isMessage(message)){
+        if (isMessage(message)) {
             return getBedrockMessage(message);
-        }else{
+        } else {
             final JsonObject obj = new JsonObject();
             obj.addProperty("text", message);
             return getBedrockMessage(obj.toString());
