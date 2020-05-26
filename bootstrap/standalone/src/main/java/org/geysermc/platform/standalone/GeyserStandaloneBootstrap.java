@@ -54,6 +54,10 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        if (System.console() == null) {
+            GeyserStandaloneGUI gui = new GeyserStandaloneGUI();
+            gui.redirectSystemStreams();
+        }
         geyserLogger = new GeyserStandaloneLogger();
 
         LoopbackUtil.checkLoopback(geyserLogger);
