@@ -218,6 +218,19 @@ public class SkinUtils {
                                             geometry.getGeometryData()
                                     );
 
+                                    // If it is our skin we replace the UUID with the authdata UUID
+                                    if (session.getPlayerEntity() == entity) {
+                                        // Copy the entry with our identity instead.
+                                        PlayerListPacket.Entry copy = new PlayerListPacket.Entry(session.getAuthData().getUUID());
+                                        copy.setName(updatedEntry.getName());
+                                        copy.setEntityId(updatedEntry.getEntityId());
+                                        copy.setSkin(updatedEntry.getSkin());
+                                        copy.setXuid(updatedEntry.getXuid());
+                                        copy.setPlatformChatId(updatedEntry.getPlatformChatId());
+                                        copy.setTeacher(updatedEntry.isTeacher());
+                                        updatedEntry = copy;
+                                    }
+
                                     PlayerListPacket playerRemovePacket = new PlayerListPacket();
                                     playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
                                     playerRemovePacket.getEntries().add(updatedEntry);
