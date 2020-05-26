@@ -124,6 +124,7 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private boolean spawned;
+    private boolean started;
     private boolean closed;
 
     @Setter
@@ -166,10 +167,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private int craftSlot = 0;
 
-    @Getter
-    @Setter
-    private boolean started;
-
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -195,11 +192,47 @@ public class GeyserSession implements CommandSender {
     }
 
     public void connect(RemoteServer remoteServer) {
-        startGame();
-        login();
         this.remoteServer = remoteServer;
+        if (connector.getAuthType() != AuthType.ONLINE) {
+            connector.getLogger().info(
+                    "Attempting to login using " + connector.getAuthType().name().toLowerCase() + " mode... " +
+                            (connector.getAuthType() == AuthType.OFFLINE ?
+                                    "authentication is disabled." : "authentication will be encrypted"
+                            )
+            );
+            authenticate(authData.getName());
+        } else {
+            playerEntity.setDimension(2);
+            initialize();
+            ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
+            start();
+        }
+    }
 
-        ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
+    public void start() {
+        if (!started) {
+            started = true;
+            PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+            playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+            upstream.sendPacket(playStatusPacket);
+        }
+    }
+
+    public void initialize() {
+        startGame();
+
+        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+        biomeDefinitionListPacket.setTag(BiomeTranslator.BIOMES);
+        upstream.sendPacket(biomeDefinitionListPacket);
+
+        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
+        entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
+        upstream.sendPacket(entityPacket);
+
+        InventoryContentPacket creativePacket = new InventoryContentPacket();
+        creativePacket.setContainerId(ContainerId.CREATIVE);
+        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
+        upstream.sendPacket(creativePacket);
     }
 
     public void fetchOurSkin(PlayerListPacket.Entry entry) {
@@ -211,18 +244,6 @@ public class GeyserSession implements CommandSender {
         playerSkinPacket.setTrustedSkin(true);
         upstream.sendPacket(playerSkinPacket);
         getConnector().getLogger().debug("Sending skin for " + playerEntity.getUsername() + " " + authData.getUUID());
-    }
-
-    public void login() {
-        if (connector.getAuthType() != AuthType.ONLINE) {
-            connector.getLogger().info(
-                    "Attempting to login using " + connector.getAuthType().name().toLowerCase() + " mode... " +
-                            (connector.getAuthType() == AuthType.OFFLINE ?
-                                    "authentication is disabled." : "authentication will be encrypted"
-                            )
-            );
-            authenticate(authData.getName());
-        }
     }
 
     public void authenticate(String username) {
