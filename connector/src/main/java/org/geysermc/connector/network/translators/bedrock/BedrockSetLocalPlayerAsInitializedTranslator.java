@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -41,12 +42,32 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);
 
+                PlayerListPacket playerListPacket = new PlayerListPacket();
+                playerListPacket.setAction(PlayerListPacket.Action.ADD);
                 for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
                     if (!entity.isValid()) {
                         // async skin loading
                         SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
                     }
+
+                    if (entity.isPlayerList()) {
+                        PlayerListPacket.Entry entry = SkinUtils.buildCachedEntry(entity.getProfile(), entity.getGeyserId());
+                        if (entity == session.getPlayerEntity()) {
+                            // Copy the entry with our identity instead.
+                            PlayerListPacket.Entry copy = new PlayerListPacket.Entry(session.getAuthData().getUUID());
+                            copy.setName(entry.getName());
+                            copy.setEntityId(entry.getEntityId());
+                            copy.setSkin(entry.getSkin());
+                            copy.setXuid(entry.getXuid());
+                            copy.setPlatformChatId(entry.getPlatformChatId());
+                            copy.setTeacher(entry.isTeacher());
+                            entry = copy;
+                        }
+                        playerListPacket.getEntries().add(entry);
+                    }
                 }
+                session.getUpstream().sendPacket(playerListPacket);
+
             }
         }
     }
