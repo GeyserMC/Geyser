@@ -55,7 +55,7 @@ public class BookPagesTranslator extends NbtItemStackTranslator {
 
             CompoundTag pageTag = new CompoundTag("");
             pageTag.put(new StringTag("photoname", ""));
-            pageTag.put(new StringTag("text", MessageUtils.getBedrockMessage(textTag.getValue())));
+            pageTag.put(new StringTag("text", MessageUtils.getBedrockMessageLenient(textTag.getValue())));
             pages.add(pageTag);
         }
 
