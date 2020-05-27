@@ -49,20 +49,7 @@ public class GeyserStandaloneGUI {
 
     private JMenu commandsMenu;
 
-    /**
-     * Queue up an update to the text pane so we don't block the main thread
-     *
-     * @param text The text to append
-     */
-    private void updateTextPane(final String text) {
-        SwingUtilities.invokeLater(() -> {
-            textPane.appendANSI(text);
-            Document doc = textPane.getDocument();
-            textPane.setCaretPosition(doc.getLength());
-        });
-    }
-
-    public void redirectSystemStreams() {
+    public GeyserStandaloneGUI() {
         // Create the frame and setup basic settings
         JFrame frame = new JFrame("Geyser Standalone");
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -119,7 +106,25 @@ public class GeyserStandaloneGUI {
 
         // This has to be done last
         frame.setVisible(true);
+    }
 
+    /**
+     * Queue up an update to the text pane so we don't block the main thread
+     *
+     * @param text The text to append
+     */
+    private void updateTextPane(final String text) {
+        SwingUtilities.invokeLater(() -> {
+            textPane.appendANSI(text);
+            Document doc = textPane.getDocument();
+            textPane.setCaretPosition(doc.getLength());
+        });
+    }
+
+    /**
+     * Redirect the default io streams to the text pane
+     */
+    public void redirectSystemStreams() {
         // Setup a new output stream to forward it to the text pane
         OutputStream out = new OutputStream() {
             @Override
@@ -158,6 +163,8 @@ public class GeyserStandaloneGUI {
      * @param geyserCommandManager The commands manager
      */
     public void setupCommands(GeyserStandaloneLogger geyserStandaloneLogger, GeyserCommandManager geyserCommandManager) {
+        commandsMenu.removeAll();
+
         for (Map.Entry<String, GeyserCommand> command : geyserCommandManager.getCommands().entrySet()) {
             // Remove the offhand command and any alias commands to prevent duplicates in the list
             if ("offhand".equals(command.getValue().getName()) || command.getValue().getAliases().contains(command.getKey())) {
