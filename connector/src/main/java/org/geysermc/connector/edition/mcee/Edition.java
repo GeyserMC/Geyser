@@ -119,8 +119,10 @@ import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
 import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import com.nukkitx.protocol.bedrock.v363.Bedrock_v363;
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserEdition;
+import org.geysermc.connector.edition.mcee.commands.EducationCommand;
 import org.geysermc.connector.edition.mcee.network.translators.bedrock.BedrockActionTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.bedrock.BedrockRespawnTranslator;
 import org.geysermc.connector.edition.mcee.shims.BlockTranslatorShim;
@@ -266,8 +268,13 @@ import org.geysermc.connector.utils.SkinUtils;
 
 public class Edition extends GeyserEdition {
 
+    @Getter
+    private final TokenManager tokenManager;
+
     public Edition(GeyserConnector connector) {
         super(connector, "education", "1.12.60");
+
+        tokenManager = new TokenManager(this);
 
         // Version
         codec = Bedrock_v363.V363_CODEC;
@@ -473,10 +480,25 @@ public class Edition extends GeyserEdition {
 
         // Token Manager
         LoginEncryptionUtils.REGISTER
-                .shim(new LoginEncryptionUtilsShim(new TokenManager(this)));
+                .shim(new LoginEncryptionUtilsShim(tokenManager));
 
         BlockTranslator.REGISTER
                 .shim(new BlockTranslatorShim());
+
+        // Register Commands (we wait till its not null)
+        new Thread(() -> {
+            for(int count = 0; count < 10; count++) {
+                if (connector.getBootstrap().getGeyserCommandManager() != null) {
+                    connector.getBootstrap().getGeyserCommandManager().registerCommand(new EducationCommand(connector, "education", "Education Commands", "geyser.command.education", tokenManager));
+                    break;
+                }
+                try {
+                    Thread.sleep(500*count);
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }).start();
+
 
     }
 }

@@ -41,8 +41,11 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -113,6 +116,75 @@ public class TokenManager {
         }
     }
 
+    /**
+     * Start OAuth2 Process
+     */
+    public URL getNewAuthorizationUrl() {
+        try {
+            return new URL("https://login.microsoftonline.com/common/oauth2/authorize" +
+                    "?response_type=" + "code" +
+                    "&client_id=" + "b36b1432-1a1c-4c82-9b76-24de1cab42f2" +
+                    "&redirect_uri=" + URLEncoder.encode("urn:ietf:wg:oauth:2.0:oob", "UTF-8") +
+                    "&state=" + UUID.randomUUID().toString() +
+                    "&resource=" + URLEncoder.encode("https://meeservices.minecraft.net", "UTF-8")
+            );
+        } catch (UnsupportedEncodingException | MalformedURLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Fetch Token using authorization response
+     */
+    public void createInitialToken(String authorizationResponse) throws TokenException {
+        String raw = authorizationResponse.replace("urn:ietf:wg:oauth:2.0:oob?", "");
+
+        try {
+            URL url = new URL("https://login.microsoftonline.com/common/oauth2/token");
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            byte[] postData = (raw +
+                    "&client_id=" + "b36b1432-1a1c-4c82-9b76-24de1cab42f2" +
+                    "&redirect_uri=" + URLEncoder.encode("urn:ietf:wg:oauth:2.0:oob", "UTF-8") +
+                    "&grant_type=authorization_code").getBytes();
+            try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
+                wr.write(postData);
+            }
+
+            if (connection.getResponseCode() != 200) {
+                throw new TokenException("Failed to create token. Got response: " + connection.getResponseMessage());
+            }
+
+            JsonNode node = GeyserConnector.JSON_MAPPER.readTree(connection.getInputStream());
+
+            if (!node.has("refresh_token") || !node.has("access_token")) {
+                throw new TokenException("Failed to create token. Missing access/refresh token in response");
+            }
+
+            String refreshToken = node.get("refresh_token").asText();
+            String accessToken = node.get("access_token").asText();
+
+
+            JWSObject jwt = JWSObject.parse(accessToken);
+
+            node = GeyserConnector.JSON_MAPPER.readTree(jwt.getPayload().toBytes());
+            String tenantId = node.get("tid").asText();
+
+            tokenMap.put(tenantId, new Token(this, refreshToken));
+            save();
+        } catch (IOException | ParseException e) {
+            throw new TokenException("Failed to create token: " + e.getMessage(), e);
+        }
+    }
+
 
     @Getter
     public static class Token {
@@ -148,6 +220,7 @@ public class TokenManager {
         public void refresh() {
             refreshMicrosoftToken();
             refreshMinecraftToken();
+            manager.save();
         }
 
         private void refreshMicrosoftToken() {
@@ -228,6 +301,16 @@ public class TokenManager {
             }
         }
 
+    }
+
+    public static class TokenException extends Exception {
+        TokenException(String message) {
+            super(message);
+        }
+
+        TokenException(String message, Throwable e) {
+            super(message, e);
+        }
     }
 
 
