@@ -124,10 +124,9 @@ public class TokenManager {
             return new URL("https://login.microsoftonline.com/common/oauth2/authorize" +
                     "?response_type=" + "code" +
                     "&client_id=" + "b36b1432-1a1c-4c82-9b76-24de1cab42f2" +
-                    "&redirect_uri=" + URLEncoder.encode("urn:ietf:wg:oauth:2.0:oob", "UTF-8") +
+                    "&redirect_uri=" + URLEncoder.encode("https://login.microsoftonline.com/common/oauth2/nativeclient", "UTF-8") +
                     "&state=" + UUID.randomUUID().toString() +
-                    "&resource=" + URLEncoder.encode("https://meeservices.minecraft.net", "UTF-8")
-            );
+                    "&resource=" + URLEncoder.encode("https://meeservices.minecraft.net", "UTF-8"));
         } catch (UnsupportedEncodingException | MalformedURLException e) {
             e.printStackTrace();
             return null;
@@ -138,7 +137,11 @@ public class TokenManager {
      * Fetch Token using authorization response
      */
     public void createInitialToken(String authorizationResponse) throws TokenException {
-        String raw = authorizationResponse.replace("urn:ietf:wg:oauth:2.0:oob?", "");
+        if (!authorizationResponse.contains("code=")) {
+            throw new TokenException("Invalid authorization response");
+        }
+
+        String raw = authorizationResponse.substring(authorizationResponse.indexOf("code="));
 
         try {
             URL url = new URL("https://login.microsoftonline.com/common/oauth2/token");
@@ -153,7 +156,7 @@ public class TokenManager {
 
             byte[] postData = (raw +
                     "&client_id=" + "b36b1432-1a1c-4c82-9b76-24de1cab42f2" +
-                    "&redirect_uri=" + URLEncoder.encode("urn:ietf:wg:oauth:2.0:oob", "UTF-8") +
+                    "&redirect_uri=" + URLEncoder.encode("https://login.microsoftonline.com/common/oauth2/nativeclient", "UTF-8") +
                     "&grant_type=authorization_code").getBytes();
             try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
                 wr.write(postData);

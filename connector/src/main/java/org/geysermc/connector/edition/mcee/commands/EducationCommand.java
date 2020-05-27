@@ -48,10 +48,8 @@ public class EducationCommand extends GeyserCommand {
         sender.sendMessage(ChatColor.YELLOW + "/education confirm" + ChatColor.WHITE + "    - Confirm an Authorization Response");
         sender.sendMessage("");
         sender.sendMessage("Use '" + ChatColor.YELLOW + "new" + ChatColor.WHITE + "' to generate a URL that you copy into your browser.");
-        sender.sendMessage("This will allow you to log into your MCEE account. Once done copy the redirection");
-        sender.sendMessage("url and provide it as a parameter to '" + ChatColor.YELLOW + "confirm" + ChatColor.WHITE + "'. It should start with `urn' or 'code='");
-        sender.sendMessage("");
-        sender.sendMessage("If an error box shows with the redirection URL you might be able to right click it to copy.");
+        sender.sendMessage("This will allow you to log into your MCEE account. Once done you will have a white page with a URL both in");
+        sender.sendMessage("its title as well as address bar. Copy the full address and provide it as a parameter to '" + ChatColor.YELLOW + "confirm" + ChatColor.WHITE + "'.");
     }
 
     @Override
