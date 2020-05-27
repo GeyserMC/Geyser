@@ -48,16 +48,29 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private IGeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserStandaloneGUI gui;
+    private boolean useGui;
 
     private GeyserConnector connector;
 
     public static void main(String[] args) {
+        for (String arg : args) {
+            if (arg.equals("gui")) {
+                // Different thread or else it can't override the console
+                new Thread(() -> new GeyserStandaloneBootstrap().onEnable(true)).start();
+                return;
+            }
+        }
         new GeyserStandaloneBootstrap().onEnable();
+    }
+
+    public void onEnable(boolean useGui) {
+        this.useGui = useGui;
+        this.onEnable();
     }
 
     @Override
     public void onEnable() {
-        if (System.console() == null && gui == null) {
+        if ((System.console() == null || useGui) && gui == null) {
             gui = new GeyserStandaloneGUI();
             gui.redirectSystemStreams();
         }

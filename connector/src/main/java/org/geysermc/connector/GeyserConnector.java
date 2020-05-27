@@ -156,7 +156,13 @@ public class GeyserConnector {
         }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        logger.info(String.format("Done (%ss)! Run /geyser help for help!", new DecimalFormat("#.###").format(completeTime)));
+        String message = String.format("Done (%ss)!", new DecimalFormat("#.###").format(completeTime));
+        if (System.console() == null) {
+            message += " Run Commands -> help for help!";
+        } else {
+            message += " Run /geyser help for help!";
+        }
+        logger.info(message);
     }
 
     public void shutdown() {
