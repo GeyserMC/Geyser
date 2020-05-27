@@ -70,8 +70,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        if (System.console() == null || useGui) {
-            this.useGui = true;
+        if ((System.console() == null || useGui) && gui == null) {
             gui = new GeyserStandaloneGUI();
             gui.redirectSystemStreams();
         }

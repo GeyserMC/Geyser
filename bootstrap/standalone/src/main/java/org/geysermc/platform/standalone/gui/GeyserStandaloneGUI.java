@@ -26,7 +26,6 @@
 
 package org.geysermc.platform.standalone.gui;
 
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.platform.standalone.GeyserStandaloneLogger;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
@@ -38,6 +37,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Map;
@@ -48,20 +49,7 @@ public class GeyserStandaloneGUI {
 
     private JMenu commandsMenu;
 
-    /**
-     * Queue up an update to the text pane so we don't block the main thread
-     *
-     * @param text The text to append
-     */
-    private void updateTextPane(final String text) {
-        SwingUtilities.invokeLater(() -> {
-            textPane.appendANSI(text);
-            Document doc = textPane.getDocument();
-            textPane.setCaretPosition(doc.getLength());
-        });
-    }
-
-    public void redirectSystemStreams() {
+    public GeyserStandaloneGUI() {
         // Create the frame and setup basic settings
         JFrame frame = new JFrame("Geyser Standalone");
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -73,9 +61,9 @@ public class GeyserStandaloneGUI {
             public void windowClosing(WindowEvent we)
             {
                 String buttons[] = {"Yes", "No"};
-                int result = JOptionPane.showOptionDialog(null, "Are you sure you want to exit?", frame.getTitle(), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, buttons, buttons[1]);
-                if (result == 0) {
-                    GeyserConnector.getInstance().getBootstrap().onDisable();
+                int result = JOptionPane.showOptionDialog(frame, "Are you sure you want to exit?", frame.getTitle(), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, buttons, buttons[1]);
+                if (result == JOptionPane.YES_OPTION) {
+                    System.exit(0);
                 }
             }
         });
@@ -105,7 +93,7 @@ public class GeyserStandaloneGUI {
         // 'Exit' button
         JMenuItem exitButton = new JMenuItem("Exit", KeyEvent.VK_X);
         exitButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, ActionEvent.ALT_MASK));
-        exitButton.addActionListener(e -> GeyserConnector.getInstance().getBootstrap().onDisable());
+        exitButton.addActionListener(e -> System.exit(0));
         fileMenu.add(exitButton);
 
         // Create 'Commands'
@@ -118,7 +106,25 @@ public class GeyserStandaloneGUI {
 
         // This has to be done last
         frame.setVisible(true);
+    }
 
+    /**
+     * Queue up an update to the text pane so we don't block the main thread
+     *
+     * @param text The text to append
+     */
+    private void updateTextPane(final String text) {
+        SwingUtilities.invokeLater(() -> {
+            textPane.appendANSI(text);
+            Document doc = textPane.getDocument();
+            textPane.setCaretPosition(doc.getLength());
+        });
+    }
+
+    /**
+     * Redirect the default io streams to the text pane
+     */
+    public void redirectSystemStreams() {
         // Setup a new output stream to forward it to the text pane
         OutputStream out = new OutputStream() {
             @Override
@@ -140,6 +146,14 @@ public class GeyserStandaloneGUI {
         // Override the system output streams
         System.setOut(new PrintStream(out, true));
         System.setErr(new PrintStream(out, true));
+
+        // Override the system input stream to prevent errors
+        System.setIn(new InputStream() {
+            @Override
+            public int read() throws IOException {
+                return 0;
+            }
+        });
     }
 
     /**
@@ -149,6 +163,8 @@ public class GeyserStandaloneGUI {
      * @param geyserCommandManager The commands manager
      */
     public void setupCommands(GeyserStandaloneLogger geyserStandaloneLogger, GeyserCommandManager geyserCommandManager) {
+        commandsMenu.removeAll();
+
         for (Map.Entry<String, GeyserCommand> command : geyserCommandManager.getCommands().entrySet()) {
             // Remove the offhand command and any alias commands to prevent duplicates in the list
             if ("offhand".equals(command.getValue().getName()) || command.getValue().getAliases().contains(command.getKey())) {

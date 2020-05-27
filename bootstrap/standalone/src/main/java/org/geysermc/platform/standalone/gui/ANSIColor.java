@@ -33,24 +33,24 @@ import java.util.regex.Pattern;
 
 public enum ANSIColor {
     // Normal colors
-    BLACK("(0;)?30m", Color.getHSBColor(0.000f, 0.000f, 0.000f)),
-    RED("(0;)?31m", Color.getHSBColor(0.000f, 1.000f, 0.502f)),
-    GREEN("(0;)?32m", Color.getHSBColor(0.333f, 1.000f, 0.502f)),
-    YELLOW("(0;)?33m", Color.getHSBColor(0.167f, 1.000f, 0.502f)),
-    BLUE("(0;)?34m", Color.getHSBColor(0.667f, 1.000f, 0.502f)),
-    MAGENTA("(0;)?35m", Color.getHSBColor(0.833f, 1.000f, 0.502f)),
-    CYAN("(0;)?36m", Color.getHSBColor(0.500f, 1.000f, 0.502f)),
-    WHITE("(0;)?37m", Color.getHSBColor(0.000f, 0.000f, 0.753f)),
+    BLACK("(0;)?30(0;)?m", Color.getHSBColor(0.000f, 0.000f, 0.000f)),
+    RED("(0;)?31(0;)?m", Color.getHSBColor(0.000f, 1.000f, 0.502f)),
+    GREEN("(0;)?32(0;)?m", Color.getHSBColor(0.333f, 1.000f, 0.502f)),
+    YELLOW("(0;)?33(0;)?m", Color.getHSBColor(0.167f, 1.000f, 0.502f)),
+    BLUE("(0;)?34(0;)?m", Color.getHSBColor(0.667f, 1.000f, 0.502f)),
+    MAGENTA("(0;)?35(0;)?m", Color.getHSBColor(0.833f, 1.000f, 0.502f)),
+    CYAN("(0;)?36(0;)?m", Color.getHSBColor(0.500f, 1.000f, 0.502f)),
+    WHITE("(0;)?37(0;)?m", Color.getHSBColor(0.000f, 0.000f, 0.753f)),
 
     // Bold colors
-    B_BLACK("1;30m", Color.getHSBColor(0.000f, 0.000f, 0.502f)),
-    B_RED("1;31m", Color.getHSBColor(0.000f, 1.000f, 1.000f)),
-    B_GREEN("1;32m", Color.getHSBColor(0.333f, 1.000f, 1.000f)),
-    B_YELLOW("1;33m", Color.getHSBColor(0.167f, 1.000f, 1.000f)),
-    B_BLUE("1;34m", Color.getHSBColor(0.667f, 1.000f, 1.000f)),
-    B_MAGENTA("1;35m", Color.getHSBColor(0.833f, 1.000f, 1.000f)),
-    B_CYAN("1;36m", Color.getHSBColor(0.500f, 1.000f, 1.000f)),
-    B_WHITE("1;37m", Color.getHSBColor(0.000f, 0.000f, 1.000f)),
+    B_BLACK("(1;30|30;1)m", Color.getHSBColor(0.000f, 0.000f, 0.502f)),
+    B_RED("(1;31|31;1)m", Color.getHSBColor(0.000f, 1.000f, 1.000f)),
+    B_GREEN("(1;32|32;1)m", Color.getHSBColor(0.333f, 1.000f, 1.000f)),
+    B_YELLOW("(1;33|33;1)m", Color.getHSBColor(0.167f, 1.000f, 1.000f)),
+    B_BLUE("(1;34|34;1)m", Color.getHSBColor(0.667f, 1.000f, 1.000f)),
+    B_MAGENTA("(1;35|35;1)m", Color.getHSBColor(0.833f, 1.000f, 1.000f)),
+    B_CYAN("(1;36|36;1)m", Color.getHSBColor(0.500f, 1.000f, 1.000f)),
+    B_WHITE("(1;37|37;1)m", Color.getHSBColor(0.000f, 0.000f, 1.000f)),
 
     RESET("0m", Color.getHSBColor(0.000f, 0.000f, 1.000f));
 
