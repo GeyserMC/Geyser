@@ -38,6 +38,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Map;
@@ -140,6 +142,14 @@ public class GeyserStandaloneGUI {
         // Override the system output streams
         System.setOut(new PrintStream(out, true));
         System.setErr(new PrintStream(out, true));
+
+        // Override the system input stream to prevent errors
+        System.setIn(new InputStream() {
+            @Override
+            public int read() throws IOException {
+                return 0;
+            }
+        });
     }
 
     /**
