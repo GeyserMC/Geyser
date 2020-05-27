@@ -26,7 +26,6 @@
 
 package org.geysermc.platform.standalone.gui;
 
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.platform.standalone.GeyserStandaloneLogger;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
@@ -75,9 +74,9 @@ public class GeyserStandaloneGUI {
             public void windowClosing(WindowEvent we)
             {
                 String buttons[] = {"Yes", "No"};
-                int result = JOptionPane.showOptionDialog(null, "Are you sure you want to exit?", frame.getTitle(), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, buttons, buttons[1]);
-                if (result == 0) {
-                    GeyserConnector.getInstance().getBootstrap().onDisable();
+                int result = JOptionPane.showOptionDialog(frame, "Are you sure you want to exit?", frame.getTitle(), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, buttons, buttons[1]);
+                if (result == JOptionPane.YES_OPTION) {
+                    System.exit(0);
                 }
             }
         });
@@ -107,7 +106,7 @@ public class GeyserStandaloneGUI {
         // 'Exit' button
         JMenuItem exitButton = new JMenuItem("Exit", KeyEvent.VK_X);
         exitButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, ActionEvent.ALT_MASK));
-        exitButton.addActionListener(e -> GeyserConnector.getInstance().getBootstrap().onDisable());
+        exitButton.addActionListener(e -> System.exit(0));
         fileMenu.add(exitButton);
 
         // Create 'Commands'
