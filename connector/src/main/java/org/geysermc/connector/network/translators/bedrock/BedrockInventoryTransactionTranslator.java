@@ -168,7 +168,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 ChunkUtils.updateBlock(session, session.getConnector().getWorldManager().getBlockAt(session,
                                         packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), packet.getBlockPosition());
                             } else {
-                                session.sendMessage("The block you just destroyed may not have been sent to the server.");
+                                session.sendMessage("The block you just destroyed was too far away, and may not have changed for other players.");
                             }
                         }
 
