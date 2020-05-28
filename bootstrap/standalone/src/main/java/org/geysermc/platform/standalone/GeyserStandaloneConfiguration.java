@@ -83,6 +83,9 @@ public class GeyserStandaloneConfiguration implements GeyserConfiguration {
     @JsonProperty("cache-chunks")
     private boolean cacheChunks;
 
+    @JsonProperty("allow-custom-skulls")
+    private boolean isAllowCustomSkulls;
+
     @JsonProperty("above-bedrock-nether-building")
     private boolean isAboveBedrockNetherBuilding;
 

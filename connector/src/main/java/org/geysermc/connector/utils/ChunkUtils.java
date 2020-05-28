@@ -82,7 +82,7 @@ public class ChunkUtils {
         }
     }
 
-    public static ChunkData translateToBedrock(Column column) {
+    public static ChunkData translateToBedrock(Column column, GeyserSession session) {
         ChunkData chunkData = new ChunkData();
         Chunk[] chunks = column.getChunks();
         chunkData.sections = new ChunkSection[chunks.length];
@@ -156,6 +156,14 @@ public class ChunkUtils {
             i++;
         }
 
+        //Check for custom skulls
+        for (CompoundTag compoundTag : blockEntities) {
+            if (compoundTag.contains("Owner") && CustomSkullTranslator.allowCustomSkulls) {
+                System.out.println("ITS A SKULL");
+                BlockState blockState = blockEntityPositions.get(new Position((int) compoundTag.get("x").getValue(), (int) compoundTag.get("y").getValue(), (int) compoundTag.get("z").getValue()));
+                CustomSkullTranslator.SpawnPlayer(session, compoundTag, blockState);
+            }
+        }
         chunkData.blockEntities = bedrockBlockEntities;
         return chunkData;
     }

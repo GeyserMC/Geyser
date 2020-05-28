@@ -86,6 +86,10 @@ default-locale: en_us
 # Geyser has direct access to the server itself.
 cache-chunks: false
 
+#Allows custom skulls to be displayed. This can cause lag depending on the amount
+#of custom skulls. This requires chunk caching to be enabled to work correctly
+allow-custom-skulls: false
+
 # Bedrock prevents building and displaying blocks above Y127 in the Nether -
 # enabling this config option works around that by changing the Nether dimension ID
 # to the End ID. The main downside to this is that the sky will resemble that of

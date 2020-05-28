@@ -29,9 +29,7 @@ package org.geysermc.connector.network.translators.world.block.entity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Rotation;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
@@ -39,10 +37,10 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.SkinProvider;
 import org.geysermc.connector.utils.SkinProvider.SkinGeometry;
 import org.geysermc.connector.utils.SkinUtils;
@@ -54,14 +52,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class CustomSkullTranslator{
-    public static final HashMap<BlockState, CompoundTag> NON_LOADED_SKULLS = new HashMap<>();
     public static final Map<Position, PlayerEntity> CACHED_SKULLS = new HashMap<>();
+    public static final boolean allowCustomSkulls = GeyserConnector.getInstance().getConfig().isAllowCustomSkulls();
     public void CustomSkullTranslator() {
 
     }
 
     public static SerializedSkin getSkin(CompoundTag tag) {
-        if (tag.contains("Owner")) {
+        if (tag.contains("Owner") && !CACHED_SKULLS.containsKey(tag)) {
             CompoundTag Owner = tag.get("Owner");
             CompoundTag Properties = Owner.get("Properties");
             ListTag Textures = Properties.get("textures");
@@ -92,16 +90,13 @@ public class CustomSkullTranslator{
         return null;
     }
 
-    public static void SpawnPlayer(GeyserSession session, CompoundTag tag) {
-        BlockState blockState = session.getChunkCache().getBlockAt(new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue()));
+    public static void SpawnPlayer(GeyserSession session, CompoundTag tag, BlockState blockState) {
         SerializedSkin skin = getSkin(tag);
         float x = (int) tag.get("x").getValue() + .5f;
-        float y = (int) tag.get("y").getValue();
+        float y = (int) tag.get("y").getValue() - .01f;
         float z = (int) tag.get("z").getValue() + .5f;
 
         float rotation = 0f;
-
-        System.out.println(blockState.getId());
 
         switch (BlockStateValues.getSkullRotation(blockState)) {
             case 0:
@@ -219,13 +214,8 @@ public class CustomSkullTranslator{
         //Delay scaling back up the entity so Steve doesn't flash on screen before it updates to the Skull model
         session.getConnector().getGeneralThreadPool().schedule(() -> player.updateBedrockMetadata(session), 100, TimeUnit.MILLISECONDS);
         player.updateBedrockAttributes(session);
-        System.out.println("Blockstate rotation value is " + BlockStateValues.getSkullRotation(blockState));
-        System.out.println(Vector3f.from(rotation));
         player.moveAbsolute(session, Vector3f.from(x, y, z), rotation, 0, true, false);
-        System.out.println("rotation is actually :" + player.getRotation());
         CACHED_SKULLS.put((new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue())), player);
-        //System.out.println(skin.getSkinResourcePatch());
-
     }
 
     public static boolean ContainsCustomSkull(Position position) {

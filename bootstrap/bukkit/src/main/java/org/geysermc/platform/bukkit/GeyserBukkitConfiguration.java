@@ -152,6 +152,11 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowCustomSkulls() {
+        return config.getBoolean("allow-custom-skulls", false);
+    }
+
+    @Override
     public boolean isAboveBedrockNetherBuilding() {
         return config.getBoolean("above-bedrock-nether-building", false);
     }

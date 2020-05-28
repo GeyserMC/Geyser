@@ -25,8 +25,11 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTileEntityPacket;
 
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -52,8 +55,12 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
             BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), null), packet.getPosition());
         }
 
-        if (packet.getNbt().contains("Owner")) {
-            CustomSkullTranslator.SpawnPlayer(session, packet.getNbt());
+        //Check for custom skulls. This was the only place I could find that would update the entity right as the block was placed.
+        if (packet.getNbt().contains("Owner") && CustomSkullTranslator.allowCustomSkulls) {
+            CompoundTag tag = packet.getNbt();
+            Position position = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
+            BlockState blockState = session.getChunkCache().getBlockAt(position);
+            CustomSkullTranslator.SpawnPlayer(session, tag, blockState);
         }
     }
 }
