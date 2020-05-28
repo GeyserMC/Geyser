@@ -72,8 +72,8 @@ public class PacketTranslatorRegistry<T> {
             }
         }
 
-        IGNORED_PACKETS.add(ServerUpdateLightPacket.class);
         IGNORED_PACKETS.add(ServerKeepAlivePacket.class);
+        IGNORED_PACKETS.add(ServerUpdateLightPacket.class);
     }
 
     private PacketTranslatorRegistry() {
