@@ -59,6 +59,16 @@ public class BoatEntity extends Entity {
     }
 
     @Override
+    public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(session, moveX, moveY, moveZ, yaw + 90, pitch, isOnGround);
+    }
+
+    @Override
+    public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(session, 0, 0, 0, Vector3f.from(yaw + 90, 0, 0), isOnGround);
+    }
+
+    @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
 
         // Time since last hit

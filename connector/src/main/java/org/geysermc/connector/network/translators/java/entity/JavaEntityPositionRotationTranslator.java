@@ -25,14 +25,11 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.nukkitx.math.vector.Vector3f;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionRotationPacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionRotationPacket;
 
 @Translator(packet = ServerEntityPositionRotationPacket.class)
 public class JavaEntityPositionRotationTranslator extends PacketTranslator<ServerEntityPositionRotationPacket> {
@@ -45,12 +42,6 @@ public class JavaEntityPositionRotationTranslator extends PacketTranslator<Serve
         }
         if (entity == null) return;
 
-        if (entity.getEntityType() == EntityType.BOAT) {
-            entity.moveRelative(session, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), packet.getYaw() + 90, packet.getPitch(), packet.isOnGround());
-        } else if (entity.getEntityType() == EntityType.PLAYER) {
-            entity.moveRelative(session, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), packet.getYaw(), packet.getPitch(), packet.isOnGround());
-        } else {
-            entity.moveRelative(session, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), Vector3f.from(entity.getRotation().getX(), packet.getPitch(), packet.getYaw()), packet.isOnGround());
-        }
+        entity.updatePositionAndRotation(session, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), packet.getYaw(), packet.getPitch(), packet.isOnGround());
     }
 }

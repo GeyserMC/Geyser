@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;

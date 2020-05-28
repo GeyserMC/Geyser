@@ -191,6 +191,21 @@ public class Entity {
         session.sendUpstreamPacket(moveEntityPacket);
     }
 
+    // Used for JavaEntityHeadLookTranslator
+    public void updateHeadLookRotation(GeyserSession session, float headYaw) {
+        moveRelative(session, 0, 0, 0, Vector3f.from(headYaw, rotation.getY(), rotation.getZ()), onGround);
+    }
+
+    // Used for JavaEntityPositionRotationTranslator
+    public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(session, moveX, moveY, moveZ, Vector3f.from(rotation.getX(), pitch, yaw), isOnGround);
+    }
+
+    // Used for JavaEntityRotationTranslator
+    public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(session, 0, 0, 0, Vector3f.from(yaw, pitch, rotation.getZ()), isOnGround);
+    }
+
     public void updateBedrockAttributes(GeyserSession session) {
         if (!valid) return;
 

@@ -188,6 +188,35 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
+    public void updateHeadLookRotation(GeyserSession session, float headYaw) {
+        moveRelative(session, 0, 0, 0, Vector3f.from(rotation.getX(), rotation.getY(), headYaw), onGround);
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(geyserId);
+        movePlayerPacket.setPosition(position);
+        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.ROTATION);
+        session.sendUpstreamPacket(movePlayerPacket);
+    }
+
+    @Override
+    public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(session, moveX, moveY, moveZ, yaw, pitch, isOnGround);
+    }
+
+    @Override
+    public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
+        super.updateRotation(session, yaw, pitch, isOnGround);
+        // Both packets need to be sent or else player head rotation isn't correctly updated
+        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+        movePlayerPacket.setRuntimeEntityId(geyserId);
+        movePlayerPacket.setPosition(position);
+        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setOnGround(isOnGround);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.ROTATION);
+        session.sendUpstreamPacket(movePlayerPacket);
+    }
+
+    @Override
     public void setPosition(Vector3f position) {
         this.position = position.add(0, entityType.getOffset(), 0);
     }

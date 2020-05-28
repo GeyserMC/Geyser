@@ -25,15 +25,11 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityHeadLookPacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityHeadLookPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 
 @Translator(packet = ServerEntityHeadLookPacket.class)
 public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityHeadLookPacket> {
@@ -45,24 +41,6 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
             entity = session.getPlayerEntity();
         }
 
-        if (entity == null) return;
-
-        if (entity.getEntityType() == EntityType.PAINTING) return; // Head look messes up paintings
-
-        if (entity.getEntityType() == EntityType.PLAYER) {
-            entity.setRotation(Vector3f.from(entity.getRotation().getX(), entity.getRotation().getY(), packet.getHeadYaw()));
-        } else {
-            entity.setRotation(Vector3f.from(packet.getHeadYaw(), entity.getRotation().getY(), entity.getRotation().getZ()));
-        }
-
-        entity.moveRelative(session, 0, 0, 0, entity.getRotation(), entity.isOnGround());
-        if (entity.getEntityType() == EntityType.PLAYER) {
-            MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-            movePlayerPacket.setPosition(entity.getPosition());
-            movePlayerPacket.setRotation(entity.getBedrockRotation());
-            movePlayerPacket.setMode(MovePlayerPacket.Mode.ROTATION);
-            session.sendUpstreamPacket(movePlayerPacket);
-        }
+        entity.updateHeadLookRotation(session, packet.getHeadYaw());
     }
 }
