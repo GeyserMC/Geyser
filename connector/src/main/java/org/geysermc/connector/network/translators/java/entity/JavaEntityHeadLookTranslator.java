@@ -50,7 +50,6 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
         if (entity.getEntityType() == EntityType.PAINTING) return; // Head look messes up paintings
 
         if (entity.getEntityType() == EntityType.PLAYER) {
-            System.out.println(getClass().getName());
             entity.setRotation(Vector3f.from(entity.getRotation().getX(), entity.getRotation().getY(), packet.getHeadYaw()));
         } else {
             entity.setRotation(Vector3f.from(packet.getHeadYaw(), entity.getRotation().getY(), entity.getRotation().getZ()));
