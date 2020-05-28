@@ -193,6 +193,14 @@ public class ChunkUtils {
             }
         }
 
+        if (CustomSkullTranslator.ContainsCustomSkull(new Position(position.getX(), position.getY(), position.getZ())) && blockState.equals(AIR)) {
+            Position position1 = new Position(position.getX(), position.getY(), position.getZ());
+            RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
+            removeEntityPacket.setUniqueEntityId(CustomSkullTranslator.CACHED_SKULLS.get(position1).getGeyserId());
+            session.sendUpstreamPacket(removeEntityPacket);
+            CACHED_BLOCK_ENTITIES.remove(position1);
+        }
+
         int blockId = BlockTranslator.getBedrockBlockId(blockState);
 
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();

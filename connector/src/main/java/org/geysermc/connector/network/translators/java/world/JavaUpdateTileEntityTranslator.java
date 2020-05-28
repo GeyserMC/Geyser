@@ -31,6 +31,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.CustomSkullTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 
@@ -39,6 +40,7 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
 
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
+        System.out.println(packet.toString());
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
         // If not null then the BlockState is used in BlockEntityTranslator.translateTag()
@@ -48,6 +50,10 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
             ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition());
         } else {
             BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), null), packet.getPosition());
+        }
+
+        if (packet.getNbt().contains("Owner")) {
+            CustomSkullTranslator.SpawnPlayer(session, packet.getNbt());
         }
     }
 }

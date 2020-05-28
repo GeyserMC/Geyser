@@ -66,6 +66,7 @@ public class SkinProvider {
     public static final boolean ALLOW_THIRD_PARTY_EARS = GeyserConnector.getInstance().getConfig().isAllowThirdPartyEars();
     public static String EARS_GEOMETRY;
     public static String EARS_GEOMETRY_SLIM;
+    public static String SKULL_GEOMETRY;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final int CACHE_INTERVAL = 8 * 60 * 1000; // 8 minutes
@@ -101,6 +102,21 @@ public class SkinProvider {
         }
 
         EARS_GEOMETRY_SLIM = earsDataBuilder.toString();
+
+        /* Load in the normal ears geometry */
+        InputStream skullStream = FileUtils.getResource("bedrock/skin/geometry.humanoid.customskull.json");
+
+        StringBuilder skullDataBuilder = new StringBuilder();
+        try (Reader reader = new BufferedReader(new InputStreamReader(skullStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
+            int c = 0;
+            while ((c = reader.read()) != -1) {
+                skullDataBuilder.append((char) c);
+            }
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load skull geometry", e);
+        }
+
+        SKULL_GEOMETRY = skullDataBuilder.toString();
     }
 
     public static boolean hasSkinCached(UUID uuid) {
@@ -523,6 +539,15 @@ public class SkinProvider {
          */
         public static SkinGeometry getEars(boolean isSlim) {
             return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.ears" + (isSlim ? "Slim" : "") + "\"}}", (isSlim ? EARS_GEOMETRY_SLIM : EARS_GEOMETRY), false);
+        }
+
+        /**
+         * Generate basic geometry for custom skulls
+         *
+         * @return The generated geometry for the skull model
+         */
+        public static SkinGeometry getSkull() {
+            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.customskull" + "\"}}", SKULL_GEOMETRY, false);
         }
     }
 
