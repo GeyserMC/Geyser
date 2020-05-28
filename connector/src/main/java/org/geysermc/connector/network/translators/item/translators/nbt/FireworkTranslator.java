@@ -27,8 +27,8 @@ package org.geysermc.connector.network.translators.item.translators.nbt;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.utils.FireworkColor;
 
 @ItemRemapper
@@ -41,6 +41,10 @@ public class FireworkTranslator extends NbtItemStackTranslator {
         }
 
         CompoundTag fireworks = itemTag.get("Fireworks");
+        if (fireworks.get("Flight") != null) {
+            fireworks.put(new ByteTag("Flight", Byte.parseByte(fireworks.get("Flight").getValue().toString())));
+        }
+
         ListTag explosions = fireworks.get("Explosions");
         if (explosions == null) {
             return;
@@ -51,7 +55,7 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             CompoundTag newEffectData = new CompoundTag("");
 
             if (effectData.get("Type") != null) {
-                newEffectData.put(new ByteTag("FireworkType", (Byte) effectData.get("Type").getValue()));
+                newEffectData.put(new ByteTag("FireworkType", Byte.parseByte(effectData.get("Type").getValue().toString())));
             }
 
             if (effectData.get("Colors") != null) {
@@ -79,11 +83,11 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             }
 
             if (effectData.get("Trail") != null) {
-                newEffectData.put(new ByteTag("FireworkTrail", (Byte) effectData.get("Trail").getValue()));
+                newEffectData.put(new ByteTag("FireworkTrail", Byte.parseByte(effectData.get("Trail").getValue().toString())));
             }
 
             if (effectData.get("Flicker") != null) {
-                newEffectData.put(new ByteTag("FireworkFlicker", (Byte) effectData.get("Flicker").getValue()));
+                newEffectData.put(new ByteTag("FireworkFlicker", Byte.parseByte(effectData.get("Flicker").getValue().toString())));
             }
 
             explosions.remove(effect);
@@ -94,6 +98,9 @@ public class FireworkTranslator extends NbtItemStackTranslator {
     @Override
     public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
         CompoundTag fireworks = itemTag.get("Fireworks");
+        if (fireworks.get("Flight") != null) {
+            fireworks.put(new ByteTag("Flight", Byte.parseByte(fireworks.get("Flight").getValue().toString())));
+        }
 
         ListTag explosions = fireworks.get("Explosions");
         for (Tag effect : explosions.getValue()) {
@@ -102,7 +109,7 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             CompoundTag newEffectData = new CompoundTag("");
 
             if (effectData.get("FireworkType") != null) {
-                newEffectData.put(new ByteTag("Type", (Byte) effectData.get("FireworkType").getValue()));
+                newEffectData.put(new ByteTag("Type", Byte.parseByte(effectData.get("FireworkType").getValue().toString())));
             }
 
             if (effectData.get("FireworkColor") != null) {
@@ -130,11 +137,11 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             }
 
             if (effectData.get("FireworkTrail") != null) {
-                newEffectData.put(new ByteTag("Trail", (Byte) effectData.get("FireworkTrail").getValue()));
+                newEffectData.put(new ByteTag("Trail", Byte.parseByte(effectData.get("FireworkTrail").getValue().toString())));
             }
 
             if (effectData.get("FireworkFlicker") != null) {
-                newEffectData.put(new ByteTag("Flicker", (Byte) effectData.get("FireworkFlicker").getValue()));
+                newEffectData.put(new ByteTag("Flicker", Byte.parseByte(effectData.get("FireworkFlicker").getValue().toString())));
             }
 
             explosions.remove(effect);

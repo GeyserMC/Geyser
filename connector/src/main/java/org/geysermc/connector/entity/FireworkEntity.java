@@ -63,7 +63,7 @@ public class FireworkEntity extends Entity {
 
             CompoundTagBuilder fireworksBuilder = CompoundTagBuilder.builder();
             if (fireworks.get("Flight") != null) {
-                fireworksBuilder.byteTag("Flight", (Byte) fireworks.get("Flight").getValue());
+                fireworksBuilder.byteTag("Flight", Byte.parseByte(fireworks.get("Flight").getValue().toString()));
             }
 
             List<com.nukkitx.nbt.tag.CompoundTag> explosions = new ArrayList<>();
@@ -73,7 +73,7 @@ public class FireworkEntity extends Entity {
                     CompoundTagBuilder effectBuilder = CompoundTagBuilder.builder();
 
                     if (effectData.get("Type") != null) {
-                        effectBuilder.byteTag("FireworkType", (Byte) effectData.get("Type").getValue());
+                        effectBuilder.byteTag("FireworkType", Byte.parseByte(effectData.get("Type").getValue().toString()));
                     }
 
                     if (effectData.get("Colors") != null) {
@@ -101,11 +101,11 @@ public class FireworkEntity extends Entity {
                     }
 
                     if (effectData.get("Trail") != null) {
-                        effectBuilder.byteTag("FireworkTrail", (Byte) effectData.get("Trail").getValue());
+                        effectBuilder.byteTag("FireworkTrail", Byte.parseByte(effectData.get("Trail").getValue().toString()));
                     }
 
                     if (effectData.get("Flicker") != null) {
-                        effectBuilder.byteTag("FireworkFlicker", (Byte) effectData.get("Flicker").getValue());
+                        effectBuilder.byteTag("FireworkFlicker", Byte.parseByte(effectData.get("Flicker").getValue().toString()));
                     }
 
                     explosions.add(effectBuilder.buildRootTag());
