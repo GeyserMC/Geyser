@@ -27,6 +27,7 @@
 package org.geysermc.connector.network.translators.effect;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
@@ -50,7 +51,8 @@ public class EffectRegistry {
     public static final Int2ObjectMap<SoundEvent> RECORDS = new Int2ObjectOpenHashMap<>();
 
     private static Map<ParticleType, LevelEventType> particleTypeMap = new HashMap<>();
-    private static Map<ParticleType, String> particleStringMap = new HashMap<>();
+    public static Map<ParticleType, String> particleStringMap = new HashMap<>();
+    public static Map<ParticleType, Integer> particleIdMap = new HashMap<>();
 
     public static void init() {
         // no-op
@@ -69,18 +71,29 @@ public class EffectRegistry {
         Iterator<Map.Entry<String, JsonNode>> particlesIterator = particleEntries.fields();
         while (particlesIterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = particlesIterator.next();
-            try {
-                particleTypeMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), LevelEventType.valueOf(entry.getValue().asText().toUpperCase()));
-            } catch (IllegalArgumentException e1) {
+            JsonNode bedrockId = entry.getValue().get("bedrockId");
+            JsonNode bedrockIdNumeric = entry.getValue().get("bedrockNumericId");
+            JsonNode eventType = entry.getValue().get("eventType");
+            if (bedrockIdNumeric != null && bedrockIdNumeric.getNodeType() == JsonNodeType.NUMBER) {
+                particleIdMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), bedrockIdNumeric.asInt());
+            }
+            if (bedrockId != null && bedrockId.getNodeType() == JsonNodeType.STRING) {
+                particleStringMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), bedrockId.asText());
+            }
+            if (eventType != null && eventType.getNodeType() == JsonNodeType.STRING) {
                 try {
-                    particleStringMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), entry.getValue().asText());
-                    GeyserConnector.getInstance().getLogger().debug("Force to map particle "
-                            + entry.getKey()
-                            + "=>"
-                            + entry.getValue().asText()
-                            + ", it will take effect.");
-                } catch (IllegalArgumentException e2){
-                    GeyserConnector.getInstance().getLogger().warning("Fail to map particle " + entry.getKey() + "=>" + entry.getValue().asText());
+                    particleTypeMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), LevelEventType.valueOf(eventType.asText().toUpperCase()));
+                } catch (IllegalArgumentException e1) {
+                    try {
+                        particleStringMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), eventType.asText());
+                        GeyserConnector.getInstance().getLogger().debug("Force to map particle "
+                                + entry.getKey()
+                                + "=>"
+                                + entry.getValue().asText()
+                                + ", it will take effect.");
+                    } catch (IllegalArgumentException e2) {
+                        GeyserConnector.getInstance().getLogger().warning("Fail to map particle eventType " + entry.getKey() + "=>" + eventType.asText());
+                    }
                 }
             }
         }
@@ -117,7 +130,11 @@ public class EffectRegistry {
         return particleTypeMap.getOrDefault(type, null);
     }
 
-    public static String getParticleString(@NonNull ParticleType type){
+    public static String getParticleString(@NonNull ParticleType type) {
         return particleStringMap.getOrDefault(type, null);
+    }
+
+    public static Integer getParticleId(@NonNull ParticleType type) {
+        return particleIdMap.getOrDefault(type, null);
     }
 }
