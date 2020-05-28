@@ -35,6 +35,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
 
 public class AreaEffectCloudEntity extends Entity {
+
     public AreaEffectCloudEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
