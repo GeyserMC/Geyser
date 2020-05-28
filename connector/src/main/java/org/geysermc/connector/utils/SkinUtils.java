@@ -241,17 +241,14 @@ public class SkinUtils {
                                 playerAddPacket.getEntries().add(updatedEntry);
                                 session.sendUpstreamPacket(playerAddPacket);
 
-                                if(entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
-                                    session.fetchOurSkin(updatedEntry);
-                                } else {
-                                    PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
-                                    playerSkinPacket.setUuid(entity.getUuid());
-                                    playerSkinPacket.setSkin(updatedEntry.getSkin());
-                                    playerSkinPacket.setOldSkinName("OldName");
-                                    playerSkinPacket.setNewSkinName(String.valueOf(updatedEntry.getSkin().hashCode()));
-                                    playerSkinPacket.setTrustedSkin(true);
-                                    session.getUpstream().sendPacket(playerSkinPacket);
-                                }
+                                PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
+                                playerSkinPacket.setUuid(entity.getUuid());
+                                playerSkinPacket.setSkin(updatedEntry.getSkin());
+                                playerSkinPacket.setOldSkinName("OldName");
+                                playerSkinPacket.setNewSkinName(String.valueOf(updatedEntry.getSkin().hashCode()));
+                                playerSkinPacket.setTrustedSkin(true);
+                                session.getUpstream().sendPacket(playerSkinPacket);
+                                session.getConnector().getLogger().debug("Sending skin for " + entity.getUsername());
                             }
                         } catch (Exception e) {
                             GeyserConnector.getInstance().getLogger().error("Failed getting skin for " + entity.getUuid(), e);
