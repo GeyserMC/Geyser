@@ -33,7 +33,6 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityHeadLookPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 
 @Translator(packet = ServerEntityHeadLookPacket.class)
@@ -48,15 +47,17 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
 
         if (entity == null) return;
 
-        entity.setRotation(Vector3f.from(entity.getRotation().getX(), entity.getRotation().getY(), packet.getHeadYaw()));
+        if (entity.getEntityType() == EntityType.PAINTING) return; // Head look messes up paintings
 
-        if (entity.getEntityType() != EntityType.PLAYER && entity.getEntityType() != EntityType.PAINTING) {
-            MoveEntityAbsolutePacket moveEntityAbsolutePacket = new MoveEntityAbsolutePacket();
-            moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
-            moveEntityAbsolutePacket.setPosition(entity.getPosition());
-            moveEntityAbsolutePacket.setRotation(entity.getBedrockRotation());
-            session.sendUpstreamPacket(moveEntityAbsolutePacket);
+        if (entity.getEntityType() == EntityType.PLAYER) {
+            System.out.println(getClass().getName());
+            entity.setRotation(Vector3f.from(entity.getRotation().getX(), entity.getRotation().getY(), packet.getHeadYaw()));
         } else {
+            entity.setRotation(Vector3f.from(packet.getHeadYaw(), entity.getRotation().getY(), entity.getRotation().getZ()));
+        }
+
+        entity.moveRelative(session, 0, 0, 0, entity.getRotation(), entity.isOnGround());
+        if (entity.getEntityType() == EntityType.PLAYER) {
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
             movePlayerPacket.setPosition(entity.getPosition());

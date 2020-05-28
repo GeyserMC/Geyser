@@ -44,19 +44,18 @@ public class BoatEntity extends Entity {
     private final float ROWING_SPEED = 0.05f;
 
     public BoatEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation.add(0, 0, 90));
+        super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation.add(90, 0, 90));
     }
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        // Rotation is basically only called when entering/exiting a boat.
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), Vector3f.from(0, 0, rotation.getZ() + 90), isOnGround, teleported);
+        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), Vector3f.from(rotation.getX() + 90, 0, rotation.getX() + 90), isOnGround, teleported);
     }
 
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        super.moveRelative(session, relX, relY, relZ, Vector3f.from(0, 0, rotation.getZ()), isOnGround);
+        super.moveRelative(session, relX, relY, relZ, Vector3f.from(rotation.getX(), 0, rotation.getX()), isOnGround);
     }
 
     @Override

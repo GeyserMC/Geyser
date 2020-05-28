@@ -33,7 +33,6 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityRotationPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 
 @Translator(packet = ServerEntityRotationPacket.class)
@@ -47,16 +46,16 @@ public class JavaEntityRotationTranslator extends PacketTranslator<ServerEntityR
         }
         if (entity == null) return;
 
-        // entity.moveRelative(packet.getMovementX(), packet.getMovementY(), packet.getMovementZ(), packet.getYaw(), packet.getPitch());
-        entity.setRotation(Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw()));
-
-        if (entity.getEntityType() != EntityType.PLAYER) {
-            MoveEntityAbsolutePacket moveEntityAbsolutePacket = new MoveEntityAbsolutePacket();
-            moveEntityAbsolutePacket.setRuntimeEntityId(entity.getGeyserId());
-            moveEntityAbsolutePacket.setPosition(entity.getPosition());
-            moveEntityAbsolutePacket.setRotation(entity.getBedrockRotation());
-            session.sendUpstreamPacket(moveEntityAbsolutePacket);
+        if (entity.getEntityType() == EntityType.BOAT) {
+            entity.setRotation(Vector3f.from(packet.getYaw() + 90, 0, 0));
+        } else if (entity.getEntityType() == EntityType.PLAYER) {
+            entity.setRotation(Vector3f.from(packet.getYaw(), packet.getPitch(), entity.getRotation().getZ()));
         } else {
+            entity.setRotation(Vector3f.from(packet.getYaw(), packet.getPitch(), entity.getRotation().getZ()));
+        }
+
+        entity.moveRelative(session, 0, 0, 0, entity.getRotation(), packet.isOnGround());
+        if (entity.getEntityType() == EntityType.PLAYER) { // Both packets need to be sent or else player head rotation isn't correctly updated
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
             movePlayerPacket.setPosition(entity.getPosition());
