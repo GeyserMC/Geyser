@@ -37,4 +37,17 @@ public class MathUtils {
         int truncated = (int) floatNumber;
         return floatNumber > truncated ? truncated + 1 : truncated;
     }
+
+    /**
+     * Converts the given object from an int or byte to byte
+     *
+     * @param value The value to convert
+     * @return The converted byte
+     */
+    public static Byte convertByte(Object value) {
+        if(value instanceof Integer){
+            return ((Integer) value).byteValue();
+        }
+        return (Byte) value;
+    }
 }

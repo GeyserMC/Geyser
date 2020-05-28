@@ -30,6 +30,7 @@ import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.utils.FireworkColor;
+import org.geysermc.connector.utils.MathUtils;
 
 @ItemRemapper
 public class FireworkTranslator extends NbtItemStackTranslator {
@@ -42,7 +43,7 @@ public class FireworkTranslator extends NbtItemStackTranslator {
 
         CompoundTag fireworks = itemTag.get("Fireworks");
         if (fireworks.get("Flight") != null) {
-            fireworks.put(new ByteTag("Flight", Byte.parseByte(fireworks.get("Flight").getValue().toString())));
+            fireworks.put(new ByteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue())));
         }
 
         ListTag explosions = fireworks.get("Explosions");
@@ -55,7 +56,7 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             CompoundTag newEffectData = new CompoundTag("");
 
             if (effectData.get("Type") != null) {
-                newEffectData.put(new ByteTag("FireworkType", Byte.parseByte(effectData.get("Type").getValue().toString())));
+                newEffectData.put(new ByteTag("FireworkType", MathUtils.convertByte(effectData.get("Type").getValue())));
             }
 
             if (effectData.get("Colors") != null) {
@@ -83,11 +84,11 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             }
 
             if (effectData.get("Trail") != null) {
-                newEffectData.put(new ByteTag("FireworkTrail", Byte.parseByte(effectData.get("Trail").getValue().toString())));
+                newEffectData.put(new ByteTag("FireworkTrail", MathUtils.convertByte(effectData.get("Trail").getValue())));
             }
 
             if (effectData.get("Flicker") != null) {
-                newEffectData.put(new ByteTag("FireworkFlicker", Byte.parseByte(effectData.get("Flicker").getValue().toString())));
+                newEffectData.put(new ByteTag("FireworkFlicker", MathUtils.convertByte(effectData.get("Flicker").getValue())));
             }
 
             explosions.remove(effect);
@@ -99,7 +100,7 @@ public class FireworkTranslator extends NbtItemStackTranslator {
     public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
         CompoundTag fireworks = itemTag.get("Fireworks");
         if (fireworks.get("Flight") != null) {
-            fireworks.put(new ByteTag("Flight", Byte.parseByte(fireworks.get("Flight").getValue().toString())));
+            fireworks.put(new ByteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue())));
         }
 
         ListTag explosions = fireworks.get("Explosions");
@@ -109,7 +110,7 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             CompoundTag newEffectData = new CompoundTag("");
 
             if (effectData.get("FireworkType") != null) {
-                newEffectData.put(new ByteTag("Type", Byte.parseByte(effectData.get("FireworkType").getValue().toString())));
+                newEffectData.put(new ByteTag("Type", MathUtils.convertByte(effectData.get("FireworkType").getValue())));
             }
 
             if (effectData.get("FireworkColor") != null) {
@@ -137,11 +138,11 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             }
 
             if (effectData.get("FireworkTrail") != null) {
-                newEffectData.put(new ByteTag("Trail", Byte.parseByte(effectData.get("FireworkTrail").getValue().toString())));
+                newEffectData.put(new ByteTag("Trail", MathUtils.convertByte(effectData.get("FireworkTrail").getValue())));
             }
 
             if (effectData.get("FireworkFlicker") != null) {
-                newEffectData.put(new ByteTag("Flicker", Byte.parseByte(effectData.get("FireworkFlicker").getValue().toString())));
+                newEffectData.put(new ByteTag("Flicker", MathUtils.convertByte(effectData.get("FireworkFlicker").getValue())));
             }
 
             explosions.remove(effect);
