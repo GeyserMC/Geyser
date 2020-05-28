@@ -53,7 +53,7 @@ public class SkinProvider {
     public static final Skin EMPTY_SKIN = new Skin(-1, "steve", STEVE_SKIN);
     public static final byte[] ALEX_SKIN = new ProvidedSkin("bedrock/skin/skin_alex.png").getSkin();
     public static final Skin EMPTY_SKIN_ALEX = new Skin(-1, "alex", ALEX_SKIN);
-    private static Map<UUID, Skin> cachedSkins = new ConcurrentHashMap<>();
+    private static Map<String, Skin> cachedSkins = new ConcurrentHashMap<>();
     private static Map<UUID, CompletableFuture<Skin>> requestedSkins = new ConcurrentHashMap<>();
 
     public static final Cape EMPTY_CAPE = new Cape("", "no-cape", new byte[0], -1, true);
@@ -68,7 +68,7 @@ public class SkinProvider {
     public static String EARS_GEOMETRY_SLIM;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final int CACHE_INTERVAL = 8 * 60 * 1000; // 8 minutes
+    private static final int CACHE_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
     static {
         /* Load in the normal ears geometry */
@@ -103,10 +103,6 @@ public class SkinProvider {
         EARS_GEOMETRY_SLIM = earsDataBuilder.toString();
     }
 
-    public static boolean hasSkinCached(UUID uuid) {
-        return cachedSkins.containsKey(uuid);
-    }
-
     public static boolean hasCapeCached(String capeUrl) {
         return cachedCapes.containsKey(capeUrl);
     }
@@ -138,18 +134,18 @@ public class SkinProvider {
         if (textureUrl == null || textureUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_SKIN);
         if (requestedSkins.containsKey(playerId)) return requestedSkins.get(playerId); // already requested
 
-        if ((System.currentTimeMillis() - CACHE_INTERVAL) < cachedSkins.getOrDefault(playerId, EMPTY_SKIN).getRequestedOn()) {
+        if ((System.currentTimeMillis() - CACHE_INTERVAL) < cachedSkins.getOrDefault(textureUrl, EMPTY_SKIN).getRequestedOn()) {
             // no need to update, still cached
-            return CompletableFuture.completedFuture(cachedSkins.get(playerId));
+            return CompletableFuture.completedFuture(cachedSkins.get(textureUrl));
         }
 
         CompletableFuture<Skin> future;
         if (newThread) {
             future = CompletableFuture.supplyAsync(() -> supplySkin(playerId, textureUrl), EXECUTOR_SERVICE)
                     .whenCompleteAsync((skin, throwable) -> {
-                        if (!cachedSkins.getOrDefault(playerId, EMPTY_SKIN).getTextureUrl().equals(textureUrl)) {
+                        if (!cachedSkins.getOrDefault(textureUrl, EMPTY_SKIN).getTextureUrl().equals(textureUrl)) {
                             skin.updated = true;
-                            cachedSkins.put(playerId, skin);
+                            cachedSkins.put(textureUrl, skin);
                         }
                         requestedSkins.remove(skin.getSkinOwner());
                     });
@@ -157,7 +153,7 @@ public class SkinProvider {
         } else {
             Skin skin = supplySkin(playerId, textureUrl);
             future = CompletableFuture.completedFuture(skin);
-            cachedSkins.put(playerId, skin);
+            cachedSkins.put(textureUrl, skin);
         }
         return future;
     }
@@ -255,7 +251,7 @@ public class SkinProvider {
 
     public static void storeBedrockSkin(UUID playerID, String skinID, byte[] skinData) {
         Skin skin = new Skin(playerID, skinID, skinData, System.currentTimeMillis(), true, false);
-        cachedSkins.put(playerID, skin);
+        cachedSkins.put(skin.getTextureUrl(), skin);
     }
 
     public static void storeBedrockCape(UUID playerID, byte[] capeData) {
@@ -275,7 +271,7 @@ public class SkinProvider {
      * @param skin The skin to cache
      */
     public static void storeEarSkin(UUID playerID, Skin skin) {
-        cachedSkins.put(playerID, skin);
+        cachedSkins.put(skin.getTextureUrl(), skin);
     }
 
     /**

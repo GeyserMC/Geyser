@@ -32,6 +32,7 @@ import com.nukkitx.protocol.bedrock.data.ImageData;
 import com.nukkitx.protocol.bedrock.data.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 
+import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -88,7 +89,7 @@ public class SkinUtils {
                                                             String geometryName, String geometryData) {
         SerializedSkin serializedSkin = SerializedSkin.of(
                 skinId, geometryName, ImageData.of(skinData), Collections.emptyList(),
-                ImageData.of(capeData), geometryData, "", true, false, !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, uuid.toString()
+                ImageData.of(capeData), geometryData, "", true, false, !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, skinId
         );
 
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
@@ -202,48 +203,54 @@ public class SkinUtils {
                                 }
                             }
 
-                            if (entity.getLastSkinUpdate() < skin.getRequestedOn()) {
-                                entity.setLastSkinUpdate(skin.getRequestedOn());
+                            entity.setLastSkinUpdate(skin.getRequestedOn());
 
-                                if (session.getUpstream().isInitialized()) {
-                                    PlayerListPacket.Entry updatedEntry = buildEntryManually(
-                                            entity.getUuid(),
-                                            entity.getUsername(),
-                                            entity.getGeyserId(),
-                                            entity.getUuid().toString(),
-                                            skin.getSkinData(),
-                                            cape.getCapeId(),
-                                            cape.getCapeData(),
-                                            geometry.getGeometryName(),
-                                            geometry.getGeometryData()
-                                    );
+                            if (session.getUpstream().isInitialized()) {
+                                PlayerListPacket.Entry updatedEntry = buildEntryManually(
+                                        entity.getUuid(),
+                                        entity.getUsername(),
+                                        entity.getGeyserId(),
+                                        skin.getTextureUrl(),
+                                        skin.getSkinData(),
+                                        cape.getCapeId(),
+                                        cape.getCapeData(),
+                                        geometry.getGeometryName(),
+                                        geometry.getGeometryData()
+                                );
 
-                                    // If it is our skin we replace the UUID with the authdata UUID
-                                    if (session.getPlayerEntity() == entity) {
-                                        // Copy the entry with our identity instead.
-                                        PlayerListPacket.Entry copy = new PlayerListPacket.Entry(session.getAuthData().getUUID());
-                                        copy.setName(updatedEntry.getName());
-                                        copy.setEntityId(updatedEntry.getEntityId());
-                                        copy.setSkin(updatedEntry.getSkin());
-                                        copy.setXuid(updatedEntry.getXuid());
-                                        copy.setPlatformChatId(updatedEntry.getPlatformChatId());
-                                        copy.setTeacher(updatedEntry.isTeacher());
-                                        updatedEntry = copy;
-                                    }
+                                // If it is our skin we replace the UUID with the authdata UUID
+                                if (session.getPlayerEntity() == entity) {
+                                    // Copy the entry with our identity instead.
+                                    PlayerListPacket.Entry copy = new PlayerListPacket.Entry(session.getAuthData().getUUID());
+                                    copy.setName(updatedEntry.getName());
+                                    copy.setEntityId(updatedEntry.getEntityId());
+                                    copy.setSkin(updatedEntry.getSkin());
+                                    copy.setXuid(updatedEntry.getXuid());
+                                    copy.setPlatformChatId(updatedEntry.getPlatformChatId());
+                                    copy.setTeacher(updatedEntry.isTeacher());
+                                    updatedEntry = copy;
+                                }
 
-                                    PlayerListPacket playerRemovePacket = new PlayerListPacket();
-                                    playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
-                                    playerRemovePacket.getEntries().add(updatedEntry);
-                                    session.sendUpstreamPacket(playerRemovePacket);
+                                PlayerListPacket playerRemovePacket = new PlayerListPacket();
+                                playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
+                                playerRemovePacket.getEntries().add(updatedEntry);
+                                session.sendUpstreamPacket(playerRemovePacket);
 
-                                    PlayerListPacket playerAddPacket = new PlayerListPacket();
-                                    playerAddPacket.setAction(PlayerListPacket.Action.ADD);
-                                    playerAddPacket.getEntries().add(updatedEntry);
-                                    session.sendUpstreamPacket(playerAddPacket);
+                                PlayerListPacket playerAddPacket = new PlayerListPacket();
+                                playerAddPacket.setAction(PlayerListPacket.Action.ADD);
+                                playerAddPacket.getEntries().add(updatedEntry);
+                                session.sendUpstreamPacket(playerAddPacket);
 
-                                    if(entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
-                                        session.fetchOurSkin(updatedEntry);
-                                    }
+                                if(entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
+                                    session.fetchOurSkin(updatedEntry);
+                                } else {
+                                    PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
+                                    playerSkinPacket.setUuid(entity.getUuid());
+                                    playerSkinPacket.setSkin(updatedEntry.getSkin());
+                                    playerSkinPacket.setOldSkinName("OldName");
+                                    playerSkinPacket.setNewSkinName(String.valueOf(updatedEntry.getSkin().hashCode()));
+                                    playerSkinPacket.setTrustedSkin(true);
+                                    session.getUpstream().sendPacket(playerSkinPacket);
                                 }
                             }
                         } catch (Exception e) {
