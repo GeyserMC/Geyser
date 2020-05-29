@@ -38,7 +38,6 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
 
     @Override
     public void translate(AdventureSettingsPacket packet, GeyserSession session) {
-        System.out.println(packet.toString());
         // Only canFly and flying are used by the server
         // https://wiki.vg/Protocol#Player_Abilities_.28serverbound.29
         boolean canFly = packet.getFlags().contains(AdventureSettingsPacket.Flag.MAY_FLY);
