@@ -41,6 +41,8 @@ public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityH
             entity = session.getPlayerEntity();
         }
 
+        if (entity == null) return;
+
         entity.updateHeadLookRotation(session, packet.getHeadYaw());
     }
 }

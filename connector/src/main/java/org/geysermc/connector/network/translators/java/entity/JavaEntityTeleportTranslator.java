@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -45,6 +44,6 @@ public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityT
         }
         if (entity == null) return;
 
-        entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), packet.isOnGround(), false);
+        entity.teleport(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), packet.isOnGround());
     }
 }

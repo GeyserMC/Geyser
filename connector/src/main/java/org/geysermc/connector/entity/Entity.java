@@ -173,7 +173,7 @@ public class Entity {
     }
 
     public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
-        moveAbsolute(session, position, Vector3f.from(yaw, pitch, yaw), isOnGround, teleported);
+        moveAbsolute(session, position, Vector3f.from(yaw, pitch, this.rotation.getZ()), isOnGround, teleported);
     }
 
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
@@ -189,6 +189,11 @@ public class Entity {
         moveEntityPacket.setTeleported(teleported);
 
         session.sendUpstreamPacket(moveEntityPacket);
+    }
+
+    // Used for JavaEntityTeleportTranslator
+    public void teleport(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround) {
+        moveAbsolute(session, position, yaw, pitch, isOnGround, false);
     }
 
     // Used for JavaEntityHeadLookTranslator
