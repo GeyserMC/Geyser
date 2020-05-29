@@ -149,6 +149,15 @@ public class ChunkUtils {
             Position pos = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
             BlockState blockState = blockEntityPositions.get(pos);
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
+
+            //Check for custom skulls
+            if (tag.contains("Owner") && SkullBlockEntityTranslator.allowCustomSkulls) {
+                CompoundTag Owner = tag.get("Owner");
+                if (Owner.contains("Properties")) {
+                    SkullBlockEntityTranslator.SpawnPlayer(session, tag, blockState);
+                }
+            }
+
             i++;
         }
         for (com.nukkitx.nbt.tag.CompoundTag tag : bedrockOnlyBlockEntities) {
@@ -156,16 +165,6 @@ public class ChunkUtils {
             i++;
         }
 
-        //Check for custom skulls
-        for (CompoundTag compoundTag : blockEntities) {
-            if (compoundTag.contains("Owner") && SkullBlockEntityTranslator.allowCustomSkulls) {
-                CompoundTag Owner = compoundTag.get("Owner");
-                if (Owner.contains("Properties")) {
-                    BlockState blockState = blockEntityPositions.get(new Position((int) compoundTag.get("x").getValue(), (int) compoundTag.get("y").getValue(), (int) compoundTag.get("z").getValue()));
-                    SkullBlockEntityTranslator.SpawnPlayer(session, compoundTag, blockState);
-                }
-            }
-        }
         chunkData.blockEntities = bedrockBlockEntities;
         return chunkData;
     }
@@ -204,11 +203,11 @@ public class ChunkUtils {
         }
 
         if (SkullBlockEntityTranslator.ContainsCustomSkull(new Position(position.getX(), position.getY(), position.getZ())) && blockState.equals(AIR)) {
-            Position position1 = new Position(position.getX(), position.getY(), position.getZ());
+            Position skullPosition = new Position(position.getX(), position.getY(), position.getZ());
             RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
-            removeEntityPacket.setUniqueEntityId(SkullBlockEntityTranslator.CACHED_SKULLS.get(position1).getGeyserId());
+            removeEntityPacket.setUniqueEntityId(SkullBlockEntityTranslator.CACHED_SKULLS.get(skullPosition).getGeyserId());
             session.sendUpstreamPacket(removeEntityPacket);
-            CACHED_BLOCK_ENTITIES.remove(position1);
+            SkullBlockEntityTranslator.CACHED_SKULLS.remove(skullPosition);
         }
 
         int blockId = BlockTranslator.getBedrockBlockId(blockState);

@@ -201,8 +201,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static boolean ContainsCustomSkull(Position position) {
-        if (CACHED_SKULLS.containsKey(position))
-            return true;
-        return false;
+        return CACHED_SKULLS.containsKey(position);
     }
 }
