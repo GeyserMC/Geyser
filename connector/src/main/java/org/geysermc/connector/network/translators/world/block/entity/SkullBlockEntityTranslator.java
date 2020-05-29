@@ -53,8 +53,6 @@ import java.util.concurrent.TimeUnit;
 
 @BlockEntity(name = "Skull", regex = "skull")
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
-    public static final Map<Position, PlayerEntity> CACHED_SKULLS = new HashMap<>();
     public static final boolean allowCustomSkulls = GeyserConnector.getInstance().getConfig().isAllowCustomSkulls();
 
     @Override
@@ -87,8 +85,8 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return tagBuilder.buildRootTag();
     }
 
-    public static SerializedSkin getSkin(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
-        if (tag.contains("Owner") && !CACHED_SKULLS.containsKey(tag)) {
+    public static SerializedSkin getSkin(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, GeyserSession session) {
+        if (tag.contains("Owner") && !session.getCACHED_SKULLS().containsKey(tag)) {
             com.github.steveice10.opennbt.tag.builtin.CompoundTag Owner = tag.get("Owner");
             com.github.steveice10.opennbt.tag.builtin.CompoundTag Properties = Owner.get("Properties");
             ListTag Textures = Properties.get("textures");
@@ -118,7 +116,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static void spawnPlayer(GeyserSession session, com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, BlockState blockState) {
-        SerializedSkin skin = getSkin(tag);
+        SerializedSkin skin = getSkin(tag, session);
         float x = (int) tag.get("x").getValue() + .5f;
         float y = (int) tag.get("y").getValue() - .01f;
         float z = (int) tag.get("z").getValue() + .5f;
@@ -186,14 +184,14 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         player.updateBedrockAttributes(session);
         player.moveAbsolute(session, Vector3f.from(x, y, z), rotation, 0, true, false);
-        CACHED_SKULLS.put((new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue())), player);
+        session.getCACHED_SKULLS().put((new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue())), player);
         session.getConnector().getGeneralThreadPool().schedule(() -> {
             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
             player.updateBedrockMetadata(session);
         }, 500, TimeUnit.MILLISECONDS); //Delay 500 milliseconds to give the model time to load in
     }
 
-    public static boolean containsCustomSkull(Position position) {
-        return CACHED_SKULLS.containsKey(position);
+    public static boolean containsCustomSkull(Position position, GeyserSession session) {
+        return session.getCACHED_SKULLS().containsKey(position);
     }
 }

@@ -151,7 +151,7 @@ public class GeyserBungeeConfiguration implements GeyserConfiguration {
     }
 
     @Override
-    public boolean isAllowCustomSkulls() { return config.getBoolean("allow-custom-skulls", false); }
+    public boolean isAllowCustomSkulls() { return config.getBoolean("allow-custom-skulls", true); }
 
     @Override
     public boolean isAboveBedrockNetherBuilding() {

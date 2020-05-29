@@ -153,7 +153,7 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
 
     @Override
     public boolean isAllowCustomSkulls() {
-        return config.getBoolean("allow-custom-skulls", false);
+        return config.getBoolean("allow-custom-skulls", true);
     }
 
     @Override
