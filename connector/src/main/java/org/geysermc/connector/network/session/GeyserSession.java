@@ -167,7 +167,7 @@ public class GeyserSession implements CommandSender {
     private Entity ridingVehicleEntity;
 
     @Setter
-    private Map<Position, PlayerEntity> CACHED_SKULLS = new HashMap<>();
+    private Map<Position, PlayerEntity> cachedSkulls = new HashMap<>();
 
     @Setter
     private int craftSlot = 0;

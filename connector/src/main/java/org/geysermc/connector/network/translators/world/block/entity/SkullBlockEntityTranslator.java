@@ -86,7 +86,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static SerializedSkin getSkin(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, GeyserSession session) {
-        if (tag.contains("Owner") && !session.getCACHED_SKULLS().containsKey(tag)) {
+        if (tag.contains("Owner") && !session.getCachedSkulls().containsKey(tag)) {
             com.github.steveice10.opennbt.tag.builtin.CompoundTag Owner = tag.get("Owner");
             com.github.steveice10.opennbt.tag.builtin.CompoundTag Properties = Owner.get("Properties");
             ListTag Textures = Properties.get("textures");
@@ -184,7 +184,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         player.updateBedrockAttributes(session);
         player.moveAbsolute(session, Vector3f.from(x, y, z), rotation, 0, true, false);
-        session.getCACHED_SKULLS().put((new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue())), player);
+        session.getCachedSkulls().put((new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue())), player);
         session.getConnector().getGeneralThreadPool().schedule(() -> {
             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
             player.updateBedrockMetadata(session);
@@ -192,6 +192,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static boolean containsCustomSkull(Position position, GeyserSession session) {
-        return session.getCACHED_SKULLS().containsKey(position);
+        return session.getCachedSkulls().containsKey(position);
     }
 }

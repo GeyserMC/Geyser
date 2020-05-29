@@ -43,11 +43,11 @@ public class JavaUnloadChunkTranslator extends PacketTranslator<ServerUnloadChun
         session.getChunkCache().removeChunk(new ChunkPosition(packet.getX(), packet.getZ()));
 
         //Checks if a skull is in an unloaded chunk then removes it
-        Iterator<Position> iterator = session.getCACHED_SKULLS().keySet().iterator();
+        Iterator<Position> iterator = session.getCachedSkulls().keySet().iterator();
         while (iterator.hasNext()) {
             Position position = iterator.next();
             if (Math.floor(position.getX() / 16) == packet.getX() && Math.floor(position.getZ() / 16) == packet.getZ()) {
-                session.getCACHED_SKULLS().get(position).despawnEntity(session);
+                session.getCachedSkulls().get(position).despawnEntity(session);
                 iterator.remove();
             }
         }
