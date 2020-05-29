@@ -96,43 +96,18 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
         session.setSpawned(true);
 
-        double newX;
-        double newY;
-        double newZ;
-
-        double newPitch;
-        double newYaw;
-
         // If coordinates are relative, then add to the existing coordinate
-        if (packet.getRelative().contains(PositionElement.X)) {
-            newX = entity.getPosition().getX() + packet.getX();
-        } else {
-            newX = packet.getX();
-        }
+        double newX = packet.getX() +
+                (packet.getRelative().contains(PositionElement.X) ? entity.getPosition().getX() : 0);
+        double newY = packet.getY() +
+                (packet.getRelative().contains(PositionElement.Y) ? entity.getPosition().getY() - EntityType.PLAYER.getOffset() : 0);
+        double newZ = packet.getZ() +
+                (packet.getRelative().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
 
-        if (packet.getRelative().contains(PositionElement.Y)) {
-            newY = entity.getPosition().getY() + packet.getY() - (EntityType.PLAYER.getOffset());
-        } else {
-            newY = packet.getY();
-        }
-
-        if (packet.getRelative().contains(PositionElement.Z)) {
-            newZ = entity.getPosition().getZ() + packet.getZ();
-        } else {
-            newZ = packet.getZ();
-        }
-
-        if (packet.getRelative().contains(PositionElement.PITCH)) {
-            newPitch = entity.getBedrockRotation().getX() + packet.getPitch();
-        } else {
-            newPitch = packet.getPitch();
-        }
-
-        if (packet.getRelative().contains(PositionElement.YAW)) {
-            newYaw = entity.getBedrockRotation().getY() + packet.getYaw();
-        } else {
-            newYaw = packet.getYaw();
-        }
+        double newPitch = packet.getPitch() +
+                (packet.getRelative().contains(PositionElement.PITCH) ? entity.getBedrockRotation().getX() : 0);
+        double newYaw = packet.getYaw() +
+                (packet.getRelative().contains(PositionElement.YAW) ? entity.getBedrockRotation().getY() : 0);
 
         // Ignore certain move correction packets for smoother movement
         // These are never relative
