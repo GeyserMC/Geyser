@@ -97,6 +97,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         if (gui != null) {
             gui.setupCommands(geyserLogger, geyserCommandManager);
+            gui.startUpdateThread();
         }
 
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);

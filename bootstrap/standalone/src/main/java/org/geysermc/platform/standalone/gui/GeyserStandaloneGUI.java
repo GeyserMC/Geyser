@@ -26,26 +26,40 @@
 
 package org.geysermc.platform.standalone.gui;
 
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.platform.standalone.GeyserStandaloneLogger;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class GeyserStandaloneGUI {
 
-    private static final ColorPane textPane = new ColorPane();
+    private static final String[] playerTableHeadings = new String[] {"IP", "Username"};
+    private static final List<Integer> ramValues = new ArrayList<>();
+
+    private static final ColorPane consolePane = new ColorPane();
+    private static final GraphPanel ramGraph = new GraphPanel();
+    private static final JTable playerTable = new JTable(new String[][] { }, playerTableHeadings);
+
+    private static final long  MEGABYTE = 1024L * 1024L;
 
     private JMenu commandsMenu;
 
@@ -54,6 +68,11 @@ public class GeyserStandaloneGUI {
         JFrame frame = new JFrame("Geyser Standalone");
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setSize(800, 400);
+
+        // Remove Java UI look
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) { }
 
         // Show a confirm dialog on close
         frame.addWindowListener(new WindowAdapter() {
@@ -75,12 +94,12 @@ public class GeyserStandaloneGUI {
         frame.setIconImage(icon.getImage());
 
         // Set the background and disable input for the text pane
-        textPane.setBackground(Color.BLACK);
-        textPane.setEditable(false);
+        consolePane.setBackground(Color.BLACK);
+        consolePane.setEditable(false);
 
         // Wrap the text pane in a scroll pane and add it to the form
-        JScrollPane scrollPane = new JScrollPane(textPane);
-        cp.add(scrollPane, BorderLayout.CENTER);
+        JScrollPane consoleScrollPane = new JScrollPane(consolePane);
+        cp.add(consoleScrollPane, BorderLayout.CENTER);
 
         // Create a new menu bar for the top of the frame
         JMenuBar menuBar = new JMenuBar();
@@ -104,6 +123,25 @@ public class GeyserStandaloneGUI {
         // Set the frames menu bar
         frame.setJMenuBar(menuBar);
 
+        JPanel rightPane = new JPanel();
+        rightPane.setLayout(new CardLayout(5, 5));
+        cp.add(rightPane, BorderLayout.EAST);
+
+        JPanel rightContentPane = new JPanel();
+        rightContentPane.setLayout(new GridLayout(2, 1, 5, 5));
+        rightPane.add(rightContentPane);
+
+        // Set the ram graph to 0
+        for (int i = 0; i < 10; i++) {
+            ramValues.add(0);
+        }
+        ramGraph.setValues(ramValues);
+        ramGraph.setXLabel("Loading...");
+        rightContentPane.add(ramGraph);
+
+        JScrollPane playerScrollPane = new JScrollPane(playerTable);
+        rightContentPane.add(playerScrollPane);
+
         // This has to be done last
         frame.setVisible(true);
     }
@@ -115,9 +153,9 @@ public class GeyserStandaloneGUI {
      */
     private void updateTextPane(final String text) {
         SwingUtilities.invokeLater(() -> {
-            textPane.appendANSI(text);
-            Document doc = textPane.getDocument();
-            textPane.setCaretPosition(doc.getLength());
+            consolePane.appendANSI(text);
+            Document doc = consolePane.getDocument();
+            consolePane.setCaretPosition(doc.getLength());
         });
     }
 
@@ -146,14 +184,6 @@ public class GeyserStandaloneGUI {
         // Override the system output streams
         System.setOut(new PrintStream(out, true));
         System.setErr(new PrintStream(out, true));
-
-        // Override the system input stream to prevent errors
-        System.setIn(new InputStream() {
-            @Override
-            public int read() throws IOException {
-                return 0;
-            }
-        });
     }
 
     /**
@@ -177,5 +207,43 @@ public class GeyserStandaloneGUI {
             commandButton.addActionListener(e -> command.getValue().execute(geyserStandaloneLogger, new String[]{ }));
             commandsMenu.add(commandButton);
         }
+    }
+
+    public void startUpdateThread() {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+        Runnable periodicTask = () -> {
+            // Update player table
+            String[][] playerNames = new String[GeyserConnector.getInstance().getPlayers().size()][2];
+            int i = 0;
+            for (Map.Entry<InetSocketAddress, GeyserSession> player : GeyserConnector.getInstance().getPlayers().entrySet()) {
+                playerNames[i][0] = player.getKey().getHostName();
+                playerNames[i][1] = player.getValue().getPlayerEntity().getUsername();
+
+                i++;
+            }
+
+            DefaultTableModel model = new DefaultTableModel(playerNames, playerTableHeadings);
+            playerTable.setModel(model);
+            model.fireTableDataChanged();
+
+            // Update ram graph
+            final long freeMemory = Runtime.getRuntime().freeMemory();
+            final long totalMemory = Runtime.getRuntime().totalMemory();
+            final int freePercent = (int)(freeMemory * 100.0 / totalMemory + 0.5);
+            ramValues.add(100 - freePercent);
+
+            ramGraph.setXLabel("Usage: " + String.format("%,d", (totalMemory - freeMemory) / MEGABYTE) + "mb (" + freePercent + "% free)");
+
+            // Trim the list
+            int k = ramValues.size();
+            if ( k > 10 )
+                ramValues.subList(0, k - 10).clear();
+
+            // Update the graph
+            ramGraph.setValues(ramValues);
+        };
+
+        executor.scheduleAtFixedRate(periodicTask, 0, 1, TimeUnit.SECONDS);
     }
 }
