@@ -77,22 +77,22 @@ public class ColorPane extends JTextPane {
             // otherwise There is an escape character in the string, so we must process it
 
             if (aIndex > 0) { // Escape is not first char, so send text up to first escape
-                tmpString = addString.substring(0,aIndex);
+                tmpString = addString.substring(0, aIndex);
                 append(colorCurrent, tmpString);
-                aPos = aIndex;
+                aPos = aIndex; // aPos is now at the beginning of the first escape sequence
             }
-            // aPos is now at the beginning of the first escape sequence
 
+
+            // while there's text in the input buffer
             stillSearching = true;
             while (stillSearching) {
-                mIndex = addString.indexOf("m",aPos); // find the end of the escape sequence
+                mIndex = addString.indexOf("m", aPos); // find the end of the escape sequence
                 if (mIndex < 0) { // the buffer ends halfway through the ansi string!
-                    remaining = addString.substring(aPos,addString.length());
+                    remaining = addString.substring(aPos, addString.length());
                     stillSearching = false;
                     continue;
-                }
-                else {
-                    tmpString = addString.substring(aPos,mIndex+1);
+                } else {
+                    tmpString = addString.substring(aPos, mIndex+1);
                     colorCurrent = ANSIColor.fromANSI(tmpString).getColor();
                 }
                 aPos = mIndex + 1;
@@ -101,18 +101,18 @@ public class ColorPane extends JTextPane {
                 aIndex = addString.indexOf("\u001B", aPos);
 
                 if (aIndex == -1) { // if that was the last sequence of the input, send remaining text
-                    tmpString = addString.substring(aPos,addString.length());
+                    tmpString = addString.substring(aPos, addString.length());
                     append(colorCurrent, tmpString);
                     stillSearching = false;
                     continue; // jump out of loop early, as the whole string has been sent now
                 }
 
                 // there is another escape sequence, so send part of the string and prepare for the next
-                tmpString = addString.substring(aPos,aIndex);
+                tmpString = addString.substring(aPos, aIndex);
                 aPos = aIndex;
                 append(colorCurrent, tmpString);
 
-            } // while there's text in the input buffer
+            }
         }
     }
 }

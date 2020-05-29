@@ -53,7 +53,7 @@ public final class GraphPanel extends JPanel {
     private String xLabel = "";
 
     public GraphPanel() {
-        setPreferredSize(new Dimension(padding * 2 + 300, padding * 2 + 200));
+        setPreferredSize(new Dimension(200 - (padding * 2), 150 - (padding * 2)));
     }
 
     public void setValues(Collection<Integer> newValues) {

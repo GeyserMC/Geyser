@@ -36,10 +36,9 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.Document;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
@@ -68,6 +67,7 @@ public class GeyserStandaloneGUI {
         JFrame frame = new JFrame("Geyser Standalone");
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setSize(800, 400);
+        frame.setMinimumSize(frame.getSize());
 
         // Remove Java UI look
         try {
@@ -93,13 +93,25 @@ public class GeyserStandaloneGUI {
         ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("icon.png"));
         frame.setIconImage(icon.getImage());
 
+        JSplitPane splitPane = new JSplitPane();
+        splitPane.setDividerLocation(600);
+        splitPane.addPropertyChangeListener("dividerLocation", e -> splitPaneLimit((JSplitPane)e.getSource()));
+        splitPane.addComponentListener(new ComponentAdapter() {
+            public void componentResized(ComponentEvent e) {
+                splitPaneLimit((JSplitPane)e.getSource());
+            }
+        });
+
+        cp.add(splitPane, BorderLayout.CENTER);
+
         // Set the background and disable input for the text pane
         consolePane.setBackground(Color.BLACK);
         consolePane.setEditable(false);
 
         // Wrap the text pane in a scroll pane and add it to the form
         JScrollPane consoleScrollPane = new JScrollPane(consolePane);
-        cp.add(consoleScrollPane, BorderLayout.CENTER);
+        //cp.add(consoleScrollPane, BorderLayout.CENTER);
+        splitPane.setLeftComponent(consoleScrollPane);
 
         // Create a new menu bar for the top of the frame
         JMenuBar menuBar = new JMenuBar();
@@ -108,6 +120,18 @@ public class GeyserStandaloneGUI {
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         menuBar.add(fileMenu);
+
+        // 'Open Geyser folder' button
+        JMenuItem openButton = new JMenuItem("Open Geyser folder", KeyEvent.VK_O);
+        openButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+        openButton.addActionListener(e -> {
+            try {
+                Desktop.getDesktop().open(new File("./"));
+            } catch (IOException ioException) { }
+        });
+        fileMenu.add(openButton);
+
+        fileMenu.addSeparator();
 
         // 'Exit' button
         JMenuItem exitButton = new JMenuItem("Exit", KeyEvent.VK_X);
@@ -125,7 +149,8 @@ public class GeyserStandaloneGUI {
 
         JPanel rightPane = new JPanel();
         rightPane.setLayout(new CardLayout(5, 5));
-        cp.add(rightPane, BorderLayout.EAST);
+        //cp.add(rightPane, BorderLayout.EAST);
+        splitPane.setRightComponent(rightPane);
 
         JPanel rightContentPane = new JPanel();
         rightContentPane.setLayout(new GridLayout(2, 1, 5, 5));
@@ -213,19 +238,21 @@ public class GeyserStandaloneGUI {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
         Runnable periodicTask = () -> {
-            // Update player table
-            String[][] playerNames = new String[GeyserConnector.getInstance().getPlayers().size()][2];
-            int i = 0;
-            for (Map.Entry<InetSocketAddress, GeyserSession> player : GeyserConnector.getInstance().getPlayers().entrySet()) {
-                playerNames[i][0] = player.getKey().getHostName();
-                playerNames[i][1] = player.getValue().getPlayerEntity().getUsername();
+            if (GeyserConnector.getInstance() != null) {
+                // Update player table
+                String[][] playerNames = new String[GeyserConnector.getInstance().getPlayers().size()][2];
+                int i = 0;
+                for (Map.Entry<InetSocketAddress, GeyserSession> player : GeyserConnector.getInstance().getPlayers().entrySet()) {
+                    playerNames[i][0] = player.getKey().getHostName();
+                    playerNames[i][1] = player.getValue().getPlayerEntity().getUsername();
 
-                i++;
+                    i++;
+                }
+
+                DefaultTableModel model = new DefaultTableModel(playerNames, playerTableHeadings);
+                playerTable.setModel(model);
+                model.fireTableDataChanged();
             }
-
-            DefaultTableModel model = new DefaultTableModel(playerNames, playerTableHeadings);
-            playerTable.setModel(model);
-            model.fireTableDataChanged();
 
             // Update ram graph
             final long freeMemory = Runtime.getRuntime().freeMemory();
@@ -245,5 +272,15 @@ public class GeyserStandaloneGUI {
         };
 
         executor.scheduleAtFixedRate(periodicTask, 0, 1, TimeUnit.SECONDS);
+    }
+
+    private void splitPaneLimit(JSplitPane splitPane) {
+        JRootPane frame = splitPane.getRootPane();
+        int location = splitPane.getDividerLocation();
+        if (location < frame.getWidth() - frame.getWidth() * 0.4f) {
+            splitPane.setDividerLocation(Math.round(frame.getWidth() - frame.getWidth() * 0.4f));
+        } else if (location > frame.getWidth() - 200) {
+            splitPane.setDividerLocation(frame.getWidth() - 200);
+        }
     }
 }
