@@ -59,6 +59,8 @@ public class ItemRegistry {
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
+    // Bedrock Shield ID, used in LivingEntity.java
+    public static int SHIELD_BEDROCK = 513;
     // Shield ID, used in Entity.java
     public static final int SHIELD = 829;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
