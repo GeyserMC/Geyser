@@ -124,7 +124,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return null;
     }
 
-    public static void SpawnPlayer(GeyserSession session, com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, BlockState blockState) {
+    public static void spawnPlayer(GeyserSession session, com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, BlockState blockState) {
         SerializedSkin skin = getSkin(tag);
         float x = (int) tag.get("x").getValue() + .5f;
         float y = (int) tag.get("y").getValue() - .01f;
@@ -200,7 +200,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         }, 500, TimeUnit.MILLISECONDS); //Delay 5 seconds to give the model time to load in
     }
 
-    public static boolean ContainsCustomSkull(Position position) {
+    public static boolean containsCustomSkull(Position position) {
         return CACHED_SKULLS.containsKey(position);
     }
 }

@@ -154,7 +154,7 @@ public class ChunkUtils {
             if (tag.contains("Owner") && SkullBlockEntityTranslator.allowCustomSkulls) {
                 CompoundTag Owner = tag.get("Owner");
                 if (Owner.contains("Properties")) {
-                    SkullBlockEntityTranslator.SpawnPlayer(session, tag, blockState);
+                    SkullBlockEntityTranslator.spawnPlayer(session, tag, blockState);
                 }
             }
 
@@ -202,7 +202,7 @@ public class ChunkUtils {
             }
         }
 
-        if (SkullBlockEntityTranslator.ContainsCustomSkull(new Position(position.getX(), position.getY(), position.getZ())) && blockState.equals(AIR)) {
+        if (SkullBlockEntityTranslator.containsCustomSkull(new Position(position.getX(), position.getY(), position.getZ())) && blockState.equals(AIR)) {
             Position skullPosition = new Position(position.getX(), position.getY(), position.getZ());
             RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
             removeEntityPacket.setUniqueEntityId(SkullBlockEntityTranslator.CACHED_SKULLS.get(skullPosition).getGeyserId());
