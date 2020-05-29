@@ -96,19 +96,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
         session.setSpawned(true);
 
-        // If coordinates are relative, then add to the existing coordinate
-        double newX = packet.getX() +
-                (packet.getRelative().contains(PositionElement.X) ? entity.getPosition().getX() : 0);
-        double newY = packet.getY() +
-                (packet.getRelative().contains(PositionElement.Y) ? entity.getPosition().getY() - EntityType.PLAYER.getOffset() : 0);
-        double newZ = packet.getZ() +
-                (packet.getRelative().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
-
-        double newPitch = packet.getPitch() +
-                (packet.getRelative().contains(PositionElement.PITCH) ? entity.getBedrockRotation().getX() : 0);
-        double newYaw = packet.getYaw() +
-                (packet.getRelative().contains(PositionElement.YAW) ? entity.getBedrockRotation().getY() : 0);
-
         // Ignore certain move correction packets for smoother movement
         // These are never relative
         if (packet.getRelative().isEmpty()) {
@@ -122,6 +109,20 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
                 return;
             }
         }
+
+        // If coordinates are relative, then add to the existing coordinate
+        double newX = packet.getX() +
+                (packet.getRelative().contains(PositionElement.X) ? entity.getPosition().getX() : 0);
+        double newY = packet.getY() +
+                (packet.getRelative().contains(PositionElement.Y) ? entity.getPosition().getY() - EntityType.PLAYER.getOffset() : 0);
+        double newZ = packet.getZ() +
+                (packet.getRelative().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
+
+        double newPitch = packet.getPitch() +
+                (packet.getRelative().contains(PositionElement.PITCH) ? entity.getBedrockRotation().getX() : 0);
+        double newYaw = packet.getYaw() +
+                (packet.getRelative().contains(PositionElement.YAW) ? entity.getBedrockRotation().getY() : 0);
+
 
         session.setTeleportCache(new TeleportCache(newX, newY, newZ, packet.getTeleportId()));
         entity.moveAbsolute(session, Vector3f.from(newX, newY, newZ), (float) newYaw, (float) newPitch, true, true);
