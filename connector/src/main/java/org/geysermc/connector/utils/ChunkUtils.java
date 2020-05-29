@@ -204,9 +204,9 @@ public class ChunkUtils {
         if (SkullBlockEntityTranslator.containsCustomSkull(new Position(position.getX(), position.getY(), position.getZ()), session) && blockState.equals(AIR)) {
             Position skullPosition = new Position(position.getX(), position.getY(), position.getZ());
             RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
-            removeEntityPacket.setUniqueEntityId(session.getCachedSkulls().get(skullPosition).getGeyserId());
+            removeEntityPacket.setUniqueEntityId(session.getSkullCache().get(skullPosition).getGeyserId());
             session.sendUpstreamPacket(removeEntityPacket);
-            session.getCachedSkulls().remove(skullPosition);
+            session.getSkullCache().remove(skullPosition);
         }
 
         int blockId = BlockTranslator.getBedrockBlockId(blockState);
