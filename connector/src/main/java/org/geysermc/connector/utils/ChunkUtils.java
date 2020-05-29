@@ -158,10 +158,12 @@ public class ChunkUtils {
 
         //Check for custom skulls
         for (CompoundTag compoundTag : blockEntities) {
-            if (compoundTag.contains("Owner") && CustomSkullTranslator.allowCustomSkulls) {
-                System.out.println("ITS A SKULL");
-                BlockState blockState = blockEntityPositions.get(new Position((int) compoundTag.get("x").getValue(), (int) compoundTag.get("y").getValue(), (int) compoundTag.get("z").getValue()));
-                CustomSkullTranslator.SpawnPlayer(session, compoundTag, blockState);
+            if (compoundTag.contains("Owner") && SkullBlockEntityTranslator.allowCustomSkulls) {
+                CompoundTag Owner = compoundTag.get("Owner");
+                if (Owner.contains("Properties")) {
+                    BlockState blockState = blockEntityPositions.get(new Position((int) compoundTag.get("x").getValue(), (int) compoundTag.get("y").getValue(), (int) compoundTag.get("z").getValue()));
+                    SkullBlockEntityTranslator.SpawnPlayer(session, compoundTag, blockState);
+                }
             }
         }
         chunkData.blockEntities = bedrockBlockEntities;
@@ -201,10 +203,10 @@ public class ChunkUtils {
             }
         }
 
-        if (CustomSkullTranslator.ContainsCustomSkull(new Position(position.getX(), position.getY(), position.getZ())) && blockState.equals(AIR)) {
+        if (SkullBlockEntityTranslator.ContainsCustomSkull(new Position(position.getX(), position.getY(), position.getZ())) && blockState.equals(AIR)) {
             Position position1 = new Position(position.getX(), position.getY(), position.getZ());
             RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
-            removeEntityPacket.setUniqueEntityId(CustomSkullTranslator.CACHED_SKULLS.get(position1).getGeyserId());
+            removeEntityPacket.setUniqueEntityId(SkullBlockEntityTranslator.CACHED_SKULLS.get(position1).getGeyserId());
             session.sendUpstreamPacket(removeEntityPacket);
             CACHED_BLOCK_ENTITIES.remove(position1);
         }

@@ -103,7 +103,7 @@ public class SkinProvider {
 
         EARS_GEOMETRY_SLIM = earsDataBuilder.toString();
 
-        /* Load in the normal ears geometry */
+        /* Load in the custom skull geometry */
         InputStream skullStream = FileUtils.getResource("bedrock/skin/geometry.humanoid.customskull.json");
 
         StringBuilder skullDataBuilder = new StringBuilder();

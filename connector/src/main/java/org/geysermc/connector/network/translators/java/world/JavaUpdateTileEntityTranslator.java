@@ -34,7 +34,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
-import org.geysermc.connector.network.translators.world.block.entity.CustomSkullTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 
@@ -43,7 +43,6 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
 
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
-        System.out.println(packet.toString());
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
         // If not null then the BlockState is used in BlockEntityTranslator.translateTag()
@@ -56,11 +55,14 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
         }
 
         //Check for custom skulls. This was the only place I could find that would update the entity right as the block was placed.
-        if (packet.getNbt().contains("Owner") && CustomSkullTranslator.allowCustomSkulls) {
-            CompoundTag tag = packet.getNbt();
-            Position position = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
-            BlockState blockState = session.getChunkCache().getBlockAt(position);
-            CustomSkullTranslator.SpawnPlayer(session, tag, blockState);
+        if (packet.getNbt().contains("Owner") && SkullBlockEntityTranslator.allowCustomSkulls) {
+            CompoundTag Owner = packet.getNbt().get("Owner");
+            if (Owner.contains("Properties")) {
+                CompoundTag tag = packet.getNbt();
+                Position position = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
+                BlockState blockState = session.getChunkCache().getBlockAt(position);
+                SkullBlockEntityTranslator.SpawnPlayer(session, tag, blockState);
+            }
         }
     }
 }
