@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.PositionElement;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.nukkitx.math.vector.Vector3f;
@@ -95,20 +96,35 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
         session.setSpawned(true);
 
-        if (!packet.getRelative().isEmpty()) {
-            session.setTeleportCache(new TeleportCache(packet.getX(), packet.getY(), packet.getZ(), packet.getTeleportId()));
-            entity.moveRelative(session, packet.getX(), packet.getY() + EntityType.PLAYER.getOffset() + 0.1f, packet.getZ(), packet.getYaw(), packet.getPitch(), true);
-        } else {
+        // Ignore certain move correction packets for smoother movement
+        // These are never relative
+        if (packet.getRelative().isEmpty()) {
             double xDis = Math.abs(entity.getPosition().getX() - packet.getX());
             double yDis = entity.getPosition().getY() - packet.getY();
             double zDis = Math.abs(entity.getPosition().getZ() - packet.getZ());
-            if (xDis > 1.5 || (yDis < 1.45 || yDis > (session.isJumping() ? 4.3 : (session.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5) {
-                session.setTeleportCache(new TeleportCache(packet.getX(), packet.getY(), packet.getZ(), packet.getTeleportId()));
-                entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), true, true);
-            } else {
+            if (!(xDis > 1.5 || (yDis < 1.45 || yDis > (session.isJumping() ? 4.3 : (session.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5)) {
+                // Fake confirm the teleport but don't send it to the client
                 ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
                 session.sendDownstreamPacket(teleportConfirmPacket);
+                return;
             }
         }
+
+        // If coordinates are relative, then add to the existing coordinate
+        double newX = packet.getX() +
+                (packet.getRelative().contains(PositionElement.X) ? entity.getPosition().getX() : 0);
+        double newY = packet.getY() +
+                (packet.getRelative().contains(PositionElement.Y) ? entity.getPosition().getY() - EntityType.PLAYER.getOffset() : 0);
+        double newZ = packet.getZ() +
+                (packet.getRelative().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
+
+        double newPitch = packet.getPitch() +
+                (packet.getRelative().contains(PositionElement.PITCH) ? entity.getBedrockRotation().getX() : 0);
+        double newYaw = packet.getYaw() +
+                (packet.getRelative().contains(PositionElement.YAW) ? entity.getBedrockRotation().getY() : 0);
+
+
+        session.setTeleportCache(new TeleportCache(newX, newY, newZ, packet.getTeleportId()));
+        entity.moveAbsolute(session, Vector3f.from(newX, newY, newZ), (float) newYaw, (float) newPitch, true, true);
     }
 }
