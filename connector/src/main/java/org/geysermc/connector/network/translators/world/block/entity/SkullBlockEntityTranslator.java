@@ -47,10 +47,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.utils.SkinProvider;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @BlockEntity(name = "Skull", regex = "skull")
@@ -110,15 +108,10 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
                         ImageData.EMPTY, SkinProvider.SkinGeometry.getSkull().getGeometryData(), "", true, false, false, "", UUID.randomUUID().toString()
                 );
                 return serializedSkin;
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-        else {
+        } else {
             return null;
         }
         return null;
@@ -131,7 +124,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         float z = (int) tag.get("z").getValue() + .5f;
         float rotation = 0f;
 
-        if(BlockStateValues.getSkullRotation(blockState) == -1) {
+        if (BlockStateValues.getSkullRotation(blockState) == -1) {
             y += 0.25f;
             switch (blockState.getId()) {
                 case 6030: //North
@@ -197,7 +190,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         session.getConnector().getGeneralThreadPool().schedule(() -> {
             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
             player.updateBedrockMetadata(session);
-        }, 500, TimeUnit.MILLISECONDS); //Delay 5 seconds to give the model time to load in
+        }, 500, TimeUnit.MILLISECONDS); //Delay 500 milliseconds to give the model time to load in
     }
 
     public static boolean containsCustomSkull(Position position) {

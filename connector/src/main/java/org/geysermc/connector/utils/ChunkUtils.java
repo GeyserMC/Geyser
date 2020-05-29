@@ -157,7 +157,6 @@ public class ChunkUtils {
                     SkullBlockEntityTranslator.spawnPlayer(session, tag, blockState);
                 }
             }
-
             i++;
         }
         for (com.nukkitx.nbt.tag.CompoundTag tag : bedrockOnlyBlockEntities) {
