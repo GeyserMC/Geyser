@@ -209,6 +209,21 @@ public class GeyserStandaloneGUI {
         // Override the system output streams
         System.setOut(new PrintStream(out, true));
         System.setErr(new PrintStream(out, true));
+
+        // Need to either get the log from jline3 or create a new ConsoleAppender
+        // for log4j (2.4+) to fix this not getting the log outside of intellij
+        // or set the property 'terminal.jline' to 'true'
+
+        // None of this works :(
+
+        //PropertiesUtil.getSystemProperties().put("terminal.jline", "true");
+
+        /*
+        LoggerContext cx = (LoggerContext) LogManager.getContext(true);
+        Configuration conf = cx.getConfiguration();
+        conf.getProperties().put("terminal.jline", "true");
+        cx.setConfiguration(conf);
+        */
     }
 
     /**
