@@ -87,10 +87,10 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
     public static SerializedSkin getSkin(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, GeyserSession session) {
         if (tag.contains("Owner") && !session.getSkullCache().containsKey(tag)) {
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag Owner = tag.get("Owner");
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag Properties = Owner.get("Properties");
-            ListTag Textures = Properties.get("textures");
-            LinkedHashMap tag1 = (LinkedHashMap) Textures.get(0).getValue();
+            com.github.steveice10.opennbt.tag.builtin.CompoundTag owner = tag.get("Owner");
+            com.github.steveice10.opennbt.tag.builtin.CompoundTag Properties = owner.get("Properties");
+            ListTag textures = Properties.get("textures");
+            LinkedHashMap tag1 = (LinkedHashMap) textures.get(0).getValue();
             StringTag texture = (StringTag) tag1.get("Value");
             byte[] decoded = Base64.getDecoder().decode(texture.getValue().getBytes());
             String url = new String(decoded);
