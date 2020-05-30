@@ -93,6 +93,7 @@ public class GeyserStandaloneGUI {
         ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("icon.png"));
         frame.setIconImage(icon.getImage());
 
+        // Setup the split pane and event listeners
         JSplitPane splitPane = new JSplitPane();
         splitPane.setDividerLocation(600);
         splitPane.addPropertyChangeListener("dividerLocation", e -> splitPaneLimit((JSplitPane)e.getSource()));
@@ -249,6 +250,9 @@ public class GeyserStandaloneGUI {
         }
     }
 
+    /**
+     * Start the thread to update the form information every 1s
+     */
     public void startUpdateThread() {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
@@ -289,6 +293,11 @@ public class GeyserStandaloneGUI {
         executor.scheduleAtFixedRate(periodicTask, 0, 1, TimeUnit.SECONDS);
     }
 
+    /**
+     * Make sure the JSplitPane divider is within a set of bounds
+     *
+     * @param splitPane The JSplitPane to check
+     */
     private void splitPaneLimit(JSplitPane splitPane) {
         JRootPane frame = splitPane.getRootPane();
         int location = splitPane.getDividerLocation();

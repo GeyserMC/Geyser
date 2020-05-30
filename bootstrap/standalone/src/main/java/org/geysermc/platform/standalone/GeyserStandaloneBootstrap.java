@@ -25,6 +25,7 @@
 
 package org.geysermc.platform.standalone;
 
+import lombok.Getter;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
@@ -48,6 +49,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private IGeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserStandaloneGUI gui;
+
+    @Getter
     private boolean useGui = System.console() == null;
 
     private GeyserConnector connector;
