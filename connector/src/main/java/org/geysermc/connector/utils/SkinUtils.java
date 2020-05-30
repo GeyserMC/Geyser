@@ -233,12 +233,10 @@ public class SkinUtils {
                                 );
 
 
-                                if (entity.isPlayerList()) {
-                                    PlayerListPacket playerAddPacket = new PlayerListPacket();
-                                    playerAddPacket.setAction(PlayerListPacket.Action.ADD);
-                                    playerAddPacket.getEntries().add(updatedEntry);
-                                    session.sendUpstreamPacket(playerAddPacket);
-                                }
+                                PlayerListPacket playerAddPacket = new PlayerListPacket();
+                                playerAddPacket.setAction(PlayerListPacket.Action.ADD);
+                                playerAddPacket.getEntries().add(updatedEntry);
+                                session.sendUpstreamPacket(playerAddPacket);
 
                                 // Update SKin
                                 PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
@@ -249,6 +247,14 @@ public class SkinUtils {
                                 playerSkinPacket.setTrustedSkin(true);
                                 session.getUpstream().sendPacket(playerSkinPacket);
                                 session.getConnector().getLogger().debug("Sending skin for " + entity.getUsername());
+
+                                if (!entity.isPlayerList()) {
+                                    PlayerListPacket playerRemovePacket = new PlayerListPacket();
+                                    playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
+                                    playerRemovePacket.getEntries().add(updatedEntry);
+                                    session.sendUpstreamPacket(playerRemovePacket);
+
+                                }
                             }
                         } catch (Exception e) {
                             GeyserConnector.getInstance().getLogger().error("Failed getting skin for " + entity.getUuid(), e);
