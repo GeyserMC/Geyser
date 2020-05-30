@@ -33,6 +33,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareComma
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareRecipesPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDifficultyPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListEntryPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
@@ -99,6 +100,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewPositionPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginPluginRequestPacket;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
@@ -130,6 +132,7 @@ import org.geysermc.connector.edition.mcee.shims.LoginEncryptionUtilsShim;
 import org.geysermc.connector.edition.mcee.shims.SkinUtilsShim;
 import org.geysermc.connector.edition.mcee.utils.TokenManager;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.bedrock.BedrockAdventureSettingsTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockAnimateTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockBlockEntityDataTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockBlockPickRequestPacketTranslator;
@@ -297,6 +300,7 @@ public class Edition extends GeyserEdition {
 
         // Register Ignored Packets
         PacketTranslatorRegistry.REGISTER
+                .ignoredPackets(ServerKeepAlivePacket.class)
                 .ignoredPackets(ServerUpdateLightPacket.class);
 
         // Register Bedrock Packet Translators
@@ -319,7 +323,8 @@ public class Edition extends GeyserEdition {
                 .bedrockPacketTranslator(RespawnPacket.class, new BedrockRespawnTranslator())
                 .bedrockPacketTranslator(SetLocalPlayerAsInitializedPacket.class, new BedrockSetLocalPlayerAsInitializedTranslator())
                 .bedrockPacketTranslator(ShowCreditsPacket.class, new BedrockShowCreditsTranslator())
-                .bedrockPacketTranslator(TextPacket.class, new BedrockTextTranslator());
+                .bedrockPacketTranslator(TextPacket.class, new BedrockTextTranslator())
+                .bedrockPacketTranslator(AdventureSettingsPacket.class, new BedrockAdventureSettingsTranslator());
 
         // Register Java Packet Translators
         PacketTranslatorRegistry.REGISTER
