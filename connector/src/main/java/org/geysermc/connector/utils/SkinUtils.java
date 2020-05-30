@@ -56,13 +56,15 @@ public class SkinUtils {
 
         SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
 
+        SkinProvider.Skin skin = SkinProvider.getCachedSkin(data.getSkinUrl());
+
         return buildEntryManually(
                 session,
                 profile.getId(),
                 profile.getName(),
                 geyserId,
-                profile.getIdAsString(),
-                SkinProvider.getCachedSkin(data.getSkinUrl()).getSkinData(),
+                skin.getTextureUrl(),
+                skin.getSkinData(),
                 cape.getCapeId(),
                 cape.getCapeData(),
                 geometry.getGeometryName(),
@@ -76,7 +78,7 @@ public class SkinUtils {
                 profile.getId(),
                 profile.getName(),
                 geyserId,
-                profile.getIdAsString(),
+                "default",
                 SkinProvider.STEVE_SKIN,
                 SkinProvider.EMPTY_CAPE.getCapeId(),
                 SkinProvider.EMPTY_CAPE.getCapeData(),
