@@ -370,6 +370,8 @@ public class GeyserSession implements CommandSender {
                     @Override
                     public void packetError(PacketErrorEvent event) {
                         connector.getLogger().warning("Downstream packet error! " + event.getCause().getMessage());
+                        if (connector.getConfig().isDebugMode())
+                            event.getCause().printStackTrace();
                         event.setSuppress(true);
                     }
                 });
