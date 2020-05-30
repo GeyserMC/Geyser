@@ -213,9 +213,8 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
                     if ((xd & 0x20) == 0x20) {
-                        if (this.is(ArmorStandEntity.class)) {
-                            metadata.put(EntityData.SCALE, 0.0f);
-                        } else {
+                        // Armour stands are handled in their own class
+                        if (!this.is(ArmorStandEntity.class)) {
                             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
                         }
                     } else {
