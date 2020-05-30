@@ -26,7 +26,6 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -37,13 +36,11 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.network.session.cache.EntityEffectCache;
-import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +53,7 @@ public class PlayerEntity extends LivingEntity {
     private UUID uuid;
     private String username;
     private long lastSkinUpdate = -1;
-    private boolean playerList = true;
+    private boolean playerList = true;  // Player is in the player list
     private boolean onGround;
     private final EntityEffectCache effectCache;
 
@@ -113,29 +110,11 @@ public class PlayerEntity extends LivingEntity {
     public void sendPlayer(GeyserSession session) {
         if(session.getEntityCache().getPlayerEntity(uuid) == null)
             return;
-        if (getLastSkinUpdate() == -1) {
-            if (playerList) {
-                PlayerListPacket playerList = new PlayerListPacket();
-                playerList.setAction(PlayerListPacket.Action.ADD);
-                playerList.getEntries().add(SkinUtils.buildDefaultEntry(profile, geyserId));
-                session.sendUpstreamPacket(playerList);
-            }
-        }
 
         if (session.getUpstream().isInitialized() && session.getEntityCache().getEntityByGeyserId(geyserId) == null) {
             session.getEntityCache().spawnEntity(this);
         } else {
             spawnEntity(session);
-        }
-
-        if (!playerList) {
-            // remove from playerlist if player isn't on playerlist
-            GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
-                PlayerListPacket playerList = new PlayerListPacket();
-                playerList.setAction(PlayerListPacket.Action.REMOVE);
-                playerList.getEntries().add(new PlayerListPacket.Entry(uuid));
-                session.sendUpstreamPacket(playerList);
-            });
         }
     }
 

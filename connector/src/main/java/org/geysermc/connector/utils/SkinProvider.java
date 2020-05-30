@@ -107,8 +107,8 @@ public class SkinProvider {
         return cachedCapes.containsKey(capeUrl);
     }
 
-    public static Skin getCachedSkin(UUID uuid) {
-        return cachedSkins.getOrDefault(uuid, EMPTY_SKIN);
+    public static Skin getCachedSkin(String skinUrl) {
+        return cachedSkins.getOrDefault(skinUrl, EMPTY_SKIN);
     }
 
     public static Cape getCachedCape(String capeUrl) {
