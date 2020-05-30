@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit;
 
 @BlockEntity(name = "Skull", regex = "skull")
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-    public static final boolean allowCustomSkulls = GeyserConnector.getInstance().getConfig().isAllowCustomSkulls();
+    public static final boolean ALLOW_CUSTOM_SKULLS = GeyserConnector.getInstance().getConfig().isAllowCustomSkulls();
 
     @Override
     public boolean isBlock(BlockState blockState) {
@@ -124,20 +124,20 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         if (BlockStateValues.getSkullRotation(blockState) == -1) {
             y += 0.25f;
-            switch (blockState.getId()) {
-                case 6030: //North
+            switch (BlockStateValues.getWallSkullDirection().get(blockState)) {
+                case "north]":
                     rotation = 180f;
                     z += 0.24;
                     break;
-                case 6031: //South
+                case "south]":
                     rotation = 0;
                     z -= 0.24f;
                     break;
-                case 6032: //West
+                case "west]":
                     rotation = 90;
                     x += 0.24f;
                     break;
-                case 6033: //East
+                case "east]":
                     rotation = 270;
                     x -= 0.24f;
                     break;
@@ -184,7 +184,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         player.updateBedrockAttributes(session);
         player.moveAbsolute(session, Vector3f.from(x, y, z), rotation, 0, true, false);
-        session.getSkullCache().put((new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue())), player);
+        session.getSkullCache().put((new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue())), player.getGeyserId());
         session.getConnector().getGeneralThreadPool().schedule(() -> {
             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
             player.updateBedrockMetadata(session);

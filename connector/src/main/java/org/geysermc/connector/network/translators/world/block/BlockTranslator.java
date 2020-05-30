@@ -158,6 +158,10 @@ public class BlockTranslator {
                 BlockStateValues.getFlowerPotBlocks().put(entry.getKey().split("\\[")[0], buildBedrockState(entry.getValue()));
             }
 
+            if (entry.getKey().contains("wall_skull") || entry.getKey().contains("wall_head")) {
+                BlockStateValues.getWallSkullDirection().put(javaBlockState, entry.getKey().substring(entry.getKey().lastIndexOf("facing=") + 7));
+            }
+
             if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = bedrockRuntimeId;
             }

@@ -146,7 +146,9 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
 
 
     @Override
-    public boolean isAllowCustomSkulls() {return node.getNode("allow-custom-skulls").getBoolean(true); }
+    public boolean isAllowCustomSkulls() {
+        return node.getNode("allow-custom-skulls").getBoolean(true);
+    }
 
     @Override
     public boolean isAboveBedrockNetherBuilding() {

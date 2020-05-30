@@ -151,9 +151,9 @@ public class ChunkUtils {
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
 
             //Check for custom skulls
-            if (tag.contains("Owner") && SkullBlockEntityTranslator.allowCustomSkulls) {
-                CompoundTag Owner = tag.get("Owner");
-                if (Owner.contains("Properties")) {
+            if (tag.contains("Owner") && SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS) {
+                CompoundTag owner = tag.get("Owner");
+                if (owner.contains("Properties")) {
                     SkullBlockEntityTranslator.spawnPlayer(session, tag, blockState);
                 }
             }
@@ -204,7 +204,7 @@ public class ChunkUtils {
         if (SkullBlockEntityTranslator.containsCustomSkull(new Position(position.getX(), position.getY(), position.getZ()), session) && blockState.equals(AIR)) {
             Position skullPosition = new Position(position.getX(), position.getY(), position.getZ());
             RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
-            removeEntityPacket.setUniqueEntityId(session.getSkullCache().get(skullPosition).getGeyserId());
+            removeEntityPacket.setUniqueEntityId(session.getSkullCache().get(skullPosition));
             session.sendUpstreamPacket(removeEntityPacket);
             session.getSkullCache().remove(skullPosition);
         }

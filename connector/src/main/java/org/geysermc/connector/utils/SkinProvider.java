@@ -66,7 +66,7 @@ public class SkinProvider {
     public static final boolean ALLOW_THIRD_PARTY_EARS = GeyserConnector.getInstance().getConfig().isAllowThirdPartyEars();
     public static String EARS_GEOMETRY;
     public static String EARS_GEOMETRY_SLIM;
-    public static String SKULL_GEOMETRY;
+    public static SkinGeometry SKULL_GEOMETRY;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final int CACHE_INTERVAL = 8 * 60 * 1000; // 8 minutes
@@ -116,7 +116,7 @@ public class SkinProvider {
             throw new AssertionError("Unable to load skull geometry", e);
         }
 
-        SKULL_GEOMETRY = skullDataBuilder.toString();
+        SKULL_GEOMETRY = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.customskull" + "\"}}", skullDataBuilder.toString(), false);
     }
 
     public static boolean hasSkinCached(UUID uuid) {
@@ -547,7 +547,7 @@ public class SkinProvider {
          * @return The generated geometry for the skull model
          */
         public static SkinGeometry getSkull() {
-            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.customskull" + "\"}}", SKULL_GEOMETRY, false);
+            return SKULL_GEOMETRY;
         }
     }
 
