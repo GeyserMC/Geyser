@@ -40,6 +40,11 @@ import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 
+import org.geysermc.connector.network.translators.world.collision.translators.*;
+import org.geysermc.connector.utils.BoundingBox;
+
+import org.geysermc.connector.network.translators.world.collision.CollisionTranslator;
+
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
 
@@ -62,12 +67,64 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
         double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
-        if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
                 Double.parseDouble(Float.toString(packet.getPosition().getZ())));
 
-        if(!session.confirmTeleport(position)){
+        if (session.getConnector().getConfig().isCacheChunks()) {
+            // With chunk caching, we can do some proper collision checks
+
+            // For now we only check collision when the player is on the ground to improve performance
+            // This will cause issues if the player flies into a stair in Creative (quite unlikely)
+
+            if (packet.isOnGround()) {
+
+                BoundingBox playerCollision = new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.6, 1.8, 0.6);
+
+                // Loop through all blocks that could collide with the player
+                int minCollisionX = (int) Math.floor(position.getX() - 0.3);
+                int maxCollisionX = (int) Math.floor(position.getX() + 0.3);
+
+                // Y extends 0.5 blocks down because of fence hitboxes
+                int minCollisionY = (int) Math.floor(position.getY() - 0.5);
+
+                // Hitbox height is currently set to 0.5 to improve performance, as only blocks below the player need checking
+                // Any lower seems to cause issues
+                int maxCollisionY = (int) Math.floor(position.getY() + 0.5);
+
+                int minCollisionZ = (int) Math.floor(position.getZ() - 0.3);
+                int maxCollisionZ = (int) Math.floor(position.getZ() + 0.3);
+
+                BlockCollision blockCollision;
+
+                for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
+                    // Need to run twice?
+                    for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
+                        for (int z = minCollisionZ; z < maxCollisionZ + 1; z++) {
+                            blockCollision = CollisionTranslator.getCollision(
+                                    session.getConnector().getWorldManager().getBlockAt(session, x, y, z),
+                                    x, y, z
+                            );
+
+                            if (blockCollision != null) {
+                                blockCollision.correctPosition(playerCollision);
+                            }
+                        }
+                    }
+                }
+                position = Vector3d.from(playerCollision.getMiddleX(), playerCollision.getMiddleY() - 0.9,
+                        playerCollision.getMiddleZ());
+            }
+        } else {
+            // When chunk caching is off, we have to rely on this
+            // It rounds the Y position up to the nearest 0.5
+            // This snaps players to snap to the top of stairs and slabs like on Java Edition
+            // However, it causes issues such as the player floating on carpets
+            if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
+            position = position.up(javaY - position.getY());
+        }
+
+        if (!session.confirmTeleport(position)){
             return;
         }
 
