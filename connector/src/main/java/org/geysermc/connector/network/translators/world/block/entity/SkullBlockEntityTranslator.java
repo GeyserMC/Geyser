@@ -125,19 +125,19 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         if (BlockStateValues.getSkullRotation(blockState) == -1) {
             y += 0.25f;
             switch (BlockStateValues.getWallSkullDirection().get(blockState)) {
-                case "north]":
+                case "north":
                     rotation = 180f;
                     z += 0.24;
                     break;
-                case "south]":
+                case "south":
                     rotation = 0;
                     z -= 0.24f;
                     break;
-                case "west]":
+                case "west":
                     rotation = 90;
                     x += 0.24f;
                     break;
-                case "east]":
+                case "east":
                     rotation = 270;
                     x -= 0.24f;
                     break;

@@ -107,7 +107,7 @@ public class GeyserSession implements CommandSender {
     private InventoryCache inventoryCache;
     private ScoreboardCache scoreboardCache;
     private WindowCache windowCache;
-    private Map<Position, Long> skullCache = new HashMap<>();
+    private Object2LongMap<Position> skullCache = new Object2LongOpenHashMap<Position>() {};
     @Setter
     private TeleportCache teleportCache;
 
