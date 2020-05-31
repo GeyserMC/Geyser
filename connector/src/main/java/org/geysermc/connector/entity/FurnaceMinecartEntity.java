@@ -40,8 +40,6 @@ public class FurnaceMinecartEntity extends Entity {
 
     public FurnaceMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
-
-        metadata.put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(0f, 0.5f, 0f));
     }
 
     @Override
@@ -56,19 +54,13 @@ public class FurnaceMinecartEntity extends Entity {
 
                 session.getEntityCache().spawnEntity(furnace);
 
-                SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                linkPacket.setEntityLink(new EntityLink(this.getGeyserId(), furnace.getGeyserId(), EntityLink.Type.PASSENGER, false));
-                session.sendUpstreamPacket(linkPacket);
-                passengers.add(furnace.getEntityId());
-
-                // Dosnt make a difference?
-                furnace.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
-                furnace.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
-                furnace.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
-
-                this.setPassengers(passengers);
-
+                furnace.getMetadata().put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(0f, 0.75f, 0f));
+                furnace.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
                 furnace.updateBedrockMetadata(session);
+
+                SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
+                linkPacket.setEntityLink(new EntityLink(geyserId, furnace.getGeyserId(), EntityLink.Type.PASSENGER, false));
+                session.sendUpstreamPacket(linkPacket);
             }
 
             furnace.updateBlock(session, hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID);
