@@ -29,6 +29,8 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class FurnaceMincartBlockEntity extends FallingBlockEntity {
 
@@ -37,5 +39,13 @@ public class FurnaceMincartBlockEntity extends FallingBlockEntity {
 
         metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, false);
         //metadata.put(EntityData.SCALE, 0.8f);
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0f);
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0f);
     }
+
+    public void updateBlock(GeyserSession session, int newJavaID) {
+        metadata.put(EntityData.VARIANT, BlockTranslator.getBedrockBlockId(newJavaID));
+        this.updateBedrockMetadata(session);
+    }
+
 }

@@ -32,10 +32,11 @@ import com.nukkitx.protocol.bedrock.data.EntityLink;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class FurnaceMinecartEntity extends Entity {
 
-    private FallingBlockEntity furnace;
+    private FurnaceMincartBlockEntity furnace;
 
     public FurnaceMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
@@ -46,9 +47,11 @@ public class FurnaceMinecartEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 13) {
+            boolean hasFuel = (boolean) entityMetadata.getValue();
+
             if (furnace == null) {
                 furnace = new FurnaceMincartBlockEntity(entityId * -1, session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        EntityType.MINECART_FURNACE_BLOCK, Vector3f.ZERO, Vector3f.FORWARD, rotation, 3372);
+                        EntityType.MINECART_FURNACE_BLOCK, Vector3f.ZERO, Vector3f.FORWARD, rotation, BlockTranslator.JAVA_RUNTIME_FURNACE_ID);
 
                 session.getEntityCache().spawnEntity(furnace);
 
@@ -65,6 +68,8 @@ public class FurnaceMinecartEntity extends Entity {
 
                 furnace.updateBedrockMetadata(session);
             }
+
+            furnace.updateBlock(session, hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
