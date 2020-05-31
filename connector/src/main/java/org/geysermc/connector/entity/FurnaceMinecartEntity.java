@@ -27,6 +27,7 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.EntityLink;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.connector.entity.type.EntityType;
@@ -38,6 +39,8 @@ public class FurnaceMinecartEntity extends Entity {
 
     public FurnaceMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
+
+        metadata.put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(0f, 0.5f, 0f));
     }
 
     @Override
@@ -45,16 +48,22 @@ public class FurnaceMinecartEntity extends Entity {
         if (entityMetadata.getId() == 13) {
             if (furnace == null) {
                 furnace = new FurnaceMincartBlockEntity(entityId * -1, session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        EntityType.MINECART_FURNACE_BLOCK, Vector3f.ZERO, Vector3f.ZERO, rotation, 3372);
+                        EntityType.MINECART_FURNACE_BLOCK, Vector3f.ZERO, Vector3f.FORWARD, rotation, 3372);
 
                 session.getEntityCache().spawnEntity(furnace);
 
-                EntityLink.Type type = false ? EntityLink.Type.RIDER : EntityLink.Type.PASSENGER;
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                linkPacket.setEntityLink(new EntityLink(this.getGeyserId(), furnace.getGeyserId(), type, false));
+                linkPacket.setEntityLink(new EntityLink(this.getGeyserId(), furnace.getGeyserId(), EntityLink.Type.PASSENGER, false));
                 session.sendUpstreamPacket(linkPacket);
+                passengers.add(furnace.getEntityId());
+
+                furnace.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
+                furnace.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
+                furnace.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
 
                 this.setPassengers(passengers);
+
+                furnace.updateBedrockMetadata(session);
             }
         }
 
