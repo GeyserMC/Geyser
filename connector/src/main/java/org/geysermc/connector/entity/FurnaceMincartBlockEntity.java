@@ -38,7 +38,7 @@ public class FurnaceMincartBlockEntity extends FallingBlockEntity {
         super(entityId, geyserId, entityType, position, motion, rotation, javaId);
 
         metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, false);
-        //metadata.put(EntityData.SCALE, 0.8f);
+
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0f);
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0f);
     }

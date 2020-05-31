@@ -50,8 +50,9 @@ public class FurnaceMinecartEntity extends Entity {
             boolean hasFuel = (boolean) entityMetadata.getValue();
 
             if (furnace == null) {
+                // We use the entity id * -1 as it wont be used by vanilla
                 furnace = new FurnaceMincartBlockEntity(entityId * -1, session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        EntityType.MINECART_FURNACE_BLOCK, Vector3f.ZERO, Vector3f.FORWARD, rotation, BlockTranslator.JAVA_RUNTIME_FURNACE_ID);
+                        EntityType.MINECART_FURNACE_BLOCK, Vector3f.ZERO, Vector3f.ZERO, rotation, BlockTranslator.JAVA_RUNTIME_FURNACE_ID);
 
                 session.getEntityCache().spawnEntity(furnace);
 
@@ -60,6 +61,7 @@ public class FurnaceMinecartEntity extends Entity {
                 session.sendUpstreamPacket(linkPacket);
                 passengers.add(furnace.getEntityId());
 
+                // Dosnt make a difference?
                 furnace.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
                 furnace.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
                 furnace.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
@@ -77,6 +79,7 @@ public class FurnaceMinecartEntity extends Entity {
 
     @Override
     public boolean despawnEntity(GeyserSession session) {
+        // Make sure the furnace falling block is removed
         if (furnace != null) {
             furnace.despawnEntity(session);
             session.getEntityCache().removeEntity(furnace, true);
