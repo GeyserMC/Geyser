@@ -35,6 +35,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class ArmorStandEntity extends LivingEntity {
 
+    // These are used to store the state of the armour stand for use when handling invisibility
     private boolean isMarker = false;
     private boolean isInvisible = false;
     private boolean isSmall = false;
@@ -45,6 +46,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        // Fake the height to be above where it is so the nametag appears in the right location for invisible non-marker armour stands
         if (!isMarker && isInvisible) {
             position = position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
         }
@@ -56,6 +58,8 @@ public class ArmorStandEntity extends LivingEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 0 && entityMetadata.getType() == MetadataType.BYTE) {
             byte xd = (byte) entityMetadata.getValue();
+
+            // Check if the armour stand is invisible and store accordingly
             if ((xd & 0x20) == 0x20) {
                 metadata.put(EntityData.SCALE, 0.0f);
                 isInvisible = true;
