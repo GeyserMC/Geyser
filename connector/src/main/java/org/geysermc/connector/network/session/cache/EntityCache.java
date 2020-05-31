@@ -50,6 +50,9 @@ public class EntityCache {
     private Long2LongMap cachedPlayerEntityLinks = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
 
     @Getter
+    private MinecartInventory minecartInventory;
+
+    @Getter
     private AtomicLong nextEntityId = new AtomicLong(2L);
 
     public EntityCache(GeyserSession session) {
@@ -154,5 +157,14 @@ public class EntityCache {
 
     public void addCachedPlayerEntityLink(long playerId, long linkedEntityId) {
         cachedPlayerEntityLinks.put(playerId, linkedEntityId);
+    }
+
+    public void addMinecartInventory(MinecartInventory minecartInventory) {
+        this.minecartInventory = minecartInventory;
+        minecartInventory.addMinecartInventory();
+    }
+
+    public void removeMinecartInventory() {
+        minecartInventory.removeMinecartInventory();
     }
 }
