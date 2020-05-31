@@ -67,7 +67,6 @@ public class InventoryUtils {
     }
 
     public static void closeInventory(GeyserSession session, int windowId) {
-        session.getEntityCache().removeMinecartInventory();
         if (windowId != 0) {
             Inventory inventory = session.getInventoryCache().getInventories().get(windowId);
             if (inventory != null) {

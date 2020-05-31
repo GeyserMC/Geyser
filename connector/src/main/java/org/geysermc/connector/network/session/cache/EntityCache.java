@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.nukkitx.math.vector.Vector3f;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
@@ -49,9 +48,6 @@ public class EntityCache {
     private Map<UUID, PlayerEntity> playerEntities = Collections.synchronizedMap(new HashMap<>());
     private Map<UUID, BossBar> bossBars = Collections.synchronizedMap(new HashMap<>());
     private Long2LongMap cachedPlayerEntityLinks = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
-
-    @Getter
-    private MinecartInventory minecartInventory;
 
     @Getter
     private AtomicLong nextEntityId = new AtomicLong(2L);
@@ -158,19 +154,5 @@ public class EntityCache {
 
     public void addCachedPlayerEntityLink(long playerId, long linkedEntityId) {
         cachedPlayerEntityLinks.put(playerId, linkedEntityId);
-    }
-
-    public void addMinecartInventory(MinecartInventory minecartInventory) {
-        if (minecartInventory != null) {
-            removeMinecartInventory();
-        }
-        this.minecartInventory = minecartInventory;
-        minecartInventory.addMinecartInventory();
-    }
-
-    public void removeMinecartInventory() {
-        if (minecartInventory != null) {
-            minecartInventory.removeMinecartInventory();
-        }
     }
 }

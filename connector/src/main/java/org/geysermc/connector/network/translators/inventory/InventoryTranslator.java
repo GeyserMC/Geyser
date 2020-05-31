@@ -64,8 +64,9 @@ public abstract class InventoryTranslator {
 
                 InventoryUpdater containerUpdater = new ContainerInventoryUpdater();
                 put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, containerUpdater));
-                put(WindowType.HOPPER, new HopperInventoryTranslator());
-                put(WindowType.SHULKER_BOX, new SingleChestInventoryTranslator(27));
+                put(WindowType.HOPPER, new MinecartInventoryTranslator(5, ContainerType.HOPPER, containerUpdater));
+                //Using a shulker box block prevents the user from placing a shulker box item inside another shulker box
+                put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, containerUpdater));
                 //put(WindowType.BEACON, new BlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO
             } catch (Exception e) {
                 e.printStackTrace();
