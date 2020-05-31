@@ -28,10 +28,7 @@ package org.geysermc.connector.network.translators.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.InventorySource;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
@@ -99,7 +96,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
             if (session.getGameMode() == GameMode.CREATIVE) {
                 slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK);
-            }else{
+            } else {
                 slotPacket.setItem(ItemTranslator.translateToBedrock(inventory.getItem(i)));
             }
 

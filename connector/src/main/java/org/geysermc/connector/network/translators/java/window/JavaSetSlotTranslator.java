@@ -31,6 +31,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.action.LegacyCraftingTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.Objects;
@@ -60,5 +61,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
             inventory.setItem(packet.getSlot(), packet.getItem());
             translator.updateSlot(session, inventory, packet.getSlot());
         }
+
+        LegacyCraftingTranslator.addCraftingRecipe(session, packet, inventory);
     }
 }

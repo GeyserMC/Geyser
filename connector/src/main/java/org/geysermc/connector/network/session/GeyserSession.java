@@ -45,13 +45,11 @@ import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
-import com.nukkitx.protocol.bedrock.data.GameRuleData;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.AuthType;
@@ -165,6 +163,10 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private int craftSlot = 0;
+
+    @Setter
+    private boolean sentDeclareRecipesPacket = false;
+    private ObjectArrayList<CraftingData> knownRecipes = new ObjectArrayList<>();
 
     private MinecraftProtocol protocol;
 

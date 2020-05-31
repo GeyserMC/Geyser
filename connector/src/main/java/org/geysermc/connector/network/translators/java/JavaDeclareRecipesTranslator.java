@@ -91,6 +91,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
         }
         craftingDataPacket.getPotionMixData().addAll(POTION_MIXES);
         session.sendUpstreamPacket(craftingDataPacket);
+        session.setSentDeclareRecipesPacket(true); // No need to handle pre-1.12 crafting
     }
 
     //TODO: rewrite

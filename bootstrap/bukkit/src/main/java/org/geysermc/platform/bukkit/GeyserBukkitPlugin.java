@@ -25,13 +25,16 @@
 
 package org.geysermc.platform.bukkit;
 
+import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
@@ -39,11 +42,17 @@ import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
 import org.geysermc.platform.bukkit.world.GeyserBukkitBlockPlaceListener;
 import org.geysermc.platform.bukkit.world.GeyserBukkitWorldManager;
+import org.geysermc.platform.bukkit.world.GeyserBukkitPlayerListener;
 import us.myles.ViaVersion.api.Via;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
+
+    @Getter
+    private static Map<Player, GeyserSession> playerToSessionMap = new HashMap<>();
 
     private GeyserBukkitCommandManager geyserCommandManager;
     private GeyserBukkitConfiguration geyserConfig;
@@ -105,8 +114,10 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         this.geyserWorldManager = new GeyserBukkitWorldManager(isLegacy, isViaVersion);
-        this.blockPlaceListener = new GeyserBukkitBlockPlaceListener(connector, isLegacy, isViaVersion);
+        this.blockPlaceListener = new GeyserBukkitBlockPlaceListener(isLegacy, isViaVersion);
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
+        Bukkit.getServer().getPluginManager().registerEvents(
+                new GeyserBukkitPlayerListener(connector, (!isCompatible(Bukkit.getServer().getVersion(), "1.12.0")), isViaVersion), this);
 
         this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));
     }
