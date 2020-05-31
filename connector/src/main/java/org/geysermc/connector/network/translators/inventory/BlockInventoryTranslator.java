@@ -41,7 +41,7 @@ public class BlockInventoryTranslator extends BaseInventoryTranslator {
     public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater) {
         super(size);
         BlockState javaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
-        int blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
+        int blockId = javaBlockIdentifier == "" ? 0 : BlockTranslator.getBedrockBlockId(javaBlockState);
         this.holder = new BlockInventoryHolder(blockId, containerType);
         this.updater = updater;
     }

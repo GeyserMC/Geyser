@@ -34,64 +34,33 @@ import org.geysermc.connector.network.session.cache.MinecartInventory;
 import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
 import org.geysermc.connector.utils.LocaleUtils;
 
-// TODO: extend single
-public class HopperInventoryTranslator extends BlockInventoryTranslator {
-    public HopperInventoryTranslator() {
-        super(5, "minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER, new ChestInventoryUpdater(27));
+// Inventories that extend this class can be handled with a fake minecart, so we don't need to place a block above the player
+public class BaseMinecartInventoryTranslator extends BlockInventoryTranslator {
+    private ContainerType type;
+
+    public BaseMinecartInventoryTranslator(int size, int paddedSize, ContainerType type) {
+        super(size, "", type, new ChestInventoryUpdater(paddedSize));
+        this.type = type;
     }
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
-        System.out.println("TESTTTTTT!pre[p");
         MinecartInventory minecartInventory = session.getEntityCache().getMinecartInventory();
         if (minecartInventory != null) {
             session.getEntityCache().removeMinecartInventory();
         }
         long entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
-        System.out.println(entityId);
         minecartInventory = new MinecartInventory(session, entityId, LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode()));
         session.getEntityCache().addMinecartInventory(minecartInventory);
-        // Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        // position = position.add(Vector3i.UP);
-        /* UpdateBlockPacket blockPacket = new UpdateBlockPacket();
-        blockPacket.setDataLayer(0);
-        blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(blockId);
-        blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-        session.sendUpstreamPacket(blockPacket); */
-        // inventory.setHolderPosition(position);
-
-        /* CompoundTag tag = CompoundTag.builder()
-                .intTag("x", position.getX())
-                .intTag("y", position.getY())
-                .intTag("z", position.getZ())
-                .stringTag("CustomName", LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode())).buildRootTag();
-        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
-        dataPacket.setData(tag);
-        dataPacket.setBlockPosition(position);
-        session.sendUpstreamPacket(dataPacket); */
-
-        System.out.println(inventory.getTitle());
-
-
-
-
-        // session.sendUpstreamPacket(addEntityPacket);
-
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-        System.out.println("TESTTTTTT!");
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) ContainerType.HOPPER.id());
-        // containerOpenPacket.setType((byte) 0);
-        // containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
+        containerOpenPacket.setType((byte) type.id());
         containerOpenPacket.setBlockPosition(Vector3i.from(0, 0, 0));
-        // containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        System.out.println(session.getEntityCache().getMinecartInventory().getEntityId());
-        containerOpenPacket.setUniqueEntityId(ession.getEntityCache().getMinecartInventory().getEntityId());
+        containerOpenPacket.setUniqueEntityId(session.getEntityCache().getMinecartInventory().getEntityId());
         session.sendUpstreamPacket(containerOpenPacket);
     }
 }

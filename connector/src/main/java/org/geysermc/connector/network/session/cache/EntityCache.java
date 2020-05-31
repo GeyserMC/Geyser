@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.session.cache;
 
+import com.nukkitx.math.vector.Vector3f;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
@@ -160,11 +161,16 @@ public class EntityCache {
     }
 
     public void addMinecartInventory(MinecartInventory minecartInventory) {
+        if (minecartInventory != null) {
+            removeMinecartInventory();
+        }
         this.minecartInventory = minecartInventory;
         minecartInventory.addMinecartInventory();
     }
 
     public void removeMinecartInventory() {
-        minecartInventory.removeMinecartInventory();
+        if (minecartInventory != null) {
+            minecartInventory.removeMinecartInventory();
+        }
     }
 }

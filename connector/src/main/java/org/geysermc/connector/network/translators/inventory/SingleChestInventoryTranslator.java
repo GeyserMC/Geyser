@@ -25,11 +25,70 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.MinecartInventory;
 import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
+import org.geysermc.connector.utils.LocaleUtils;
 
-public class SingleChestInventoryTranslator extends BlockInventoryTranslator {
+public class SingleChestInventoryTranslator extends BaseMinecartInventoryTranslator {
     public SingleChestInventoryTranslator(int size) {
-        super(size, "minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER, new ChestInventoryUpdater(27));
+        super(size, 27, ContainerType.CONTAINER);
     }
+
+    /* @Override
+    public void prepareInventory(GeyserSession session, Inventory inventory) {
+        MinecartInventory minecartInventory = session.getEntityCache().getMinecartInventory();
+        if (minecartInventory != null) {
+            session.getEntityCache().removeMinecartInventory();
+        }
+        long entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
+        System.out.println(entityId);
+        minecartInventory = new MinecartInventory(session, entityId, LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode()));
+        session.getEntityCache().addMinecartInventory(minecartInventory);
+        // Vector3i position = session.getPlayerEntity().getPosition().toInt();
+        // position = position.add(Vector3i.UP);
+        /* UpdateBlockPacket blockPacket = new UpdateBlockPacket();
+        blockPacket.setDataLayer(0);
+        blockPacket.setBlockPosition(position);
+        blockPacket.setRuntimeId(blockId);
+        blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        session.sendUpstreamPacket(blockPacket); */
+        // inventory.setHolderPosition(position);
+
+        /* CompoundTag tag = CompoundTag.builder()
+                .intTag("x", position.getX())
+                .intTag("y", position.getY())
+                .intTag("z", position.getZ())
+                .stringTag("CustomName", LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode())).buildRootTag();
+        BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+        dataPacket.setData(tag);
+        dataPacket.setBlockPosition(position);
+        session.sendUpstreamPacket(dataPacket); *//*
+
+        System.out.println(inventory.getTitle());
+
+
+
+
+        // session.sendUpstreamPacket(addEntityPacket);
+
+    }
+
+    @Override
+    public void openInventory(GeyserSession session, Inventory inventory) {
+        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
+        containerOpenPacket.setWindowId((byte) inventory.getId());
+        containerOpenPacket.setType((byte) ContainerType.CONTAINER.id());
+        // containerOpenPacket.setType((byte) 0);
+        // containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
+        containerOpenPacket.setBlockPosition(Vector3i.from(0, 0, 0));
+        // containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
+        System.out.println(session.getEntityCache().getMinecartInventory().getEntityId());
+        containerOpenPacket.setUniqueEntityId(session.getEntityCache().getMinecartInventory().getEntityId());
+        session.sendUpstreamPacket(containerOpenPacket);
+    } */
 }

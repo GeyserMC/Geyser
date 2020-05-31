@@ -34,7 +34,6 @@ import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = ServerCloseWindowPacket.class)
 public class JavaCloseWindowTranslator extends PacketTranslator<ServerCloseWindowPacket> {
-
     @Override
     public void translate(ServerCloseWindowPacket packet, GeyserSession session) {
         ContainerClosePacket closePacket = new ContainerClosePacket();
