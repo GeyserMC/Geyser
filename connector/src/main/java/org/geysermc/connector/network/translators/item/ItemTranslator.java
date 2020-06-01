@@ -160,7 +160,7 @@ public class ItemTranslator {
                 // Create a new item with the original data + updated name
                 itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.buildRootTag());
             }
-        } catch (Exception e) { }
+        } catch (NullPointerException e) { } // In case the NBT tag of the item is missing
 
         return itemData;
     }
