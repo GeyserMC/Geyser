@@ -271,6 +271,6 @@ public class PlayerEntity extends LivingEntity {
      * @return Name of player entity
      */
     public String getName() {
-        return displayName==null?username:displayName;
+        return displayName == null ? username : displayName;
     }
 }
