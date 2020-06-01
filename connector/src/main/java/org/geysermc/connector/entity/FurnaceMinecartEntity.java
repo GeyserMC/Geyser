@@ -66,6 +66,7 @@ public class FurnaceMinecartEntity extends MinecartEntity {
                 metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(customBlock));
                 metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
             } else {
+                showCustomBlock = false;
                 updateFurnaceMetadata();
             }
         }
