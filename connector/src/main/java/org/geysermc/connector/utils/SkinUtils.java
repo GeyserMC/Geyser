@@ -208,7 +208,7 @@ public class SkinUtils {
                                 if (session.getUpstream().isInitialized()) {
                                     PlayerListPacket.Entry updatedEntry = buildEntryManually(
                                             entity.getUuid(),
-                                            entity.getUsername(),
+                                            entity.getName(),
                                             entity.getGeyserId(),
                                             entity.getUuid().toString(),
                                             skin.getSkinData(),
