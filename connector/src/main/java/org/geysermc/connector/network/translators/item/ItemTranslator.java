@@ -111,7 +111,6 @@ public class ItemTranslator {
                 }
             }
         }
-
         return itemStack;
     }
 
