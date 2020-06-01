@@ -1,49 +1,50 @@
 /*
  * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
  *
- * @author GeyserMC
- * @link https://github.com/GeyserMC/Geyser
+ *  @author GeyserMC
+ *  @link https://github.com/GeyserMC/Geyser
+ *
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.connector.network.translators.effect;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-
 import lombok.NonNull;
-
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.effect.Effect;
+import org.geysermc.connector.utils.FileUtils;
 
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class EffectUtils {
+/**
+ * Registry for particles and effects.
+ */
+public class EffectRegistry {
 
     public static final Map<String, Effect> EFFECTS = new HashMap<>();
     public static final Int2ObjectMap<SoundEvent> RECORDS = new Int2ObjectOpenHashMap<>();
@@ -57,10 +58,10 @@ public class EffectUtils {
 
     static {
         /* Load particles */
-        InputStream particleStream = Toolbox.getResource("mappings/particles.json");
+        InputStream particleStream = FileUtils.getResource("mappings/particles.json");
         JsonNode particleEntries;
         try {
-            particleEntries = Toolbox.JSON_MAPPER.readTree(particleStream);
+            particleEntries = GeyserConnector.JSON_MAPPER.readTree(particleStream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load particle map", e);
         }
@@ -69,10 +70,10 @@ public class EffectUtils {
         while (particlesIterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = particlesIterator.next();
             try {
-                setIdentifier(ParticleType.valueOf(entry.getKey().toUpperCase()), LevelEventType.valueOf(entry.getValue().asText().toUpperCase()));
+                particleTypeMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), LevelEventType.valueOf(entry.getValue().asText().toUpperCase()));
             } catch (IllegalArgumentException e1) {
                 try {
-                    setIdentifier(ParticleType.valueOf(entry.getKey().toUpperCase()), entry.getValue().asText());
+                    particleStringMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), entry.getValue().asText());
                     GeyserConnector.getInstance().getLogger().debug("Force to map particle "
                             + entry.getKey()
                             + "=>"
@@ -85,10 +86,10 @@ public class EffectUtils {
         }
 
         /* Load effects */
-        InputStream effectsStream = Toolbox.getResource("mappings/effects.json");
+        InputStream effectsStream = FileUtils.getResource("mappings/effects.json");
         JsonNode effects;
         try {
-            effects = Toolbox.JSON_MAPPER.readTree(effectsStream);
+            effects = GeyserConnector.JSON_MAPPER.readTree(effectsStream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load effects mappings", e);
         }
@@ -112,14 +113,6 @@ public class EffectUtils {
         }
     }
 
-    public static void setIdentifier(ParticleType type, LevelEventType identifier) {
-        particleTypeMap.put(type, identifier);
-    }
-
-    public static void setIdentifier(ParticleType type, String identifier) {
-        particleStringMap.put(type, identifier);
-    }
-
     public static LevelEventType getParticleLevelEventType(@NonNull ParticleType type) {
         return particleTypeMap.getOrDefault(type, null);
     }
@@ -127,5 +120,4 @@ public class EffectUtils {
     public static String getParticleString(@NonNull ParticleType type){
         return particleStringMap.getOrDefault(type, null);
     }
-
 }

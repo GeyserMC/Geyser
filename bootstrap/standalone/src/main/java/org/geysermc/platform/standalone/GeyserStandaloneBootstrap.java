@@ -26,10 +26,12 @@
 package org.geysermc.platform.standalone;
 
 import org.geysermc.common.PlatformType;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
@@ -41,8 +43,9 @@ import java.util.UUID;
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     private GeyserCommandManager geyserCommandManager;
-    private GeyserConfiguration geyserConfig;
+    private GeyserStandaloneConfiguration geyserConfig;
     private GeyserStandaloneLogger geyserLogger;
+    private IGeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserConnector connector;
 
@@ -63,9 +66,13 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             System.exit(0);
         }
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserCommandManager = new GeyserCommandManager(connector);
+
+        geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+
         geyserLogger.start();
     }
 
@@ -88,5 +95,10 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public CommandManager getGeyserCommandManager() {
         return geyserCommandManager;
+    }
+
+    @Override
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
+        return geyserPingPassthrough;
     }
 }

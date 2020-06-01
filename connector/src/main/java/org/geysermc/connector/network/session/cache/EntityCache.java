@@ -26,8 +26,6 @@
 package org.geysermc.connector.network.session.cache;
 
 import it.unimi.dsi.fastutil.longs.*;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
@@ -49,6 +47,7 @@ public class EntityCache {
     private Long2LongMap entityIdTranslations = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
     private Map<UUID, PlayerEntity> playerEntities = Collections.synchronizedMap(new HashMap<>());
     private Map<UUID, BossBar> bossBars = Collections.synchronizedMap(new HashMap<>());
+    private Long2LongMap cachedPlayerEntityLinks = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
 
     @Getter
     private AtomicLong nextEntityId = new AtomicLong(2L);
@@ -147,5 +146,13 @@ public class EntityCache {
         entityIdTranslations = null;
         playerEntities = null;
         bossBars = null;
+    }
+
+    public long getCachedPlayerEntityLink(long playerId) {
+        return cachedPlayerEntityLinks.getOrDefault(playerId, -1);
+    }
+
+    public void addCachedPlayerEntityLink(long playerId, long linkedEntityId) {
+        cachedPlayerEntityLinks.put(playerId, linkedEntityId);
     }
 }

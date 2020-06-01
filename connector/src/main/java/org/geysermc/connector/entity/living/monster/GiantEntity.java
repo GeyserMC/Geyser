@@ -23,14 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity;
+package org.geysermc.connector.entity.living.monster;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 
-public class ArrowEntity extends Entity {
+public class GiantEntity extends MonsterEntity {
 
-    public ArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public GiantEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        metadata.put(EntityData.SCALE, 6f);
     }
 }

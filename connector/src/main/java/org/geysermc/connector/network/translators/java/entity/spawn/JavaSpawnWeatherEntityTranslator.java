@@ -31,17 +31,17 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnGlobalEntityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnWeatherEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
 
-@Translator(packet = ServerSpawnGlobalEntityPacket.class)
-public class JavaSpawnGlobalEntityTranslator extends PacketTranslator<ServerSpawnGlobalEntityPacket> {
+@Translator(packet = ServerSpawnWeatherEntityPacket.class)
+public class JavaSpawnWeatherEntityTranslator extends PacketTranslator<ServerSpawnWeatherEntityPacket> {
 
     @Override
-    public void translate(ServerSpawnGlobalEntityPacket packet, GeyserSession session) {
+    public void translate(ServerSpawnWeatherEntityPacket packet, GeyserSession session) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
 
-        // Currently GlobalEntityType only has a lightning bolt
+        // Currently WeatherEntityType only has a lightning bolt
         Entity entity = new Entity(
                 packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                 EntityType.LIGHTNING_BOLT, position, Vector3f.ZERO, Vector3f.ZERO

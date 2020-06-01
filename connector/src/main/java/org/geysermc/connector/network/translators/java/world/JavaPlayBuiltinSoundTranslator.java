@@ -35,7 +35,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.utils.SoundUtils;
+import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
 @Translator(packet = ServerPlayBuiltinSoundPacket.class)
 public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayBuiltinSoundPacket> {
@@ -44,11 +44,9 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
     public void translate(ServerPlayBuiltinSoundPacket packet, GeyserSession session) {
         String packetSound = packet.getSound().getName();
 
-        SoundUtils.SoundMapping soundMapping = SoundUtils.fromJava(packetSound);
-        session.getConnector().getLogger().debug("[Builtin] Sound mapping " + packetSound + " -> "
-                        + soundMapping + (soundMapping == null ? "[not found]" : "")
-                        + " - " + packet.toString());
+        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound);
         if (soundMapping == null) {
+            session.getConnector().getLogger().debug("[Builtin] Sound mapping " + packetSound + " not found - " + packet.toString());
             return;
         }
 
@@ -61,12 +59,12 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
             return;
         }
         LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
-        SoundEvent sound = SoundUtils.toSoundEvent(soundMapping.getBedrock());
+        SoundEvent sound = SoundRegistry.toSoundEvent(soundMapping.getBedrock());
         if (sound == null) {
-            sound = SoundUtils.toSoundEvent(soundMapping.getBedrock());
+            sound = SoundRegistry.toSoundEvent(soundMapping.getBedrock());
         }
         if (sound == null) {
-            sound = SoundUtils.toSoundEvent(packetSound);
+            sound = SoundRegistry.toSoundEvent(packetSound);
         }
         if (sound == null) {
             session.getConnector().getLogger().debug("[Builtin] Sound for original " + packetSound + " to mappings " + soundPacket
@@ -93,6 +91,5 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
         soundPacket.setBabySound(false); // might need to adjust this in the future
         soundPacket.setRelativeVolumeDisabled(false);
         session.sendUpstreamPacket(soundPacket);
-        session.getConnector().getLogger().debug("Packet sent - " + packet.toString() + " --> " + soundPacket.toString());
     }
 }

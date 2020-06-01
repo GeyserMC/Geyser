@@ -34,7 +34,6 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-
 import org.geysermc.common.window.CustomFormBuilder;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
@@ -195,18 +194,22 @@ public class LoginEncryptionUtils {
                         String password = response.getInputResponses().get(2);
 
                         session.authenticate(email, password);
+                    } else {
+                        showLoginDetailsWindow(session);
                     }
 
                     // Clear windows so authentication data isn't accidentally cached
                     windowCache.getWindows().clear();
                 } else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
                     SimpleFormResponse response = (SimpleFormResponse) window.getResponse();
-                    if(response != null) {
-                        if(response.getClickedButtonId() == 0) {
+                    if (response != null) {
+                        if (response.getClickedButtonId() == 0) {
                             showLoginDetailsWindow(session);
                         } else if(response.getClickedButtonId() == 1) {
                             session.disconnect(LanguageUtils.getLocaleStringPly("geyser.auth.login.form.disconnect", session.getClientData().getLanguageCode()));
                         }
+                    } else {
+                        showLoginWindow(session);
                     }
                 }
             }

@@ -58,18 +58,21 @@ import org.geysermc.common.AuthType;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.connector.network.session.cache.*;
-import org.geysermc.connector.network.translators.Registry;
+import org.geysermc.connector.network.translators.BiomeTranslator;
+import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
+import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.utils.SkinUtils;
-import org.geysermc.connector.utils.Toolbox;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -159,6 +162,9 @@ public class GeyserSession implements CommandSender {
     private ServerRespawnPacket lastDimPacket = null;
 
     @Setter
+    private Entity ridingVehicleEntity;
+
+    @Setter
     private int craftSlot = 0;
 
     private MinecraftProtocol protocol;
@@ -191,21 +197,32 @@ public class GeyserSession implements CommandSender {
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setTag(Toolbox.BIOMES);
+        biomeDefinitionListPacket.setTag(BiomeTranslator.BIOMES);
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setTag(Toolbox.ENTITY_IDENTIFIERS);
+        entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
         upstream.sendPacket(entityPacket);
 
         InventoryContentPacket creativePacket = new InventoryContentPacket();
         creativePacket.setContainerId(ContainerId.CREATIVE);
-        creativePacket.setContents(Toolbox.CREATIVE_ITEMS);
+        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
         upstream.sendPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
+    }
+
+    public void fetchOurSkin(PlayerListPacket.Entry entry) {
+        PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
+        playerSkinPacket.setUuid(authData.getUUID());
+        playerSkinPacket.setSkin(entry.getSkin());
+        playerSkinPacket.setOldSkinName("OldName");
+        playerSkinPacket.setNewSkinName("NewName");
+        playerSkinPacket.setTrustedSkin(true);
+        upstream.sendPacket(playerSkinPacket);
+        getConnector().getLogger().debug("Sending skin for " + playerEntity.getUsername() + " " + authData.getUUID());
     }
 
     public void login() {
@@ -333,7 +350,7 @@ public class GeyserSession implements CommandSender {
                                 lastDimPacket = event.getPacket();
                                 return;
                             } else if (lastDimPacket != null) {
-                                Registry.JAVA.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
+                                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
                                 lastDimPacket = null;
                             }
 
@@ -349,8 +366,16 @@ public class GeyserSession implements CommandSender {
                                 }
                             }
 
-                            Registry.JAVA.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                            PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                         }
+                    }
+
+                    @Override
+                    public void packetError(PacketErrorEvent event) {
+                        connector.getLogger().warning("Downstream packet error! " + event.getCause().getMessage());
+                        if (connector.getConfig().isDebugMode())
+                            event.getCause().printStackTrace();
+                        event.setSuppress(true);
                     }
                 });
 
@@ -485,7 +510,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setBlockPalette(BlockTranslator.BLOCKS);
-        startGamePacket.setItemEntries(Toolbox.ITEMS);
+        startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
         // startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacket(startGamePacket);

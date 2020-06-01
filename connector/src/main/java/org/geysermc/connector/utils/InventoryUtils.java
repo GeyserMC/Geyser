@@ -36,9 +36,10 @@ import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -48,7 +49,7 @@ public class InventoryUtils {
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag("")); //TODO: stop using this
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
-        InventoryTranslator translator = Translators.getInventoryTranslators().get(inventory.getWindowType());
+        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
         if (translator != null) {
             session.getInventoryCache().setOpenInventory(inventory);
             translator.prepareInventory(session, inventory);
@@ -69,14 +70,14 @@ public class InventoryUtils {
         if (windowId != 0) {
             Inventory inventory = session.getInventoryCache().getInventories().get(windowId);
             if (inventory != null) {
-                InventoryTranslator translator = Translators.getInventoryTranslators().get(inventory.getWindowType());
+                InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
                 translator.closeInventory(session, inventory);
                 session.getInventoryCache().uncacheInventory(windowId);
                 session.getInventoryCache().setOpenInventory(null);
             }
         } else {
             Inventory inventory = session.getInventory();
-            InventoryTranslator translator = Translators.getInventoryTranslators().get(inventory.getWindowType());
+            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
             translator.updateInventory(session, inventory);
         }
         session.setCraftSlot(0);
@@ -87,7 +88,7 @@ public class InventoryUtils {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
         cursorPacket.setContainerId(ContainerId.CURSOR);
         cursorPacket.setSlot(0);
-        cursorPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, session.getInventory().getCursor()));
+        cursorPacket.setItem(ItemTranslator.translateToBedrock(session.getInventory().getCursor()));
         session.sendUpstreamPacket(cursorPacket);
     }
 
@@ -116,6 +117,6 @@ public class InventoryUtils {
         display.listTag("Lore", StringTag.class, Collections.singletonList(new StringTag("", ChatColor.RESET + ChatColor.DARK_PURPLE + description)));
 
         root.tag(display.build("display"));
-        return ItemData.of(Toolbox.ITEM_ENTRIES.get(Toolbox.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.buildRootTag());
+        return ItemData.of(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.buildRootTag());
     }
 }
