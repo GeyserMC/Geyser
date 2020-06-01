@@ -69,8 +69,8 @@ public class BlockTranslator {
     public static final IntSet JAVA_RUNTIME_WOOL_IDS = new IntOpenHashSet();
     public static int JAVA_RUNTIME_COBWEB_ID;
 
-    public static final int JAVA_RUNTIME_FURNACE_ID;
-    public static final int JAVA_RUNTIME_FURNACE_LIT_ID;
+    public static int JAVA_RUNTIME_FURNACE_ID;
+    public static int JAVA_RUNTIME_FURNACE_LIT_ID;
 
     private static final int BLOCK_STATE_VERSION = 17760256;
 
