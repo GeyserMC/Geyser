@@ -41,6 +41,12 @@ public class LanguageUtils {
     private static String DEFAULT_LOCALE = (GeyserConnector.getInstance().getConfig().getDefaultLocale() != null ? GeyserConnector.getInstance().getConfig().getDefaultLocale() : "en_us");
 
     static {
+        // Load it as a backup in case something goes really wrong
+        if (!"en_US".equals(cleanLocale(DEFAULT_LOCALE))) {
+            loadGeyserLocale("en_US");
+        }
+
+        // Load the default locale from config
         loadGeyserLocale(DEFAULT_LOCALE);
     }
 
@@ -68,7 +74,7 @@ public class LanguageUtils {
         } else {
             if (locale.toLowerCase().equals(DEFAULT_LOCALE.toLowerCase())) {
                 // The default locale was invalid fallback to en_us
-                DEFAULT_LOCALE = "en_us";
+                DEFAULT_LOCALE = "en_US";
                 loadGeyserLocale(DEFAULT_LOCALE);
             } else {
                 GeyserConnector.getInstance().getLogger().warning(getLocaleStringLog("geyser.language.missing_file", locale));
@@ -99,7 +105,26 @@ public class LanguageUtils {
         locale = cleanLocale(locale);
 
         Properties properties = LOCALE_MAPPINGS.get(locale);
-        return MessageFormat.format(properties.getProperty(key, properties.getProperty(cleanLocale(DEFAULT_LOCALE), "MISSING LANGUAGE KEY: " + key)).replace("&", "\u00a7"), values);
+        String formatString = properties.getProperty(key);
+
+        // Try and get the key from the default locale
+        if (formatString == null) {
+            properties = LOCALE_MAPPINGS.get(cleanLocale(DEFAULT_LOCALE));
+            formatString = properties.getProperty(key);
+        }
+
+        // Try and get the key from en_US (this should only ever happen in development)
+        if (formatString == null) {
+            properties = LOCALE_MAPPINGS.get("en_US");
+            formatString = properties.getProperty(key);
+        }
+
+        // Final fallback
+        if (formatString == null) {
+            formatString = "MISSING LANGUAGE KEY: " + key;
+        }
+
+        return MessageFormat.format(formatString.replace("&", "\u00a7"), values);
     }
 
     /**
