@@ -34,6 +34,11 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class FurnaceMinecartEntity extends MinecartEntity {
 
+    private int customBlock = 0;
+    private int customBlockOffset = 0;
+    private boolean showCustomBlock = false;
+    private boolean hasFuel = false;
+
     public FurnaceMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
@@ -43,12 +48,39 @@ public class FurnaceMinecartEntity extends MinecartEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 13) {
-            boolean hasFuel = (boolean) entityMetadata.getValue();
 
-            metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID));
+        // Custom block
+        if (entityMetadata.getId() == 10) {
+            customBlock = (int) entityMetadata.getValue();
+        }
+
+        // Custom block offset
+        if (entityMetadata.getId() == 11) {
+            customBlockOffset = (int) entityMetadata.getValue();
+        }
+
+        // If the custom block should be enabled
+        if (entityMetadata.getId() == 12) {
+            if ((boolean) entityMetadata.getValue()) {
+                showCustomBlock = true;
+                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(customBlock));
+                metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
+            } else {
+                showCustomBlock = false;
+                updateFurnaceMetadata();
+            }
+        }
+
+        if (entityMetadata.getId() == 13 && !showCustomBlock) {
+            hasFuel = (boolean) entityMetadata.getValue();
+            updateFurnaceMetadata();
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    private void updateFurnaceMetadata() {
+        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID));
+        metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }
