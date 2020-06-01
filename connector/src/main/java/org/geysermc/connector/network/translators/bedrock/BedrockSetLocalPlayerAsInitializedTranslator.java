@@ -43,8 +43,10 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                 session.login();
 
                 for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
-                    SkinUtils.requestAndHandleSkinAndCape(entity, session, null);
-                    entity.sendPlayer(session);
+                    if (!entity.isValid()) {
+                        SkinUtils.requestAndHandleSkinAndCape(entity, session, null);
+                        entity.sendPlayer(session);
+                    }
                 }
             }
         }
