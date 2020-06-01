@@ -56,6 +56,16 @@ public class OffhandCommand extends GeyserCommand {
             ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
                     BlockFace.DOWN);
             session.sendDownstreamPacket(releaseItemPacket);
+            return;
+        }
+        // Needed for Bukkit - sender is not an instance of GeyserSession
+        for (GeyserSession session : connector.getPlayers().values()) {
+            if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
+                ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
+                        BlockFace.DOWN);
+                session.sendDownstreamPacket(releaseItemPacket);
+                break;
+            }
         }
     }
 }

@@ -32,8 +32,8 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.IntTag;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
+import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +57,7 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
 
         if (tag.contains("Patterns")) {
             ListTag patterns = tag.get("Patterns");
-            tags.add(ItemUtils.convertBannerPattern(patterns));
+            tags.add(BannerTranslator.convertBannerPattern(patterns));
         }
 
         if (tag.contains("CustomName")) {

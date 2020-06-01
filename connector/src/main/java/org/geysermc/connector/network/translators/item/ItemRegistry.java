@@ -1,91 +1,85 @@
 /*
  * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
  *
- * @author GeyserMC
- * @link https://github.com/GeyserMC/Geyser
+ *  @author GeyserMC
+ *  @link https://github.com/GeyserMC/Geyser
+ *
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.connector.network.translators.item;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ToolItemEntry;
-import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
+import org.geysermc.connector.utils.FileUtils;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-public class Toolbox {
+/**
+ * Registry for anything item related.
+ */
+public class ItemRegistry {
 
-    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
-    public static final CompoundTag BIOMES;
+    private static final Map<String, ItemEntry> JAVA_IDENTIFIER_MAP = new HashMap<>();
+
     public static final ItemData[] CREATIVE_ITEMS;
 
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
-
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    public static CompoundTag ENTITY_IDENTIFIERS;
+    // Shield ID, used in Entity.java
+    public static final int SHIELD = 829;
+    // Boat ID, used in BedrockInventoryTransactionTranslator.java
+    public static final int BOAT = 333;
 
     public static int BARRIER_INDEX = 0;
 
+    public static void init() {
+        // no-op
+    }
+
     static {
-        /* Load biomes */
-        InputStream biomestream = GeyserConnector.class.getClassLoader().getResourceAsStream("bedrock/biome_definitions.dat");
-        if (biomestream == null) {
-            throw new AssertionError("Unable to find bedrock/biome_definitions.dat");
-        }
-
-        CompoundTag biomesTag;
-
-        try (NBTInputStream biomenbtInputStream = NbtUtils.createNetworkReader(biomestream)){
-            biomesTag = (CompoundTag) biomenbtInputStream.readTag();
-            BIOMES = biomesTag;
-        } catch (Exception ex) {
-            GeyserConnector.getInstance().getLogger().warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
-            throw new AssertionError(ex);
-        }
-
         /* Load item palette */
-        InputStream stream = getResource("bedrock/items.json");
+        InputStream stream = FileUtils.getResource("bedrock/items.json");
 
         TypeReference<List<JsonNode>> itemEntriesType = new TypeReference<List<JsonNode>>() {
         };
 
         List<JsonNode> itemEntries;
         try {
-            itemEntries = JSON_MAPPER.readValue(stream, itemEntriesType);
+            itemEntries = GeyserConnector.JSON_MAPPER.readValue(stream, itemEntriesType);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
         }
@@ -94,11 +88,11 @@ public class Toolbox {
             ITEMS.add(new StartGamePacket.ItemEntry(entry.get("name").textValue(), (short) entry.get("id").intValue()));
         }
 
-        stream = getResource("mappings/items.json");
+        stream = FileUtils.getResource("mappings/items.json");
 
         JsonNode items;
         try {
-            items = JSON_MAPPER.readTree(stream);
+            items = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
@@ -139,22 +133,12 @@ public class Toolbox {
             itemIndex++;
         }
 
-        // Load particle/effect mappings
-        EffectUtils.init();
-        // Load sound mappings
-        SoundUtils.init();
-        // Load the locale data
-        LocaleUtils.init();
-
-        // Load sound handlers
-        SoundHandlerRegistry.init();
-
         /* Load creative items */
-        stream = getResource("bedrock/creative_items.json");
+        stream = FileUtils.getResource("bedrock/creative_items.json");
 
         JsonNode creativeItemEntries;
         try {
-            creativeItemEntries = JSON_MAPPER.readTree(stream).get("items");
+            creativeItemEntries = GeyserConnector.JSON_MAPPER.readTree(stream).get("items");
         } catch (Exception e) {
             throw new AssertionError("Unable to load creative items", e);
         }
@@ -179,33 +163,51 @@ public class Toolbox {
             }
         }
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
-
-
-        /* Load entity identifiers */
-        stream = Toolbox.getResource("bedrock/entity_identifiers.dat");
-
-        try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-            ENTITY_IDENTIFIERS = (CompoundTag) nbtInputStream.readTag();
-        } catch (Exception e) {
-            throw new AssertionError("Unable to get entities from entity identifiers", e);
-        }
     }
 
     /**
-     * Get an InputStream for the given resource path, throws AssertionError if resource is not found
+     * Gets an {@link ItemEntry} from the given {@link ItemStack}.
      *
-     * @param resource Resource to get
-     * @return InputStream of the given resource
+     * @param stack the item stack
+     * @return an item entry from the given item stack
      */
-    public static InputStream getResource(String resource) {
-        InputStream stream = Toolbox.class.getClassLoader().getResourceAsStream(resource);
-        if (stream == null) {
-            throw new AssertionError("Unable to find resource: " + resource);
-        }
-        return stream;
+    public static ItemEntry getItem(ItemStack stack) {
+        return ITEM_ENTRIES.get(stack.getId());
     }
 
-    public static void init() {
-        // no-op
+    /**
+     * Gets an {@link ItemEntry} from the given {@link ItemData}.
+     *
+     * @param data the item data
+     * @return an item entry from the given item data
+     */
+    public static ItemEntry getItem(ItemData data) {
+        for (ItemEntry itemEntry : ITEM_ENTRIES.values()) {
+            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() || itemEntry.getJavaIdentifier().endsWith("potion"))) {
+                return itemEntry;
+            }
+        }
+        // If item find was unsuccessful first time, we try again while ignoring damage
+        // Fixes piston, sticky pistons, dispensers and droppers turning into air from creative inventory
+        for (ItemEntry itemEntry : ITEM_ENTRIES.values()) {
+            if (itemEntry.getBedrockId() == data.getId()) {
+                return itemEntry;
+            }
+        }
+
+        GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        return ItemEntry.AIR;
+    }
+
+    /**
+     * Gets an {@link ItemEntry} from the given Minecraft: Java Edition
+     * block state identifier.
+     *
+     * @param javaIdentifier the block state identifier
+     * @return an item entry from the given java edition identifier
+     */
+    public static ItemEntry getItemEntry(String javaIdentifier) {
+        return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> ITEM_ENTRIES.values()
+                .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
     }
 }

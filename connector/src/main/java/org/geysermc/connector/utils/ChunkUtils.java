@@ -32,6 +32,9 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -43,11 +46,12 @@ import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.entity.*;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,6 +64,23 @@ public class ChunkUtils {
      * Temporarily stores positions of BlockState values that are needed for certain block entities actively
      */
     public static final Map<Position, BlockState> CACHED_BLOCK_ENTITIES = new HashMap<>();
+    
+    private static final com.nukkitx.nbt.tag.CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
+    public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
+
+    static {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size
+
+            try (NBTOutputStream stream = NbtUtils.createNetworkWriter(outputStream)) {
+                stream.write(EMPTY_TAG);
+            }
+
+            EMPTY_LEVEL_CHUNK_DATA = outputStream.toByteArray();
+        }catch (IOException e) {
+            throw new AssertionError("Unable to generate empty level chunk data");
+        }
+    }
 
     public static ChunkData translateToBedrock(GeyserSession session, Column column, boolean isNonFullChunk) {
         ChunkData chunkData = new ChunkData();
@@ -206,7 +227,7 @@ public class ChunkUtils {
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
         // Iterates through all block entity translators and determines if the block state needs to be saved
-        for (RequiresBlockState requiresBlockState : Translators.getRequiresBlockStateMap()) {
+        for (RequiresBlockState requiresBlockState : BlockEntityTranslator.REQUIRES_BLOCK_STATE_LIST) {
             if (requiresBlockState.isBlock(blockState)) {
                 // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
                 if (requiresBlockState instanceof BedrockOnlyBlockEntity) {
@@ -229,7 +250,7 @@ public class ChunkUtils {
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
                 data.setSubChunksLength(0);
-                data.setData(Translators.EMPTY_LEVEL_CHUNK_DATA);
+                data.setData(EMPTY_LEVEL_CHUNK_DATA);
                 data.setCachingEnabled(false);
                 session.sendUpstreamPacket(data);
 

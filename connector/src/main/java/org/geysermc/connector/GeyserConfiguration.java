@@ -32,7 +32,7 @@ import java.util.Map;
 public interface GeyserConfiguration {
 
     // Modify this when you update the config
-    int CURRENT_CONFIG_VERSION = 1;
+    int CURRENT_CONFIG_VERSION = 3;
 
     IBedrockConfiguration getBedrock();
 
@@ -42,7 +42,13 @@ public interface GeyserConfiguration {
 
     boolean isCommandSuggestions();
 
-    boolean isPingPassthrough();
+    boolean isPassthroughMotd();
+
+    boolean isPassthroughPlayerCounts();
+
+    boolean isLegacyPingPassthrough();
+
+    int getPingPassthroughInterval();
 
     int getMaxPlayers();
 
@@ -52,9 +58,13 @@ public interface GeyserConfiguration {
 
     boolean isAllowThirdPartyCapes();
 
+    boolean isAllowThirdPartyEars();
+
     String getDefaultLocale();
 
     Path getFloodgateKeyFile();
+
+    boolean isAboveBedrockNetherBuilding();
 
     boolean isCacheChunks();
 
