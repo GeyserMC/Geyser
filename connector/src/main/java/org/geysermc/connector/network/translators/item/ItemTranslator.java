@@ -144,27 +144,32 @@ public abstract class ItemTranslator {
             itemData = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
         }
 
-        try {
-            // Get the display name of the item
-            String name = itemData.getTag().getCompound("display").getString("Name");
 
-            // Check if its a message to translate
-            if (MessageUtils.isMessage(name)) {
-                // Get the translated name
-                name = MessageUtils.getTranslatedBedrockMessage(Message.fromString(name), session.getClientData().getLanguageCode());
+        // Get the display name of the item
+        CompoundTag tag = itemData.getTag();
+        if (tag != null) {
+            CompoundTag display = tag.getCompound("display");
+            if (display != null) {
+                String name = display.getString("Name");
 
-                // Build the new display tag
-                CompoundTagBuilder displayBuilder = itemData.getTag().getCompound("display").toBuilder();
-                displayBuilder.stringTag("Name", name);
+                // Check if its a message to translate
+                if (MessageUtils.isMessage(name)) {
+                    // Get the translated name
+                    name = MessageUtils.getTranslatedBedrockMessage(Message.fromString(name), session.getClientData().getLanguageCode());
 
-                // Build the new root tag
-                CompoundTagBuilder builder = itemData.getTag().toBuilder();
-                builder.tag(displayBuilder.build("display"));
+                    // Build the new display tag
+                    CompoundTagBuilder displayBuilder = display.toBuilder();
+                    displayBuilder.stringTag("Name", name);
 
-                // Create a new item with the original data + updated name
-                itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.buildRootTag());
+                    // Build the new root tag
+                    CompoundTagBuilder builder = tag.toBuilder();
+                    builder.tag(displayBuilder.build("display"));
+
+                    // Create a new item with the original data + updated name
+                    itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.buildRootTag());
+                }
             }
-        } catch (NullPointerException e) { } // In case the NBT tag of the item is missing
+        }
 
         return itemData;
     }
