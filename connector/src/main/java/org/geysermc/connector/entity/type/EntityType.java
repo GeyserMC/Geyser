@@ -105,7 +105,7 @@ public enum EntityType {
     THROWN_EXP_BOTTLE(ThrowableEntity.class, 68, 0.25f, 0.25f, 0f, 0f, "minecraft:xp_bottle"),
     EXPERIENCE_ORB(ExpOrbEntity.class, 69, 0f, 0f, 0f, 0f, "minecraft:xp_orb"),
     EYE_OF_ENDER(Entity.class, 70, 0.25f, 0.25f, 0f, 0f, "minecraft:eye_of_ender_signal"),
-    END_CRYSTAL(EnderCrystalEntity.class, 71, 0f, 0f, 0f, 0f, "minecraft:ender_crystal"),
+    END_CRYSTAL(EnderCrystalEntity.class, 71, 2.0f, 2.0f, 2.0f, 0f, "minecraft:ender_crystal"),
     FIREWORK_ROCKET(FireworkEntity.class, 72, 0.25f, 0.25f, 0.25f, 0f, "minecraft:fireworks_rocket"),
     TRIDENT(TridentEntity.class, 73, 0f, 0f, 0f, 0f, "minecraft:thrown_trident"),
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
