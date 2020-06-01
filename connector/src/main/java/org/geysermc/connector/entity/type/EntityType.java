@@ -133,9 +133,7 @@ public enum EntityType {
     MINECART_HOPPER(MinecartEntity.class, 96, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:hopper_minecart"),
     MINECART_TNT(MinecartEntity.class, 97, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:tnt_minecart"),
     MINECART_CHEST(MinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:chest_minecart"),
-
     MINECART_FURNACE(FurnaceMinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:minecart"),
-    MINECART_FURNACE_BLOCK(FurnaceMincartBlockEntity.class, 66, 0.98f, 0.98f, 0.98f, 0.0f, "minecraft:falling_block"),
 
     MINECART_COMMAND_BLOCK(MinecartEntity.class, 100, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:command_block_minecart"),
     LINGERING_POTION(ThrowableEntity.class, 101, 0f),
