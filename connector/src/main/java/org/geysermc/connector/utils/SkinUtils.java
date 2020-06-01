@@ -49,18 +49,18 @@ import java.util.function.Consumer;
 
 public class SkinUtils {
 
-    public static PlayerListPacket.Entry buildCachedEntry(GameProfile profile, long geyserId) {
-        GameProfileData data = GameProfileData.from(profile);
+    public static PlayerListPacket.Entry buildCachedEntry(PlayerEntity playerEntity) {
+        GameProfileData data = GameProfileData.from(playerEntity.getProfile());
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
 
         SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
 
         return buildEntryManually(
-                profile.getId(),
-                profile.getName(),
-                geyserId,
-                profile.getIdAsString(),
-                SkinProvider.getCachedSkin(profile.getId()).getSkinData(),
+                playerEntity.getProfile().getId(),
+                playerEntity.getName(),
+                playerEntity.getGeyserId(),
+                playerEntity.getProfile().getIdAsString(),
+                SkinProvider.getCachedSkin(playerEntity.getProfile().getId()).getSkinData(),
                 cape.getCapeId(),
                 cape.getCapeData(),
                 geometry.getGeometryName(),
