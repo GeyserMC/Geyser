@@ -100,7 +100,12 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                             session.getEntityCache().removeEntity(entity, false);
                         }
                     }
-                    translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
+                    if (entity == session.getPlayerEntity()) {
+                        // If removing ourself we use our AuthData UUID
+                        translate.getEntries().add(new PlayerListPacket.Entry(session.getAuthData().getUUID()));
+                    } else {
+                        translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
+                    }
                     break;
             }
         }
