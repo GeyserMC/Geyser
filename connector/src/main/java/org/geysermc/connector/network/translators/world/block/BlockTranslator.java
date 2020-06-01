@@ -208,12 +208,12 @@ public class BlockTranslator {
         JAVA_RUNTIME_COBWEB_ID = cobwebRuntimeId;
 
         if (furnaceRuntimeId == -1) {
-            throw new AssertionError("Unable to find water in palette");
+            throw new AssertionError("Unable to find furnace in palette");
         }
         JAVA_RUNTIME_FURNACE_ID = furnaceRuntimeId;
 
         if (furnaceLitRuntimeId == -1) {
-            throw new AssertionError("Unable to find water in palette");
+            throw new AssertionError("Unable to find lit furnace in palette");
         }
         JAVA_RUNTIME_FURNACE_LIT_ID = furnaceLitRuntimeId;
 
