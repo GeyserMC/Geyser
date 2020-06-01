@@ -67,7 +67,7 @@ public class PaintingEntity extends Entity {
             Vector3f position = super.position;
             position = position.add(0.5, 0.5, 0.5);
             double widthOffset = paintingName.getWidth() > 1 ? 0.5 : 0;
-            double heightOffset = paintingName.getHeight() > 1 ? 0.5 : 0;
+            double heightOffset = paintingName.getHeight() > 1 && paintingName.getHeight() != 3 ? 0.5 : 0;
 
             switch (direction) {
                 case 0: return position.add(widthOffset, heightOffset, OFFSET);

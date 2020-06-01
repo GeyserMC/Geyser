@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 import java.util.Map;
 
@@ -67,7 +67,7 @@ public interface EntitySoundInteractionHandler extends SoundInteractionHandler<E
                 if (itemInHand == null || itemInHand.getId() == 0) {
                     continue;
                 }
-                String handIdentifier = Translators.getItemTranslator().getItem(session.getInventory().getItemInHand()).getJavaIdentifier();
+                String handIdentifier = ItemRegistry.getItem(session.getInventory().getItemInHand()).getJavaIdentifier();
                 boolean contains = false;
                 for (String itemIdentifier : interactionEntry.getKey().items()) {
                     if (handIdentifier.contains(itemIdentifier)) {

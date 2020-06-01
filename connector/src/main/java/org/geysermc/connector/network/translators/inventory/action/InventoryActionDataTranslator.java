@@ -38,9 +38,9 @@ import com.nukkitx.protocol.bedrock.data.InventorySource;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SlotType;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
@@ -61,13 +61,13 @@ public class InventoryActionDataTranslator {
                 worldAction = action;
             } else if (action.getSource().getContainerId() == ContainerId.CURSOR && action.getSlot() == 0) {
                 cursorAction = action;
-                ItemData translatedCursor = Translators.getItemTranslator().translateToBedrock(session, session.getInventory().getCursor());
+                ItemData translatedCursor = ItemTranslator.translateToBedrock(session, session.getInventory().getCursor());
                 if (!translatedCursor.equals(action.getFromItem())) {
                     refresh = true;
                 }
             } else {
                 containerAction = action;
-                ItemData translatedItem = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(translator.bedrockSlotToJava(action)));
+                ItemData translatedItem = ItemTranslator.translateToBedrock(session, inventory.getItem(translator.bedrockSlotToJava(action)));
                 if (!translatedItem.equals(action.getFromItem())) {
                     refresh = true;
                 }

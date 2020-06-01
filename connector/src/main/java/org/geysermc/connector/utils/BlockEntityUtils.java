@@ -4,12 +4,11 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 
 public class BlockEntityUtils {
 
-    private static final BlockEntityTranslator EMPTY_TRANSLATOR = Translators.getBlockEntityTranslators().get("Empty");
+    private static final BlockEntityTranslator EMPTY_TRANSLATOR = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get("Empty");
 
     public static String getBedrockBlockEntityId(String id) {
         // These are the only exceptions when it comes to block entity ids
@@ -21,6 +20,10 @@ public class BlockEntityUtils {
 
         if (id.contains("EnderChest"))
             return "EnderChest";
+
+        if (id.contains("enchanting_table")) {
+            return "EnchantTable";
+        }
 
         id = id.toLowerCase()
             .replace("minecraft:", "")
@@ -35,7 +38,7 @@ public class BlockEntityUtils {
     }
 
     public static BlockEntityTranslator getBlockEntityTranslator(String name) {
-        BlockEntityTranslator blockEntityTranslator = Translators.getBlockEntityTranslators().get(name);
+        BlockEntityTranslator blockEntityTranslator = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get(name);
         if (blockEntityTranslator == null) {
             return EMPTY_TRANSLATOR;
         }

@@ -1,45 +1,49 @@
 /*
  * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
  *
- * @author GeyserMC
- * @link https://github.com/GeyserMC/Geyser
+ *  @author GeyserMC
+ *  @link https://github.com/GeyserMC/Geyser
+ *
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.connector.network.translators.sound;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-
 import lombok.Data;
 import lombok.ToString;
-
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.utils.FileUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class SoundUtils {
+public class SoundRegistry {
 
     private static final Map<String, SoundMapping> SOUNDS;
+
+    private SoundRegistry() {
+    }
 
     public static void init() {
         // no-op
@@ -47,10 +51,10 @@ public class SoundUtils {
 
     static {
         /* Load sound mappings */
-        InputStream stream  = Toolbox.getResource("mappings/sounds.json");
+        InputStream stream  = FileUtils.getResource("mappings/sounds.json");
         JsonNode soundsTree;
         try {
-            soundsTree = Toolbox.JSON_MAPPER.readTree(stream);
+            soundsTree = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (IOException e) {
             throw new AssertionError("Unable to load sound mappings", e);
         }
@@ -83,6 +87,13 @@ public class SoundUtils {
         return SOUNDS.get(java);
     }
 
+    /**
+     * Maps a sound name to a sound event, null if one
+     * does not exist.
+     *
+     * @param sound the sound name
+     * @return a sound event from the given sound
+     */
     public static SoundEvent toSoundEvent(String sound) {
         try {
             return SoundEvent.valueOf(sound.toUpperCase().replaceAll("\\.", "_"));

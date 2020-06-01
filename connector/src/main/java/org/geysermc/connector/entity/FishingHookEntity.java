@@ -26,7 +26,7 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.type.object.ProjectileData;
+import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import org.geysermc.connector.GeyserConnector;
@@ -37,10 +37,14 @@ public class FishingHookEntity extends Entity {
     public FishingHookEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, ProjectileData data) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
-        // TODO: Find a better way to do this
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers().values()) {
-            if (session.getPlayerEntity().getEntityId() == data.getOwnerId()) {
-                this.metadata.put(EntityData.OWNER_EID, session.getPlayerEntity().getGeyserId());
+            Entity entity = session.getEntityCache().getEntityByJavaId(data.getOwnerId());
+            if (entity == null && session.getPlayerEntity().getEntityId() == data.getOwnerId()) {
+                entity = session.getPlayerEntity();
+            }
+
+            if (entity != null) {
+                this.metadata.put(EntityData.OWNER_EID, entity.getGeyserId());
                 return;
             }
         }

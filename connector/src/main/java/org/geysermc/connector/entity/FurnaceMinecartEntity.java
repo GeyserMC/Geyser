@@ -25,12 +25,30 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class ArrowEntity extends Entity {
+public class FurnaceMinecartEntity extends MinecartEntity {
 
-    public ArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public FurnaceMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(BlockTranslator.JAVA_RUNTIME_FURNACE_ID));
+        metadata.put(EntityData.HAS_DISPLAY, (byte) 1);
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 13) {
+            boolean hasFuel = (boolean) entityMetadata.getValue();
+
+            metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID));
+        }
+
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }
