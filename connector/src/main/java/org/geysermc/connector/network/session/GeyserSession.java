@@ -510,7 +510,13 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
         // startGamePacket.setMovementServerAuthoritative(true);
-        upstream.sendPacket(startGamePacket);
+        upstream.sendPacketImmediately(startGamePacket);
+
+        // Sleep this thread long enough for the StartGame packet to be processed.
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ignored) {
+        }
     }
 
     public boolean confirmTeleport(Vector3d position) {
