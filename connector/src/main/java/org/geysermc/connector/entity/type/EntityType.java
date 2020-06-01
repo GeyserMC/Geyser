@@ -119,7 +119,7 @@ public enum EntityType {
     SNOWBALL(ThrowableEntity.class, 81, 0.25f),
     THROWN_EGG(ThrowableEntity.class, 82, 0.25f, 0.25f, 0.25f, 0f, "minecraft:egg"),
     PAINTING(PaintingEntity.class, 83, 0f),
-    MINECART(BlockMinecartEntity.class, 84, 0.7f, 0.98f, 0.98f, 0.35f),
+    MINECART(MinecartEntity.class, 84, 0.7f, 0.98f, 0.98f, 0.35f),
     FIREBALL(ItemedFireballEntity.class, 85, 1.0f),
     THROWN_POTION(ThrowableEntity.class, 86, 0.25f, 0.25f, 0.25f, 0f, "minecraft:splash_potion"),
     THROWN_ENDERPEARL(ThrowableEntity.class, 87, 0.25f, 0.25f, 0.25f, 0f, "minecraft:ender_pearl"),
