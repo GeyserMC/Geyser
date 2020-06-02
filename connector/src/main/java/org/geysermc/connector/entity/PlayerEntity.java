@@ -43,6 +43,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.network.session.cache.EntityEffectCache;
+import org.geysermc.connector.utils.SkinProvider;
 import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.ArrayList;
@@ -59,6 +60,8 @@ public class PlayerEntity extends LivingEntity {
     private boolean playerList = true;
     private boolean onGround;
     private final EntityEffectCache effectCache;
+
+    private SkinProvider.SkinGeometry geometry;
 
     private Entity leftParrot;
     private Entity rightParrot;
