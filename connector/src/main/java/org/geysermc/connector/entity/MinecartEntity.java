@@ -55,20 +55,22 @@ public class MinecartEntity extends Entity {
             metadata.put(EntityData.HURT_TIME, Math.min((int) (float) entityMetadata.getValue(), 15));
         }
 
-        // Custom block
-        if (entityMetadata.getId() == 10) {
-            metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId((int) entityMetadata.getValue()));
-        }
+        if (!(this instanceof FurnaceMinecartEntity)) { // Handled in FurnaceMinecartEntity.java
+            // Custom block
+            if (entityMetadata.getId() == 10) {
+                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId((int) entityMetadata.getValue()));
+            }
 
-        // Custom block offset
-        if (entityMetadata.getId() == 11) {
-            metadata.put(EntityData.DISPLAY_OFFSET, entityMetadata.getValue());
-        }
+            // Custom block offset
+            if (entityMetadata.getId() == 11) {
+                metadata.put(EntityData.DISPLAY_OFFSET, entityMetadata.getValue());
+            }
 
-        // If the custom block should be enabled
-        if (entityMetadata.getId() == 12) {
-            // Needs a byte based off of Java's boolean
-            metadata.put(EntityData.HAS_DISPLAY, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+            // If the custom block should be enabled
+            if (entityMetadata.getId() == 12) {
+                // Needs a byte based off of Java's boolean
+                metadata.put(EntityData.HAS_DISPLAY, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+            }
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
