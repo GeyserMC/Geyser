@@ -82,6 +82,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -193,24 +194,27 @@ public class GeyserSession implements CommandSender {
         startGame();
         this.remoteServer = remoteServer;
 
-        ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
+        // These packets are sent a bit later to ensure the StartGame packet is processed first
+        connector.getGeneralThreadPool().schedule(() -> {
+            ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
-        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setTag(BiomeTranslator.BIOMES);
-        upstream.sendPacket(biomeDefinitionListPacket);
+            BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+            biomeDefinitionListPacket.setTag(BiomeTranslator.BIOMES);
+            upstream.sendPacket(biomeDefinitionListPacket);
 
-        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
-        upstream.sendPacket(entityPacket);
+            AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
+            entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
+            upstream.sendPacket(entityPacket);
 
-        InventoryContentPacket creativePacket = new InventoryContentPacket();
-        creativePacket.setContainerId(ContainerId.CREATIVE);
-        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
-        upstream.sendPacket(creativePacket);
+            InventoryContentPacket creativePacket = new InventoryContentPacket();
+            creativePacket.setContainerId(ContainerId.CREATIVE);
+            creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
+            upstream.sendPacket(creativePacket);
 
-        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-        upstream.sendPacket(playStatusPacket);
+            PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+            playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+            upstream.sendPacket(playStatusPacket);
+        }, 500, TimeUnit.MILLISECONDS);
     }
 
     public void fetchOurSkin(PlayerListPacket.Entry entry) {
@@ -511,12 +515,6 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setVanillaVersion("*");
         // startGamePacket.setMovementServerAuthoritative(true);
         upstream.sendPacketImmediately(startGamePacket);
-
-        // Sleep this thread long enough for the StartGame packet to be processed.
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException ignored) {
-        }
     }
 
     public boolean confirmTeleport(Vector3d position) {
