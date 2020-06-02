@@ -101,6 +101,18 @@
             <artifactId>mcprotocollib</artifactId>
             <version>1.15.2-1-SNAPSHOT</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns</artifactId>
+            <version>4.1.43.Final</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
