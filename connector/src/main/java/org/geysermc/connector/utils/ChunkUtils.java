@@ -204,7 +204,7 @@ public class ChunkUtils {
         if (SkullBlockEntityTranslator.containsCustomSkull(new Position(position.getX(), position.getY(), position.getZ()), session) && blockState.equals(AIR)) {
             Position skullPosition = new Position(position.getX(), position.getY(), position.getZ());
             RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
-            removeEntityPacket.setUniqueEntityId(session.getSkullCache().get(skullPosition));
+            removeEntityPacket.setUniqueEntityId(session.getSkullCache().get(skullPosition).getGeyserId());
             session.sendUpstreamPacket(removeEntityPacket);
             session.getSkullCache().remove(skullPosition);
         }

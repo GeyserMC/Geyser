@@ -82,7 +82,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     playerEntity.setPlayerList(true);
                     playerEntity.setValid(true);
 
-                    PlayerListPacket.Entry playerListEntry = SkinUtils.buildCachedEntry(entry.getProfile(), playerEntity.getGeyserId());
+                    PlayerListPacket.Entry playerListEntry = SkinUtils.buildCachedEntry(playerEntity);
                     if (self) {
                         // Copy the entry with our identity instead.
                         PlayerListPacket.Entry copy = new PlayerListPacket.Entry(session.getAuthData().getUUID());
