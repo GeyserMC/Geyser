@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerCloseWindowPacket;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -37,9 +36,7 @@ public class JavaCloseWindowTranslator extends PacketTranslator<ServerCloseWindo
 
     @Override
     public void translate(ServerCloseWindowPacket packet, GeyserSession session) {
-        ContainerClosePacket closePacket = new ContainerClosePacket();
-        closePacket.setWindowId((byte)packet.getWindowId());
-        session.sendUpstreamPacket(closePacket);
+        InventoryUtils.closeWindow(session, packet.getWindowId());
         InventoryUtils.closeInventory(session, packet.getWindowId());
     }
 }

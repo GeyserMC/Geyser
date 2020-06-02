@@ -39,13 +39,11 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
-public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
+public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     private Integer blockId;
-    private final InventoryUpdater updater;
 
     public DoubleChestInventoryTranslator(int size) {
-        super(size);
-        this.updater = new ChestInventoryUpdater(54);
+        super(size, 54);
     }
 
     private int getBlockId() {
@@ -133,15 +131,5 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         blockPacket.setBlockPosition(holderPos);
         blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
         session.sendUpstreamPacket(blockPacket);
-    }
-
-    @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
-    }
-
-    @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
     }
 }

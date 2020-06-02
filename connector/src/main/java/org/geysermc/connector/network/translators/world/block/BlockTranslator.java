@@ -72,6 +72,8 @@ public class BlockTranslator {
     public static int JAVA_RUNTIME_FURNACE_ID;
     public static int JAVA_RUNTIME_FURNACE_LIT_ID;
 
+    public static final int JAVA_RUNTIME_SPAWNER_ID;
+
     private static final int BLOCK_STATE_VERSION = 17760256;
 
     public static Register REGISTER = new Register();
@@ -129,6 +131,7 @@ public class BlockTranslator {
         int cobwebRuntimeId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
+        int spawnerRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
@@ -215,6 +218,10 @@ public class BlockTranslator {
                 }
             }
 
+            if (javaId.startsWith("minecraft:spawner")) {
+                spawnerRuntimeId = javaRuntimeId;
+            }
+
             bedrockRuntimeId++;
         }
 
@@ -232,6 +239,11 @@ public class BlockTranslator {
             throw new AssertionError("Unable to find lit furnace in palette");
         }
         JAVA_RUNTIME_FURNACE_LIT_ID = furnaceLitRuntimeId;
+
+        if (spawnerRuntimeId == -1) {
+            throw new AssertionError("Unable to find spawner in palette");
+        }
+        JAVA_RUNTIME_SPAWNER_ID = spawnerRuntimeId;
 
         if (waterRuntimeId == -1) {
             throw new AssertionError("Unable to find water in palette");
