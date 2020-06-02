@@ -137,8 +137,8 @@ public enum EntityType {
     MINECART_COMMAND_BLOCK(MinecartEntity.class, 100, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:command_block_minecart"),
     LINGERING_POTION(ThrowableEntity.class, 101, 0f),
     LLAMA_SPIT(Entity.class, 102, 0.25f),
-    EVOKER_FANGS(Entity.class, 103, 0.8f, 0.5f),
-    EVOKER(SpellcasterIllagerEntity.class, 104, 1.95f, 0.5f),
+    EVOKER_FANGS(Entity.class, 103, 0.8f, 0.5f, 0.5f, 0f, "minecraft:evocation_fang"),
+    EVOKER(SpellcasterIllagerEntity.class, 104, 1.95f, 0.6f, 0.6f, 0f, "minecraft:evocation_illager"),
     VEX(MonsterEntity.class, 105, 0.8f, 0.4f),
     ICE_BOMB(Entity.class, 106, 0f),
     BALLOON(Entity.class, 107, 0f), //TODO
