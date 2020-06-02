@@ -64,7 +64,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                 break;
             case ITEM:
                 ItemStack javaItem = ((ItemParticleData)packet.getParticle().getData()).getItemStack();
-                ItemData bedrockItem = ItemTranslator.translateToBedrock(javaItem);
+                ItemData bedrockItem = ItemTranslator.translateToBedrock(session, javaItem);
                 int id = bedrockItem.getId();
                 short damage = bedrockItem.getDamage();
                 particle.setType(LevelEventType.PARTICLE_ITEM_BREAK);
