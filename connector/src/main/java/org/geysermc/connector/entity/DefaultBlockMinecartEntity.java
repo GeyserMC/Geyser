@@ -32,6 +32,9 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
+/**
+ * This class is used as a base for minecarts with a default block to display like furnaces and spawners
+ */
 public class DefaultBlockMinecartEntity extends MinecartEntity {
 
     public int customBlock = 0;
