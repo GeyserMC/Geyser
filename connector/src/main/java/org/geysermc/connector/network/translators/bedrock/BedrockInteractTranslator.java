@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -32,9 +34,11 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 @Translator(packet = InteractPacket.class)
 public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> {
@@ -47,17 +51,69 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
         switch (packet.getAction()) {
             case INTERACT:
-                if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemTranslator.SHIELD) {
+                if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemRegistry.SHIELD) {
                     break;
                 }
                 ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                         InteractAction.INTERACT, Hand.MAIN_HAND);
-                session.getDownstream().getSession().send(interactPacket);
+                session.sendDownstreamPacket(interactPacket);
                 break;
             case DAMAGE:
                 ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                         InteractAction.ATTACK, Hand.MAIN_HAND);
-                session.getDownstream().getSession().send(attackPacket);
+                session.sendDownstreamPacket(attackPacket);
+                break;
+            case LEAVE_VEHICLE:
+                ClientPlayerStatePacket sneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
+                session.sendDownstreamPacket(sneakPacket);
+                session.setRidingVehicleEntity(null);
+                break;
+            case MOUSEOVER:
+                // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
+                if (packet.getRuntimeEntityId() != 0) {
+                    Entity interactEntity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+                    if (interactEntity == null)
+                        return;
+
+                    String interactiveTag;
+                    switch (interactEntity.getEntityType()) {
+                        case PIG:
+                            if (interactEntity.getMetadata().getFlags().getFlag(EntityFlag.SADDLED)) {
+                                interactiveTag = "action.interact.mount";
+                            } else interactiveTag = "";
+                            break;
+                        case HORSE:
+                        case SKELETON_HORSE:
+                        case ZOMBIE_HORSE:
+                        case DONKEY:
+                        case MULE:
+                        case LLAMA:
+                        case TRADER_LLAMA:
+                            if (interactEntity.getMetadata().getFlags().getFlag(EntityFlag.TAMED)) {
+                                interactiveTag = "action.interact.ride.horse";
+                            } else {
+                                interactiveTag = "action.interact.mount";
+                            }
+                            break;
+                        case BOAT:
+                            interactiveTag = "action.interact.ride.boat";
+                            break;
+                        case MINECART:
+                            interactiveTag = "action.interact.ride.minecart";
+                            break;
+                        default:
+                            return; // No need to process any further since there is no interactive tag
+                    }
+                    session.getPlayerEntity().getMetadata().put(EntityData.INTERACTIVE_TAG, interactiveTag);
+                    session.getPlayerEntity().updateBedrockMetadata(session);
+                } else {
+                    if (!(session.getPlayerEntity().getMetadata().get(EntityData.INTERACTIVE_TAG) == null) ||
+                    !(session.getPlayerEntity().getMetadata().get(EntityData.INTERACTIVE_TAG) == "")) {
+                        // No interactive tag should be sent
+                        session.getPlayerEntity().getMetadata().remove(EntityData.INTERACTIVE_TAG);
+                        session.getPlayerEntity().updateBedrockMetadata(session);
+                    }
+                }
                 break;
         }
     }

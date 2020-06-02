@@ -46,7 +46,7 @@ public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHea
         int health = (int) Math.ceil(packet.getHealth());
         SetHealthPacket setHealthPacket = new SetHealthPacket();
         setHealthPacket.setHealth(health);
-        session.getUpstream().sendPacket(setHealthPacket);
+        session.sendUpstreamPacket(setHealthPacket);
 
         float maxHealth = entity.getAttributes().containsKey(AttributeType.MAX_HEALTH) ? entity.getAttributes().get(AttributeType.MAX_HEALTH).getValue() : 20f;
         // Max health must be divisible by two in bedrock

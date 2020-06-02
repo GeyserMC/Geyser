@@ -46,6 +46,6 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
         session.getInventory().setHeldItemSlot(packet.getHotbarSlot());
 
         ClientPlayerChangeHeldItemPacket changeHeldItemPacket = new ClientPlayerChangeHeldItemPacket(packet.getHotbarSlot());
-        session.getDownstream().getSession().send(changeHeldItemPacket);
+        session.sendDownstreamPacket(changeHeldItemPacket);
     }
 }

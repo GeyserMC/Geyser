@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.nukkitx.math.vector.Vector3d;
 import org.geysermc.common.ChatColor;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
@@ -34,7 +35,6 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
-import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -55,7 +55,19 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             moveEntityBack.setRotation(entity.getBedrockRotation());
             moveEntityBack.setTeleported(true);
             moveEntityBack.setOnGround(true);
-            session.getUpstream().sendPacketImmediately(moveEntityBack);
+            session.sendUpstreamPacketImmediately(moveEntityBack);
+            return;
+        }
+
+        // We need to parse the float as a string since casting a float to a double causes us to
+        // lose precision and thus, causes players to get stuck when walking near walls
+        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
+        if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
+
+        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
+                Double.parseDouble(Float.toString(packet.getPosition().getZ())));
+
+        if(!session.confirmTeleport(position)){
             return;
         }
 
@@ -65,18 +77,15 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
-        if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
-        // We need to parse the float as a string since casting a float to a double causes us to
-        // lose precision and thus, causes players to get stuck when walking near walls
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
-                packet.isOnGround(), Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY, Double.parseDouble(Float.toString(packet.getPosition().getZ())), packet.getRotation().getY(), packet.getRotation().getX()
+                packet.isOnGround(), position.getX(), position.getY(), position.getZ(), packet.getRotation().getY(), packet.getRotation().getX()
         );
 
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
         entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
         entity.setRotation(rotation);
+        entity.setOnGround(packet.isOnGround());
 
         /*
         boolean colliding = false;
@@ -89,7 +98,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         if (!colliding)
          */
-        session.getDownstream().getSession().send(playerPositionRotationPacket);
+        session.sendDownstreamPacket(playerPositionRotationPacket);
     }
 
     public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
@@ -122,13 +131,13 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
         entityDataPacket.getMetadata().putAll(entity.getMetadata());
-        session.getUpstream().sendPacket(entityDataPacket);
+        session.sendUpstreamPacket(entityDataPacket);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
-        session.getUpstream().sendPacket(movePlayerPacket);
+        session.sendUpstreamPacket(movePlayerPacket);
     }
 }

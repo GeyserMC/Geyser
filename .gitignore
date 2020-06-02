@@ -222,6 +222,7 @@ nbdist/
 # End of https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all
 
 ### Geyser ###
+run/
 config.yml
 logs/
 public-key.pem

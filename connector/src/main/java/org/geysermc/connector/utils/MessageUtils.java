@@ -27,17 +27,15 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.*;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import net.kyori.text.Component;
 import net.kyori.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -110,9 +108,20 @@ public class MessageUtils {
             builder.append(getColorOrParent(msg.getStyle()));
             if (!(msg.getText() == null)) {
                 boolean isTranslationMessage = (msg instanceof TranslationMessage);
-                builder.append(getTranslatedBedrockMessage(msg, locale, isTranslationMessage));
+                String extraText = "";
+
+                if (isTranslationMessage) {
+                    List<String> paramsTranslated =  getTranslationParams(((TranslationMessage) msg).getTranslationParams(), locale);
+                    extraText = insertParams(getTranslatedBedrockMessage(msg, locale, isTranslationMessage), paramsTranslated);
+                } else {
+                    extraText = getTranslatedBedrockMessage(msg, locale, isTranslationMessage);
+                }
+
+                builder.append(extraText);
+                builder.append("\u00a7r");
             }
         }
+
         return builder.toString();
     }
 
@@ -121,18 +130,37 @@ public class MessageUtils {
     }
 
     public static String getBedrockMessage(Message message) {
-        Component component;
         if (isMessage(message.getText())) {
-            component = GsonComponentSerializer.INSTANCE.deserialize(message.getText());
+            return getBedrockMessage(message.getText());
         } else {
-            component = GsonComponentSerializer.INSTANCE.deserialize(message.toJsonString());
+            return getBedrockMessage(message.toJsonString());
         }
-        return LegacyComponentSerializer.legacy().serialize(component);
+    }
+
+    /**
+     * Verifies the message is valid JSON in case it's plaintext. Works around GsonComponentSeraializer not using lenient mode.
+     * See https://wiki.vg/Chat for messages sent in lenient mode, and for a description on leniency.
+     *
+     * @param message Potentially lenient JSON message
+     * @return Bedrock formatted message
+     */
+    public static String getBedrockMessageLenient(String message) {
+        if (isMessage(message)) {
+            return getBedrockMessage(message);
+        } else {
+            final JsonObject obj = new JsonObject();
+            obj.addProperty("text", message);
+            return getBedrockMessage(obj.toString());
+        }
     }
 
     public static String getBedrockMessage(String message) {
-        Component component = GsonComponentSerializer.INSTANCE.deserialize(message);
+        Component component = phraseJavaMessage(message);
         return LegacyComponentSerializer.legacy().serialize(component);
+    }
+
+    public static Component phraseJavaMessage(String message) {
+        return GsonComponentSerializer.INSTANCE.deserialize(message);
     }
 
     public static String getJavaMessage(String message) {
@@ -161,8 +189,10 @@ public class MessageUtils {
         }
 
         for (String text : params) {
-            newMessage = newMessage.replaceFirst("%s", text);
+            newMessage = newMessage.replaceFirst("%s", text.replaceAll("%s", "%r"));
         }
+
+        newMessage = newMessage.replaceAll("%r", "MISSING!");
 
         return newMessage;
     }

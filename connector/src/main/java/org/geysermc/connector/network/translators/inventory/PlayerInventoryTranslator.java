@@ -34,17 +34,17 @@ import com.nukkitx.protocol.bedrock.data.InventorySource;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import it.unimi.dsi.fastutil.longs.LongArraySet;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
-import org.geysermc.connector.utils.Toolbox;
 
 import java.util.List;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
+    private static final ItemData UNUSUABLE_CRAFTING_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(
+            "The creative crafting grid is\nunavailable in Java Edition");
 
     public PlayerInventoryTranslator() {
         super(46);
@@ -59,30 +59,30 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         ItemData[] contents = new ItemData[36];
         // Inventory
         for (int i = 9; i < 36; i++) {
-            contents[i] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
+            contents[i] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
         }
         // Hotbar
         for (int i = 36; i < 45; i++) {
-            contents[i - 36] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
+            contents[i - 36] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
         }
         inventoryContentPacket.setContents(contents);
-        session.getUpstream().sendPacket(inventoryContentPacket);
+        session.sendUpstreamPacket(inventoryContentPacket);
 
         // Armor
         InventoryContentPacket armorContentPacket = new InventoryContentPacket();
         armorContentPacket.setContainerId(ContainerId.ARMOR);
         contents = new ItemData[4];
         for (int i = 5; i < 9; i++) {
-            contents[i - 5] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
+            contents[i - 5] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
         }
         armorContentPacket.setContents(contents);
-        session.getUpstream().sendPacket(armorContentPacket);
+        session.sendUpstreamPacket(armorContentPacket);
 
         // Offhand
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
-        offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(45))});
-        session.getUpstream().sendPacket(offhandPacket);
+        offhandPacket.setContents(new ItemData[]{ItemTranslator.translateToBedrock(session, inventory.getItem(45))});
+        session.sendUpstreamPacket(offhandPacket);
     }
 
     /**
@@ -98,12 +98,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             slotPacket.setSlot(i + 27);
 
             if (session.getGameMode() == GameMode.CREATIVE) {
-                slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, new ItemStack(Toolbox.BARRIER_INDEX)));
+                slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK);
             }else{
-                slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i)));
+                slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i)));
             }
 
-            session.getUpstream().sendPacket(slotPacket);
+            session.sendUpstreamPacket(slotPacket);
         }
     }
 
@@ -125,13 +125,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setContainerId(ContainerId.CURSOR);
                 slotPacket.setSlot(slot + 27);
             }
-            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(slot)));
-            session.getUpstream().sendPacket(slotPacket);
+            slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(slot)));
+            session.sendUpstreamPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
-            offhandPacket.setContents(new ItemData[]{Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(slot))});
-            session.getUpstream().sendPacket(offhandPacket);
+            offhandPacket.setContents(new ItemData[]{ItemTranslator.translateToBedrock(session, inventory.getItem(slot))});
+            session.sendUpstreamPacket(offhandPacket);
         }
     }
 
@@ -201,23 +201,23 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         if (action.getToItem().getId() == 0) {
                             javaItem = new ItemStack(-1, 0, null);
                         } else {
-                            javaItem = Translators.getItemTranslator().translateToJava(session, action.getToItem());
+                            javaItem = ItemTranslator.translateToJava(action.getToItem());
                         }
                         ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(javaSlot, javaItem);
-                        session.getDownstream().getSession().send(creativePacket);
+                        session.sendDownstreamPacket(creativePacket);
                         inventory.setItem(javaSlot, javaItem);
                         break;
                     case ContainerId.CURSOR:
                         if (action.getSlot() == 0) {
-                            session.getInventory().setCursor(Translators.getItemTranslator().translateToJava(session, action.getToItem()));
+                            session.getInventory().setCursor(ItemTranslator.translateToJava(action.getToItem()));
                         }
                         break;
                     case ContainerId.NONE:
                         if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                                 && action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                            javaItem = Translators.getItemTranslator().translateToJava(session, action.getToItem());
+                            javaItem = ItemTranslator.translateToJava(action.getToItem());
                             ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, javaItem);
-                            session.getDownstream().getSession().send(creativeDropPacket);
+                            session.sendDownstreamPacket(creativeDropPacket);
                         }
                         break;
                 }

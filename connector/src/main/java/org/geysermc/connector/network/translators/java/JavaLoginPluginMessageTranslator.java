@@ -12,7 +12,7 @@ public class JavaLoginPluginMessageTranslator extends PacketTranslator<LoginPlug
     @Override
     public void translate(LoginPluginRequestPacket packet, GeyserSession session) {
         // A vanilla client doesn't know any PluginMessage in the Login state, so we don't know any either.
-        session.getDownstream().getSession().send(
+        session.sendDownstreamPacket(
                 new LoginPluginResponsePacket(packet.getMessageId(), null)
         );
     }

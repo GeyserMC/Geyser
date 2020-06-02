@@ -52,7 +52,7 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
     @Override
     public void translate(ServerPluginMessagePacket packet, GeyserSession session) {
         if (packet.getChannel().equals("minecraft:brand")) {
-            session.getDownstream().getSession().send(
+            session.sendDownstreamPacket(
                     new ClientPluginMessagePacket(packet.getChannel(), brandData)
             );
         }

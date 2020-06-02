@@ -31,9 +31,12 @@ import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
 import org.geysermc.common.PlatformType;
-import org.geysermc.common.bootstrap.IGeyserBootstrap;
+import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
 
@@ -45,11 +48,12 @@ import java.nio.file.Files;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
+public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserBungeeCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeLogger geyserLogger;
+    private IGeyserPingPassthrough geyserBungeePingPassthrough;
 
     private GeyserConnector connector;
 
@@ -91,7 +95,7 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
 
             // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (!javaAddr.getHostString().equals("0.0.0.0")) {
+            if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
                 configuration.set("remote.address", javaAddr.getHostString());
             }
 
@@ -116,9 +120,19 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
         }
 
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        geyserConfig.loadFloodgate(this);
+
         this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
 
         this.geyserCommandManager = new GeyserBungeeCommandManager(connector);
+
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        } else {
+            this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
+        }
 
         this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(connector));
     }
@@ -141,5 +155,10 @@ public class GeyserBungeePlugin extends Plugin implements IGeyserBootstrap {
     @Override
     public CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
+        return geyserBungeePingPassthrough;
     }
 }

@@ -30,8 +30,8 @@ import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 public class ContainerInventoryUpdater extends InventoryUpdater {
     @Override
@@ -40,13 +40,13 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
 
         ItemData[] bedrockItems = new ItemData[translator.size];
         for (int i = 0; i < bedrockItems.length; i++) {
-            bedrockItems[translator.javaSlotToBedrock(i)] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
+            bedrockItems[translator.javaSlotToBedrock(i)] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
         }
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(inventory.getId());
         contentPacket.setContents(bedrockItems);
-        session.getUpstream().sendPacket(contentPacket);
+        session.sendUpstreamPacket(contentPacket);
     }
 
     @Override
@@ -57,8 +57,8 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(inventory.getId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(javaSlot)));
-        session.getUpstream().sendPacket(slotPacket);
+        slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
+        session.sendUpstreamPacket(slotPacket);
         return true;
     }
 }
