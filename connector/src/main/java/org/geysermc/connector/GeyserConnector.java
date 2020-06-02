@@ -46,6 +46,7 @@ import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.SkinProvider;
 
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
@@ -125,6 +126,7 @@ public class GeyserConnector {
         ItemRegistry.init();
         LocaleUtils.init();
         SoundRegistry.init();
+        SkinProvider.init();
 
         if (platformType != PlatformType.STANDALONE) {
             DockerCheck.check(bootstrap);
