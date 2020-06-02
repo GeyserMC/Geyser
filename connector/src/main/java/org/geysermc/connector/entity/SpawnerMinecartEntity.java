@@ -25,53 +25,20 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class SpawnerMinecartEntity extends MinecartEntity {
-
-    private int customBlock = 0;
-    private int customBlockOffset = 0;
-    private boolean showCustomBlock = false;
-    private boolean hasFuel = false;
+public class SpawnerMinecartEntity extends DefaultBlockMinecartEntity {
 
     public SpawnerMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-
-        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(BlockTranslator.JAVA_RUNTIME_SPAWNER_ID));
-        metadata.put(EntityData.HAS_DISPLAY, (byte) 1);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-
-        // Custom block
-        if (entityMetadata.getId() == 10) {
-            customBlock = (int) entityMetadata.getValue();
-        }
-
-        // Custom block offset
-        if (entityMetadata.getId() == 11) {
-            customBlockOffset = (int) entityMetadata.getValue();
-        }
-
-        // If the custom block should be enabled
-        if (entityMetadata.getId() == 12) {
-            if ((boolean) entityMetadata.getValue()) {
-                showCustomBlock = true;
-                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(customBlock));
-                metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
-            } else {
-                showCustomBlock = false;
-                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(BlockTranslator.JAVA_RUNTIME_SPAWNER_ID));
-                metadata.put(EntityData.DISPLAY_OFFSET, 6);
-            }
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void updateDefaultBlockMetadata() {
+        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(BlockTranslator.JAVA_RUNTIME_SPAWNER_ID));
+        metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

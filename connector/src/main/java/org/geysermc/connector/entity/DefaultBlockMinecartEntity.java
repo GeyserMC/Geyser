@@ -32,27 +32,54 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
+public class DefaultBlockMinecartEntity extends MinecartEntity {
 
-    private boolean hasFuel = false;
+    public int customBlock = 0;
+    public int customBlockOffset = 0;
+    public boolean showCustomBlock = false;
 
-    public FurnaceMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public DefaultBlockMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        updateDefaultBlockMetadata();
+        metadata.put(EntityData.HAS_DISPLAY, (byte) 1);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 13 && !showCustomBlock) {
-            hasFuel = (boolean) entityMetadata.getValue();
-            updateDefaultBlockMetadata();
+
+        // Custom block
+        if (entityMetadata.getId() == 10) {
+            customBlock = (int) entityMetadata.getValue();
+
+            if (showCustomBlock) {
+                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(customBlock));
+            }
+        }
+
+        // Custom block offset
+        if (entityMetadata.getId() == 11) {
+            customBlockOffset = (int) entityMetadata.getValue();
+
+            if (showCustomBlock) {
+                metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
+            }
+        }
+
+        // If the custom block should be enabled
+        if (entityMetadata.getId() == 12) {
+            if ((boolean) entityMetadata.getValue()) {
+                showCustomBlock = true;
+                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(customBlock));
+                metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
+            } else {
+                showCustomBlock = false;
+                updateDefaultBlockMetadata();
+            }
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
-    @Override
-    public void updateDefaultBlockMetadata() {
-        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID));
-        metadata.put(EntityData.DISPLAY_OFFSET, 6);
-    }
+    public void updateDefaultBlockMetadata() { }
 }
