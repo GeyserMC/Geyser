@@ -92,7 +92,10 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public int javaSlotToBedrock(int slot) {
-        return slot == 0 ? 50 : slot + 31;
+        if (slot < size) {
+            return slot == 0 ? 50 : slot + 31;
+        }
+        return super.javaSlotToBedrock(slot);
     }
 
     @Override

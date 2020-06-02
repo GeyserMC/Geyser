@@ -166,6 +166,9 @@ public class GeyserSession implements CommandSender {
     @Setter
     private int craftSlot = 0;
 
+    @Setter
+    private long lastWindowCloseTime = 0;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
