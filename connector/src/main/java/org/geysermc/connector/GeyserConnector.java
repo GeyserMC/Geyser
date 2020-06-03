@@ -25,6 +25,7 @@
 
 package org.geysermc.connector;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
@@ -66,7 +67,9 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector {
 
-    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
+            .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
+            .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
 
     public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v390.V390_CODEC;
 
