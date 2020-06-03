@@ -1,20 +1,14 @@
 package org.geysermc.connector.utils;
 
-import com.voxelwind.server.jni.hash.JavaHash;
-import com.voxelwind.server.jni.hash.NativeHash;
-import com.voxelwind.server.jni.hash.VoxelwindHash;
-import net.md_5.bungee.jni.NativeCode;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipFile;
 
 public class ResourcePack {
     public static final Map<String, ResourcePack> PACKS = new HashMap<>();
-    public static final NativeCode<VoxelwindHash> HASH = new NativeCode<>("native-hash", JavaHash.class, NativeHash.class);
     public static final int CHUNK_SIZE = 102400;
 
     private byte[] sha256;
@@ -23,14 +17,6 @@ public class ResourcePack {
     private ResourcePackManifest.Version version;
 
     public static void loadPacks() {
-        Map<String, String> hashes = new HashMap<>();
-
-        try {
-            Files.lines(new File("packs/hashes.txt").toPath()).forEach((x) -> hashes.put(x.split("=")[0], x.split("=")[1]));
-        } catch (Exception e) {
-            //
-        }
-
         File directory = new File("packs");
             
         if (!directory.exists()) {
@@ -41,7 +27,7 @@ public class ResourcePack {
             if(file.getName().endsWith(".zip") || file.getName().endsWith(".mcpack")) {
                 ResourcePack pack = new ResourcePack();
 
-                pack.sha256 = getBytes(hashes.get(file.getName()));
+                pack.sha256 = FileUtils.calculateSHA256(file);
 
                 try {
                     ZipFile zip = new ZipFile(file);
@@ -67,17 +53,6 @@ public class ResourcePack {
                 }
             }
         }
-    }
-
-    private static byte[] getBytes(String string) {
-        String[] strings = string.replace("]", "").replace("[", "").replaceAll(" ", "").split(",");
-        byte[] bytes = new byte[strings.length];
-
-        for(int i = 0; i < strings.length; i++) {
-            bytes[i] = Byte.parseByte(strings[i]);
-        }
-
-        return bytes;
     }
 
     public byte[] getSha256() {
