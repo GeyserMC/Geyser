@@ -39,6 +39,10 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
@@ -285,11 +289,33 @@ public class SkinProvider {
     }
 
     private static Skin supplySkin(UUID uuid, String textureUrl) {
-        byte[] skin = EMPTY_SKIN.getSkinData();
+        // First see if we have a cached file
+        Path skinFile = Paths.get("cache", "skins", Base64.getEncoder().encodeToString(textureUrl.getBytes()));
         try {
-            skin = requestImage(textureUrl, null);
+            Files.setLastModifiedTime(skinFile, FileTime.fromMillis(System.currentTimeMillis()));
+            GeyserConnector.getInstance().getLogger().debug("Reading cached skin from file " + skinFile.toString() + " for " + textureUrl);
+            return new Skin(uuid, textureUrl, Files.readAllBytes(skinFile), System.currentTimeMillis(), false, false);
+        } catch (IOException ignored) {}
+
+        try {
+            byte[] skin = requestImage(textureUrl, null);
+
+            // Write cache if we are allowed
+            if (GeyserConnector.getInstance().getConfig().getCacheSkins() > 0) {
+                //noinspection ResultOfMethodCallIgnored
+                skinFile.getParent().toFile().mkdirs();
+                try {
+                    Files.write(skinFile, skin);
+                    GeyserConnector.getInstance().getLogger().debug("Writing cached skin to file " + skinFile.toString() + " for " + textureUrl);
+                } catch (IOException e) {
+                    GeyserConnector.getInstance().getLogger().error("Failed to write cached skin to file " + skinFile.toString() + " for " + textureUrl);
+                }
+            }
+
+            return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false, false);
         } catch (Exception ignored) {} // just ignore I guess
-        return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false, false);
+
+        return new Skin(uuid, "empty", EMPTY_SKIN.getSkinData(), System.currentTimeMillis(), false, false);
     }
 
     private static Cape supplyCape(String capeUrl, CapeProvider provider) {

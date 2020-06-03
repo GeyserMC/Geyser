@@ -68,6 +68,8 @@ public interface GeyserConfiguration {
 
     boolean isCacheChunks();
 
+    int getCacheSkins();
+
     IMetricsInfo getMetrics();
 
     interface IBedrockConfiguration {

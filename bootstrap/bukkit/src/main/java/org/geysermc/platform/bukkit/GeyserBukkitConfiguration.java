@@ -152,6 +152,11 @@ public class GeyserBukkitConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public int getCacheSkins() {
+        return config.getInt("cache-skins", 0);
+    }
+
+    @Override
     public boolean isAboveBedrockNetherBuilding() {
         return config.getBoolean("above-bedrock-nether-building", false);
     }

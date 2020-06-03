@@ -85,8 +85,11 @@ public class GeyserVelocityConfiguration implements GeyserConfiguration {
     @JsonProperty("default-locale")
     private String defaultLocale;
 
-    @JsonProperty("cache-chunks")
+    @JsonProperty(value = "cache-chunks")
     private boolean cacheChunks;
+
+    @JsonProperty(value = "cache-skins", defaultValue = "0")
+    private int cacheSkins;
 
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding;

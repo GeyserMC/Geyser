@@ -227,3 +227,4 @@ config.yml
 logs/
 public-key.pem
 locales/
+cache/
