@@ -166,6 +166,9 @@ public class GeyserSession implements CommandSender {
     @Setter
     private int craftSlot = 0;
 
+    @Setter
+    private long lastWindowCloseTime = 0;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -365,6 +368,14 @@ public class GeyserSession implements CommandSender {
 
                             PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                         }
+                    }
+
+                    @Override
+                    public void packetError(PacketErrorEvent event) {
+                        connector.getLogger().warning("Downstream packet error! " + event.getCause().getMessage());
+                        if (connector.getConfig().isDebugMode())
+                            event.getCause().printStackTrace();
+                        event.setSuppress(true);
                     }
                 });
 

@@ -32,52 +32,57 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class MinecartEntity extends Entity {
+/**
+ * This class is used as a base for minecarts with a default block to display like furnaces and spawners
+ */
+public class DefaultBlockMinecartEntity extends MinecartEntity {
 
-    public MinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
+    public int customBlock = 0;
+    public int customBlockOffset = 0;
+    public boolean showCustomBlock = false;
+
+    public DefaultBlockMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
+
+        updateDefaultBlockMetadata();
+        metadata.put(EntityData.HAS_DISPLAY, (byte) 1);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
 
-        if (entityMetadata.getId() == 7) {
-            metadata.put(EntityData.HEALTH, entityMetadata.getValue());
-        }
+        // Custom block
+        if (entityMetadata.getId() == 10) {
+            customBlock = (int) entityMetadata.getValue();
 
-        // Direction in which the minecart is shaking
-        if (entityMetadata.getId() == 8) {
-            metadata.put(EntityData.HURT_DIRECTION, entityMetadata.getValue());
-        }
-
-        // Power in Java, time in Bedrock
-        if (entityMetadata.getId() == 9) {
-            metadata.put(EntityData.HURT_TIME, Math.min((int) (float) entityMetadata.getValue(), 15));
-        }
-
-        if (!(this instanceof DefaultBlockMinecartEntity)) { // Handled in the DefaultBlockMinecartEntity class
-            // Custom block
-            if (entityMetadata.getId() == 10) {
-                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId((int) entityMetadata.getValue()));
+            if (showCustomBlock) {
+                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(customBlock));
             }
+        }
 
-            // Custom block offset
-            if (entityMetadata.getId() == 11) {
-                metadata.put(EntityData.DISPLAY_OFFSET, entityMetadata.getValue());
+        // Custom block offset
+        if (entityMetadata.getId() == 11) {
+            customBlockOffset = (int) entityMetadata.getValue();
+
+            if (showCustomBlock) {
+                metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
             }
+        }
 
-            // If the custom block should be enabled
-            if (entityMetadata.getId() == 12) {
-                // Needs a byte based off of Java's boolean
-                metadata.put(EntityData.HAS_DISPLAY, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+        // If the custom block should be enabled
+        if (entityMetadata.getId() == 12) {
+            if ((boolean) entityMetadata.getValue()) {
+                showCustomBlock = true;
+                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(customBlock));
+                metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
+            } else {
+                showCustomBlock = false;
+                updateDefaultBlockMetadata();
             }
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
-    @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround, teleported);
-    }
+    public void updateDefaultBlockMetadata() { }
 }

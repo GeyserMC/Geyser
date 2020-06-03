@@ -25,17 +25,45 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
+import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
-import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
 import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
+import org.geysermc.connector.utils.InventoryUtils;
 
-public class SingleChestInventoryTranslator extends MinecartInventoryTranslator {
-    public SingleChestInventoryTranslator(int size) {
-        super(size, ContainerType.CONTAINER, new ChestInventoryUpdater(27));
+import java.util.List;
+
+public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
+    private final InventoryUpdater updater;
+
+    public ChestInventoryTranslator(int size, int paddedSize) {
+        super(size);
+        this.updater = new ChestInventoryUpdater(paddedSize);
+    }
+
+    @Override
+    public void updateInventory(GeyserSession session, Inventory inventory) {
+        updater.updateInventory(this, session, inventory);
+    }
+
+    @Override
+    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
+        updater.updateSlot(this, session, inventory, slot);
+    }
+
+    @Override
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
+        for (InventoryActionData action : actions) {
+            if (action.getSource().getContainerId() == inventory.getId()) {
+                if (action.getSlot() >= size) {
+                    updateInventory(session, inventory);
+                    InventoryUtils.updateCursor(session);
+                    return;
+                }
+            }
+        }
+
+        super.translateActions(session, inventory, actions);
     }
 }
