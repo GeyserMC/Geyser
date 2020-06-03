@@ -15,7 +15,7 @@ import java.util.zip.ZipFile;
 public class ResourcePack {
     public static final Map<String, ResourcePack> PACKS = new HashMap<>();
     public static final NativeCode<VoxelwindHash> HASH = new NativeCode<>("native-hash", JavaHash.class, NativeHash.class);
-    public static final int CHUNK_SIZE = 1048576;
+    public static final int CHUNK_SIZE = 102400;
 
     private byte[] sha256;
     private File file;
