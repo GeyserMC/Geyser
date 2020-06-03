@@ -72,7 +72,7 @@ public class BlockTranslator {
     public static int JAVA_RUNTIME_FURNACE_ID;
     public static int JAVA_RUNTIME_FURNACE_LIT_ID;
 
-    public static final int JAVA_RUNTIME_SPAWNER_ID;
+    public static int JAVA_RUNTIME_SPAWNER_ID;
 
     private static final int BLOCK_STATE_VERSION = 17760256;
 
