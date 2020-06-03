@@ -54,7 +54,7 @@ public class SkinProvider {
     public static final byte[] ALEX_SKIN = new ProvidedSkin("bedrock/skin/skin_alex.png").getSkin();
     public static final Skin EMPTY_SKIN_ALEX = new Skin(-1, "alex", ALEX_SKIN);
     private static Map<String, Skin> cachedSkins = new ConcurrentHashMap<>();
-    private static Map<UUID, CompletableFuture<Skin>> requestedSkins = new ConcurrentHashMap<>();
+    private static Map<String, CompletableFuture<Skin>> requestedSkins = new ConcurrentHashMap<>();
 
     public static final Cape EMPTY_CAPE = new Cape("", "no-cape", new byte[0], -1, true);
     private static Map<String, Cape> cachedCapes = new ConcurrentHashMap<>();
@@ -132,7 +132,7 @@ public class SkinProvider {
 
     public static CompletableFuture<Skin> requestSkin(UUID playerId, String textureUrl, boolean newThread) {
         if (textureUrl == null || textureUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_SKIN);
-        if (requestedSkins.containsKey(playerId)) return requestedSkins.get(playerId); // already requested
+        if (requestedSkins.containsKey(textureUrl)) return requestedSkins.get(textureUrl); // already requested
 
         if ((System.currentTimeMillis() - CACHE_INTERVAL) < cachedSkins.getOrDefault(textureUrl, EMPTY_SKIN).getRequestedOn()) {
             // no need to update, still cached
@@ -147,9 +147,9 @@ public class SkinProvider {
                             skin.updated = true;
                             cachedSkins.put(textureUrl, skin);
                         }
-                        requestedSkins.remove(skin.getSkinOwner());
+                        requestedSkins.remove(textureUrl);
                     });
-            requestedSkins.put(playerId, future);
+            requestedSkins.put(textureUrl, future);
         } else {
             Skin skin = supplySkin(playerId, textureUrl);
             future = CompletableFuture.completedFuture(skin);

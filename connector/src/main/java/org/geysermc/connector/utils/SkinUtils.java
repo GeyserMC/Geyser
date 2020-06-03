@@ -238,15 +238,15 @@ public class SkinUtils {
                                 playerAddPacket.getEntries().add(updatedEntry);
                                 session.sendUpstreamPacket(playerAddPacket);
 
-                                // Update SKin
-                                PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
-                                playerSkinPacket.setUuid(updatedEntry.getUuid());
-                                playerSkinPacket.setSkin(updatedEntry.getSkin());
-                                playerSkinPacket.setOldSkinName("OldName");
-                                playerSkinPacket.setNewSkinName("NewName");
-                                playerSkinPacket.setTrustedSkin(true);
-                                session.getUpstream().sendPacket(playerSkinPacket);
-                                session.getConnector().getLogger().debug("Sending skin for " + entity.getUsername());
+//                                // Update SKin
+//                                PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
+//                                playerSkinPacket.setUuid(updatedEntry.getUuid());
+//                                playerSkinPacket.setSkin(updatedEntry.getSkin());
+//                                playerSkinPacket.setOldSkinName("OldName");
+//                                playerSkinPacket.setNewSkinName("NewName");
+//                                playerSkinPacket.setTrustedSkin(true);
+//                                session.getUpstream().sendPacket(playerSkinPacket);
+//                                session.getConnector().getLogger().debug("Sending skin for " + entity.getUsername());
 
                                 if (!entity.isPlayerList()) {
                                     PlayerListPacket playerRemovePacket = new PlayerListPacket();
