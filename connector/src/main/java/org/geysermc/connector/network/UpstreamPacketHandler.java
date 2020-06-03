@@ -88,30 +88,37 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             case SEND_PACKS:
                 for(String id : packet.getPackIds()) {
                     ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
-                    ResourcePack pack = ResourcePack.PACKS.get(id.split("_")[0]);
+                    String[] packID = id.split("_");
+                    ResourcePack pack = ResourcePack.PACKS.get(packID[0]);
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();
 
                     data.setPackId(header.getUuid());
-                    data.setChunkCount(pack.getFile().length()/ResourcePack.CHUNK_SIZE);
+                    int chunkCount = (int) Math.ceil((int) pack.getFile().length() / (double) ResourcePack.CHUNK_SIZE);
+                    data.setChunkCount(chunkCount);
+                    //data.setChunkCount(pack.getFile().length()/ResourcePack.CHUNK_SIZE);
                     data.setCompressedPackSize(pack.getFile().length());
                     data.setMaxChunkSize(ResourcePack.CHUNK_SIZE);
                     data.setHash(pack.getSha256());
+                    data.setPackVersion(packID[1]);
+                    data.setPremium(false);
+                    data.setType(ResourcePackDataInfoPacket.Type.RESOURCE);
 
-                    session.getUpstream().sendPacket(data);
+                    session.sendUpstreamPacket(data);
                 }
                 break;
 
             case HAVE_ALL_PACKS:
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
-
                 stackPacket.setExperimental(false);
                 stackPacket.setForcedToAccept(true);
                 stackPacket.setGameVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+
                 for(ResourcePack pack : ResourcePack.PACKS.values()) {
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();
                     String version = header.getVersion()[0] + "." + header.getVersion()[1] + "." + header.getVersion()[2];
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), version, ""));
                 }
+
                 session.sendUpstreamPacket(stackPacket);
                 break;
 
@@ -174,24 +181,26 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(ResourcePackChunkRequestPacket packet) {
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
-        ResourcePack pack = ResourcePack.PACKS.get(data.getPackId().toString());
+        ResourcePack pack = ResourcePack.PACKS.get(packet.getPackId().toString());
 
         data.setChunkIndex(packet.getChunkIndex());
-        data.setProgress(packet.getChunkIndex()*ResourcePack.CHUNK_SIZE);
+        data.setProgress(packet.getChunkIndex() * ResourcePack.CHUNK_SIZE);
         data.setPackVersion(packet.getPackVersion());
         data.setPackId(packet.getPackId());
-        byte[] packData = new byte[(int) MathUtils.constrain(pack.getFile().length(), 0, ResourcePack.CHUNK_SIZE)];
+
+        int offset = packet.getChunkIndex() * ResourcePack.CHUNK_SIZE;
+        byte[] packData = new byte[(int) MathUtils.constrain(pack.getFile().length() - offset, 0, ResourcePack.CHUNK_SIZE)];
 
         try (InputStream inputStream = new FileInputStream(pack.getFile())) {
-            int offset = packet.getChunkIndex()*ResourcePack.CHUNK_SIZE;
-
-            inputStream.read(packData, offset, packData.length);
+            inputStream.skip(offset);
+            inputStream.read(packData, 0, packData.length);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         data.setData(packData);
 
-        session.getUpstream().sendPacket(data);
+        session.sendUpstreamPacket(data);
         return true;
     }
 }
