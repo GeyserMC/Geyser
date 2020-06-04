@@ -34,6 +34,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
+import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
@@ -213,9 +214,8 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
                     if ((xd & 0x20) == 0x20) {
-                        if (this.is(ArmorStandEntity.class)) {
-                            metadata.put(EntityData.SCALE, 0.0f);
-                        } else {
+                        // Armour stands are handled in their own class
+                        if (!this.is(ArmorStandEntity.class)) {
                             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
                         }
                     } else {
@@ -253,9 +253,15 @@ public class Entity {
                 }
                 break;
             case 2: // custom name
-                TextMessage name = (TextMessage) entityMetadata.getValue();
-                if (name != null)
-                    metadata.put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(name));
+                if (entityMetadata.getValue() instanceof TextMessage) {
+                    TextMessage name = (TextMessage) entityMetadata.getValue();
+                    if (name != null)
+                        metadata.put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(name));
+                } else if (entityMetadata.getValue() instanceof TranslationMessage) {
+                    TranslationMessage message = (TranslationMessage) entityMetadata.getValue();
+                    if (message != null)
+                        metadata.put(EntityData.NAMETAG, MessageUtils.getTranslatedBedrockMessage(message, session.getClientData().getLanguageCode(), true));
+                }
                 break;
             case 3: // is custom name visible
                 if (!this.is(PlayerEntity.class))

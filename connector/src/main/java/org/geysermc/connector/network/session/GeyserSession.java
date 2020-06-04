@@ -166,7 +166,10 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private boolean sentDeclareRecipesPacket = false;
-    private ObjectArrayList<CraftingData> knownRecipes = new ObjectArrayList<>();
+    private final ObjectArrayList<CraftingData> knownRecipes = new ObjectArrayList<>();
+
+    @Setter
+    private long lastWindowCloseTime = 0;
 
     private MinecraftProtocol protocol;
 

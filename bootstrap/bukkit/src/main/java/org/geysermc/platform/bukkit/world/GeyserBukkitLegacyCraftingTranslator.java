@@ -27,6 +27,8 @@
 package org.geysermc.platform.bukkit.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.nukkitx.protocol.bedrock.data.CraftingData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
@@ -41,6 +43,9 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.packets.InventoryPackets;
 import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.data.MappingData;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 @AllArgsConstructor
@@ -53,46 +58,72 @@ public class GeyserBukkitLegacyCraftingTranslator implements Listener {
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
         Iterator<Recipe> recipeIterator = Bukkit.getServer().recipeIterator();
+        File file = new File("recipes.json");
+        JsonObject rootObject = new JsonObject();
         while (recipeIterator.hasNext()) {
+            JsonObject jsonRecipe = new JsonObject();
             Recipe recipe = recipeIterator.next();
-            ItemData output = translateToBedrock(recipe.getResult());
+            ItemData output = translateToBedrock(session, recipe.getResult());
             output = ItemData.of(output.getId(), output.getDamage(), output.getCount(), null);
             if (output.getId() == 0) continue; // If items make air we don't want that
-            if (output.getId() == ARROW && output.getCount() == 8) continue; // Otherwise a blank crafting table on 1.9+ gives... eight arrows, and you can get kicked for spamming too many packets
+            //if (output.getId() == ARROW && output.getCount() == 8) continue; // Otherwise a blank crafting table on 1.9+ gives... eight arrows, and you can get kicked for spamming too many packets
+            jsonRecipe.add("output", translateToJSON(output));
             boolean isNotAllAir = false; // Check for all-air recipes
             if (recipe instanceof ShapedRecipe) {
+                jsonRecipe.addProperty("shapeless", false);
                 ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
                 ItemData[] input = new ItemData[9];
+                JsonObject inputs = new JsonObject();
                 for (int i = 0; i < input.length; i++) {
                     // Index is converting char to integer, adding i then converting back to char based on ASCII code
-                    ItemData itemData = translateToBedrock(shapedRecipe.getIngredientMap().get((char) ('a' + i)));
+                    ItemData itemData = translateToBedrock(session, shapedRecipe.getIngredientMap().get((char) ('a' + i)));
                     input[i] = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount());
                     isNotAllAir = isNotAllAir || input[i].getId() != 0;
+                    inputs.add(String.valueOf(i), translateToJSON(input[i]));
                 }
+                jsonRecipe.add("inputs", inputs);
+                jsonRecipe.addProperty("width", shapedRecipe.getShape()[0].length());
+                jsonRecipe.addProperty("height", shapedRecipe.getShape().length);
                 if (!isNotAllAir) continue;
                 UUID uuid = UUID.randomUUID();
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                         shapedRecipe.getShape()[0].length(), shapedRecipe.getShape().length, input,
                         new ItemData[]{output}, uuid, "crafting_table", 0));
+                rootObject.add(uuid.toString(), jsonRecipe);
             } else if (recipe instanceof ShapelessRecipe) {
+                jsonRecipe.addProperty("shapeless", true);
                 ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipe;
                 ItemData[] input = new ItemData[shapelessRecipe.getIngredientList().size()];
+                JsonObject inputs = new JsonObject();
                 for (int i = 0; i < input.length; i++) {
-                    input[i] = translateToBedrock(shapelessRecipe.getIngredientList().get(i));
+                    input[i] = translateToBedrock(session, shapelessRecipe.getIngredientList().get(i));
                     isNotAllAir = isNotAllAir || input[i].getId() != 0;
+                    inputs.add(String.valueOf(i), translateToJSON(input[i]));
                 }
+                jsonRecipe.add("inputs", inputs);
                 if (!isNotAllAir) continue;
                 UUID uuid = UUID.randomUUID();
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
                         input, new ItemData[]{output}, uuid, "crafting_table", 0));
+                rootObject.add(uuid.toString(), jsonRecipe);
             }
         }
         session.sendUpstreamPacket(craftingDataPacket);
         session.setSentDeclareRecipesPacket(true);
+
+        try {
+            GsonBuilder builder = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping();
+            FileWriter writer = new FileWriter(file);
+            builder.create().toJson(rootObject, writer);
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("error");
+            e.printStackTrace();
+        }
     }
 
     @SuppressWarnings("deprecation")
-    private static ItemData translateToBedrock(org.bukkit.inventory.ItemStack itemStack) {
+    private static ItemData translateToBedrock(GeyserSession session, org.bukkit.inventory.ItemStack itemStack) {
         if (itemStack != null && itemStack.getData() != null) {
             int legacyId = (itemStack.getType().getId() << 4) | (itemStack.getData().getData() & 0xFFFF);
             if (itemStack.getType().getId() == 355 && itemStack.getData().getData() == (byte) 0) { // Handle bed color since the server will always be pre-1.12
@@ -112,10 +143,18 @@ public class GeyserBukkitLegacyCraftingTranslator implements Listener {
             int fourteenId = us.myles.ViaVersion.protocols.protocol1_14to1_13_2.data.MappingData.oldToNewItems.get(thirteenPointOneId);
             int fifteenId = us.myles.ViaVersion.protocols.protocol1_15to1_14_4.data.MappingData.oldToNewItems.get(fourteenId);
             ItemStack mcItemStack = new ItemStack(fifteenId, itemStack.getAmount());
-            ItemData finalData = ItemTranslator.translateToBedrock(mcItemStack);
+            ItemData finalData = ItemTranslator.translateToBedrock(session, mcItemStack);
             return ItemData.of(finalData.getId(), finalData.getDamage(), finalData.getCount(), null);
         }
         // Empty slot, most likely
         return ItemData.AIR;
+    }
+
+    private static JsonObject translateToJSON(ItemData itemData) {
+        JsonObject item = new JsonObject();
+        item.addProperty("id", itemData.getCount());
+        item.addProperty("damage", itemData.getDamage());
+        item.addProperty("count", itemData.getCount());
+        return item;
     }
 }

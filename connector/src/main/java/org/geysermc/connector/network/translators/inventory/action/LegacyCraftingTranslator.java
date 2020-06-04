@@ -51,12 +51,12 @@ public class LegacyCraftingTranslator {
             CraftingDataPacket dataPacket = new CraftingDataPacket();
             dataPacket.setCleanRecipes(false);
             for (int i = 1; i < input.length + 1; i++) {
-                ItemData tempInput =  ItemTranslator.translateToBedrock(fullCraftingTable ? inventory.getItem(i) : session.getInventory().getItem(i));
+                ItemData tempInput =  ItemTranslator.translateToBedrock(session, fullCraftingTable ? inventory.getItem(i) : session.getInventory().getItem(i));
                 input[i - 1] = ItemData.of(tempInput.getId(), tempInput.getDamage(), 1);
                 isNotAllAir = isNotAllAir || input[i - 1].getId() != 0;
             }
             if (isNotAllAir) { // So we don't make a recipe that is air only
-                ItemData output = ItemTranslator.translateToBedrock(inventory.getItem(0));
+                ItemData output = ItemTranslator.translateToBedrock(session, inventory.getItem(0));
                 UUID uuid = UUID.randomUUID();
                 int size = fullCraftingTable ? 3 : 2;
                 // Add new crafting data that lets Bedrock see the recipe is valid
