@@ -38,14 +38,8 @@
 
     <repositories>
         <repository>
-            <id>CodeMC-repo</id>
-            <url>https://repo.codemc.org/repository/maven-public</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
         <repository>
             <id>nukkitx-release-repo</id>
