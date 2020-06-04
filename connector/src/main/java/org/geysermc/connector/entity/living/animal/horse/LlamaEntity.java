@@ -65,7 +65,7 @@ public class LlamaEntity extends ChestedHorseEntity {
             equipmentPacket.setHelmet(ItemData.AIR);
             equipmentPacket.setLeggings(ItemData.AIR);
 
-            session.getUpstream().sendPacket(equipmentPacket);
+            session.sendUpstreamPacket(equipmentPacket);
         }
         // Color of the llama
         if (entityMetadata.getId() == 21) {

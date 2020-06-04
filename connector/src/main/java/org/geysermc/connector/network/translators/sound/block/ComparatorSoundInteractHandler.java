@@ -43,6 +43,6 @@ public class ComparatorSoundInteractHandler implements BlockSoundInteractionHand
         levelEventPacket.setPosition(position);
         levelEventPacket.setType(LevelEventType.REDSTONE_TRIGGER);
         levelEventPacket.setData(powered ? 500 : 550);
-        session.getUpstream().sendPacket(levelEventPacket);
+        session.sendUpstreamPacket(levelEventPacket);
     }
 }

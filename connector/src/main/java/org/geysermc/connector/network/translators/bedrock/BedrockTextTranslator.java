@@ -45,6 +45,6 @@ public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
         }
 
         ClientChatPacket chatPacket = new ClientChatPacket(message);
-        session.getDownstream().getSession().send(chatPacket);
+        session.sendDownstreamPacket(chatPacket);
     }
 }

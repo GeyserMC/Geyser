@@ -34,7 +34,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.SoundUtils;
+import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
 @Translator(packet = ServerPlaySoundPacket.class)
 public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPacket> {
@@ -51,17 +51,13 @@ public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySo
             return;
         }
 
-        SoundUtils.SoundMapping soundMapping = SoundUtils.fromJava(packetSound.replace("minecraft:", ""));
-        session.getConnector().getLogger()
-                .debug("[PlaySound] Sound mapping " + packetSound + " -> "
-                        + soundMapping + (soundMapping == null ? "[not found]" : "")
-                        + " - " + packet.toString());
+        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound.replace("minecraft:", ""));
         String playsound;
         if(soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
             session.getConnector().getLogger()
-                    .debug("[PlaySound] Defaulting to sound server gave us.");
-            playsound = packetSound;
+                    .debug("[PlaySound] Defaulting to sound server gave us for " + packet.toString());
+            playsound = packetSound.replace("minecraft:", "");
         } else {
             playsound = soundMapping.getPlaysound();
         }
@@ -72,7 +68,6 @@ public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySo
         playSoundPacket.setVolume(packet.getVolume());
         playSoundPacket.setPitch(packet.getPitch());
 
-        session.getUpstream().sendPacket(playSoundPacket);
-        session.getConnector().getLogger().debug("[PlaySound] Packet sent - " + packet.toString() + " --> " + playSoundPacket);
+        session.sendUpstreamPacket(playSoundPacket);
     }
 }

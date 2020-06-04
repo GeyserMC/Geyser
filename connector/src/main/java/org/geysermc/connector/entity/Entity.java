@@ -27,32 +27,40 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
+import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityDataMap;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.*;
-
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.AttributeUtils;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -76,7 +84,7 @@ public class Entity {
 
     protected boolean valid;
 
-    protected LongSet passengers = new LongOpenHashSet();
+    protected LongOpenHashSet passengers = new LongOpenHashSet();
     protected Map<AttributeType, Attribute> attributes = new HashMap<>();
     protected EntityDataMap metadata = new EntityDataMap();
 
@@ -94,7 +102,7 @@ public class Entity {
 
         metadata.put(EntityData.SCALE, 1f);
         metadata.put(EntityData.COLOR, 0);
-        metadata.put(EntityData.MAX_AIR, (short) 400);
+        metadata.put(EntityData.MAX_AIR, (short) 300);
         metadata.put(EntityData.AIR, (short) 0);
         metadata.put(EntityData.LEAD_HOLDER_EID, -1L);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
@@ -119,7 +127,7 @@ public class Entity {
         addEntityPacket.getMetadata().putAll(metadata);
 
         valid = true;
-        session.getUpstream().sendPacket(addEntityPacket);
+        session.sendUpstreamPacket(addEntityPacket);
 
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
@@ -135,7 +143,7 @@ public class Entity {
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(geyserId);
-        session.getUpstream().sendPacket(removeEntityPacket);
+        session.sendUpstreamPacket(removeEntityPacket);
 
         valid = false;
         return true;
@@ -156,7 +164,7 @@ public class Entity {
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(false);
 
-        session.getUpstream().sendPacket(moveEntityPacket);
+        session.sendUpstreamPacket(moveEntityPacket);
     }
 
     public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
@@ -174,7 +182,7 @@ public class Entity {
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 
-        session.getUpstream().sendPacket(moveEntityPacket);
+        session.sendUpstreamPacket(moveEntityPacket);
     }
 
     public void updateBedrockAttributes(GeyserSession session) {
@@ -191,7 +199,7 @@ public class Entity {
         UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
         updateAttributesPacket.setRuntimeEntityId(geyserId);
         updateAttributesPacket.setAttributes(attributes);
-        session.getUpstream().sendPacket(updateAttributesPacket);
+        session.sendUpstreamPacket(updateAttributesPacket);
     }
 
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
@@ -205,38 +213,55 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
+                    if ((xd & 0x20) == 0x20) {
+                        // Armour stands are handled in their own class
+                        if (!this.is(ArmorStandEntity.class)) {
+                            metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
+                        }
+                    } else {
+                        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
+                    }
+
                     // Shield code
                     if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
-                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemTranslator.SHIELD) ||
-                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == ItemTranslator.SHIELD)) {
+                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD) ||
+                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == ItemRegistry.SHIELD)) {
                             ClientPlayerUseItemPacket useItemPacket;
                             metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
-                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemTranslator.SHIELD) {
+                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD) {
                                 useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             }
                             // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
                             else {
                                 useItemPacket = new ClientPlayerUseItemPacket(Hand.OFF_HAND);
                             }
-                            session.getDownstream().getSession().send(useItemPacket);
+                            session.sendDownstreamPacket(useItemPacket);
                         }
                     } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
-                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                            metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
-                            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0), BlockFace.DOWN);
-                            session.getDownstream().getSession().send(releaseItemPacket);
-                        }
-                    // metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    if ((xd & 0x20) == 0x20)
-                        metadata.put(EntityData.SCALE, 0.0f);
-                    else
-                        metadata.put(EntityData.SCALE, scale);
+                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
+                        metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
+                        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
+                        session.sendDownstreamPacket(releaseItemPacket);
+                    }
+                }
+                break;
+            case 1: // Air/bubbles
+                if ((int) entityMetadata.getValue() == 300) {
+                    metadata.put(EntityData.AIR, (short) 0); // Otherwise the bubble counter remains in the UI
+                } else {
+                    metadata.put(EntityData.AIR, (short) (int) entityMetadata.getValue());
                 }
                 break;
             case 2: // custom name
-                TextMessage name = (TextMessage) entityMetadata.getValue();
-                if (name != null)
-                    metadata.put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(name));
+                if (entityMetadata.getValue() instanceof TextMessage) {
+                    TextMessage name = (TextMessage) entityMetadata.getValue();
+                    if (name != null)
+                        metadata.put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(name));
+                } else if (entityMetadata.getValue() instanceof TranslationMessage) {
+                    TranslationMessage message = (TranslationMessage) entityMetadata.getValue();
+                    if (message != null)
+                        metadata.put(EntityData.NAMETAG, MessageUtils.getTranslatedBedrockMessage(message, session.getClientData().getLanguageCode(), true));
+                }
                 break;
             case 3: // is custom name visible
                 if (!this.is(PlayerEntity.class))
@@ -247,6 +272,32 @@ public class Entity {
                 break;
             case 5: // no gravity
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
+                break;
+            case 6: // Pose change
+                if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
+                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
+                    // Has to be a byte or it does not work
+                    metadata.put(EntityData.CAN_START_SLEEP, (byte) 2);
+                    if (entityId == session.getPlayerEntity().getEntityId()) {
+                        Vector3i lastInteractionPos = session.getLastInteractionPosition();
+                        metadata.put(EntityData.BED_RESPAWN_POS, lastInteractionPos);
+                        if (session.getConnector().getConfig().isCacheChunks()) {
+                            BlockState bed = session.getConnector().getWorldManager().getBlockAt(session, lastInteractionPos.getX(),
+                                    lastInteractionPos.getY(), lastInteractionPos.getZ());
+                            // Bed has to be updated, or else player is floating in the air
+                            ChunkUtils.updateBlock(session, bed, lastInteractionPos);
+                        }
+                    } else {
+                        metadata.put(EntityData.BED_RESPAWN_POS, Vector3i.from(position.getFloorX(), position.getFloorY() - 2, position.getFloorZ()));
+                    }
+                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
+                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
+                } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
+                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, false);
+                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, getEntityType().getWidth());
+                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, getEntityType().getHeight());
+                    metadata.put(EntityData.CAN_START_SLEEP, (byte) 0);
+                }
                 break;
             case 7: // blocking
                 if (entityMetadata.getType() == MetadataType.BYTE) {
@@ -265,11 +316,12 @@ public class Entity {
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
-        session.getUpstream().sendPacket(entityDataPacket);
+        session.sendUpstreamPacket(entityDataPacket);
     }
 
     /**
      * x = Pitch, y = HeadYaw, z = Yaw
+     *
      * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {

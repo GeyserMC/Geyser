@@ -67,6 +67,9 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
                 case GENERIC_KNOCKBACK_RESISTANCE:
                     entity.getAttributes().put(AttributeType.KNOCKBACK_RESISTANCE, AttributeType.KNOCKBACK_RESISTANCE.getAttribute((float) AttributeUtils.calculateValue(attribute)));
                     break;
+                case HORSE_JUMP_STRENGTH:
+                    entity.getAttributes().put(AttributeType.HORSE_JUMP_STRENGTH, AttributeType.HORSE_JUMP_STRENGTH.getAttribute((float) AttributeUtils.calculateValue(attribute)));
+                    break;
             }
         }
 

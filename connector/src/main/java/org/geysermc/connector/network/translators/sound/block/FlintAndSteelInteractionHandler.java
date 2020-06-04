@@ -45,6 +45,6 @@ public class FlintAndSteelInteractionHandler implements BlockSoundInteractionHan
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setSound(SoundEvent.IGNITE);
         levelSoundEventPacket.setExtraData(-1);
-        session.getUpstream().sendPacket(levelSoundEventPacket);
+        session.sendUpstreamPacket(levelSoundEventPacket);
     }
 }

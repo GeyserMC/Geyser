@@ -29,7 +29,6 @@ package org.geysermc.connector.network.translators.java.world;
 import com.github.steveice10.mc.protocol.data.game.world.block.ExplodedBlockRecord;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerExplosionPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
@@ -47,14 +46,17 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
     public void translate(ServerExplosionPacket packet, GeyserSession session) {
         for (ExplodedBlockRecord record : packet.getExploded()) {
             Vector3f pos = Vector3f.from(packet.getX() + record.getX(), packet.getY() + record.getY(), packet.getZ() + record.getZ());
-            // Since bedrock does not play an explosion sound and particles sound, we have to manually do so
-            LevelEventPacket levelEventPacket = new LevelEventPacket();
-            levelEventPacket.setType(LevelEventType.PARTICLE_LARGE_EXPLOSION);
-            levelEventPacket.setData(0);
-            levelEventPacket.setPosition(pos.toFloat());
-            session.getUpstream().sendPacket(levelEventPacket);
             ChunkUtils.updateBlock(session, BlockTranslator.AIR, pos.toInt());
         }
+
+        Vector3f pos = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
+        // Since bedrock does not play an explosion sound and particles sound, we have to manually do so
+        LevelEventPacket levelEventPacket = new LevelEventPacket();
+        levelEventPacket.setType(packet.getRadius() >= 2.0f ? LevelEventType.PARTICLE_HUGE_EXPLODE : LevelEventType.PARTICLE_LARGE_EXPLOSION);
+        levelEventPacket.setData(0);
+        levelEventPacket.setPosition(pos.toFloat());
+        session.sendUpstreamPacket(levelEventPacket);
+
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
         levelSoundEventPacket.setRelativeVolumeDisabled(false);
         levelSoundEventPacket.setBabySound(false);
@@ -62,6 +64,6 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
         levelSoundEventPacket.setSound(SoundEvent.EXPLODE);
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-        session.getUpstream().sendPacket(levelSoundEventPacket);
+        session.sendUpstreamPacket(levelSoundEventPacket);
     }
 }

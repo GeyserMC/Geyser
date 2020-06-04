@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -46,7 +47,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         Position pos = packet.getRecord().getPosition();
         boolean updatePlacement = !(session.getConnector().getConfig().isCacheChunks() && session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ()).getId() == packet.getRecord().getBlock().getId());
         ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), packet.getRecord().getPosition());
-        if (updatePlacement) {
+        if (updatePlacement && session.getConnector().getPlatformType() != PlatformType.BUKKIT) {
             this.checkPlace(session, packet);
         }
         this.checkInteract(session, packet);
@@ -84,7 +85,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         placeBlockSoundPacket.setBabySound(false);
         placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(packet.getRecord().getBlock()));
         placeBlockSoundPacket.setIdentifier(":");
-        session.getUpstream().sendPacket(placeBlockSoundPacket);
+        session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
         session.setLastBlockPlacedId(null);
         return true;
@@ -102,7 +103,6 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         }
         String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(packet.getRecord().getBlock());
         session.setInteracting(false);
-        session.setLastInteractionPosition(null);
         BlockSoundInteractionHandler.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
     }
 }

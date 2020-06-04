@@ -31,7 +31,7 @@ import org.geysermc.common.AuthType;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Registry;
+import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
@@ -41,7 +41,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean translateAndDefault(BedrockPacket packet) {
-        return Registry.BEDROCK.translate(packet.getClass(), packet, session);
+        return PacketTranslatorRegistry.BEDROCK_TRANSLATOR.translate(packet.getClass(), packet, session);
     }
 
     @Override
@@ -58,10 +58,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        session.getUpstream().sendPacket(playStatus);
+        session.sendUpstreamPacket(playStatus);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
-        session.getUpstream().sendPacket(resourcePacksInfo);
+        session.sendUpstreamPacket(resourcePacksInfo);
         return true;
     }
 
@@ -77,7 +77,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stack.setExperimental(false);
                 stack.setForcedToAccept(false);
                 stack.setGameVersion("*");
-                session.getUpstream().sendPacket(stack);
+                session.sendUpstreamPacket(stack);
                 break;
             default:
                 session.disconnect("disconnectionScreen.resourcePack");
@@ -110,15 +110,19 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    public boolean handle(MovePlayerPacket packet) {
+    public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthData().getName())) {
                 LoginEncryptionUtils.showLoginWindow(session);
             }
             // else we were able to log the user in
-            return true;
         }
+        return translateAndDefault(packet);
+    }
+
+    @Override
+    public boolean handle(MovePlayerPacket packet) {
         if (session.isLoggingIn()) {
             session.sendMessage("Please wait until you are logged in...");
         }

@@ -31,11 +31,15 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.utils.InventoryUtils;
 
 @AllArgsConstructor
 public class ChestInventoryUpdater extends InventoryUpdater {
+    private static final ItemData UNUSUABLE_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(
+            "This slot does not exist in the inventory\non Java Edition, as there is less\nrows than possible in Bedrock");
+
     private final int paddedSize;
 
     @Override
@@ -44,17 +48,17 @@ public class ChestInventoryUpdater extends InventoryUpdater {
 
         ItemData[] bedrockItems = new ItemData[paddedSize];
         for (int i = 0; i < bedrockItems.length; i++) {
-            if (i <= translator.size) {
-                bedrockItems[i] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(i));
+            if (i < translator.size) {
+                bedrockItems[i] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
             } else {
-                bedrockItems[i] = ItemData.AIR;
+                bedrockItems[i] = UNUSUABLE_SPACE_BLOCK;
             }
         }
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(inventory.getId());
         contentPacket.setContents(bedrockItems);
-        session.getUpstream().sendPacket(contentPacket);
+        session.sendUpstreamPacket(contentPacket);
     }
 
     @Override
@@ -65,8 +69,8 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(inventory.getId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(javaSlot)));
-        session.getUpstream().sendPacket(slotPacket);
+        slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
+        session.sendUpstreamPacket(slotPacket);
         return true;
     }
 }

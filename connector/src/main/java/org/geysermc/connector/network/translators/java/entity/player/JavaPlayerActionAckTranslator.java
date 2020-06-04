@@ -35,7 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.utils.BlockUtils;
@@ -55,7 +55,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                     levelEvent.setType(LevelEventType.DESTROY);
                     levelEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
                     levelEvent.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock()));
-                    session.getUpstream().sendPacket(levelEvent);
+                    session.sendUpstreamPacket(levelEvent);
                     session.setBreakingBlock(null);
                 }
                 ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
@@ -76,13 +76,13 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 ItemEntry itemEntry = null;
                 CompoundTag nbtData = new CompoundTag("");
                 if (item != null) {
-                    itemEntry = Translators.getItemTranslator().getItem(item);
+                    itemEntry = ItemRegistry.getItem(item);
                     nbtData = item.getNbt();
                 }
-                double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry, nbtData, session.getPlayerEntity()) * 20);
+                double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry, nbtData, session) * 20);
                 levelEvent.setData((int) (65535 / breakTime));
                 session.setBreakingBlock(packet.getNewState());
-                session.getUpstream().sendPacket(levelEvent);
+                session.sendUpstreamPacket(levelEvent);
                 break;
             case CANCEL_DIGGING:
                 levelEvent.setType(LevelEventType.BLOCK_STOP_BREAK);
@@ -93,7 +93,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 ));
                 levelEvent.setData(0);
                 session.setBreakingBlock(null);
-                session.getUpstream().sendPacket(levelEvent);
+                session.sendUpstreamPacket(levelEvent);
                 break;
         }
     }

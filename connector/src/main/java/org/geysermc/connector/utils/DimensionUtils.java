@@ -25,12 +25,17 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class DimensionUtils {
+
+    // Changes if the above-bedrock Nether building workaround is applied
+    private static int BEDROCK_NETHER_ID = 1;
+
     public static void switchDimension(GeyserSession session, int javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
@@ -49,17 +54,27 @@ public class DimensionUtils {
         changeDimensionPacket.setDimension(bedrockDimension);
         changeDimensionPacket.setRespawn(true);
         changeDimensionPacket.setPosition(pos.toFloat());
-        session.getUpstream().sendPacket(changeDimensionPacket);
+        session.sendUpstreamPacket(changeDimensionPacket);
         player.setDimension(bedrockDimension);
         player.setPosition(pos.toFloat());
         session.setSpawned(false);
         session.setLastChunkPosition(null);
 
+        for (Effect effect : session.getPlayerEntity().getEffectCache().getEntityEffects().keySet()) {
+            MobEffectPacket mobEffectPacket = new MobEffectPacket();
+            mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
+            mobEffectPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+            mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
+            session.sendUpstreamPacket(mobEffectPacket);
+        }
+        // Effects are re-sent from server
+        session.getPlayerEntity().getEffectCache().getEntityEffects().clear();
+
         //let java server handle portal travel sound
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
         stopSoundPacket.setStoppingAllSound(true);
         stopSoundPacket.setSoundName("");
-        session.getUpstream().sendPacket(stopSoundPacket);
+        session.sendUpstreamPacket(stopSoundPacket);
     }
 
     /**
@@ -71,11 +86,16 @@ public class DimensionUtils {
     public static int javaToBedrock(int javaDimension) {
         switch (javaDimension) {
             case -1:
-                return 1;
+                return BEDROCK_NETHER_ID;
             case 1:
                 return 2;
             default:
                 return javaDimension;
         }
+    }
+
+    public static void changeBedrockNetherId() {
+        // Change dimension ID to the End to allow for building above Bedrock
+        BEDROCK_NETHER_ID = 2;
     }
 }

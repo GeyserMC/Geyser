@@ -36,7 +36,7 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(name = "ShulkerBox", delay = false, regex = "shulker_box")
+@BlockEntity(name = "ShulkerBox", regex = "shulker_box")
 public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override

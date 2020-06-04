@@ -27,7 +27,7 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.entity.type.object.HangingDirection;
+import com.github.steveice10.mc.protocol.data.game.entity.object.HangingDirection;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -38,10 +38,10 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.utils.Toolbox;
 
 import java.util.concurrent.TimeUnit;
 
@@ -87,20 +87,23 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         session.getItemFrameCache().put(bedrockPosition, entityId);
-        updateBlock(session);
+        // Delay is required, or else loading in frames on chunk load is sketchy at best
+        session.getConnector().getGeneralThreadPool().schedule(() -> {
+            updateBlock(session);
+            session.getConnector().getLogger().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
+        }, 500, TimeUnit.MILLISECONDS);
         valid = true;
-        session.getConnector().getLogger().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
-            ItemData itemData = Translators.getItemTranslator().translateToBedrock(session, (ItemStack) entityMetadata.getValue());
-            ItemEntry itemEntry = Translators.getItemTranslator().getItem((ItemStack) entityMetadata.getValue());
+            ItemData itemData = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
+            ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
             CompoundTagBuilder builder = CompoundTag.builder();
 
             String blockName = "";
-            for (StartGamePacket.ItemEntry startGamePacketItemEntry: Toolbox.ITEMS) {
+            for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
                 if (startGamePacketItemEntry.getId() == (short) itemEntry.getBedrockId()) {
                     blockName = startGamePacketItemEntry.getIdentifier();
                     break;
@@ -149,7 +152,7 @@ public class ItemFrameEntity extends Entity {
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        session.getUpstream().sendPacket(updateBlockPacket);
+        session.sendUpstreamPacket(updateBlockPacket);
         session.getItemFrameCache().remove(position, entityId);
         valid = false;
         return true;
@@ -170,27 +173,24 @@ public class ItemFrameEntity extends Entity {
      * @param session GeyserSession.
      */
     public void updateBlock(GeyserSession session) {
-        // Delay is required, or else loading in frames on chunk load is sketchy at best
-        session.getConnector().getGeneralThreadPool().schedule(() -> {
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.setDataLayer(0);
-            updateBlockPacket.setBlockPosition(bedrockPosition);
-            updateBlockPacket.setRuntimeId(bedrockRuntimeId);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-            session.getUpstream().sendPacket(updateBlockPacket);
+        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+        updateBlockPacket.setDataLayer(0);
+        updateBlockPacket.setBlockPosition(bedrockPosition);
+        updateBlockPacket.setRuntimeId(bedrockRuntimeId);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+        session.sendUpstreamPacket(updateBlockPacket);
 
-            BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
-            blockEntityDataPacket.setBlockPosition(bedrockPosition);
-            if (cachedTag != null) {
-                blockEntityDataPacket.setData(cachedTag);
-            } else {
-                blockEntityDataPacket.setData(getDefaultTag());
-            }
+        BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
+        blockEntityDataPacket.setBlockPosition(bedrockPosition);
+        if (cachedTag != null) {
+            blockEntityDataPacket.setData(cachedTag);
+        } else {
+            blockEntityDataPacket.setData(getDefaultTag());
+        }
 
-            session.getUpstream().sendPacket(blockEntityDataPacket);
-        }, 500, TimeUnit.MILLISECONDS);
+        session.sendUpstreamPacket(blockEntityDataPacket);
     }
 
     /**

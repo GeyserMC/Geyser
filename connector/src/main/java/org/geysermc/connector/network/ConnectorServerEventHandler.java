@@ -25,11 +25,12 @@
 
 package org.geysermc.connector.network;
 
-import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
-import com.nukkitx.protocol.bedrock.BedrockPong;
-import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
-
+import com.github.steveice10.mc.protocol.data.message.Message;
+import com.nukkitx.protocol.bedrock.*;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.DatagramPacket;
+import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,7 +40,7 @@ import java.net.InetSocketAddress;
 
 public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public ConnectorServerEventHandler(GeyserConnector connector) {
         this.connector = connector;
@@ -56,29 +57,39 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         connector.getLogger().debug(inetSocketAddress + " has pinged you!");
 
         GeyserConfiguration config = connector.getConfig();
-        ServerStatusInfo serverInfo = connector.getPassthroughThread().getInfo();
+
+        GeyserPingInfo pingInfo = null;
+        if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
+            IGeyserPingPassthrough pingPassthrough = connector.getBootstrap().getGeyserPingPassthrough();
+            pingInfo = pingPassthrough.getPingInformation();
+        }
 
         BedrockPong pong = new BedrockPong();
         pong.setEdition("MCPE");
         pong.setGameType("Default");
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
-        pong.setVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+        pong.setVersion(null); // Server tries to connect either way and it looks better
         pong.setIpv4Port(config.getBedrock().getPort());
-        if (connector.getConfig().isPingPassthrough() && serverInfo != null) {
-            String[] motd = MessageUtils.getBedrockMessage(serverInfo.getDescription()).split("\n");
+
+        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.motd != null) {
+            String[] motd = MessageUtils.getBedrockMessage(Message.fromString(pingInfo.motd)).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
 
             pong.setMotd(mainMotd.trim());
             pong.setSubMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
-            pong.setPlayerCount(serverInfo.getPlayerInfo().getOnlinePlayers());
-            pong.setMaximumPlayerCount(serverInfo.getPlayerInfo().getMaxPlayers());
+        } else {
+            pong.setMotd(config.getBedrock().getMotd1());
+            pong.setSubMotd(config.getBedrock().getMotd2());
+        }
+
+        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
+            pong.setPlayerCount(pingInfo.currentPlayerCount);
+            pong.setMaximumPlayerCount(pingInfo.maxPlayerCount);
         } else {
             pong.setPlayerCount(connector.getPlayers().size());
             pong.setMaximumPlayerCount(config.getMaxPlayers());
-            pong.setMotd(config.getBedrock().getMotd1());
-            pong.setMotd(config.getBedrock().getMotd2());
         }
 
         //Bedrock will not even attempt a connection if the client thinks the server is full
@@ -104,5 +115,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             }
         });
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
+    }
+
+    @Override
+    public void onUnhandledDatagram(ChannelHandlerContext ctx, DatagramPacket packet) {
+        new QueryPacketHandler(connector, packet.sender(), packet.content());
     }
 }

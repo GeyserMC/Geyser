@@ -32,12 +32,13 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.IntTag;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
+import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(name = "Banner", delay = false, regex = "banner")
+@BlockEntity(name = "Banner", regex = "banner")
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
@@ -48,26 +49,21 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
         List<Tag<?>> tags = new ArrayList<>();
+
         int bannerColor = BlockStateValues.getBannerColor(blockState);
         if (bannerColor != -1) {
             tags.add(new IntTag("Base", 15 - bannerColor));
         }
-        ListTag patterns = tag.get("Patterns");
-        List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
+
         if (tag.contains("Patterns")) {
-            for (com.github.steveice10.opennbt.tag.builtin.Tag patternTag : patterns.getValue()) {
-                com.nukkitx.nbt.tag.CompoundTag newPatternTag = getPattern((CompoundTag) patternTag);
-                if (newPatternTag != null) {
-                    tagsList.add(newPatternTag);
-                }
-            }
-            com.nukkitx.nbt.tag.ListTag<com.nukkitx.nbt.tag.CompoundTag> bedrockPatterns =
-                    new com.nukkitx.nbt.tag.ListTag<>("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
-            tags.add(bedrockPatterns);
+            ListTag patterns = tag.get("Patterns");
+            tags.add(BannerTranslator.convertBannerPattern(patterns));
         }
+
         if (tag.contains("CustomName")) {
             tags.add(new StringTag("CustomName", (String) tag.get("CustomName").getValue()));
         }
+
         return tags;
     }
 
@@ -83,26 +79,5 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
         CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
         tagBuilder.listTag("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, new ArrayList<>());
         return tagBuilder.buildRootTag();
-    }
-
-    /**
-     * Convert the Java edition pattern nbt to Bedrock edition, null if the pattern doesn't exist
-     *
-     * @param pattern Java edition pattern nbt
-     * @return The Bedrock edition format pattern nbt
-     */
-    protected com.nukkitx.nbt.tag.CompoundTag getPattern(CompoundTag pattern) {
-        String patternName = (String) pattern.get("Pattern").getValue();
-
-        // Return null if its the globe pattern as it doesn't exist on bedrock
-        if (patternName.equals("glb")) {
-            return null;
-        }
-
-        return CompoundTagBuilder.builder()
-                .intTag("Color", 15 - (int) pattern.get("Color").getValue())
-                .stringTag("Pattern", (String) pattern.get("Pattern").getValue())
-                .stringTag("Pattern", patternName)
-                .buildRootTag();
     }
 }

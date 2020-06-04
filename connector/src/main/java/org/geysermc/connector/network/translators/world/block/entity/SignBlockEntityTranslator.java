@@ -31,29 +31,35 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
+import io.netty.util.internal.StringUtil;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(name = "Sign", delay = true, regex = "sign")
+@BlockEntity(name = "Sign", regex = "sign")
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
         List<Tag<?>> tags = new ArrayList<>();
 
-        String line1 = getOrDefault(tag.getValue().get("Text1"), "");
-        String line2 = getOrDefault(tag.getValue().get("Text2"), "");
-        String line3 = getOrDefault(tag.getValue().get("Text3"), "");
-        String line4 = getOrDefault(tag.getValue().get("Text4"), "");
+        StringBuilder signText = new StringBuilder();
+        for(int i = 0; i < 4; i++) {
+            int currentLine = i+1;
+            String signLine = getOrDefault(tag.getValue().get("Text" + currentLine), "");
+            signLine = MessageUtils.getBedrockMessage(Message.fromString(signLine));
 
-        tags.add(new StringTag("Text", MessageUtils.getBedrockMessage(Message.fromString(line1))
-                + "\n" + MessageUtils.getBedrockMessage(Message.fromString(line2))
-                + "\n" + MessageUtils.getBedrockMessage(Message.fromString(line3))
-                + "\n" + MessageUtils.getBedrockMessage(Message.fromString(line4))
-        ));
+            //Java allows up to 16+ characters on certain symbols. 
+            if(signLine.length() >= 15 && (signLine.contains("-") || signLine.contains("="))) {
+                signLine = signLine.substring(0, 14);
+            }
 
+            signText.append(signLine);
+            signText.append("\n");
+        }
+
+        tags.add(new StringTag("Text", MessageUtils.getBedrockMessage(Message.fromString(signText.toString()))));
         return tags;
     }
 

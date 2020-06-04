@@ -32,6 +32,9 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -43,11 +46,12 @@ import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.entity.*;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,6 +64,23 @@ public class ChunkUtils {
      * Temporarily stores positions of BlockState values that are needed for certain block entities actively
      */
     public static final Map<Position, BlockState> CACHED_BLOCK_ENTITIES = new HashMap<>();
+
+    private static final com.nukkitx.nbt.tag.CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
+    public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
+
+    static {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size
+
+            try (NBTOutputStream stream = NbtUtils.createNetworkWriter(outputStream)) {
+                stream.write(EMPTY_TAG);
+            }
+
+            EMPTY_LEVEL_CHUNK_DATA = outputStream.toByteArray();
+        }catch (IOException e) {
+            throw new AssertionError("Unable to generate empty level chunk data");
+        }
+    }
 
     public static ChunkData translateToBedrock(Column column) {
         ChunkData chunkData = new ChunkData();
@@ -89,20 +110,11 @@ public class ChunkUtils {
 
                         // Check to see if the name is in BlockTranslator.getBlockEntityString, and therefore must be handled differently
                         if (BlockTranslator.getBlockEntityString(blockState) != null) {
-                            // Get the block entity translator
-                            BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(BlockTranslator.getBlockEntityString(blockState));
                             Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
                             blockEntityPositions.put(pos, blockState);
-                            // If there is a delay required for the block, allow it.
-                            if (blockEntityTranslator.getClass().getAnnotation(BlockEntity.class).delay()) {
-                                chunkData.loadBlockEntitiesLater.put(blockEntityTranslator.getDefaultBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockTranslator.getBlockEntityString(blockState)),
-                                        pos.getX(), pos.getY(), pos.getZ()), blockState.getId());
-                            } else {
-                                section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
-                            }
-                        } else {
-                            section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
                         }
+
+                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
 
                         // Check if block is piston or flower - only block entities in Bedrock
                         if (BlockStateValues.getFlowerPotValues().containsKey(blockState.getId()) ||
@@ -156,7 +168,7 @@ public class ChunkUtils {
             NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
             chunkPublisherUpdatePacket.setPosition(position);
             chunkPublisherUpdatePacket.setRadius(session.getRenderDistance() << 4);
-            session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
+            session.sendUpstreamPacket(chunkPublisherUpdatePacket);
 
             session.setLastChunkPosition(newChunkPos);
         }
@@ -188,7 +200,7 @@ public class ChunkUtils {
         updateBlockPacket.setBlockPosition(position);
         updateBlockPacket.setRuntimeId(blockId);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        session.getUpstream().sendPacket(updateBlockPacket);
+        session.sendUpstreamPacket(updateBlockPacket);
 
         UpdateBlockPacket waterPacket = new UpdateBlockPacket();
         waterPacket.setDataLayer(1);
@@ -198,12 +210,12 @@ public class ChunkUtils {
         } else {
             waterPacket.setRuntimeId(0);
         }
-        session.getUpstream().sendPacket(waterPacket);
+        session.sendUpstreamPacket(waterPacket);
 
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
         // Iterates through all block entity translators and determines if the block state needs to be saved
-        for (RequiresBlockState requiresBlockState : Translators.getRequiresBlockStateMap()) {
+        for (RequiresBlockState requiresBlockState : BlockEntityTranslator.REQUIRES_BLOCK_STATE_LIST) {
             if (requiresBlockState.isBlock(blockState)) {
                 // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
                 if (requiresBlockState instanceof BedrockOnlyBlockEntity) {
@@ -226,9 +238,9 @@ public class ChunkUtils {
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
                 data.setSubChunksLength(0);
-                data.setData(Translators.EMPTY_LEVEL_CHUNK_DATA);
+                data.setData(EMPTY_LEVEL_CHUNK_DATA);
                 data.setCachingEnabled(false);
-                session.getUpstream().sendPacket(data);
+                session.sendUpstreamPacket(data);
 
                 if (forceUpdate) {
                     Vector3i pos = Vector3i.from(chunkX + x << 4, 80, chunkZ + z << 4);
@@ -236,7 +248,7 @@ public class ChunkUtils {
                     blockPacket.setBlockPosition(pos);
                     blockPacket.setDataLayer(0);
                     blockPacket.setRuntimeId(1);
-                    session.getUpstream().sendPacket(blockPacket);
+                    session.sendUpstreamPacket(blockPacket);
                 }
             }
         }

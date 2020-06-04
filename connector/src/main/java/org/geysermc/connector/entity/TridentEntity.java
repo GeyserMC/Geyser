@@ -23,30 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.spawn;
+package org.geysermc.connector.entity;
 
-import org.geysermc.connector.entity.Entity;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnGlobalEntityPacket;
-import com.nukkitx.math.vector.Vector3f;
+public class TridentEntity extends AbstractArrowEntity {
 
-@Translator(packet = ServerSpawnGlobalEntityPacket.class)
-public class JavaSpawnGlobalEntityTranslator extends PacketTranslator<ServerSpawnGlobalEntityPacket> {
+    public TridentEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
+    }
 
     @Override
-    public void translate(ServerSpawnGlobalEntityPacket packet, GeyserSession session) {
-        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 11) {
+            metadata.getFlags().setFlag(EntityFlag.ENCHANTED, (boolean) entityMetadata.getValue());
+        }
 
-        // Currently GlobalEntityType only has a lightning bolt
-        Entity entity = new Entity(
-                packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.LIGHTNING_BOLT, position, Vector3f.ZERO, Vector3f.ZERO
-        );
-
-        session.getEntityCache().spawnEntity(entity);
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

@@ -53,11 +53,11 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             ChestValue value = (ChestValue) packet.getValue() ;
             blockEventPacket.setEventType(1);
             blockEventPacket.setEventData(value.getViewers() > 0 ? 1 : 0);
-            session.getUpstream().sendPacket(blockEventPacket);
+            session.sendUpstreamPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
-            session.getUpstream().sendPacket(blockEventPacket);
+            session.sendUpstreamPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof NoteBlockValue) {
             NoteblockBlockEntityTranslator.translate(session, packet.getPosition());
@@ -77,15 +77,15 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         }
         if (packet.getValue() instanceof BeaconValue) {
             blockEventPacket.setEventType(1);
-            session.getUpstream().sendPacket(blockEventPacket);
+            session.sendUpstreamPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof MobSpawnerValue) {
             blockEventPacket.setEventType(1);
-            session.getUpstream().sendPacket(blockEventPacket);
+            session.sendUpstreamPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
-            session.getUpstream().sendPacket(blockEventPacket);
+            session.sendUpstreamPacket(blockEventPacket);
         }
     }
 
@@ -101,7 +101,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         blockEntityDataPacket.setBlockPosition(position);
         byte state = (byte) ((progress == 1.0f && lastProgress == 1.0f) ? 2 : 1);
         blockEntityDataPacket.setData(buildPistonTag(position, progress, lastProgress, state));
-        session.getUpstream().sendPacket(blockEntityDataPacket);
+        session.sendUpstreamPacket(blockEntityDataPacket);
         if (lastProgress != 1.0f) {
             session.getConnector().getGeneralThreadPool().schedule(() ->
                             extendPiston(session, position, (progress >= 1.0f) ? 1.0f : progress + 0.5f, progress),
@@ -121,7 +121,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         blockEntityDataPacket.setBlockPosition(position);
         byte state = (byte) ((progress == 0.0f && lastProgress == 0.0f) ? 0 : 3);
         blockEntityDataPacket.setData(buildPistonTag(position, progress, lastProgress, state));
-        session.getUpstream().sendPacket(blockEntityDataPacket);
+        session.sendUpstreamPacket(blockEntityDataPacket);
         if (lastProgress != 0.0f) {
             session.getConnector().getGeneralThreadPool().schedule(() ->
                             retractPiston(session, position, (progress <= 0.0f) ? 0.0f : progress - 0.5f, progress),

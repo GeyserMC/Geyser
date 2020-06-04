@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.SoundUtils;
+import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
 @Translator(packet = ServerStopSoundPacket.class)
 public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSoundPacket> {
@@ -48,7 +48,7 @@ public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSo
             session.getConnector().getLogger().debug("Unknown sound packet, we were unable to map this. " + packet.toString());
             return;
         }
-        SoundUtils.SoundMapping soundMapping = SoundUtils.fromJava(packetSound);
+        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound);
         session.getConnector().getLogger()
                 .debug("[StopSound] Sound mapping " + packetSound + " -> "
                         + soundMapping + (soundMapping == null ? "[not found]" : "")
@@ -68,7 +68,7 @@ public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSo
         // packet not mapped in the library
         stopSoundPacket.setStoppingAllSound(false);
 
-        session.getUpstream().sendPacket(stopSoundPacket);
+        session.sendUpstreamPacket(stopSoundPacket);
         session.getConnector().getLogger().debug("[StopSound] Packet sent - " + packet.toString() + " --> " + stopSoundPacket);
     }
 }

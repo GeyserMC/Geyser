@@ -30,15 +30,14 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.Tag;
-
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-@BlockEntity(name = "Campfire", delay = false, regex = "campfire")
+@BlockEntity(name = "Campfire", regex = "campfire")
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
@@ -71,7 +70,7 @@ public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     protected com.nukkitx.nbt.tag.CompoundTag getItem(CompoundTag tag) {
-        ItemEntry entry = Translators.getItemTranslator().getItemEntry((String) tag.get("id").getValue());
+        ItemEntry entry = ItemRegistry.getItemEntry((String) tag.get("id").getValue());
         CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
                 .shortTag("id", (short) entry.getBedrockId())
                 .byteTag("Count", (byte) tag.get("Count").getValue())

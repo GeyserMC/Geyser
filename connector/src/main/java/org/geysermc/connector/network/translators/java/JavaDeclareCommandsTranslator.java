@@ -43,9 +43,14 @@ import org.geysermc.connector.network.translators.Translator;
 import java.util.*;
 
 @Translator(packet = ServerDeclareCommandsPacket.class)
-public class JavaServerDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
+public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
     @Override
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
+        // Don't send command suggestions if they are disabled
+        if (!session.getConnector().getConfig().isCommandSuggestions()) {
+            session.getConnector().getLogger().debug("Not sending command suggestions as they are disabled.");
+            return;
+        }
         List<CommandData> commandData = new ArrayList<>();
         Int2ObjectMap<String> commands = new Int2ObjectOpenHashMap<>();
         Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
@@ -100,7 +105,7 @@ public class JavaServerDeclareCommandsTranslator extends PacketTranslator<Server
         GeyserConnector.getInstance().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
 
         // Finally, send the commands to the client
-        session.getUpstream().sendPacket(availableCommandsPacket);
+        session.sendUpstreamPacket(availableCommandsPacket);
     }
 
     /**

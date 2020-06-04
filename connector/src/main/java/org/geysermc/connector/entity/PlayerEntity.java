@@ -26,15 +26,13 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
+import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.packet.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -47,7 +45,10 @@ import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.utils.SkinUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity {
@@ -56,7 +57,11 @@ public class PlayerEntity extends LivingEntity {
     private String username;
     private long lastSkinUpdate = -1;
     private boolean playerList = true;
+    private boolean onGround;
     private final EntityEffectCache effectCache;
+
+    private Entity leftParrot;
+    private Entity rightParrot;
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
@@ -93,8 +98,13 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
 
+        long linkedEntityId = session.getEntityCache().getCachedPlayerEntityLink(entityId);
+        if (linkedEntityId != -1) {
+            addPlayerPacket.getEntityLinks().add(new EntityLink(session.getEntityCache().getEntityByJavaId(linkedEntityId).getGeyserId(), geyserId, EntityLink.Type.RIDER, false));
+        }
+
         valid = true;
-        session.getUpstream().sendPacket(addPlayerPacket);
+        session.sendUpstreamPacket(addPlayerPacket);
 
         updateEquipment(session);
         updateBedrockAttributes(session);
@@ -108,7 +118,7 @@ public class PlayerEntity extends LivingEntity {
                 PlayerListPacket playerList = new PlayerListPacket();
                 playerList.setAction(PlayerListPacket.Action.ADD);
                 playerList.getEntries().add(SkinUtils.buildDefaultEntry(profile, geyserId));
-                session.getUpstream().sendPacket(playerList);
+                session.sendUpstreamPacket(playerList);
             }
         }
 
@@ -124,7 +134,7 @@ public class PlayerEntity extends LivingEntity {
                 PlayerListPacket playerList = new PlayerListPacket();
                 playerList.setAction(PlayerListPacket.Action.REMOVE);
                 playerList.getEntries().add(new PlayerListPacket.Entry(uuid));
-                session.getUpstream().sendPacket(playerList);
+                session.sendUpstreamPacket(playerList);
             });
         }
     }
@@ -133,6 +143,8 @@ public class PlayerEntity extends LivingEntity {
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         setPosition(position);
         setRotation(rotation);
+
+        this.onGround = isOnGround;
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
@@ -145,7 +157,13 @@ public class PlayerEntity extends LivingEntity {
             movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
         }
 
-        session.getUpstream().sendPacket(movePlayerPacket);
+        session.sendUpstreamPacket(movePlayerPacket);
+        if (leftParrot != null) {
+            leftParrot.moveAbsolute(session, position, rotation, true, teleported);
+        }
+        if (rightParrot != null) {
+            rightParrot.moveAbsolute(session, position, rotation, true, teleported);
+        }
     }
 
     @Override
@@ -153,13 +171,21 @@ public class PlayerEntity extends LivingEntity {
         setRotation(rotation);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
+        this.onGround = isOnGround;
+
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
         movePlayerPacket.setPosition(position);
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
-        session.getUpstream().sendPacket(movePlayerPacket);
+        session.sendUpstreamPacket(movePlayerPacket);
+        if (leftParrot != null) {
+            leftParrot.moveRelative(session, relX, relY, relZ, rotation, true);
+        }
+        if (rightParrot != null) {
+            rightParrot.moveRelative(session, relX, relY, relZ, rotation, true);
+        }
     }
 
     @Override
@@ -186,6 +212,55 @@ public class PlayerEntity extends LivingEntity {
             if (team != null) {
                 // session.getConnector().getLogger().info("team name es " + team.getName() + " with prefix " + team.getPrefix() + " and suffix " + team.getSuffix());
                 metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());
+            }
+        }
+
+        // Extra hearts - is not metadata but an attribute on Bedrock
+        if (entityMetadata.getId() == 14) {
+            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+            attributesPacket.setRuntimeEntityId(geyserId);
+            List<Attribute> attributes = new ArrayList<>();
+            // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
+            attributes.add(new Attribute("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f));
+            attributesPacket.setAttributes(attributes);
+            session.sendUpstreamPacket(attributesPacket);
+        }
+
+        // Parrot occupying shoulder
+        if (entityMetadata.getId() == 18 || entityMetadata.getId() == 19) {
+            CompoundTag tag = (CompoundTag) entityMetadata.getValue();
+            if (tag != null && !tag.isEmpty()) {
+                // The parrot is a separate entity in Bedrock, but part of the player entity in Java
+                Entity parrot = new Entity(0, session.getEntityCache().getNextEntityId().incrementAndGet(),
+                        EntityType.PARROT, position, motion, rotation);
+                parrot.spawnEntity(session);
+                parrot.getMetadata().put(EntityData.VARIANT, tag.get("Variant").getValue());
+                // Different position whether the parrot is left or right
+                float offset = (entityMetadata.getId() == 18) ? 0.4f : -0.4f;
+                parrot.getMetadata().put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(offset, -0.22, -0.1));
+                parrot.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
+                parrot.updateBedrockMetadata(session);
+                SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
+                EntityLink.Type type = (entityMetadata.getId() == 18) ? EntityLink.Type.RIDER : EntityLink.Type.PASSENGER;
+                linkPacket.setEntityLink(new EntityLink(geyserId, parrot.getGeyserId(), type, false));
+                // Delay, or else spawned-in players won't get the link
+                // TODO: Find a better solution. This problem also exists with item frames
+                session.getConnector().getGeneralThreadPool().schedule(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);
+                if (entityMetadata.getId() == 18) {
+                    leftParrot = parrot;
+                } else {
+                    rightParrot = parrot;
+                }
+            } else {
+                Entity parrot = (entityMetadata.getId() == 18 ? leftParrot : rightParrot);
+                if (parrot != null) {
+                    parrot.despawnEntity(session);
+                    if (entityMetadata.getId() == 18) {
+                        leftParrot = null;
+                    } else {
+                        rightParrot = null;
+                    }
+                }
             }
         }
     }

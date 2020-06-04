@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 
@@ -40,7 +40,7 @@ public class MilkCowSoundInteractionHandler implements EntitySoundInteractionHan
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, Entity value) {
-        if (!Translators.getItemTranslator().getItem(session.getInventory().getItemInHand()).getJavaIdentifier().equals("minecraft:bucket")) {
+        if (!ItemRegistry.getItem(session.getInventory().getItemInHand()).getJavaIdentifier().equals("minecraft:bucket")) {
             return;
         }
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
@@ -50,6 +50,6 @@ public class MilkCowSoundInteractionHandler implements EntitySoundInteractionHan
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setSound(SoundEvent.MILK);
         levelSoundEventPacket.setExtraData(-1);
-        session.getUpstream().sendPacket(levelSoundEventPacket);
+        session.sendUpstreamPacket(levelSoundEventPacket);
     }
 }

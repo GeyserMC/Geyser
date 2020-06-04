@@ -31,10 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValu
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.entity.Entity;
@@ -45,6 +42,7 @@ import org.geysermc.connector.network.translators.inventory.PlayerInventoryTrans
 
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerNotifyClientPacket.class)
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
@@ -61,14 +59,14 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 startRainPacket.setType(LevelEventType.START_RAIN);
                 startRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
                 startRainPacket.setPosition(Vector3f.ZERO);
-                session.getUpstream().sendPacket(startRainPacket);
+                session.sendUpstreamPacket(startRainPacket);
                 break;
             case STOP_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
                 stopRainPacket.setType(LevelEventType.STOP_RAIN);
                 stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
                 stopRainPacket.setPosition(Vector3f.ZERO);
-                session.getUpstream().sendPacket(stopRainPacket);
+                session.sendUpstreamPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:
                 Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
@@ -83,47 +81,57 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                     playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
                     playerFlags.add(AdventureSettingsPacket.Flag.NO_CLIP);
                     playerFlags.add(AdventureSettingsPacket.Flag.FLYING);
+                    gameMode = GameMode.CREATIVE; // spectator doesnt exist on bedrock
                 }
 
                 playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
-                session.getUpstream().sendPacket(playerGameTypePacket);
+                session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
 
-                AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-                adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
-                adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
-                adventureSettingsPacket.getFlags().addAll(playerFlags);
-                session.getUpstream().sendPacket(adventureSettingsPacket);
+                // We need to delay this because otherwise it's overridden by the adventure settings from the abilities packet
+                session.getConnector().getGeneralThreadPool().schedule(() -> {
+                    AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+                    adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
+                    adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
+                    adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
+                    adventureSettingsPacket.getFlags().addAll(playerFlags);
+                    session.sendUpstreamPacket(adventureSettingsPacket);
+                }, 50, TimeUnit.MILLISECONDS);
 
                 EntityDataMap metadata = entity.getMetadata();
-                metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR);
+                metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE);
 
                 SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
                 entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
                 entityDataPacket.getMetadata().putAll(metadata);
-                session.getUpstream().sendPacket(entityDataPacket);
+                session.sendUpstreamPacket(entityDataPacket);
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());
-
                 break;
             case ENTER_CREDITS:
                 switch ((EnterCreditsValue) packet.getValue()) {
                     case SEEN_BEFORE:
                         ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
-                        session.getDownstream().getSession().send(javaRespawnPacket);
+                        session.sendDownstreamPacket(javaRespawnPacket);
                         break;
                     case FIRST_TIME:
                         ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
                         showCreditsPacket.setStatus(ShowCreditsPacket.Status.START_CREDITS);
                         showCreditsPacket.setRuntimeEntityId(entity.getGeyserId());
-                        session.getUpstream().sendPacket(showCreditsPacket);
+                        session.sendUpstreamPacket(showCreditsPacket);
                         break;
                 }
                 break;
+            case AFFECTED_BY_ELDER_GUARDIAN:
+                EntityEventPacket eventPacket = new EntityEventPacket();
+                eventPacket.setType(EntityEventType.ELDER_GUARDIAN_CURSE);
+                eventPacket.setData(0);
+                eventPacket.setRuntimeEntityId(entity.getGeyserId());
+                session.sendUpstreamPacket(eventPacket);
             default:
                 break;
         }

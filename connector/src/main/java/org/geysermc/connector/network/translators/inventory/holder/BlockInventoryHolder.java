@@ -54,7 +54,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         blockPacket.setBlockPosition(position);
         blockPacket.setRuntimeId(blockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-        session.getUpstream().sendPacket(blockPacket);
+        session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
 
         CompoundTag tag = CompoundTag.builder()
@@ -65,7 +65,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(position);
-        session.getUpstream().sendPacket(dataPacket);
+        session.sendUpstreamPacket(dataPacket);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         containerOpenPacket.setType((byte) containerType.id());
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        session.getUpstream().sendPacket(containerOpenPacket);
+        session.sendUpstreamPacket(containerOpenPacket);
     }
 
     @Override
@@ -87,6 +87,6 @@ public class BlockInventoryHolder extends InventoryHolder {
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
         blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
-        session.getUpstream().sendPacket(blockPacket);
+        session.sendUpstreamPacket(blockPacket);
     }
 }

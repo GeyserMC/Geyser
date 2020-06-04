@@ -12,7 +12,7 @@ bedrock:
   address: 0.0.0.0
   # The port that will listen for connections
   port: 19132
-  # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients
+  # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. Irrelevant if "passthrough-motd" is set to true
   motd1: "GeyserMC"
   motd2: "Another GeyserMC forced host."
 remote:
@@ -41,8 +41,21 @@ floodgate-key-file: public-key.pem
 #    email: herpderp@derpherp.com
 #    password: dooooo
 
-# Relay the MOTD, player count and max players from the remote server
-ping-passthrough: false
+# Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
+# Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.
+command-suggestions: true
+
+# The following two options enable "ping passthrough" - the MOTD and/or player count gets retrieved from the Java server.
+# Relay the MOTD from the remote server to Bedrock players.
+passthrough-motd: false
+# Relay the player count and max players from the remote server to Bedrock players.
+passthrough-player-counts: false
+# Enable LEGACY ping passthrough. There is no need to enable this unless your MOTD or player count does not appear properly.
+# This option does nothing on standalone.
+legacy-ping-passthrough: false
+# How often to ping the remote server, in seconds. Only relevant for standalone or legacy ping passthrough.
+# Increase if you are getting BrokenPipe errors.
+ping-passthrough-interval: 3
 
 # Maximum amount of players that can connect
 max-players: 100
@@ -57,6 +70,10 @@ general-thread-pool: 32
 # OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
 allow-third-party-capes: true
 
+# Allow third party deadmau5 ears to be visible. Currently allowing:
+# MinecraftCapes
+allow-third-party-ears: false
+
 # The default locale if we dont have the one the client requested
 default-locale: en_us
 
@@ -69,6 +86,12 @@ default-locale: en_us
 # Geyser has direct access to the server itself.
 cache-chunks: false
 
+# Bedrock prevents building and displaying blocks above Y127 in the Nether -
+# enabling this config option works around that by changing the Nether dimension ID
+# to the End ID. The main downside to this is that the sky will resemble that of
+# the end sky in the nether, but ultimately it's the only way for this feature to work.
+above-bedrock-nether-building: false
+
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
 # what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.
@@ -78,3 +101,6 @@ metrics:
   enabled: true
   # UUID of server, don't change!
   uuid: generateduuid
+
+# DO NOT TOUCH!
+config-version: 3

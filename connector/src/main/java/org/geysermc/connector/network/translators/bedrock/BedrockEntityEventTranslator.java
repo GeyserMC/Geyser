@@ -39,7 +39,7 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
         switch (packet.getType()) {
             // Resend the packet so we get the eating sounds
             case EATING_ITEM:
-                session.getUpstream().sendPacket(packet);
+                session.sendUpstreamPacket(packet);
                 return;
         }
         session.getConnector().getLogger().debug("Did not translate incoming EntityEventPacket: " + packet.toString());

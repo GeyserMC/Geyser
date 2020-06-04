@@ -55,7 +55,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             moveEntityBack.setRotation(entity.getBedrockRotation());
             moveEntityBack.setTeleported(true);
             moveEntityBack.setOnGround(true);
-            session.getUpstream().sendPacketImmediately(moveEntityBack);
+            session.sendUpstreamPacketImmediately(moveEntityBack);
             return;
         }
 
@@ -85,6 +85,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
         entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
         entity.setRotation(rotation);
+        entity.setOnGround(packet.isOnGround());
 
         /*
         boolean colliding = false;
@@ -97,7 +98,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         if (!colliding)
          */
-        session.getDownstream().getSession().send(playerPositionRotationPacket);
+        session.sendDownstreamPacket(playerPositionRotationPacket);
     }
 
     public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
@@ -130,13 +131,13 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
         entityDataPacket.getMetadata().putAll(entity.getMetadata());
-        session.getUpstream().sendPacket(entityDataPacket);
+        session.sendUpstreamPacket(entityDataPacket);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
-        session.getUpstream().sendPacket(movePlayerPacket);
+        session.sendUpstreamPacket(movePlayerPacket);
     }
 }

@@ -35,8 +35,11 @@ import com.velocitypowered.api.plugin.Plugin;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.geysermc.common.PlatformType;
+import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandManager;
@@ -62,6 +65,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private GeyserVelocityCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityLogger geyserLogger;
+    private IGeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserConnector connector;
 
@@ -83,13 +87,14 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         // Don't change the ip if its listening on all interfaces
         // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-        if (!javaAddr.getHostString().equals("0.0.0.0")) {
+        if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
             geyserConfig.getRemote().setAddress(javaAddr.getHostString());
         }
 
         geyserConfig.getRemote().setPort(javaAddr.getPort());
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         geyserConfig.loadFloodgate(this, proxyServer, configDir);
 
@@ -97,6 +102,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
         this.commandManager.register(new GeyserVelocityCommandExecutor(connector), "geyser");
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        } else {
+            this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
+        }
     }
 
     @Override
@@ -117,6 +127,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Override
     public org.geysermc.connector.command.CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
+        return geyserPingPassthrough;
     }
 
     @Subscribe
