@@ -48,7 +48,7 @@ public class VersionCommand extends GeyserCommand {
         sender.sendMessage("This server is running " + GeyserConnector.NAME + " version " + GeyserConnector.VERSION + " (Java: " + MinecraftConstants.GAME_VERSION + ", Bedrock: " + GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion() + ")");
 
         // Disable update checking in dev mode
-        if (GeyserConnector.VERSION.equals("DEV")) {
+        if (!GeyserConnector.VERSION.equals("DEV")) {
             sender.sendMessage("Checking version, please wait...");
             try {
                 Properties gitProp = new Properties();
