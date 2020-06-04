@@ -64,7 +64,7 @@ public class ChunkUtils {
      * Temporarily stores positions of BlockState values that are needed for certain block entities actively
      */
     public static final Map<Position, BlockState> CACHED_BLOCK_ENTITIES = new HashMap<>();
-    
+
     private static final com.nukkitx.nbt.tag.CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
 

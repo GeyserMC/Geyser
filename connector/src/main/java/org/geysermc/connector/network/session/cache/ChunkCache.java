@@ -29,7 +29,9 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
@@ -45,12 +47,18 @@ public class ChunkCache {
     @Getter
     private Map<ChunkPosition, Column> chunks = new HashMap<>();
 
+    @Getter
+    private final ObjectArrayList<ChunkPosition> loadedChunks = new ObjectArrayList<>();
+    @Getter
+    private final ObjectArrayList<Column> cachedNonFullChunks = new ObjectArrayList<>();
+
     public ChunkCache(GeyserSession session) {
         this.session = session;
-        this.cache = session.getConnector().getConfig().isCacheChunks();
+        this.cache = session.getConnector().getConfig().isCacheChunks() && (session.getConnector().getWorldManager().getClass() == GeyserBootstrap.DEFAULT_CHUNK_MANAGER.getClass());
     }
 
     public void addToCache(Column chunk) {
+        loadedChunks.add(new ChunkPosition(chunk.getX(), chunk.getZ()));
         if (!cache) {
             return;
         }
@@ -93,6 +101,8 @@ public class ChunkCache {
     }
 
     public void removeChunk(ChunkPosition position) {
+        loadedChunks.remove(position);
+        cachedNonFullChunks.removeIf(column -> column.getX() == position.getX() && column.getZ() == position.getZ());
         if (!cache) {
             return;
         }
