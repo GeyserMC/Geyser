@@ -54,12 +54,18 @@ public class InventoryUtils {
         if (translator != null) {
             session.getInventoryCache().setOpenInventory(inventory);
             translator.prepareInventory(session, inventory);
+            //Ensure at least half a second passes between closing and opening a new window
+            //The client will not open the new window if it is still closing the old one
+            long delay = 500 - (System.currentTimeMillis() - session.getLastWindowCloseTime());
             //TODO: find better way to handle double chest delay
             if (translator instanceof DoubleChestInventoryTranslator) {
+                delay = Math.max(delay, 200);
+            }
+            if (delay > 0) {
                 GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
                     translator.openInventory(session, inventory);
                     translator.updateInventory(session, inventory);
-                }, 200, TimeUnit.MILLISECONDS);
+                }, delay, TimeUnit.MILLISECONDS);
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);
