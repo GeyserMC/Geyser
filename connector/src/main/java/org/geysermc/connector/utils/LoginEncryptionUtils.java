@@ -157,19 +157,19 @@ public class LoginEncryptionUtils {
 
     public static void showLoginWindow(GeyserSession session) {
         String userLanguage = session.getClientData().getLanguageCode();
-        SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getLocaleStringPly("geyser.auth.login.form.notice.title", userLanguage), LanguageUtils.getLocaleStringPly("geyser.auth.login.form.notice.desc", userLanguage));
-        window.getButtons().add(new FormButton(LanguageUtils.getLocaleStringPly("geyser.auth.login.form.notice.btn_login", userLanguage)));
-        window.getButtons().add(new FormButton(LanguageUtils.getLocaleStringPly("geyser.auth.login.form.notice.btn_disconnect", userLanguage)));
+        SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getLocaleStringPlayer("geyser.auth.login.form.notice.title", userLanguage), LanguageUtils.getLocaleStringPlayer("geyser.auth.login.form.notice.desc", userLanguage));
+        window.getButtons().add(new FormButton(LanguageUtils.getLocaleStringPlayer("geyser.auth.login.form.notice.btn_login", userLanguage)));
+        window.getButtons().add(new FormButton(LanguageUtils.getLocaleStringPlayer("geyser.auth.login.form.notice.btn_disconnect", userLanguage)));
 
         session.sendForm(window, AUTH_FORM_ID);
     }
 
     public static void showLoginDetailsWindow(GeyserSession session) {
         String userLanguage = session.getClientData().getLanguageCode();
-        CustomFormWindow window = new CustomFormBuilder(LanguageUtils.getLocaleStringPly("geyser.auth.login.form.details.title", userLanguage))
-                .addComponent(new LabelComponent(LanguageUtils.getLocaleStringPly("geyser.auth.login.form.details.desc", userLanguage)))
-                .addComponent(new InputComponent(LanguageUtils.getLocaleStringPly("geyser.auth.login.form.details.email", userLanguage), "account@geysermc.org", ""))
-                .addComponent(new InputComponent(LanguageUtils.getLocaleStringPly("geyser.auth.login.form.details.pass", userLanguage), "123456", ""))
+        CustomFormWindow window = new CustomFormBuilder(LanguageUtils.getLocaleStringPlayer("geyser.auth.login.form.details.title", userLanguage))
+                .addComponent(new LabelComponent(LanguageUtils.getLocaleStringPlayer("geyser.auth.login.form.details.desc", userLanguage)))
+                .addComponent(new InputComponent(LanguageUtils.getLocaleStringPlayer("geyser.auth.login.form.details.email", userLanguage), "account@geysermc.org", ""))
+                .addComponent(new InputComponent(LanguageUtils.getLocaleStringPlayer("geyser.auth.login.form.details.pass", userLanguage), "123456", ""))
                 .build();
 
         session.sendForm(window, AUTH_DETAILS_FORM_ID);
@@ -206,7 +206,7 @@ public class LoginEncryptionUtils {
                         if (response.getClickedButtonId() == 0) {
                             showLoginDetailsWindow(session);
                         } else if(response.getClickedButtonId() == 1) {
-                            session.disconnect(LanguageUtils.getLocaleStringPly("geyser.auth.login.form.disconnect", session.getClientData().getLanguageCode()));
+                            session.disconnect(LanguageUtils.getLocaleStringPlayer("geyser.auth.login.form.disconnect", session.getClientData().getLanguageCode()));
                         }
                     } else {
                         showLoginWindow(session);

@@ -47,7 +47,7 @@ public class ListCommand extends GeyserCommand {
     public void execute(CommandSender sender, String[] args) {
         String message = "";
         if (sender instanceof GeyserSession) {
-            message = LanguageUtils.getLocaleStringPly("geyser.commands.list.message", ((GeyserSession) sender).getClientData().getLanguageCode(), connector.getPlayers().size(), connector.getPlayers().values().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
+            message = LanguageUtils.getLocaleStringPlayer("geyser.commands.list.message", ((GeyserSession) sender).getClientData().getLanguageCode(), connector.getPlayers().size(), connector.getPlayers().values().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
         } else {
             message = LanguageUtils.getLocaleStringLog("geyser.commands.list.message", connector.getPlayers().size(), connector.getPlayers().values().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
         }

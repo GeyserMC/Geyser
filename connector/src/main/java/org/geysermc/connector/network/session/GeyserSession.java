@@ -383,7 +383,7 @@ public class GeyserSession implements CommandSender {
                 connector.addPlayer(this);
             } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
-                disconnect(LanguageUtils.getLocaleStringPly("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
+                disconnect(LanguageUtils.getLocaleStringPlayer("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
@@ -412,7 +412,7 @@ public class GeyserSession implements CommandSender {
     }
 
     public void close() {
-        disconnect(LanguageUtils.getLocaleStringPly("geyser.network.close", getClientData().getLanguageCode()));
+        disconnect(LanguageUtils.getLocaleStringPlayer("geyser.network.close", getClientData().getLanguageCode()));
     }
 
     public void setAuthenticationData(AuthData authData) {

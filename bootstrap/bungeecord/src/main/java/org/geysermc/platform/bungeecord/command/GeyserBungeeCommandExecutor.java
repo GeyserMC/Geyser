@@ -56,7 +56,7 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
                 if (!sender.hasPermission(getCommand(args[0]).getPermission())) {
                     String message = "";
                     if (sender instanceof GeyserSession) {
-                        message = LanguageUtils.getLocaleStringPly("geyser.bootstrap.command.permission_fail", ((GeyserSession) sender).getClientData().getLanguageCode());
+                        message = LanguageUtils.getLocaleStringPlayer("geyser.bootstrap.command.permission_fail", ((GeyserSession) sender).getClientData().getLanguageCode());
                     } else {
                         message = LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail");
                     }
