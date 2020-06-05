@@ -38,8 +38,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserVelocityConfiguration extends GeyserJacksonConfiguration {
 
     @JsonProperty("floodgate-key-file")

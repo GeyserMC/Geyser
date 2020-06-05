@@ -36,8 +36,8 @@ import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserBukkitConfiguration extends GeyserJacksonConfiguration {
 
     @JsonProperty("floodgate-key-file")

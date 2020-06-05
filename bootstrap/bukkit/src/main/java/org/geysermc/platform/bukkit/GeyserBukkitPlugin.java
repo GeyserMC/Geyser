@@ -84,6 +84,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
 
         if (geyserConfig.getRemote().getAuthType().equals("floodgate") && Bukkit.getPluginManager().getPlugin("floodgate-bukkit") == null) {
             geyserLogger.severe("Auth type set to Floodgate but Floodgate not found! Disabling...");
+            this.getPluginLoader().disablePlugin(this);
             return;
         }
 
