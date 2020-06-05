@@ -125,7 +125,8 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        connector.shutdown();
+        if (connector != null)
+            connector.shutdown();
     }
 
     @Override
