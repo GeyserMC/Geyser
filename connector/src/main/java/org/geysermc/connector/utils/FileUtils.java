@@ -36,6 +36,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.security.MessageDigest;
 import java.util.function.Function;
 
 public class FileUtils {
@@ -59,7 +61,7 @@ public class FileUtils {
     }
 
     public static <T> T loadJson(InputStream src, Class<T> valueType) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper(new JsonFactory()).enable(JsonParser.Feature.IGNORE_UNDEFINED).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        ObjectMapper objectMapper = new ObjectMapper(new JsonFactory()).enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         return objectMapper.readValue(src, valueType);
     }
 
@@ -137,5 +139,36 @@ public class FileUtils {
      */
     public static void writeFile(String name, char[] data) throws IOException {
         writeFile(new File(name), data);
+    }
+
+    /**
+     * Get an InputStream for the given resource path, throws AssertionError if resource is not found
+     *
+     * @param resource Resource to get
+     * @return InputStream of the given resource
+     */
+    public static InputStream getResource(String resource) {
+        InputStream stream = FileUtils.class.getClassLoader().getResourceAsStream(resource);
+        if (stream == null) {
+            throw new AssertionError("Unable to find resource: " + resource);
+        }
+        return stream;
+    }
+
+    /**
+     * Calculate the SHA256 hash of the resource pack file
+     * @param file File to calculate the hash for
+     * @return A byte[] representation of the hash
+     */
+    public static byte[] calculateSHA256(File file) {
+        byte[] sha256;
+
+        try {
+            sha256 = MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file.toPath()));
+        } catch (Exception e) {
+            throw new RuntimeException("Could not calculate pack hash", e);
+        }
+
+        return sha256;
     }
 }

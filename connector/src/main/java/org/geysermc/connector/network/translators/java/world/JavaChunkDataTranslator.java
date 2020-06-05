@@ -44,9 +44,7 @@ import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
-import org.geysermc.connector.world.chunk.ChunkSection;
-
-import java.util.Map;
+import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
@@ -100,7 +98,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 levelChunkPacket.setChunkX(packet.getColumn().getX());
                 levelChunkPacket.setChunkZ(packet.getColumn().getZ());
                 levelChunkPacket.setData(payload);
-                session.getUpstream().sendPacket(levelChunkPacket);
+                session.sendUpstreamPacket(levelChunkPacket);
 
                 // Some block entities need to be loaded in later or else text doesn't show (signs) or they crash the game (end gateway blocks)
                 for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.getLoadBlockEntitiesLater().object2IntEntrySet()) {
@@ -110,7 +108,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
                 }
                 chunkData.getLoadBlockEntitiesLater().clear();
-
+                session.getChunkCache().addToCache(packet.getColumn());
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

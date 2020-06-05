@@ -25,8 +25,11 @@
 
 package org.geysermc.platform.bukkit;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.geysermc.common.IGeyserConfiguration;
+import org.bukkit.plugin.Plugin;
+import org.geysermc.connector.FloodgateKeyLoader;
+import org.geysermc.connector.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -34,7 +37,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserBukkitConfiguration implements IGeyserConfiguration {
+public class GeyserBukkitConfiguration implements GeyserConfiguration {
 
     private FileConfiguration config;
     private File dataFolder;
@@ -44,6 +47,8 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
     private BukkitMetricsInfo metricsInfo;
 
     private Map<String, BukkitUserAuthenticationInfo> userAuthInfo = new HashMap<>();
+
+    private Path floodgateKey;
 
     public GeyserBukkitConfiguration(File dataFolder, FileConfiguration config) {
         this.dataFolder = dataFolder;
@@ -59,6 +64,11 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
         for (String key : config.getConfigurationSection("userAuths").getKeys(false)) {
             userAuthInfo.put(key, new BukkitUserAuthenticationInfo(key));
         }
+    }
+
+    public void loadFloodgate(GeyserBukkitPlugin plugin) {
+        Plugin floodgate = Bukkit.getPluginManager().getPlugin("floodgate-bukkit");
+        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem")), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
     }
 
     @Override
@@ -77,8 +87,28 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public boolean isPingPassthrough() {
-        return config.getBoolean("ping-passthrough", false);
+    public boolean isCommandSuggestions() {
+        return config.getBoolean("command-suggestions", true);
+    }
+
+    @Override
+    public boolean isPassthroughMotd() {
+        return config.getBoolean("passthrough-motd", false);
+    }
+
+    @Override
+    public boolean isPassthroughPlayerCounts() {
+        return config.getBoolean("passthrough-player-counts", false);
+    }
+
+    @Override
+    public boolean isLegacyPingPassthrough() {
+        return config.getBoolean("legacy-ping-passthrough", false);
+    }
+
+    @Override
+    public int getPingPassthroughInterval() {
+        return config.getInt("ping-passthrough-interval", 3);
     }
 
     @Override
@@ -102,13 +132,28 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowThirdPartyEars() {
+        return config.getBoolean("allow-third-party-ears", false);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return config.getString("default-locale", "en_us");
     }
 
     @Override
     public Path getFloodgateKeyFile() {
-        return Paths.get(dataFolder.toString(), config.getString("floodgate-key-file", "public-key.pem"));
+        return floodgateKey;
+    }
+
+    @Override
+    public boolean isCacheChunks() {
+        return true; // We override this as with Bukkit, we have direct access to the server implementation
+    }
+
+    @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return config.getBoolean("above-bedrock-nether-building", false);
     }
 
     @Override
@@ -187,5 +232,10 @@ public class GeyserBukkitConfiguration implements IGeyserConfiguration {
         public String getUniqueId() {
             return config.getString("metrics.uuid", "generateduuid");
         }
+    }
+
+    @Override
+    public int getConfigVersion() {
+        return config.getInt("config-version", 0);
     }
 }

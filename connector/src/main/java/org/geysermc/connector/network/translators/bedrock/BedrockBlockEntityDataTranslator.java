@@ -79,7 +79,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
                 // Put the final line on since it isn't done in the for loop
                 if (iterator < lines.length) lines[iterator] = newMessage.toString();
                 ClientUpdateSignPacket clientUpdateSignPacket = new ClientUpdateSignPacket(pos, lines);
-                session.getDownstream().getSession().send(clientUpdateSignPacket);
+                session.sendDownstreamPacket(clientUpdateSignPacket);
                 //TODO (potentially): originally I was going to update the sign blocks so Bedrock and Java users would match visually
                 // However Java can still store a lot per-line and visuals are still messed up so that doesn't work
 

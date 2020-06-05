@@ -26,15 +26,17 @@
 package org.geysermc.platform.sponge;
 
 import lombok.AllArgsConstructor;
+
 import ninja.leaping.configurate.ConfigurationNode;
-import org.geysermc.common.IGeyserConfiguration;
+
+import org.geysermc.connector.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class GeyserSpongeConfiguration implements IGeyserConfiguration {
+public class GeyserSpongeConfiguration implements GeyserConfiguration {
 
     private File dataFolder;
     private ConfigurationNode node;
@@ -78,8 +80,28 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public boolean isPingPassthrough() {
-        return node.getNode("ping-passthrough").getBoolean(false);
+    public boolean isCommandSuggestions() {
+        return node.getNode("command-suggestions").getBoolean(true);
+    }
+
+    @Override
+    public boolean isPassthroughMotd() {
+        return node.getNode("passthrough-motd").getBoolean(false);
+    }
+
+    @Override
+    public boolean isPassthroughPlayerCounts() {
+        return node.getNode("passthrough-player-counts").getBoolean(false);
+    }
+
+    @Override
+    public boolean isLegacyPingPassthrough() {
+        return node.getNode("legacy-ping-passthrough").getBoolean(false);
+    }
+
+    @Override
+    public int getPingPassthroughInterval() {
+        return node.getNode("ping-passthrough-interval").getInt(3);
     }
 
     @Override
@@ -103,6 +125,11 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowThirdPartyEars() {
+        return node.getNode("allow-third-party-ears").getBoolean(false);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return node.getNode("default-locale").getString("en_us");
     }
@@ -110,6 +137,16 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     @Override
     public Path getFloodgateKeyFile() {
         return Paths.get(dataFolder.toString(), node.getNode("floodgate-key-file").getString("public-key.pem"));
+    }
+
+    @Override
+    public boolean isCacheChunks() {
+        return node.getNode("cache-chunks").getBoolean(false);
+    }
+
+    @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return node.getNode("above-bedrock-nether-building").getBoolean(false);
     }
 
     @Override
@@ -194,5 +231,10 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
         public String getUniqueId() {
             return node.getNode("metrics").getNode("uuid").getString("generateduuid");
         }
+    }
+
+    @Override
+    public int getConfigVersion() {
+        return node.getNode("config-version").getInt(0);
     }
 }
