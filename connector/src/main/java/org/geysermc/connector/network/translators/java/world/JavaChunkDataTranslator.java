@@ -64,13 +64,17 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        if (packet.getColumn().getBiomeData() == null && !CACHE_CHUNKS) // Non-full chunk without chunk caching
+        if (packet.getColumn().getBiomeData() == null && !CACHE_CHUNKS) {
+            // Non-full chunk without chunk caching
+            session.getConnector().getLogger().debug("Not sending non-full chunk because chunk caching is off.");
             return;
+        }
 
         // Non-full chunks don't have all the chunk data, and Bedrock won't accept that
         final boolean isNonFullChunk = (packet.getColumn().getBiomeData() == null);
 
         if (isNonFullChunk && !session.getChunkCache().getLoadedChunks().contains(new ChunkPosition(packet.getColumn().getX(), packet.getColumn().getZ()))) {
+            // Don't send partial chunk updates before the full chunk is loaded
             session.getChunkCache().getCachedNonFullChunks().add(packet.getColumn());
             return;
         }
@@ -78,12 +82,8 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
         sendChunk(session, packet.getColumn(), isNonFullChunk, packet.getColumn().getBiomeData());
     }
 
-//    private void sendChunk(GeyserSession session, Column column) {
-//        sendChunk(session, column, true, session.getConnector().getWorldManager().getBiomeDataAt(session, column.getX(), column.getZ()));
-//    }
-
     private void sendChunk(GeyserSession session, Column column, boolean isNonFullChunk, int[] biomeData) {
-        GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
+       GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
                 byte[] bedrockBiome;
                 if (biomeData == null) {
@@ -147,8 +147,9 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 if (!isNonFullChunk) {
                     for (Column nonFullColumn : session.getChunkCache().getCachedNonFullChunks()) {
                         if (nonFullColumn.getX() == column.getX() && nonFullColumn.getZ() == column.getZ()) {
-                            System.out.println("Sending cached (heh) chunk");
                             sendChunk(session, nonFullColumn, true, column.getBiomeData());
+                            session.getChunkCache().getCachedNonFullChunks().remove(nonFullColumn);
+                            System.out.println(session.getChunkCache().getCachedNonFullChunks().size());
                         }
                     }
                 }
