@@ -34,8 +34,8 @@ import lombok.Setter;
 import java.nio.file.Path;
 import java.util.Map;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class GeyserJacksonConfiguration implements GeyserConfiguration {
 
     private BedrockConfiguration bedrock;
