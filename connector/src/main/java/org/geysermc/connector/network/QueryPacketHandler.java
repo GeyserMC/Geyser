@@ -60,6 +60,7 @@ public class QueryPacketHandler {
 
     /**
      * The Query packet handler instance
+     *
      * @param connector Geyser Connector
      * @param sender The Sender IP/Port for the Query
      * @param buffer The Query data
@@ -79,11 +80,12 @@ public class QueryPacketHandler {
 
     /**
      * Checks the packet is in fact a query packet
+     *
      * @param buffer Query data
      * @return if the packet is a query packet
      */
     private boolean isQueryPacket(ByteBuf buffer) {
-        return (buffer.readableBytes() >= 2) ? buffer.readUnsignedShort() == 65277 : false;
+        return (buffer.readableBytes() >= 2) ? buffer.readUnsignedShort() == 0xFEFD : false;
     }
 
     /**
@@ -130,6 +132,7 @@ public class QueryPacketHandler {
 
     /**
      * Gets the game data for the query
+     *
      * @return the game data for the query
      */
     private byte[] getGameData() {
@@ -177,7 +180,7 @@ public class QueryPacketHandler {
             // Blank Buffer Bytes
             query.write("GeyserMC".getBytes());
             query.write((byte) 0x00);
-            query.write((byte) 128);
+            query.write((byte) 0x80);
             query.write((byte) 0x00);
 
             // Fills the game data
@@ -189,7 +192,7 @@ public class QueryPacketHandler {
             }
 
             // Final byte to show the end of the game data
-            query.write(new byte[]{0x00, 0x01});
+            query.write(new byte[] { 0x00, 0x01 });
             return query.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
@@ -197,6 +200,11 @@ public class QueryPacketHandler {
         }
     }
 
+    /**
+     * Generate a byte[] storing the player names
+     *
+     * @return The byte[] representation of players
+     */
     private byte[] getPlayers() {
         ByteArrayOutputStream query = new ByteArrayOutputStream();
 
@@ -208,7 +216,7 @@ public class QueryPacketHandler {
         try {
             // Start the player section
             query.write("player_".getBytes());
-            query.write(new byte[]{0x00, 0x00});
+            query.write(new byte[] { 0x00, 0x00 });
 
             // Fill player names
             if(pingInfo != null) {
@@ -229,6 +237,7 @@ public class QueryPacketHandler {
 
     /**
      * Sends a packet to the sender
+     *
      * @param data packet data
      */
     private void sendPacket(ByteBuf data) {
@@ -251,18 +260,28 @@ public class QueryPacketHandler {
      * Gets an MD5 token for the current IP/Port.
      * This should reset every 30 seconds but a new one is generated per instance
      * Seems wasteful to code something in to clear it when it has no use.
+     *
      * @param token the token
      * @param address the address
      * @return an MD5 token for the current IP/Port
      */
     public static byte[] getTokenString(byte[] token, InetAddress address) {
         try {
+            // Generate an MD5 hash from the address
             MessageDigest digest = MessageDigest.getInstance("MD5");
             digest.update(address.toString().getBytes(StandardCharsets.UTF_8));
             digest.update(token);
-            return Arrays.copyOf(digest.digest(), 4);
+
+            // Get the first 4 bytes of the digest
+            byte[] digestBytes = Arrays.copyOf(digest.digest(), 4);
+
+            // Convert the bytes to a buffer
+            ByteBuffer byteBuffer = ByteBuffer.wrap(digestBytes);
+
+            // Turn the number into a null terminated string
+            return (byteBuffer.getInt() + "\0").getBytes();
         } catch (NoSuchAlgorithmException e) {
-            return ByteBuffer.allocate(4).putInt(ThreadLocalRandom.current().nextInt()).array();
+            return (ByteBuffer.allocate(4).putInt(ThreadLocalRandom.current().nextInt()).getInt() + "\0").getBytes();
         }
     }
 }
