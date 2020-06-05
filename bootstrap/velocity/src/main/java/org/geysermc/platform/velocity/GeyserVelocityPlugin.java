@@ -68,11 +68,10 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private IGeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserConnector connector;
+    private final File configDir = new File("plugins/" + GeyserConnector.NAME + "-Velocity/");
 
     @Override
     public void onEnable() {
-        File configDir = new File("plugins/" + GeyserConnector.NAME + "-Velocity/");
-
         try {
             if (!configDir.exists())
                 configDir.mkdir();
@@ -132,6 +131,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserPingPassthrough;
+    }
+
+    @Override
+    public File getDataFolder() {
+        return configDir;
     }
 
     @Subscribe

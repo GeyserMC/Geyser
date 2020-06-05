@@ -49,11 +49,15 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.plugin.PluginManager;
+import org.geysermc.connector.plugin.events.DisableEvent;
+import org.geysermc.connector.plugin.events.EnableEvent;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.util.HashMap;
@@ -88,6 +92,8 @@ public class GeyserConnector {
     private PlatformType platformType;
     private GeyserBootstrap bootstrap;
 
+    private final PluginManager pluginManager;
+
     private Metrics metrics;
 
     private GeyserConnector(PlatformType platformType, GeyserBootstrap bootstrap) {
@@ -96,6 +102,7 @@ public class GeyserConnector {
         instance = this;
 
         this.bootstrap = bootstrap;
+        this.pluginManager = new PluginManager(this, new File(bootstrap.getDataFolder(), "plugins"));
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
@@ -155,6 +162,9 @@ public class GeyserConnector {
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
         }
 
+        // Trigger all plugins Enable Events
+        pluginManager.triggerEvent(new EnableEvent());
+
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         logger.info(String.format("Done (%ss)! Run /geyser help for help!", new DecimalFormat("#.###").format(completeTime)));
     }
@@ -162,6 +172,9 @@ public class GeyserConnector {
     public void shutdown() {
         bootstrap.getGeyserLogger().info("Shutting down Geyser.");
         shuttingDown = true;
+
+        // Trigger all plugins Disable Events
+        pluginManager.triggerEvent(new DisableEvent());
 
         if (players.size() >= 1) {
             bootstrap.getGeyserLogger().info("Kicking " + players.size() + " player(s)");
