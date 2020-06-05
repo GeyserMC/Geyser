@@ -90,7 +90,7 @@ public class LanguageUtils {
      * @return Translated string or the original message if it was not found in the given locale
      */
     public static String getLocaleStringLog(String key, Object... values) {
-        return getLocaleStringPlayer(key, DEFAULT_LOCALE, values);
+        return getPlayerLocaleString(key, DEFAULT_LOCALE, values);
     }
 
     /**
@@ -101,7 +101,7 @@ public class LanguageUtils {
      * @param values Values to put into the string
      * @return Translated string or the original message if it was not found in the given locale
      */
-    public static String getLocaleStringPlayer(String key, String locale, Object... values) {
+    public static String getPlayerLocaleString(String key, String locale, Object... values) {
         locale = cleanLocale(locale);
 
         Properties properties = LOCALE_MAPPINGS.get(locale);

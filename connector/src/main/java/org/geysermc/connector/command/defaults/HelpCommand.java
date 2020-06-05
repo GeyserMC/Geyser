@@ -55,7 +55,7 @@ public class HelpCommand extends GeyserCommand {
         String header = "";
 
         if (sender instanceof GeyserSession) {
-            header = LanguageUtils.getLocaleStringPlayer("geyser.commands.help.header", ((GeyserSession) sender).getClientData().getLanguageCode(), page, maxPage);
+            header = LanguageUtils.getPlayerLocaleString("geyser.commands.help.header", ((GeyserSession) sender).getClientData().getLanguageCode(), page, maxPage);
         } else {
             header = LanguageUtils.getLocaleStringLog("geyser.commands.help.header", page, maxPage);
         }
