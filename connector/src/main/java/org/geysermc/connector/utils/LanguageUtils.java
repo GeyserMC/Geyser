@@ -29,6 +29,8 @@ package org.geysermc.connector.utils;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,7 +66,7 @@ public class LanguageUtils {
         if (localeStream != null) {
             Properties localeProp = new Properties();
             try {
-                localeProp.load(localeStream);
+                localeProp.load(new InputStreamReader(localeStream, Charset.forName("UTF-8")));
             } catch (Exception e) {
                 throw new AssertionError(getLocaleStringLog("geyser.language.load_failed", locale), e);
             }

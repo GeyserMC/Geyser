@@ -326,8 +326,6 @@ public class GeyserSession implements CommandSender {
 
                         // Download and load the language for the player
                         LocaleUtils.downloadAndLoadLocale(locale);
-
-                        LanguageUtils.loadGeyserLocale(locale);
                     }
 
                     @Override
