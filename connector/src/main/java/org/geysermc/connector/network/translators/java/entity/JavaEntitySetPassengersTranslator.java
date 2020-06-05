@@ -82,7 +82,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             }
 
             passenger.updateBedrockMetadata(session);
-            this.updateOffset(passenger, entity.getEntityType(), session, rider, true);
+            this.updateOffset(passenger, entity.getEntityType(), session, rider, true, (passengers.size() > 1));
             rider = false;
         }
 
@@ -99,7 +99,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 session.sendUpstreamPacket(linkPacket);
                 passengers.remove(passenger.getEntityId());
 
-                this.updateOffset(passenger, entity.getEntityType(), session, false, false);
+                this.updateOffset(passenger, entity.getEntityType(), session, false, false, (passengers.size() > 1));
             }
         }
 
@@ -111,8 +111,8 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
         }
     }
 
-    private void updateOffset(Entity passenger, EntityType mountType, GeyserSession session, boolean rider, boolean riding) {
-        // Without these, Bedrock players will find themselves in the floor when mounting
+    private void updateOffset(Entity passenger, EntityType mountType, GeyserSession session, boolean rider, boolean riding, boolean moreThanOneEntity) {
+        // Without the Y offset, Bedrock players will find themselves in the floor when mounting
         float yOffset = 0;
         switch (mountType) {
             case BOAT:
@@ -142,10 +142,11 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 break;
         }
         Vector3f offset = Vector3f.from(0f, yOffset, 0f);
-        if (rider) {
-            offset.add(Vector3f.from(0.2, 0, 0));
-        } else {
-            offset.add(Vector3f.from(-0.6, 0, 0));
+        // Without the X offset, more than one entity on a boat is stacked on top of each other
+        if (rider && moreThanOneEntity) {
+            offset = offset.add(Vector3f.from(0.2, 0, 0));
+        } else if (moreThanOneEntity) {
+            offset = offset.add(Vector3f.from(-0.6, 0, 0));
         }
         passenger.getMetadata().getFlags().setFlag(EntityFlag.RIDING, riding);
         if (riding) {

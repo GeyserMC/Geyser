@@ -39,15 +39,13 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
-public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
+public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     private final int blockId;
-    private final InventoryUpdater updater;
 
     public DoubleChestInventoryTranslator(int size) {
-        super(size);
+        super(size, 54);
         BlockState javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
         this.blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
-        this.updater = new ChestInventoryUpdater(54);
     }
 
     @Override
@@ -127,15 +125,5 @@ public class DoubleChestInventoryTranslator extends BaseInventoryTranslator {
         blockPacket.setBlockPosition(holderPos);
         blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
         session.sendUpstreamPacket(blockPacket);
-    }
-
-    @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
-    }
-
-    @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
     }
 }

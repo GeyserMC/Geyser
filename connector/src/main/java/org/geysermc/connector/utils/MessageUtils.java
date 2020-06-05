@@ -137,6 +137,23 @@ public class MessageUtils {
         }
     }
 
+    /**
+     * Verifies the message is valid JSON in case it's plaintext. Works around GsonComponentSeraializer not using lenient mode.
+     * See https://wiki.vg/Chat for messages sent in lenient mode, and for a description on leniency.
+     *
+     * @param message Potentially lenient JSON message
+     * @return Bedrock formatted message
+     */
+    public static String getBedrockMessageLenient(String message) {
+        if (isMessage(message)) {
+            return getBedrockMessage(message);
+        } else {
+            final JsonObject obj = new JsonObject();
+            obj.addProperty("text", message);
+            return getBedrockMessage(obj.toString());
+        }
+    }
+
     public static String getBedrockMessage(String message) {
         Component component = phraseJavaMessage(message);
         return LegacyComponentSerializer.legacy().serialize(component);

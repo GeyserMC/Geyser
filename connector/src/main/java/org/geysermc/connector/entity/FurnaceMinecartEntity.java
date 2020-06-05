@@ -23,37 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory;
+package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import org.geysermc.connector.inventory.Inventory;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
-import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
-    private final InventoryHolder holder;
+public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
 
-    public SingleChestInventoryTranslator(int size) {
-        super(size, 27);
-        BlockState javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
-        this.holder = new BlockInventoryHolder(BlockTranslator.getBedrockBlockId(javaBlockState), ContainerType.CONTAINER);
+    private boolean hasFuel = false;
+
+    public FurnaceMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        holder.prepareInventory(this, session, inventory);
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 13 && !showCustomBlock) {
+            hasFuel = (boolean) entityMetadata.getValue();
+            updateDefaultBlockMetadata();
+        }
+
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        holder.openInventory(this, session, inventory);
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory);
+    public void updateDefaultBlockMetadata() {
+        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID));
+        metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }
