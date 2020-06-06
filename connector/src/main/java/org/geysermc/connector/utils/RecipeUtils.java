@@ -26,19 +26,16 @@
 
 package org.geysermc.connector.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.nukkitx.protocol.bedrock.data.CraftingData;
+import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ToolItemEntry;
 
 import java.io.InputStream;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 public class RecipeUtils {
 
@@ -56,15 +53,29 @@ public class RecipeUtils {
         CraftingDataPacket packet = new CraftingDataPacket();
         packet.setCleanRecipes(true);
 
-        Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
-        while (iterator.hasNext()) {
-            Map.Entry<String, JsonNode> entry = iterator.next();
-            if (entry.getValue().get("shapeless").asBoolean()) {
-
+        for (JsonNode entry : items) {
+            UUID uuid = UUID.randomUUID();
+            ItemData output = itemFromJson(entry.get("output"));
+            Iterator<JsonNode> inputIterator = entry.get("inputs").iterator();
+            ItemData[] inputs = new ItemData[entry.get("inputs").size()];
+            int i = 0;
+            while (inputIterator.hasNext()) {
+                JsonNode jsonInput = inputIterator.next();
+                inputs[i] = itemFromJson(jsonInput);
+                i++;
+            }
+            if (entry.get("shapeless").asBoolean()) {
+                packet.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(), inputs, new ItemData[]{output}, uuid, "crafting_table", 0));
             } else {
-
+                packet.getCraftingData().add(CraftingData.fromShaped(
+                        uuid.toString(), entry.get("width").asInt(), entry.get("height").asInt(), inputs, new ItemData[]{output}, uuid, "crafting_table", 0));
             }
         }
+        session.sendUpstreamPacket(packet);
+    }
+
+    private static ItemData itemFromJson(JsonNode node) {
+        return ItemData.of(node.get("id").asInt(), (short) node.get("damage").asInt(), node.get("count").asInt());
     }
 
 }

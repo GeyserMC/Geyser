@@ -152,7 +152,7 @@ public class GeyserBukkitLegacyCraftingTranslator implements Listener {
 
     private static JsonObject translateToJSON(ItemData itemData) {
         JsonObject item = new JsonObject();
-        item.addProperty("id", itemData.getCount());
+        item.addProperty("id", itemData.getId());
         item.addProperty("damage", itemData.getDamage());
         item.addProperty("count", itemData.getCount());
         return item;

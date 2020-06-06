@@ -39,6 +39,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.RecipeUtils;
 
 import java.util.*;
 
@@ -46,6 +47,10 @@ import java.util.*;
 public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
     @Override
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
+        if (!session.isSentDeclareRecipesPacket()) {
+            RecipeUtils.sendCustomRecipes(session);
+            session.setSentDeclareRecipesPacket(true);
+        }
         // Don't send command suggestions if they are disabled
         if (!session.getConnector().getConfig().isCommandSuggestions()) {
             session.getConnector().getLogger().debug("Not sending command suggestions as they are disabled.");
