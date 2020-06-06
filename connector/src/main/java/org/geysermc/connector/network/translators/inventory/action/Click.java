@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 public enum Click {
     LEFT,
     RIGHT,
+    SHIFT_CLICK,
     DROP_ITEM,
     DROP_STACK,
     DROP_ITEM_HOTBAR,

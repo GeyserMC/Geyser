@@ -36,6 +36,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.SlotType;
 import org.geysermc.connector.network.translators.inventory.action.Click;
 import org.geysermc.connector.network.translators.inventory.action.ClickPlan;
 import org.geysermc.connector.utils.InventoryUtils;
@@ -81,8 +82,10 @@ public class InventoryActionDataTranslator {
             // Pick up items
             plan.add(Click.LEFT, fromSlot);
 
-            // Drop back difference if its the same
-            if (from.action.getToItem().getId() == from.action.getFromItem().getId()) {
+            // Drop back difference if its the same item. Only applicable for NORMAL slots
+            if (translator.getSlotType(fromSlot) == SlotType.NORMAL
+                    && from.action.getToItem().getId() == from.action.getFromItem().getId()) {
+
                 while (from.fromCount > 0 && from.toCount > 0) {
                     plan.add(Click.RIGHT, fromSlot);
                     from.fromCount--;
@@ -150,7 +153,8 @@ public class InventoryActionDataTranslator {
             }
 
             if (from.fromCount > 0 || from.toCount > 0) {
-                GeyserConnector.getInstance().getLogger().warning("From was not resolved: " + from);
+                GeyserConnector.getInstance().getLogger().debug("From was not resolved so saving instead (normal for Furnace partials): " + from);
+                plan.add(Click.SHIFT_CLICK, fromSlot);
             }
         }
         plan.execute(session, translator, inventory, false);

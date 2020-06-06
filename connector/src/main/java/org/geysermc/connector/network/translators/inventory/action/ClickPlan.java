@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.window.ClickItemParam;
 import com.github.steveice10.mc.protocol.data.game.window.DropItemParam;
+import com.github.steveice10.mc.protocol.data.game.window.ShiftClickItemParam;
 import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
@@ -116,6 +117,19 @@ public class ClickPlan {
                     }
                     session.sendDownstreamPacket(clickPacket);
                     session.sendDownstreamPacket(new ClientConfirmTransactionPacket(inventory.getId(), actionId, true));
+                    break;
+                case SHIFT_CLICK:
+                    // This is a sort of hail mary to sort out issues where left over items can't be resolved, likely to do the
+                    // fact bedrock allows quantities from output slots that java does not. We Shift click and refresh
+                    ClientWindowActionPacket shiftClickPacket = new ClientWindowActionPacket(
+                            inventory.getId(),
+                            inventory.getTransactionId().getAndIncrement(),
+                            action.slot, InventoryUtils.REFRESH_ITEM,
+                            WindowAction.SHIFT_CLICK_ITEM,
+                            ShiftClickItemParam.LEFT_CLICK
+                    );
+                    session.sendDownstreamPacket(shiftClickPacket);
+                    translator.updateInventory(session, inventory);
                     break;
                 case DROP_ITEM:
                 case DROP_STACK:

@@ -130,6 +130,7 @@ import org.geysermc.connector.edition.mcee.network.translators.bedrock.BedrockRe
 import org.geysermc.connector.edition.mcee.network.translators.inventory.AnvilInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.BrewingInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.CraftingInventoryTranslator;
+import org.geysermc.connector.edition.mcee.network.translators.inventory.FurnaceInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.GrindstoneInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.PlayerInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.action.InventoryActionDataTranslator;
@@ -158,7 +159,6 @@ import org.geysermc.connector.network.translators.bedrock.BedrockShowCreditsTran
 import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.FurnaceInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SingleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
@@ -437,7 +437,7 @@ public class Edition extends GeyserEdition {
 //                .inventoryTranslator(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //@TODO
 
         // Register Inventory Furnace Translators
-        InventoryTranslator furnace = new FurnaceInventoryTranslator();
+        InventoryTranslator furnace = new FurnaceInventoryTranslator(inventoryActionDataTranslator);
 
         InventoryTranslator.REGISTER
                 .inventoryTranslator(WindowType.FURNACE, furnace)
