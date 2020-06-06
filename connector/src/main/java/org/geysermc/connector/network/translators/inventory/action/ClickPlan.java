@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-class ClickPlan {
+public class ClickPlan {
     private final List<ClickAction> plan = new ArrayList<>();
 
     public void add(Click click, int slot) {
@@ -53,59 +53,81 @@ class ClickPlan {
         while (planIter.hasNext()) {
             final ClickAction action = planIter.next();
             final ItemStack cursorItem = playerInventory.getCursor();
-            final ItemStack clickedItem = inventory.getItem(action.slot);
-            final short actionId = (short) inventory.getTransactionId().getAndIncrement();
 
-            //TODO: stop relying on refreshing the inventory for crafting to work properly
-            if (translator.getSlotType(action.slot) != SlotType.NORMAL)
-                refresh = true;
+            switch(action.click) {
+                case LEFT:
+                case RIGHT:
+                    final ItemStack clickedItem = inventory.getItem(action.slot);
+                    final short actionId = (short) inventory.getTransactionId().getAndIncrement();
 
-            ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(inventory.getId(),
-                    actionId, action.slot, !planIter.hasNext() && refresh ? InventoryUtils.REFRESH_ITEM : clickedItem,
-                    WindowAction.CLICK_ITEM, action.click.actionParam);
+                    //TODO: stop relying on refreshing the inventory for crafting to work properly
+                    if (translator.getSlotType(action.slot) != SlotType.NORMAL)
+                        refresh = true;
 
-            if (translator.getSlotType(action.slot) == SlotType.OUTPUT) {
-                if (cursorItem == null && clickedItem != null) {
-                    playerInventory.setCursor(clickedItem);
-                } else if (InventoryUtils.canStack(cursorItem, clickedItem)) {
-                    playerInventory.setCursor(new ItemStack(cursorItem.getId(),
-                            cursorItem.getAmount() + clickedItem.getAmount(), cursorItem.getNbt()));
-                }
-            } else {
-                switch (action.click) {
-                    case LEFT:
-                        if (!InventoryUtils.canStack(cursorItem, clickedItem)) {
-                            playerInventory.setCursor(clickedItem);
-                            inventory.setItem(action.slot, cursorItem);
-                        } else {
-                            playerInventory.setCursor(null);
-                            inventory.setItem(action.slot, new ItemStack(clickedItem.getId(),
-                                    clickedItem.getAmount() + cursorItem.getAmount(), clickedItem.getNbt()));
-                        }
-                        break;
-                    case RIGHT:
+                    ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(inventory.getId(),
+                            actionId, action.slot, !planIter.hasNext() && refresh ? InventoryUtils.REFRESH_ITEM : clickedItem,
+                            WindowAction.CLICK_ITEM, action.click.actionParam);
+
+                    if (translator.getSlotType(action.slot) == SlotType.OUTPUT) {
                         if (cursorItem == null && clickedItem != null) {
-                            ItemStack halfItem = new ItemStack(clickedItem.getId(),
-                                    clickedItem.getAmount() / 2, clickedItem.getNbt());
-                            inventory.setItem(action.slot, halfItem);
-                            playerInventory.setCursor(new ItemStack(clickedItem.getId(),
-                                    clickedItem.getAmount() - halfItem.getAmount(), clickedItem.getNbt()));
-                        } else if (cursorItem != null && clickedItem == null) {
-                            playerInventory.setCursor(new ItemStack(cursorItem.getId(),
-                                    cursorItem.getAmount() - 1, cursorItem.getNbt()));
-                            inventory.setItem(action.slot, new ItemStack(cursorItem.getId(),
-                                    1, cursorItem.getNbt()));
+                            playerInventory.setCursor(clickedItem);
                         } else if (InventoryUtils.canStack(cursorItem, clickedItem)) {
                             playerInventory.setCursor(new ItemStack(cursorItem.getId(),
-                                    cursorItem.getAmount() - 1, cursorItem.getNbt()));
-                            inventory.setItem(action.slot, new ItemStack(clickedItem.getId(),
-                                    clickedItem.getAmount() + 1, clickedItem.getNbt()));
+                                    cursorItem.getAmount() + clickedItem.getAmount(), cursorItem.getNbt()));
                         }
-                        break;
-                }
+                    } else {
+                        switch (action.click) {
+                            case LEFT:
+                                if (!InventoryUtils.canStack(cursorItem, clickedItem)) {
+                                    playerInventory.setCursor(clickedItem);
+                                    inventory.setItem(action.slot, cursorItem);
+                                } else {
+                                    playerInventory.setCursor(null);
+                                    inventory.setItem(action.slot, new ItemStack(clickedItem.getId(),
+                                            clickedItem.getAmount() + cursorItem.getAmount(), clickedItem.getNbt()));
+                                }
+                                break;
+                            case RIGHT:
+                                if (cursorItem == null && clickedItem != null) {
+                                    ItemStack halfItem = new ItemStack(clickedItem.getId(),
+                                            clickedItem.getAmount() / 2, clickedItem.getNbt());
+                                    inventory.setItem(action.slot, halfItem);
+                                    playerInventory.setCursor(new ItemStack(clickedItem.getId(),
+                                            clickedItem.getAmount() - halfItem.getAmount(), clickedItem.getNbt()));
+                                } else if (cursorItem != null && clickedItem == null) {
+                                    playerInventory.setCursor(new ItemStack(cursorItem.getId(),
+                                            cursorItem.getAmount() - 1, cursorItem.getNbt()));
+                                    inventory.setItem(action.slot, new ItemStack(cursorItem.getId(),
+                                            1, cursorItem.getNbt()));
+                                } else if (InventoryUtils.canStack(cursorItem, clickedItem)) {
+                                    playerInventory.setCursor(new ItemStack(cursorItem.getId(),
+                                            cursorItem.getAmount() - 1, cursorItem.getNbt()));
+                                    inventory.setItem(action.slot, new ItemStack(clickedItem.getId(),
+                                            clickedItem.getAmount() + 1, clickedItem.getNbt()));
+                                }
+                                break;
+                        }
+                    }
+                    session.sendDownstreamPacket(clickPacket);
+                    session.sendDownstreamPacket(new ClientConfirmTransactionPacket(inventory.getId(), actionId, true));
+                    break;
+                case DROP_ITEM:
+                case DROP_STACK:
+                    ClientWindowActionPacket dropPacket = new ClientWindowActionPacket(
+                            inventory.getId(),
+                            inventory.getTransactionId().getAndIncrement(),
+                            action.slot,
+                            null,
+                            WindowAction.DROP_ITEM,
+                            action.click.actionParam
+                    );
+                    session.sendDownstreamPacket(dropPacket);
+                    ItemStack cursor = session.getInventory().getCursor();
+                    if (cursor != null) {
+                        session.getInventory().setCursor(new ItemStack(cursor.getId(), cursor.getAmount() - 1, cursor.getNbt()));
+                    }
+                    break;
             }
-            session.sendDownstreamPacket(clickPacket);
-            session.sendDownstreamPacket(new ClientConfirmTransactionPacket(inventory.getId(), actionId, true));
         }
 
         /*if (refresh) {

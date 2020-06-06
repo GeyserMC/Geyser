@@ -127,6 +127,10 @@ import org.geysermc.connector.GeyserEdition;
 import org.geysermc.connector.edition.mcee.commands.EducationCommand;
 import org.geysermc.connector.edition.mcee.network.translators.bedrock.BedrockActionTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.bedrock.BedrockRespawnTranslator;
+import org.geysermc.connector.edition.mcee.network.translators.inventory.AnvilInventoryTranslator;
+import org.geysermc.connector.edition.mcee.network.translators.inventory.CraftingInventoryTranslator;
+import org.geysermc.connector.edition.mcee.network.translators.inventory.PlayerInventoryTranslator;
+import org.geysermc.connector.edition.mcee.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.edition.mcee.shims.BlockTranslatorShim;
 import org.geysermc.connector.edition.mcee.shims.LoginEncryptionUtilsShim;
 import org.geysermc.connector.edition.mcee.shims.SkinUtilsShim;
@@ -150,15 +154,12 @@ import org.geysermc.connector.network.translators.bedrock.BedrockPlayerInputTran
 import org.geysermc.connector.network.translators.bedrock.BedrockSetLocalPlayerAsInitializedTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockShowCreditsTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
-import org.geysermc.connector.network.translators.inventory.AnvilInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.BrewingInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.CraftingInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.FurnaceInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.GrindstoneInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.PlayerInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SingleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
@@ -273,6 +274,7 @@ public class Edition extends GeyserEdition {
 
     @Getter
     private final TokenManager tokenManager;
+    private final InventoryActionDataTranslator inventoryActionDataTranslator;
 
     public Edition(GeyserConnector connector) {
         super(connector, "education", "1.12.60");
@@ -418,8 +420,10 @@ public class Edition extends GeyserEdition {
                 .javaPacketTranslator(ServerVehicleMovePacket.class, new JavaVehicleMoveTranslator());
 
         // Register Inventory Translators
+        inventoryActionDataTranslator = new InventoryActionDataTranslator();
+
         InventoryTranslator.REGISTER
-                .inventoryTranslator(null, new PlayerInventoryTranslator())
+                .inventoryTranslator(null, new PlayerInventoryTranslator(inventoryActionDataTranslator))
                 .inventoryTranslator(WindowType.GENERIC_9X1, new SingleChestInventoryTranslator(9))
                 .inventoryTranslator(WindowType.GENERIC_9X2, new SingleChestInventoryTranslator(18))
                 .inventoryTranslator(WindowType.GENERIC_9X3, new SingleChestInventoryTranslator(27))
@@ -427,8 +431,8 @@ public class Edition extends GeyserEdition {
                 .inventoryTranslator(WindowType.GENERIC_9X5, new DoubleChestInventoryTranslator(45))
                 .inventoryTranslator(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54))
                 .inventoryTranslator(WindowType.BREWING_STAND, new BrewingInventoryTranslator())
-                .inventoryTranslator(WindowType.ANVIL, new AnvilInventoryTranslator())
-                .inventoryTranslator(WindowType.CRAFTING, new CraftingInventoryTranslator())
+                .inventoryTranslator(WindowType.ANVIL, new AnvilInventoryTranslator(inventoryActionDataTranslator))
+                .inventoryTranslator(WindowType.CRAFTING, new CraftingInventoryTranslator(inventoryActionDataTranslator))
                 .inventoryTranslator(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
 //                .inventoryTranslator(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //@TODO
 

@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
@@ -61,4 +62,24 @@ public abstract class InventoryTranslator {
     public abstract int javaSlotToBedrock(int slot);
     public abstract SlotType getSlotType(int javaSlot);
     public abstract void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions);
+
+    /**
+     * Return true if the action represents the temporary cursor slot
+     * @return boolean true if is the cursor
+     */
+    public boolean isCursor(InventoryActionData action) {
+        return (
+                action.getSource().getContainerId() == ContainerId.CURSOR
+                        && action.getSlot() == 0
+        );
+    }
+
+    /**
+     * Return true if action represnts an output slot
+     * @return boolean true if an output slot
+     */
+    public boolean isOutput(InventoryActionData action) {
+        return false;
+    }
+
 }
