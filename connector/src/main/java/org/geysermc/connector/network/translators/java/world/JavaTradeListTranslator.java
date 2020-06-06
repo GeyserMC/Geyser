@@ -62,7 +62,14 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
         updateTradePacket.setWindowId((short) packet.getWindowId());
         updateTradePacket.setWindowType((short) ContainerType.TRADING.id());
-        updateTradePacket.setDisplayName("Villager");
+        String displayName;
+        Entity realVillager = session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
+        if (realVillager != null && realVillager.getMetadata().containsKey(EntityData.NAMETAG) && realVillager.getMetadata().getString(EntityData.NAMETAG) != null) {
+            displayName = realVillager.getMetadata().getString(EntityData.NAMETAG);
+        } else {
+            displayName = packet.isRegularVillager() ? "Villager" : "Wandering Trader";
+        }
+        updateTradePacket.setDisplayName(displayName);
         updateTradePacket.setUnknownInt(0);
         updateTradePacket.setScreen2(true);
         updateTradePacket.setWilling(true);

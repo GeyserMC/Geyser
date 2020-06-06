@@ -30,7 +30,6 @@ import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsExcepti
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
@@ -173,6 +172,8 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private VillagerTrade[] villagerTrades;
+    @Setter
+    private long lastInteractedVillagerEid;
 
     private MinecraftProtocol protocol;
 
