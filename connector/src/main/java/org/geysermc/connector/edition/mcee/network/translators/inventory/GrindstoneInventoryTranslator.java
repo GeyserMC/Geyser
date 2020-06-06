@@ -26,86 +26,74 @@
 
 package org.geysermc.connector.edition.mcee.network.translators.inventory;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import com.nukkitx.protocol.bedrock.data.ItemData;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.BaseInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.SlotType;
+import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
-import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CraftingInventoryTranslator extends BaseInventoryTranslator {
+public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
 
-    private final InventoryUpdater updater;
     private final InventoryActionDataTranslator actionTranslator;
 
-    public CraftingInventoryTranslator(InventoryActionDataTranslator actionTranslator) {
-        super(10);
-        this.updater = new ContainerInventoryUpdater();
+    public GrindstoneInventoryTranslator(InventoryActionDataTranslator actionTranslator) {
+        super(3, "minecraft:grindstone[face=floor,facing=north]", ContainerType.GRINDSTONE, new ContainerInventoryUpdater());
         this.actionTranslator = actionTranslator;
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        //
-    }
-
-    @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) ContainerType.WORKBENCH.id());
-        containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
-        containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        session.sendUpstreamPacket(containerOpenPacket);
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        //
-    }
-
-    @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
-    }
-
-    @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
-    }
-
-    @Override
     public int bedrockSlotToJava(InventoryActionData action) {
+//        final int slot = super.bedrockSlotToJava(action);
+//        if (action.getSource().getContainerId() == 124) {
+//            switch (slot) {
+//                case 16:
+//                    return 0;
+//                case 17:
+//                    return 1;
+//                case 50:
+//                    return 2;
+//                default:
+//                    return slot;
+//            }
+//        } return slot;
+
+        int slotnum = action.getSlot();
         switch (action.getSource().getContainerId()) {
-            case ContainerId.CRAFTING_ADD_INGREDIENT:
+            case ContainerId.CONTAINER_INPUT:
             case ContainerId.DROP_CONTENTS:
-                return action.getSlot()+1;
+            case ContainerId.ANVIL_MATERIAL:
+                return slotnum;
+            case ContainerId.ANVIL_RESULT:
+                return 2;
         }
         return super.bedrockSlotToJava(action);
     }
 
     @Override
     public int javaSlotToBedrock(int slot) {
+//        switch (slot) {
+//            case 0:
+//                return 16;
+//            case 1:
+//                return 17;
+//            case 2:
+//                return 50;
+//        }
+//        return super.javaSlotToBedrock(slot);
         if (slot < size) {
             return slot;
         }
         return super.javaSlotToBedrock(slot);
-    }
-
-    @Override
-    public SlotType getSlotType(int javaSlot) {
-        if (javaSlot == 0)
-            return SlotType.OUTPUT;
-        return SlotType.NORMAL;
     }
 
     @Override
@@ -120,13 +108,16 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
                 case CONTAINER:
                 case WORLD_INTERACTION:
                     switch(action.getSource().getContainerId()) {
-                        // Container, Inventory, Crafting Input, Crafting Output
+                            // Container, Inventory, Crafting Input, Crafting Output
                         case ContainerId.CURSOR:
                         case ContainerId.INVENTORY:
                         case ContainerId.CRAFTING_ADD_INGREDIENT:
                         case ContainerId.CRAFTING_RESULT:
+                        case ContainerId.CONTAINER_INPUT:
                         case ContainerId.NONE:
                         case ContainerId.DROP_CONTENTS:
+                        case ContainerId.ANVIL_MATERIAL:
+                        case ContainerId.ANVIL_RESULT:
                         case ContainerId.FIRST:
                             if (action.getFromItem().getCount() > action.getToItem().getCount()) {
                                 fromActions.add(action);
@@ -152,8 +143,4 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
         }
     }
 
-    @Override
-    public boolean isOutput(InventoryActionData action) {
-        return action.getSource().getContainerId() == ContainerId.CRAFTING_RESULT && action.getSlot() == 0;
-    }
 }

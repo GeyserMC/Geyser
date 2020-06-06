@@ -128,7 +128,9 @@ import org.geysermc.connector.edition.mcee.commands.EducationCommand;
 import org.geysermc.connector.edition.mcee.network.translators.bedrock.BedrockActionTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.bedrock.BedrockRespawnTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.AnvilInventoryTranslator;
+import org.geysermc.connector.edition.mcee.network.translators.inventory.BrewingInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.CraftingInventoryTranslator;
+import org.geysermc.connector.edition.mcee.network.translators.inventory.GrindstoneInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.PlayerInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.edition.mcee.shims.BlockTranslatorShim;
@@ -155,10 +157,8 @@ import org.geysermc.connector.network.translators.bedrock.BedrockSetLocalPlayerA
 import org.geysermc.connector.network.translators.bedrock.BedrockShowCreditsTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.BrewingInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.FurnaceInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.GrindstoneInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SingleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
@@ -430,10 +430,10 @@ public class Edition extends GeyserEdition {
                 .inventoryTranslator(WindowType.GENERIC_9X4, new DoubleChestInventoryTranslator(36))
                 .inventoryTranslator(WindowType.GENERIC_9X5, new DoubleChestInventoryTranslator(45))
                 .inventoryTranslator(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54))
-                .inventoryTranslator(WindowType.BREWING_STAND, new BrewingInventoryTranslator())
+                .inventoryTranslator(WindowType.BREWING_STAND, new BrewingInventoryTranslator(inventoryActionDataTranslator))
                 .inventoryTranslator(WindowType.ANVIL, new AnvilInventoryTranslator(inventoryActionDataTranslator))
                 .inventoryTranslator(WindowType.CRAFTING, new CraftingInventoryTranslator(inventoryActionDataTranslator))
-                .inventoryTranslator(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
+                .inventoryTranslator(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator(inventoryActionDataTranslator));
 //                .inventoryTranslator(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //@TODO
 
         // Register Inventory Furnace Translators

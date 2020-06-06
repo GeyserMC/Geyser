@@ -107,6 +107,8 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                         case ContainerId.CONTAINER_INPUT:
                         case ContainerId.NONE:
                         case ContainerId.DROP_CONTENTS:
+                        case ContainerId.ANVIL_MATERIAL:
+                        case ContainerId.FIRST:
                             if (action.getFromItem().getCount() > action.getToItem().getCount()) {
                                 fromActions.add(action);
                             } else {
@@ -121,6 +123,8 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                             GeyserConnector.getInstance().getLogger().warning("Unknown ContainerID: " + action.getSource().getContainerId());
                     }
                     break;
+                default:
+                    GeyserConnector.getInstance().getLogger().warning("Unknown Source: " + action.getSource().getType());
             }
         }
 
