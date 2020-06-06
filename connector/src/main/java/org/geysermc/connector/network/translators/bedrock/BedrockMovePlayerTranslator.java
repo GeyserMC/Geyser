@@ -77,7 +77,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             // For now we only check collision when the player is on the ground to improve performance
             // This will cause issues if the player flies into a stair in Creative (quite unlikely)
 
-            if (packet.isOnGround()) {
+            // if (packet.isOnGround()) {
 
                 BoundingBox playerCollision = new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.6, 1.8, 0.6);
 
@@ -114,7 +114,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                 }
                 position = Vector3d.from(playerCollision.getMiddleX(), playerCollision.getMiddleY() - 0.9,
                         playerCollision.getMiddleZ());
-            }
+            // }
         } else {
             // When chunk caching is off, we have to rely on this
             // It rounds the Y position up to the nearest 0.5

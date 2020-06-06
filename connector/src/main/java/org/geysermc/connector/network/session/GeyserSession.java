@@ -50,6 +50,7 @@ import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
@@ -81,7 +82,7 @@ import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -104,8 +105,9 @@ public class GeyserSession implements CommandSender {
     private InventoryCache inventoryCache;
     private ScoreboardCache scoreboardCache;
     private WindowCache windowCache;
-    @Setter
-    private TeleportCache teleportCache;
+    // @Setter
+    // private TeleportCache teleportCache;
+    private final HashMap<Integer, TeleportCache> teleportMap = new HashMap<Integer, TeleportCache>();
 
     /**
      * A map of Vector3i positions to Java entity IDs.
@@ -513,18 +515,39 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(startGamePacket);
     }
 
+    public void addTeleport(TeleportCache teleportCache) {
+        teleportMap.put(teleportCache.getTeleportConfirmId(), teleportCache);
+    }
+
     public boolean confirmTeleport(Vector3d position) {
-        if (teleportCache != null) {
-            if (!teleportCache.canConfirm(position)) {
-                GeyserConnector.getInstance().getLogger().debug("Unconfirmed Teleport " + teleportCache.getTeleportConfirmId()
-                        + " Ignore movement " + position + " expected " + teleportCache);
-                return false;
+        int teleportID = -1;
+
+        for (Map.Entry<Integer, TeleportCache> entry : teleportMap.entrySet()) {
+            if (entry.getValue().canConfirm(position)) {
+                teleportID = entry.getValue().getTeleportConfirmId();
             }
-            int teleportId = teleportCache.getTeleportConfirmId();
-            teleportCache = null;
-            ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(teleportId);
-            sendDownstreamPacket(teleportConfirmPacket);
         }
+
+        Iterator<Map.Entry<Integer, TeleportCache>> it = teleportMap.entrySet().iterator();
+
+        if (teleportID != -1) {
+            // Confirm the current teleport and any earlier ones
+            while (it.hasNext()) {
+                Map.Entry<Integer, TeleportCache> entry = it.next();
+                int nextID = entry.getValue().getTeleportConfirmId();
+                if (nextID <= teleportID) {
+                    ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(nextID);
+                    sendDownstreamPacket(teleportConfirmPacket);
+                    it.remove();
+                    connector.getLogger().debug("Confirmed teleport " + nextID);
+                }
+            }
+        }
+
+        if (teleportMap.size() > 0) {
+            connector.getLogger().debug("Unconfirmed teleports: " + teleportMap);
+        }
+
         return true;
     }
 
