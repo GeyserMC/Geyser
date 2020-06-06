@@ -56,6 +56,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.AuthType;
 import org.geysermc.common.window.FormWindow;
+import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.entity.Entity;
@@ -121,6 +122,7 @@ public class GeyserSession implements CommandSender {
 
     private boolean loggedIn;
     private boolean loggingIn;
+    private boolean usingSavedCredentials;
 
     @Setter
     private boolean spawned;
@@ -189,6 +191,7 @@ public class GeyserSession implements CommandSender {
 
         this.spawned = false;
         this.loggedIn = false;
+        this.usingSavedCredentials = false;
         this.started = false;
 
         this.inventoryCache.getInventories().put(0, inventory);
@@ -204,7 +207,12 @@ public class GeyserSession implements CommandSender {
                             )
             );
             authenticate(authData.getName());
-        } else {
+        } else if (connector.getConfig().getUserAuths() != null && connector.getConfig().getUserAuths().containsKey(authData.getName())) {
+            connector.getLogger().info("Attempting to login using saved credentials for " + authData.getName());
+            usingSavedCredentials = true;
+            GeyserConfiguration.IUserAuthenticationInfo info = connector.getConfig().getUserAuths().get(authData.getName());
+            authenticate(info.getEmail(), info.getPassword());
+        } else { // Show login form
             playerEntity.setDimension(2);
             initialize();
             ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);

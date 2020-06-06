@@ -92,30 +92,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
     }
 
-    private boolean couldLoginUserByName(String bedrockUsername) {
-        if (connector.getConfig().getUserAuths() != null) {
-            GeyserConfiguration.IUserAuthenticationInfo info = connector.getConfig().getUserAuths().get(bedrockUsername);
-
-            if (info != null) {
-                connector.getLogger().info("using stored credentials for bedrock user " + session.getAuthData().getName());
-                session.authenticate(info.getEmail(), info.getPassword());
-
-                // TODO send a message to bedrock user telling them they are connected (if nothing like a motd
-                //      somes from the Java server w/in a few seconds)
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
-        if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
+        if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE && !session.isUsingSavedCredentials()) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
-            if (!couldLoginUserByName(session.getAuthData().getName())) {
-                LoginEncryptionUtils.showLoginWindow(session);
-            }
+            LoginEncryptionUtils.showLoginWindow(session);
             // else we were able to log the user in
         }
         return translateAndDefault(packet);
