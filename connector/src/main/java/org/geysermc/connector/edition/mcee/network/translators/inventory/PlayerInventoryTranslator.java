@@ -50,6 +50,7 @@ public class PlayerInventoryTranslator extends org.geysermc.connector.network.tr
         int slotnum = action.getSlot();
         switch (action.getSource().getContainerId()) {
             case ContainerId.CRAFTING_ADD_INGREDIENT:
+            case  ContainerId.DROP_CONTENTS:
                 return slotnum+1;
         }
         return super.bedrockSlotToJava(action);
@@ -118,6 +119,7 @@ public class PlayerInventoryTranslator extends org.geysermc.connector.network.tr
                         case ContainerId.CRAFTING_ADD_INGREDIENT:
                         case ContainerId.CRAFTING_RESULT:
                         case ContainerId.NONE:
+                        case ContainerId.DROP_CONTENTS:
                             if (action.getFromItem().getCount() > action.getToItem().getCount()) {
                                 fromActions.add(action);
                             } else {

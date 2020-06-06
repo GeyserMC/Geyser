@@ -85,9 +85,10 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
-        // Putting items in a crafting table uses slots starting from 0
-        if (action.getSource().getContainerId() == ContainerId.CRAFTING_ADD_INGREDIENT) {
-            return action.getSlot()+1;
+        switch (action.getSource().getContainerId()) {
+            case ContainerId.CRAFTING_ADD_INGREDIENT:
+            case ContainerId.DROP_CONTENTS:
+                return action.getSlot()+1;
         }
         return super.bedrockSlotToJava(action);
     }
@@ -125,6 +126,7 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
                         case ContainerId.CRAFTING_ADD_INGREDIENT:
                         case ContainerId.CRAFTING_RESULT:
                         case ContainerId.NONE:
+                        case ContainerId.DROP_CONTENTS:
                             if (action.getFromItem().getCount() > action.getToItem().getCount()) {
                                 fromActions.add(action);
                             } else {

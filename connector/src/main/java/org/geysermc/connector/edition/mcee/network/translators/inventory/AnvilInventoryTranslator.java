@@ -61,6 +61,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
         switch (action.getSource().getContainerId()) {
             case ContainerId.CONTAINER_INPUT:
             case ContainerId.ANVIL_MATERIAL:
+            case ContainerId.DROP_CONTENTS:
                 return slotnum;
             case ContainerId.ANVIL_RESULT:
                 return 2;
@@ -105,6 +106,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                         case ContainerId.CRAFTING_RESULT:
                         case ContainerId.CONTAINER_INPUT:
                         case ContainerId.NONE:
+                        case ContainerId.DROP_CONTENTS:
                             if (action.getFromItem().getCount() > action.getToItem().getCount()) {
                                 fromActions.add(action);
                             } else {
