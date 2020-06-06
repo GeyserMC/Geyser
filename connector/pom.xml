@@ -164,6 +164,7 @@
                     <skipPoms>false</skipPoms>
                     <excludeProperties>
                         <excludeProperty>git.user.*</excludeProperty>
+                        <excludeProperty>git.commit.user.*</excludeProperty>
                     </excludeProperties>
                     <commitIdGenerationMode>flat</commitIdGenerationMode>
                     <gitDescribe>
