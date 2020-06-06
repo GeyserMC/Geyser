@@ -39,8 +39,9 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,8 +119,8 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
     }
 
     private CompoundTag getItemTag(GeyserSession session, ItemStack stack, String name, int specialPrice) {
-        ItemData itemData = Translators.getItemTranslator().translateToBedrock(session, stack);
-        ItemEntry itemEntry = Translators.getItemTranslator().getItem(stack);
+        ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
+        ItemEntry itemEntry = ItemRegistry.getItem(stack);
         CompoundTagBuilder builder = CompoundTagBuilder.builder();
         builder.byteTag("Count", (byte) (Math.max(itemData.getCount() + specialPrice, 1)));
         builder.shortTag("Damage", itemData.getDamage());

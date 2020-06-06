@@ -38,6 +38,7 @@ public enum AttributeType {
     MOVEMENT_SPEED("generic.movementSpeed", "minecraft:movement", 0f, 1024f, 0.1f),
     FLYING_SPEED("generic.flyingSpeed", "minecraft:movement", 0.0f, 1024.0f, 0.4000000059604645f),
     ATTACK_DAMAGE("generic.attackDamage", "minecraft:attack_damage", 0f, 2048f, 1f),
+    HORSE_JUMP_STRENGTH("horse.jumpStrength", "minecraft:horse.jump_strength", 0.0f, 2.0f, 0.7f),
 
     // Java Attributes
     ARMOR("generic.armor", null, 0f, 30f, 0f),

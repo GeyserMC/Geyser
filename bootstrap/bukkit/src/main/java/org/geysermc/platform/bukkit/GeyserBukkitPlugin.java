@@ -28,10 +28,13 @@ package org.geysermc.platform.bukkit;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
+import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
 import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
 import org.geysermc.platform.bukkit.world.GeyserBukkitBlockPlaceListener;
@@ -45,6 +48,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
     private GeyserBukkitCommandManager geyserCommandManager;
     private GeyserBukkitConfiguration geyserConfig;
     private GeyserBukkitLogger geyserLogger;
+    private IGeyserPingPassthrough geyserBukkitPingPassthrough;
     private GeyserBukkitBlockPlaceListener blockPlaceListener;
     private GeyserBukkitWorldManager geyserWorldManager;
 
@@ -70,10 +74,17 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         saveConfig();
 
         this.geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         geyserConfig.loadFloodgate(this);
 
         this.connector = GeyserConnector.start(PlatformType.BUKKIT, this);
+
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserBukkitPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        } else {
+            this.geyserBukkitPingPassthrough = new GeyserBukkitPingPassthrough(geyserLogger);
+        }
 
         this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
 
@@ -118,6 +129,11 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public CommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
+    }
+
+    @Override
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
+        return geyserBukkitPingPassthrough;
     }
 
     @Override

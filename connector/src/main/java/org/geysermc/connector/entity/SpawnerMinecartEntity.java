@@ -23,23 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators;
+package org.geysermc.connector.entity;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class NbtItemStackTranslator {
+public class SpawnerMinecartEntity extends DefaultBlockMinecartEntity {
 
-    public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
-
+    public SpawnerMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
-    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
-
+    @Override
+    public void updateDefaultBlockMetadata() {
+        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(BlockTranslator.JAVA_RUNTIME_SPAWNER_ID));
+        metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
-
-    public boolean acceptItem(ItemEntry itemEntry) {
-        return true;
-    }
-
 }
