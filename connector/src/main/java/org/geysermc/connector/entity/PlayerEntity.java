@@ -113,6 +113,26 @@ public class PlayerEntity extends LivingEntity {
         updateBedrockAttributes(session);
     }
 
+    /**
+     * Add player to playerlist
+     */
+    public void addPlayerList(GeyserSession session) {
+        PlayerListPacket addPlayerListPacket = new PlayerListPacket();
+        addPlayerListPacket.setAction(PlayerListPacket.Action.ADD);
+        addPlayerListPacket.getEntries().add(SkinUtils.buildCachedEntry(this));
+        session.sendUpstreamPacket(addPlayerListPacket);
+    }
+
+    /**
+     * Remove player from playerlist
+     */
+    public void removePlayerList(GeyserSession session) {
+        PlayerListPacket removePlayerListPacket = new PlayerListPacket();
+        removePlayerListPacket.setAction(PlayerListPacket.Action.REMOVE);
+        removePlayerListPacket.getEntries().add(SkinUtils.buildCachedEntry(this));
+        session.sendUpstreamPacket(removePlayerListPacket);
+    }
+
     public void sendPlayer(GeyserSession session) {
         if(session.getEntityCache().getPlayerEntity(uuid) == null)
             return;

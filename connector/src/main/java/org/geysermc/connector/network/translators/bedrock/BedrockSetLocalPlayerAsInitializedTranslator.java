@@ -54,12 +54,15 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
 
                 // Send Skulls
                 for (PlayerEntity entity : session.getSkullCache().values()) {
+                    entity.addPlayerList(session);
                     entity.spawnEntity(session);
+                    entity.removePlayerList(session);
+
                     SkinUtils.requestAndHandleSkinAndCape(entity, session, (skinAndCape) -> {
                         session.getConnector().getGeneralThreadPool().schedule(() -> {
                             entity.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
                             entity.updateBedrockMetadata(session);
-                        }, 500, TimeUnit.MILLISECONDS); //Delay 500 milliseconds to give the model time to load in
+                        }, 500, TimeUnit.MILLISECONDS);
                     });
                 }
 

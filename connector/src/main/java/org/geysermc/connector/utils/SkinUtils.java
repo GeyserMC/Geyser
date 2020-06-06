@@ -124,7 +124,7 @@ public class SkinUtils {
             try {
                 GameProfile.Property skinProperty = profile.getProperty("textures");
 
-                JsonNode skinObject = new ObjectMapper().readTree(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8));
+                JsonNode skinObject = GeyserConnector.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8));
                 JsonNode textures = skinObject.get("textures");
 
                 JsonNode skinTexture = textures.get("SKIN");

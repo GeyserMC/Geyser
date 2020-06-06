@@ -154,12 +154,15 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         // Only send to session if we are initialized, otherwise it will happen then.
         if (session.getUpstream().isInitialized()) {
+            player.addPlayerList(session);
             player.spawnEntity(session);
+            player.removePlayerList(session);
+
             SkinUtils.requestAndHandleSkinAndCape(player, session, (skinAndCape -> {
                 session.getConnector().getGeneralThreadPool().schedule(() -> {
                     player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
                     player.updateBedrockMetadata(session);
-                }, 500, TimeUnit.MILLISECONDS); //Delay 500 milliseconds to give the model time to load in
+                }, 500, TimeUnit.MILLISECONDS);
             }));
         }
     }
