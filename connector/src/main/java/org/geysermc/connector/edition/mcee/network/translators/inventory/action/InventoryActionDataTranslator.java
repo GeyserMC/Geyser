@@ -26,6 +26,7 @@
 
 package org.geysermc.connector.edition.mcee.network.translators.inventory.action;
 
+import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.InventorySource;
 import lombok.AllArgsConstructor;
@@ -103,7 +104,18 @@ public class InventoryActionDataTranslator {
 
                             // Check if we are dropping to the world
                             if (to.action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                                plan.add(Click.DROP_STACK, fromSlot);
+                                // Is it dropped without a window?
+                                if (session.getInventoryCache().getOpenInventory() == null
+                                        && from.action.getSource().getContainerId() == ContainerId.INVENTORY
+                                        && from.action.getSlot() == session.getInventory().getHeldItemSlot()) {
+
+                                    // Put back our items first @Todo see if this can be eliminated
+                                    plan.add(Click.LEFT, fromSlot);
+
+                                    plan.add(Click.DROP_STACK_HOTBAR, fromSlot);
+                                } else {
+                                    plan.add(Click.DROP_STACK, fromSlot);
+                                }
                             } else {
                                 plan.add(Click.LEFT, toSlot);
                             }
@@ -117,7 +129,18 @@ public class InventoryActionDataTranslator {
 
                             // Check if we are dropping to the world
                             if (to.action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                                plan.add(Click.DROP_ITEM, fromSlot);
+                                // Is it dropped without a window?
+                                if (session.getInventoryCache().getOpenInventory() == null
+                                        && from.action.getSource().getContainerId() == ContainerId.INVENTORY
+                                        && from.action.getSlot() == session.getInventory().getHeldItemSlot()) {
+
+                                    // Put back our items first @Todo see if this can be eliminated
+                                    plan.add(Click.LEFT, fromSlot);
+
+                                    plan.add(Click.DROP_ITEM_HOTBAR, fromSlot);
+                                } else {
+                                    plan.add(Click.DROP_ITEM, fromSlot);
+                                }
                             } else {
                                 plan.add(Click.RIGHT, toSlot);
                             }

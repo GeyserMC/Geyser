@@ -26,7 +26,13 @@
 package org.geysermc.connector.network.translators.inventory.action;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
+import com.github.steveice10.mc.protocol.data.game.window.ClickItemParam;
+import com.github.steveice10.mc.protocol.data.game.window.DropItemParam;
 import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientConfirmTransactionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
 import org.geysermc.connector.inventory.Inventory;
@@ -66,7 +72,7 @@ public class ClickPlan {
 
                     ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(inventory.getId(),
                             actionId, action.slot, !planIter.hasNext() && refresh ? InventoryUtils.REFRESH_ITEM : clickedItem,
-                            WindowAction.CLICK_ITEM, action.click.actionParam);
+                            WindowAction.CLICK_ITEM, action.click == Click.LEFT ? ClickItemParam.LEFT_CLICK : ClickItemParam.RIGHT_CLICK);
 
                     if (translator.getSlotType(action.slot) == SlotType.OUTPUT) {
                         if (cursorItem == null && clickedItem != null) {
@@ -119,14 +125,39 @@ public class ClickPlan {
                             action.slot,
                             null,
                             WindowAction.DROP_ITEM,
-                            action.click.actionParam
+                            action.click == Click.DROP_ITEM ? DropItemParam.DROP_FROM_SELECTED : DropItemParam.DROP_SELECTED_STACK
                     );
                     session.sendDownstreamPacket(dropPacket);
                     ItemStack cursor = session.getInventory().getCursor();
                     if (cursor != null) {
-                        session.getInventory().setCursor(new ItemStack(cursor.getId(), cursor.getAmount() - 1, cursor.getNbt()));
+                        session.getInventory().setCursor(
+                                new ItemStack(
+                                        cursor.getId(),
+                                        action.click == Click.DROP_ITEM ? cursor.getAmount() - 1 : 0,
+                                        cursor.getNbt()
+                                )
+                        );
                     }
                     break;
+                case DROP_ITEM_HOTBAR:
+                case DROP_STACK_HOTBAR:
+                    ClientPlayerActionPacket actionPacket = new ClientPlayerActionPacket(
+                            action.click == Click.DROP_ITEM_HOTBAR ? PlayerAction.DROP_ITEM : PlayerAction.DROP_ITEM_STACK,
+                            new Position(0, 0, 0),
+                            BlockFace.DOWN
+                    );
+                    session.sendDownstreamPacket(actionPacket);
+                    ItemStack item = session.getInventory().getItem(action.slot);
+                    if (item != null) {
+                        session.getInventory().setItem(
+                                action.slot,
+                                new ItemStack(
+                                        item.getId(),
+                                        action.click == Click.DROP_ITEM_HOTBAR ? item.getAmount() - 1 : 0,
+                                        item.getNbt()
+                                )
+                        );
+                    }
             }
         }
 

@@ -32,10 +32,10 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public enum Click {
-    LEFT(ClickItemParam.LEFT_CLICK),
-    RIGHT(ClickItemParam.RIGHT_CLICK),
-    DROP_ITEM(DropItemParam.DROP_FROM_SELECTED),
-    DROP_STACK(DropItemParam.DROP_SELECTED_STACK);
-
-    public final WindowActionParam actionParam;
+    LEFT,
+    RIGHT,
+    DROP_ITEM,
+    DROP_STACK,
+    DROP_ITEM_HOTBAR,
+    DROP_STACK_HOTBAR;
 }
