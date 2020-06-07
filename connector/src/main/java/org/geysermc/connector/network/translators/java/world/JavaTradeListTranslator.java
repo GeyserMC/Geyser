@@ -87,7 +87,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
             recipe.intTag("buyCountB", trade.getSecondInput() != null ? trade.getSecondInput().getAmount() : 0);
             recipe.intTag("buyCountA", trade.getFirstInput().getAmount());
             recipe.intTag("demand", trade.getDemand());
-            recipe.intTag("tier", packet.getVillagerLevel() - 1);
+            recipe.intTag("tier", packet.getVillagerLevel() > 0 ? packet.getVillagerLevel() - 1 : 0); // -1 crashes client
             recipe.tag(getItemTag(session, trade.getFirstInput(), "buyA", trade.getSpecialPrice()));
             if (trade.getSecondInput() != null) {
                 recipe.tag(getItemTag(session, trade.getSecondInput(), "buyB", 0));
