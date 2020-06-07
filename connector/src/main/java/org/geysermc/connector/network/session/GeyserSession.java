@@ -524,7 +524,9 @@ public class GeyserSession implements CommandSender {
 
         for (Map.Entry<Integer, TeleportCache> entry : teleportMap.entrySet()) {
             if (entry.getValue().canConfirm(position)) {
-                teleportID = entry.getValue().getTeleportConfirmId();
+                if (entry.getValue().getTeleportConfirmId() > teleportID) {
+                    teleportID = entry.getValue().getTeleportConfirmId();
+                }
             }
         }
 
@@ -532,6 +534,7 @@ public class GeyserSession implements CommandSender {
 
         if (teleportID != -1) {
             // Confirm the current teleport and any earlier ones
+            // TODO: Don't assume that IDs go up over time
             while (it.hasNext()) {
                 Map.Entry<Integer, TeleportCache> entry = it.next();
                 int nextID = entry.getValue().getTeleportConfirmId();
@@ -545,7 +548,22 @@ public class GeyserSession implements CommandSender {
         }
 
         if (teleportMap.size() > 0) {
-            connector.getLogger().debug("Unconfirmed teleports: " + teleportMap);
+            int resendID = -1;
+            for (Map.Entry<Integer, TeleportCache> entry : teleportMap.entrySet()) {
+                TeleportCache teleport = entry.getValue();
+                teleport.incrementUnconfirmedFor();
+                if (teleport.shouldResend()) {
+                    if (teleport.getTeleportConfirmId() >= resendID) {
+                        resendID = teleport.getTeleportConfirmId();
+                    }
+                }
+            }
+
+            if (resendID != -1) {
+                connector.getLogger().debug("Resending teleport " + resendID);
+                TeleportCache teleport = teleportMap.get(resendID);
+                getPlayerEntity().moveAbsolute(this, Vector3f.from(teleport.getX(), teleport.getY(), teleport.getZ()), (float) teleport.getYaw(), (float) teleport.getPitch(), true, true);
+            }
         }
 
         return true;

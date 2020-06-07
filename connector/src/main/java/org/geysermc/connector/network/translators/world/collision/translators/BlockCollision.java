@@ -71,7 +71,7 @@ public class BlockCollision {
                 if (relativeZ > 0 ? relativeX > relativeZ : relativeZ > (- relativeX)) {
                     // Collision with facing west - push the player east
                     // System.out.println("Collision facing towards negative X");
-                    System.out.println("Moved by " + (playerCollision.getMiddleX() - (b.getMiddleX() + (b.getSizeX() / 2) + x)));
+                    // System.out.println("Moved by " + (playerCollision.getMiddleX() - (b.getMiddleX() + (b.getSizeX() / 2) + x))); TODO
                     playerCollision.translate(playerCollision.getMiddleX() - (b.getMiddleX() + (b.getSizeX() / 2) + x), 0, 0);
                 }
             }

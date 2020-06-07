@@ -71,6 +71,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
                 Double.parseDouble(Float.toString(packet.getPosition().getZ())));
 
+        if (!session.confirmTeleport(position)){
+            return;
+        }
+
         if (session.getConnector().getConfig().isCacheChunks()) {
             // With chunk caching, we can do some proper collision checks
 
@@ -110,8 +114,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                                 blockCollision.correctPosition(playerCollision);
                                 playerCollision.translate(0, 0.1, 0); // Hack to not check y
                                 if (blockCollision.checkIntersection(playerCollision)) {
-                                    System.out.println("Collision!");
-                                    System.out.println(playerCollision.getMiddleX());
+                                    // System.out.println("Collision!");
+                                    // System.out.println(playerCollision.getMiddleX());
                                     // return;
                                 }
                                 playerCollision.translate(0, -0.1, 0); // Hack to not check y
@@ -129,10 +133,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             // However, it causes issues such as the player floating on carpets
             if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
             position = position.up(javaY - position.getY());
-        }
-
-        if (!session.confirmTeleport(position)){
-            return;
         }
 
         if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
