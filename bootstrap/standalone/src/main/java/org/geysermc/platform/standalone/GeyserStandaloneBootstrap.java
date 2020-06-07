@@ -57,13 +57,13 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     public static void main(String[] args) {
         for (String arg : args) {
+            // By default, standalone Geyser will check if it should open the GUI based on if the GUI is null
+            // Optionally, you can force the use of a GUI or no GUI by specifying args
             if (arg.equals("gui")) {
-                // Different thread or else it can't override the console
-                new Thread(() -> new GeyserStandaloneBootstrap().onEnable(true)).start();
+                new GeyserStandaloneBootstrap().onEnable(true);
                 return;
             } else if (arg.equals("nogui")) {
-                // Different thread or else it can't override the console
-                new Thread(() -> new GeyserStandaloneBootstrap().onEnable(false)).start();
+                new GeyserStandaloneBootstrap().onEnable(false);
                 return;
             }
         }
@@ -100,7 +100,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         geyserCommandManager = new GeyserCommandManager(connector);
 
         if (gui != null) {
-            gui.setupCommands(geyserLogger, geyserCommandManager);
+            gui.setupInterface(geyserLogger, geyserCommandManager);
         }
 
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);

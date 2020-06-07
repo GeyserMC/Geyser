@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,10 +58,12 @@ public class GeyserStandaloneGUI {
     private static final ColorPane consolePane = new ColorPane();
     private static final GraphPanel ramGraph = new GraphPanel();
     private static final JTable playerTable = new JTable(new String[][] { }, playerTableHeadings);
+    private static final int originalFontSize = consolePane.getFont().getSize();
 
     private static final long  MEGABYTE = 1024L * 1024L;
 
-    private JMenu commandsMenu;
+    private final JMenu commandsMenu;
+    private final JMenu optionsMenu;
 
     public GeyserStandaloneGUI() {
         // Create the frame and setup basic settings
@@ -72,14 +75,14 @@ public class GeyserStandaloneGUI {
         // Remove Java UI look
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) { }
+        } catch (Exception ignored) { }
 
         // Show a confirm dialog on close
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent we)
             {
-                String buttons[] = {"Yes", "No"};
+                String[] buttons = {"Yes", "No"};
                 int result = JOptionPane.showOptionDialog(frame, "Are you sure you want to exit?", frame.getTitle(), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, buttons, buttons[1]);
                 if (result == JOptionPane.YES_OPTION) {
                     System.exit(0);
@@ -90,8 +93,11 @@ public class GeyserStandaloneGUI {
         Container cp = frame.getContentPane();
 
         // Fetch and set the icon for the frame
-        ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("icon.png"));
-        frame.setIconImage(icon.getImage());
+        URL image = getClass().getClassLoader().getResource("icon.png");
+        if (image != null) {
+            ImageIcon icon = new ImageIcon(image);
+            frame.setIconImage(icon.getImage());
+        }
 
         // Setup the split pane and event listeners
         JSplitPane splitPane = new JSplitPane();
@@ -124,11 +130,11 @@ public class GeyserStandaloneGUI {
 
         // 'Open Geyser folder' button
         JMenuItem openButton = new JMenuItem("Open Geyser folder", KeyEvent.VK_O);
-        openButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+        openButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
         openButton.addActionListener(e -> {
             try {
                 Desktop.getDesktop().open(new File("./"));
-            } catch (IOException ioException) { }
+            } catch (IOException ignored) { }
         });
         fileMenu.add(openButton);
 
@@ -136,7 +142,7 @@ public class GeyserStandaloneGUI {
 
         // 'Exit' button
         JMenuItem exitButton = new JMenuItem("Exit", KeyEvent.VK_X);
-        exitButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, ActionEvent.ALT_MASK));
+        exitButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_MASK));
         exitButton.addActionListener(e -> System.exit(0));
         fileMenu.add(exitButton);
 
@@ -144,6 +150,33 @@ public class GeyserStandaloneGUI {
         commandsMenu = new JMenu("Commands");
         commandsMenu.setMnemonic(KeyEvent.VK_C);
         menuBar.add(commandsMenu);
+
+        // Create 'View'
+        JMenu viewMenu = new JMenu("View");
+        viewMenu.setMnemonic(KeyEvent.VK_V);
+        menuBar.add(viewMenu);
+
+        // 'Zoom in' button
+        JMenuItem zoomInButton = new JMenuItem("Zoom In");
+        zoomInButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK));
+        zoomInButton.addActionListener(e -> consolePane.setFont(new Font(consolePane.getFont().getName(), consolePane.getFont().getStyle(), consolePane.getFont().getSize() + 1)));
+        viewMenu.add(zoomInButton);
+
+        // 'Zoom in' button
+        JMenuItem zoomOutButton = new JMenuItem("Zoom Out");
+        zoomOutButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK));
+        zoomOutButton.addActionListener(e -> consolePane.setFont(new Font(consolePane.getFont().getName(), consolePane.getFont().getStyle(), consolePane.getFont().getSize() - 1)));
+        viewMenu.add(zoomOutButton);
+
+        // 'Reset Zoom' button
+        JMenuItem resetZoomButton = new JMenuItem("Reset Zoom");
+        resetZoomButton.addActionListener(e -> consolePane.setFont(new Font(consolePane.getFont().getName(), consolePane.getFont().getStyle(), originalFontSize)));
+        viewMenu.add(resetZoomButton);
+
+        // create 'Options'
+        optionsMenu = new JMenu("Options");
+        viewMenu.setMnemonic(KeyEvent.VK_O);
+        menuBar.add(optionsMenu);
 
         // Set the frames menu bar
         frame.setJMenuBar(menuBar);
@@ -211,29 +244,15 @@ public class GeyserStandaloneGUI {
         System.setOut(new PrintStream(out, true));
         System.setErr(new PrintStream(out, true));
 
-        // Need to either get the log from jline3 or create a new ConsoleAppender
-        // for log4j (2.4+) to fix this not getting the log outside of intellij
-        // or set the property 'terminal.jline' to 'true'
-
-        // None of this works :(
-
-        //PropertiesUtil.getSystemProperties().put("terminal.jline", "true");
-
-        /*
-        LoggerContext cx = (LoggerContext) LogManager.getContext(true);
-        Configuration conf = cx.getConfiguration();
-        conf.getProperties().put("terminal.jline", "true");
-        cx.setConfiguration(conf);
-        */
     }
 
     /**
-     * Add all the Geyser commands to the commands menu
+     * Add all the Geyser commands to the commands menu, and setup the debug mode toggle
      *
      * @param geyserStandaloneLogger The current logger
      * @param geyserCommandManager The commands manager
      */
-    public void setupCommands(GeyserStandaloneLogger geyserStandaloneLogger, GeyserCommandManager geyserCommandManager) {
+    public void setupInterface(GeyserStandaloneLogger geyserStandaloneLogger, GeyserCommandManager geyserCommandManager) {
         commandsMenu.removeAll();
 
         for (Map.Entry<String, GeyserCommand> command : geyserCommandManager.getCommands().entrySet()) {
@@ -248,6 +267,12 @@ public class GeyserStandaloneGUI {
             commandButton.addActionListener(e -> command.getValue().execute(geyserStandaloneLogger, new String[]{ }));
             commandsMenu.add(commandButton);
         }
+
+        // 'Debug Mode' toggle
+        JCheckBoxMenuItem debugMode = new JCheckBoxMenuItem("Debug Mode");
+        debugMode.setSelected(geyserStandaloneLogger.isDebug());
+        debugMode.addActionListener(e -> geyserStandaloneLogger.setDebug(!geyserStandaloneLogger.isDebug()));
+        optionsMenu.add(debugMode);
     }
 
     /**
@@ -290,7 +315,8 @@ public class GeyserStandaloneGUI {
             ramGraph.setValues(ramValues);
         };
 
-        executor.scheduleAtFixedRate(periodicTask, 0, 1, TimeUnit.SECONDS);
+        // SwingUtilities.invokeLater is called so we don't run into threading issues with the GUI
+        executor.scheduleAtFixedRate(() -> SwingUtilities.invokeLater(periodicTask), 0, 1, TimeUnit.SECONDS);
     }
 
     /**
