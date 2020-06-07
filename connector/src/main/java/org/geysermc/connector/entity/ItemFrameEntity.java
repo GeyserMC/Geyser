@@ -98,7 +98,7 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
-            ItemData itemData = ItemTranslator.translateToBedrock((ItemStack) entityMetadata.getValue());
+            ItemData itemData = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
             ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
             CompoundTagBuilder builder = CompoundTag.builder();
 

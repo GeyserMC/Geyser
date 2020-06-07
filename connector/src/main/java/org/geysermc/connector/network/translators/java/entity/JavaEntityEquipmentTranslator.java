@@ -55,7 +55,7 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
         }
 
         LivingEntity livingEntity = (LivingEntity) entity;
-        ItemData item = ItemTranslator.translateToBedrock(packet.getItem());
+        ItemData item = ItemTranslator.translateToBedrock(session, packet.getItem());
         switch (packet.getSlot()) {
             case HELMET:
                 livingEntity.setHelmet(item);
