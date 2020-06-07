@@ -28,9 +28,14 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientMoveItemToHotbarPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityLink;
+import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -97,5 +102,33 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
             session.sendDownstreamPacket(packetToSend);
             return;
         }
+
+        final long entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
+        inventory.setHolderId(entityId);
+
+        AddEntityPacket addEntityPacket = new AddEntityPacket();
+        addEntityPacket.setUniqueEntityId(entityId);
+        addEntityPacket.setRuntimeEntityId(entityId);
+        // You can't hide the chest of a chest_minecart but Bedrock accepts a normal minecart too
+        addEntityPacket.setIdentifier("minecraft:shulker");
+        addEntityPacket.setEntityType(0);
+        addEntityPacket.setPosition(session.getPlayerEntity().getPosition().sub(0D, 0D, 0D));
+        addEntityPacket.setRotation(Vector3f.ZERO);
+        addEntityPacket.setMotion(Vector3f.ZERO);
+        addEntityPacket.getMetadata()
+                .putFloat(EntityData.SCALE, 0.5F)
+                .putFloat(EntityData.BOUNDING_BOX_WIDTH, 0.5F)
+                .putFloat(EntityData.BOUNDING_BOX_HEIGHT, 0.5F);
+
+        /* addEntityPacket.getMetadata().put(EntityData.CONTAINER_BASE_SIZE, 27);
+        addEntityPacket.getMetadata().put(EntityData.NAMETAG, inventory.getTitle()); */
+
+        session.sendUpstreamPacket(addEntityPacket);
+
+        // Mount the minecart on the player so the inventory doesn't close when the player moves away
+        /* SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
+        EntityLink.Type type = EntityLink.Type.PASSENGER;
+        linkPacket.setEntityLink(new EntityLink(session.getPlayerEntity().getGeyserId(), entityId, type, false));
+        session.sendUpstreamPacket(linkPacket); */
     }
 }

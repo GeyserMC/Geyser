@@ -31,7 +31,7 @@ import org.geysermc.connector.utils.BoundingBox;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-@CollisionRemapper(regex = "^snow$")
+@CollisionRemapper(regex = "^snow$", usesParams = true)
 public class SnowCollision extends BlockCollision {
     private Pattern layersPattern = Pattern.compile("layers=([0-8])");
 

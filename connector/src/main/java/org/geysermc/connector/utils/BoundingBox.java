@@ -26,8 +26,10 @@
 
 package org.geysermc.connector.utils;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+@EqualsAndHashCode
 @Getter
 public class BoundingBox {
     private double middleX;
@@ -38,8 +40,6 @@ public class BoundingBox {
     private double sizeY;
     private double sizeZ;
 
-    // private boolean snapToTop;
-
     public BoundingBox(double middleX, double middleY, double middleZ, double sizeX, double sizeY, double sizeZ) {
         this.middleX = middleX;
         this.middleY = middleY;
@@ -48,8 +48,6 @@ public class BoundingBox {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
-
-        // this.snapToTop = snapToTop;
     }
 
     public void translate(double x, double y, double z) {

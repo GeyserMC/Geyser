@@ -26,13 +26,19 @@
 
 package org.geysermc.connector.network.translators.world.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.utils.BoundingBox;
 
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class BlockCollision {
+    @EqualsAndHashCode.Include
     BoundingBox[] boundingBoxes;
 
+    @EqualsAndHashCode.Include
     int x;
+    @EqualsAndHashCode.Include
     int y;
+    @EqualsAndHashCode.Include
     int z;
 
     public void setPosition(int x, int y, int z) {
@@ -55,16 +61,55 @@ public class BlockCollision {
                     playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
                 }
             }
+
+            playerCollision.translate(0, 0.1, 0); // Hack to not check y
+            // If the player still intersects the block, then push them out
+            if (b.checkIntersection(x, y, z, playerCollision)) {
+                double relativeX = playerCollision.getMiddleX() - (x + 0.5);
+                double relativeY = playerCollision.getMiddleY() - (y + 0.5);
+                double relativeZ = playerCollision.getMiddleZ() - (z + 0.5);
+                if (relativeZ > 0 ? relativeX > relativeZ : relativeZ > (- relativeX)) {
+                    // Collision with facing west - push the player east
+                    // System.out.println("Collision facing towards negative X");
+                    System.out.println("Moved by " + (playerCollision.getMiddleX() - (b.getMiddleX() + (b.getSizeX() / 2) + x)));
+                    playerCollision.translate(playerCollision.getMiddleX() - (b.getMiddleX() + (b.getSizeX() / 2) + x), 0, 0);
+                }
+            }
+            playerCollision.translate(0, -0.1, 0); // Hack to not check y
         }
+
+        // Solid checking for NoCheatPlus etc.
+        // TODO: Better checking
+        /* playerCollision.translate(0, 0.1, 0); // Hack to not check y
+        if (checkIntersection(playerCollision)) {
+            if (playerCollision.getMiddleX() > (x + 0.5)) {
+                playerCollision.translate(0.1, 0, 0);
+            } else {
+                playerCollision.translate(-0.1, 0, 0);
+            }
+
+            if (playerCollision.getMiddleZ() > (z + 0.5)) {
+                playerCollision.translate(0, 0, 0.1);
+            } else {
+                playerCollision.translate(0, 0, -0.1);
+            }
+
+            /* if (playerCollision.getMiddleY() > (y + 0.5)) {
+                playerCollision.translate(0, 0.1, 0);
+            } else {
+                playerCollision.translate(0, -0.1, 0);
+            } *//*
+        }
+        playerCollision.translate(0, -0.1, 0); // Hack to not check y */
     }
 
-    // Currently never used, but will probably be useful in the future
-    /* public boolean checkIntersection(BoundingBox playerCollision) {
+    // USED NOW! CHANGE THIS Or not! Currently never used, but will probably be useful in the future
+    public boolean checkIntersection(BoundingBox playerCollision) {
         for (BoundingBox b: boundingBoxes) {
             if (b.checkIntersection(x, y, z, playerCollision)) {
                 return true;
             }
         }
         return false;
-    } */
+    }
 }

@@ -28,11 +28,15 @@ package org.geysermc.connector.network.translators.world.collision;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.collision.translators.*;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.reflections.Reflections;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -41,37 +45,46 @@ public class CollisionTranslator {
     private static Map<BlockState, BlockCollision> collisionMap = new HashMap<>();
 
     public static void init() {
+        System.out.println(new SolidCollision("").hashCode());
+        System.out.println(new SolidCollision("").hashCode());
+
         // If chunk caching is off then don't initialize
         if (!GeyserConnector.getInstance().getConfig().isCacheChunks()) {
             return;
         }
 
-        List collisionTypes = new ArrayList<Class>();
+        List<Class> collisionTypes = new ArrayList<Class>();
 
-        Map<Class, Pattern> regexMap = new HashMap<>();
-        Map<Class, Pattern> paramRegexMap = new HashMap<>();
+        Map<Class, CollisionRemapper> annotationMap = new HashMap<>();
+        // Map<Class, Pattern> paramRegexMap = new HashMap<>();
 
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.collision.translators");
         for (Class<?> clazz : ref.getTypesAnnotatedWith(CollisionRemapper.class)) {
-            String regex = clazz.getAnnotation(CollisionRemapper.class).regex();
-            String paramRegex = clazz.getAnnotation(CollisionRemapper.class).paramRegex();
+            // String regex = clazz.getAnnotation(CollisionRemapper.class).regex();
+            // String paramRegex = clazz.getAnnotation(CollisionRemapper.class).paramRegex();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated collision translator: " + clazz.getCanonicalName());
 
             collisionTypes.add(clazz);
-            regexMap.put(clazz, Pattern.compile(regex));
-            paramRegexMap.put(clazz, Pattern.compile(paramRegex));
+            // regexMap.put(clazz, Pattern.compile(regex));
+            // paramRegexMap.put(clazz, Pattern.compile(paramRegex));
+            annotationMap.put(clazz, clazz.getAnnotation(CollisionRemapper.class));
 
-            BiMap<String, BlockState> javaIdBlockMap = BlockTranslator.getJavaIdBlockMap();
-
-            for (Map.Entry<String, BlockState> entry : javaIdBlockMap.entrySet()) {
-                BlockCollision newCollision = instantiateCollision(entry.getKey(), collisionTypes, regexMap, paramRegexMap);
-                collisionMap.put(entry.getValue(), newCollision);
+        }
+        BiMap<String, BlockState> javaIdBlockMap = BlockTranslator.getJavaIdBlockMap();
+        // Map of classes that don't change based on parameters that have already been created
+        // BiMap<Class, BlockCollision> instantiatedCollision = HashBiMap.create();
+        Map<Class, BlockCollision> instantiatedCollision = new HashMap<>();
+        for (Map.Entry<String, BlockState> entry : javaIdBlockMap.entrySet()) {
+            BlockCollision newCollision = instantiateCollision(entry.getKey(), collisionTypes, annotationMap, instantiatedCollision);
+            if (newCollision != null) {
+                instantiatedCollision.put(newCollision.getClass(), newCollision);
             }
+            collisionMap.put(entry.getValue(), newCollision);
         }
     }
 
-    private static BlockCollision instantiateCollision(String blockID, List collisionTypes, Map<Class, Pattern> regexMap, Map<Class, Pattern> paramRegexMap) {
+    private static BlockCollision instantiateCollision(String blockID, List<Class> collisionTypes, Map<Class, CollisionRemapper> annotationMap, Map<Class, BlockCollision> instantiatedCollision) {
 
         String blockName = blockID.split("\\[")[0].replace("minecraft:", "");
         String params = "";
@@ -82,13 +95,32 @@ public class CollisionTranslator {
         Iterator i = collisionTypes.iterator();
         while (i.hasNext()) {
             Class collisionType = (Class) i.next();
-            if (regexMap.get(collisionType).matcher(blockName).find() &&
-                    paramRegexMap.get(collisionType).matcher(params).find()) {
+            CollisionRemapper annotation = annotationMap.get(collisionType);
+
+            Pattern pattern = Pattern.compile(annotation.regex());
+            Pattern paramsPattern = Pattern.compile(annotation.paramRegex());
+
+            if (pattern.matcher(blockName).find() && paramsPattern.matcher(params).find()) {
                 try {
-                    BlockCollision collision = (BlockCollision) collisionType.getDeclaredConstructor(String.class).newInstance(params);
+                    // System.out.println("start");
+
+                    if (!annotation.usesParams() && annotationMap.containsKey(collisionType)) {
+                        return instantiatedCollision.get(collisionType);
+                    }
                     // Return null when empty to save unnecessary checks
-                    if (collision.getClass().isInstance(EmptyCollision.class)) {
+                    if (collisionType == EmptyCollision.class) {
+                        // System.out.println("null!!!");
                         return null;
+                    }
+                    BlockCollision collision = (BlockCollision) collisionType.getDeclaredConstructor(String.class).newInstance(params);
+                    // If there's an existing instance equal to this one, use that instead
+                    if (instantiatedCollision.containsValue(collision)) {
+                        for (Map.Entry<Class, BlockCollision> entry : instantiatedCollision.entrySet()) {
+                            if (entry.getValue() == collision) {
+                                collision = entry.getValue();
+                                break;
+                            }
+                        }
                     }
                     return collision;
                 } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
@@ -103,7 +135,9 @@ public class CollisionTranslator {
 
     public static BlockCollision getCollision(BlockState block, int x, int y, int z) {
         BlockCollision collision = collisionMap.get(block);
-        collision.setPosition(x, y, z);
+        if (collision != null) {
+            collision.setPosition(x, y, z);
+        }
         return collision;
     }
 }

@@ -30,7 +30,7 @@ import org.geysermc.connector.network.translators.world.collision.CollisionRemap
 import org.geysermc.connector.network.translators.world.collision.translators.BlockCollision;
 import org.geysermc.connector.utils.BoundingBox;
 
-@CollisionRemapper(regex = "_stairs$")
+@CollisionRemapper(regex = "_stairs$", usesParams = true)
 public class StairCollision extends BlockCollision {
     public StairCollision(String params) {
         super();

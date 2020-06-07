@@ -77,28 +77,28 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             // For now we only check collision when the player is on the ground to improve performance
             // This will cause issues if the player flies into a stair in Creative (quite unlikely)
 
-            // if (packet.isOnGround()) {
+            if (true) { // packet.isOnGround()) {
 
-                BoundingBox playerCollision = new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.6, 1.8, 0.6);
+                BoundingBox playerCollision = new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.8, 1.8, 0.8);
 
                 // Loop through all blocks that could collide with the player
-                int minCollisionX = (int) Math.floor(position.getX() - 0.3);
-                int maxCollisionX = (int) Math.floor(position.getX() + 0.3);
+                int minCollisionX = (int) Math.floor(position.getX() - 0.4);
+                int maxCollisionX = (int) Math.floor(position.getX() + 0.4);
 
                 // Y extends 0.5 blocks down because of fence hitboxes
                 int minCollisionY = (int) Math.floor(position.getY() - 0.5);
 
+                // TODO: change comment
                 // Hitbox height is currently set to 0.5 to improve performance, as only blocks below the player need checking
                 // Any lower seems to cause issues
-                int maxCollisionY = (int) Math.floor(position.getY() + 0.5);
+                int maxCollisionY = (int) Math.floor(position.getY() + 1.8);
 
-                int minCollisionZ = (int) Math.floor(position.getZ() - 0.3);
-                int maxCollisionZ = (int) Math.floor(position.getZ() + 0.3);
+                int minCollisionZ = (int) Math.floor(position.getZ() - 0.4);
+                int maxCollisionZ = (int) Math.floor(position.getZ() + 0.4);
 
                 BlockCollision blockCollision;
 
                 for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
-                    // Need to run twice?
                     for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
                         for (int z = minCollisionZ; z < maxCollisionZ + 1; z++) {
                             blockCollision = CollisionTranslator.getCollision(
@@ -108,13 +108,20 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
                             if (blockCollision != null) {
                                 blockCollision.correctPosition(playerCollision);
+                                playerCollision.translate(0, 0.1, 0); // Hack to not check y
+                                if (blockCollision.checkIntersection(playerCollision)) {
+                                    System.out.println("Collision!");
+                                    System.out.println(playerCollision.getMiddleX());
+                                    // return;
+                                }
+                                playerCollision.translate(0, -0.1, 0); // Hack to not check y
                             }
                         }
                     }
                 }
                 position = Vector3d.from(playerCollision.getMiddleX(), playerCollision.getMiddleY() - 0.9,
                         playerCollision.getMiddleZ());
-            // }
+            }
         } else {
             // When chunk caching is off, we have to rely on this
             // It rounds the Y position up to the nearest 0.5
