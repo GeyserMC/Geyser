@@ -61,7 +61,7 @@ public class BlockInventoryHolder extends InventoryHolder {
                 .intTag("x", position.getX())
                 .intTag("y", position.getY())
                 .intTag("z", position.getZ())
-                .stringTag("CustomName", LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode())).buildRootTag();
+                .stringTag("CustomName", inventory.getTitle()).buildRootTag();
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(position);

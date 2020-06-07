@@ -36,6 +36,8 @@ import com.nukkitx.protocol.bedrock.data.EntityData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.UpdateTradePacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -62,12 +64,18 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
         updateTradePacket.setWindowId((short) packet.getWindowId());
         updateTradePacket.setWindowType((short) ContainerType.TRADING.id());
+        Inventory openInv = session.getInventoryCache().getOpenInventory();
         String displayName;
-        Entity realVillager = session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
-        if (realVillager != null && realVillager.getMetadata().containsKey(EntityData.NAMETAG) && realVillager.getMetadata().getString(EntityData.NAMETAG) != null) {
-            displayName = realVillager.getMetadata().getString(EntityData.NAMETAG);
+        if (openInv != null && openInv.getId() == packet.getWindowId()) {
+            displayName = openInv.getTitle();
         } else {
-            displayName = packet.isRegularVillager() ? "Villager" : "Wandering Trader";
+            Entity realVillager = session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
+            if (realVillager != null && realVillager.getMetadata().containsKey(EntityData.NAMETAG) && realVillager.getMetadata().getString(EntityData.NAMETAG) != null) {
+                displayName = realVillager.getMetadata().getString(EntityData.NAMETAG);
+            } else {
+                displayName = realVillager != null &&
+                        realVillager.getEntityType() == EntityType.WANDERING_TRADER ? "Wandering Trader" : "Villager";
+            }
         }
         updateTradePacket.setDisplayName(displayName);
         updateTradePacket.setUnknownInt(0);
