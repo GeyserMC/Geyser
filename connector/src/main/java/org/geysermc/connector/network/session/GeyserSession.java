@@ -31,6 +31,7 @@ import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
@@ -58,6 +59,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
@@ -79,6 +81,8 @@ import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -171,6 +175,11 @@ public class GeyserSession implements CommandSender {
     @Setter
     private long lastWindowCloseTime = 0;
 
+    @Setter
+    private VillagerTrade[] villagerTrades;
+    @Setter
+    private long lastInteractedVillagerEid;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -216,6 +225,15 @@ public class GeyserSession implements CommandSender {
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
+
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
+        List<Attribute> attributes = new ArrayList<>();
+        // Default move speed
+        // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
+        attributes.add(new Attribute("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
+        attributesPacket.setAttributes(attributes);
+        upstream.sendPacket(attributesPacket);
     }
 
     public void fetchOurSkin(PlayerListPacket.Entry entry) {
