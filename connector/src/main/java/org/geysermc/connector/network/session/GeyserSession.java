@@ -70,6 +70,7 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.MathUtils;
 import org.geysermc.connector.utils.SkinUtils;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -86,8 +87,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements CommandSender {
-
-    private static final double SQRT_OF_TWO = Math.sqrt(2);
 
     private final GeyserConnector connector;
     private final UpstreamSession upstream;
@@ -463,7 +462,7 @@ public class GeyserSession implements CommandSender {
     }
 
     public void setRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * SQRT_OF_TWO); //square to circle
+        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
         if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
         this.renderDistance = renderDistance;
 
