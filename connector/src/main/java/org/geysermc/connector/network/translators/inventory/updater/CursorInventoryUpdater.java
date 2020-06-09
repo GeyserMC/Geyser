@@ -44,7 +44,7 @@ public class CursorInventoryUpdater extends InventoryUpdater {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.CURSOR);
             slotPacket.setSlot(bedrockSlot);
-            slotPacket.setItem(ItemTranslator.translateToBedrock(inventory.getItem(i)));
+            slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i)));
             session.sendUpstreamPacket(slotPacket);
         }
     }
@@ -57,7 +57,7 @@ public class CursorInventoryUpdater extends InventoryUpdater {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(ContainerId.CURSOR);
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(ItemTranslator.translateToBedrock(inventory.getItem(javaSlot)));
+        slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
         session.sendUpstreamPacket(slotPacket);
         return true;
     }

@@ -27,6 +27,8 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.message.Message;
+import com.nukkitx.nbt.CompoundTagBuilder;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.Tag;
@@ -34,7 +36,9 @@ import com.nukkitx.protocol.bedrock.data.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
 
 import java.util.ArrayList;
@@ -115,7 +119,7 @@ public abstract class ItemTranslator {
         return itemStack;
     }
 
-    public static ItemData translateToBedrock(ItemStack stack) {
+    public static ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
         if (stack == null) {
             return ItemData.AIR;
         }
@@ -132,12 +136,42 @@ public abstract class ItemTranslator {
             }
         }
 
+        ItemData itemData;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
         if (itemStackTranslator != null) {
-            return itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
+            itemData = itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
         } else {
-            return DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
+            itemData = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
         }
+
+
+        // Get the display name of the item
+        CompoundTag tag = itemData.getTag();
+        if (tag != null) {
+            CompoundTag display = tag.getCompound("display");
+            if (display != null) {
+                String name = display.getString("Name");
+
+                // Check if its a message to translate
+                if (MessageUtils.isMessage(name)) {
+                    // Get the translated name
+                    name = MessageUtils.getTranslatedBedrockMessage(Message.fromString(name), session.getClientData().getLanguageCode());
+
+                    // Build the new display tag
+                    CompoundTagBuilder displayBuilder = display.toBuilder();
+                    displayBuilder.stringTag("Name", name);
+
+                    // Build the new root tag
+                    CompoundTagBuilder builder = tag.toBuilder();
+                    builder.tag(displayBuilder.build("display"));
+
+                    // Create a new item with the original data + updated name
+                    itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.buildRootTag());
+                }
+            }
+        }
+
+        return itemData;
     }
 
     private static final ItemTranslator DEFAULT_TRANSLATOR = new ItemTranslator() {
@@ -351,5 +385,49 @@ public abstract class ItemTranslator {
         return null;
     }
 
+    /**
+     * Checks if an {@link ItemStack} is equal to another item stack
+     *
+     * @param itemStack the item stack to check
+     * @param equalsItemStack the item stack to check if equal to
+     * @param checkAmount if the amount should be taken into account
+     * @param trueIfAmountIsGreater if this should return true if the amount of the
+     *                              first item stack is greater than that of the second
+     * @param checkNbt if NBT data should be checked
+     * @return if an item stack is equal to another item stack
+     */
+    public boolean equals(ItemStack itemStack, ItemStack equalsItemStack, boolean checkAmount, boolean trueIfAmountIsGreater, boolean checkNbt) {
+        if (itemStack.getId() != equalsItemStack.getId()) {
+            return false;
+        }
+        if (checkAmount) {
+            if (trueIfAmountIsGreater) {
+                if (itemStack.getAmount() < equalsItemStack.getAmount()) {
+                    return false;
+                }
+            } else {
+                if (itemStack.getAmount() != equalsItemStack.getAmount()) {
+                    return false;
+                }
+            }
+        }
+
+        if (!checkNbt) {
+            return true;
+        }
+        if ((itemStack.getNbt() == null || itemStack.getNbt().isEmpty()) && (equalsItemStack.getNbt() != null && !equalsItemStack.getNbt().isEmpty())) {
+            return false;
+        }
+
+        if ((itemStack.getNbt() != null && !itemStack.getNbt().isEmpty() && (equalsItemStack.getNbt() == null || !equalsItemStack.getNbt().isEmpty()))) {
+            return false;
+        }
+
+        if (itemStack.getNbt() != null && equalsItemStack.getNbt() != null) {
+            return itemStack.getNbt().equals(equalsItemStack.getNbt());
+        }
+
+        return true;
+    }
 
 }

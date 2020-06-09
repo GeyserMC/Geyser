@@ -55,7 +55,7 @@ public class MinecartEntity extends Entity {
             metadata.put(EntityData.HURT_TIME, Math.min((int) (float) entityMetadata.getValue(), 15));
         }
 
-        if (!(this instanceof FurnaceMinecartEntity)) { // Handled in FurnaceMinecartEntity.java
+        if (!(this instanceof DefaultBlockMinecartEntity)) { // Handled in the DefaultBlockMinecartEntity class
             // Custom block
             if (entityMetadata.getId() == 10) {
                 metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId((int) entityMetadata.getValue()));
