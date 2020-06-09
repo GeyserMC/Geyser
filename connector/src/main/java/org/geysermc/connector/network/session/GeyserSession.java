@@ -42,7 +42,6 @@ import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
@@ -87,6 +86,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements CommandSender {
+
+    private static final double SQRT_OF_TWO = Math.sqrt(2);
 
     private final GeyserConnector connector;
     private final UpstreamSession upstream;
@@ -462,7 +463,7 @@ public class GeyserSession implements CommandSender {
     }
 
     public void setRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * TrigMath.SQRT_OF_TWO); //square to circle
+        renderDistance = GenericMath.ceil(++renderDistance * SQRT_OF_TWO); //square to circle
         if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
         this.renderDistance = renderDistance;
 
