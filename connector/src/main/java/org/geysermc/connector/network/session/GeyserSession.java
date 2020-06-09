@@ -42,7 +42,6 @@ import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
@@ -71,6 +70,7 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.MathUtils;
 import org.geysermc.connector.utils.SkinUtils;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -462,7 +462,7 @@ public class GeyserSession implements CommandSender {
     }
 
     public void setRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * TrigMath.SQRT_OF_TWO); //square to circle
+        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
         if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
         this.renderDistance = renderDistance;
 
