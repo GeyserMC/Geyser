@@ -6,27 +6,14 @@ import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class BlockEntityUtils {
 
     private static final BlockEntityTranslator EMPTY_TRANSLATOR = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get("Empty");
 
-    private static final Map<String, String> BLOCK_ENTITY_TRANSLATIONS = new HashMap<String, String>() {
-        {
-            // Bedrock/Java differences
-            put("minecraft:enchanting_table", "EnchantTable");
-            put("minecraft:piston_head", "PistonArm");
-            put("minecraft:trapped_chest", "Chest");
-            // There are some legacy IDs sent but as far as I can tell they are not needed for things to work properly
-        }
-    };
-
     public static String getBedrockBlockEntityId(String id) {
         // These are the only exceptions when it comes to block entity ids
-        if (BLOCK_ENTITY_TRANSLATIONS.containsKey(id)) {
-            return BLOCK_ENTITY_TRANSLATIONS.get(id);
+        if (BlockEntityTranslator.BLOCK_ENTITY_TRANSLATIONS.containsKey(id)) {
+            return BlockEntityTranslator.BLOCK_ENTITY_TRANSLATIONS.get(id);
         }
 
         id = id.replace("minecraft:", "")
