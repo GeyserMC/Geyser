@@ -6,35 +6,43 @@ import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class BlockEntityUtils {
 
     private static final BlockEntityTranslator EMPTY_TRANSLATOR = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get("Empty");
 
+    private static final Map<String, String> BLOCK_ENTITY_TRANSLATIONS = new HashMap<String, String>() {
+        {
+            // Bedrock/Java differences
+            put("minecraft:enchanting_table", "EnchantTable");
+            put("minecraft:piston_head", "PistonArm");
+            put("minecraft:trapped_chest", "Chest");
+            // There are some legacy IDs sent but as far as I can tell they are not needed for things to work properly
+        }
+    };
+
     public static String getBedrockBlockEntityId(String id) {
         // These are the only exceptions when it comes to block entity ids
-        if (id.contains("piston_head"))
-            return "PistonArm";
-
-        if (id.contains("trapped_chest"))
-            return "Chest";
-
-        if (id.contains("EnderChest"))
-            return "EnderChest";
-
-        if (id.contains("enchanting_table")) {
-            return "EnchantTable";
+        if (BLOCK_ENTITY_TRANSLATIONS.containsKey(id)) {
+            return BLOCK_ENTITY_TRANSLATIONS.get(id);
         }
 
-        id = id.toLowerCase()
-            .replace("minecraft:", "")
+        id = id.replace("minecraft:", "")
             .replace("_", " ");
-        String[] words = id.split(" ");
+        // Split at every space or capital letter - for the latter, some legacy Java block entity tags are the correct format already
+        String[] words;
+        if (!id.toUpperCase().equals(id)) { // Otherwise we get [S, K, U, L, L]
+            words = id.split("(?=[A-Z])| "); // Split at every space or note or before every capital letter
+        } else {
+            words = id.split(" ");
+        }
         for (int i = 0; i < words.length; i++) {
             words[i] = words[i].substring(0, 1).toUpperCase() + words[i].substring(1).toLowerCase();
         }
 
-        id = String.join(" ", words);
-        return id.replace(" ", "");
+        return String.join("", words);
     }
 
     public static BlockEntityTranslator getBlockEntityTranslator(String name) {
