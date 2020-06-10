@@ -65,6 +65,11 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
                 break;
         }
 
+        // This will replace the 'null' message sometimes sent and replace it with a space so subtitle can still work
+        if ("null".equals(titlePacket.getText())) {
+            titlePacket.setText(" ");
+        }
+
         session.sendUpstreamPacket(titlePacket);
     }
 }
