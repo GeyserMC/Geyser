@@ -42,6 +42,7 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
     @Override
     public void translate(ServerMapDataPacket packet, GeyserSession session) {
         ClientboundMapItemDataPacket mapItemDataPacket = new ClientboundMapItemDataPacket();
+        boolean shouldStore = false;
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
         mapItemDataPacket.setDimensionId(session.getPlayerEntity().getDimension());
@@ -54,6 +55,10 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
             mapItemDataPacket.setYOffset(data.getY());
             mapItemDataPacket.setWidth(data.getColumns());
             mapItemDataPacket.setHeight(data.getRows());
+
+            if (mapItemDataPacket.getWidth() == 128 && mapItemDataPacket.getHeight() == 128) {
+                shouldStore = true;
+            }
 
             // Every int entry is an ABGR color
             int[] colors = new int[data.getData().length];
@@ -76,6 +81,12 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
             id++;
         }
 
-        session.getUpstream().getSession().sendPacket(mapItemDataPacket);
+        // Store the map to send when the client requests it
+        if (shouldStore) {
+            session.getStoredMaps().put(mapItemDataPacket.getUniqueMapId(), mapItemDataPacket);
+        }
+
+        // Send anyway just incase
+        session.sendUpstreamPacket(mapItemDataPacket);
     }
 }
