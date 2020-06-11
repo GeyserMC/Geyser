@@ -37,6 +37,7 @@ import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FireworkColor;
+import org.geysermc.connector.utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,7 @@ public class FireworkEntity extends Entity {
 
             CompoundTagBuilder fireworksBuilder = CompoundTagBuilder.builder();
             if (fireworks.get("Flight") != null) {
-                fireworksBuilder.byteTag("Flight", (Byte) fireworks.get("Flight").getValue());
+                fireworksBuilder.byteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue()));
             }
 
             List<com.nukkitx.nbt.tag.CompoundTag> explosions = new ArrayList<>();
@@ -73,7 +74,7 @@ public class FireworkEntity extends Entity {
                     CompoundTagBuilder effectBuilder = CompoundTagBuilder.builder();
 
                     if (effectData.get("Type") != null) {
-                        effectBuilder.byteTag("FireworkType", (Byte) effectData.get("Type").getValue());
+                        effectBuilder.byteTag("FireworkType", MathUtils.convertByte(effectData.get("Type").getValue()));
                     }
 
                     if (effectData.get("Colors") != null) {
@@ -101,11 +102,11 @@ public class FireworkEntity extends Entity {
                     }
 
                     if (effectData.get("Trail") != null) {
-                        effectBuilder.byteTag("FireworkTrail", (Byte) effectData.get("Trail").getValue());
+                        effectBuilder.byteTag("FireworkTrail", MathUtils.convertByte(effectData.get("Trail").getValue()));
                     }
 
                     if (effectData.get("Flicker") != null) {
-                        effectBuilder.byteTag("FireworkFlicker", (Byte) effectData.get("Flicker").getValue());
+                        effectBuilder.byteTag("FireworkFlicker", MathUtils.convertByte(effectData.get("Flicker").getValue()));
                     }
 
                     explosions.add(effectBuilder.buildRootTag());

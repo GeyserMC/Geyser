@@ -28,10 +28,10 @@ package org.geysermc.platform.spigot;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
@@ -39,9 +39,14 @@ import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotWorldManager;
+import org.geysermc.connector.utils.FileUtils;
 import us.myles.ViaVersion.api.Via;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
@@ -56,25 +61,40 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
-
-        this.geyserConfig = new GeyserSpigotConfiguration(getDataFolder(), getConfig());
-        if (geyserConfig.getMetrics().getUniqueId().equals("generateduuid")) {
-            getConfig().set("metrics.uuid", UUID.randomUUID().toString());
-            saveConfig();
+        // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
+        try {
+            if (!getDataFolder().exists()) {
+                getDataFolder().mkdir();
+                File bukkitConfig = new File("plugins/Geyser-Bukkit/config.yml");
+                if (bukkitConfig.exists()) { // Copy over old configs
+                    getLogger().log(Level.INFO, "Existing config found in the Geyser-Bukkit folder; copying over...");
+                    Files.copy(bukkitConfig.toPath(), new File(getDataFolder().toString() + "/config.yml").toPath());
+                    getLogger().log(Level.INFO, "Copied!");
+                }
+            }
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
+        } catch (IOException ex) {
+            getLogger().log(Level.WARNING, "Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+            ex.printStackTrace();
         }
 
         // Don't change the ip if its listening on all interfaces
         // By default this should be 127.0.0.1 but may need to be changed in some circumstances
         if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
-            getConfig().set("remote.address", Bukkit.getIp());
+            geyserConfig.getRemote().setAddress(Bukkit.getIp());
         }
 
-        getConfig().set("remote.port", Bukkit.getPort());
-        saveConfig();
+        geyserConfig.getRemote().setPort(Bukkit.getPort());
 
         this.geyserLogger = new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && Bukkit.getPluginManager().getPlugin("floodgate-bukkit") == null) {
+            geyserLogger.severe("Auth type set to Floodgate but Floodgate not found! Disabling...");
+            this.getPluginLoader().disablePlugin(this);
+            return;
+        }
 
         geyserConfig.loadFloodgate(this);
 
@@ -113,7 +133,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        connector.shutdown();
+        if (connector != null)
+            connector.shutdown();
     }
 
     @Override
