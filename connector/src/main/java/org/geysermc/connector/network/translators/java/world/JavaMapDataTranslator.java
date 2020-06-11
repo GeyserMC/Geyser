@@ -56,6 +56,7 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
             mapItemDataPacket.setWidth(data.getColumns());
             mapItemDataPacket.setHeight(data.getRows());
 
+            // We have a full map image, this usually only happens on spawn for the initial image
             if (mapItemDataPacket.getWidth() == 128 && mapItemDataPacket.getHeight() == 128) {
                 shouldStore = true;
             }
@@ -81,12 +82,12 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
             id++;
         }
 
-        // Store the map to send when the client requests it
+        // Store the map to send when the client requests it, as bedrock expects the data after a MapInfoRequestPacket
         if (shouldStore) {
             session.getStoredMaps().put(mapItemDataPacket.getUniqueMapId(), mapItemDataPacket);
         }
 
-        // Send anyway just incase
+        // Send anyway just in case
         session.sendUpstreamPacket(mapItemDataPacket);
     }
 }
