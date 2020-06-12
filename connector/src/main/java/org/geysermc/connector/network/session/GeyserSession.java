@@ -199,6 +199,7 @@ public class GeyserSession implements CommandSender {
         this.usingSavedCredentials = false;
         this.started = false;
 
+
         this.inventoryCache.getInventories().put(0, inventory);
     }
 
@@ -250,25 +251,14 @@ public class GeyserSession implements CommandSender {
         biomeDefinitionListPacket.setTag(BiomeTranslator.BIOMES);
         upstream.sendPacket(biomeDefinitionListPacket);
 
-        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
-        upstream.sendPacket(entityPacket);
-
-        InventoryContentPacket creativePacket = new InventoryContentPacket();
-        creativePacket.setContainerId(ContainerId.CREATIVE);
-        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
-        upstream.sendPacket(creativePacket);
-    }
-
-    public void fetchOurSkin(PlayerListPacket.Entry entry) {
-        PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
-        playerSkinPacket.setUuid(authData.getUUID());
-        playerSkinPacket.setSkin(entry.getSkin());
-        playerSkinPacket.setOldSkinName("OldName");
-        playerSkinPacket.setNewSkinName("NewName");
-        playerSkinPacket.setTrustedSkin(true);
-        upstream.sendPacket(playerSkinPacket);
-        getConnector().getLogger().debug("Sending skin for " + playerEntity.getUsername() + " " + authData.getUUID());
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
+        List<Attribute> attributes = new ArrayList<>();
+        // Default move speed
+        // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
+        attributes.add(new Attribute("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
+        attributesPacket.setAttributes(attributes);
+        upstream.sendPacket(attributesPacket);
     }
 
     public void authenticate(String username) {
