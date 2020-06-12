@@ -33,6 +33,7 @@ import java.util.regex.Matcher;
 
 @CollisionRemapper(regex = "^snow$", usesParams = true)
 public class SnowCollision extends BlockCollision {
+    private int layers;
     private Pattern layersPattern = Pattern.compile("layers=([0-8])");
 
     public SnowCollision(String params) {
@@ -41,10 +42,36 @@ public class SnowCollision extends BlockCollision {
         matcher.find();
 
         // Hitbox is 1 layer less (you sink in 1 layer)
-        int layers = Integer.parseInt(matcher.group(1)) - 1;
+        layers = Integer.parseInt(matcher.group(1));
 
-        boundingBoxes = new BoundingBox[]{
-                new BoundingBox(0.5, (layers  * 0.125) / 2, 0.5, 1, layers  * 0.125, 1)
-        };
+        if (layers > 1) {
+            boundingBoxes = new BoundingBox[]{
+                    // Take away 1 because you can go 1 layer into snow layers
+                    new BoundingBox(0.5, ((layers - 1) * 0.125) / 2, 0.5, 1, (layers - 1) * 0.125, 1)
+            };
+        } else {
+            // Single layers have no collision
+            boundingBoxes = new BoundingBox[0];
+        }
+
+        pushUpTolerance = 0.125;
+    }
+
+    // Needs to run before the main correction code or it can move the player into blocks
+    // This is counteracted by the main collision code pushing them out
+    @Override
+    public void beforeCorrectPosition(BoundingBox playerCollision) {
+        // In Bedrock, snow layers round down to half blocks but you can't sink into them at all
+        // This means the collision each half block reaches above where it should be on Java so the player has to be pushed down
+        if (layers == 4 || layers == 8) {
+            double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
+            double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
+            // If the player is in the buggy area, push them down
+            if (playerMinY > boxMaxY &&
+                    playerMinY <= (boxMaxY + 0.125)) {
+                playerCollision.translate(0, boxMaxY - playerMinY, 0);
+                // System.out.println("1: Moved by " + (boxMaxY - playerMinY));
+            }
+        }
     }
 }

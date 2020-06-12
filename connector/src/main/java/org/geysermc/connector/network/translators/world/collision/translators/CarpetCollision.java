@@ -34,7 +34,7 @@ public class CarpetCollision extends BlockCollision {
     public CarpetCollision(String params) {
         super();
         boundingBoxes = new BoundingBox[]{
-                new BoundingBox(0.5, 0.0625, 0.5, 1, 0.125, 1)
+                new BoundingBox(0.5, 0.03125, 0.5, 1, 0.0625, 1)
         };
     }
 }

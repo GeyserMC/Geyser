@@ -76,7 +76,7 @@ public interface BlockSoundInteractionHandler extends SoundInteractionHandler<St
                 }
                 if (!contains) continue;
             }
-            if (session.isSneaking() && !interactionEntry.getKey().ignoreSneakingWhileHolding()) {
+            if (session.getPlayerEntity().isSneaking() && !interactionEntry.getKey().ignoreSneakingWhileHolding()) {
                 if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() != 0) {
                     continue;
                 }

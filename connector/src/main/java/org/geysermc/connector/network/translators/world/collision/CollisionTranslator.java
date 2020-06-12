@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.collision.translators.*;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.reflections.Reflections;
@@ -45,9 +46,6 @@ public class CollisionTranslator {
     private static Map<BlockState, BlockCollision> collisionMap = new HashMap<>();
 
     public static void init() {
-        System.out.println(new SolidCollision("").hashCode());
-        System.out.println(new SolidCollision("").hashCode());
-
         // If chunk caching is off then don't initialize
         if (!GeyserConnector.getInstance().getConfig().isCacheChunks()) {
             return;
@@ -69,8 +67,10 @@ public class CollisionTranslator {
             // regexMap.put(clazz, Pattern.compile(regex));
             // paramRegexMap.put(clazz, Pattern.compile(paramRegex));
             annotationMap.put(clazz, clazz.getAnnotation(CollisionRemapper.class));
-
         }
+
+        System.out.println(collisionTypes);
+
         BiMap<String, BlockState> javaIdBlockMap = BlockTranslator.getJavaIdBlockMap();
         // Map of classes that don't change based on parameters that have already been created
         // BiMap<Class, BlockCollision> instantiatedCollision = HashBiMap.create();
@@ -102,9 +102,17 @@ public class CollisionTranslator {
 
             if (pattern.matcher(blockName).find() && paramsPattern.matcher(params).find()) {
                 try {
-                    // System.out.println("start");
+                    // System.out.println("************** TYPE: " + collisionType + " BLOCK: " + blockID + " **************");
 
-                    if (!annotation.usesParams() && annotationMap.containsKey(collisionType)) {
+                    /* if (instantiatedCollision.keySet().size() > 1) {
+                        System.out.println("Two!");
+                        System.out.println(instantiatedCollision.keySet().toArray()[1]);
+                        System.out.println(collisionType);
+                        System.out.println(!annotation.usesParams());
+                        System.out.println(instantiatedCollision.containsKey(collisionType));
+                    } */
+                    if (!annotation.usesParams() && instantiatedCollision.containsKey(collisionType)) {
+                        // System.out.println("Early return (found): " + collisionType);
                         return instantiatedCollision.get(collisionType);
                     }
                     // Return null when empty to save unnecessary checks
@@ -114,14 +122,16 @@ public class CollisionTranslator {
                     }
                     BlockCollision collision = (BlockCollision) collisionType.getDeclaredConstructor(String.class).newInstance(params);
                     // If there's an existing instance equal to this one, use that instead
-                    if (instantiatedCollision.containsValue(collision)) {
+                    // if (instantiatedCollision.containsValue(collision)) {
+                        // System.out.println("Can delete " + collision);
                         for (Map.Entry<Class, BlockCollision> entry : instantiatedCollision.entrySet()) {
-                            if (entry.getValue() == collision) {
+                            if (entry.getValue().equals(collision)) {
+                                // System.out.println("Deleting " + collision);
                                 collision = entry.getValue();
                                 break;
                             }
                         }
-                    }
+                    // }
                     return collision;
                 } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
                     e.printStackTrace();
@@ -130,7 +140,11 @@ public class CollisionTranslator {
             }
         }
 
-        return new SolidCollision(params);
+        if (instantiatedCollision.containsKey(SolidCollision.class)) {
+            return instantiatedCollision.get(SolidCollision.class);
+        } else {
+            return new SolidCollision(params);
+        }
     }
 
     public static BlockCollision getCollision(BlockState block, int x, int y, int z) {
@@ -140,4 +154,16 @@ public class CollisionTranslator {
         }
         return collision;
     }
+    public static BlockCollision getCollisionAt(int x, int y, int z, GeyserSession session) {
+        try {
+            return getCollision(
+                    session.getConnector().getWorldManager().getBlockAt(session, x, y, z),
+                    x, y, z
+            );
+        } catch (ArrayIndexOutOfBoundsException e) {
+            // Block out of world
+            return null;
+        }
+    }
+
 }

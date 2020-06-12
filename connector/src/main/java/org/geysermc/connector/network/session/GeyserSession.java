@@ -134,14 +134,14 @@ public class GeyserSession implements CommandSender {
 
     private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
 
-    @Setter
+    /* @Setter
     private boolean sneaking;
 
     @Setter
     private boolean sprinting;
 
     @Setter
-    private boolean jumping;
+    private boolean jumping; */
 
     @Setter
     private BlockState breakingBlock;

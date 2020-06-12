@@ -28,9 +28,11 @@ package org.geysermc.connector.utils;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 @EqualsAndHashCode
 @Getter
+@Setter
 public class BoundingBox {
     private double middleX;
     private double middleY;

@@ -30,7 +30,9 @@ import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 
@@ -40,12 +42,16 @@ import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.collision.CollisionTranslator;
+import org.geysermc.connector.network.translators.world.collision.translators.BlockCollision;
 import org.geysermc.connector.scoreboard.Team;
+import org.geysermc.connector.utils.BoundingBox;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -60,11 +66,23 @@ public class PlayerEntity extends LivingEntity {
     private boolean onGround;
     private final EntityEffectCache effectCache;
 
+    @Setter
+    private boolean sneaking;
+    @Setter
+    private boolean sprinting;
+    @Setter
+    private boolean jumping;
+
     private Entity leftParrot;
     private Entity rightParrot;
 
+    @Getter
+    private BoundingBox boundingBox = new BoundingBox(0, 0, 0, 0.60001, 1.8, 0.60001);
+
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
+
+        System.out.println(boundingBox);
 
         profile = gameProfile;
         uuid = gameProfile.getId();
@@ -141,6 +159,8 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        updateBoundingBox(position);
+
         setPosition(position);
         setRotation(rotation);
 
@@ -171,6 +191,8 @@ public class PlayerEntity extends LivingEntity {
         setRotation(rotation);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
+        updateBoundingBox(this.position);
+
         this.onGround = isOnGround;
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
@@ -191,6 +213,7 @@ public class PlayerEntity extends LivingEntity {
     @Override
     public void setPosition(Vector3f position) {
         this.position = position.add(0, entityType.getOffset(), 0);
+        updateBoundingBox(position);
     }
 
     @Override
@@ -263,5 +286,68 @@ public class PlayerEntity extends LivingEntity {
                 }
             }
         }
+    }
+
+    public void updateBoundingBox(Vector3f position) {
+        updateBoundingBox(Vector3d.from(position.getX(), position.getY(), position.getZ()));
+    }
+
+    public void updateBoundingBox(Vector3d position) {
+        if (boundingBox == null) {
+            System.out.println("BBnull");
+            boundingBox = new BoundingBox(position.getX(), position.getY(), position.getZ(), 0.60001, 1.8, 0.60001);
+        } else {
+            // TODO: Make bounding box smaller when sneaking
+            boundingBox.setMiddleX(position.getX());
+            boundingBox.setMiddleY(position.getY() + 0.9); // (EntityType.PLAYER.getOffset() / 2));
+            // System.out.println("Offset: " + (EntityType.PLAYER.getOffset() / 2));
+            boundingBox.setMiddleZ(position.getZ());
+        }
+    }
+
+    public ArrayList<Vector3i> getCollidableBlocks(Vector3d position) {
+        ArrayList<Vector3i> blocks = new ArrayList<Vector3i>();
+
+        // Loop through all blocks that could collide with the player
+        int minCollisionX = (int) Math.floor(position.getX() - (boundingBox.getSizeX() / 2));
+        int maxCollisionX = (int) Math.floor(position.getX() + (boundingBox.getSizeX() / 2));
+
+        // Y extends 0.5 blocks down because of fence hitboxes
+        int minCollisionY = (int) Math.floor(position.getY() - 0.5);
+
+        // TODO: change comment
+        // Hitbox height is currently set to 0.5 to improve performance, as only blocks below the player need checking
+        // Any lower seems to cause issues
+        int maxCollisionY = (int) Math.floor(position.getY() + boundingBox.getSizeY());
+
+        int minCollisionZ = (int) Math.floor(position.getZ() - (boundingBox.getSizeZ() / 2));
+        int maxCollisionZ = (int) Math.floor(position.getZ() + (boundingBox.getSizeZ() / 2));
+
+        BlockCollision blockCollision;
+
+        for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
+            for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
+                for (int z = minCollisionZ; z < maxCollisionZ + 1; z++) {
+                    blocks.add(Vector3i.from(x, y, z));
+                }
+            }
+        }
+
+        return blocks;
+    }
+
+    public ArrayList<BlockCollision> getPossibleCollision(Vector3d position, GeyserSession session) {
+        ArrayList<BlockCollision> possibleCollision = new ArrayList<BlockCollision>();
+        ArrayList<Vector3i> collidableBlocks = getCollidableBlocks(position);
+
+        Iterator<Vector3i> i = collidableBlocks.iterator();
+        while (i.hasNext()) {
+            Vector3i blockPos = i.next();
+            BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
+                    blockPos.getX(), blockPos.getY(), blockPos.getZ(), session
+            );
+            possibleCollision.add(blockCollision);
+        }
+        return possibleCollision;
     }
 }
