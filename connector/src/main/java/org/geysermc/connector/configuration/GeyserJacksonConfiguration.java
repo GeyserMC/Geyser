@@ -97,6 +97,8 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         private String motd1;
         private String motd2;
+
+        private String edition = "bedrock";
     }
 
     @Getter

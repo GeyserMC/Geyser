@@ -34,6 +34,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareRecip
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDifficultyPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListDataPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListEntryPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
@@ -160,6 +161,7 @@ import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.MerchantInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SingleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
@@ -303,6 +305,7 @@ public class Edition extends GeyserEdition {
         // Register Ignored Packets
         PacketTranslatorRegistry.REGISTER
                 .ignoredPackets(ServerKeepAlivePacket.class)
+                .ignoredPackets(ServerPlayerListDataPacket.class)
                 .ignoredPackets(ServerUpdateLightPacket.class);
 
         // Register Bedrock Packet Translators
@@ -433,7 +436,8 @@ public class Edition extends GeyserEdition {
                 .inventoryTranslator(WindowType.BREWING_STAND, new BrewingInventoryTranslator(inventoryActionDataTranslator))
                 .inventoryTranslator(WindowType.ANVIL, new AnvilInventoryTranslator(inventoryActionDataTranslator))
                 .inventoryTranslator(WindowType.CRAFTING, new CraftingInventoryTranslator(inventoryActionDataTranslator))
-                .inventoryTranslator(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator(inventoryActionDataTranslator));
+                .inventoryTranslator(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator(inventoryActionDataTranslator))
+                .inventoryTranslator(WindowType.MERCHANT, new MerchantInventoryTranslator());
 //                .inventoryTranslator(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //@TODO
 
         // Register Inventory Furnace Translators
