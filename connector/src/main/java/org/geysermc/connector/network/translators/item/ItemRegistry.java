@@ -63,6 +63,8 @@ public class ItemRegistry {
     public static final int SHIELD = 829;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
     public static final int BOAT = 333;
+    // Bucket ID, used in BedrockInventoryTransactionTranslator.java
+    public static final int BUCKET = 325;
 
     public static int BARRIER_INDEX = 0;
 

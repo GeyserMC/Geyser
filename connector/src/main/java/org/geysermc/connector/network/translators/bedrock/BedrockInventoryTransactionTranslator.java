@@ -32,17 +32,16 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
-
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
@@ -99,11 +98,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 false);
                         session.sendDownstreamPacket(blockPacket);
 
-                        // Otherwise boats will not be able to be placed in survival
-                       if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BOAT) {
+                        // Otherwise boats will not be able to be placed in survival and buckets wont work on mobile
+                        if (packet.getItemInHand() != null && (packet.getItemInHand().getId() == ItemRegistry.BOAT || packet.getItemInHand().getId() == ItemRegistry.BUCKET)) {
                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                            session.sendDownstreamPacket(itemPacket);
-                       }
+                        }
 
                         Vector3i blockPos = packet.getBlockPosition();
                         // TODO: Find a better way to do this?
@@ -137,9 +136,16 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         break;
                     case 1:
                         ItemStack shieldSlot = session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36);
+                        // Handled in Entity.java
                         if (shieldSlot != null && shieldSlot.getId() == ItemRegistry.SHIELD) {
                             break;
-                        } // Handled in Entity.java
+                        }
+
+                        // Handled in ITEM_USE
+                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET) {
+                            break;
+                        }
+
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                         session.sendDownstreamPacket(useItemPacket);
                         // Used for sleeping in beds
