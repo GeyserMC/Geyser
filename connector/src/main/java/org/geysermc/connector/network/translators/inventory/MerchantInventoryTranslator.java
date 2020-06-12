@@ -74,11 +74,8 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public SlotType getSlotType(int javaSlot) {
-        if (javaSlot == 2) {
-            return SlotType.OUTPUT;
-        }
-        return SlotType.NORMAL;
+    public boolean isOutput(InventoryActionData action) {
+        return action.getSource().getContainerId() == ContainerId.CURSOR && action.getSlot() == 50;
     }
 
     @Override

@@ -25,9 +25,16 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
+import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
 
@@ -38,7 +45,7 @@ public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
         final int slot = super.bedrockSlotToJava(action);
-        if (action.getSource().getContainerId() == 124) {
+        if (action.getSource().getContainerId() == ContainerId.CURSOR) {
             switch (slot) {
                 case 16:
                     return 0;
@@ -63,6 +70,22 @@ public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
                 return 50;
         }
         return super.javaSlotToBedrock(slot);
+    }
+
+    @Override
+    public boolean isOutput(InventoryActionData action) {
+        return action.getSlot() == 50;
+    }
+
+    @Override
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
+        // Ignore these packets
+        if (actions.stream().anyMatch(a -> a.getSource().getContainerId() == ContainerId.ANVIL_RESULT
+                || a.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL)) {
+            return;
+        }
+
+        super.translateActions(session, inventory, actions);
     }
 
 }

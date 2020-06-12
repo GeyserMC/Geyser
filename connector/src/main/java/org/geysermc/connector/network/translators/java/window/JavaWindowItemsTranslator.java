@@ -31,6 +31,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
 
 import java.util.Arrays;
 
@@ -49,9 +50,12 @@ public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItem
             inventory.setItems(packet.getItems());
         }
 
-        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
-        if (translator != null) {
-            translator.updateInventory(session, inventory);
+        // If we have no pending transaction then we will also do an update
+        if (Transaction.CURRENT_TRANSACTION == null) {
+            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+            if (translator != null) {
+                translator.updateInventory(session, inventory);
+            }
         }
     }
 }

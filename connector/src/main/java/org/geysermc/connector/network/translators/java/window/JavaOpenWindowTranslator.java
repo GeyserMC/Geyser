@@ -36,6 +36,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.action.Execute;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
 import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = ServerOpenWindowPacket.class)
@@ -43,6 +45,7 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
 
     @Override
     public void translate(ServerOpenWindowPacket packet, GeyserSession session) {
+        Transaction.cancel();
         if (packet.getWindowId() == 0) {
             return;
         }
