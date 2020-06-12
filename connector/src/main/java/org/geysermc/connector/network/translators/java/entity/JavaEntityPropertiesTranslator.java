@@ -25,6 +25,11 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeModifier;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierType;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -32,17 +37,18 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.AttributeUtils;
 
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
+import java.util.List;
 
 @Translator(packet = ServerEntityPropertiesPacket.class)
 public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntityPropertiesPacket> {
 
     @Override
     public void translate(ServerEntityPropertiesPacket packet, GeyserSession session) {
+        boolean isSessionPlayer = false;
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+            isSessionPlayer = true;
         }
         if (entity == null) return;
 
@@ -53,6 +59,19 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
                     break;
                 case GENERIC_ATTACK_DAMAGE:
                     entity.getAttributes().put(AttributeType.ATTACK_DAMAGE, AttributeType.ATTACK_DAMAGE.getAttribute((float) AttributeUtils.calculateValue(attribute)));
+                    break;
+                case GENERIC_ATTACK_SPEED:
+                    if (isSessionPlayer) {
+                        // Compute attack speed value for use in sending the faux cooldown
+                        double attackSpeed = attribute.getValue();
+                        // To match vanilla behavior
+                        // Realistically only the add modifier is sent in survival gameplay,
+                        // but if multiple modifiers are included they are strictly applied in the following order
+                        attackSpeed = applyModifier(attribute.getModifiers(), attackSpeed, ModifierOperation.ADD);
+                        attackSpeed = applyModifier(attribute.getModifiers(), attackSpeed, ModifierOperation.ADD_MULTIPLIED);
+                        attackSpeed = applyModifier(attribute.getModifiers(), attackSpeed, ModifierOperation.MULTIPLY);
+                        session.setAttackSpeed(attackSpeed);
+                    }
                     break;
                 case GENERIC_FLYING_SPEED:
                     entity.getAttributes().put(AttributeType.FLYING_SPEED, AttributeType.FLYING_SPEED.getAttribute((float) AttributeUtils.calculateValue(attribute)));
@@ -74,5 +93,33 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
         }
 
         entity.updateBedrockAttributes(session);
+    }
+
+    /**
+     * Apply attribute modifiers to the current attack speed.
+     * @param modifiers The list of all attack speed modifiers.
+     * @param attackSpeed The current attack speed.
+     * @param operation The type of modifier operation to check for.
+     * @return The new attack speed. May be the same number.
+     */
+    private double applyModifier(List<AttributeModifier> modifiers, double attackSpeed, ModifierOperation operation) {
+        for (AttributeModifier modifier : modifiers) {
+            if (modifier.getType().isPresent() && modifier.getType().get() == ModifierType.ATTACK_SPEED_MODIFIER) {
+                if (operation == modifier.getOperation()) {
+                    switch (modifier.getOperation()) {
+                        case ADD:
+                            attackSpeed += modifier.getAmount();
+                            break;
+                        case ADD_MULTIPLIED: // Multiply current number by percentage
+                            attackSpeed += (attackSpeed * modifier.getAmount());
+                            break;
+                        case MULTIPLY:
+                            attackSpeed *= modifier.getAmount();
+                            break;
+                    }
+                }
+            }
+        }
+        return attackSpeed;
     }
 }

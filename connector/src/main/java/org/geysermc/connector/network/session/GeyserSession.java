@@ -175,6 +175,12 @@ public class GeyserSession implements CommandSender {
     @Setter
     private long lastInteractedVillagerEid;
 
+    /**
+     * The current attack speed of the player. Used for sending proper cooldown timings.
+     */
+    @Setter
+    private double attackSpeed;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
