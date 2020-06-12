@@ -234,16 +234,12 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
                     && from.currentCount == to.toCount
                     && !from.getCurrentItem().equals(to.getCurrentItem()))) {
 
-            if (from != cursor) {
+            if (from != cursor && to != cursor) {
                 transaction.add(new Click(Click.Type.LEFT, from.javaSlot));
-            }
-
-            if (to != cursor) {
                 transaction.add(new Click(Click.Type.LEFT, to.javaSlot));
-            }
-
-            if (from != cursor && to.currentCount > 0) {
                 transaction.add(new Click(Click.Type.LEFT, from.javaSlot));
+            } else {
+                transaction.add(new Click(Click.Type.LEFT, from == cursor ? to.javaSlot : from.javaSlot));
             }
 
             int currentCount = from.currentCount;
