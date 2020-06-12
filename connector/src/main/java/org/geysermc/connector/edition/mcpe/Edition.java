@@ -78,6 +78,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerClose
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerConfirmTransactionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerTradeListPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowPropertyPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockBreakAnimPacket;
@@ -233,6 +234,7 @@ import org.geysermc.connector.network.translators.java.world.JavaPlayEffectTrans
 import org.geysermc.connector.network.translators.java.world.JavaPlayerPlaySoundTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaSpawnParticleTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaSpawnPositionTranslator;
+import org.geysermc.connector.network.translators.java.world.JavaTradeListTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaUnloadChunkTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaUpdateTileEntityTranslator;
 import org.geysermc.connector.network.translators.java.world.JavaUpdateTimeTranslator;
@@ -399,6 +401,7 @@ public class Edition extends GeyserEdition {
                 .javaPacketTranslator(ServerPlaySoundPacket.class, new JavaPlayerPlaySoundTranslator())
                 .javaPacketTranslator(ServerSpawnParticlePacket.class, new JavaSpawnParticleTranslator())
                 .javaPacketTranslator(ServerSpawnPositionPacket.class, new JavaSpawnPositionTranslator())
+                .javaPacketTranslator(ServerTradeListPacket.class, new JavaTradeListTranslator())
                 .javaPacketTranslator(ServerUnloadChunkPacket.class, new JavaUnloadChunkTranslator())
                 .javaPacketTranslator(ServerUpdateTileEntityPacket.class, new JavaUpdateTileEntityTranslator())
                 .javaPacketTranslator(ServerUpdateTimePacket.class, new JavaUpdateTimeTranslator())
