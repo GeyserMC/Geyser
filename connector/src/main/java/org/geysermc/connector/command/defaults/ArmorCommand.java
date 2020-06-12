@@ -70,8 +70,7 @@ public class ArmorCommand extends GeyserCommand {
         if (session != null) {
             InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(WindowType.HOPPER);
 
-            // Id seems to be constrained to a byte so we just use the largest number
-            Inventory newInventory = new Inventory("Armor and Offhand", 127, WindowType.HOPPER, newTranslator.size + 36);
+            Inventory newInventory = new Inventory("Armor and Offhand", InventoryTranslator.ARMOUR_GUI_ID, WindowType.HOPPER, newTranslator.size + 36);
             session.getInventoryCache().cacheInventory(newInventory);
             InventoryUtils.openInventory(session, newInventory);
 

@@ -25,10 +25,10 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
+import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.InventorySource;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
@@ -44,47 +44,45 @@ public class HopperInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        if (inventory.getId() == 127) {
-            // The armor gui
-            GeyserConnector.getInstance().getLogger().debug("Armor gui event");
+        // Check if we are using the armour GUI
+        if (inventory.getId() == InventoryTranslator.ARMOUR_GUI_ID) {
             int i = 0;
             for (InventoryActionData action : actions) {
                 if (action.getSource().getContainerId() == 127) {
-                    // Just as a fallback we set it to the current slot
                     int newSlot;
+                    int containerID;
 
+                    // Remap the slots and container id
                     switch (action.getSlot()) {
                         case 0:
-                            newSlot = 5;
-                            break;
                         case 1:
-                            newSlot = 6;
-                            break;
                         case 2:
-                            newSlot = 7;
-                            break;
                         case 3:
-                            newSlot = 8;
+                            containerID = ContainerId.ARMOR;
+                            newSlot = action.getSlot();
                             break;
                         case 4:
+                            containerID = ContainerId.OFFHAND;
                             newSlot = 45;
                             break;
                         default:
                             newSlot = action.getSlot() + 4;
+                            containerID = ContainerId.INVENTORY;
                             break;
                     }
 
-                    GeyserConnector.getInstance().getLogger().debug("New slot: " + newSlot);
-
-                    // This doesnt work but might be close
-                    InventorySource newSource = InventorySource.fromContainerWindowId(session.getInventoryCache().getPlayerInventory().getId());
+                    // Update the action with the new container and slot
+                    InventorySource newSource = InventorySource.fromContainerWindowId(containerID);
                     InventoryActionData newData = new InventoryActionData(newSource, newSlot, action.getFromItem(), action.getToItem());
                     actions.set(i, newData);
                 }
                 i++;
             }
-        }
 
-        InventoryActionDataTranslator.translate(this, session, session.getInventoryCache().getPlayerInventory(), actions);
+            // Translate the update with the normal player inventory translator
+            InventoryActionDataTranslator.translate(InventoryTranslator.INVENTORY_TRANSLATORS.get(null), session, session.getInventoryCache().getPlayerInventory(), actions);
+        } else {
+            InventoryActionDataTranslator.translate(this, session, inventory, actions);
+        }
     }
 }

@@ -41,6 +41,9 @@ import java.util.Map;
 @AllArgsConstructor
 public abstract class InventoryTranslator {
 
+    // Just the largest ID that a window can be, used for the armor/offhand gui
+    public static final int ARMOUR_GUI_ID = 127;
+
     public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<WindowType, InventoryTranslator>() {
         {
             put(null, new PlayerInventoryTranslator()); //player inventory
