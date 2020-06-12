@@ -23,25 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.standalone;
+package org.geysermc.connector.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+public class SpawnerMinecartEntity extends DefaultBlockMinecartEntity {
 
-@Getter
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserStandaloneConfiguration extends GeyserJacksonConfiguration {
-
-    @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile;
+    public SpawnerMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
+    }
 
     @Override
-    public Path getFloodgateKeyFile() {
-        return Paths.get(floodgateKeyFile);
+    public void updateDefaultBlockMetadata() {
+        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(BlockTranslator.JAVA_RUNTIME_SPAWNER_ID));
+        metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

@@ -98,14 +98,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.steveice10</groupId>
-            <artifactId>opennbt</artifactId>
-            <version>1.4-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.steveice10</groupId>
-            <artifactId>packetlib</artifactId>
-            <version>1.5-SNAPSHOT</version>
+            <artifactId>mcprotocollib</artifactId>
+            <version>4c315aa206</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -115,30 +109,10 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.steveice10</groupId>
-            <artifactId>mcauthlib</artifactId>
-            <version>1.3-SNAPSHOT</version>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns</artifactId>
+            <version>4.1.43.Final</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.steveice10</groupId>
-            <artifactId>mcprotocollib</artifactId>
-            <version>1.15.2-1-SNAPSHOT</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.github.steveice10</groupId>
-                    <artifactId>opennbt</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.github.steveice10</groupId>
-                    <artifactId>packetlib</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.github.steveice10</groupId>
-                    <artifactId>mcauthlib</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>

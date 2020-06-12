@@ -69,6 +69,11 @@ public class BlockTranslator {
     public static final IntSet JAVA_RUNTIME_WOOL_IDS = new IntOpenHashSet();
     public static final int JAVA_RUNTIME_COBWEB_ID;
 
+    public static final int JAVA_RUNTIME_FURNACE_ID;
+    public static final int JAVA_RUNTIME_FURNACE_LIT_ID;
+
+    public static final int JAVA_RUNTIME_SPAWNER_ID;
+
     private static final int BLOCK_STATE_VERSION = 17760256;
 
     static {
@@ -108,6 +113,9 @@ public class BlockTranslator {
         int javaRuntimeId = -1;
         int bedrockRuntimeId = 0;
         int cobwebRuntimeId = -1;
+        int furnaceRuntimeId = -1;
+        int furnaceLitRuntimeId = -1;
+        int spawnerRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
@@ -186,6 +194,18 @@ public class BlockTranslator {
             }
             JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
 
+            if (javaId.startsWith("minecraft:furnace[facing=north")) {
+                if (javaId.contains("lit=true")) {
+                    furnaceLitRuntimeId = javaRuntimeId;
+                } else {
+                    furnaceRuntimeId = javaRuntimeId;
+                }
+            }
+
+            if (javaId.startsWith("minecraft:spawner")) {
+                spawnerRuntimeId = javaRuntimeId;
+            }
+
             bedrockRuntimeId++;
         }
 
@@ -193,6 +213,21 @@ public class BlockTranslator {
             throw new AssertionError("Unable to find cobwebs in palette");
         }
         JAVA_RUNTIME_COBWEB_ID = cobwebRuntimeId;
+
+        if (furnaceRuntimeId == -1) {
+            throw new AssertionError("Unable to find furnace in palette");
+        }
+        JAVA_RUNTIME_FURNACE_ID = furnaceRuntimeId;
+
+        if (furnaceLitRuntimeId == -1) {
+            throw new AssertionError("Unable to find lit furnace in palette");
+        }
+        JAVA_RUNTIME_FURNACE_LIT_ID = furnaceLitRuntimeId;
+
+        if (spawnerRuntimeId == -1) {
+            throw new AssertionError("Unable to find spawner in palette");
+        }
+        JAVA_RUNTIME_SPAWNER_ID = spawnerRuntimeId;
 
         if (waterRuntimeId == -1) {
             throw new AssertionError("Unable to find water in palette");

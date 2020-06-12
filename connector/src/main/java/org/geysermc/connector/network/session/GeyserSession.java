@@ -31,6 +31,7 @@ import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
@@ -41,14 +42,10 @@ import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
-import com.nukkitx.protocol.bedrock.data.GameRuleData;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
@@ -60,6 +57,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
@@ -72,6 +70,7 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.MathUtils;
 import org.geysermc.connector.utils.SkinUtils;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -81,6 +80,8 @@ import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -166,6 +167,14 @@ public class GeyserSession implements CommandSender {
     @Setter
     private int craftSlot = 0;
 
+    @Setter
+    private long lastWindowCloseTime = 0;
+
+    @Setter
+    private VillagerTrade[] villagerTrades;
+    @Setter
+    private long lastInteractedVillagerEid;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -211,6 +220,15 @@ public class GeyserSession implements CommandSender {
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
+
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
+        List<Attribute> attributes = new ArrayList<>();
+        // Default move speed
+        // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
+        attributes.add(new Attribute("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
+        attributesPacket.setAttributes(attributes);
+        upstream.sendPacket(attributesPacket);
     }
 
     public void login() {
@@ -355,6 +373,14 @@ public class GeyserSession implements CommandSender {
                             PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                         }
                     }
+
+                    @Override
+                    public void packetError(PacketErrorEvent event) {
+                        connector.getLogger().warning("Downstream packet error! " + event.getCause().getMessage());
+                        if (connector.getConfig().isDebugMode())
+                            event.getCause().printStackTrace();
+                        event.setSuppress(true);
+                    }
                 });
 
                 downstream.getSession().connect();
@@ -425,7 +451,7 @@ public class GeyserSession implements CommandSender {
     }
 
     public void setRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * TrigMath.SQRT_OF_TWO); //square to circle
+        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
         if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
         this.renderDistance = renderDistance;
 
