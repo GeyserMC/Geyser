@@ -35,7 +35,7 @@ import com.velocitypowered.api.plugin.Plugin;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
@@ -95,6 +95,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && !proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
+            geyserLogger.severe("Auth type set to Floodgate but Floodgate not found! Disabling...");
+            return;
+        }
 
         geyserConfig.loadFloodgate(this, proxyServer, configDir);
 

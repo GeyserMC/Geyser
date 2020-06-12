@@ -24,7 +24,9 @@
  *
  */
 
-package org.geysermc.connector;
+package org.geysermc.connector.configuration;
+
+import org.geysermc.connector.GeyserLogger;
 
 import java.nio.file.Path;
 import java.util.Map;

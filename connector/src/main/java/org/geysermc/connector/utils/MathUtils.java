@@ -27,6 +27,8 @@ package org.geysermc.connector.utils;
 
 public class MathUtils {
 
+    public static final double SQRT_OF_TWO = Math.sqrt(2);
+
     /**
      * Round the given float to the next whole number
      *

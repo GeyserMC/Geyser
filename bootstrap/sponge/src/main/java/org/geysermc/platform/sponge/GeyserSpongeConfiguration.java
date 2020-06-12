@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;

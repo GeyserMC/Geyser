@@ -71,6 +71,10 @@
                                     <pattern>it.unimi.dsi.fastutil</pattern>
                                     <shadedPattern>org.geysermc.platform.bukkit.shaded.fastutil</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.geysermc.platform.bukkit.shaded.jackson</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>

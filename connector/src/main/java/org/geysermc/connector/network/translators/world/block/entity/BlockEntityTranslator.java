@@ -46,6 +46,19 @@ public abstract class BlockEntityTranslator {
 
     public static Register REGISTER = new Register();
 
+    /**
+     * Contains a list of irregular block entity name translations that can't be fit into the regex
+     */
+    public static final Map<String, String> BLOCK_ENTITY_TRANSLATIONS = new HashMap<String, String>() {
+        {
+            // Bedrock/Java differences
+            put("minecraft:enchanting_table", "EnchantTable");
+            put("minecraft:piston_head", "PistonArm");
+            put("minecraft:trapped_chest", "Chest");
+            // There are some legacy IDs sent but as far as I can tell they are not needed for things to work properly
+        }
+    };
+
     protected BlockEntityTranslator() {
     }
 
