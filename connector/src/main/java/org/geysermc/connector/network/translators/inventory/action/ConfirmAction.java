@@ -53,10 +53,6 @@ public abstract class ConfirmAction extends BaseAction {
         if (!accepted) {
             // Downstream disagrees with what we think the slot is so we will update and accept it
             GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
-                InventoryUtils.updateCursor(transaction.getSession());
-                transaction.getTranslator().updateInventory(transaction.getSession(), transaction.getInventory());
-
-
                 ClientConfirmTransactionPacket confirmPacket = new ClientConfirmTransactionPacket(transaction.getInventory().getId(),
                         id, true);
                 transaction.getSession().sendDownstreamPacket(confirmPacket);
