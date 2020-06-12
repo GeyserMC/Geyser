@@ -58,7 +58,9 @@ public class ArmorCommand extends GeyserCommand {
             GeyserSession session = (GeyserSession) sender;
 
             InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(WindowType.HOPPER);
-            Inventory newInventory = new Inventory("Armour and Offhand", 2020, WindowType.HOPPER, newTranslator.size + 36);
+
+            // Id seems to be constrained to a byte so we just use the largest number
+            Inventory newInventory = new Inventory("Armour and Offhand", 127, WindowType.HOPPER, newTranslator.size + 36);
             session.getInventoryCache().cacheInventory(newInventory);
             InventoryUtils.openInventory(session, newInventory);
 
@@ -81,9 +83,7 @@ public class ArmorCommand extends GeyserCommand {
             newInventory.setItems(Arrays.copyOf(items, newInventory.getSize()));
             newTranslator.updateInventory(session, newInventory);
 
-            // This works but causes the inventory to desync after closing the window
-            // Therefore until a relog any inventory changes wont work
-            // We also dont handle item moving yet
+            // We dont handle item moving yet
             // Doesnt work for bukkit yet, see offhand command to fix that
 
             return;
