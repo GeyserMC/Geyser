@@ -64,7 +64,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             switch (recipe.getType()) {
                 case CRAFTING_SHAPELESS: {
                     ShapelessRecipeData shapelessRecipeData = (ShapelessRecipeData) recipe.getData();
-                    ItemData output = ItemTranslator.translateToBedrock(shapelessRecipeData.getResult());
+                    ItemData output = ItemTranslator.translateToBedrock(session, shapelessRecipeData.getResult());
                     output = ItemData.of(output.getId(), output.getDamage(), output.getCount()); //strip NBT
                     ItemData[][] inputCombinations = combinations(session, shapelessRecipeData.getIngredients());
                     for (ItemData[] inputs : inputCombinations) {
@@ -76,7 +76,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 }
                 case CRAFTING_SHAPED: {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
-                    ItemData output = ItemTranslator.translateToBedrock(shapedRecipeData.getResult());
+                    ItemData output = ItemTranslator.translateToBedrock(session, shapedRecipeData.getResult());
                     output = ItemData.of(output.getId(), output.getDamage(), output.getCount()); //strip NBT
                     ItemData[][] inputCombinations = combinations(session, shapedRecipeData.getIngredients());
                     for (ItemData[] inputs : inputCombinations) {
@@ -103,7 +103,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             }
             Ingredient ingredient = ingredients[i];
             Map<GroupedItem, List<ItemData>> groupedByIds = Arrays.stream(ingredient.getOptions())
-                    .map(ItemTranslator::translateToBedrock)
+                    .map(item -> ItemTranslator.translateToBedrock(session, item))
                     .collect(Collectors.groupingBy(item -> new GroupedItem(item.getId(), item.getCount(), item.getTag())));
             Set<ItemData> optionSet = new HashSet<>(groupedByIds.size());
             for (Map.Entry<GroupedItem, List<ItemData>> entry : groupedByIds.entrySet()) {
@@ -136,7 +136,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             ItemData[] translatedItems = new ItemData[ingredients.length];
             for (int i = 0; i < ingredients.length; i++) {
                 if (ingredients[i].getOptions().length > 0) {
-                    translatedItems[i] = ItemTranslator.translateToBedrock(ingredients[i].getOptions()[0]);
+                    translatedItems[i] = ItemTranslator.translateToBedrock(session, ingredients[i].getOptions()[0]);
                 } else {
                     translatedItems[i] = ItemData.AIR;
                 }

@@ -38,8 +38,6 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
-import java.util.concurrent.TimeUnit;
-
 @Translator(packet = ServerOpenWindowPacket.class)
 public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
 
@@ -80,8 +78,11 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
         if (openInventory != null) {
             InventoryTranslator openTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(openInventory.getWindowType());
             if (!openTranslator.getClass().equals(newTranslator.getClass())) {
+                InventoryUtils.closeWindow(session, openInventory.getId());
                 InventoryUtils.closeInventory(session, openInventory.getId());
-                GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> InventoryUtils.openInventory(session, newInventory), 500, TimeUnit.MILLISECONDS);
+                session.getInventoryCache().setOpenInventory(newInventory);
+                //The new window will be opened when the bedrock client sends the
+                //window close confirmation in BedrockContainerCloseTranslator
                 return;
             }
         }
