@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListDataPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateLightPacket;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -74,6 +75,7 @@ public class PacketTranslatorRegistry<T> {
 
         IGNORED_PACKETS.add(ServerKeepAlivePacket.class); // Handled by MCProtocolLib
         IGNORED_PACKETS.add(ServerUpdateLightPacket.class); // Light is handled on Bedrock for us
+        IGNORED_PACKETS.add(ServerPlayerListDataPacket.class); // Cant be implemented in bedrock
     }
 
     private PacketTranslatorRegistry() {
