@@ -53,12 +53,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.AuthType;
 import org.geysermc.common.window.FormWindow;
-import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
@@ -232,6 +231,15 @@ public class GeyserSession implements CommandSender {
             PlayStatusPacket playStatusPacket = new PlayStatusPacket();
             playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
             upstream.sendPacket(playStatusPacket);
+
+            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+            attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
+            List<Attribute> attributes = new ArrayList<>();
+            // Default move speed
+            // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
+            attributes.add(new Attribute("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
+            attributesPacket.setAttributes(attributes);
+            upstream.sendPacket(attributesPacket);
         }
     }
 
