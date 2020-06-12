@@ -53,10 +53,21 @@ public class ArmorCommand extends GeyserCommand {
             return;
         }
 
+        GeyserSession session = null;
+
         // Make sure the sender is a Bedrock edition client
         if (sender instanceof GeyserSession) {
-            GeyserSession session = (GeyserSession) sender;
+            session = (GeyserSession) sender;
+        } else {
+            for (GeyserSession tmpSession : connector.getPlayers().values()) {
+                if (sender.getName().equals(tmpSession.getPlayerEntity().getUsername())) {
+                    session = tmpSession;
+                    break;
+                }
+            }
+        }
 
+        if (session != null) {
             InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(WindowType.HOPPER);
 
             // Id seems to be constrained to a byte so we just use the largest number
@@ -84,7 +95,6 @@ public class ArmorCommand extends GeyserCommand {
             newTranslator.updateInventory(session, newInventory);
 
             // We dont handle item moving yet
-            // Doesnt work for bukkit yet, see offhand command to fix that
 
             return;
         }
