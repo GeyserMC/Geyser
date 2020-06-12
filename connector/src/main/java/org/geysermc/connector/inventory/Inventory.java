@@ -30,9 +30,12 @@ import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+@ToString
 public class Inventory {
 
     @Getter

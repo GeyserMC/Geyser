@@ -36,13 +36,14 @@ import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
+import org.geysermc.connector.network.translators.inventory.action.Refresh;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.List;
 
-public class PlayerInventoryTranslator extends InventoryTranslator {
+public class PlayerInventoryTranslator extends BaseInventoryTranslator {
     private static final ItemData UNUSUABLE_CRAFTING_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(
             "The creative crafting grid is\nunavailable in Java Edition");
 
@@ -173,10 +174,24 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public SlotType getSlotType(int javaSlot) {
-        if (javaSlot == 0)
-            return SlotType.OUTPUT;
-        return SlotType.NORMAL;
+    public boolean isOutput(InventoryActionData action) {
+        return action.getSlot() == 50;
+    }
+
+    @Override
+    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    }
+
+    @Override
+    public void openInventory(GeyserSession session, Inventory inventory) {
+    }
+
+    @Override
+    public void closeInventory(GeyserSession session, Inventory inventory) {
+    }
+
+    @Override
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
     }
 
     @Override
@@ -225,22 +240,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             return;
         }
 
-        InventoryActionDataTranslator.translate(this, session, inventory, actions);
-    }
+        // Remove Useless Packet
+        if (actions.stream().anyMatch(a -> a.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT)) {
+            return;
+        }
 
-    @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-    }
-
-    @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-    }
-
-    @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+        super.translateActions(session, inventory, actions);
     }
 }

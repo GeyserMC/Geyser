@@ -31,6 +31,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.Objects;
@@ -41,11 +42,10 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
     @Override
     public void translate(ServerSetSlotPacket packet, GeyserSession session) {
         if (packet.getWindowId() == 255 && packet.getSlot() == -1) { //cursor
-            if (session.getCraftSlot() != 0)
-                return;
-
             session.getInventory().setCursor(packet.getItem());
-            InventoryUtils.updateCursor(session);
+            if (Transaction.CURRENT_TRANSACTION == null) {
+                InventoryUtils.updateCursor(session);
+            }
             return;
         }
 
@@ -56,7 +56,9 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
         InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
         if (translator != null) {
             inventory.setItem(packet.getSlot(), packet.getItem());
-            translator.updateSlot(session, inventory, packet.getSlot());
+            if (Transaction.CURRENT_TRANSACTION == null) {
+                translator.updateSlot(session, inventory, packet.getSlot());
+            }
         }
     }
 }

@@ -29,13 +29,17 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerClose
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
 import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerCloseWindowPacket.class)
 public class JavaCloseWindowTranslator extends PacketTranslator<ServerCloseWindowPacket> {
 
     @Override
     public void translate(ServerCloseWindowPacket packet, GeyserSession session) {
+        Transaction.cancel();
         InventoryUtils.closeWindow(session, packet.getWindowId());
         InventoryUtils.closeInventory(session, packet.getWindowId());
     }

@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
@@ -80,6 +81,9 @@ public abstract class InventoryTranslator {
     public abstract void updateSlot(GeyserSession session, Inventory inventory, int slot);
     public abstract int bedrockSlotToJava(InventoryActionData action);
     public abstract int javaSlotToBedrock(int slot);
-    public abstract SlotType getSlotType(int javaSlot);
+
     public abstract void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions);
+    public abstract boolean isCursor(InventoryActionData action);
+    public abstract boolean isOutput(InventoryActionData action);
+
 }

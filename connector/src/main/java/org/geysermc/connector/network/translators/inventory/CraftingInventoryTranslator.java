@@ -33,6 +33,8 @@ import com.nukkitx.protocol.bedrock.data.InventorySource;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
+import org.geysermc.connector.network.translators.inventory.action.Refresh;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.utils.InventoryUtils;
@@ -99,10 +101,8 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public SlotType getSlotType(int javaSlot) {
-        if (javaSlot == 0)
-            return SlotType.OUTPUT;
-        return SlotType.NORMAL;
+    public boolean isOutput(InventoryActionData action) {
+        return action.getSlot() == 50;
     }
 
     @Override
@@ -116,6 +116,14 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
                 }
             }
         }
+
+        // Remove Useless Items
+        if (actions.stream().anyMatch(a ->
+                a.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT
+                    || a.getSource().getContainerId() == ContainerId.CRAFTING_RESULT)) {
+            return;
+        }
+
         super.translateActions(session, inventory, actions);
     }
 }

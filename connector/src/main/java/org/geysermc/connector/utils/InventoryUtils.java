@@ -32,6 +32,7 @@ import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
@@ -107,11 +108,19 @@ public class InventoryUtils {
     }
 
     public static void updateCursor(GeyserSession session) {
-        InventorySlotPacket cursorPacket = new InventorySlotPacket();
-        cursorPacket.setContainerId(ContainerId.CURSOR);
-        cursorPacket.setSlot(0);
-        cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
-        session.sendUpstreamPacket(cursorPacket);
+        InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
+        inventoryContentPacket.setContainerId(ContainerId.CURSOR);
+        inventoryContentPacket.setContents(new ItemData[] {ItemTranslator.translateToBedrock(session, session.getInventory().getCursor())});
+        session.sendUpstreamPacket(inventoryContentPacket);
+
+//        InventorySlotPacket cursorPacket = new InventorySlotPacket();
+//        cursorPacket.setContainerId(ContainerId.CURSOR);
+//        cursorPacket.setSlot(0);
+//        cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
+//        session.sendUpstreamPacket(cursorPacket);
+//        session.sendUpstreamPacket(cursorPacket);
+//        session.sendUpstreamPacket(cursorPacket);
+//        session.sendUpstreamPacket(cursorPacket);
     }
 
     public static boolean canStack(ItemStack item1, ItemStack item2) {
