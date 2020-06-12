@@ -26,29 +26,18 @@
 package org.geysermc.connector.edition.mcee.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.edition.mcee.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.SlotType;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
 
-    private final InventoryActionDataTranslator actionTranslator;
-
-    public FurnaceInventoryTranslator(InventoryActionDataTranslator actionTranslator) {
+    public FurnaceInventoryTranslator() {
         super(3, "minecraft:furnace[facing=north,lit=false]", ContainerType.FURNACE, new ContainerInventoryUpdater());
-
-        this.actionTranslator = actionTranslator;
     }
 
     @Override
@@ -76,56 +65,7 @@ public class FurnaceInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public SlotType getSlotType(int javaSlot) {
-        if (javaSlot == 2)
-            return SlotType.FURNACE_OUTPUT;
-        return SlotType.NORMAL;
-    }
-
-    @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        List<InventoryActionData> fromActions = new ArrayList<>();
-        List<InventoryActionData> toActions = new ArrayList<>();
-
-        for(InventoryActionData action : actions) {
-            switch(action.getSource().getType()) {
-                case UNTRACKED_INTERACTION_UI:
-                case NON_IMPLEMENTED_TODO:
-                case CONTAINER:
-                case WORLD_INTERACTION:
-                    switch(action.getSource().getContainerId()) {
-                        // Container, Inventory, Crafting Input, Crafting Output
-                        case ContainerId.CURSOR:
-                        case ContainerId.INVENTORY:
-                        case ContainerId.CRAFTING_ADD_INGREDIENT:
-                        case ContainerId.CRAFTING_RESULT:
-                        case ContainerId.NONE:
-                        case ContainerId.DROP_CONTENTS:
-                        case ContainerId.FIRST:
-                        case 2: // FURNACE_INPUT
-                        case 3: // FURNACE_OUTPUT
-                        case 6: // FURNACE_???
-                            if (action.getFromItem().getCount() > action.getToItem().getCount()) {
-                                fromActions.add(action);
-                            } else {
-                                toActions.add(action);
-                            }
-                            break;
-
-                        // We are not interested in these
-                        case ContainerId.CRAFTING_USE_INGREDIENT:
-                            return;
-                        default:
-                            GeyserConnector.getInstance().getLogger().warning("Unknown ContainerID: " + action.getSource().getContainerId());
-                    }
-                    break;
-                default:
-                    GeyserConnector.getInstance().getLogger().warning("Unknown Source: " + action.getSource().getType());
-            }
-        }
-
-        if (!fromActions.isEmpty() && !toActions.isEmpty()) {
-            actionTranslator.execute(this, session, inventory, fromActions, toActions);
-        }
+    public boolean isOutput(InventoryActionData action) {
+        return bedrockSlotToJava(action) == 2;
     }
 }

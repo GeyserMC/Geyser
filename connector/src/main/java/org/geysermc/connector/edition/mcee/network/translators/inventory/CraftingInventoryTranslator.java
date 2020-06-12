@@ -30,27 +30,24 @@ import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.edition.mcee.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BaseInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.SlotType;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
+import org.geysermc.connector.network.translators.inventory.action.Refresh;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
-import java.util.ArrayList;
 import java.util.List;
+
 
 public class CraftingInventoryTranslator extends BaseInventoryTranslator {
 
     private final InventoryUpdater updater;
-    private final InventoryActionDataTranslator actionTranslator;
 
-    public CraftingInventoryTranslator(InventoryActionDataTranslator actionTranslator) {
+    public CraftingInventoryTranslator() {
         super(10);
         this.updater = new ContainerInventoryUpdater();
-        this.actionTranslator = actionTranslator;
     }
 
     @Override
@@ -102,58 +99,26 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public SlotType getSlotType(int javaSlot) {
-        if (javaSlot == 0)
-            return SlotType.OUTPUT;
-        return SlotType.NORMAL;
+    public boolean isOutput(InventoryActionData action) {
+        return action.getSource().getContainerId() == ContainerId.CRAFTING_RESULT;
+    }
+
+    @Override
+    protected void processAction(Transaction transaction, ActionData cursor, ActionData from, ActionData to) {
+        super.processAction(transaction, cursor, from, to);
+
+        if (isOutput(from.action)) {
+            transaction.add(new Refresh());
+        }
     }
 
     @Override
     public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        List<InventoryActionData> fromActions = new ArrayList<>();
-        List<InventoryActionData> toActions = new ArrayList<>();
-
-        for(InventoryActionData action : actions) {
-            switch(action.getSource().getType()) {
-                case UNTRACKED_INTERACTION_UI:
-                case NON_IMPLEMENTED_TODO:
-                case CONTAINER:
-                case WORLD_INTERACTION:
-                    switch(action.getSource().getContainerId()) {
-                        // Container, Inventory, Crafting Input, Crafting Output
-                        case ContainerId.CURSOR:
-                        case ContainerId.INVENTORY:
-                        case ContainerId.CRAFTING_ADD_INGREDIENT:
-                        case ContainerId.CRAFTING_RESULT:
-                        case ContainerId.NONE:
-                        case ContainerId.DROP_CONTENTS:
-                        case ContainerId.FIRST:
-                            if (action.getFromItem().getCount() > action.getToItem().getCount()) {
-                                fromActions.add(action);
-                            } else {
-                                toActions.add(action);
-                            }
-                            break;
-
-                        // We are not interested in these
-                        case ContainerId.CRAFTING_USE_INGREDIENT:
-                            return;
-                        default:
-                            GeyserConnector.getInstance().getLogger().warning("Unknown ContainerID: " + action.getSource().getContainerId());
-                    }
-                    break;
-                default:
-                    GeyserConnector.getInstance().getLogger().warning("Unknown Source: " + action.getSource().getType());
-            }
+        // Remove Useless Packet
+        if (actions.stream().anyMatch(a -> a.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT)) {
+            return;
         }
 
-        if (!fromActions.isEmpty() && !toActions.isEmpty()) {
-            actionTranslator.execute(this, session, inventory, fromActions, toActions);
-        }
-    }
-
-    @Override
-    public boolean isOutput(InventoryActionData action) {
-        return action.getSource().getContainerId() == ContainerId.CRAFTING_RESULT && action.getSlot() == 0;
+        super.translateActions(session, inventory, actions);
     }
 }

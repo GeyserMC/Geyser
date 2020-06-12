@@ -34,25 +34,21 @@ import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.ItemData;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.edition.mcee.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.SlotType;
+import org.geysermc.connector.network.translators.inventory.action.Transaction;
+import org.geysermc.connector.network.translators.inventory.action.Execute;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
-import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 public class AnvilInventoryTranslator extends BlockInventoryTranslator {
 
-    private final InventoryActionDataTranslator actionTranslator;
-
-    public AnvilInventoryTranslator(InventoryActionDataTranslator actionTranslator) {
+    public AnvilInventoryTranslator() {
         super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, new ContainerInventoryUpdater());
-        this.actionTranslator = actionTranslator;
     }
 
     @Override
@@ -78,68 +74,37 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public SlotType getSlotType(int javaSlot) {
-        if (javaSlot == 2)
-            return SlotType.OUTPUT;
-        return SlotType.NORMAL;
+    public boolean isOutput(InventoryActionData action) {
+        return action.getSource().getContainerId() == ContainerId.ANVIL_RESULT && action.getSlot() == 0;
     }
 
     @Override
     public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        List<InventoryActionData> fromActions = new ArrayList<>();
-        List<InventoryActionData> toActions = new ArrayList<>();
-        InventoryActionData anvilResult = null;
-
-        for(InventoryActionData action : actions) {
-            switch(action.getSource().getType()) {
-                case UNTRACKED_INTERACTION_UI:
-                case NON_IMPLEMENTED_TODO:
-                case CONTAINER:
-                case WORLD_INTERACTION:
-                    switch(action.getSource().getContainerId()) {
-                        case ContainerId.ANVIL_RESULT:
-                            anvilResult = action;
-                        // Container, Inventory, Crafting Input, Crafting Output
-                        case ContainerId.CURSOR:
-                        case ContainerId.INVENTORY:
-                        case ContainerId.CRAFTING_ADD_INGREDIENT:
-                        case ContainerId.CRAFTING_RESULT:
-                        case ContainerId.CONTAINER_INPUT:
-                        case ContainerId.NONE:
-                        case ContainerId.DROP_CONTENTS:
-                        case ContainerId.ANVIL_MATERIAL:
-                        case ContainerId.FIRST:
-                            if (action.getFromItem().getCount() > action.getToItem().getCount()) {
-                                fromActions.add(action);
-                            } else {
-                                toActions.add(action);
-                            }
-                            break;
-
-                        // We are not interested in these
-                        case ContainerId.CRAFTING_USE_INGREDIENT:
-                            return;
-                        default:
-                            GeyserConnector.getInstance().getLogger().warning("Unknown ContainerID: " + action.getSource().getContainerId());
-                    }
-                    break;
-                default:
-                    GeyserConnector.getInstance().getLogger().warning("Unknown Source: " + action.getSource().getType());
-            }
+        // If we have an anvil_result then we filter out anvil_material and container_input
+        if (actions.stream().anyMatch(this::isOutput)) {
+            actions = actions.stream()
+                    .filter(a -> a.getSource().getContainerId() != ContainerId.ANVIL_MATERIAL)
+                    .filter(a -> a.getSource().getContainerId() != ContainerId.CONTAINER_INPUT)
+                    .collect(Collectors.toList());
         }
 
-        // Rename item
-        if (anvilResult != null) {
-            ItemData item = anvilResult.getFromItem();
-            com.nukkitx.nbt.tag.CompoundTag tag = item.getTag();
-            String rename = tag != null ? tag.getCompound("display").getString("Name") : "";
-            ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
-            session.sendDownstreamPacket(renameItemPacket);
+        super.translateActions(session, inventory, actions);
+    }
+
+    @Override
+    protected void processAction(Transaction transaction, ActionData cursor, ActionData from, ActionData to) {
+        // If from is ANVIL_RESULT we add a rename packet
+        if (from.action.getSource().getContainerId() == ContainerId.ANVIL_RESULT) {
+            transaction.add(new Execute(() -> {
+                ItemData item = from.action.getFromItem();
+                com.nukkitx.nbt.tag.CompoundTag tag = item.getTag();
+                String rename = tag != null ? tag.getCompound("display").getString("Name") : "";
+                ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
+                transaction.getSession().sendDownstreamPacket(renameItemPacket);
+            }));
         }
 
-        if (!fromActions.isEmpty() && !toActions.isEmpty()) {
-            actionTranslator.execute(this, session, inventory, fromActions, toActions);
-        }
+        super.processAction(transaction, cursor, from, to);
     }
 
     @Override

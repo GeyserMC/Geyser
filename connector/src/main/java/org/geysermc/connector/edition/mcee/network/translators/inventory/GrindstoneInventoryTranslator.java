@@ -26,47 +26,25 @@
 
 package org.geysermc.connector.edition.mcee.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.ItemData;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.edition.mcee.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
-import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
 
-    private final InventoryActionDataTranslator actionTranslator;
-
-    public GrindstoneInventoryTranslator(InventoryActionDataTranslator actionTranslator) {
+    public GrindstoneInventoryTranslator() {
         super(3, "minecraft:grindstone[face=floor,facing=north]", ContainerType.GRINDSTONE, new ContainerInventoryUpdater());
-        this.actionTranslator = actionTranslator;
     }
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
-//        final int slot = super.bedrockSlotToJava(action);
-//        if (action.getSource().getContainerId() == 124) {
-//            switch (slot) {
-//                case 16:
-//                    return 0;
-//                case 17:
-//                    return 1;
-//                case 50:
-//                    return 2;
-//                default:
-//                    return slot;
-//            }
-//        } return slot;
-
         int slotnum = action.getSlot();
         switch (action.getSource().getContainerId()) {
             case ContainerId.CONTAINER_INPUT:
@@ -81,15 +59,6 @@ public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public int javaSlotToBedrock(int slot) {
-//        switch (slot) {
-//            case 0:
-//                return 16;
-//            case 1:
-//                return 17;
-//            case 2:
-//                return 50;
-//        }
-//        return super.javaSlotToBedrock(slot);
         if (slot < size) {
             return slot;
         }
@@ -97,50 +66,20 @@ public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
     }
 
     @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        List<InventoryActionData> fromActions = new ArrayList<>();
-        List<InventoryActionData> toActions = new ArrayList<>();
-
-        for(InventoryActionData action : actions) {
-            switch(action.getSource().getType()) {
-                case UNTRACKED_INTERACTION_UI:
-                case NON_IMPLEMENTED_TODO:
-                case CONTAINER:
-                case WORLD_INTERACTION:
-                    switch(action.getSource().getContainerId()) {
-                            // Container, Inventory, Crafting Input, Crafting Output
-                        case ContainerId.CURSOR:
-                        case ContainerId.INVENTORY:
-                        case ContainerId.CRAFTING_ADD_INGREDIENT:
-                        case ContainerId.CRAFTING_RESULT:
-                        case ContainerId.CONTAINER_INPUT:
-                        case ContainerId.NONE:
-                        case ContainerId.DROP_CONTENTS:
-                        case ContainerId.ANVIL_MATERIAL:
-                        case ContainerId.ANVIL_RESULT:
-                        case ContainerId.FIRST:
-                            if (action.getFromItem().getCount() > action.getToItem().getCount()) {
-                                fromActions.add(action);
-                            } else {
-                                toActions.add(action);
-                            }
-                            break;
-
-                        // We are not interested in these
-                        case ContainerId.CRAFTING_USE_INGREDIENT:
-                            return;
-                        default:
-                            GeyserConnector.getInstance().getLogger().warning("Unknown ContainerID: " + action.getSource().getContainerId());
-                    }
-                    break;
-                default:
-                    GeyserConnector.getInstance().getLogger().warning("Unknown Source: " + action.getSource().getType());
-            }
-        }
-
-        if (!fromActions.isEmpty() && !toActions.isEmpty()) {
-            actionTranslator.execute(this, session, inventory, fromActions, toActions);
-        }
+    public boolean isOutput(InventoryActionData action) {
+        return action.getSource().getContainerId() == ContainerId.ANVIL_RESULT;
     }
 
+    @Override
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
+        // If we have an anvil_result then we filter out anvil_material and container_input
+        if (actions.stream().anyMatch(this::isOutput)) {
+            actions = actions.stream()
+                    .filter(a -> a.getSource().getContainerId() != ContainerId.ANVIL_MATERIAL)
+                    .filter(a -> a.getSource().getContainerId() != ContainerId.CONTAINER_INPUT)
+                    .collect(Collectors.toList());
+        }
+
+        super.translateActions(session, inventory, actions);
+    }
 }
