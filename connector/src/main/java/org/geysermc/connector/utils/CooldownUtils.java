@@ -101,7 +101,7 @@ public class CooldownUtils {
         long time = System.currentTimeMillis() - lastHitTime;
         double cooldown = restrain(((double) time) * session.getAttackSpeed() / 1000d, 1);
 
-        int darkGrey = (int) Math.floor(((double) 10) * cooldown);
+        int darkGrey = (int) Math.floor(10d * cooldown);
         int grey = 10 - darkGrey;
         StringBuilder builder = new StringBuilder("§8");
         while (darkGrey > 0) {
