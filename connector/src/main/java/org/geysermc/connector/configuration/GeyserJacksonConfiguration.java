@@ -76,7 +76,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean allowThirdPartyCapes;
 
     @JsonProperty("show-cooldown")
-    private boolean showCooldown;
+    private boolean showCooldown = true;
 
     @JsonProperty("allow-third-party-ears")
     private boolean allowThirdPartyEars;
