@@ -39,13 +39,11 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -105,6 +103,27 @@ public class SkinProvider {
         }
 
         EARS_GEOMETRY_SLIM = earsDataBuilder.toString();
+
+        // Schedule Daily Image Expiry if we are caching them
+        if (GeyserConnector.getInstance().getConfig().getCacheImages() > 0) {
+            GeyserConnector.getInstance().getGeneralThreadPool().scheduleAtFixedRate(() -> {
+                File cacheFolder = Paths.get("cache", "images").toFile();
+                if (!cacheFolder.exists()) {
+                    return;
+                }
+
+                int count = 0;
+                for (File imageFile : Objects.requireNonNull(cacheFolder.listFiles())) {
+                    if (imageFile.lastModified() < System.currentTimeMillis() - (GeyserConnector.getInstance().getConfig().getCacheImages() * 1000 * 60 * 60 * 24)) {
+                        //noinspection ResultOfMethodCallIgnored
+                        imageFile.delete();
+                        count++;
+                    }
+                }
+
+                GeyserConnector.getInstance().getLogger().debug(String.format("Removed %d cached image files as they have expired", count));
+            }, 1, 1440, TimeUnit.MINUTES);
+        }
     }
 
     public static boolean hasCapeCached(String capeUrl) {
