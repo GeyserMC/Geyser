@@ -289,29 +289,8 @@ public class SkinProvider {
     }
 
     private static Skin supplySkin(UUID uuid, String textureUrl) {
-        // First see if we have a cached file
-        Path skinFile = Paths.get("cache", "skins", Base64.getEncoder().encodeToString(textureUrl.getBytes()));
-        try {
-            Files.setLastModifiedTime(skinFile, FileTime.fromMillis(System.currentTimeMillis()));
-            GeyserConnector.getInstance().getLogger().debug("Reading cached skin from file " + skinFile.toString() + " for " + textureUrl);
-            return new Skin(uuid, textureUrl, Files.readAllBytes(skinFile), System.currentTimeMillis(), false, false);
-        } catch (IOException ignored) {}
-
         try {
             byte[] skin = requestImage(textureUrl, null);
-
-            // Write cache if we are allowed
-            if (GeyserConnector.getInstance().getConfig().getCacheSkins() > 0) {
-                //noinspection ResultOfMethodCallIgnored
-                skinFile.getParent().toFile().mkdirs();
-                try {
-                    Files.write(skinFile, skin);
-                    GeyserConnector.getInstance().getLogger().debug("Writing cached skin to file " + skinFile.toString() + " for " + textureUrl);
-                } catch (IOException e) {
-                    GeyserConnector.getInstance().getLogger().error("Failed to write cached skin to file " + skinFile.toString() + " for " + textureUrl);
-                }
-            }
-
             return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false, false);
         } catch (Exception ignored) {} // just ignore I guess
 
@@ -377,11 +356,38 @@ public class SkinProvider {
         return existingSkin;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static byte[] requestImage(String imageUrl, CapeProvider provider) throws Exception {
-        BufferedImage image = downloadImage(imageUrl, provider);
-        GeyserConnector.getInstance().getLogger().debug("Downloaded " + imageUrl);
+        BufferedImage image = null;
 
-        // if the requested image is an cape
+        // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
+        File imageFile = Paths.get("cache", "images", UUID.nameUUIDFromBytes(imageUrl.getBytes()).toString() + ".png").toFile();
+        if (imageFile.exists()) {
+            try {
+                GeyserConnector.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
+                imageFile.setLastModified(System.currentTimeMillis());
+                image = ImageIO.read(imageFile);
+            } catch (IOException ignored) {}
+        }
+
+        // If no image we download it
+        if (image == null) {
+            image = downloadImage(imageUrl, provider);
+            GeyserConnector.getInstance().getLogger().debug("Downloaded " + imageUrl);
+
+            // Write to cache if we are allowed
+            if (GeyserConnector.getInstance().getConfig().getCacheImages() > 0) {
+                imageFile.getParentFile().mkdirs();
+                try {
+                    ImageIO.write(image, "png", imageFile);
+                    GeyserConnector.getInstance().getLogger().debug("Writing cached skin to file " + imageFile.getPath() + " for " + imageUrl);
+                } catch (IOException e) {
+                    GeyserConnector.getInstance().getLogger().error("Failed to write cached skin to file " + imageFile.getPath() + " for " + imageUrl);
+                }
+            }
+        }
+
+        // if the requested image is a cape
         if (provider != null) {
             while(image.getWidth() > 64) {
                 image = scale(image);

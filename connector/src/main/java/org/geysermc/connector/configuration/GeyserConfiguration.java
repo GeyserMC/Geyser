@@ -70,7 +70,7 @@ public interface GeyserConfiguration {
 
     boolean isCacheChunks();
 
-    int getCacheSkins();
+    int getCacheImages();
 
     IMetricsInfo getMetrics();
 

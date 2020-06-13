@@ -86,8 +86,8 @@ default-locale: en_us
 # Geyser has direct access to the server itself.
 cache-chunks: false
 
-# Specify how many days skins will be cached to disk. A value of 0 is disabled.
-cache-skins: 0
+# Specify how many days images will be cached to disk. A value of 0 is disabled.
+cache-images: 0
 
 # Bedrock prevents building and displaying blocks above Y127 in the Nether -
 # enabling this config option works around that by changing the Nether dimension ID
