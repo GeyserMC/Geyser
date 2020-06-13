@@ -147,6 +147,11 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         return geyserSpongePingPassthrough;
     }
 
+    @Override
+    public File getDataFolder() {
+        return configDir;
+    }
+
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
         onEnable();

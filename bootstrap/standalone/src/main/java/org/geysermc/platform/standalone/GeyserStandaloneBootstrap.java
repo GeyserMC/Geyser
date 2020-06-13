@@ -100,4 +100,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserPingPassthrough;
     }
+
+    @Override
+    public File getDataFolder() {
+        return new File(System.getProperty("user.dir"));
+    }
 }
