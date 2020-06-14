@@ -62,14 +62,8 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
                     break;
                 case GENERIC_ATTACK_SPEED:
                     if (isSessionPlayer) {
-                        // Compute attack speed value for use in sending the faux cooldown
-                        double attackSpeed = attribute.getValue();
-                        // To match vanilla behavior
-                        // Realistically only the add modifier is sent in survival gameplay,
-                        // but if multiple modifiers are included they are strictly applied in the following order
-                        attackSpeed = applyModifier(attribute.getModifiers(), attackSpeed, ModifierOperation.ADD);
-                        attackSpeed = applyModifier(attribute.getModifiers(), attackSpeed, ModifierOperation.ADD_MULTIPLIED);
-                        attackSpeed = applyModifier(attribute.getModifiers(), attackSpeed, ModifierOperation.MULTIPLY);
+                        // Get attack speed value for use in sending the faux cooldown
+                        double attackSpeed = AttributeUtils.calculateValue(attribute);
                         session.setAttackSpeed(attackSpeed);
                     }
                     break;
@@ -93,33 +87,5 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
         }
 
         entity.updateBedrockAttributes(session);
-    }
-
-    /**
-     * Apply attribute modifiers to the current attack speed.
-     * @param modifiers The list of all attack speed modifiers.
-     * @param attackSpeed The current attack speed.
-     * @param operation The type of modifier operation to check for.
-     * @return The new attack speed. May be the same number.
-     */
-    private double applyModifier(List<AttributeModifier> modifiers, double attackSpeed, ModifierOperation operation) {
-        for (AttributeModifier modifier : modifiers) {
-            if (modifier.getType().isPresent() && modifier.getType().get() == ModifierType.ATTACK_SPEED_MODIFIER) {
-                if (operation == modifier.getOperation()) {
-                    switch (modifier.getOperation()) {
-                        case ADD:
-                            attackSpeed += modifier.getAmount();
-                            break;
-                        case ADD_MULTIPLIED: // Multiply current number by percentage
-                            attackSpeed += (attackSpeed * modifier.getAmount());
-                            break;
-                        case MULTIPLY:
-                            attackSpeed *= modifier.getAmount();
-                            break;
-                    }
-                }
-            }
-        }
-        return attackSpeed;
     }
 }
