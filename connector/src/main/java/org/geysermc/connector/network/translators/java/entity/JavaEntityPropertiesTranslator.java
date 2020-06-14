@@ -26,9 +26,6 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeModifier;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.attribute.AttributeType;
@@ -36,8 +33,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.AttributeUtils;
-
-import java.util.List;
 
 @Translator(packet = ServerEntityPropertiesPacket.class)
 public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntityPropertiesPacket> {
