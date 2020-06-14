@@ -180,6 +180,12 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private double attackSpeed;
+    /**
+     * The time of the last hit. Used to gauge how long the cooldown is taking.
+     * This is a session variable in order to minimize visual glitches.
+     */
+    @Setter
+    private long lastHitTime;
 
     private MinecraftProtocol protocol;
 

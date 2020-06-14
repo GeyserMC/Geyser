@@ -50,13 +50,14 @@ public class CooldownUtils {
      */
     public static void sendCooldown(GeyserSession session) {
         if (!SHOW_COOLDOWN) return;
-        if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin OldCombatMechanics is being used
+        if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         // Needs to be sent or no subtitle packet is recognized by the client
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.SET_TITLE);
         titlePacket.setText(" ");
         session.sendUpstreamPacket(titlePacket);
-        long lastHitTime = System.currentTimeMillis();
+        session.setLastHitTime(System.currentTimeMillis());
+        long lastHitTime = session.getLastHitTime(); // Used later to prevent multiple scheduled cooldown threads
         computeCooldown(session, lastHitTime);
     }
 
@@ -67,14 +68,15 @@ public class CooldownUtils {
      */
     private static void computeCooldown(GeyserSession session, long lastHitTime) {
         if (session.isClosed()) return; // Don't run scheduled tasks if the client left
+        if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.SET_SUBTITLE);
-        titlePacket.setText(getTitle(session, lastHitTime));
+        titlePacket.setText(getTitle(session));
         titlePacket.setFadeInTime(0);
         titlePacket.setFadeOutTime(5);
         titlePacket.setStayTime(2);
         session.sendUpstreamPacket(titlePacket);
-        if (hasCooldown(session, lastHitTime)) {
+        if (hasCooldown(session)) {
             session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
@@ -84,8 +86,8 @@ public class CooldownUtils {
         }
     }
 
-    private static boolean hasCooldown(GeyserSession session, long lastHitTime) {
-        long time = System.currentTimeMillis() - lastHitTime;
+    private static boolean hasCooldown(GeyserSession session) {
+        long time = System.currentTimeMillis() - session.getLastHitTime();
         double cooldown = restrain(((double) time) * session.getAttackSpeed() / 1000d, 1.5);
         return cooldown < 1.1;
     }
@@ -97,8 +99,8 @@ public class CooldownUtils {
         return Math.min(x, max);
     }
 
-    private static String getTitle(GeyserSession session, long lastHitTime) {
-        long time = System.currentTimeMillis() - lastHitTime;
+    private static String getTitle(GeyserSession session) {
+        long time = System.currentTimeMillis() - session.getLastHitTime();
         double cooldown = restrain(((double) time) * session.getAttackSpeed() / 1000d, 1);
 
         int darkGrey = (int) Math.floor(10d * cooldown);
