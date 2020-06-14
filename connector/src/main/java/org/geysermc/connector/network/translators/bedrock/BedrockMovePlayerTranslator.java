@@ -28,6 +28,10 @@ package org.geysermc.connector.network.translators.bedrock;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerRotationPacket;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.common.ChatColor;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
@@ -50,6 +54,7 @@ import org.geysermc.connector.network.translators.world.collision.CollisionTrans
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Set;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
@@ -95,8 +100,15 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         System.out.println("Y pos: " + javaY);
 
-        if (javaY == -40) {
+        if (javaY < -39 && javaY <= -40) {
             // TODO: TP player below void
+            MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+            movePlayerPacket.setPosition(packet.getPosition().sub(0, 1.5, 0));
+            movePlayerPacket.setRotation(packet.getRotation());
+            movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+            session.sendUpstreamPacket(movePlayerPacket);
+
         }
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
