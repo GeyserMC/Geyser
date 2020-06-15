@@ -1,0 +1,37 @@
+{
+  "name": "mkpdfs-design-sample",
+  "version": "1.0.0",
+  "description": "The default mkpdfs design to use when generating the pdf report. This style will only be used for the pdf, not to be use for the webversion of the documentation as it can conflict with other themes.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node-sass report.scss ../../css/pdf.css",
+    "build-compressed": "node-sass report.scss ../../css/pdf.css --output-style compressed"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/comwes/mkpdfs-design-sample"
+  },
+  "keywords": [
+    "mkdocs",
+    "documentation",
+    "pdf",
+    "markdown",
+    "plugin"
+  ],
+  "devDependencies": {
+    "material-design-color": "^2.3.2",
+    "material-shadows": "^3.0.1",
+    "modularscale-sass": "^3.0.8",
+    "node-sass": "^4.11.0"
+  },
+  "author": {
+    "name": "Comwes, Gerry Ntabuhashe",
+    "email": "public@comwes.eu, gnt@comwes.eu",
+    "url": "https://comwes.eu, https://mkpdfs.comwes.eu"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/comwes/mkpdfs-design-sample/issues"
+  },
+  "homepage": "https://github.com/comwes/mkpdfs-design-sample#readme"
+}

@@ -1,0 +1,44 @@
+# This workflow will create documentation and publish to Github pages. For now it does this in my (Bundabrg) repo when in a specific branch
+
+name: documentation
+on: [push]
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.6'
+          architecture: 'x64'
+
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r ./requirements.txt
+
+      - run: mkdocs build
+
+      - name: Deploy to Github Pages
+        if: github.ref == 'refs/heads/feature/plugins'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          publish_dir: ./build/docs
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: documentation
+          path: build/docs

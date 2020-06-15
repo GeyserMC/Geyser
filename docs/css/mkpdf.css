@@ -1,0 +1,9 @@
+@import "https://use.fontawesome.com/releases/v5.8.1/css/all.css";
+
+a.pdf-download-btn{
+  font-size: .8rem;
+}
+
+a.pdf-download-btn small{
+  display: none;
+}
