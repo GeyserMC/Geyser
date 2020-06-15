@@ -44,10 +44,10 @@ public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
             respawnPacket.setRuntimeEntityId(0);
             respawnPacket.setPosition(Vector3f.ZERO);
             respawnPacket.setState(RespawnPacket.State.SERVER_SEARCHING);
-            session.getUpstream().sendPacket(respawnPacket);
+            session.sendUpstreamPacket(respawnPacket);
 
             ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
-            session.getDownstream().getSession().send(javaRespawnPacket);
+            session.sendDownstreamPacket(javaRespawnPacket);
         }
     }
 }

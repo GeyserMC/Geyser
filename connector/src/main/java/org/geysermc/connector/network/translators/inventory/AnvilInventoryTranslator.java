@@ -108,7 +108,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                 rename = "";
             }
             ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
-            session.getDownstream().getSession().send(renameItemPacket);
+            session.sendDownstreamPacket(renameItemPacket);
         }
         if (anvilResult != null) {
             //client will send another packet to grab anvil output
@@ -138,7 +138,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                     rename = "";
                 }
                 ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
-                session.getDownstream().getSession().send(renameItemPacket);
+                session.sendDownstreamPacket(renameItemPacket);
             }
         }
         super.updateSlot(session, inventory, slot);

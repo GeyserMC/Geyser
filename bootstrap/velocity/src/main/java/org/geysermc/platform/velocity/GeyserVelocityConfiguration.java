@@ -27,89 +27,33 @@ package org.geysermc.platform.velocity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.velocitypowered.api.plugin.PluginContainer;
+import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
-import lombok.Setter;
-import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.connector.FloodgateKeyLoader;
+import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
+import java.util.Optional;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
-public class GeyserVelocityConfiguration implements IGeyserConfiguration {
-
-    private BedrockConfiguration bedrock;
-    private RemoteConfiguration remote;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GeyserVelocityConfiguration extends GeyserJacksonConfiguration {
 
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile;
 
-    private Map<String, UserAuthenticationInfo> userAuths;
-
-    @JsonProperty("ping-passthrough")
-    private boolean pingPassthrough;
-
-    @JsonProperty("max-players")
-    private int maxPlayers;
-
-    @JsonProperty("debug-mode")
-    private boolean debugMode;
-
-    @JsonProperty("general-thread-pool")
-    private int generalThreadPool;
-
-    @JsonProperty("allow-third-party-capes")
-    private boolean allowThirdPartyCapes;
-
-    @JsonProperty("default-locale")
-    private String defaultLocale;
-
-    private MetricsInfo metrics;
+    private Path floodgateKey;
 
     @Override
     public Path getFloodgateKeyFile() {
-        return Paths.get(floodgateKeyFile);
+        return floodgateKey;
     }
 
-    @Getter
-    public static class BedrockConfiguration implements IBedrockConfiguration {
-
-        private String address;
-        private int port;
-
-        private String motd1;
-        private String motd2;
-    }
-
-    @Getter
-    public static class RemoteConfiguration implements IRemoteConfiguration {
-
-        @Setter
-        private String address;
-
-        @Setter
-        private int port;
-
-        private String motd1;
-        private String motd2;
-
-        @JsonProperty("auth-type")
-        private String authType;
-    }
-
-    @Getter
-    public static class UserAuthenticationInfo implements IUserAuthenticationInfo {
-        private String email;
-        private String password;
-    }
-
-    @Getter
-    public static class MetricsInfo implements IMetricsInfo {
-
-        private boolean enabled;
-
-        @JsonProperty("uuid")
-        private String uniqueId;
+    public void loadFloodgate(GeyserVelocityPlugin plugin, ProxyServer proxyServer, File dataFolder) {
+        Optional<PluginContainer> floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
+        floodgate.ifPresent(it -> floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), floodgateKeyFile.isEmpty() ? floodgateKeyFile : "public-key.pem"), it, Paths.get("plugins/floodgate/")));
     }
 }

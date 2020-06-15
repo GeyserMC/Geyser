@@ -34,9 +34,6 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-
-import net.minidev.json.JSONObject;
-
 import org.geysermc.common.window.CustomFormBuilder;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
@@ -152,7 +149,7 @@ public class LoginEncryptionUtils {
 
         ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
         packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token).serialize());
-        session.getUpstream().sendPacketImmediately(packet);
+        session.sendUpstreamPacketImmediately(packet);
     }
 
     private static int AUTH_FORM_ID = 1336;
@@ -195,18 +192,22 @@ public class LoginEncryptionUtils {
                         String password = response.getInputResponses().get(2);
 
                         session.authenticate(email, password);
+                    } else {
+                        showLoginDetailsWindow(session);
                     }
 
                     // Clear windows so authentication data isn't accidentally cached
                     windowCache.getWindows().clear();
                 } else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
                     SimpleFormResponse response = (SimpleFormResponse) window.getResponse();
-                    if(response != null) {
-                        if(response.getClickedButtonId() == 0) {
+                    if (response != null) {
+                        if (response.getClickedButtonId() == 0) {
                             showLoginDetailsWindow(session);
-                        } else if(response.getClickedButtonId() == 1) {
+                        } else if (response.getClickedButtonId() == 1) {
                             session.disconnect("Login is required");
                         }
+                    } else {
+                        showLoginWindow(session);
                     }
                 }
             }

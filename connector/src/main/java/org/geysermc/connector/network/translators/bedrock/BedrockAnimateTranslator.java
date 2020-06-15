@@ -31,12 +31,16 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientSteerBoatPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 
 import java.util.concurrent.TimeUnit;
 
 @Translator(packet = AnimatePacket.class)
 public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
+
+    private boolean isSteeringLeft;
+    private boolean isSteeringRight;
 
     @Override
     public void translate(AnimatePacket packet, GeyserSession session) {
@@ -49,10 +53,22 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             case SWING_ARM:
                 // Delay so entity damage can be processed first
                 session.getConnector().getGeneralThreadPool().schedule(() ->
-                        session.getDownstream().getSession().send(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
+                        session.sendDownstreamPacket(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
                         25,
                         TimeUnit.MILLISECONDS
                 );
+                break;
+            // These two might need to be flipped, but my recommendation is getting moving working first
+            case ROW_LEFT:
+                // Packet value is a float of how long one has been rowing, so we convert that into a boolean
+                isSteeringLeft = packet.getRowingTime() > 0.0;
+                ClientSteerBoatPacket steerLeftPacket = new ClientSteerBoatPacket(isSteeringRight, isSteeringLeft);
+                session.sendDownstreamPacket(steerLeftPacket);
+                break;
+            case ROW_RIGHT:
+                isSteeringRight = packet.getRowingTime() > 0.0;
+                ClientSteerBoatPacket steerRightPacket = new ClientSteerBoatPacket(isSteeringRight, isSteeringLeft);
+                session.sendDownstreamPacket(steerRightPacket);
                 break;
         }
     }

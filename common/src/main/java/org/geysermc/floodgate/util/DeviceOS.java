@@ -30,24 +30,39 @@ import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 public enum DeviceOS {
 
     @JsonEnumDefaultValue
-    UNKNOWN,
-    ANDROID,
-    IOS,
-    OSX,
-    FIREOS,
-    GEARVR,
-    HOLOLENS,
-    WIN10,
-    WIN32,
-    DEDICATED,
-    ORBIS,
-    NX,
-    SWITCH,
-    XBOX_ONE;
+    UNKNOWN("Unknown"),
+    ANDROID("Android"),
+    IOS("iOS"),
+    OSX("macOS"),
+    FIREOS("FireOS"),
+    GEARVR("Gear VR"),
+    HOLOLENS("Hololens"),
+    WIN10("Windows 10"),
+    WIN32("Windows"),
+    DEDICATED("Dedicated"),
+    ORBIS("PS4"),
+    NX("Switch"),
+    SWITCH("Switch"),
+    XBOX_ONE("Xbox One"),
+    WIN_PHONE("Windows Phone");
 
     private static final DeviceOS[] VALUES = values();
 
+    private final String displayName;
+
+    DeviceOS(final String displayName) {
+        this.displayName = displayName;
+    }
+
     public static DeviceOS getById(int id) {
         return id < VALUES.length ? VALUES[id] : VALUES[0];
+    }
+
+    /**
+     * @return friendly display name of platform.
+     */
+    @Override
+    public String toString() {
+        return displayName;
     }
 }

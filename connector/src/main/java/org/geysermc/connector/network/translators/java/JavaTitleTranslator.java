@@ -65,6 +65,6 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
                 break;
         }
 
-        session.getUpstream().sendPacket(titlePacket);
+        session.sendUpstreamPacket(titlePacket);
     }
 }

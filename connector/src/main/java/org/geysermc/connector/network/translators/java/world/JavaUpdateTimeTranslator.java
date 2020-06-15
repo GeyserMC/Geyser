@@ -55,7 +55,7 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
             // https://minecraft.gamepedia.com/Day-night_cycle#24-hour_Minecraft_day
             SetTimePacket setTimePacket = new SetTimePacket();
             setTimePacket.setTime((int) Math.abs(time) % 24000);
-            session.getUpstream().sendPacket(setTimePacket);
+            session.sendUpstreamPacket(setTimePacket);
             // TODO: Performance efficient to always do this?
             LAST_RECORDED_TIMES.put(session.getPlayerEntity().getEntityId(), time);
         }
@@ -69,7 +69,7 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
     private void setDoDaylightCycleGamerule(GeyserSession session, boolean doCycle) {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
         gameRulesChangedPacket.getGameRules().add(new GameRuleData<>("dodaylightcycle", doCycle));
-        session.getUpstream().sendPacket(gameRulesChangedPacket);
+        session.sendUpstreamPacket(gameRulesChangedPacket);
     }
 
 }

@@ -49,6 +49,8 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
         switch (packet.getStatus()) {
+            case LIVING_DROWN:
+                entityEventPacket.setData(9);
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
                 entityEventPacket.setType(EntityEventType.HURT_ANIMATION);
@@ -70,6 +72,7 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
             case TAMEABLE_TAMING_SUCCEEDED:
                 entityEventPacket.setType(EntityEventType.TAME_SUCCESS);
+                break;
             case ZOMBIE_VILLAGER_CURE:
                 entityEventPacket.setType(EntityEventType.ZOMBIE_VILLAGER_CURE);
                 break;
@@ -96,6 +99,6 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
         }
 
-        session.getUpstream().sendPacket(entityEventPacket);
+        session.sendUpstreamPacket(entityEventPacket);
     }
 }

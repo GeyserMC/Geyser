@@ -25,32 +25,44 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
+import com.nukkitx.protocol.bedrock.data.EntityData;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class FishingHookEntity extends Entity {
-    public FishingHookEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public FishingHookEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, ProjectileData data) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        for (GeyserSession session : GeyserConnector.getInstance().getPlayers().values()) {
+            Entity entity = session.getEntityCache().getEntityByJavaId(data.getOwnerId());
+            if (entity == null && session.getPlayerEntity().getEntityId() == data.getOwnerId()) {
+                entity = session.getPlayerEntity();
+            }
+
+            if (entity != null) {
+                this.metadata.put(EntityData.OWNER_EID, entity.getGeyserId());
+                return;
+            }
+        }
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
-        AddEntityPacket addEntityPacket = new AddEntityPacket();
-        // Different ID in Bedrock
-        addEntityPacket.setIdentifier("minecraft:fishing_hook");
-        addEntityPacket.setRuntimeEntityId(geyserId);
-        addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(position);
-        addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(getBedrockRotation());
-        addEntityPacket.setEntityType(entityType.getType());
-        addEntityPacket.getMetadata().putAll(metadata);
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 7) {
+            Entity entity = session.getEntityCache().getEntityByJavaId((Integer) entityMetadata.getValue() - 1);
+            if (entity == null && session.getPlayerEntity().getEntityId() == (Integer) entityMetadata.getValue() - 1) {
+                entity = session.getPlayerEntity();
+            }
 
-        valid = true;
-        session.getUpstream().sendPacket(addEntityPacket);
+            if (entity != null) {
+                metadata.put(EntityData.TARGET_EID, entity.getGeyserId());
+            }
+        }
 
-        session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

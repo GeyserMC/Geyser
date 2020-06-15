@@ -25,6 +25,10 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
+import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientSettingsPacket;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -38,6 +42,9 @@ import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Translator(packet = ServerJoinGamePacket.class)
 public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacket> {
 
@@ -49,23 +56,29 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         bedrockPacket.setPlayerPermission(PlayerPermission.MEMBER);
-        session.getUpstream().sendPacket(bedrockPacket);
+        session.sendUpstreamPacket(bedrockPacket);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        // session.getUpstream().sendPacket(playStatus);
+        // session.sendPacket(playStatus);
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
-        session.getUpstream().sendPacket(playerGameTypePacket);
+        session.sendUpstreamPacket(playerGameTypePacket);
         session.setGameMode(packet.getGameMode());
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
         entityDataPacket.getMetadata().putAll(entity.getMetadata());
-        session.getUpstream().sendPacket(entityDataPacket);
+        session.sendUpstreamPacket(entityDataPacket);
 
         session.setRenderDistance(packet.getViewDistance());
+
+        // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
+        String locale = session.getClientData().getLanguageCode();
+        List<SkinPart> skinParts = Arrays.asList(SkinPart.values());
+        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, Hand.MAIN_HAND);
+        session.sendDownstreamPacket(clientSettingsPacket);
 
         if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
             DimensionUtils.switchDimension(session, packet.getDimension());

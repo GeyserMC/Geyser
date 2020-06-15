@@ -31,20 +31,20 @@ import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.Translators;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 public abstract class InventoryUpdater {
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         ItemData[] bedrockItems = new ItemData[36];
         for (int i = 0; i < 36; i++) {
             final int offset = i < 9 ? 27 : -9;
-            bedrockItems[i] = Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(translator.size + i + offset));
+            bedrockItems[i] = ItemTranslator.translateToBedrock(session, inventory.getItem(translator.size + i + offset));
         }
         InventoryContentPacket contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(ContainerId.INVENTORY);
         contentPacket.setContents(bedrockItems);
-        session.getUpstream().sendPacket(contentPacket);
+        session.sendUpstreamPacket(contentPacket);
     }
 
     public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
@@ -52,8 +52,8 @@ public abstract class InventoryUpdater {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.INVENTORY);
             slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-            slotPacket.setItem(Translators.getItemTranslator().translateToBedrock(session, inventory.getItem(javaSlot)));
-            session.getUpstream().sendPacket(slotPacket);
+            slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
+            session.sendUpstreamPacket(slotPacket);
             return true;
         }
         return false;
