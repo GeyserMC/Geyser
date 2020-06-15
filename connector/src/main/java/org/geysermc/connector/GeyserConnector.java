@@ -54,6 +54,7 @@ import org.geysermc.connector.network.translators.world.block.entity.BlockEntity
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.ResourcePack;
 
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
@@ -126,6 +127,8 @@ public class GeyserConnector {
         LocaleUtils.init();
         SoundRegistry.init();
         SoundHandlerRegistry.init();
+
+        ResourcePack.loadPacks();
 
         if (platformType != PlatformType.STANDALONE) {
             DockerCheck.check(bootstrap);
