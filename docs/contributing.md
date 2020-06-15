@@ -17,7 +17,7 @@ Do the following to build the code:
 
 ```shell
 git clone https://github.com/GeyserMC/Geyser
-cd EduSupport
+cd Geyser
 git submodule update --init --recursive
 mvn clean install
 ```

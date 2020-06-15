@@ -55,7 +55,7 @@ The `@Event` annotation has the following optional parameters:
 * **priority** - Integer from 0 - 100. Default `50`. Event Handlers are executed in order from lowest to highest priority.
 * **ignoreCancelled** - Boolean. Default `true`. If true then if an event is cancelled the handler will not be executed.
 
-The `EventContext` will be discussed later. `EnableEvent` is an event and is also discussed later.
+The `EventContext` will be discussed later. `MyCustomEvent` is the event defined previously.
 
 ### Anonymous Lambda
 
@@ -91,8 +91,6 @@ Geyser has the following predefined Events.
 Triggered when a Plugin is disabled.
 
 ### EnableEvent
-**cancellable**
+*cancellable*
 
 Triggered when a Plugin is enabled. If cancelled then the plugin will be unloaded and no `DisableEvent` will be triggered.
-
-
