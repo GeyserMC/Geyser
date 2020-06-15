@@ -29,10 +29,15 @@ package org.geysermc.connector.event;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.annotations.Event;
 import org.geysermc.connector.event.events.CancellableGeyserEvent;
 import org.geysermc.connector.event.events.GeyserEvent;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
@@ -40,6 +45,7 @@ import java.util.PriorityQueue;
 @AllArgsConstructor
 public class EventManager {
     private final Map<Class<? extends GeyserEvent>, PriorityQueue<EventHandler<? extends GeyserEvent>>> eventHandlers = new HashMap<>();
+    private final Map<Object, ArrayList<EventHandler<?>>> classEventHandlers = new HashMap<>();
 
     private final GeyserConnector connector;
 
@@ -123,6 +129,59 @@ public class EventManager {
         if (eventHandlers.containsKey(handler.getEventClass())) {
             eventHandlers.get(handler.getEventClass()).remove(handler);
         }
+    }
+
+    /**
+     * Register all Events contained in an instantiated class. The methods must be annotated by @Event
+     */
+    public EventHandler<?>[] registerEvents(Object obj) {
+        List<EventHandler<?>> handlers = new ArrayList<>();
+        for (Method method : obj.getClass().getMethods()) {
+            Event eventAnnotation = method.getAnnotation(Event.class);
+
+            // Check that the method is annotated with @Event
+            if (eventAnnotation == null) {
+                continue;
+            }
+
+            // Make sure it only has a single Event parameter
+            if (method.getParameterCount() != 2 || !GeyserEvent.class.isAssignableFrom(method.getParameters()[1].getType())) {
+                continue;
+            }
+
+            //noinspection unchecked
+            EventHandler<?> handler = on((Class<? extends GeyserEvent>)method.getParameters()[1].getType(), (ctx, event) -> {
+                        try {
+                            method.invoke(obj, ctx, event);
+                        } catch (IllegalAccessException | InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                    }, eventAnnotation.priority(), eventAnnotation.ignoreCancelled());
+
+            if (!classEventHandlers.containsKey(obj.getClass())) {
+                classEventHandlers.put(obj, new ArrayList<>());
+            }
+
+            classEventHandlers.get(obj).add(handler);
+            handlers.add(handler);
+        }
+
+        return handlers.toArray(new EventHandler[0]);
+    }
+
+    /**
+     * Unregister all events in class
+     */
+    public void unregisterEvents(Object obj) {
+        if (!classEventHandlers.containsKey(obj)) {
+            return;
+        }
+
+        for (EventHandler<?> handler : classEventHandlers.get(obj)) {
+            unregister(handler);
+        }
+
+        classEventHandlers.remove(obj);
     }
 
     @AllArgsConstructor

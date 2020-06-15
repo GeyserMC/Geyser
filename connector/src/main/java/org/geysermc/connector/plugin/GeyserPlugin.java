@@ -30,13 +30,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.event.EventHandler;
 import org.geysermc.connector.event.events.GeyserEvent;
-import org.geysermc.connector.plugin.annotations.Event;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * All GeyserPlugins extend from this
@@ -44,67 +41,50 @@ import java.util.Map;
 @Getter
 @AllArgsConstructor
 public abstract class GeyserPlugin {
-    private final Map<Object, ArrayList<EventHandler<?>>> classEventHandlers = new HashMap<>();
+    // List of EventHandlers associated with this Plugin
+    private final List<EventHandler<?>> pluginEventHandlers = new ArrayList<>();
 
     private final PluginManager pluginManager;
     private final PluginClassLoader pluginClassLoader;
 
+    // We provide some methods already provided in EventManager as we want to keep track of which EventHandlers
+    // belong to a particular plugin. That way we can unregister them all easily.
+
     /**
-     * Register all Events contained in a class
+     * Create a new EventHandler using an Executor
      */
-    public void registerEvents(Object obj) {
-        for (Method method : obj.getClass().getMethods()) {
-            Event eventAnnotation = method.getAnnotation(Event.class);
+    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority, boolean ignoreCancelled) {
+        EventHandler<T> handler = pluginManager.getConnector().getEventManager().on(cls, executor, priority, ignoreCancelled);
+        pluginEventHandlers.add(handler);
+        return handler;
+    }
 
-            // Check that the method is annotated with @Event
-            if (eventAnnotation == null) {
-                continue;
-            }
+    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor) {
+        return on(cls, executor, EventHandler.PRIORITY.NORMAL, true);
+    }
 
-            // Make sure it only has a single Event parameter
-            if (method.getParameterCount() != 2 || !GeyserEvent.class.isAssignableFrom(method.getParameters()[1].getType())) {
-                continue;
-            }
+    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor, boolean ignoreCancelled) {
+        return on(cls, executor, EventHandler.PRIORITY.NORMAL, ignoreCancelled);
+    }
 
-            //noinspection unchecked
-            EventHandler<?> handler = pluginManager.getConnector().getEventManager()
-                    .on((Class<? extends GeyserEvent>)method.getParameters()[1].getType(), (ctx, event) -> {
-                try {
-                    method.invoke(obj, ctx, event);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            });
-
-            if (!classEventHandlers.containsKey(obj.getClass())) {
-                classEventHandlers.put(obj, new ArrayList<>());
-            }
-
-            classEventHandlers.get(obj).add(handler);
-        }
+    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority) {
+        return on(cls, executor, priority, true);
     }
 
     /**
-     * Unregister events in class
+     * Register all Events contained in an instantiated class. The methods must be annotated by @Event
      */
-    public void unregisterEvents(Object obj) {
-        if (!classEventHandlers.containsKey(obj)) {
-            return;
-        }
-
-        for (EventHandler<?> handler : classEventHandlers.get(obj)) {
-            pluginManager.getConnector().getEventManager().unregister(handler);
-        }
-
-        classEventHandlers.remove(obj);
+    public void registerEvents(Object obj) {
+        EventHandler<?>[] handlers = pluginManager.getConnector().getEventManager().registerEvents(obj);
+        pluginEventHandlers.addAll(Arrays.asList(handlers));
     }
 
     /**
      * Unregister all events for a plugin
      */
-    public void unregisterPluginEvents(Class<?> plugin) {
-        for (Object obj : classEventHandlers.keySet()) {
-            unregisterEvents(obj);
+    public void unregisterAllEvents() {
+        for (EventHandler<?> handler : pluginEventHandlers) {
+            pluginManager.getConnector().getEventManager().unregister(handler);
         }
     }
 }

@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.connector.plugin.annotations;
+package org.geysermc.connector.event.annotations;
 
 import org.geysermc.connector.event.EventHandler;
 
