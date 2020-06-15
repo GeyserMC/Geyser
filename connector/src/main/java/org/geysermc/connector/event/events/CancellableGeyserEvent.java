@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.connector.plugin.api;
+package org.geysermc.connector.event.events;
 
 import lombok.Getter;
 import lombok.Setter;

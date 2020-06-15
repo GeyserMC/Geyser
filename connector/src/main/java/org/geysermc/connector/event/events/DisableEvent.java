@@ -24,10 +24,7 @@
  *
  */
 
-package org.geysermc.connector.plugin.events;
-
-import lombok.ToString;
-import org.geysermc.connector.plugin.api.GeyserEvent;
+package org.geysermc.connector.event.events;
 
 /**
  * DisableEvent is triggered for each plugin when disabling it

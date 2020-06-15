@@ -24,9 +24,7 @@
  *
  */
 
-package org.geysermc.connector.plugin.events;
-
-import org.geysermc.connector.plugin.api.CancellableGeyserEvent;
+package org.geysermc.connector.event.events;
 
 /**
  * EnableEvent is triggered for each plugin when enabling it

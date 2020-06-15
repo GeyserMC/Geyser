@@ -29,26 +29,19 @@ package org.geysermc.connector.plugin;
 import lombok.Getter;
 import lombok.ToString;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.plugin.annotations.Event;
-import org.geysermc.connector.plugin.api.CancellableGeyserEvent;
-import org.geysermc.connector.plugin.api.GeyserEvent;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Handles 3rd party plugins for Geyser
+ * Handles 3rd party plugins for Geyser and will hook into our Event system using annotations
  */
 @Getter
 @ToString
@@ -57,9 +50,8 @@ public class PluginManager {
     private final GeyserConnector connector;
     private final File pluginPath;
 
-    private final Map<String, Class<?>> pluginClasses = new ConcurrentHashMap<>();
-    private final List<PluginClassLoader> loaders = new ArrayList<>();
-    private final Map<Class<?>, PriorityQueue<EventHandler>> eventHandlers = new HashMap<>();
+    private final Map<String, Class<?>> globalClasses = new ConcurrentHashMap<>();
+    private final List<GeyserPlugin> plugins = new ArrayList<>();
 
     public PluginManager(GeyserConnector connector, File pluginPath) {
         this.connector = connector;
@@ -70,15 +62,16 @@ public class PluginManager {
     /**
      * Load all plugins in the defined pluginPath
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void loadPlugins() {
         pluginPath.mkdirs();
-        for (File entry : pluginPath.listFiles()) {
+        for (File entry : Objects.requireNonNull(pluginPath.listFiles())) {
             if (entry.isDirectory() || !entry.getName().toLowerCase().endsWith(".jar")) {
                 continue;
             }
             try {
                 loadPlugin(entry);
-            } catch (IOException | PluginClassLoader.InvalidPluginClassLoaderException e) {
+            } catch (IOException | PluginManagerException e) {
                 e.printStackTrace();
             }
         }
@@ -87,139 +80,40 @@ public class PluginManager {
     /**
      * Load a specific plugin and register its events
      */
-    private void loadPlugin(File pluginFile) throws IOException, PluginClassLoader.InvalidPluginClassLoaderException {
+    private void loadPlugin(File pluginFile) throws IOException, PluginManagerException {
         if (!pluginFile.exists()) {
             throw new FileNotFoundException(String.format("%s does not exist", pluginFile.getName()));
         }
-        PluginClassLoader loader = new PluginClassLoader(this, getClass().getClassLoader(), pluginFile);
-        registerEvents(loader.getPlugin(), loader.getPlugin());
-        loaders.add(loader);
+
+        PluginClassLoader loader = null;
+        try {
+            loader = new PluginClassLoader(this, getClass().getClassLoader(), pluginFile);
+        } catch (PluginClassLoader.InvalidPluginClassLoaderException e) {
+            throw new PluginManagerException(e.getMessage(), e);
+        }
+
+        GeyserPlugin plugin;
+
+        try {
+            plugin = loader.getPluginClass().getConstructor(PluginManager.class, PluginClassLoader.class).newInstance(this, loader);
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new PluginManagerException(e.getMessage(), e);
+        }
+
+        plugins.add(plugin);
+        plugin.registerEvents(plugin);
     }
 
 
-    /**
-     * Register all Events contained in class
-     */
-    public void registerEvents(Object plugin, Object cls) {
-        for (Method method : cls.getClass().getMethods()) {
-            Event eventAnnotation = method.getAnnotation(Event.class);
+    public static class PluginManagerException extends Exception {
 
-            // Check that the method is annotated with @Event
-            if (eventAnnotation == null) {
-                continue;
-            }
-
-            // Make sure it only has a single Event parameter
-            if (method.getParameterCount() != 1 || !GeyserEvent.class.isAssignableFrom(method.getParameters()[0].getType())) {
-                continue;
-            }
-
-            if (!eventHandlers.containsKey(method.getParameters()[0].getType())) {
-                eventHandlers.put(method.getParameters()[0].getType(), new PriorityQueue<>());
-            }
-
-            eventHandlers.get(method.getParameters()[0].getType()).add(
-                    new EventHandler(
-                            plugin,
-                            cls,
-                            method,
-                            eventAnnotation
-                    )
-            );
-        }
-    }
-
-    /**
-     * Unregister events in class
-     */
-    public void unregisterEvents(Class<?> cls) {
-        for (Map.Entry<Class<?>, PriorityQueue<EventHandler>> entry : eventHandlers.entrySet()) {
-            List<EventHandler> remove = new ArrayList<>();
-            for (EventHandler handler : entry.getValue()) {
-                if (handler.cls == cls) {
-                    remove.add(handler);
-                }
-            }
-            entry.getValue().removeAll(remove);
-        }
-    }
-
-    /**
-     * Unregister all events for a plugin
-     */
-    public void unregisterPluginEvents(Class<?> plugin) {
-        for (Map.Entry<Class<?>, PriorityQueue<EventHandler>> entry : eventHandlers.entrySet()) {
-            List<EventHandler> remove = new ArrayList<>();
-            for (EventHandler handler : entry.getValue()) {
-                if (handler.plugin == plugin) {
-                    remove.add(handler);
-                }
-            }
-            entry.getValue().removeAll(remove);
-        }
-    }
-
-    /**
-     * Trigger a new event
-     *
-     * This will be executed with all registered handlers in order of priority
-     */
-    public void triggerEvent(GeyserEvent event) {
-        if (!eventHandlers.containsKey(event.getClass())) {
-            return;
+        public PluginManagerException(String message, Throwable ex) {
+            super(message, ex);
         }
 
-        for (EventHandler handler : eventHandlers.get(event.getClass())) {
-            try {
-                handler.method.invoke(handler.cls, event);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+        public PluginManagerException(Throwable ex) {
 
-    /**
-     * Trigger a new cancellable event
-     *
-     * This will be executed with all registered handlers in order of priority ignoring those who
-     * do not wish to process events that are cancelled
-     */
-    public void triggerEvent(CancellableGeyserEvent event) {
-        if (!eventHandlers.containsKey(event.getClass())) {
-            return;
         }
 
-        boolean cancelled = event.isCancelled();
-        for (EventHandler handler : eventHandlers.get(event.getClass())) {
-            if (cancelled && handler.annotation.ignoreCancelled()) {
-                continue;
-            }
-
-            try {
-                handler.method.invoke(handler.cls, event);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-            cancelled = event.isCancelled();
-        }
-    }
-
-    static class EventHandler implements Comparator<EventHandler> {
-        Object plugin;
-        Object cls;
-        Method method;
-        Event annotation;
-
-        EventHandler(Object plugin, Object cls, Method method, Event annotation) {
-            this.plugin = plugin;
-            this.cls = cls;
-            this.method = method;
-            this.annotation = annotation;
-        }
-
-        @Override
-        public int compare(EventHandler left, EventHandler right) {
-            return left.annotation.priority() - right.annotation.priority();
-        }
     }
 }

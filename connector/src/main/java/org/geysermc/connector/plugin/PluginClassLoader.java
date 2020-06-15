@@ -52,16 +52,16 @@ public class PluginClassLoader extends URLClassLoader {
     private final Map<String, Class<?>> classes = new ConcurrentHashMap<>();
 
     @Getter
-    private final Object plugin;
+    private final Class<? extends GeyserPlugin> pluginClass;
 
     PluginClassLoader(PluginManager pluginManager, ClassLoader parent, File pluginFile) throws IOException, InvalidPluginClassLoaderException {
         super(new URL[] {pluginFile.toURI().toURL()}, parent);
 
         this.jar = new JarFile(pluginFile);
         this.pluginManager = pluginManager;
-        this.plugin = findPlugin();
+        this.pluginClass = findPlugin();
 
-        if (this.plugin == null) {
+        if (this.pluginClass == null) {
             throw new InvalidPluginClassLoaderException("Unable to find class annotated by @Plugin");
         }
     }
@@ -69,7 +69,7 @@ public class PluginClassLoader extends URLClassLoader {
     /**
      * Find first class annotated by @Plugin
      */
-    private Object findPlugin() {
+    private Class<? extends GeyserPlugin> findPlugin() {
         for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements();) {
             JarEntry entry = entries.nextElement();
             if (!entry.getName().endsWith(".class")) {
@@ -83,9 +83,10 @@ public class PluginClassLoader extends URLClassLoader {
                 continue;
             }
 
-            if (cls.getAnnotation(Plugin.class) != null) {
+            if (GeyserPlugin.class.isAssignableFrom(cls) && cls.getAnnotation(Plugin.class) != null) {
                 cacheClass(cls, true);
-                return cls;
+                //noinspection unchecked
+                return (Class<? extends GeyserPlugin>) cls;
             }
         }
         return null;
@@ -98,7 +99,7 @@ public class PluginClassLoader extends URLClassLoader {
         classes.put(cls.getName(), cls);
 
         if (global) {
-            pluginManager.getPluginClasses().put(cls.getName(), cls);
+            pluginManager.getGlobalClasses().put(cls.getName(), cls);
         }
     }
 
@@ -157,11 +158,11 @@ public class PluginClassLoader extends URLClassLoader {
             return classes.get(name);
         }
 
-        boolean global = plugin.getClass().getAnnotation(Plugin.class).global();
+        boolean global = pluginClass.getAnnotation(Plugin.class).global();
 
         // Now try load from global if permitted
         if (global) {
-            Class<?> cls = pluginManager.getPluginClasses().get(name);
+            Class<?> cls = pluginManager.getGlobalClasses().get(name);
             if (cls != null) {
                 return cls;
             }

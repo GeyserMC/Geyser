@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.connector.plugin.api;
+package org.geysermc.connector.event.events;
 
 public abstract class GeyserEvent {
 
