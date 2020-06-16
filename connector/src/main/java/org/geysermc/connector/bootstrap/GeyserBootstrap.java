@@ -33,7 +33,7 @@ import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.world.CachedChunkManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
 
-import java.io.File;
+import java.nio.file.Path;
 
 public interface GeyserBootstrap {
 
@@ -89,7 +89,7 @@ public interface GeyserBootstrap {
     /**
      * Return the data folder where files get stored
      *
-     * @return File location of data folder
+     * @return Path location of data folder
      */
-    File getDataFolder();
+    Path getConfigFolder();
 }

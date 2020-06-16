@@ -50,7 +50,7 @@ public class LocaleUtils {
 
     static {
         // Create the locales folder
-        File localesFolder = GeyserConnector.getInstance().getBootstrap().getDataFolder().toPath().resolve("locales").toFile();
+        File localesFolder = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales").toFile();
         //noinspection ResultOfMethodCallIgnored
         localesFolder.mkdir();
 
@@ -134,7 +134,7 @@ public class LocaleUtils {
      * @param locale Locale to download
      */
     private static void downloadLocale(String locale) {
-        File localeFile = Paths.get(GeyserConnector.getInstance().getBootstrap().getDataFolder().toString(),"locales",locale + ".json").toFile();
+        File localeFile = Paths.get(GeyserConnector.getInstance().getBootstrap().getConfigFolder().toString(),"locales",locale + ".json").toFile();
 
         // Check if we have already downloaded the locale file
         if (localeFile.exists()) {
@@ -207,7 +207,7 @@ public class LocaleUtils {
             GeyserConnector.getInstance().getLogger().debug("Download URL: " + smallestURL);
 
             // Download the smallest JAR (client or server)
-            Path filePath = Paths.get(GeyserConnector.getInstance().getBootstrap().getDataFolder().getPath(), "tmp_locale.jar");
+            Path filePath = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
             WebUtils.downloadFile(smallestURL, filePath.toString());
 
             // Load in the JAR as a zip and extract the file

@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserConnector.NAME + "-Velocity", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -139,8 +140,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public File getDataFolder() {
-        return configDir;
+    public Path getConfigFolder() {
+        return configDir.toPath();
     }
 
     @Subscribe
