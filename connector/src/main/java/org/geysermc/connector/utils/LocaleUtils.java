@@ -207,11 +207,11 @@ public class LocaleUtils {
             GeyserConnector.getInstance().getLogger().debug("Download URL: " + smallestURL);
 
             // Download the smallest JAR (client or server)
-            Path filePath = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
-            WebUtils.downloadFile(smallestURL, filePath.toString());
+            Path tmpFilePath = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
+            WebUtils.downloadFile(smallestURL, tmpFilePath.toString());
 
             // Load in the JAR as a zip and extract the file
-            ZipFile localeJar = new ZipFile(filePath.toString());
+            ZipFile localeJar = new ZipFile(tmpFilePath.toString());
             InputStream inputStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"));
             FileOutputStream outputStream = new FileOutputStream(localeFile);
 
@@ -230,7 +230,7 @@ public class LocaleUtils {
             localeJar.close();
 
             // Delete the nolonger needed client/server jar
-            Files.delete(filePath);
+            Files.delete(tmpFilePath);
         } catch (Exception e) {
             throw new AssertionError("Unable to download and extract en_us locale!", e);
         }
