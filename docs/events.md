@@ -133,6 +133,16 @@ Triggered each time a plugin is disabled.
 
 Triggered each time a plugin is enabled.
 
+### PluginMessageEvent
+*cancellable*
+
+| Modifier and Type | Method | Description  | 
+|---|---|---|
+| String | getChannel() | Gets the message channel |
+| byte[] | getData() | Gets the message data |
+| GeyserSession | getSession() | Gets the current session |
+
+
 ### UpstreamPacketReceiveEvent
 *cancellable*
 
