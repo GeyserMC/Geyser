@@ -236,17 +236,17 @@ html body article {
   h1, h2, h3, h4, h5, h6 {
       a {
         &.external-link::after {
-          content: none;
+          content: none !important;
         }
       }
     }
   a {
       color: $bgColor;
       text-decoration: none;
-    &.external-link::after {
-      content: " (" attr(href) ")";
-      font-style: italic;
-    }
+//     &.external-link::after {
+//       content: " (" attr(href) ")";
+//       font-style: italic;
+//     }
   }
   table {
     border-spacing: 0;
