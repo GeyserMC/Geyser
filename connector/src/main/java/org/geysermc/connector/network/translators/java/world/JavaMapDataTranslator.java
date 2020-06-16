@@ -42,6 +42,7 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
     @Override
     public void translate(ServerMapDataPacket packet, GeyserSession session) {
         ClientboundMapItemDataPacket mapItemDataPacket = new ClientboundMapItemDataPacket();
+        boolean shouldStore = false;
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
         mapItemDataPacket.setDimensionId(session.getPlayerEntity().getDimension());
@@ -54,6 +55,11 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
             mapItemDataPacket.setYOffset(data.getY());
             mapItemDataPacket.setWidth(data.getColumns());
             mapItemDataPacket.setHeight(data.getRows());
+
+            // We have a full map image, this usually only happens on spawn for the initial image
+            if (mapItemDataPacket.getWidth() == 128 && mapItemDataPacket.getHeight() == 128) {
+                shouldStore = true;
+            }
 
             // Every int entry is an ABGR color
             int[] colors = new int[data.getData().length];
@@ -76,6 +82,12 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
             id++;
         }
 
-        session.getUpstream().getSession().sendPacket(mapItemDataPacket);
+        // Store the map to send when the client requests it, as bedrock expects the data after a MapInfoRequestPacket
+        if (shouldStore) {
+            session.getStoredMaps().put(mapItemDataPacket.getUniqueMapId(), mapItemDataPacket);
+        }
+
+        // Send anyway just in case
+        session.sendUpstreamPacket(mapItemDataPacket);
     }
 }

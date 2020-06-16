@@ -23,40 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
-import org.geysermc.connector.inventory.Inventory;
+import com.nukkitx.protocol.bedrock.packet.MapInfoRequestPacket;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.InventoryUtils;
 
-import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
-@Translator(packet = ServerSetSlotPacket.class)
-public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
+@Translator(packet = MapInfoRequestPacket.class)
+public class BedrockMapInfoRequestTranslator extends PacketTranslator<MapInfoRequestPacket> {
 
     @Override
-    public void translate(ServerSetSlotPacket packet, GeyserSession session) {
-        if (packet.getWindowId() == 255 && packet.getSlot() == -1) { //cursor
-            if (session.getCraftSlot() != 0)
-                return;
+    public void translate(MapInfoRequestPacket packet, GeyserSession session) {
+        long mapID = packet.getUniqueMapId();
 
-            session.getInventory().setCursor(packet.getItem());
-            InventoryUtils.updateCursor(session);
-            return;
-        }
-
-        Inventory inventory = session.getInventoryCache().getInventories().get(packet.getWindowId());
-        if (inventory == null || (packet.getWindowId() != 0 && inventory.getWindowType() == null))
-            return;
-
-        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
-        if (translator != null) {
-            inventory.setItem(packet.getSlot(), packet.getItem());
-            translator.updateSlot(session, inventory, packet.getSlot());
+        if (session.getStoredMaps().containsKey(mapID)) {
+            // Delay the packet 100ms to prevent the client from ignoring the packet
+            GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
+                session.sendUpstreamPacket(session.getStoredMaps().get(mapID));
+                session.getStoredMaps().remove(mapID);
+            }, 100, TimeUnit.MILLISECONDS);
         }
     }
 }
