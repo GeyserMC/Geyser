@@ -30,6 +30,8 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.common.AuthType;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.EventResult;
+import org.geysermc.connector.event.events.UpstreamPacketReceiveEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
@@ -41,6 +43,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean translateAndDefault(BedrockPacket packet) {
+        EventResult result =  connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent(session, packet));
+
+        // If the event was cancelled we consider it handled.
+        if (result.isCancelled()) {
+            return true;
+        }
+
         return PacketTranslatorRegistry.BEDROCK_TRANSLATOR.translate(packet.getClass(), packet, session);
     }
 

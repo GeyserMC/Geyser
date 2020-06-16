@@ -30,6 +30,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.event.EventHandler;
 import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.events.PluginDisableEvent;
+import org.geysermc.connector.event.events.PluginEnableEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,4 +89,19 @@ public abstract class GeyserPlugin {
             pluginManager.getConnector().getEventManager().unregister(handler);
         }
     }
+
+    /**
+     * Enable Plugin
+     */
+    public void enable() {
+        pluginManager.getConnector().getEventManager().triggerEvent(new PluginEnableEvent(this));
+    }
+
+    /**
+     * Disable Plugin
+     */
+    public void disable() {
+        pluginManager.getConnector().getEventManager().triggerEvent(new PluginDisableEvent(this));
+    }
+
 }

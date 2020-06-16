@@ -29,6 +29,7 @@ package org.geysermc.connector.plugin;
 import lombok.Getter;
 import lombok.ToString;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.events.PluginEnableEvent;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -104,6 +105,26 @@ public class PluginManager {
         plugin.registerEvents(plugin);
     }
 
+    /**
+     * Enable all Plugins
+     *
+     * This may eventually use dependency priority to determine order of enabling but for now relies
+     * on the priority
+     */
+    public void enablePlugins() {
+        for (GeyserPlugin plugin : plugins) {
+            plugin.enable();
+        }
+    }
+
+    /**
+     * Disable all Plugins
+     */
+    public void disablePlugins() {
+        for (GeyserPlugin plugin : plugins) {
+            plugin.disable();
+        }
+    }
 
     public static class PluginManagerException extends Exception {
 

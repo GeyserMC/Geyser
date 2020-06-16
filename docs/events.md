@@ -21,6 +21,8 @@ The event is triggered through the `triggerEvent` method of the Event Manager.
     eventManager.triggerEvent(new MyCustomEvent());
     ```
 
+This returns an EventResult which can be used to chain additional commands based upon the result.
+
 ## Listening to an Event
 
 There are two ways to listen for an event. One can either create an event handler method or one can create an anonymous
@@ -86,11 +88,67 @@ EventHandler itself and presently only allows an EventHandler to `unregister` it
 
 Geyser has the following predefined Events.
 
-### DisableEvent
-
-Triggered when a Plugin is disabled.
-
-### EnableEvent
+### DownstreamPacketReceiveEvent
 *cancellable*
 
-Triggered when a Plugin is enabled. If cancelled then the plugin will be unloaded and no `DisableEvent` will be triggered.
+| Modifier and Type | Method | Description  | 
+|---|---|---|
+| GeyserSession | getSession() | Gets the current session | 
+| Packet | getPacket() | Gets the Packet |
+
+Triggered for each packet received from downstream. If cancelled then regular processing of the packet will not occur.
+
+### DownstreamPacketSendEvent
+*cancellable*
+
+| Modifier and Type | Method | Description  | 
+|---|---|---|
+| GeyserSession | getSession() | Gets the current session | 
+| Packet | getPacket() | Gets the Packet |
+
+Triggered for each packet sent to downstream. If cancelled then the packet will not be sent.
+
+### GeyserStopEvent
+
+Triggered after Geyser has finished starting.
+
+### GeyserStopEvent
+
+Triggered when Geyser is about to stop.
+
+### PluginDisableEvent
+
+| Modifier and Type | Method | Description  | 
+|---|---|---|
+| GeyserPlugin | getPlugin() | Gets the Plugin |
+
+Triggered each time a plugin is disabled.
+
+### PluginEnableEvent
+*cancellable*
+
+| Modifier and Type | Method | Description  | 
+|---|---|---|
+| GeyserPlugin | getPlugin() | Gets the Plugin |
+
+Triggered each time a plugin is enabled.
+
+### UpstreamPacketReceiveEvent
+*cancellable*
+
+| Modifier and Type | Method | Description  | 
+|---|---|---|
+| GeyserSession | getSession() | Gets the current session | 
+| BedrockPacket | getPacket() | Gets the Packet |
+
+Triggered for each packet received from upstream. If cancelled then regular processing of the packet will not occur.
+
+### UpstreamPacketSendEvent
+*cancellable*
+
+| Modifier and Type | Method | Description  | 
+|---|---|---|
+| GeyserSession | getSession() | Gets the current session | 
+| BedrockPacket | getPacket() | Gets the Packet |
+
+Triggered for each packet sent to upstream. If cancelled then the packet will not be sent.

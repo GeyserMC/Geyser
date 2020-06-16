@@ -54,17 +54,16 @@ public class EventManager {
      *
      * This will be executed with all registered handlers in order of priority
      */
-    public void triggerEvent(GeyserEvent event) {
-        if (!eventHandlers.containsKey(event.getClass())) {
-            return;
-        }
+    public EventResult triggerEvent(GeyserEvent event) {
+        if (eventHandlers.containsKey(event.getClass())) {
+            for (EventHandler<? extends GeyserEvent> handler : eventHandlers.get(event.getClass())) {
+                Context ctx = new Context(this, handler);
 
-        for (EventHandler<? extends GeyserEvent> handler : eventHandlers.get(event.getClass())) {
-            Context ctx = new Context(this, handler);
-
-            //noinspection unchecked
-            ((EventHandler<GeyserEvent>)handler).execute(ctx, event);
+                //noinspection unchecked
+                ((EventHandler<GeyserEvent>) handler).execute(ctx, event);
+            }
         }
+        return new EventResult(this, event);
     }
 
     /**
@@ -73,22 +72,21 @@ public class EventManager {
      * This will be executed with all registered handlers in order of priority ignoring those who
      * do not wish to process events that are cancelled
      */
-    public void triggerEvent(CancellableGeyserEvent event) {
-        if (!eventHandlers.containsKey(event.getClass())) {
-            return;
-        }
+    public EventResult triggerEvent(CancellableGeyserEvent event) {
+        if (eventHandlers.containsKey(event.getClass())) {
+            boolean cancelled = event.isCancelled();
+            for (EventHandler<? extends GeyserEvent> handler : eventHandlers.get(event.getClass())) {
+                if (!cancelled || !handler.isIgnoreCancelled()) {
+                    Context ctx = new Context(this, handler);
 
-        boolean cancelled = event.isCancelled();
-        for (EventHandler<? extends GeyserEvent> handler : eventHandlers.get(event.getClass())) {
-            if (!cancelled || !handler.isIgnoreCancelled()) {
-                Context ctx = new Context(this, handler);
+                    //noinspection unchecked
+                    ((EventHandler<GeyserEvent>) handler).execute(ctx, event);
 
-                //noinspection unchecked
-                ((EventHandler<GeyserEvent>) handler).execute(ctx, event);
-
-                cancelled = event.isCancelled();
+                    cancelled = event.isCancelled();
+                }
             }
         }
+        return new EventResult(this, event);
     }
 
     /**

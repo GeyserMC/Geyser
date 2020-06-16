@@ -26,8 +26,24 @@
 
 package org.geysermc.connector.event.events;
 
+import com.nukkitx.protocol.bedrock.BedrockPacket;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.geysermc.connector.network.session.GeyserSession;
+
 /**
- * DisableEvent is triggered for each plugin when disabling it
+ * Triggered each time a packet is received from the Downstream server.
+ *
+ * If cancelled then regular processes of the packet will not proceed
  */
-public class DisableEvent extends GeyserEvent {
+
+@Getter
+@ToString
+@AllArgsConstructor
+public class UpstreamPacketSendEvent extends CancellableGeyserEvent {
+
+    private final GeyserSession session;
+    private final BedrockPacket packet;
 }

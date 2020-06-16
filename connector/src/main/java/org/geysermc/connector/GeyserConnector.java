@@ -51,8 +51,8 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.plugin.PluginManager;
-import org.geysermc.connector.event.events.DisableEvent;
-import org.geysermc.connector.event.events.EnableEvent;
+import org.geysermc.connector.event.events.GeyserStopEvent;
+import org.geysermc.connector.event.events.GeyserStartEvent;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -165,8 +165,11 @@ public class GeyserConnector {
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
         }
 
-        // Trigger all plugins Enable Events
-        eventManager.triggerEvent(new EnableEvent());
+        // Enable Plugins
+        pluginManager.enablePlugins();
+
+        // Trigger GeyserStart Events
+        eventManager.triggerEvent(new GeyserStartEvent());
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         logger.info(String.format("Done (%ss)! Run /geyser help for help!", new DecimalFormat("#.###").format(completeTime)));
@@ -176,8 +179,11 @@ public class GeyserConnector {
         bootstrap.getGeyserLogger().info("Shutting down Geyser.");
         shuttingDown = true;
 
-        // Trigger all plugins Disable Events
-        eventManager.triggerEvent(new DisableEvent());
+        // Trigger GeyserStop Events
+        eventManager.triggerEvent(new GeyserStopEvent());
+
+        // Disable Plugins
+        pluginManager.disablePlugins();
 
         if (players.size() >= 1) {
             bootstrap.getGeyserLogger().info("Kicking " + players.size() + " player(s)");

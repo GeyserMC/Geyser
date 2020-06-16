@@ -26,11 +26,14 @@
 
 package org.geysermc.connector.event.events;
 
-/**
- * EnableEvent is triggered for each plugin when enabling it
- *
- * If the event is cancelled then the plugin will be unregistered from the EventManager and the DisableEvent will
- * not trigger
- */
-public class EnableEvent extends CancellableGeyserEvent {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
+import org.geysermc.connector.plugin.GeyserPlugin;
+
+@Getter
+@ToString
+@AllArgsConstructor
+public class PluginDisableEvent extends GeyserEvent {
+    private final GeyserPlugin plugin;
 }

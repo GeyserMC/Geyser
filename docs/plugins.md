@@ -57,21 +57,27 @@ Add the following to the relevant section of your `pom.xml`
         }
 
         @Event
-        public void onEnable(EventContext ctx, EnableEvent event) {
-            System.err.println("I'm alive");
-
-            // Register another class with event handlers
-            registerEvents(new MyAdditionalClass());
-
-            // Example of lambda event hook
-            on(DisableEvent.class, (ctx, event) -> {
-                System.err.println("I'm also dead");
-            }, PRIORITY.HIGH);      
+        public void onEnable(EventContext ctx, PluginEnableEvent event) {
+            if (event.getPlugin() == this) {
+                System.err.println("I'm alive");
+    
+                // Register another class with event handlers
+                registerEvents(new MyAdditionalClass());
+    
+                // Example of lambda event hook
+                on(PluginDisableEvent.class, (ctx, event) -> {
+                    if (event.getPlugin() == MyPlugin.this) {
+                        System.err.println("I'm also dead");
+                    }
+                }, PRIORITY.HIGH);
+            }
         }
         
         @Event
-        public void onDisable(EventContext ctx, DisableEvent event) {
-            System.err.println("I'm dead");
+        public void onDisable(EventContext ctx, PluginDisableEvent event) {
+            if (event.getPlugin() == this) {
+                System.err.println("I'm dead");
+            }
         }
 
     }
@@ -95,7 +101,8 @@ The following fields are available for `@Plugin`:
 A plugin will generally hook into several events and provides its own event registration inherited from `GeyserPlugin`.
 
 A plugin class will look for any methods annotated with `@Event` and will treat them as Event Handlers, using reflection
-to determine which event is being trapped. In the previous example the plugin has trapped both the `EnableEvent` and `DisableEvent`.
+to determine which event is being trapped. In the previous example the plugin has trapped both the `PluginEnableEvent` 
+and `PluginDisableEvent`.
 
 Please refer to [events](events.md) for more information about the event system. 
 

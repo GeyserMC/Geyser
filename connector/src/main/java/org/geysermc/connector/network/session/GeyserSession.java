@@ -60,6 +60,8 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.event.events.DownstreamPacketReceiveEvent;
+import org.geysermc.connector.event.events.UpstreamPacketSendEvent;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
@@ -366,7 +368,10 @@ public class GeyserSession implements CommandSender {
                                 }
                             }
 
-                            PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                            connector.getEventManager().triggerEvent(new DownstreamPacketReceiveEvent(GeyserSession.this, event.getPacket()))
+                                    .ifNotCancelled((result) -> {
+                                        PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                                    });
                         }
                     }
 
@@ -537,11 +542,14 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
-        if (upstream != null && !upstream.isClosed()) {
-            upstream.sendPacket(packet);
-        } else {
-            connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
-        }
+        connector.getEventManager().triggerEvent(new UpstreamPacketSendEvent(this, packet))
+                .ifNotCancelled((result) -> {
+                    if (upstream != null && !upstream.isClosed()) {
+                        upstream.sendPacket(packet);
+                    } else {
+                        connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
+                    }
+                });
     }
 
     /**
@@ -550,11 +558,14 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
-        if (upstream != null && !upstream.isClosed()) {
-            upstream.sendPacketImmediately(packet);
-        } else {
-            connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
-        }
+        connector.getEventManager().triggerEvent(new UpstreamPacketSendEvent(this, packet))
+                .ifNotCancelled((result) -> {
+                    if (upstream != null && !upstream.isClosed()) {
+                        upstream.sendPacketImmediately(packet);
+                    } else {
+                        connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
+                    }
+                });
     }
 
     /**
@@ -563,10 +574,13 @@ public class GeyserSession implements CommandSender {
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamPacket(Packet packet) {
-        if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
-            downstream.getSession().send(packet);
-        } else {
-            connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
-        }
+        connector.getEventManager().triggerEvent(new DownstreamPacketReceiveEvent(this, packet))
+                .ifNotCancelled((result) -> {
+                    if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
+                        downstream.getSession().send(packet);
+                    } else {
+                        connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
+                    }
+                });
     }
 }
