@@ -42,15 +42,13 @@ import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.TrigMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
-import com.nukkitx.protocol.bedrock.data.GameRuleData;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
@@ -73,6 +71,7 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.MathUtils;
 import org.geysermc.connector.utils.SkinUtils;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -82,6 +81,8 @@ import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -107,6 +108,9 @@ public class GeyserSession implements CommandSender {
     private WindowCache windowCache;
     @Setter
     private TeleportCache teleportCache;
+
+    @Getter
+    private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = new Long2ObjectOpenHashMap<>();
 
     /**
      * A map of Vector3i positions to Java entity IDs.
@@ -220,6 +224,15 @@ public class GeyserSession implements CommandSender {
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
+
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
+        List<Attribute> attributes = new ArrayList<>();
+        // Default move speed
+        // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
+        attributes.add(new Attribute("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
+        attributesPacket.setAttributes(attributes);
+        upstream.sendPacket(attributesPacket);
     }
 
     public void fetchOurSkin(PlayerListPacket.Entry entry) {
@@ -453,7 +466,7 @@ public class GeyserSession implements CommandSender {
     }
 
     public void setRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * TrigMath.SQRT_OF_TWO); //square to circle
+        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
         if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
         this.renderDistance = renderDistance;
 

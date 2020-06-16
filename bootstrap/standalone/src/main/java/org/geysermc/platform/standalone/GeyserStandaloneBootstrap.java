@@ -27,9 +27,9 @@ package org.geysermc.platform.standalone;
 
 import lombok.Getter;
 import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;

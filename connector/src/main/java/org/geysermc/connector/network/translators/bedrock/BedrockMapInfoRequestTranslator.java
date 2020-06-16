@@ -23,25 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.standalone;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
+import com.nukkitx.protocol.bedrock.packet.MapInfoRequestPacket;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
-@Getter
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserStandaloneConfiguration extends GeyserJacksonConfiguration {
-
-    @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile;
+@Translator(packet = MapInfoRequestPacket.class)
+public class BedrockMapInfoRequestTranslator extends PacketTranslator<MapInfoRequestPacket> {
 
     @Override
-    public Path getFloodgateKeyFile() {
-        return Paths.get(floodgateKeyFile);
+    public void translate(MapInfoRequestPacket packet, GeyserSession session) {
+        long mapID = packet.getUniqueMapId();
+
+        if (session.getStoredMaps().containsKey(mapID)) {
+            // Delay the packet 100ms to prevent the client from ignoring the packet
+            GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
+                session.sendUpstreamPacket(session.getStoredMaps().get(mapID));
+                session.getStoredMaps().remove(mapID);
+            }, 100, TimeUnit.MILLISECONDS);
+        }
     }
 }

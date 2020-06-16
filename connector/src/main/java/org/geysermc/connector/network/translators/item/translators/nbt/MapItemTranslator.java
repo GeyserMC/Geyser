@@ -57,4 +57,9 @@ public class MapItemTranslator extends NbtItemStackTranslator {
             itemTag.remove("map_uuid");
         }
     }
+
+    @Override
+    public boolean acceptItem(ItemEntry itemEntry) {
+        return itemEntry.getJavaIdentifier().equals("minecraft:filled_map");
+    }
 }
