@@ -39,6 +39,11 @@ public class CatEntity extends TameableEntity {
     }
 
     @Override
+    public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(session, 0, 0, 0, Vector3f.from(this.rotation.getX(), pitch, yaw), isOnGround);
+    }
+
+    @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 18) {
             // Different colors in Java and Bedrock for some reason
