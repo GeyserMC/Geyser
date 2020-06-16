@@ -192,22 +192,48 @@ public class Entity {
         session.sendUpstreamPacket(moveEntityPacket);
     }
 
-    // Used for JavaEntityTeleportTranslator
+    /**
+     * Teleports an entity to a new location. Used in JavaEntityTeleportTranslator.
+     * @param session GeyserSession.
+     * @param position The new position of the entity.
+     * @param yaw The new yaw of the entity.
+     * @param pitch The new pitch of the entity.
+     * @param isOnGround Whether the entity is currently on the ground.
+     */
     public void teleport(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround) {
         moveAbsolute(session, position, yaw, pitch, isOnGround, false);
     }
 
-    // Used for JavaEntityHeadLookTranslator
+    /**
+     * Updates an entity's head position. Used in JavaEntityHeadLookTranslator.
+     * @param session GeyserSession.
+     * @param headYaw The new head rotation of the entity.
+     */
     public void updateHeadLookRotation(GeyserSession session, float headYaw) {
         moveRelative(session, 0, 0, 0, Vector3f.from(headYaw, rotation.getY(), rotation.getZ()), onGround);
     }
 
-    // Used for JavaEntityPositionRotationTranslator
+    /**
+     * Updates an entity's position and rotation. Used in JavaEntityPositionRotationTranslator.
+     * @param session GeyserSession
+     * @param moveX The new X offset of the current position.
+     * @param moveY The new Y offset of the current position.
+     * @param moveZ The new Z offset of the current position.
+     * @param yaw The new yaw of the entity.
+     * @param pitch The new pitch of the entity.
+     * @param isOnGround Whether the entity is currently on the ground.
+     */
     public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
         moveRelative(session, moveX, moveY, moveZ, Vector3f.from(rotation.getX(), pitch, yaw), isOnGround);
     }
 
-    // Used for JavaEntityRotationTranslator
+    /**
+     * Updates an entity's rotation. Used in JavaEntityRotationTranslator.
+     * @param session GeyserSession.
+     * @param yaw The new yaw of the entity.
+     * @param pitch The new pitch of the entity.
+     * @param isOnGround Whether the entity is currently on the ground.
+     */
     public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
         updatePositionAndRotation(session, 0, 0, 0, yaw, pitch, isOnGround);
     }
