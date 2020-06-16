@@ -208,7 +208,7 @@ public class Entity {
 
     // Used for JavaEntityRotationTranslator
     public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(session, 0, 0, 0, Vector3f.from(yaw, pitch, rotation.getZ()), isOnGround);
+        updatePositionAndRotation(session, 0, 0, 0, yaw, pitch, isOnGround);
     }
 
     public void updateBedrockAttributes(GeyserSession session) {
