@@ -85,6 +85,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -331,6 +332,13 @@ public class GeyserSession implements CommandSender {
 
                         // Download and load the language for the player
                         LocaleUtils.downloadAndLoadLocale(locale);
+
+                        // Register plugin channels
+                        connector.getGeneralThreadPool().schedule(() -> {
+                            for (String channel : getConnector().getRegisteredPluginChannels()) {
+                                registerPluginChannel(channel);
+                            }
+                        }, 1, TimeUnit.SECONDS);
                     }
 
                     @Override
@@ -590,5 +598,19 @@ public class GeyserSession implements CommandSender {
      */
     public void sendPluginMessage(String channel, byte[] data) {
         sendDownstreamPacket(new ClientPluginMessagePacket(channel, data));
+    }
+
+    /**
+     * Register a Plugin Channel
+     */
+    public void registerPluginChannel(String channel) {
+        sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", channel.getBytes()));
+    }
+
+    /**
+     * Unregister a Plugin Channel
+     */
+    public void unregisterPluginChannel(String channel) {
+        sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:unregister", channel.getBytes()));
     }
 }

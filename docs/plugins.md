@@ -113,3 +113,40 @@ Please refer to [events](events.md) for more information about the event system.
     The plugin class itself provides many of the registration methods found in the Event Manager to track which events belong to the plugin. You
     should use the plugins own registration methods in preference to those in the Event Manger. This includes
     `registerEvents` and `on`.
+
+## Plugin Messages
+
+A plugin can communicate with a plugin on the downstream server through the use of plugin message channels. More information about
+this can be found [here](https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel). 
+
+### Sending a Plugin Message
+
+To send a plugin message use GeyserSession#sendPluginMessage.
+
+!!! example
+    ```java
+    ByteArrayDataOutput out = ByteStreams.newDataOutput();
+    out.writeUTF("Data1");
+    out.writeUTF("Data2");
+    session.sendPluginMessage("myplugin:channel", out.toByteArray());
+    ```
+    
+### Receiving Plugin Messages
+
+To receive plugin messages you need to first register to recieve the message then listen for the `PluginMessageEvent`.
+
+!!! example
+    ```java
+    GeyserConnector.getInstance().registerPluginChannel("myplugin:channelname");
+    
+    ...
+    
+    @Event
+    void public onPluginMessageEvent(EventContext context, PluginMessageEvent event) {
+        if (!event.getChannel().equals("myplugin:channelname")) {
+            return;
+        }
+        
+        ...
+    }
+    ```
