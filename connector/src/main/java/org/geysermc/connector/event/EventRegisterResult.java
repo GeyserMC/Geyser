@@ -26,25 +26,15 @@
 
 package org.geysermc.connector.event;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.geysermc.connector.event.events.CancellableGeyserEvent;
-import org.geysermc.connector.event.events.GeyserEvent;
+import java.util.concurrent.TimeUnit;
 
-/**
- * Convenience class to allow chaining results
- */
-@SuppressWarnings("UnusedReturnValue")
-public interface EventResult {
+public interface EventRegisterResult {
     EventManager getManager();
-    GeyserEvent getEvent();
+    EventHandler<?> getHandler();
+    EventRegisterResult onDelay(Runnable runnable, long delay, TimeUnit unit);
 
-    boolean isCancelled();
-    EventResult ifNotCancelled(Runnable runnable);
-    EventResult ifCancelled(Runnable runnable);
-    EventResult orElse(Runnable runnable);
 
     interface Runnable {
-        void run(EventResult result);
+        void run(EventManager.Context ctx);
     }
 }

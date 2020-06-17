@@ -29,6 +29,7 @@ package org.geysermc.connector.plugin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.event.EventHandler;
+import org.geysermc.connector.event.EventRegisterResult;
 import org.geysermc.connector.event.events.GeyserEvent;
 import org.geysermc.connector.event.events.PluginDisableEvent;
 import org.geysermc.connector.event.events.PluginEnableEvent;
@@ -55,21 +56,21 @@ public abstract class GeyserPlugin {
     /**
      * Create a new EventHandler using an Executor
      */
-    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority, boolean ignoreCancelled) {
-        EventHandler<T> handler = pluginManager.getConnector().getEventManager().on(cls, executor, priority, ignoreCancelled);
-        pluginEventHandlers.add(handler);
-        return handler;
+    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority, boolean ignoreCancelled) {
+        EventRegisterResult result = pluginManager.getConnector().getEventManager().on(cls, executor, priority, ignoreCancelled);
+        pluginEventHandlers.add(result.getHandler());
+        return result;
     }
 
-    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor) {
+    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor) {
         return on(cls, executor, EventHandler.PRIORITY.NORMAL, true);
     }
 
-    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor, boolean ignoreCancelled) {
+    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, boolean ignoreCancelled) {
         return on(cls, executor, EventHandler.PRIORITY.NORMAL, ignoreCancelled);
     }
 
-    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority) {
+    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority) {
         return on(cls, executor, priority, true);
     }
 

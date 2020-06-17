@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.concurrent.TimeUnit;
 
 @Getter
 @AllArgsConstructor
@@ -63,7 +64,7 @@ public class EventManager {
                 ((EventHandler<GeyserEvent>) handler).execute(ctx, event);
             }
         }
-        return new EventResult(this, event);
+        return new Result(this, event);
     }
 
     /**
@@ -86,27 +87,27 @@ public class EventManager {
                 }
             }
         }
-        return new EventResult(this, event);
+        return new Result(this, event);
     }
 
     /**
      * Create a new EventHandler using an Executor
      */
-    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority, boolean ignoreCancelled) {
+    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority, boolean ignoreCancelled) {
         EventHandler<T> handler = new EventHandler<>(cls, executor, priority, ignoreCancelled);
         register(handler);
-        return handler;
+        return new RegisterResult(this, handler);
     }
 
-    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor) {
+    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor) {
        return on(cls, executor, EventHandler.PRIORITY.NORMAL, true);
     }
 
-    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor, boolean ignoreCancelled) {
+    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, boolean ignoreCancelled) {
         return on(cls, executor, EventHandler.PRIORITY.NORMAL, ignoreCancelled);
     }
 
-    public <T extends GeyserEvent> EventHandler<T> on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority) {
+    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority) {
         return on(cls, executor, priority, true);
     }
 
@@ -148,7 +149,7 @@ public class EventManager {
             }
 
             //noinspection unchecked
-            EventHandler<?> handler = on((Class<? extends GeyserEvent>)method.getParameters()[1].getType(), (ctx, event) -> {
+            EventRegisterResult result = on((Class<? extends GeyserEvent>)method.getParameters()[1].getType(), (ctx, event) -> {
                         try {
                             method.invoke(obj, ctx, event);
                         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -160,8 +161,8 @@ public class EventManager {
                 classEventHandlers.put(obj, new ArrayList<>());
             }
 
-            classEventHandlers.get(obj).add(handler);
-            handlers.add(handler);
+            classEventHandlers.get(obj).add(result.getHandler());
+            handlers.add(result.getHandler());
         }
 
         return handlers.toArray(new EventHandler[0]);
@@ -182,6 +183,24 @@ public class EventManager {
         classEventHandlers.remove(obj);
     }
 
+    /**
+     * Provides a chainable result to event registration
+     */
+    @Getter
+    @AllArgsConstructor
+    public static class RegisterResult implements EventRegisterResult {
+        private final EventManager manager;
+        private final EventHandler<?> handler;
+
+        /**
+         * Execute the runnable after a delay Normally used to cancel the registration in case no event is triggered
+         */
+        public EventRegisterResult onDelay(Runnable runnable, long delay, TimeUnit unit) {
+            manager.getConnector().getGeneralThreadPool().schedule(() -> runnable.run(new Context(manager, handler)), delay, unit);
+            return this;
+        }
+    }
+
     @AllArgsConstructor
     public static class Context implements EventContext {
         private final EventManager manager;
@@ -193,6 +212,43 @@ public class EventManager {
         @Override
         public void unregister() {
             manager.unregister(handler);
+        }
+    }
+
+    /**
+     * Provides a chainable result for the triggerinig of an Event
+     */
+    @Getter
+    @AllArgsConstructor
+    public static class Result implements EventResult {
+        private final EventManager manager;
+        private final GeyserEvent event;
+
+        /**
+         * Returns true if the event was cancelled
+         * @return boolean true if cancelled
+         */
+        public boolean isCancelled() {
+            return event instanceof CancellableGeyserEvent && ((CancellableGeyserEvent) event).isCancelled();
+        }
+
+        public EventResult ifNotCancelled(Runnable runnable) {
+            if (!isCancelled()) {
+                runnable.run(this);
+            }
+            return this;
+        }
+
+        public EventResult ifCancelled(Runnable runnable) {
+            if (isCancelled()) {
+                runnable.run(this);
+            }
+            return this;
+        }
+
+        public EventResult orElse(Runnable runnable) {
+            runnable.run(this);
+            return this;
         }
     }
 }

@@ -21,7 +21,17 @@ The event is triggered through the `triggerEvent` method of the Event Manager.
     eventManager.triggerEvent(new MyCustomEvent());
     ```
 
-This returns an EventResult which can be used to chain additional commands based upon the result.
+This returns an EventResult which can be used to chain additional commands based upon the result. They include `ifNotCancelled` and 
+`ifCancelled`.
+
+!!! example
+    ```java
+    eventManager.triggerEvent(new MyCustomEvent())
+        .ifNotCancelled((result) -> {
+            // Code executed if events were not cancelled
+        });
+    ```
+
 
 ## Listening to an Event
 
@@ -77,6 +87,18 @@ method listeners.
     
 This method takes 2 optional parameters specifying the priority of the event and if the handler should ignore cancelled events.
 
+This returns an `EventRegisterResult` that allows one to chain a delay on, normally to used to cancel the handler. It is safe to cancel
+an already cancelled handler.
+
+!!! example
+    ```java
+    GeyserConnector.getInstance().getEventManager().on(MyCustomEvent.class, (ctx, event) -> {
+        System.err.println("If this doesn't trigger in 10 seconds it is cancelled");
+        ctx.unregister();
+    }).onDelay((ctx) -> {
+        ctx.unregister();
+    }, 10, TimeUnit.SECONDS);
+    ```
 
 ### Event Context
 
