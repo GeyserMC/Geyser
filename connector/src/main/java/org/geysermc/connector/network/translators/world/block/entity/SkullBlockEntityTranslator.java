@@ -82,7 +82,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static GameProfile getProfile(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, GeyserSession session) {
-        if (tag.contains("Owner") && !session.getSkullCache().containsKey(tag)) {
+        if (tag.contains("Owner")) {
             com.github.steveice10.opennbt.tag.builtin.CompoundTag owner = tag.get("Owner");
             com.github.steveice10.opennbt.tag.builtin.CompoundTag Properties = owner.get("Properties");
 
@@ -133,6 +133,11 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
 
         GameProfile gameProfile = getProfile(tag, session);
+
+        if (gameProfile == null) {
+            return;
+        }
+
         Vector3f rotationVector = Vector3f.from(rotation, 0, rotation);
 
         PlayerEntity player = new PlayerEntity(gameProfile, 1, geyserId, Vector3f.from(x, y, z), Vector3f.ZERO, rotationVector );
@@ -154,16 +159,12 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         // Only send to session if we are initialized, otherwise it will happen then.
         if (session.getUpstream().isInitialized()) {
-            player.addPlayerList(session);
             player.spawnEntity(session);
-            player.removePlayerList(session);
 
-            SkinUtils.requestAndHandleSkinAndCape(player, session, (skinAndCape -> {
-                session.getConnector().getGeneralThreadPool().schedule(() -> {
-                    player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
-                    player.updateBedrockMetadata(session);
-                }, 500, TimeUnit.MILLISECONDS);
-            }));
+            SkinUtils.requestAndHandleSkinAndCape(player, session, (skinAndCape -> session.getConnector().getGeneralThreadPool().schedule(() -> {
+                player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
+                player.updateBedrockMetadata(session);
+            }, 2, TimeUnit.SECONDS)));
         }
     }
 
