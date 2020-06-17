@@ -28,7 +28,6 @@ package org.geysermc.connector.network.translators.inventory.action;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientConfirmTransactionPacket;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.concurrent.TimeUnit;
 

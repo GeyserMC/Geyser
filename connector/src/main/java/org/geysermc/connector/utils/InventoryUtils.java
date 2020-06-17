@@ -108,19 +108,18 @@ public class InventoryUtils {
     }
 
     public static void updateCursor(GeyserSession session) {
-        InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
-        inventoryContentPacket.setContainerId(ContainerId.CURSOR);
-        inventoryContentPacket.setContents(new ItemData[] {ItemTranslator.translateToBedrock(session, session.getInventory().getCursor())});
-        session.sendUpstreamPacket(inventoryContentPacket);
+//        InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
+//        inventoryContentPacket.setContainerId(ContainerId.CURSOR);
+//        inventoryContentPacket.setContents(new ItemData[] {ItemTranslator.translateToBedrock(session, session.getInventory().getCursor())});
+//        session.sendUpstreamPacket(inventoryContentPacket);
 
-//        InventorySlotPacket cursorPacket = new InventorySlotPacket();
-//        cursorPacket.setContainerId(ContainerId.CURSOR);
-//        cursorPacket.setSlot(0);
-//        cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
-//        session.sendUpstreamPacket(cursorPacket);
-//        session.sendUpstreamPacket(cursorPacket);
-//        session.sendUpstreamPacket(cursorPacket);
-//        session.sendUpstreamPacket(cursorPacket);
+        // Not sure which way of updating cursor is better but both seem to achieve it. However Bedrock uses a muti
+        // slot cursor as an undo so using setSlot is probably better.
+        InventorySlotPacket cursorPacket = new InventorySlotPacket();
+        cursorPacket.setContainerId(ContainerId.CURSOR);
+        cursorPacket.setSlot(0);
+        cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
+        session.sendUpstreamPacket(cursorPacket);
     }
 
     public static boolean canStack(ItemStack item1, ItemStack item2) {
