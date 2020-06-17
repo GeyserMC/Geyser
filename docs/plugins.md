@@ -150,3 +150,19 @@ To receive plugin messages you need to first register to recieve the message the
         ...
     }
     ```
+
+## Logging
+
+Plugin classes use their `getLogger()` to retrieve a logging interface. This will log messages to the regular log
+with the plugin name prefixed in the messages.
+
+!!! example
+    ```java
+    @Plugin(...)
+    public class MyPlugin extends GeyserPlugin {
+        public void myMethod() {
+            ...
+            getLogger().info("This is an informative message!");
+        }
+    }
+    ``` 

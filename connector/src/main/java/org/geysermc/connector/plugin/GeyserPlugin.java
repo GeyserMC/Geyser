@@ -28,11 +28,13 @@ package org.geysermc.connector.plugin;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventHandler;
 import org.geysermc.connector.event.EventRegisterResult;
 import org.geysermc.connector.event.events.GeyserEvent;
 import org.geysermc.connector.event.events.PluginDisableEvent;
 import org.geysermc.connector.event.events.PluginEnableEvent;
+import org.geysermc.connector.plugin.annotations.Plugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,13 +44,19 @@ import java.util.List;
  * All GeyserPlugins extend from this
  */
 @Getter
-@AllArgsConstructor
 public abstract class GeyserPlugin {
     // List of EventHandlers associated with this Plugin
     private final List<EventHandler<?>> pluginEventHandlers = new ArrayList<>();
 
     private final PluginManager pluginManager;
     private final PluginClassLoader pluginClassLoader;
+    private final PluginLogger logger;
+
+    public GeyserPlugin(PluginManager pluginManager, PluginClassLoader pluginClassLoader) {
+        this.pluginManager = pluginManager;
+        this.pluginClassLoader = pluginClassLoader;
+        this.logger = new PluginLogger(this);
+    }
 
     // We provide some methods already provided in EventManager as we want to keep track of which EventHandlers
     // belong to a particular plugin. That way we can unregister them all easily.
@@ -105,4 +113,22 @@ public abstract class GeyserPlugin {
         pluginManager.getConnector().getEventManager().triggerEvent(new PluginDisableEvent(this));
     }
 
+    public GeyserConnector getConnector() {
+        return pluginManager.getConnector();
+    }
+
+    public String getName() {
+        Plugin pluginAnnotation = getClass().getAnnotation(Plugin.class);
+        return pluginAnnotation != null ? pluginAnnotation.name() : "unknown";
+    }
+
+    public String getDescription() {
+        Plugin pluginAnnotation = getClass().getAnnotation(Plugin.class);
+        return pluginAnnotation != null ? pluginAnnotation.description() : "";
+    }
+
+    public String getVersion() {
+        Plugin pluginAnnotation = getClass().getAnnotation(Plugin.class);
+        return pluginAnnotation != null ? pluginAnnotation.version() : "unknown";
+    }
 }
