@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Appenders>
-        <TerminalConsole name="Console">
+        <TerminalConsole name="TerminalConsole">
             <PatternLayout pattern="[%d{HH:mm:ss} %style{%highlight{%level}{FATAL=red dark, ERROR=red, WARN=yellow bright, INFO=cyan bright, DEBUG=green, TRACE=white}}] %minecraftFormatting{%msg}%n"/>
         </TerminalConsole>
         <Console name="Console" target="SYSTEM_OUT" follow="true">
@@ -17,6 +17,7 @@
     </Appenders>
     <Loggers>
         <Root level="INFO">
+            <AppenderRef ref="TerminalConsole"/>
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Root>

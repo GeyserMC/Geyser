@@ -26,6 +26,11 @@
 package org.geysermc.platform.standalone;
 
 import lombok.Getter;
+import net.minecrell.terminalconsole.TerminalConsoleAppender;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -77,6 +82,14 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        Logger logger = (Logger) LogManager.getRootLogger();
+        for (Appender appender : logger.getAppenders().values()) {
+            // Remove the appender that is not in use
+            // Prevents multiple appenders/double logging and removes harmless errors
+            if ((useGui && appender instanceof TerminalConsoleAppender) || (!useGui && appender instanceof ConsoleAppender)) {
+                logger.removeAppender(appender);
+            }
+        }
         if (useGui && gui == null) {
             gui = new GeyserStandaloneGUI();
             gui.redirectSystemStreams();
@@ -105,7 +118,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
-        geyserLogger.start();
+        if (!useGui) {
+            geyserLogger.start(); // Throws an error otherwise
+        }
     }
 
     @Override
