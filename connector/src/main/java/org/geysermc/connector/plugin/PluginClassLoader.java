@@ -27,6 +27,8 @@
 package org.geysermc.connector.plugin;
 
 import com.google.common.io.ByteStreams;
+import javassist.ClassPool;
+import javassist.CtClass;
 import lombok.Getter;
 import org.geysermc.connector.plugin.annotations.Plugin;
 
@@ -69,24 +71,23 @@ public class PluginClassLoader extends URLClassLoader {
     /**
      * Find first class annotated by @Plugin
      */
+    @SuppressWarnings("unchecked")
     private Class<? extends GeyserPlugin> findPlugin() {
         for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements();) {
             JarEntry entry = entries.nextElement();
             if (!entry.getName().endsWith(".class")) {
                 continue;
             }
+            try (InputStream is = jar.getInputStream(entry)) {
+                ClassPool cp = ClassPool.getDefault();
+                CtClass ct = cp.makeClass(is);
 
-            Class<?> cls;
-            try {
-                 cls = loadFromJar(entry);
-            } catch (ClassNotFoundException ignored) {
-                continue;
-            }
-
-            if (GeyserPlugin.class.isAssignableFrom(cls) && cls.getAnnotation(Plugin.class) != null) {
-                cacheClass(cls, true);
-                //noinspection unchecked
-                return (Class<? extends GeyserPlugin>) cls;
+                if (ct.getAnnotation(Plugin.class) != null) {
+                    Class<?> cls = loadFromJar(entry);
+                    cacheClass(cls, true);
+                    return (Class<? extends GeyserPlugin>) cls;
+                }
+            } catch (IOException | ClassNotFoundException ignored) {
             }
         }
         return null;
@@ -158,7 +159,7 @@ public class PluginClassLoader extends URLClassLoader {
             return classes.get(name);
         }
 
-        boolean global = pluginClass.getAnnotation(Plugin.class).global();
+        boolean global = pluginClass != null && pluginClass.getAnnotation(Plugin.class).global();
 
         // Now try load from global if permitted
         if (global) {
