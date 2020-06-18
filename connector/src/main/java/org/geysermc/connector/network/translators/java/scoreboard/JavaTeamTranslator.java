@@ -66,21 +66,21 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                             .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()))
                             .setUpdateType(UpdateType.UPDATE);
                 } else {
-                    GeyserConnector.getInstance().getLogger().error("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
+                    GeyserConnector.getInstance().getLogger().debug("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
                 }
                 break;
             case ADD_PLAYER:
-                if(team != null){
+                if (team != null) {
                     team.addEntities(packet.getPlayers());
                 } else {
-                    GeyserConnector.getInstance().getLogger().error("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
+                    GeyserConnector.getInstance().getLogger().debug("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
                 }
                 break;
             case REMOVE_PLAYER:
-                if(team != null){
+                if (team != null) {
                     team.removeEntities(packet.getPlayers());
                 } else {
-                    GeyserConnector.getInstance().getLogger().error("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
+                    GeyserConnector.getInstance().getLogger().debug("Error while translating Team Packet " + packet.getAction() + "! Scoreboard Team " + packet.getTeamName() + " is not registered.");
                 }
                 break;
             case REMOVE:
