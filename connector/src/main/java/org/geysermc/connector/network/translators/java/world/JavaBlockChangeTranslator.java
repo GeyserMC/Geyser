@@ -45,7 +45,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
     @Override
     public void translate(ServerBlockChangePacket packet, GeyserSession session) {
         Position pos = packet.getRecord().getPosition();
-        boolean updatePlacement = !(session.getConnector().getConfig().isCacheChunks() && session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ()).getId() == packet.getRecord().getBlock().getId());
+        boolean updatePlacement = !(session.getConnector().getConfig().isCacheChunks() && session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ()) == packet.getRecord().getBlock());
         ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), packet.getRecord().getPosition());
         if (updatePlacement && session.getConnector().getPlatformType() != PlatformType.BUKKIT) {
             this.checkPlace(session, packet);

@@ -50,13 +50,13 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
         LevelEventPacket levelEvent = new LevelEventPacket();
         switch (packet.getAction()) {
             case FINISH_DIGGING:
-                double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(session.getBreakingBlock() == null ? 0 : session.getBreakingBlock().getId());
+                double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(session.getBreakingBlock());
                 if (session.getGameMode() != GameMode.CREATIVE && blockHardness != 0) {
                     levelEvent.setType(LevelEventType.DESTROY);
                     levelEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
                     levelEvent.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock()));
                     session.sendUpstreamPacket(levelEvent);
-                    session.setBreakingBlock(null);
+                    session.setBreakingBlock(0);
                 }
                 ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
                 break;
@@ -64,7 +64,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 if (session.getGameMode() == GameMode.CREATIVE) {
                     break;
                 }
-                blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(packet.getNewState().getId());
+                blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(packet.getNewState());
                 levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
                 levelEvent.setPosition(Vector3f.from(
                         packet.getPosition().getX(),
@@ -79,7 +79,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                     itemEntry = ItemRegistry.getItem(item);
                     nbtData = item.getNbt();
                 }
-                double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState().getId(), itemEntry, nbtData, session) * 20);
+                double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState(), itemEntry, nbtData, session) * 20);
                 levelEvent.setData((int) (65535 / breakTime));
                 session.setBreakingBlock(packet.getNewState());
                 session.sendUpstreamPacket(levelEvent);
@@ -92,7 +92,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                         packet.getPosition().getZ()
                 ));
                 levelEvent.setData(0);
-                session.setBreakingBlock(null);
+                session.setBreakingBlock(0);
                 session.sendUpstreamPacket(levelEvent);
                 break;
         }
