@@ -163,13 +163,13 @@ public abstract class GeyserPlugin {
      * Return our dataFolder based upon the plugin name
      */
     public File getDataFolder() {
-        return new File(getConnector().getBootstrap().getDataFolder(), getName());
+        return getConnector().getBootstrap().getDataFolder().toPath().resolve("plugins").resolve(getName()).toFile();
     }
 
     /**
      * Return an InputStream for a resource file
      */
     public InputStream getResourceAsStream(String name) {
-        return getClass().getResourceAsStream(name);
+        return getClass().getClassLoader().getResourceAsStream(name);
     }
 }
