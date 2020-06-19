@@ -53,8 +53,6 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
             session.getDownstream().getSession().send(closeWindowPacket);
             InventoryUtils.closeInventory(session, windowId);
-        } else if (openInventory != null && openInventory.getId() != windowId) {
-            InventoryUtils.openInventory(session, openInventory);
         }
     }
 }

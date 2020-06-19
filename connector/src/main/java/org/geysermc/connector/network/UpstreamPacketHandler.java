@@ -28,7 +28,7 @@ package org.geysermc.connector.network;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.common.AuthType;
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.events.UpstreamPacketReceiveEvent;
 import org.geysermc.connector.network.session.GeyserSession;

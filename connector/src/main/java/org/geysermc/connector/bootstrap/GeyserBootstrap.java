@@ -27,7 +27,7 @@
 package org.geysermc.connector.bootstrap;
 
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.world.CachedChunkManager;
