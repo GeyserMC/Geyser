@@ -75,6 +75,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     Entity interactEntity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
                     if (interactEntity == null)
                         return;
+                    EntityDataMap entityMetadata = interactEntity.getMetadata();
 
                     String interactiveTag;
                     switch (interactEntity.getEntityType()) {
@@ -88,7 +89,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         case SKELETON_HORSE:
                         case TRADER_LLAMA:
                         case ZOMBIE_HORSE:
-                            if (interactEntity.getMetadata().getFlags().getFlag(EntityFlag.TAMED)) {
+                            if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED)) {
                                 interactiveTag = "action.interact.ride.horse";
                             } else {
                                 interactiveTag = "action.interact.mount";
@@ -98,14 +99,13 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                             interactiveTag = "action.interact.ride.minecart";
                             break;
                         case PIG:
-                            if (interactEntity.getMetadata().getFlags().getFlag(EntityFlag.SADDLED)) {
+                            if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
                                 interactiveTag = "action.interact.mount";
                             } else interactiveTag = "";
                             break;
                         case VILLAGER:
-                            EntityDataMap villagerMetadata = interactEntity.getMetadata();
-                            if (villagerMetadata.getInt(EntityData.VARIANT) != 14 && villagerMetadata.getInt(EntityData.VARIANT) != 0
-                            && villagerMetadata.getFloat(EntityData.SCALE) >= 0.75f) { // Not a nitwit, has a profession and is not a baby
+                            if (entityMetadata.getInt(EntityData.VARIANT) != 14 && entityMetadata.getInt(EntityData.VARIANT) != 0
+                            && entityMetadata.getFloat(EntityData.SCALE) >= 0.75f) { // Not a nitwit, has a profession and is not a baby
                                 interactiveTag = "action.interact.trade";
                             } else interactiveTag = "";
                             break;
