@@ -38,6 +38,7 @@ import org.geysermc.connector.plugin.handlers.PluginLambdaEventHandler;
 import org.geysermc.connector.plugin.handlers.PluginMethodEventHandler;
 import org.geysermc.connector.plugin.annotations.Plugin;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -137,7 +138,7 @@ public abstract class GeyserPlugin {
 
     public String getName() {
         Plugin pluginAnnotation = getClass().getAnnotation(Plugin.class);
-        return pluginAnnotation != null ? pluginAnnotation.name() : "unknown";
+        return pluginAnnotation != null && !pluginAnnotation.name().isEmpty() ? pluginAnnotation.name().replace("..","") : "unknown";
     }
 
     public String getDescription() {
@@ -155,5 +156,12 @@ public abstract class GeyserPlugin {
      */
     public EventManager getEventManager() {
         return pluginManager.getConnector().getEventManager();
+    }
+
+    /**
+     * Return our dataFolder based upon the plugin name
+     */
+    public File getDataFolder() {
+        return new File(getConnector().getBootstrap().getDataFolder(), getName());
     }
 }
