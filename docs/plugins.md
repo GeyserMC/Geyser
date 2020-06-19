@@ -144,7 +144,7 @@ To receive plugin messages you need to first register to receive the message the
     '''
     
     @Event
-    void public onPluginMessageEvent(EventContext context, PluginMessageEvent event) {
+    void public onPluginMessageEvent(PluginMessageEvent event) {
         if (!event.getChannel().equals("myplugin:channelname")) {
             return;
         }

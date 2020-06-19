@@ -54,7 +54,7 @@ with the event manager.
     public class MyClass {
 
         @Event
-        public void onEnable(EventContext ctx, MyCustomEvent event) {
+        public void onEnable(MyCustomEvent event) {
             System.err.println("Hello World");
         }
     }
@@ -74,7 +74,7 @@ The `@Event` annotation has the following optional parameters:
 * **filter** - `List<Class<?>>`. Default {}. If set will only execute the event handler if the passed in filter to `triggerEvent` 
 is null or matches any on this list.
 
-The `EventContext` will be discussed later. `MyCustomEvent` is the event defined previously.
+`MyCustomEvent` is the event defined previously.
 
 ### Anonymous Lambda
 
