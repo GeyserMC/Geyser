@@ -30,7 +30,6 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.common.AuthType;
 import org.geysermc.connector.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.event.EventResult;
 import org.geysermc.connector.event.events.UpstreamPacketReceiveEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
@@ -42,11 +41,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         super(connector, session);
     }
 
-    private boolean translateAndDefault(BedrockPacket packet) {
-        EventResult result =  connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent(session, packet));
-
-        // If the event was cancelled we consider it handled.
-        if (result.isCancelled()) {
+    private <T extends BedrockPacket> boolean translateAndDefault(T packet) {
+        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), packet.getClass()).isCancelled()) {
             return true;
         }
 
@@ -55,6 +51,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
+        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, loginPacket), LoginPacket.class).isCancelled()) {
+            return true;
+        }
+
         if (loginPacket.getProtocolVersion() > GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
             session.disconnect("Outdated Geyser proxy! I'm still on " + GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
             return true;
@@ -76,6 +76,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ResourcePackClientResponsePacket packet) {
+        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), ResourcePackClientResponsePacket.class).isCancelled()) {
+            return true;
+        }
+
         switch (packet.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
@@ -98,6 +102,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
+        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), ModalFormResponsePacket.class).isCancelled()) {
+            return true;
+        }
+
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
     }
 
@@ -120,6 +128,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
+        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), SetLocalPlayerAsInitializedPacket.class).isCancelled()) {
+            return true;
+        }
+
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthData().getName())) {
@@ -132,6 +144,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
+        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), MovePlayerPacket.class).isCancelled()) {
+            return true;
+        }
+
         if (session.isLoggingIn()) {
             session.sendMessage("Please wait until you are logged in...");
         }
@@ -140,7 +156,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    boolean defaultHandler(BedrockPacket packet) {
+    <T extends BedrockPacket> boolean defaultHandler(T packet) {
         return translateAndDefault(packet);
     }
 }

@@ -57,7 +57,7 @@ Add the following to the relevant section of your `pom.xml`
         }
 
         @Event
-        public void onEnable(EventContext ctx, PluginEnableEvent event) {
+        public void onEnable(PluginEnableEvent event) {
             if (event.getPlugin() == this) {
                 System.err.println("I'm alive");
     
@@ -65,16 +65,18 @@ Add the following to the relevant section of your `pom.xml`
                 registerEvents(new MyAdditionalClass());
     
                 // Example of lambda event hook
-                on(PluginDisableEvent.class, (ctx, event) -> {
+                on(PluginDisableEvent.class, (handler, event) -> {
                     if (event.getPlugin() == MyPlugin.this) {
                         System.err.println("I'm also dead");
                     }
-                }, PRIORITY.HIGH);
+                })
+                    .priority(EventHandler.PRIORITY.HIGH)
+                    .build();
             }
         }
         
         @Event
-        public void onDisable(EventContext ctx, PluginDisableEvent event) {
+        public void onDisable(PluginDisableEvent event) {
             if (event.getPlugin() == this) {
                 System.err.println("I'm dead");
             }
@@ -121,7 +123,7 @@ this can be found [here](https://www.spigotmc.org/wiki/bukkit-bungee-plugin-mess
 
 ### Sending a Plugin Message
 
-To send a plugin message use GeyserSession#sendPluginMessage.
+To send a plugin message use `GeyserSession#sendPluginMessage.`
 
 !!! example
     ```java
@@ -133,13 +135,13 @@ To send a plugin message use GeyserSession#sendPluginMessage.
     
 ### Receiving Plugin Messages
 
-To receive plugin messages you need to first register to recieve the message then listen for the `PluginMessageEvent`.
+To receive plugin messages you need to first register to receive the message then listen for the `PluginMessageEvent`.
 
 !!! example
     ```java
     GeyserConnector.getInstance().registerPluginChannel("myplugin:channelname");
     
-    ...
+    '''
     
     @Event
     void public onPluginMessageEvent(EventContext context, PluginMessageEvent event) {
@@ -149,6 +151,7 @@ To receive plugin messages you need to first register to recieve the message the
         
         ...
     }
+    
     ```
 
 ## Logging

@@ -26,23 +26,26 @@
 
 package org.geysermc.connector.plugin;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.event.EventHandler;
-import org.geysermc.connector.event.EventRegisterResult;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.annotations.Event;
 import org.geysermc.connector.event.events.GeyserEvent;
 import org.geysermc.connector.event.events.PluginDisableEvent;
 import org.geysermc.connector.event.events.PluginEnableEvent;
+import org.geysermc.connector.event.handlers.EventHandler;
+import org.geysermc.connector.plugin.handlers.PluginLambdaEventHandler;
+import org.geysermc.connector.plugin.handlers.PluginMethodEventHandler;
 import org.geysermc.connector.plugin.annotations.Plugin;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * All GeyserPlugins extend from this
  */
+@SuppressWarnings("unused")
 @Getter
 public abstract class GeyserPlugin {
     // List of EventHandlers associated with this Plugin
@@ -62,32 +65,47 @@ public abstract class GeyserPlugin {
     // belong to a particular plugin. That way we can unregister them all easily.
 
     /**
-     * Create a new EventHandler using an Executor
+     * Create a new EventHandler using a lambda
      */
-    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority, boolean ignoreCancelled) {
-        EventRegisterResult result = pluginManager.getConnector().getEventManager().on(cls, executor, priority, ignoreCancelled);
-        pluginEventHandlers.add(result.getHandler());
-        return result;
+    public <T extends GeyserEvent> PluginLambdaEventHandler.Builder<T> on(Class<T> cls, PluginLambdaEventHandler.Runnable<T> runnable) {
+        return new PluginLambdaEventHandler.Builder<>(this, cls, runnable);
     }
 
-    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor) {
-        return on(cls, executor, EventHandler.PRIORITY.NORMAL, true);
+    /**
+     * Register an event handler
+     */
+    public <T extends GeyserEvent> void register(EventHandler<T> handler) {
+        this.pluginEventHandlers.add(handler);
+        getEventManager().register(handler);
     }
 
-    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, boolean ignoreCancelled) {
-        return on(cls, executor, EventHandler.PRIORITY.NORMAL, ignoreCancelled);
-    }
-
-    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority) {
-        return on(cls, executor, priority, true);
+    /**
+     * Unregister an event handler
+     */
+    public <T extends GeyserEvent> void unregister(EventHandler<T> handler) {
+        this.pluginEventHandlers.remove(handler);
+        getEventManager().unregister(handler);
     }
 
     /**
      * Register all Events contained in an instantiated class. The methods must be annotated by @Event
      */
     public void registerEvents(Object obj) {
-        EventHandler<?>[] handlers = pluginManager.getConnector().getEventManager().registerEvents(obj);
-        pluginEventHandlers.addAll(Arrays.asList(handlers));
+        for (Method method : obj.getClass().getMethods()) {
+            // Check that the method is annotated with @Event
+            if (method.getAnnotation(Event.class) == null) {
+                continue;
+            }
+
+            // Make sure it only has a single Event parameter
+            if (method.getParameterCount() != 1 || !GeyserEvent.class.isAssignableFrom(method.getParameters()[0].getType())) {
+                getLogger().error("Cannot register EventHander as its only parameter must be an Event: " + obj.getClass().getSimpleName() + "#" + method.getName());
+                continue;
+            }
+
+            EventHandler<?> handler = new PluginMethodEventHandler<>(this, obj, method);
+            register(handler);
+        }
     }
 
     /**
@@ -95,7 +113,7 @@ public abstract class GeyserPlugin {
      */
     public void unregisterAllEvents() {
         for (EventHandler<?> handler : pluginEventHandlers) {
-            pluginManager.getConnector().getEventManager().unregister(handler);
+            unregister(handler);
         }
     }
 
@@ -103,14 +121,14 @@ public abstract class GeyserPlugin {
      * Enable Plugin
      */
     public void enable() {
-        pluginManager.getConnector().getEventManager().triggerEvent(new PluginEnableEvent(this));
+        getEventManager().triggerEvent(new PluginEnableEvent(this));
     }
 
     /**
      * Disable Plugin
      */
     public void disable() {
-        pluginManager.getConnector().getEventManager().triggerEvent(new PluginDisableEvent(this));
+        getEventManager().triggerEvent(new PluginDisableEvent(this));
     }
 
     public GeyserConnector getConnector() {
@@ -130,5 +148,12 @@ public abstract class GeyserPlugin {
     public String getVersion() {
         Plugin pluginAnnotation = getClass().getAnnotation(Plugin.class);
         return pluginAnnotation != null ? pluginAnnotation.version() : "unknown";
+    }
+
+    /**
+     * Return our Event Manager
+     */
+    public EventManager getEventManager() {
+        return pluginManager.getConnector().getEventManager();
     }
 }

@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.java;
 
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.event.EventResult;
 import org.geysermc.connector.event.events.PluginMessageEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -53,8 +52,8 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
 
     @Override
     public void translate(ServerPluginMessagePacket packet, GeyserSession session) {
-        GeyserConnector.getInstance().getEventManager().triggerEvent(new PluginMessageEvent(session,packet.getChannel(), packet.getData()))
-                .ifNotCancelled((result) -> {
+        session.getConnector().getEventManager().triggerEvent(new PluginMessageEvent(session,packet.getChannel(), packet.getData()))
+                .onNotCancelled((result) -> {
                     if (packet.getChannel().equals("minecraft:brand")) {
                         session.sendDownstreamPacket(
                                 new ClientPluginMessagePacket(packet.getChannel(), brandData)

@@ -24,47 +24,41 @@
  *
  */
 
-package org.geysermc.connector.event;
+package org.geysermc.connector.plugin.handlers;
 
-import jdk.nashorn.internal.ir.annotations.Immutable;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.handlers.LambdaEventHandler;
+import org.geysermc.connector.plugin.GeyserPlugin;
 
-import java.util.Comparator;
-
+/**
+ * Provides a lambda event handler for a plugin.
+ */
 @Getter
-@AllArgsConstructor
-public class EventHandler<T extends GeyserEvent> implements Comparator<EventHandler<T>>, Comparable<EventHandler<T>> {
-    public final Class<? extends T> eventClass;
-    public final Executor<T> executor;
-    public final int priority;
-    public final boolean ignoreCancelled;
+public class PluginLambdaEventHandler<T extends GeyserEvent> extends LambdaEventHandler<T> {
+    private final GeyserPlugin plugin;
 
-    public void execute(EventContext ctx, T event) {
-        executor.run(ctx, event);
+    public PluginLambdaEventHandler(GeyserPlugin plugin, Class<T> cls, Runnable<T> runnable, int priority, boolean ignoreCancelled, Class<?>[] filter) {
+        super(plugin.getEventManager(), cls, runnable, priority, ignoreCancelled, filter);
+
+        this.plugin = plugin;
     }
 
-    @Override
-    public int compare(EventHandler<T> left, EventHandler<T> right) {
-        return left.getPriority() - right.getPriority();
-    }
+    @Getter
+    public static class Builder<T extends GeyserEvent> extends LambdaEventHandler.Builder<T> {
+        private final GeyserPlugin plugin;
 
-    @Override
-    public int compareTo(EventHandler<T> other) {
-        return getPriority() - other.getPriority();
-    }
+        public Builder(GeyserPlugin plugin, Class<T> cls, Runnable<T> runnable) {
+            super(plugin.getEventManager(), cls, runnable);
 
-    public interface Executor<T extends GeyserEvent> {
-        void run(EventContext ctx, T event);
-    }
+            this.plugin = plugin;
+        }
 
-    @Immutable
-    public static final class PRIORITY {
-        public final static int LOWEST = 10;
-        public final static int LOW = 4;
-        public final static int NORMAL = 50;
-        public final static int HIGH = 60;
-        public final static int HIGHEST = 90;
+        @Override
+        public LambdaEventHandler<T> build() {
+            LambdaEventHandler<T> handler = new PluginLambdaEventHandler<>(plugin, getCls(), getRunnable(), getPriority(), isIgnoreCancelled(), getFilter());
+            plugin.register(handler);
+            return handler;
+        }
     }
 }

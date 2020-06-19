@@ -21,17 +21,22 @@ The event is triggered through the `triggerEvent` method of the Event Manager.
     eventManager.triggerEvent(new MyCustomEvent());
     ```
 
-This returns an EventResult which can be used to chain additional commands based upon the result. They include `ifNotCancelled` and 
-`ifCancelled`.
+This returns an EventResult which can be used to chain additional commands based upon the result. They include `onNotCancelled()`, 
+`onCancelled()` and `orElse()` to more easily execute based upon the result and they can chain together.
 
 !!! example
     ```java
     eventManager.triggerEvent(new MyCustomEvent())
-        .ifNotCancelled((result) -> {
+        .onNotCancelled((result) -> {
             // Code executed if events were not cancelled
+        })
+        .orElse((result) -> {
+            // Code executed if the above condition was not satisfied
         });
     ```
 
+`triggerEvent()` can have an optional extra parameter passing in a `Class<?>`. If set then the handler will only execute if it 
+has a filter list containing this filter.
 
 ## Listening to an Event
 
@@ -64,8 +69,10 @@ with the event manager.
 
 The `@Event` annotation has the following optional parameters:
 
-* **priority** - Integer from 0 - 100. Default `50`. Event Handlers are executed in order from lowest to highest priority.
-* **ignoreCancelled** - Boolean. Default `true`. If true then if an event is cancelled the handler will not be executed.
+* **priority** - `Integer` from 0 - 100. Default `50`. Event Handlers are executed in order from lowest to highest priority.
+* **ignoreCancelled** - `Boolean`. Default `true`. If true then if an event is cancelled the handler will not be executed.
+* **filter** - `List<Class<?>>`. Default {}. If set will only execute the event handler if the passed in filter to `triggerEvent` 
+is null or matches any on this list.
 
 The `EventContext` will be discussed later. `MyCustomEvent` is the event defined previously.
 
@@ -77,58 +84,94 @@ method listeners.
 
 !!! example
     ```java
-    GeyserConnector.getInstance().getEventManager().on(MyCustomEvent.class, (ctx, event) -> {
+    GeyserConnector.getInstance().getEventManager().on(MyCustomEvent.class, (handler, event) -> {
         System.err.println("Hello World");
-    });
+    }).build();
     ```
 
 !!! important
     Plugins should use the `on` method inherited from `GeyserPlugin`.
     
-This method takes 2 optional parameters specifying the priority of the event and if the handler should ignore cancelled events.
+You'll note the `build()` on the end. `on()` returns a Builder that can add optional parameters. This must be finalized with a
+`build()` that generates the EventHandler and registers it with the EventManager. 
 
-This returns an `EventRegisterResult` that allows one to chain a delay on, normally to used to cancel the handler. It is safe to cancel
-an already cancelled handler.
+The following additional parameters are available:
+
+* `priority(int)` - Set the event priority. Default `EventHandler.PRIORITY.NORMAL`
+* `ignoreCancelled(boolean)` - If true the handler will not execute if cancelled. Default `true`.
+* `filter(Class<?>[])` - List of filters the handler will accept. Default `{}`
 
 !!! example
     ```java
-    GeyserConnector.getInstance().getEventManager().on(MyCustomEvent.class, (ctx, event) -> {
-        System.err.println("If this doesn't trigger in 10 seconds it is cancelled");
-        ctx.unregister();
-    }).onDelay((ctx) -> {
-        ctx.unregister();
-    }, 10, TimeUnit.SECONDS);
+    GeyserConnector.getInstance().getEventManager().on(MyCustomEvent.class, (handler, event) -> {
+        System.err.println("Hello World");
+    })
+        .priority(30)
+        .ignoreCancelled(false)
+        .build();
     ```
-
-### Event Context
-
-The event handler receives an EventContext in addition to the Event class. The EventContext holds anything related to the
-EventHandler itself and presently only allows an EventHandler to `unregister` itself.
-
 
 ## Events
 
 Geyser has the following predefined Events.
 
-### DownstreamPacketReceiveEvent
+### DownstreamPacketReceiveEvent`<T>`
 *cancellable*
 
 | Modifier and Type | Method | Description  | 
 |---|---|---|
 | GeyserSession | getSession() | Gets the current session | 
-| Packet | getPacket() | Gets the Packet |
+| T | getPacket() | Gets the Packet |
 
 Triggered for each packet received from downstream. If cancelled then regular processing of the packet will not occur.
 
-### DownstreamPacketSendEvent
+The type of packet should be passed in as a Type. The filter should also be set to limit what packets you want otherwise
+every Downstream packet will trigger this handler.
+
+!!!example
+    ```java
+    @Event(filter = ClientChatPacket.class)
+    public void onTextPacket(DownstreamPacketReceiveEvent<ClientChatPacket> event) {
+        getLogger().warning("Got packet: " + event.getPacket());
+    }
+    ```
+
+!!!example
+    ```java
+    @Event
+    public void onGenericPacket(DownstreamPacketReceiveEvent<Packet> event) {
+        getLogger().warning("Got generic packet: " + event.getPacket());
+    }
+    ```
+
+### DownstreamPacketSendEvent`<T>`
 *cancellable*
 
 | Modifier and Type | Method | Description  | 
 |---|---|---|
 | GeyserSession | getSession() | Gets the current session | 
-| Packet | getPacket() | Gets the Packet |
+| T | getPacket() | Gets the Packet |
 
 Triggered for each packet sent to downstream. If cancelled then the packet will not be sent.
+
+The type of packet should be passed in as a Type. The filter should also be set to limit what packets you want otherwise
+every Downstream packet will trigger this handler.
+
+!!!example
+    ```java
+    @Event(filter = ServerChatPacket.class)
+    public void onTextPacket(DownstreamPacketSendEvent<ServerChatPacket> event) {
+        getLogger().warning("Sending packet: " + event.getPacket());
+    }
+    ```
+
+!!!example
+    ```java
+    @Event
+    public void onGenericPacket(DownstreamPacketSendEvent<Packet> event) {
+        getLogger().warning("Sending generic packet: " + event.getPacket());
+    }
+    ```
 
 ### GeyserStopEvent
 
@@ -165,22 +208,60 @@ Triggered each time a plugin is enabled.
 | GeyserSession | getSession() | Gets the current session |
 
 
-### UpstreamPacketReceiveEvent
+### UpstreamPacketReceiveEvent`<T>`
 *cancellable*
 
 | Modifier and Type | Method | Description  | 
 |---|---|---|
 | GeyserSession | getSession() | Gets the current session | 
-| BedrockPacket | getPacket() | Gets the Packet |
+| T | getPacket() | Gets the Packet |
 
 Triggered for each packet received from upstream. If cancelled then regular processing of the packet will not occur.
 
-### UpstreamPacketSendEvent
+The type of packet should be passed in as a Type. The filter should also be set to limit what packets you want otherwise
+every Upstream packet will trigger this handler.
+
+!!!example
+    ```java
+    @Event(filter = TextPacket.class)
+    public void onTextPacket(UpstreamPacketReceiveEvent<TextPacket> event) {
+        getLogger().warning("Got packet: " + event.getPacket());
+    }
+    ```
+
+!!!example
+    ```java
+    @Event
+    public void onGenericPacket(UpstreamPacketReceiveEvent<BedrockPacket> event) {
+        getLogger().warning("Got generic packet: " + event.getPacket());
+    }
+    ```
+
+### UpstreamPacketSendEvent`<T>`
 *cancellable*
 
 | Modifier and Type | Method | Description  | 
 |---|---|---|
 | GeyserSession | getSession() | Gets the current session | 
-| BedrockPacket | getPacket() | Gets the Packet |
+| T | getPacket() | Gets the Packet |
 
-Triggered for each packet sent to upstream. If cancelled then the packet will not be sent.
+Triggered for each packet sent upstream. If cancelled then the packet will not be sent.
+
+The type of packet should be passed in as a Type. The filter should also be set to limit what packets you want otherwise
+every Upstream packet will trigger this handler.
+
+!!!example
+    ```java
+    @Event(filter = TextPacket.class)
+    public void onTextPacket(UpstreamPacketSendEvent<TextPacket> event) {
+        getLogger().warning("Sending packet: " + event.getPacket());
+    }
+    ```
+
+!!!example
+    ```java
+    @Event
+    public void onGenericPacket(UpstreamPacketSendEvent<BedrockPacket> event) {
+        getLogger().warning("Sending generic packet: " + event.getPacket());
+    }
+    ```

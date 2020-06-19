@@ -24,27 +24,25 @@
  *
  */
 
-package org.geysermc.connector.event;
+package org.geysermc.connector.plugin.handlers;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.connector.event.events.CancellableGeyserEvent;
 import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.handlers.MethodEventHandler;
+import org.geysermc.connector.plugin.GeyserPlugin;
+
+import java.lang.reflect.Method;
 
 /**
- * Convenience class to allow chaining results
+ * Provides a method event handler for a plugin.
  */
-@SuppressWarnings("UnusedReturnValue")
-public interface EventResult {
-    EventManager getManager();
-    GeyserEvent getEvent();
+@Getter
+public class PluginMethodEventHandler<T extends GeyserEvent> extends MethodEventHandler<T> {
+    private final GeyserPlugin plugin;
 
-    boolean isCancelled();
-    EventResult ifNotCancelled(Runnable runnable);
-    EventResult ifCancelled(Runnable runnable);
-    EventResult orElse(Runnable runnable);
+    public PluginMethodEventHandler(GeyserPlugin plugin, Object handlerClass, Method method) {
+        super(plugin.getEventManager(), handlerClass, method);
 
-    interface Runnable {
-        void run(EventResult result);
+        this.plugin = plugin;
     }
 }

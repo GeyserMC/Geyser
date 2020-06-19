@@ -32,16 +32,18 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.annotations.Event;
 import org.geysermc.connector.event.events.CancellableGeyserEvent;
 import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.handlers.EventHandler;
+import org.geysermc.connector.event.handlers.LambdaEventHandler;
+import org.geysermc.connector.event.handlers.MethodEventHandler;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("unused")
 @Getter
 @AllArgsConstructor
 public class EventManager {
@@ -51,70 +53,44 @@ public class EventManager {
     private final GeyserConnector connector;
 
     /**
-     * Trigger a new event
+     * Trigger a new event.
      *
-     * This will be executed with all registered handlers in order of priority
+     * All registered EventHandlers will be executed as long as they have the appropriate filter class (or none)
+     * @param event Event being triggered
+     * @param filter Filter Class to be tested against
+     * @return TriggerResult Result of the trigger
      */
-    public EventResult triggerEvent(GeyserEvent event) {
+    public <T extends GeyserEvent> TriggerResult<T> triggerEvent(T event, Class<?> filter) {
         if (eventHandlers.containsKey(event.getClass())) {
-            for (EventHandler<? extends GeyserEvent> handler : eventHandlers.get(event.getClass())) {
-                Context ctx = new Context(this, handler);
-
-                //noinspection unchecked
-                ((EventHandler<GeyserEvent>) handler).execute(ctx, event);
-            }
-        }
-        return new Result(this, event);
-    }
-
-    /**
-     * Trigger a new cancellable event
-     *
-     * This will be executed with all registered handlers in order of priority ignoring those who
-     * do not wish to process events that are cancelled
-     */
-    public EventResult triggerEvent(CancellableGeyserEvent event) {
-        if (eventHandlers.containsKey(event.getClass())) {
-            boolean cancelled = event.isCancelled();
-            for (EventHandler<? extends GeyserEvent> handler : eventHandlers.get(event.getClass())) {
-                if (!cancelled || !handler.isIgnoreCancelled()) {
-                    Context ctx = new Context(this, handler);
-
-                    //noinspection unchecked
-                    ((EventHandler<GeyserEvent>) handler).execute(ctx, event);
-
-                    cancelled = event.isCancelled();
+            for (EventHandler<?> handler : eventHandlers.get(event.getClass())) {
+                if (handler.hasFilter(filter)) {
+                    try {
+                        //noinspection unchecked
+                        ((EventHandler<T>) handler).execute(event);
+                    } catch (EventHandler.EventHandlerException e) {
+                        connector.getLogger().error(e.getMessage(), e);
+                    }
                 }
             }
         }
-        return new Result(this, event);
+        return new TriggerResult<>(this, event);
+    }
+
+    public <T extends GeyserEvent> TriggerResult<T> triggerEvent(T event) {
+        return triggerEvent(event, null);
     }
 
     /**
-     * Create a new EventHandler using an Executor
+     * Create a new EventHandler using a Lambda
      */
-    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority, boolean ignoreCancelled) {
-        EventHandler<T> handler = new EventHandler<>(cls, executor, priority, ignoreCancelled);
-        register(handler);
-        return new RegisterResult(this, handler);
-    }
-
-    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor) {
-       return on(cls, executor, EventHandler.PRIORITY.NORMAL, true);
-    }
-
-    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, boolean ignoreCancelled) {
-        return on(cls, executor, EventHandler.PRIORITY.NORMAL, ignoreCancelled);
-    }
-
-    public <T extends GeyserEvent> EventRegisterResult on(Class<? extends T> cls, EventHandler.Executor<T> executor, int priority) {
-        return on(cls, executor, priority, true);
+    public <T extends GeyserEvent> LambdaEventHandler.Builder<T> on(Class<T> cls, LambdaEventHandler.Runnable<T> runnable) {
+        return new LambdaEventHandler.Builder<>(this, cls, runnable);
     }
 
     /**
      * Register an EventHandler
      */
-    public void register(EventHandler<?> handler) {
+    public <T extends GeyserEvent> void register(EventHandler<T> handler) {
         if (!eventHandlers.containsKey(handler.getEventClass())) {
             eventHandlers.put(handler.getEventClass(), new PriorityQueue<>());
         }
@@ -124,7 +100,7 @@ public class EventManager {
     /**
      * Unregister an EventHandler
      */
-    public void unregister(EventHandler<?> handler) {
+    public <T extends GeyserEvent> void unregister(EventHandler<T> handler) {
         if (eventHandlers.containsKey(handler.getEventClass())) {
             eventHandlers.get(handler.getEventClass()).remove(handler);
         }
@@ -133,39 +109,29 @@ public class EventManager {
     /**
      * Register all Events contained in an instantiated class. The methods must be annotated by @Event
      */
-    public EventHandler<?>[] registerEvents(Object obj) {
+    public void registerEvents(Object obj) {
         List<EventHandler<?>> handlers = new ArrayList<>();
         for (Method method : obj.getClass().getMethods()) {
-            Event eventAnnotation = method.getAnnotation(Event.class);
-
             // Check that the method is annotated with @Event
-            if (eventAnnotation == null) {
+            if (method.getAnnotation(Event.class) == null) {
                 continue;
             }
 
             // Make sure it only has a single Event parameter
-            if (method.getParameterCount() != 2 || !GeyserEvent.class.isAssignableFrom(method.getParameters()[1].getType())) {
+            if (method.getParameterCount() != 1 || !GeyserEvent.class.isAssignableFrom(method.getParameters()[0].getType())) {
+                connector.getLogger().error("Cannot register EventHander as its only parameter must be an Event: " + obj.getClass().getSimpleName() + "#" + method.getName());
                 continue;
             }
 
-            //noinspection unchecked
-            EventRegisterResult result = on((Class<? extends GeyserEvent>)method.getParameters()[1].getType(), (ctx, event) -> {
-                        try {
-                            method.invoke(obj, ctx, event);
-                        } catch (IllegalAccessException | InvocationTargetException e) {
-                            e.printStackTrace();
-                        }
-                    }, eventAnnotation.priority(), eventAnnotation.ignoreCancelled());
-
-            if (!classEventHandlers.containsKey(obj.getClass())) {
-                classEventHandlers.put(obj, new ArrayList<>());
-            }
-
-            classEventHandlers.get(obj).add(result.getHandler());
-            handlers.add(result.getHandler());
+            EventHandler<?> handler = new MethodEventHandler<>(this, obj, method);
+            register(handler);
+            handlers.add(handler);
         }
 
-        return handlers.toArray(new EventHandler[0]);
+        if (!classEventHandlers.containsKey(obj.getClass())) {
+            classEventHandlers.put(obj.getClass(), new ArrayList<>());
+        }
+        classEventHandlers.get(obj.getClass()).addAll(handlers);
     }
 
     /**
@@ -184,45 +150,19 @@ public class EventManager {
     }
 
     /**
-     * Provides a chainable result to event registration
-     */
-    @Getter
-    @AllArgsConstructor
-    public static class RegisterResult implements EventRegisterResult {
-        private final EventManager manager;
-        private final EventHandler<?> handler;
-
-        /**
-         * Execute the runnable after a delay Normally used to cancel the registration in case no event is triggered
-         */
-        public EventRegisterResult onDelay(Runnable runnable, long delay, TimeUnit unit) {
-            manager.getConnector().getGeneralThreadPool().schedule(() -> runnable.run(new Context(manager, handler)), delay, unit);
-            return this;
-        }
-    }
-
-    @AllArgsConstructor
-    public static class Context implements EventContext {
-        private final EventManager manager;
-        private final EventHandler<?> handler;
-
-        /**
-         * Unregister an EventHandler from within an Event execution
-         */
-        @Override
-        public void unregister() {
-            manager.unregister(handler);
-        }
-    }
-
-    /**
      * Provides a chainable result for the triggerinig of an Event
      */
+    @SuppressWarnings({"UnusedReturnValue", "unused"})
     @Getter
     @AllArgsConstructor
-    public static class Result implements EventResult {
+    public static class TriggerResult<T> {
         private final EventManager manager;
-        private final GeyserEvent event;
+        private final T event;
+        private final boolean valid;
+
+        public TriggerResult(EventManager manager, T event) {
+            this(manager, event, true);
+        }
 
         /**
          * Returns true if the event was cancelled
@@ -232,23 +172,32 @@ public class EventManager {
             return event instanceof CancellableGeyserEvent && ((CancellableGeyserEvent) event).isCancelled();
         }
 
-        public EventResult ifNotCancelled(Runnable runnable) {
+        public TriggerResult<T> onNotCancelled(Runnable<T> runnable) {
             if (!isCancelled()) {
                 runnable.run(this);
+                return new TriggerResult<>(manager, event, false);
             }
             return this;
         }
 
-        public EventResult ifCancelled(Runnable runnable) {
+        public TriggerResult<T> onCancelled(Runnable<T> runnable) {
             if (isCancelled()) {
                 runnable.run(this);
+                return new TriggerResult<>(manager, event, false);
             }
             return this;
         }
 
-        public EventResult orElse(Runnable runnable) {
-            runnable.run(this);
+        public TriggerResult<T> orElse(Runnable<T> runnable) {
+            if (valid) {
+                runnable.run(this);
+                return new TriggerResult<>(manager, event, false);
+            }
             return this;
+        }
+
+        public interface Runnable<T> {
+            void run(TriggerResult<T> result);
         }
     }
 }

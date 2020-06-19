@@ -41,8 +41,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 @Getter
 @ToString
 @AllArgsConstructor
-public class DownstreamPacketSendEvent extends CancellableGeyserEvent {
+public class DownstreamPacketSendEvent<T extends Packet> extends CancellableGeyserEvent {
 
     private final GeyserSession session;
-    private final Packet packet;
+    private final T packet;
 }

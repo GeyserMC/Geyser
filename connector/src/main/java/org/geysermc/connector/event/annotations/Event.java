@@ -26,7 +26,7 @@
 
 package org.geysermc.connector.event.annotations;
 
-import org.geysermc.connector.event.EventHandler;
+import org.geysermc.connector.event.handlers.EventHandler;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -47,4 +47,7 @@ public @interface Event {
 
     // If ignoreCancelled is true then the handler will not be executed
     boolean ignoreCancelled() default false;
+
+    // Filters if applicable
+    Class<?>[] filter() default {};
 }

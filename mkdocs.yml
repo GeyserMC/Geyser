@@ -48,6 +48,7 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
+  - pymdownx.escapeall
   - toc:
       permalink: true
 #  - footnotes
@@ -61,11 +62,11 @@ plugins:
         - 'theme/*'
   - git-revision-date-localized:
       type: timeago
-  - mkpdfs:
-      author: GeyserMC Developers
-      toc_title: Table of contents
-      output_path: pdf/documentation.pdf
-      design: docs/css/pdf.css
+#  - mkpdfs:
+#      author: GeyserMC Developers
+#      toc_title: Table of contents
+#      output_path: pdf/documentation.pdf
+#      design: docs/css/pdf.css
 
 # Discord not yet supported but it will be soon
 #extra:
