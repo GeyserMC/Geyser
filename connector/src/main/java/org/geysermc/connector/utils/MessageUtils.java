@@ -28,6 +28,7 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
+import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.data.message.style.ChatColor;
 import com.github.steveice10.mc.protocol.data.message.style.ChatFormat;
@@ -98,7 +99,7 @@ public class MessageUtils {
             message = MessageSerializer.fromJson(formatJson(object));
         }
 
-        String messageText = message.toString();
+        String messageText = (message instanceof TranslationMessage) ? ((TranslationMessage) message).getKey() : ((TextMessage) message).getText();
         if (locale != null && shouldTranslate) {
             messageText = LocaleUtils.getLocaleString(messageText, locale);
         }
@@ -135,8 +136,8 @@ public class MessageUtils {
     }
 
     public static String getBedrockMessage(Message message) {
-        if (isMessage(message.toString())) {
-            return getBedrockMessage(message.toString());
+        if (isMessage(((TextMessage) message).getText())) {
+            return getBedrockMessage(((TextMessage) message).getText());
         } else {
             return getBedrockMessage(MessageSerializer.toJsonString(message));
         }
@@ -276,7 +277,7 @@ public class MessageUtils {
                 base += "f";
                 break;
             case RESET:
-            case NONE:
+            //case NONE:
                 base += "r";
                 break;
             default:
