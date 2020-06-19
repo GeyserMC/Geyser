@@ -39,6 +39,7 @@ import org.geysermc.connector.plugin.handlers.PluginMethodEventHandler;
 import org.geysermc.connector.plugin.annotations.Plugin;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,5 +164,12 @@ public abstract class GeyserPlugin {
      */
     public File getDataFolder() {
         return new File(getConnector().getBootstrap().getDataFolder(), getName());
+    }
+
+    /**
+     * Return an InputStream for a resource file
+     */
+    public InputStream getResourceAsStream(String name) {
+        return getClass().getResourceAsStream(name);
     }
 }
