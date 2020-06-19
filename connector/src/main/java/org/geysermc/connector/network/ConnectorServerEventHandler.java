@@ -25,15 +25,17 @@
 
 package org.geysermc.connector.network;
 
-import com.github.steveice10.mc.protocol.data.message.Message;
-import com.nukkitx.protocol.bedrock.*;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
+import com.nukkitx.protocol.bedrock.BedrockPong;
+import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
+import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import org.geysermc.common.ping.GeyserPingInfo;
-import org.geysermc.connector.ping.IGeyserPingPassthrough;
-import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.net.InetSocketAddress;
@@ -73,7 +75,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setIpv4Port(config.getBedrock().getPort());
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.motd != null) {
-            String[] motd = MessageUtils.getBedrockMessage(Message.fromString(pingInfo.motd)).split("\n");
+            String[] motd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.motd)).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
 

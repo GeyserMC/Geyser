@@ -27,7 +27,7 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.Message;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -159,7 +159,7 @@ public abstract class ItemTranslator {
                 // Check if its a message to translate
                 if (MessageUtils.isMessage(name)) {
                     // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(Message.fromString(name), session.getClientData().getLanguageCode());
+                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
 
                     // Build the new display tag
                     CompoundTagBuilder displayBuilder = display.toBuilder();

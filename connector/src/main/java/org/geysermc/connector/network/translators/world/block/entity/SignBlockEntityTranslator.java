@@ -25,12 +25,11 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.message.Message;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.nbt.tag.Tag;
-import io.netty.util.internal.StringUtil;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
         for(int i = 0; i < 4; i++) {
             int currentLine = i+1;
             String signLine = getOrDefault(tag.getValue().get("Text" + currentLine), "");
-            signLine = MessageUtils.getBedrockMessage(Message.fromString(signLine));
+            signLine = MessageUtils.getBedrockMessage(MessageSerializer.fromString(signLine));
 
             //Java allows up to 16+ characters on certain symbols. 
             if(signLine.length() >= 15 && (signLine.contains("-") || signLine.contains("="))) {
@@ -58,7 +57,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             signText.append("\n");
         }
 
-        tags.add(new StringTag("Text", MessageUtils.getBedrockMessage(Message.fromString(signText.toString()))));
+        tags.add(new StringTag("Text", MessageUtils.getBedrockMessage(MessageSerializer.fromString(signText.toString()))));
         return tags;
     }
 

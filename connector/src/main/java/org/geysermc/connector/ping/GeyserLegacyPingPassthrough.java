@@ -77,7 +77,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
         try {
             this.client = new Client(connector.getConfig().getRemote().getAddress(), connector.getConfig().getRemote().getPort(), new MinecraftProtocol(SubProtocol.STATUS), new TcpSessionFactory());
             this.client.getSession().setFlag(MinecraftConstants.SERVER_INFO_HANDLER_KEY, (ServerInfoHandler) (session, info) -> {
-                this.pingInfo = new GeyserPingInfo(info.getDescription().getFullText(), info.getPlayerInfo().getOnlinePlayers(), info.getPlayerInfo().getMaxPlayers());
+                this.pingInfo = new GeyserPingInfo(info.getDescription().toString(), info.getPlayerInfo().getOnlinePlayers(), info.getPlayerInfo().getMaxPlayers());
                 this.client.getSession().disconnect(null);
             });
 

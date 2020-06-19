@@ -26,7 +26,7 @@
 
 package org.geysermc.connector.network;
 
-import com.github.steveice10.mc.protocol.data.message.Message;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import org.geysermc.common.ping.GeyserPingInfo;
@@ -148,7 +148,7 @@ public class QueryPacketHandler {
         }
 
         if (connector.getConfig().isPassthroughMotd() && pingInfo != null) {
-            String[] javaMotd = MessageUtils.getBedrockMessage(Message.fromString(pingInfo.motd)).split("\n");
+            String[] javaMotd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.motd)).split("\n");
             motd = javaMotd[0].trim(); // First line of the motd.
         } else {
             motd = connector.getConfig().getBedrock().getMotd1();

@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.message.Message;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.ContainerId;
@@ -129,8 +130,8 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                     CompoundTag displayTag = tag.get("display");
                     if (displayTag != null) {
                         String itemName = displayTag.get("Name").getValue().toString();
-                        Message message = Message.fromString(itemName);
-                        rename = message.getText();
+                        Message message = MessageSerializer.fromString(itemName);
+                        rename = message.toString();
                     } else {
                         rename = "";
                     }

@@ -26,7 +26,12 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
-import com.github.steveice10.mc.protocol.data.message.*;
+import com.github.steveice10.mc.protocol.data.message.Message;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
+import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
+import com.github.steveice10.mc.protocol.data.message.style.ChatColor;
+import com.github.steveice10.mc.protocol.data.message.style.ChatFormat;
+import com.github.steveice10.mc.protocol.data.message.style.MessageStyle;
 import com.google.gson.*;
 import net.kyori.text.Component;
 import net.kyori.text.serializer.gson.GsonComponentSerializer;
@@ -41,28 +46,28 @@ import java.util.regex.Pattern;
 
 public class MessageUtils {
 
-    public static List<String> getTranslationParams(Message[] messages, String locale) {
+    public static List<String> getTranslationParams(List<Message> messages, String locale) {
         List<String> strings = new ArrayList<>();
         for (Message message : messages) {
             if (message instanceof TranslationMessage) {
                 TranslationMessage translation = (TranslationMessage) message;
 
                 if (locale == null) {
-                    String builder = "%" + translation.getTranslationKey();
+                    String builder = "%" + translation.getKey();
                     strings.add(builder);
                 }
 
-                if (translation.getTranslationKey().equals("commands.gamemode.success.other")) {
+                if (translation.getKey().equals("commands.gamemode.success.other")) {
                     strings.add("");
                 }
 
-                if (translation.getTranslationKey().equals("command.context.here")) {
+                if (translation.getKey().equals("command.context.here")) {
                     strings.add(" - no permission or invalid command!");
                 }
 
-                List<String> furtherParams = getTranslationParams(translation.getTranslationParams(), locale);
+                List<String> furtherParams = getTranslationParams(translation.getWith(), locale);
                 if (locale != null) {
-                    strings.add(insertParams(LocaleUtils.getLocaleString(translation.getTranslationKey(), locale), furtherParams));
+                    strings.add(insertParams(LocaleUtils.getLocaleString(translation.getKey(), locale), furtherParams));
                 } else {
                     strings.addAll(furtherParams);
                 }
@@ -77,23 +82,23 @@ public class MessageUtils {
         return strings;
     }
 
-    public static List<String> getTranslationParams(Message[] messages) {
+    public static List<String> getTranslationParams(List<Message> messages) {
         return getTranslationParams(messages, null);
     }
 
     public static String getTranslationText(TranslationMessage message) {
         return getFormat(message.getStyle().getFormats()) + getColorOrParent(message.getStyle())
-                + "%" + message.getTranslationKey();
+                + "%" + message.getKey();
     }
 
     public static String getTranslatedBedrockMessage(Message message, String locale, boolean shouldTranslate) {
         JsonParser parser = new JsonParser();
-        if (isMessage(message.getText())) {
-            JsonObject object = parser.parse(message.getText()).getAsJsonObject();
-            message = Message.fromJson(formatJson(object));
+        if (isMessage(message.toString())) {
+            JsonObject object = parser.parse(message.toString()).getAsJsonObject();
+            message = MessageSerializer.fromJson(formatJson(object));
         }
 
-        String messageText = message.getText();
+        String messageText = message.toString();
         if (locale != null && shouldTranslate) {
             messageText = LocaleUtils.getLocaleString(messageText, locale);
         }
@@ -106,12 +111,12 @@ public class MessageUtils {
         for (Message msg : message.getExtra()) {
             builder.append(getFormat(msg.getStyle().getFormats()));
             builder.append(getColorOrParent(msg.getStyle()));
-            if (!(msg.getText() == null)) {
+            if (!(msg.toString() == null)) {
                 boolean isTranslationMessage = (msg instanceof TranslationMessage);
                 String extraText = "";
 
                 if (isTranslationMessage) {
-                    List<String> paramsTranslated =  getTranslationParams(((TranslationMessage) msg).getTranslationParams(), locale);
+                    List<String> paramsTranslated =  getTranslationParams(((TranslationMessage) msg).getWith(), locale);
                     extraText = insertParams(getTranslatedBedrockMessage(msg, locale, isTranslationMessage), paramsTranslated);
                 } else {
                     extraText = getTranslatedBedrockMessage(msg, locale, isTranslationMessage);
@@ -130,10 +135,10 @@ public class MessageUtils {
     }
 
     public static String getBedrockMessage(Message message) {
-        if (isMessage(message.getText())) {
-            return getBedrockMessage(message.getText());
+        if (isMessage(message.toString())) {
+            return getBedrockMessage(message.toString());
         } else {
-            return getBedrockMessage(message.toJsonString());
+            return getBedrockMessage(MessageSerializer.toJsonString(message));
         }
     }
 
@@ -206,9 +211,9 @@ public class MessageUtils {
     private static String getColorOrParent(MessageStyle style) {
         ChatColor chatColor = style.getColor();
 
-        if (chatColor == ChatColor.NONE && style.getParent() != null) {
+        /*if (chatColor == ChatColor.NONE && style.getParent() != null) {
             return getColorOrParent(style.getParent());
-        }
+        }*/
 
         return getColor(chatColor);
     }
@@ -328,7 +333,7 @@ public class MessageUtils {
         try {
             JsonObject object = parser.parse(text).getAsJsonObject();
             try {
-                Message.fromJson(formatJson(object));
+                MessageSerializer.fromJson(formatJson(object));
             } catch (Exception ex) {
                 return false;
             }
