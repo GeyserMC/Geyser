@@ -45,4 +45,10 @@ public class PluginMethodEventHandler<T extends GeyserEvent> extends MethodEvent
 
         this.plugin = plugin;
     }
+
+    @Override
+    public void unregister() {
+        plugin.unregister(this);
+        super.unregister();
+    }
 }

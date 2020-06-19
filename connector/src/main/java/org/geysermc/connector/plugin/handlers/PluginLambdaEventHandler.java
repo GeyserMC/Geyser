@@ -44,6 +44,12 @@ public class PluginLambdaEventHandler<T extends GeyserEvent> extends LambdaEvent
         this.plugin = plugin;
     }
 
+    @Override
+    public void unregister() {
+        plugin.unregister(this);
+        super.unregister();
+    }
+
     @Getter
     public static class Builder<T extends GeyserEvent> extends LambdaEventHandler.Builder<T> {
         private final GeyserPlugin plugin;

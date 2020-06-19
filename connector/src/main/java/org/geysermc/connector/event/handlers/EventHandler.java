@@ -51,6 +51,13 @@ public abstract class EventHandler<T extends GeyserEvent> implements Comparable<
     public abstract boolean hasFilter(Class<?> filter);
 
     /**
+     * Unregister ourself
+     */
+    public void unregister() {
+        manager.unregister(this);
+    }
+
+    /**
      * Return our priority
      */
     public abstract int getPriority();
