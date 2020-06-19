@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.protocol.bedrock.data.ContainerType;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -38,7 +37,7 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
 
     public SingleChestInventoryTranslator(int size) {
         super(size, 27);
-        BlockState javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
+        int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
         this.holder = new BlockInventoryHolder(BlockTranslator.getBedrockBlockId(javaBlockState), ContainerType.CONTAINER);
     }
 

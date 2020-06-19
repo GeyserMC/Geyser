@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -47,19 +46,19 @@ import java.util.*;
 
 public class BlockTranslator {
     public static final ListTag<CompoundTag> BLOCKS;
-    public static final BlockState AIR = new BlockState(0);
+    public static final int AIR = 0;
     public static final int BEDROCK_WATER_ID;
 
     private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
-    private static final Int2ObjectMap<BlockState> BEDROCK_TO_JAVA_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
-    private static final BiMap<String, BlockState> JAVA_ID_BLOCK_MAP = HashBiMap.create();
+    private static final Int2IntMap BEDROCK_TO_JAVA_BLOCK_MAP = new Int2IntOpenHashMap();
+    private static final BiMap<String, Integer> JAVA_ID_BLOCK_MAP = HashBiMap.create();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
     private static final Object2IntMap<CompoundTag> ITEM_FRAMES = new Object2IntOpenHashMap<>();
 
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
 
-    private static final Map<BlockState, String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new HashMap<>();
+    private static final Int2ObjectMap<String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new Int2ObjectOpenHashMap<>();
 
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
@@ -121,7 +120,6 @@ public class BlockTranslator {
             javaRuntimeId++;
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
             String javaId = entry.getKey();
-            BlockState javaBlockState = new BlockState(javaRuntimeId);
             CompoundTag blockTag = buildBedrockState(entry.getValue());
 
             // TODO fix this, (no block should have a null hardness)
@@ -145,7 +143,7 @@ public class BlockTranslator {
                 cobwebRuntimeId = javaRuntimeId;
             }
 
-            JAVA_ID_BLOCK_MAP.put(javaId, javaBlockState);
+            JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
 
             // Used for adding all "special" Java block states to block state map
             String identifier;
@@ -154,12 +152,12 @@ public class BlockTranslator {
                 identifier = clazz.getAnnotation(BlockEntity.class).regex();
                 // Endswith, or else the block bedrock gets picked up for bed
                 if (bedrock_identifer.endsWith(identifier) && !identifier.equals("")) {
-                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaBlockState, clazz.getAnnotation(BlockEntity.class).name());
+                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaRuntimeId, clazz.getAnnotation(BlockEntity.class).name());
                     break;
                 }
             }
 
-            BlockStateValues.storeBlockStateValues(entry, javaBlockState);
+            BlockStateValues.storeBlockStateValues(entry, javaRuntimeId);
 
             // Get the tag needed for non-empty flower pots
             if (entry.getValue().get("pottable") != null) {
@@ -173,10 +171,10 @@ public class BlockTranslator {
                     || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
 
             if (waterlogged) {
-                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, javaBlockState);
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
                 WATERLOGGED.add(javaRuntimeId);
             } else {
-                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaBlockState);
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
             }
 
             CompoundTag runtimeTag = blockStateMap.remove(blockTag);
@@ -285,15 +283,11 @@ public class BlockTranslator {
         return tagBuilder.tag(statesBuilder.build("states")).build("block");
     }
 
-    public static int getBedrockBlockId(BlockState state) {
-        return JAVA_TO_BEDROCK_BLOCK_MAP.get(state.getId());
+    public static int getBedrockBlockId(int state) {
+        return JAVA_TO_BEDROCK_BLOCK_MAP.get(state);
     }
 
-    public static int getBedrockBlockId(int javaId) {
-        return JAVA_TO_BEDROCK_BLOCK_MAP.get(javaId);
-    }
-
-    public static BlockState getJavaBlockState(int bedrockId) {
+    public static int getJavaBlockState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
     }
 
@@ -309,23 +303,23 @@ public class BlockTranslator {
         return BLOCK_STATE_VERSION;
     }
 
-    public static BlockState getJavaBlockState(String javaId) {
+    public static int getJavaBlockState(String javaId) {
         return JAVA_ID_BLOCK_MAP.get(javaId);
     }
 
-    public static String getBlockEntityString(BlockState javaId) {
+    public static String getBlockEntityString(int javaId) {
         return JAVA_ID_TO_BLOCK_ENTITY_MAP.get(javaId);
     }
 
-    public static boolean isWaterlogged(BlockState state) {
-        return WATERLOGGED.contains(state.getId());
+    public static boolean isWaterlogged(int state) {
+        return WATERLOGGED.contains(state);
     }
 
-    public static BiMap<String, BlockState> getJavaIdBlockMap() {
+    public static BiMap<String, Integer> getJavaIdBlockMap() {
         return JAVA_ID_BLOCK_MAP;
     }
 
-    public static BlockState getJavaWaterloggedState(int bedrockId) {
+    public static int getJavaWaterloggedState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(1 << 31 | bedrockId);
     }
 }

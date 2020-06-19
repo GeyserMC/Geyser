@@ -68,6 +68,12 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-int-byte-maps</artifactId>
+            <version>8.3.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-double-maps</artifactId>
             <version>8.3.1</version>
             <scope>compile</scope>
@@ -99,7 +105,7 @@
         <dependency>
             <groupId>com.github.steveice10</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>4c315aa206</version>
+            <version>013e8e6dc4</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

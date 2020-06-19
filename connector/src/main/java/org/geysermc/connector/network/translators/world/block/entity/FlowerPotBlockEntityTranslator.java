@@ -26,7 +26,6 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -39,12 +38,12 @@ import org.geysermc.connector.utils.BlockEntityUtils;
 public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
 
     @Override
-    public boolean isBlock(BlockState blockState) {
-        return (BlockStateValues.getFlowerPotValues().containsKey(blockState.getId()));
+    public boolean isBlock(int blockState) {
+        return (BlockStateValues.getFlowerPotValues().containsKey(blockState));
     }
 
     @Override
-    public void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
+    public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
@@ -58,11 +57,11 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
 
     /**
      * Get the Nukkit CompoundTag of the flower pot.
-     * @param blockState Java BlockState of flower pot.
+     * @param blockState Java block state of flower pot.
      * @param position Bedrock position of flower pot.
      * @return Bedrock tag of flower pot.
      */
-    public static CompoundTag getTag(BlockState blockState, Vector3i position) {
+    public static CompoundTag getTag(int blockState, Vector3i position) {
         CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
                 .intTag("x", position.getX())
                 .intTag("y", position.getY())
@@ -70,7 +69,7 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
                 .byteTag("isMovable", (byte) 1)
                 .stringTag("id", "FlowerPot");
         // Get the Java name of the plant inside. e.g. minecraft:oak_sapling
-        String name = BlockStateValues.getFlowerPotValues().get(blockState.getId());
+        String name = BlockStateValues.getFlowerPotValues().get(blockState);
         if (name != null) {
             // Get the Bedrock CompoundTag of the block.
             // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.

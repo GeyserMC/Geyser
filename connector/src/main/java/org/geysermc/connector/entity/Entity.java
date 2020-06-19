@@ -32,7 +32,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
@@ -335,7 +334,7 @@ public class Entity {
                         Vector3i lastInteractionPos = session.getLastInteractionPosition();
                         metadata.put(EntityData.BED_RESPAWN_POS, lastInteractionPos);
                         if (session.getConnector().getConfig().isCacheChunks()) {
-                            BlockState bed = session.getConnector().getWorldManager().getBlockAt(session, lastInteractionPos.getX(),
+                            int bed = session.getConnector().getWorldManager().getBlockAt(session, lastInteractionPos.getX(),
                                     lastInteractionPos.getY(), lastInteractionPos.getZ());
                             // Bed has to be updated, or else player is floating in the air
                             ChunkUtils.updateBlock(session, bed, lastInteractionPos);
