@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.EntityFlag;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -74,32 +75,42 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     Entity interactEntity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
                     if (interactEntity == null)
                         return;
+                    EntityDataMap entityMetadata = interactEntity.getMetadata();
 
                     String interactiveTag;
                     switch (interactEntity.getEntityType()) {
-                        case PIG:
-                            if (interactEntity.getMetadata().getFlags().getFlag(EntityFlag.SADDLED)) {
-                                interactiveTag = "action.interact.mount";
-                            } else interactiveTag = "";
+                        case BOAT:
+                            interactiveTag = "action.interact.ride.boat";
                             break;
-                        case HORSE:
-                        case SKELETON_HORSE:
-                        case ZOMBIE_HORSE:
                         case DONKEY:
-                        case MULE:
+                        case HORSE:
                         case LLAMA:
+                        case MULE:
+                        case SKELETON_HORSE:
                         case TRADER_LLAMA:
-                            if (interactEntity.getMetadata().getFlags().getFlag(EntityFlag.TAMED)) {
+                        case ZOMBIE_HORSE:
+                            if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED)) {
                                 interactiveTag = "action.interact.ride.horse";
                             } else {
                                 interactiveTag = "action.interact.mount";
                             }
                             break;
-                        case BOAT:
-                            interactiveTag = "action.interact.ride.boat";
-                            break;
                         case MINECART:
                             interactiveTag = "action.interact.ride.minecart";
+                            break;
+                        case PIG:
+                            if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
+                                interactiveTag = "action.interact.mount";
+                            } else interactiveTag = "";
+                            break;
+                        case VILLAGER:
+                            if (entityMetadata.getInt(EntityData.VARIANT) != 14 && entityMetadata.getInt(EntityData.VARIANT) != 0
+                            && entityMetadata.getFloat(EntityData.SCALE) >= 0.75f) { // Not a nitwit, has a profession and is not a baby
+                                interactiveTag = "action.interact.trade";
+                            } else interactiveTag = "";
+                            break;
+                        case WANDERING_TRADER:
+                            interactiveTag = "action.interact.trade"; // Since you can always trade with a wandering villager, presumably.
                             break;
                         default:
                             return; // No need to process any further since there is no interactive tag
