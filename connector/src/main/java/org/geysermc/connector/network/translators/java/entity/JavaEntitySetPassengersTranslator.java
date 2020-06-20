@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.EntityLink;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -82,7 +83,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             }
 
             passenger.updateBedrockMetadata(session);
-            this.updateOffset(passenger, entity.getEntityType(), session, rider, true, (passengers.size() > 1));
+            this.updateOffset(passenger, entity, session, rider, true, (passengers.size() > 1));
             rider = false;
         }
 
@@ -99,7 +100,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 session.sendUpstreamPacket(linkPacket);
                 passengers.remove(passenger.getEntityId());
 
-                this.updateOffset(passenger, entity.getEntityType(), session, false, false, (passengers.size() > 1));
+                this.updateOffset(passenger, entity, session, false, false, (passengers.size() > 1));
             }
         }
 
@@ -111,10 +112,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
         }
     }
 
-    private void updateOffset(Entity passenger, EntityType mountType, GeyserSession session, boolean rider, boolean riding, boolean moreThanOneEntity) {
+    private void updateOffset(Entity passenger, Entity mount, GeyserSession session, boolean rider, boolean riding, boolean moreThanOneEntity) {
         // Without the Y offset, Bedrock players will find themselves in the floor when mounting
         float yOffset = 0;
-        switch (mountType) {
+        switch (mount.getEntityType()) {
             case BOAT:
                 yOffset = passenger.getEntityType() == EntityType.PLAYER ? 1.02001f : -0.2f;
                 break;
@@ -138,7 +139,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 yOffset = 1.85001f;
                 break;
             case ARMOR_STAND:
-                yOffset = 1.3f;
+                yOffset = ((ArmorStandEntity) mount).isSmall() ? 1.3f : 2.85f;
                 break;
         }
         Vector3f offset = Vector3f.from(0f, yOffset, 0f);

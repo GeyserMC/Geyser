@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.EntityData;
+import lombok.Getter;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -38,6 +39,7 @@ public class ArmorStandEntity extends LivingEntity {
     // These are used to store the state of the armour stand for use when handling invisibility
     private boolean isMarker = false;
     private boolean isInvisible = false;
+    @Getter // Used for mounting
     private boolean isSmall = false;
 
     public ArmorStandEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
