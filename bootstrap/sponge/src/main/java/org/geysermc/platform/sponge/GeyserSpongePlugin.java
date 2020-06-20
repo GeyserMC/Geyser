@@ -50,6 +50,7 @@ import org.spongepowered.api.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserConnector.NAME + "-Sponge", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -145,6 +146,11 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserSpongePingPassthrough;
+    }
+
+    @Override
+    public Path getConfigFolder() {
+        return configDir.toPath();
     }
 
     @Listener
