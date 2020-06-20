@@ -61,6 +61,8 @@ public abstract class GeyserPlugin {
         this.pluginManager = pluginManager;
         this.pluginClassLoader = pluginClassLoader;
         this.logger = new PluginLogger(this);
+
+        logger.info(String.format("Loading %s v%s", getName(), getVersion()));
     }
 
     // We provide some methods already provided in EventManager as we want to keep track of which EventHandlers
@@ -123,6 +125,7 @@ public abstract class GeyserPlugin {
      * Enable Plugin
      */
     public void enable() {
+        logger.info(String.format("Enabling %s v%s", getName(), getVersion()));
         getEventManager().triggerEvent(new PluginEnableEvent(this));
     }
 
@@ -130,6 +133,7 @@ public abstract class GeyserPlugin {
      * Disable Plugin
      */
     public void disable() {
+        logger.info(String.format("Disabling %s v%s", getName(), getVersion()));
         getEventManager().triggerEvent(new PluginDisableEvent(this));
     }
 
