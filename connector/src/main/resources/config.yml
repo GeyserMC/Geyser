@@ -8,7 +8,8 @@
 # --------------------------------
 
 bedrock:
-  # The IP address that will listen for connections
+  # The IP address that will listen for connections.
+  # There is no reason to change this unless you want to limit what IPs can connect to your server.
   address: 0.0.0.0
   # The port that will listen for connections
   port: 19132

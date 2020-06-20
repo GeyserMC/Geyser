@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
 import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.common.AuthType;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -79,6 +80,7 @@ public class GeyserConnector {
     private static GeyserConnector instance;
 
     private RemoteServer remoteServer;
+    @Setter
     private AuthType authType;
 
     private boolean shuttingDown = false;
