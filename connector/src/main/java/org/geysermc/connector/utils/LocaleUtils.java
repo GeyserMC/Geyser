@@ -33,6 +33,7 @@ import org.geysermc.connector.GeyserConnector;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipFile;
@@ -49,7 +50,8 @@ public class LocaleUtils {
 
     static {
         // Create the locales folder
-        File localesFolder = new File("locales/");
+        File localesFolder = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales").toFile();
+        //noinspection ResultOfMethodCallIgnored
         localesFolder.mkdir();
 
         // Download the latest asset list and cache it
@@ -132,7 +134,7 @@ public class LocaleUtils {
      * @param locale Locale to download
      */
     private static void downloadLocale(String locale) {
-        File localeFile = new File("locales/" + locale + ".json");
+        File localeFile = Paths.get(GeyserConnector.getInstance().getBootstrap().getConfigFolder().toString(),"locales",locale + ".json").toFile();
 
         // Check if we have already downloaded the locale file
         if (localeFile.exists()) {
@@ -149,7 +151,7 @@ public class LocaleUtils {
 
         // Get the hash and download the locale
         String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
-        WebUtils.downloadFile("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, "locales/" + locale + ".json");
+        WebUtils.downloadFile("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
     }
 
     /**
@@ -205,10 +207,11 @@ public class LocaleUtils {
             GeyserConnector.getInstance().getLogger().debug("Download URL: " + smallestURL);
 
             // Download the smallest JAR (client or server)
-            WebUtils.downloadFile(smallestURL, "tmp_locale.jar");
+            Path tmpFilePath = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
+            WebUtils.downloadFile(smallestURL, tmpFilePath.toString());
 
             // Load in the JAR as a zip and extract the file
-            ZipFile localeJar = new ZipFile("tmp_locale.jar");
+            ZipFile localeJar = new ZipFile(tmpFilePath.toString());
             InputStream inputStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"));
             FileOutputStream outputStream = new FileOutputStream(localeFile);
 
@@ -227,7 +230,7 @@ public class LocaleUtils {
             localeJar.close();
 
             // Delete the nolonger needed client/server jar
-            Files.delete(Paths.get("tmp_locale.jar"));
+            Files.delete(tmpFilePath);
         } catch (Exception e) {
             throw new AssertionError("Unable to download and extract en_us locale!", e);
         }
