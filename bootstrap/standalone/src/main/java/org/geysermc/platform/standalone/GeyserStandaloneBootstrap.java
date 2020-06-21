@@ -39,7 +39,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
@@ -59,14 +58,15 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         geyserLogger = new GeyserStandaloneLogger();
 
         LoopbackUtil.checkLoopback(geyserLogger);
-        
+
         try {
-            File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource("config.yml");
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
         } catch (IOException ex) {
             geyserLogger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
             System.exit(0);
         }
+
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);

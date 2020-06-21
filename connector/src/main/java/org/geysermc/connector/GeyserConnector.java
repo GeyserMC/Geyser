@@ -55,15 +55,14 @@ import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
+import org.geysermc.connector.utils.LoginEncryptionUtils;
 
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Getter
 public class GeyserConnector {
@@ -129,6 +128,9 @@ public class GeyserConnector {
         SoundRegistry.init();
         SoundHandlerRegistry.init();
 
+        // initialize login encryption utilities
+        LoginEncryptionUtils.init(this);
+
         if (platformType != PlatformType.STANDALONE) {
             DockerCheck.check(bootstrap);
         }
@@ -173,27 +175,24 @@ public class GeyserConnector {
                 playerSession.disconnect("Geyser Proxy shutting down.");
             }
 
-            CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {
-                @Override
-                public void run() {
-                    // Simulate a long-running Job
-                    try {
-                        while (true) {
-                            if (players.size() == 0) {
-                                return;
-                            }
-
-                            TimeUnit.MILLISECONDS.sleep(100);
-                        }
-                    } catch (InterruptedException e) {
-                        throw new IllegalStateException(e);
-                    }
-                }
-            });
+//            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+//                // Simulate a long-running Job
+//                try {
+//                    while (true) {
+//                        if (players.size() == 0) {
+//                            return;
+//                        }
+//
+//                        TimeUnit.MILLISECONDS.sleep(100);
+//                    }
+//                } catch (InterruptedException e) {
+//                    throw new IllegalStateException(e);
+//                }
+//            });
 
             // Block and wait for the future to complete
             try {
-                future.get();
+//                future.get();
                 bootstrap.getGeyserLogger().info("Kicked all players");
             } catch (Exception e) {
                 // Quietly fail

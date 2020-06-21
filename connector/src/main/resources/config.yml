@@ -14,11 +14,11 @@ bedrock:
   # The port that will listen for connections
   port: 19132
   # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. Irrelevant if "passthrough-motd" is set to true
-  motd1: "GeyserMC"
-  motd2: "Another GeyserMC forced host."
+  motd1: "&b&lSkycade"
+  motd2: "&b&lv1"
 remote:
   # The IP address of the remote (Java Edition) server
-  address: 127.0.0.1
+  address: play.skycade.net
   # The port of the remote (Java Edition) server
   port: 25565
   # Authentication type. Can be offline, online, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).
@@ -95,16 +95,6 @@ cache-chunks: false
 # to the End ID. The main downside to this is that the sky will resemble that of
 # the end sky in the nether, but ultimately it's the only way for this feature to work.
 above-bedrock-nether-building: false
-
-# bStats is a stat tracker that is entirely anonymous and tracks only basic information
-# about Geyser, such as how many people are online, how many servers are using Geyser,
-# what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.
-# https://bstats.org/plugin/server-implementation/GeyserMC
-metrics:
-  # If metrics should be enabled
-  enabled: true
-  # UUID of server, don't change!
-  uuid: generateduuid
 
 # DO NOT TOUCH!
 config-version: 3
