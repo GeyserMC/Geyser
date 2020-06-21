@@ -62,6 +62,11 @@ public class PaintingEntity extends Entity {
         session.getConnector().getLogger().debug("Spawned painting on " + position);
     }
 
+    @Override
+    public void updateHeadLookRotation(GeyserSession session, float headYaw) {
+        // Do nothing, as head look messes up paintings
+    }
+
     public Vector3f fixOffset(boolean toBedrock) {
         if (toBedrock) {
             Vector3f position = super.position;

@@ -25,26 +25,27 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import com.nukkitx.protocol.bedrock.packet.MapInfoRequestPacket;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.CooldownUtils;
 
-@Translator(packet = LevelSoundEventPacket.class)
-public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoundEventPacket> {
+import java.util.concurrent.TimeUnit;
+
+@Translator(packet = MapInfoRequestPacket.class)
+public class BedrockMapInfoRequestTranslator extends PacketTranslator<MapInfoRequestPacket> {
 
     @Override
-    public void translate(LevelSoundEventPacket packet, GeyserSession session) {
-        // lol what even :thinking:
-        session.sendUpstreamPacket(packet);
+    public void translate(MapInfoRequestPacket packet, GeyserSession session) {
+        long mapID = packet.getUniqueMapId();
 
-        // Yes, what even, but thankfully we can hijack this packet to send the cooldown
-        if (packet.getSound() == SoundEvent.ATTACK_NODAMAGE || packet.getSound() == SoundEvent.ATTACK || packet.getSound() == SoundEvent.ATTACK_STRONG) {
-            // Send a faux cooldown since Bedrock has no cooldown support
-            // Sent here because Java still sends a cooldown if the player doesn't hit anything but Bedrock always sends a sound
-            CooldownUtils.sendCooldown(session);
+        if (session.getStoredMaps().containsKey(mapID)) {
+            // Delay the packet 100ms to prevent the client from ignoring the packet
+            GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
+                session.sendUpstreamPacket(session.getStoredMaps().get(mapID));
+                session.getStoredMaps().remove(mapID);
+            }, 100, TimeUnit.MILLISECONDS);
         }
     }
 }

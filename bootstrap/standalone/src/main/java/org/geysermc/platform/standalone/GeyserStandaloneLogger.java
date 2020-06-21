@@ -82,7 +82,7 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements org
 
     @Override
     public void info(String message) {
-        log.info(printConsole(ChatColor.WHITE + message, colored));
+        log.info(printConsole(ChatColor.RESET + ChatColor.BOLD + message, colored));
     }
 
     @Override

@@ -45,6 +45,7 @@ import us.myles.ViaVersion.api.Via;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -162,6 +163,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return this.geyserWorldManager;
     }
 
+    @Override
+    public Path getConfigFolder() {
+        return getDataFolder().toPath();
+    }
+
     public boolean isCompatible(String version, String whichVersion) {
         int[] currentVersion = parseVersion(version);
         int[] otherVersion = parseVersion(whichVersion);
@@ -195,4 +201,5 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
         return temp;
     }
+
 }

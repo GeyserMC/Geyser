@@ -47,6 +47,8 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
@@ -57,7 +59,6 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
@@ -107,6 +108,9 @@ public class GeyserSession implements CommandSender {
     private WindowCache windowCache;
     @Setter
     private TeleportCache teleportCache;
+
+    @Getter
+    private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = new Long2ObjectOpenHashMap<>();
 
     /**
      * A map of Vector3i positions to Java entity IDs.
@@ -174,6 +178,18 @@ public class GeyserSession implements CommandSender {
     private VillagerTrade[] villagerTrades;
     @Setter
     private long lastInteractedVillagerEid;
+
+    /**
+     * The current attack speed of the player. Used for sending proper cooldown timings.
+     */
+    @Setter
+    private double attackSpeed;
+    /**
+     * The time of the last hit. Used to gauge how long the cooldown is taking.
+     * This is a session variable in order to prevent more scheduled threads than necessary.
+     */
+    @Setter
+    private long lastHitTime;
 
     private MinecraftProtocol protocol;
 
