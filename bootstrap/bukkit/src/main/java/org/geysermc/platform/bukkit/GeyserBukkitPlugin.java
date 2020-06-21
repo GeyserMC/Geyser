@@ -101,21 +101,11 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
 
-        boolean isViaVersion = false;
+        boolean isViaVersion = (Bukkit.getPluginManager().getPlugin("ViaVersion") != null);
         // Used to determine if Block.getBlockData() is present.
         boolean isLegacy = !isCompatible(Bukkit.getServer().getVersion(), "1.13.0");
         if (isLegacy)
             geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected.");
-
-        if (Bukkit.getPluginManager().getPlugin("ViaVersion") != null) {
-            // TODO: Update when ViaVersion updates
-            // API changes between 2.2.3 and 3.0.0-SNAPSHOT require this check
-            if (!Via.getAPI().getVersion().equals("3.0.0-SNAPSHOT") && isLegacy) {
-                geyserLogger.info("ViaVersion detected but not ViaVersion-ABSTRACTION. Please update your ViaVersion plugin for compatibility with Geyser.");
-            } else {
-                isViaVersion = true;
-            }
-        }
 
         this.geyserWorldManager = new GeyserBukkitWorldManager(isLegacy, isViaVersion);
         this.blockPlaceListener = new GeyserBukkitBlockPlaceListener(connector, isLegacy, isViaVersion);
