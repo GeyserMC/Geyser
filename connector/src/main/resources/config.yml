@@ -13,8 +13,9 @@ bedrock:
   address: 0.0.0.0
   # The port that will listen for connections
   port: 19132
-  # Use Java server port
-  # This option ignores the above port and uses the Java server's port as Bedrock's port. Only available for plugin versions.
+  # Some hosting services change your Java port everytime you open the server, sometimes these hosts can't open UDP ports for you
+  # This option makes the bedrock port the same as the Java port everytime you start the server
+  # This option is for the plugin version only
   clone-remote-port: false
   # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. Irrelevant if "passthrough-motd" is set to true
   motd1: "GeyserMC"
