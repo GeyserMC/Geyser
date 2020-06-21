@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.bukkit;
+package org.geysermc.platform.spigot;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,27 +35,27 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
+import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
+import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
+import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
+import org.geysermc.platform.spigot.world.GeyserSpigotWorldManager;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.platform.bukkit.command.GeyserBukkitCommandExecutor;
-import org.geysermc.platform.bukkit.command.GeyserBukkitCommandManager;
-import org.geysermc.platform.bukkit.world.GeyserBukkitBlockPlaceListener;
-import org.geysermc.platform.bukkit.world.GeyserBukkitWorldManager;
-import us.myles.ViaVersion.api.Via;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
+public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
-    private GeyserBukkitCommandManager geyserCommandManager;
-    private GeyserBukkitConfiguration geyserConfig;
-    private GeyserBukkitLogger geyserLogger;
-    private IGeyserPingPassthrough geyserBukkitPingPassthrough;
-    private GeyserBukkitBlockPlaceListener blockPlaceListener;
-    private GeyserBukkitWorldManager geyserWorldManager;
+    private GeyserSpigotCommandManager geyserCommandManager;
+    private GeyserSpigotConfiguration geyserConfig;
+    private GeyserSpigotLogger geyserLogger;
+    private IGeyserPingPassthrough geyserSpigotPingPassthrough;
+    private GeyserSpigotBlockPlaceListener blockPlaceListener;
+    private GeyserSpigotWorldManager geyserWorldManager;
 
     private GeyserConnector connector;
 
@@ -63,10 +63,17 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
     public void onEnable() {
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
         try {
-            if (!getDataFolder().exists())
+            if (!getDataFolder().exists()) {
                 getDataFolder().mkdir();
+                File bukkitConfig = new File("plugins/Geyser-Bukkit/config.yml");
+                if (bukkitConfig.exists()) { // Copy over old configs
+                    getLogger().log(Level.INFO, "Existing config found in the Geyser-Bukkit folder; copying over...");
+                    Files.copy(bukkitConfig.toPath(), new File(getDataFolder().toString() + "/config.yml").toPath());
+                    getLogger().log(Level.INFO, "Copied!");
+                }
+            }
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBukkitConfiguration.class);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
         } catch (IOException ex) {
             getLogger().log(Level.WARNING, "Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
             ex.printStackTrace();
@@ -80,7 +87,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
 
         geyserConfig.getRemote().setPort(Bukkit.getPort());
 
-        this.geyserLogger = new GeyserBukkitLogger(getLogger(), geyserConfig.isDebugMode());
+        this.geyserLogger = new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         if (geyserConfig.getRemote().getAuthType().equals("floodgate") && Bukkit.getPluginManager().getPlugin("floodgate-bukkit") == null) {
@@ -91,15 +98,15 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this);
 
-        this.connector = GeyserConnector.start(PlatformType.BUKKIT, this);
+        this.connector = GeyserConnector.start(PlatformType.SPIGOT, this);
 
         if (geyserConfig.isLegacyPingPassthrough()) {
-            this.geyserBukkitPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+            this.geyserSpigotPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
         } else {
-            this.geyserBukkitPingPassthrough = new GeyserBukkitPingPassthrough(geyserLogger);
+            this.geyserSpigotPingPassthrough = new GeyserSpigotPingPassthrough(geyserLogger);
         }
 
-        this.geyserCommandManager = new GeyserBukkitCommandManager(this, connector);
+        this.geyserCommandManager = new GeyserSpigotCommandManager(this, connector);
 
         boolean isViaVersion = (Bukkit.getPluginManager().getPlugin("ViaVersion") != null);
         // Used to determine if Block.getBlockData() is present.
@@ -107,11 +114,12 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         if (isLegacy)
             geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected.");
 
-        this.geyserWorldManager = new GeyserBukkitWorldManager(isLegacy, isViaVersion);
-        this.blockPlaceListener = new GeyserBukkitBlockPlaceListener(connector, isLegacy, isViaVersion);
+        this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, isViaVersion);
+        this.blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);
+
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
-        this.getCommand("geyser").setExecutor(new GeyserBukkitCommandExecutor(connector));
+        this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(connector));
     }
 
     @Override
@@ -121,12 +129,12 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserBukkitConfiguration getGeyserConfig() {
+    public GeyserSpigotConfiguration getGeyserConfig() {
         return geyserConfig;
     }
 
     @Override
-    public GeyserBukkitLogger getGeyserLogger() {
+    public GeyserSpigotLogger getGeyserLogger() {
         return geyserLogger;
     }
 
@@ -137,7 +145,7 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
-        return geyserBukkitPingPassthrough;
+        return geyserSpigotPingPassthrough;
     }
 
     @Override

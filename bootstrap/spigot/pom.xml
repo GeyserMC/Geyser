@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
-    <artifactId>bootstrap-bukkit</artifactId>
+    <artifactId>bootstrap-spigot</artifactId>
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
@@ -31,7 +31,7 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>${outputName}-Bukkit</finalName>
+        <finalName>${outputName}-Spigot</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources/</directory>
@@ -46,7 +46,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>org.geysermc.platform.bukkit.GeyserBukkitMain</Main-Class>
+                            <Main-Class>org.geysermc.platform.spigot.GeyserSpigotMain</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -65,11 +65,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>io.netty</pattern>
-                                    <shadedPattern>org.geysermc.platform.bukkit.shaded.netty</shadedPattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>it.unimi.dsi.fastutil</pattern>
-                                    <shadedPattern>org.geysermc.platform.bukkit.shaded.fastutil</shadedPattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>

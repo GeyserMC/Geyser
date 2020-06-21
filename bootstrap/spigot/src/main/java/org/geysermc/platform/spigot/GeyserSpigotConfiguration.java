@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.bukkit;
+package org.geysermc.platform.spigot;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -38,14 +38,14 @@ import java.nio.file.Paths;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserBukkitConfiguration extends GeyserJacksonConfiguration {
+public class GeyserSpigotConfiguration extends GeyserJacksonConfiguration {
 
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile;
 
     private Path floodgateKey;
 
-    public void loadFloodgate(GeyserBukkitPlugin plugin) {
+    public void loadFloodgate(GeyserSpigotPlugin plugin) {
         Plugin floodgate = Bukkit.getPluginManager().getPlugin("floodgate-bukkit");
         floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(plugin.getDataFolder().toString(), plugin.getConfig().getString("floodgate-key-file", "public-key.pem")), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
     }

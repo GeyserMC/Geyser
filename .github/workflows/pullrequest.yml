@@ -29,12 +29,12 @@ jobs:
         with:
           name: Geyser Standalone
           path: bootstrap/standalone/target/Geyser.jar
-      - name: Archive artifacts (Geyser Bukkit)
+      - name: Archive artifacts (Geyser Spigot)
         uses: actions/upload-artifact@v1
         if: success()
         with:
-          name: Geyser Bukkit
-          path: bootstrap/bukkit/target/Geyser-Bukkit.jar
+          name: Geyser Spigot
+          path: bootstrap/spigot/target/Geyser-Spigot.jar
       - name: Archive artifacts (Geyser BungeeCord)
         uses: actions/upload-artifact@v1
         if: success()

@@ -47,7 +47,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         Position pos = packet.getRecord().getPosition();
         boolean updatePlacement = !(session.getConnector().getConfig().isCacheChunks() && session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ()) == packet.getRecord().getBlock());
         ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), packet.getRecord().getPosition());
-        if (updatePlacement && session.getConnector().getPlatformType() != PlatformType.BUKKIT) {
+        if (updatePlacement && session.getConnector().getPlatformType() != PlatformType.SPIGOT) {
             this.checkPlace(session, packet);
         }
         this.checkInteract(session, packet);

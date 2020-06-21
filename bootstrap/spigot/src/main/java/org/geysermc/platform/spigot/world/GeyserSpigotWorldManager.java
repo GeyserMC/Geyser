@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.platform.bukkit.world;
+package org.geysermc.platform.spigot.world;
 
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
@@ -36,7 +36,7 @@ import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
 import us.myles.ViaVersion.protocols.protocol1_16to1_15_2.data.MappingData;
 
 @AllArgsConstructor
-public class GeyserBukkitWorldManager extends WorldManager {
+public class GeyserSpigotWorldManager extends WorldManager {
 
     private final boolean isLegacy;
     // You need ViaVersion to connect to an older server with Geyser.

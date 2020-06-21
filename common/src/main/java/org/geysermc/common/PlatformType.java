@@ -7,8 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum PlatformType {
 
-    BUKKIT("Bukkit"),
     BUNGEECORD("BungeeCord"),
+    SPIGOT("Spigot"),
     SPONGE("Sponge"),
     STANDALONE("Standalone"),
     VELOCITY("Velocity");
