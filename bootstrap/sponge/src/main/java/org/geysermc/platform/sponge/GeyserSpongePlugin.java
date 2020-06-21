@@ -109,8 +109,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             serverPort.setValue(javaAddr.getPort());
         }
 
-        if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            serverPort.setValue(geyserConfig.getBedrock().getPort());
+        ConfigurationNode bedrockPort = config.getNode("bedrock").getNode("port");
+        if (geyserConfig.getBedrock().isCloneRemotePort()){
+            bedrockPort.setValue(serverPort.getValue());
         }
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
