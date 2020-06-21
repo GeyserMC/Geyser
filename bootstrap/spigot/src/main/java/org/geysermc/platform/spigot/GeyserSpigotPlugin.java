@@ -35,11 +35,11 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotWorldManager;
-import org.geysermc.connector.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
