@@ -210,13 +210,13 @@ public class MessageUtils {
      * @return Colour string to be used
      */
     private static String getColorOrParent(MessageStyle style) {
-        ChatColor chatColor = style.getColor();
+        String color = style.getColor();
 
-        /*if (chatColor == ChatColor.NONE && style.getParent() != null) {
+        /*if (color == ChatColor.NONE && style.getParent() != null) {
             return getColorOrParent(style.getParent());
         }*/
 
-        return getColor(chatColor);
+        return getColor(color);
     }
 
     /**
@@ -225,58 +225,58 @@ public class MessageUtils {
      * @param color ChatColor to convert
      * @return The converted color string
      */
-    private static String getColor(ChatColor color) {
+    private static String getColor(String color) {
         String base = "\u00a7";
         switch (color) {
-            case BLACK:
+            case ChatColor.BLACK:
                 base += "0";
                 break;
-            case DARK_BLUE:
+            case ChatColor.DARK_BLUE:
                 base += "1";
                 break;
-            case DARK_GREEN:
+            case ChatColor.DARK_GREEN:
                 base += "2";
                 break;
-            case DARK_AQUA:
+            case ChatColor.DARK_AQUA:
                 base += "3";
                 break;
-            case DARK_RED:
+            case ChatColor.DARK_RED:
                 base += "4";
                 break;
-            case DARK_PURPLE:
+            case ChatColor.DARK_PURPLE:
                 base += "5";
                 break;
-            case GOLD:
+            case ChatColor.GOLD:
                 base += "6";
                 break;
-            case GRAY:
+            case ChatColor.GRAY:
                 base += "7";
                 break;
-            case DARK_GRAY:
+            case ChatColor.DARK_GRAY:
                 base += "8";
                 break;
-            case BLUE:
+            case ChatColor.BLUE:
                 base += "9";
                 break;
-            case GREEN:
+            case ChatColor.GREEN:
                 base += "a";
                 break;
-            case AQUA:
+            case ChatColor.AQUA:
                 base += "b";
                 break;
-            case RED:
+            case ChatColor.RED:
                 base += "c";
                 break;
-            case LIGHT_PURPLE:
+            case ChatColor.LIGHT_PURPLE:
                 base += "d";
                 break;
-            case YELLOW:
+            case ChatColor.YELLOW:
                 base += "e";
                 break;
-            case WHITE:
+            case ChatColor.WHITE:
                 base += "f";
                 break;
-            case RESET:
+            case ChatColor.RESET:
             //case NONE:
                 base += "r";
                 break;
@@ -369,16 +369,16 @@ public class MessageUtils {
     }
 
     public static String toChatColor(TeamColor teamColor) {
-        for (ChatColor color : ChatColor.values()) {
-            if (color.name().equals(teamColor.name())) {
-                return getColor(color);
-            }
-        }
-        for (ChatFormat format : ChatFormat.values()) {
-            if (format.name().equals(teamColor.name())) {
-                return getFormat(Collections.singletonList(format));
-            }
-        }
+//        for (ChatColor color : ChatColor.) {
+//            if (color.name().equals(teamColor.name())) {
+//                return getColor(color);
+//            }
+//        }
+//        for (ChatFormat format : ChatFormat.values()) {
+//            if (format.name().equals(teamColor.name())) {
+//                return getFormat(Collections.singletonList(format));
+//            }
+//        } Not dealing with this
         return "";
     }
 

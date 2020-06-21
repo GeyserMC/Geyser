@@ -82,9 +82,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
                             Vector3f vector = packet.getClickPosition();
                             ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
-                                    InteractAction.INTERACT, Hand.MAIN_HAND);
+                                    InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
                             ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
-                                    InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
+                                    InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
                             session.sendDownstreamPacket(interactPacket);
                             session.sendDownstreamPacket(interactAtPacket);
                             break;
@@ -161,7 +161,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (ItemFrameEntity.positionContainsItemFrame(session, packet.getBlockPosition()) &&
                                 session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
                             ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
-                                    InteractAction.ATTACK);
+                                    InteractAction.ATTACK, session.isSneaking());
                             session.sendDownstreamPacket(attackPacket);
                             break;
                         }
@@ -191,9 +191,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     case 0: //Interact
                         Vector3f vector = packet.getClickPosition();
                         ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                                InteractAction.INTERACT, Hand.MAIN_HAND);
+                                InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
                         ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                                InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND);
+                                InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
                         session.sendDownstreamPacket(interactPacket);
                         session.sendDownstreamPacket(interactAtPacket);
 
@@ -205,7 +205,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         break;
                     case 1: //Attack
                         ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                                InteractAction.ATTACK);
+                                InteractAction.ATTACK, session.isSneaking());
                         session.sendDownstreamPacket(attackPacket);
                         break;
                 }

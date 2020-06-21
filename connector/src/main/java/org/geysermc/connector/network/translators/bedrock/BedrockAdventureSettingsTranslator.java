@@ -44,7 +44,7 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
         boolean flying = packet.getFlags().contains(AdventureSettingsPacket.Flag.FLYING);
         boolean creative = session.getGameMode() == GameMode.CREATIVE;
         ClientPlayerAbilitiesPacket abilitiesPacket = new ClientPlayerAbilitiesPacket(
-                false, canFly, flying, creative, 0.05f, 0.1f
+                false, canFly, flying, creative
         );
         session.sendDownstreamPacket(abilitiesPacket);
     }

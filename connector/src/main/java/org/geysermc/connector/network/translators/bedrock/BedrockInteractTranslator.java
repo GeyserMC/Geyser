@@ -56,12 +56,12 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     break;
                 }
                 ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                        InteractAction.INTERACT, Hand.MAIN_HAND);
+                        InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(interactPacket);
                 break;
             case DAMAGE:
                 ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                        InteractAction.ATTACK, Hand.MAIN_HAND);
+                        InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:

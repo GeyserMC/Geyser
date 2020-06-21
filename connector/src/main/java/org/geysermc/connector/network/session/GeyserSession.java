@@ -68,10 +68,7 @@ import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.utils.ChunkUtils;
-import org.geysermc.connector.utils.LocaleUtils;
-import org.geysermc.connector.utils.MathUtils;
-import org.geysermc.connector.utils.SkinUtils;
+import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
 
@@ -503,7 +500,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1);
-        startGamePacket.setDimensionId(playerEntity.getDimension());
+        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(playerEntity.getDimension()));
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGamemode(0);
         startGamePacket.setDifficulty(1);

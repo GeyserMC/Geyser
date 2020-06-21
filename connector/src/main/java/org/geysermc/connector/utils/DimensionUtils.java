@@ -36,10 +36,10 @@ public class DimensionUtils {
     // Changes if the above-bedrock Nether building workaround is applied
     private static int BEDROCK_NETHER_ID = 1;
 
-    public static void switchDimension(GeyserSession session, int javaDimension) {
+    public static void switchDimension(GeyserSession session, String javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
-        if (bedrockDimension == player.getDimension())
+        if (bedrockToJava(bedrockDimension) == player.getDimension())
             return;
 
         session.getEntityCache().removeAllEntities();
@@ -55,7 +55,7 @@ public class DimensionUtils {
         changeDimensionPacket.setRespawn(true);
         changeDimensionPacket.setPosition(pos.toFloat());
         session.sendUpstreamPacket(changeDimensionPacket);
-        player.setDimension(bedrockDimension);
+        player.setDimension(bedrockToJava(bedrockDimension));
         player.setPosition(pos.toFloat());
         session.setSpawned(false);
         session.setLastChunkPosition(null);
@@ -83,14 +83,25 @@ public class DimensionUtils {
      * @param javaDimension Dimension ID to convert
      * @return Converted Bedrock edition dimension ID
      */
-    public static int javaToBedrock(int javaDimension) {
+    public static int javaToBedrock(String javaDimension) {
         switch (javaDimension) {
-            case -1:
+            case "minecraft:nether":
                 return BEDROCK_NETHER_ID;
-            case 1:
+            case "minecraft:the_end":
                 return 2;
             default:
-                return javaDimension;
+                return 0;
+        }
+    }
+
+    public static String bedrockToJava(int bedrockDimension) {
+        switch (bedrockDimension) {
+            case 1:
+                return "minecraft:nether";
+            case 2:
+                return "minecraft:the_end";
+            default:
+                return "minecraft:overworld";
         }
     }
 

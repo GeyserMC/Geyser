@@ -68,7 +68,7 @@ public enum EntityType {
     CREEPER(CreeperEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
     SKELETON(AbstractSkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
     SPIDER(SpiderEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
-    ZOMBIE_PIGMAN(MonsterEntity.class, 36, 1.8f, 0.6f, 0.6f, 1.62f),
+    ZOMBIFIED_PIGLIN(MonsterEntity.class, 36, 1.8f, 0.6f, 0.6f, 1.62f),
     SLIME(SlimeEntity.class, 37, 0.51f),
     ENDERMAN(EndermanEntity.class, 38, 2.9f, 0.6f),
     SILVERFISH(MonsterEntity.class, 39, 0.3f, 0.4f),
@@ -150,7 +150,6 @@ public enum EntityType {
     COD(AbstractFishEntity.class, 112, 0.25f, 0.5f),
     PANDA(PandaEntity.class, 113, 1.25f, 1.125f, 1.825f),
     FOX(FoxEntity.class, 121, 0.5f, 1.25f),
-    BEE(BeeEntity.class, 122, 0.6f, 0.6f),
 
     /**
      * Item frames are handled differently since they are a block in Bedrock.

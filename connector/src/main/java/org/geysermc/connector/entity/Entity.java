@@ -67,7 +67,7 @@ public class Entity {
     protected long entityId;
     protected long geyserId;
 
-    protected int dimension;
+    protected String dimension;
 
     protected Vector3f position;
     protected Vector3f motion;
@@ -100,7 +100,7 @@ public class Entity {
         this.rotation = rotation;
 
         this.valid = false;
-        this.dimension = 0;
+        this.dimension = "minecraft:overworld";
 
         setPosition(position);
 

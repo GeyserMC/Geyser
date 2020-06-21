@@ -40,6 +40,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnParticlePacket;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
+import org.geysermc.connector.utils.DimensionUtils;
 
 @Translator(packet = ServerSpawnParticlePacket.class)
 public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnParticlePacket> {
@@ -93,7 +94,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     if (stringParticle != null) {
                         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
                         stringPacket.setIdentifier(stringParticle);
-                        stringPacket.setDimensionId(session.getPlayerEntity().getDimension());
+                        stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getPlayerEntity().getDimension()));
                         stringPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
                         session.sendUpstreamPacket(stringPacket);
                     }
