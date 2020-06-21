@@ -14,11 +14,11 @@ bedrock:
   # The port that will listen for connections
   port: 19132
   # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. Irrelevant if "passthrough-motd" is set to true
-  motd1: "&b&lSkycade"
-  motd2: "&b&lv1"
+  motd1: "GeyserMC"
+  motd2: "Another GeyserMC forced host."
 remote:
   # The IP address of the remote (Java Edition) server
-  address: play.skycade.net
+  address: 127.0.0.1
   # The port of the remote (Java Edition) server
   port: 25565
   # Authentication type. Can be offline, online, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).

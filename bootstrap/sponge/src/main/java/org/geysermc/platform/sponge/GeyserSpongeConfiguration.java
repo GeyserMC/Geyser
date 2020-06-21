@@ -43,7 +43,6 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
 
     private SpongeBedrockConfiguration bedrockConfig;
     private SpongeRemoteConfiguration remoteConfig;
-    private SpongeMetricsInfo metricsInfo;
 
     private Map<String, SpongeUserAuthenticationInfo> userAuthInfo = new HashMap<>();
 
@@ -53,7 +52,6 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
 
         this.bedrockConfig = new SpongeBedrockConfiguration(node.getNode("bedrock"));
         this.remoteConfig = new SpongeRemoteConfiguration(node.getNode("remote"));
-        this.metricsInfo = new SpongeMetricsInfo();
 
         if (node.getNode("userAuths").getValue() == null)
             return;
@@ -154,11 +152,6 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         return node.getNode("above-bedrock-nether-building").getBoolean(false);
     }
 
-    @Override
-    public SpongeMetricsInfo getMetrics() {
-        return metricsInfo;
-    }
-
     @AllArgsConstructor
     public class SpongeBedrockConfiguration implements IBedrockConfiguration {
 
@@ -222,19 +215,6 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         @Override
         public String getPassword() {
             return node.getNode("userAuths").getNode(key).getNode("password").getString();
-        }
-    }
-
-    public class SpongeMetricsInfo implements IMetricsInfo {
-
-        @Override
-        public boolean isEnabled() {
-            return node.getNode("metrics").getNode("enabled").getBoolean(true);
-        }
-
-        @Override
-        public String getUniqueId() {
-            return node.getNode("metrics").getNode("uuid").getString("generateduuid");
         }
     }
 

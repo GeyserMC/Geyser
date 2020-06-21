@@ -72,8 +72,6 @@ public interface GeyserConfiguration {
 
     boolean isCacheChunks();
 
-    IMetricsInfo getMetrics();
-
     interface IBedrockConfiguration {
 
         String getAddress();
@@ -98,13 +96,6 @@ public interface GeyserConfiguration {
         String getEmail();
 
         String getPassword();
-    }
-
-    interface IMetricsInfo {
-
-        boolean isEnabled();
-
-        String getUniqueId();
     }
 
     int getConfigVersion();

@@ -90,8 +90,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding;
 
-    private MetricsInfo metrics;
-
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
 
@@ -122,15 +120,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class UserAuthenticationInfo implements IUserAuthenticationInfo {
         private String email;
         private String password;
-    }
-
-    @Getter
-    public static class MetricsInfo implements IMetricsInfo {
-
-        private boolean enabled;
-
-        @JsonProperty("uuid")
-        private String uniqueId;
     }
 
     @JsonProperty("config-version")

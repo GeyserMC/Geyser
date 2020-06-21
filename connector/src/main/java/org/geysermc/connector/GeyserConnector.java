@@ -37,7 +37,6 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
-import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -89,8 +88,6 @@ public class GeyserConnector {
     private BedrockServer bedrockServer;
     private PlatformType platformType;
     private GeyserBootstrap bootstrap;
-
-    private Metrics metrics;
 
     private GeyserConnector(PlatformType platformType, GeyserBootstrap bootstrap) {
         long startupTime = System.currentTimeMillis();
@@ -151,14 +148,6 @@ public class GeyserConnector {
                 throwable.printStackTrace();
             }
         }).join();
-
-        if (config.getMetrics().isEnabled()) {
-            metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
-            metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
-            metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", authType.name()::toLowerCase));
-            metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
-        }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         logger.info(String.format("Done (%ss)! Run /geyser help for help!", new DecimalFormat("#.###").format(completeTime)));
