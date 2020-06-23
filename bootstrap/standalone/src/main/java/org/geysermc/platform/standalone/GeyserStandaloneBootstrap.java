@@ -37,8 +37,6 @@ import org.geysermc.platform.standalone.command.GeyserCommandManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
@@ -101,11 +99,5 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserPingPassthrough;
-    }
-
-    @Override
-    public Path getConfigFolder() {
-        // Return the current working directory
-        return Paths.get(System.getProperty("user.dir"));
     }
 }

@@ -44,7 +44,6 @@ import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.file.Path;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -134,10 +133,5 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserBungeePingPassthrough;
-    }
-
-    @Override
-    public Path getConfigFolder() {
-        return getDataFolder().toPath();
     }
 }

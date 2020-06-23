@@ -33,8 +33,6 @@ import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.world.CachedChunkManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
 
-import java.nio.file.Path;
-
 public interface GeyserBootstrap {
 
     CachedChunkManager DEFAULT_CHUNK_MANAGER = new CachedChunkManager();
@@ -85,11 +83,4 @@ public interface GeyserBootstrap {
     default WorldManager getWorldManager() {
         return DEFAULT_CHUNK_MANAGER;
     }
-
-    /**
-     * Return the data folder where files get stored
-     *
-     * @return Path location of data folder
-     */
-    Path getConfigFolder();
 }
