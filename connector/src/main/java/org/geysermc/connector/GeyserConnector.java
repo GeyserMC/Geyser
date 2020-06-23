@@ -70,7 +70,7 @@ public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC; // As of this time this is in a PR
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
