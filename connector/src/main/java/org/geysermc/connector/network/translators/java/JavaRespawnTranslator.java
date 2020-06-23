@@ -61,7 +61,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         session.setGameMode(packet.getGamemode());
 
         LevelEventPacket stopRainPacket = new LevelEventPacket();
-        stopRainPacket.setType(LevelEventType.STOP_RAIN);
+        stopRainPacket.setType(LevelEventType.STOP_RAINING);
         stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
         stopRainPacket.setPosition(Vector3f.ZERO);
         session.sendUpstreamPacket(stopRainPacket);

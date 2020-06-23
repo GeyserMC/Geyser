@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.inventory.holder;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -70,8 +70,8 @@ public class BlockInventoryHolder extends InventoryHolder {
     @Override
     public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) containerType.id());
+        containerOpenPacket.setId((byte) inventory.getId());
+        containerOpenPacket.setType(containerType);
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
         session.sendUpstreamPacket(containerOpenPacket);

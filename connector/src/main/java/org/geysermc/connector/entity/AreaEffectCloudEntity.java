@@ -28,7 +28,7 @@ package org.geysermc.connector.entity;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.world.particle.Particle;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
@@ -42,19 +42,19 @@ public class AreaEffectCloudEntity extends Entity {
         metadata.put(EntityData.AREA_EFFECT_CLOUD_DURATION, 600);
 
         // This disabled client side shrink of the cloud
-        metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS_PER_TICK, 0.0f);
+        metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7) {
-            metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, (float) entityMetadata.getValue());
+            metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, entityMetadata.getValue());
             metadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * (float) entityMetadata.getValue());
         } else if (entityMetadata.getId() == 10) {
             Particle particle = (Particle) entityMetadata.getValue();
             metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, EffectRegistry.getParticleString(particle.getType()));
         } else if (entityMetadata.getId() == 8) {
-            metadata.put(EntityData.POTION_COLOR, entityMetadata.getValue());
+            metadata.put(EntityData.POTION_AUX_VALUE, entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

@@ -25,15 +25,6 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import java.util.concurrent.TimeUnit;
-
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
@@ -41,9 +32,17 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
@@ -113,7 +112,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case CONTINUE_BREAK:
                 LevelEventPacket continueBreakPacket = new LevelEventPacket();
-                continueBreakPacket.setType(LevelEventType.PUNCH_BLOCK);
+                continueBreakPacket.setType(LevelEventType.BLOCK_UPDATE_BREAK); //TODO: There are now level event types for all breaks. Important?
                 continueBreakPacket.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock()));
                 continueBreakPacket.setPosition(packet.getBlockPosition().toFloat());
                 session.sendUpstreamPacket(continueBreakPacket);

@@ -25,9 +25,9 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;

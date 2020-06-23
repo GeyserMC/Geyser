@@ -29,8 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.StringTag;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.common.ChatColor;
@@ -100,7 +100,7 @@ public class InventoryUtils {
         //Spamming close window packets can bug the client
         if (System.currentTimeMillis() - session.getLastWindowCloseTime() > 500) {
             ContainerClosePacket closePacket = new ContainerClosePacket();
-            closePacket.setWindowId((byte) windowId);
+            closePacket.setId((byte) windowId);
             session.sendUpstreamPacket(closePacket);
             session.setLastWindowCloseTime(System.currentTimeMillis());
         }
@@ -108,7 +108,7 @@ public class InventoryUtils {
 
     public static void updateCursor(GeyserSession session) {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
-        cursorPacket.setContainerId(ContainerId.CURSOR);
+        cursorPacket.setContainerId(ContainerId.UI); //TODO: CHECK IF ACCURATE
         cursorPacket.setSlot(0);
         cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
         session.sendUpstreamPacket(cursorPacket);

@@ -26,10 +26,10 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -79,7 +79,7 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
-        if (action.getSource().getContainerId() == ContainerId.CURSOR) {
+        if (action.getSource().getContainerId() == ContainerId.UI) {
             int slotnum = action.getSlot();
             if (slotnum >= 32 && 42 >= slotnum) {
                 return slotnum - 31;

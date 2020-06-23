@@ -92,7 +92,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(
                                 new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
-                                BlockFace.values()[packet.getFace()],
+                                BlockFace.values()[packet.getBlockFace()],
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false);
@@ -106,7 +106,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         Vector3i blockPos = packet.getBlockPosition();
                         // TODO: Find a better way to do this?
-                        switch (packet.getFace()) {
+                        switch (packet.getBlockFace()) {
                             case 0:
                                 blockPos = blockPos.sub(0, 1, 0);
                                 break;
@@ -152,7 +152,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.setLastBlockPlacePosition(null);
 
                             LevelEventPacket blockBreakPacket = new LevelEventPacket();
-                            blockBreakPacket.setType(LevelEventType.DESTROY);
+                            blockBreakPacket.setType(LevelEventType.BLOCK_STOP_BREAK); //TODO: Make sure this is the right new enum
                             blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
                             blockBreakPacket.setData(BlockTranslator.getBedrockBlockId(blockState));
                             session.sendUpstreamPacket(blockBreakPacket);
@@ -168,7 +168,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
                         Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
-                        ClientPlayerActionPacket breakPacket = new ClientPlayerActionPacket(action, pos, BlockFace.values()[packet.getFace()]);
+                        ClientPlayerActionPacket breakPacket = new ClientPlayerActionPacket(action, pos, BlockFace.values()[packet.getBlockFace()]);
                         session.sendDownstreamPacket(breakPacket);
                         break;
                 }

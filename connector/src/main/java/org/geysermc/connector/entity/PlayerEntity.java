@@ -26,23 +26,24 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.*;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.MessageUtils;
-import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.ArrayList;
@@ -99,7 +100,7 @@ public class PlayerEntity extends LivingEntity {
 
         long linkedEntityId = session.getEntityCache().getCachedPlayerEntityLink(entityId);
         if (linkedEntityId != -1) {
-            addPlayerPacket.getEntityLinks().add(new EntityLink(session.getEntityCache().getEntityByJavaId(linkedEntityId).getGeyserId(), geyserId, EntityLink.Type.RIDER, false));
+            addPlayerPacket.getEntityLinks().add(new EntityLinkData(session.getEntityCache().getEntityByJavaId(linkedEntityId).getGeyserId(), geyserId, EntityLinkData.Type.RIDER, false));
         }
 
         valid = true;
@@ -194,7 +195,7 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setRuntimeEntityId(geyserId);
         movePlayerPacket.setPosition(position);
         movePlayerPacket.setRotation(getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.ROTATION);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.HEAD_ROTATION);
         session.sendUpstreamPacket(movePlayerPacket);
     }
 
@@ -212,7 +213,7 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setPosition(position);
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.ROTATION);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.HEAD_ROTATION);
         session.sendUpstreamPacket(movePlayerPacket);
     }
 
@@ -247,9 +248,9 @@ public class PlayerEntity extends LivingEntity {
         if (entityMetadata.getId() == 14) {
             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
             attributesPacket.setRuntimeEntityId(geyserId);
-            List<Attribute> attributes = new ArrayList<>();
+            List<AttributeData> attributes = new ArrayList<>();
             // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
-            attributes.add(new Attribute("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f));
+            attributes.add(new AttributeData("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f));
             attributesPacket.setAttributes(attributes);
             session.sendUpstreamPacket(attributesPacket);
         }
@@ -269,8 +270,8 @@ public class PlayerEntity extends LivingEntity {
                 parrot.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
                 parrot.updateBedrockMetadata(session);
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                EntityLink.Type type = (entityMetadata.getId() == 18) ? EntityLink.Type.RIDER : EntityLink.Type.PASSENGER;
-                linkPacket.setEntityLink(new EntityLink(geyserId, parrot.getGeyserId(), type, false));
+                EntityLinkData.Type type = (entityMetadata.getId() == 18) ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
+                linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false));
                 // Delay, or else spawned-in players won't get the link
                 // TODO: Find a better solution. This problem also exists with item frames
                 session.getConnector().getGeneralThreadPool().schedule(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);
