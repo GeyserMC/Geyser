@@ -55,8 +55,8 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) ContainerType.WORKBENCH.id());
+        containerOpenPacket.setId((byte) inventory.getId());
+        containerOpenPacket.setType(ContainerType.WORKBENCH);
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
         session.sendUpstreamPacket(containerOpenPacket);

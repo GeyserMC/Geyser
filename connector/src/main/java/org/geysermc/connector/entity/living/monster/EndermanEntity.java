@@ -43,7 +43,7 @@ public class EndermanEntity extends MonsterEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Held block
         if (entityMetadata.getId() == 15) {
-            metadata.put(EntityData.ENDERMAN_HELD_ITEM_ID, BlockTranslator.getBedrockBlockId((int) entityMetadata.getValue()));
+            metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId((int) entityMetadata.getValue())); //TODO: Check
         }
         // 'Angry' - mouth open
         if (entityMetadata.getId() == 16) {

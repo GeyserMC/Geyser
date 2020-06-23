@@ -70,10 +70,10 @@ public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V392_CODEC;
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC; // As of this time this is in a PR
 
     public static final String NAME = "Geyser";
-    public static final String VERSION = "1.0-SNAPSHOT (git-feature/1.16-56f9330)"; // A fallback for running in IDEs
+    public static final String VERSION = "DEV"; // A fallback for running in IDEs
 
     private final Map<InetSocketAddress, GeyserSession> players = new HashMap<>();
 
