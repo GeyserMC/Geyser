@@ -45,15 +45,13 @@ public abstract class GeyserEdition {
     // -- Variables -- //
     private final GeyserConnector connector;
     private final String edition;
-    private final String version;
     protected BedrockPacketCodec codec;
     protected String pongEdition;
 
-    protected GeyserEdition(GeyserConnector connector, String edition, String version) {
+    protected GeyserEdition(GeyserConnector connector, String edition) {
         INSTANCE = this;
         this.connector = connector;
         this.edition = edition;
-        this.version = version;
     }
 
     public GeyserEdition(GeyserConnector connector) {

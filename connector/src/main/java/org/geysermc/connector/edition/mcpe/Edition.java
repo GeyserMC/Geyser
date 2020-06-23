@@ -267,7 +267,7 @@ import org.geysermc.connector.network.translators.world.block.entity.SpawnerBloc
 public class Edition extends GeyserEdition {
 
     public Edition(GeyserConnector connector) {
-        super(connector, "bedrock", "1.14.60");
+        super(connector, "bedrock:latest");
 
         // Version
         codec = Bedrock_v390.V390_CODEC;

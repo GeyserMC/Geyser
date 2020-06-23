@@ -279,7 +279,7 @@ public class Edition extends GeyserEdition {
     private final TokenManager tokenManager;
 
     public Edition(GeyserConnector connector) {
-        super(connector, "education", "1.12.60");
+        super(connector, "education:latest");
 
         tokenManager = new TokenManager(this);
 
