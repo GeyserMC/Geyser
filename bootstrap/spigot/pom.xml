@@ -73,7 +73,11 @@
                                 </relocation>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>org.geysermc.platform.bukkit.shaded.jackson</shadedPattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.reflections.reflections</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.reflections</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
