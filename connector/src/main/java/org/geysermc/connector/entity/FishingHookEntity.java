@@ -63,6 +63,8 @@ public class FishingHookEntity extends Entity {
             }
         }
 
+        //TODO Is ID 8 needed?
+
         super.updateBedrockMetadata(entityMetadata, session);
     }
 }

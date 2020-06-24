@@ -40,11 +40,6 @@ public class WolfEntity extends TameableEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
-        if (entityMetadata.getId() == 18) {
-            metadata.getFlags().setFlag(EntityFlag.INTERESTED, (boolean) entityMetadata.getValue());
-        }
-
         //Reset wolf color
         if (entityMetadata.getId() == 16) {
             byte xd = (byte) entityMetadata.getValue();
@@ -54,11 +49,17 @@ public class WolfEntity extends TameableEntity {
             }
         }
 
+        // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
+        if (entityMetadata.getId() == 18) {
+            metadata.getFlags().setFlag(EntityFlag.INTERESTED, (boolean) entityMetadata.getValue());
+        }
+
         // Wolf collar color
         // Relies on EntityData.OWNER_EID being set in TameableEntity.java
         if (entityMetadata.getId() == 19 && !metadata.getFlags().getFlag(EntityFlag.ANGRY)) {
             metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
         }
+        //TODO: Anger time int?
         super.updateBedrockMetadata(entityMetadata, session);
     }
 }

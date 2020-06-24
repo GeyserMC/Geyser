@@ -39,7 +39,7 @@ public class TridentEntity extends AbstractArrowEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 11) {
+        if (entityMetadata.getId() == 10) {
             metadata.getFlags().setFlag(EntityFlag.ENCHANTED, (boolean) entityMetadata.getValue());
         }
 
