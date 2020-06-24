@@ -110,8 +110,8 @@ public class GeyserBukkitPlugin extends JavaPlugin implements GeyserBootstrap {
         if (Bukkit.getPluginManager().getPlugin("ViaVersion") != null) {
             // TODO: Update when ViaVersion updates
             // API changes between 2.2.3 and 3.0.0-SNAPSHOT require this check
-            if (!Via.getAPI().getVersion().equals("3.0.0-SNAPSHOT") && isLegacy) {
-                geyserLogger.info("ViaVersion detected but not ViaVersion-ABSTRACTION. Please update your ViaVersion plugin for compatibility with Geyser.");
+            if (Via.getAPI().getVersion().contains("2.2.3") && isLegacy) {
+                geyserLogger.info("ViaVersion detected but not the newest version of ViaVersion. Please update your ViaVersion plugin for compatibility with Geyser.");
             } else {
                 isViaVersion = true;
             }
