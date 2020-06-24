@@ -73,7 +73,7 @@ public class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
-    private static final int BLOCK_STATE_VERSION = 17760256;
+    private static final int BLOCK_STATE_VERSION = 17825806;
 
     static {
         /* Load block palette */
