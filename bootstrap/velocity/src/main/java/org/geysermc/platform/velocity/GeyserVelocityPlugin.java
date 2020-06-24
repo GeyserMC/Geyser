@@ -39,6 +39,7 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import org.geysermc.connector.dump.BoostrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
@@ -152,5 +153,10 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
         onDisable();
+    }
+
+    @Override
+    public BoostrapDumpInfo getDumpInfo() {
+        return new GeyserVelocityDumpInfo(proxyServer);
     }
 }

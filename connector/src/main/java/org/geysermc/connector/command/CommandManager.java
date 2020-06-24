@@ -49,6 +49,7 @@ public abstract class CommandManager {
         registerCommand(new ReloadCommand(connector, "reload", "Reloads the Geyser configurations. Kicks all players when used!", "geyser.command.reload"));
         registerCommand(new StopCommand(connector, "stop", "Shuts down Geyser.", "geyser.command.stop"));
         registerCommand(new OffhandCommand(connector, "offhand", "Puts an items in your offhand.", "geyser.command.offhand"));
+        registerCommand(new DumpCommand(connector, "dump", "Dumps Geyser debug infomation for bug reports.", "geyser.command.dump"));
     }
 
     public void registerCommand(GeyserCommand command) {
