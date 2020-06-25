@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclareRecipesPacket> {
     private static final Collection<PotionMixData> POTION_MIXES =
             Arrays.stream(new int[]{372, 331, 348, 376, 289, 437, 353, 414, 382, 375, 462, 378, 396, 377, 370, 469, 470})
-            .mapToObj(ingredient -> new PotionMixData(0, ingredient, 0))
+            .mapToObj(ingredient -> new PotionMixData(0, ingredient, 0, 0, 0, 0)) //TODO: Confirm this is correct behavior.
             .collect(Collectors.toList());
 
     @Override
