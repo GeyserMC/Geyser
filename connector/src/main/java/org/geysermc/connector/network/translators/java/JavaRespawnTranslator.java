@@ -70,7 +70,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
             DimensionUtils.switchDimension(session, packet.getDimension());
         } else {
             if (session.isManyDimPackets()) { //reloading world
-                String fakeDim = entity.getDimension().equals("minecraft:overworld") ? "minecraft:nether" : "minecraft:overworld";
+                String fakeDim = entity.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
                 DimensionUtils.switchDimension(session, fakeDim);
                 DimensionUtils.switchDimension(session, packet.getDimension());
             } else {
