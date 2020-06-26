@@ -100,42 +100,37 @@ public class ItemRegistry {
         int itemIndex = 0;
         Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
         while (iterator.hasNext()) {
-            try {
-                Map.Entry<String, JsonNode> entry = iterator.next();
-                if (entry.getValue().has("tool_type")) {
-                    if (entry.getValue().has("tool_tier")) {
-                        ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
-                                entry.getKey(), itemIndex,
-                                entry.getValue().get("bedrock_id").intValue(),
-                                entry.getValue().get("bedrock_data").intValue(),
-                                entry.getValue().get("tool_type").textValue(),
-                                entry.getValue().get("tool_tier").textValue(),
-                                entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
-                    } else {
-                        ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
-                                entry.getKey(), itemIndex,
-                                entry.getValue().get("bedrock_id").intValue(),
-                                entry.getValue().get("bedrock_data").intValue(),
-                                entry.getValue().get("tool_type").textValue(),
-                                "",
-                                entry.getValue().get("is_block").booleanValue()));
-                    }
-                } else {
-                    ITEM_ENTRIES.put(itemIndex, new ItemEntry(
+            Map.Entry<String, JsonNode> entry = iterator.next();
+            if (entry.getValue().has("tool_type")) {
+                if (entry.getValue().has("tool_tier")) {
+                    ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
                             entry.getKey(), itemIndex,
                             entry.getValue().get("bedrock_id").intValue(),
                             entry.getValue().get("bedrock_data").intValue(),
+                            entry.getValue().get("tool_type").textValue(),
+                            entry.getValue().get("tool_tier").textValue(),
                             entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
+                } else {
+                    ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
+                            entry.getKey(), itemIndex,
+                            entry.getValue().get("bedrock_id").intValue(),
+                            entry.getValue().get("bedrock_data").intValue(),
+                            entry.getValue().get("tool_type").textValue(),
+                            "",
+                            entry.getValue().get("is_block").booleanValue()));
                 }
-                if (entry.getKey().equals("minecraft:barrier")) {
-                    BARRIER_INDEX = itemIndex;
-                }
-
-                itemIndex++;
-            } catch (Exception e) {
-                System.out.println("Exception in item registry! " + e.toString());
-                e.printStackTrace();
+            } else {
+                ITEM_ENTRIES.put(itemIndex, new ItemEntry(
+                        entry.getKey(), itemIndex,
+                        entry.getValue().get("bedrock_id").intValue(),
+                        entry.getValue().get("bedrock_data").intValue(),
+                        entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
             }
+            if (entry.getKey().equals("minecraft:barrier")) {
+                BARRIER_INDEX = itemIndex;
+            }
+
+            itemIndex++;
         }
 
         /* Load creative items */
