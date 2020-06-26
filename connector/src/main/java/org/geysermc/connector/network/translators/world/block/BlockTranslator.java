@@ -73,7 +73,7 @@ public class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
-    private static final int BLOCK_STATE_VERSION = 17760256;
+    private static final int BLOCK_STATE_VERSION = 17825806;
 
     static {
         /* Load block palette */
@@ -117,104 +117,98 @@ public class BlockTranslator {
         int spawnerRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
         while (blocksIterator.hasNext()) {
-            try {
-                javaRuntimeId++;
-                Map.Entry<String, JsonNode> entry = blocksIterator.next();
-                String javaId = entry.getKey();
-                CompoundTag blockTag = buildBedrockState(entry.getValue());
+            javaRuntimeId++;
+            Map.Entry<String, JsonNode> entry = blocksIterator.next();
+            String javaId = entry.getKey();
+            CompoundTag blockTag = buildBedrockState(entry.getValue());
 
-                // TODO fix this, (no block should have a null hardness)
-                JsonNode hardnessNode = entry.getValue().get("block_hardness");
-                if (hardnessNode != null) {
-                    JAVA_RUNTIME_ID_TO_HARDNESS.put(javaRuntimeId, hardnessNode.doubleValue());
-                }
-
-                try {
-                    JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND.put(javaRuntimeId, entry.getValue().get("can_break_with_hand").booleanValue());
-                } catch (Exception e) {
-                    JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND.put(javaRuntimeId, false);
-                }
-
-                JsonNode toolTypeNode = entry.getValue().get("tool_type");
-                if (toolTypeNode != null) {
-                    JAVA_RUNTIME_ID_TO_TOOL_TYPE.put(javaRuntimeId, toolTypeNode.textValue());
-                }
-
-                if (javaId.contains("wool")) {
-                    JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
-                }
-
-                if (javaId.contains("cobweb")) {
-                    cobwebRuntimeId = javaRuntimeId;
-                }
-
-                JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
-
-                // Used for adding all "special" Java block states to block state map
-                String identifier;
-                String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
-                for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
-                    identifier = clazz.getAnnotation(BlockEntity.class).regex();
-                    // Endswith, or else the block bedrock gets picked up for bed
-                    if (bedrock_identifer.endsWith(identifier) && !identifier.equals("")) {
-                        JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaRuntimeId, clazz.getAnnotation(BlockEntity.class).name());
-                        break;
-                    }
-                }
-
-                BlockStateValues.storeBlockStateValues(entry, javaRuntimeId);
-
-                // Get the tag needed for non-empty flower pots
-                if (entry.getValue().get("pottable") != null) {
-                    BlockStateValues.getFlowerPotBlocks().put(entry.getKey().split("\\[")[0], buildBedrockState(entry.getValue()));
-                }
-
-                if ("minecraft:water[level=0]".equals(javaId)) {
-                    waterRuntimeId = bedrockRuntimeId;
-                }
-                boolean waterlogged = entry.getKey().contains("waterlogged=true")
-                        || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
-
-                if (waterlogged) {
-                    BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
-                    WATERLOGGED.add(javaRuntimeId);
-                } else {
-                    BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
-                }
-
-                CompoundTag runtimeTag = blockStateMap.remove(blockTag);
-                if (runtimeTag != null) {
-                    addedStatesMap.put(blockTag, bedrockRuntimeId);
-                    paletteList.add(runtimeTag);
-                } else {
-                    int duplicateRuntimeId = addedStatesMap.getOrDefault(blockTag, -1);
-                    if (duplicateRuntimeId == -1) {
-                        GeyserConnector.getInstance().getLogger().debug("Mapping " + javaId + " was not found for bedrock edition!");
-                    } else {
-                        JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, duplicateRuntimeId);
-                    }
-                    continue;
-                }
-                JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
-
-                if (javaId.startsWith("minecraft:furnace[facing=north")) {
-                    if (javaId.contains("lit=true")) {
-                        furnaceLitRuntimeId = javaRuntimeId;
-                    } else {
-                        furnaceRuntimeId = javaRuntimeId;
-                    }
-                }
-
-                if (javaId.startsWith("minecraft:spawner")) {
-                    spawnerRuntimeId = javaRuntimeId;
-                }
-
-                bedrockRuntimeId++;
-            } catch (Exception e) {
-                // REMOVE AFTER 1.16 UPDATE PROBABLY
-                System.out.println("Block translator error! " + e.toString());
-                e.printStackTrace();
+            // TODO fix this, (no block should have a null hardness)
+            JsonNode hardnessNode = entry.getValue().get("block_hardness");
+            if (hardnessNode != null) {
+                JAVA_RUNTIME_ID_TO_HARDNESS.put(javaRuntimeId, hardnessNode.doubleValue());
             }
+
+            try {
+                JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND.put(javaRuntimeId, entry.getValue().get("can_break_with_hand").booleanValue());
+            } catch (Exception e) {
+                JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND.put(javaRuntimeId, false);
+            }
+
+            JsonNode toolTypeNode = entry.getValue().get("tool_type");
+            if (toolTypeNode != null) {
+                JAVA_RUNTIME_ID_TO_TOOL_TYPE.put(javaRuntimeId, toolTypeNode.textValue());
+            }
+
+            if (javaId.contains("wool")) {
+                JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
+            }
+
+            if (javaId.contains("cobweb")) {
+                cobwebRuntimeId = javaRuntimeId;
+            }
+
+            JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
+
+            // Used for adding all "special" Java block states to block state map
+            String identifier;
+            String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
+            for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
+                identifier = clazz.getAnnotation(BlockEntity.class).regex();
+                // Endswith, or else the block bedrock gets picked up for bed
+                if (bedrock_identifer.endsWith(identifier) && !identifier.equals("")) {
+                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaRuntimeId, clazz.getAnnotation(BlockEntity.class).name());
+                    break;
+                }
+            }
+
+            BlockStateValues.storeBlockStateValues(entry, javaRuntimeId);
+
+            // Get the tag needed for non-empty flower pots
+            if (entry.getValue().get("pottable") != null) {
+                BlockStateValues.getFlowerPotBlocks().put(entry.getKey().split("\\[")[0], buildBedrockState(entry.getValue()));
+            }
+
+            if ("minecraft:water[level=0]".equals(javaId)) {
+                waterRuntimeId = bedrockRuntimeId;
+            }
+            boolean waterlogged = entry.getKey().contains("waterlogged=true")
+                    || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
+
+            if (waterlogged) {
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
+                WATERLOGGED.add(javaRuntimeId);
+            } else {
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
+            }
+
+            CompoundTag runtimeTag = blockStateMap.remove(blockTag);
+            if (runtimeTag != null) {
+                addedStatesMap.put(blockTag, bedrockRuntimeId);
+                paletteList.add(runtimeTag);
+            } else {
+                int duplicateRuntimeId = addedStatesMap.getOrDefault(blockTag, -1);
+                if (duplicateRuntimeId == -1) {
+                    GeyserConnector.getInstance().getLogger().debug("Mapping " + javaId + " was not found for bedrock edition!");
+                } else {
+                    JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, duplicateRuntimeId);
+                }
+                continue;
+            }
+            JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
+
+            if (javaId.startsWith("minecraft:furnace[facing=north")) {
+                if (javaId.contains("lit=true")) {
+                    furnaceLitRuntimeId = javaRuntimeId;
+                } else {
+                    furnaceRuntimeId = javaRuntimeId;
+                }
+            }
+
+            if (javaId.startsWith("minecraft:spawner")) {
+                spawnerRuntimeId = javaRuntimeId;
+            }
+
+            bedrockRuntimeId++;
         }
 
         if (cobwebRuntimeId == -1) {

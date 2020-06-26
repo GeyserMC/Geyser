@@ -38,10 +38,11 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.EntityFlags;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
@@ -106,9 +107,9 @@ public class Entity {
 
         metadata.put(EntityData.SCALE, 1f);
         metadata.put(EntityData.COLOR, 0);
-        metadata.put(EntityData.MAX_AIR, (short) 300);
-        metadata.put(EntityData.AIR, (short) 0);
-        metadata.put(EntityData.LEAD_HOLDER_EID, -1L);
+        metadata.put(EntityData.MAX_AIR_SUPPLY, (short) 300);
+        metadata.put(EntityData.AIR_SUPPLY, (short) 0);
+        metadata.put(EntityData.LEASH_HOLDER_EID, -1L);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         EntityFlags flags = new EntityFlags();
@@ -240,7 +241,7 @@ public class Entity {
     public void updateBedrockAttributes(GeyserSession session) {
         if (!valid) return;
 
-        List<com.nukkitx.protocol.bedrock.data.Attribute> attributes = new ArrayList<>();
+        List<AttributeData> attributes = new ArrayList<>();
         for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
             if (!entry.getValue().getType().isBedrockAttribute())
                 continue;
@@ -291,7 +292,7 @@ public class Entity {
                         }
                     } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
                         metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                        metadata.getFlags().setFlag(EntityFlag.DISABLE_BLOCKING, true);
+                        metadata.getFlags().setFlag(EntityFlag.IS_AVOIDING_BLOCK, true); //TODO: CHECK
                         ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
                         session.sendDownstreamPacket(releaseItemPacket);
                     }
@@ -299,9 +300,9 @@ public class Entity {
                 break;
             case 1: // Air/bubbles
                 if ((int) entityMetadata.getValue() == 300) {
-                    metadata.put(EntityData.AIR, (short) 0); // Otherwise the bubble counter remains in the UI
+                    metadata.put(EntityData.AIR_SUPPLY, (short) 0); // Otherwise the bubble counter remains in the UI
                 } else {
-                    metadata.put(EntityData.AIR, (short) (int) entityMetadata.getValue());
+                    metadata.put(EntityData.AIR_SUPPLY, (short) (int) entityMetadata.getValue());
                 }
                 break;
             case 2: // custom name
@@ -317,7 +318,7 @@ public class Entity {
                 break;
             case 3: // is custom name visible
                 if (!this.is(PlayerEntity.class))
-                    metadata.put(EntityData.ALWAYS_SHOW_NAMETAG, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+                    metadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
                 break;
             case 4: // silent
                 metadata.getFlags().setFlag(EntityFlag.SILENT, (boolean) entityMetadata.getValue());
@@ -329,10 +330,10 @@ public class Entity {
                 if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
                     metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
                     // Has to be a byte or it does not work
-                    metadata.put(EntityData.CAN_START_SLEEP, (byte) 2);
+                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2); //TODO: CHECK
                     if (entityId == session.getPlayerEntity().getEntityId()) {
                         Vector3i lastInteractionPos = session.getLastInteractionPosition();
-                        metadata.put(EntityData.BED_RESPAWN_POS, lastInteractionPos);
+                        metadata.put(EntityData.BED_POSITION, lastInteractionPos);
                         if (session.getConnector().getConfig().isCacheChunks()) {
                             int bed = session.getConnector().getWorldManager().getBlockAt(session, lastInteractionPos.getX(),
                                     lastInteractionPos.getY(), lastInteractionPos.getZ());
@@ -340,7 +341,7 @@ public class Entity {
                             ChunkUtils.updateBlock(session, bed, lastInteractionPos);
                         }
                     } else {
-                        metadata.put(EntityData.BED_RESPAWN_POS, Vector3i.from(position.getFloorX(), position.getFloorY() - 2, position.getFloorZ()));
+                        metadata.put(EntityData.BED_POSITION, Vector3i.from(position.getFloorX(), position.getFloorY() - 2, position.getFloorZ()));
                     }
                     metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
                     metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
@@ -348,7 +349,7 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SLEEPING, false);
                     metadata.put(EntityData.BOUNDING_BOX_WIDTH, getEntityType().getWidth());
                     metadata.put(EntityData.BOUNDING_BOX_HEIGHT, getEntityType().getHeight());
-                    metadata.put(EntityData.CAN_START_SLEEP, (byte) 0);
+                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
                 }
                 break;
             case 7: // blocking

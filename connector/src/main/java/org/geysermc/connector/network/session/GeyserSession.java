@@ -45,6 +45,7 @@ import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -225,7 +226,7 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(entityPacket);
 
         InventoryContentPacket creativePacket = new InventoryContentPacket();
-        creativePacket.setContainerId(ContainerId.CREATIVE);
+        creativePacket.setContainerId(ContainerId.CREATIVE); //TODO: Why is this deprecated?
         creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
         upstream.sendPacket(creativePacket);
 
@@ -235,10 +236,10 @@ public class GeyserSession implements CommandSender {
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
-        List<Attribute> attributes = new ArrayList<>();
+        List<AttributeData> attributes = new ArrayList<>();
         // Default move speed
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
-        attributes.add(new Attribute("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
+        attributes.add(new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
         attributesPacket.setAttributes(attributes);
         upstream.sendPacket(attributesPacket);
     }
@@ -495,18 +496,18 @@ public class GeyserSession implements CommandSender {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
-        startGamePacket.setPlayerGamemode(0);
+        startGamePacket.setPlayerGameType(GameType.SURVIVAL);
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1);
         startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(playerEntity.getDimension()));
         startGamePacket.setGeneratorId(1);
-        startGamePacket.setLevelGamemode(0);
+        startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
         startGamePacket.setAchievementsDisabled(true);
-        startGamePacket.setTime(-1);
+        startGamePacket.setCurrentTick(-1);
         startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
         startGamePacket.setRainLevel(0);
@@ -531,7 +532,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setWorldTemplateOptionLocked(false);
 
         startGamePacket.setLevelId("world");
-        startGamePacket.setWorldName("world");
+        startGamePacket.setLevelName("world");
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
         // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);

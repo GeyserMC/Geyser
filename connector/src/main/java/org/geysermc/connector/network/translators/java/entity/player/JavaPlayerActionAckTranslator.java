@@ -52,7 +52,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
             case FINISH_DIGGING:
                 double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(session.getBreakingBlock());
                 if (session.getGameMode() != GameMode.CREATIVE && blockHardness != 0) {
-                    levelEvent.setType(LevelEventType.DESTROY);
+                    levelEvent.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
                     levelEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
                     levelEvent.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock()));
                     session.sendUpstreamPacket(levelEvent);

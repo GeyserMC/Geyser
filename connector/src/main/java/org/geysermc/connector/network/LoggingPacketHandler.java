@@ -628,12 +628,12 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public boolean handle(StructureTemplateDataExportRequestPacket packet) {
+    public boolean handle(StructureTemplateDataRequestPacket packet) {
         return defaultHandler(packet);
     }
 
     @Override
-    public boolean handle(StructureTemplateDataExportResponsePacket packet) {
+    public boolean handle(StructureTemplateDataResponsePacket packet) {
         return defaultHandler(packet);
     }
 
@@ -754,6 +754,76 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(MultiplayerSettingsPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    // 1.16 new packets
+
+    @Override
+    public boolean handle(DebugInfoPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    // I question if God exists because of this packet - God does not exist if I find out there's a built-in dab
+    // TODO for the future: redirect this as a /me command
+    // TODO for the far future: should we have a client mod that handles skins, handle these too
+    @Override
+    public boolean handle(EmoteListPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(CodeBuilderPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(CreativeContentPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(ItemStackRequestPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(LevelSoundEvent1Packet packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(ItemStackResponsePacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(PlayerArmorDamagePacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(PlayerEnchantOptionsPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(UpdatePlayerGameTypePacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(PacketViolationWarningPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(PositionTrackingDBClientRequestPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(PositionTrackingDBServerBroadcastPacket packet) {
         return defaultHandler(packet);
     }
 }

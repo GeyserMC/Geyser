@@ -24,25 +24,18 @@
  *
  */
 
-package org.geysermc.connector.entity.living;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
+import com.nukkitx.protocol.bedrock.packet.PacketViolationWarningPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-public class SlimeEntity extends InsentientEntity {
-
-    public SlimeEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
+@Translator(packet = PacketViolationWarningPacket.class)
+public class BedrockPacketViolationWarningTranslator extends PacketTranslator<PacketViolationWarningPacket> {
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
-            this.metadata.put(EntityData.SCALE, 0.10f + (int) entityMetadata.getValue());
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void translate(PacketViolationWarningPacket packet, GeyserSession session) {
+        session.getConnector().getLogger().error("Packet violation warning sent from client! " + packet.toString());
     }
 }

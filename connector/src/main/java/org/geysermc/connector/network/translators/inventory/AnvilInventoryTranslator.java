@@ -30,10 +30,10 @@ import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
@@ -47,7 +47,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
-        if (action.getSource().getContainerId() == ContainerId.CURSOR) {
+        if (action.getSource().getContainerId() == ContainerId.UI) {
             switch (action.getSlot()) {
                 case 1:
                     return 0;
