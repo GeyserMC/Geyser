@@ -32,6 +32,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
@@ -192,4 +193,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return temp;
     }
 
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new GeyserSpigotDumpInfo();
+    }
 }

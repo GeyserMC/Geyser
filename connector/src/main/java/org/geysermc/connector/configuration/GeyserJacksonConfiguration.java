@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.common.serializer.AsteriskSerializer;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -111,16 +112,16 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @Setter
         private int port;
 
-        private String motd1;
-        private String motd2;
-
         @JsonProperty("auth-type")
         private String authType;
     }
 
     @Getter
     public static class UserAuthenticationInfo implements IUserAuthenticationInfo {
+        @AsteriskSerializer.Asterisk()
         private String email;
+
+        @AsteriskSerializer.Asterisk()
         private String password;
     }
 

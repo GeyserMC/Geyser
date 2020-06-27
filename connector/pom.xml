@@ -170,6 +170,11 @@
                     <skipPoms>false</skipPoms>
                     <excludeProperties>
                         <excludeProperty>git.user.*</excludeProperty>
+                        <excludeProperty>git.*.user.*</excludeProperty>
+                        <excludeProperty>git.closest.*</excludeProperty>
+                        <excludeProperty>git.commit.id.describe</excludeProperty>
+                        <excludeProperty>git.commit.id.describe-short</excludeProperty>
+                        <excludeProperty>git.commit.message.short</excludeProperty>
                     </excludeProperties>
                     <commitIdGenerationMode>flat</commitIdGenerationMode>
                     <gitDescribe>

@@ -30,6 +30,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
@@ -107,5 +108,10 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     public Path getConfigFolder() {
         // Return the current working directory
         return Paths.get(System.getProperty("user.dir"));
+    }
+
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new BootstrapDumpInfo();
     }
 }

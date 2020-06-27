@@ -35,6 +35,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
@@ -139,5 +140,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public Path getConfigFolder() {
         return getDataFolder().toPath();
+    }
+
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new GeyserBungeeDumpInfo(getProxy());
     }
 }
