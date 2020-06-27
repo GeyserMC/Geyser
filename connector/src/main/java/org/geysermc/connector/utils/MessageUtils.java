@@ -40,12 +40,34 @@ import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MessageUtils {
+
+    private static final Map<String, Integer> COLORS = new HashMap<>();
+
+    static {
+        COLORS.put(ChatColor.BLACK, 0x000000);
+        COLORS.put(ChatColor.DARK_BLUE, 0x0000aa);
+        COLORS.put(ChatColor.DARK_GREEN, 0x00aa00);
+        COLORS.put(ChatColor.DARK_AQUA, 0x00aaaa);
+        COLORS.put(ChatColor.DARK_RED, 0xaa0000);
+        COLORS.put(ChatColor.DARK_PURPLE, 0xaa00aa);
+        COLORS.put(ChatColor.GOLD, 0xffaa00);
+        COLORS.put(ChatColor.GRAY, 0xaaaaaa);
+        COLORS.put(ChatColor.DARK_GRAY, 0x555555);
+        COLORS.put(ChatColor.BLUE, 0x5555ff);
+        COLORS.put(ChatColor.GREEN, 0x55ff55);
+        COLORS.put(ChatColor.AQUA, 0x55ffff);
+        COLORS.put(ChatColor.RED, 0xff5555);
+        COLORS.put(ChatColor.LIGHT_PURPLE, 0xff55ff);
+        COLORS.put(ChatColor.YELLOW, 0xffff55);
+        COLORS.put(ChatColor.WHITE, 0xffffff);
+    };
 
     public static List<String> getTranslationParams(List<Message> messages, String locale) {
         List<String> strings = new ArrayList<>();
@@ -280,11 +302,55 @@ public class MessageUtils {
             //case NONE:
                 base += "r";
                 break;
-            default:
+            case "": // To stop recursion
                 return "";
+            default:
+                return getClosestColor(color);
         }
 
         return base;
+    }
+
+    /**
+     * Based on https://github.com/ViaVersion/ViaBackwards/blob/master/core/src/main/java/nl/matsv/viabackwards/protocol/protocol1_15_2to1_16/chat/TranslatableRewriter1_16.java
+     *
+     * @param color A color string
+     * @return The closest color to that string
+     */
+    private static String getClosestColor(String color) {
+        if (!color.startsWith("#")) {
+            return "";
+        }
+
+        int rgb = Integer.parseInt(color.substring(1), 16);
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+
+        String closest = null;
+        int smallestDiff = 0;
+
+        for (Map.Entry<String, Integer> testColor : COLORS.entrySet()) {
+            if (testColor.getValue() == rgb) {
+                return testColor.getKey();
+            }
+
+            int testR = (testColor.getValue() >> 16) & 0xFF;
+            int testG = (testColor.getValue() >> 8) & 0xFF;
+            int testB = testColor.getValue() & 0xFF;
+
+            // Check by the greatest diff of the 3 values
+            int rDiff = Math.abs(testR - r);
+            int gDiff = Math.abs(testG - g);
+            int bDiff = Math.abs(testB - b);
+            int maxDiff = Math.max(Math.max(rDiff, gDiff), bDiff);
+            if (closest == null || maxDiff < smallestDiff) {
+                closest = testColor.getKey();
+                smallestDiff = maxDiff;
+            }
+        }
+
+        return getColor(closest);
     }
 
     /**

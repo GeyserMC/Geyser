@@ -55,7 +55,7 @@ public class InventoryActionDataTranslator {
         InventoryActionData containerAction = null;
         boolean refresh = false;
         for (InventoryActionData action : actions) {
-            if (action.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT || action.getSource().getContainerId() == ContainerId.CRAFTING_RESULT) {
+            if (action.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT) {
                 return;
             } else if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION) {
                 worldAction = action;

@@ -39,42 +39,9 @@ import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.List;
 
-public class CraftingInventoryTranslator extends BaseInventoryTranslator {
-    private final InventoryUpdater updater;
-
+public class CraftingInventoryTranslator extends BlockInventoryTranslator {
     public CraftingInventoryTranslator() {
-        super(10);
-        this.updater = new CursorInventoryUpdater();
-    }
-
-    @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        //
-    }
-
-    @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setId((byte) inventory.getId());
-        containerOpenPacket.setType(ContainerType.WORKBENCH);
-        containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
-        containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        session.sendUpstreamPacket(containerOpenPacket);
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        //
-    }
-
-    @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
-    }
-
-    @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
+        super(10, "minecraft:crafting_table", ContainerType.WORKBENCH, new CursorInventoryUpdater());
     }
 
     @Override
@@ -83,8 +50,6 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
             int slotnum = action.getSlot();
             if (slotnum >= 32 && 42 >= slotnum) {
                 return slotnum - 31;
-            } else if (slotnum == 50) {
-                return 0;
             }
         }
         return super.bedrockSlotToJava(action);
