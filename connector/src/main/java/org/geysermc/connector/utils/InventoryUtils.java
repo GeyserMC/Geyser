@@ -97,6 +97,11 @@ public class InventoryUtils {
     }
 
     public static void closeWindow(GeyserSession session, int windowId) {
+        //TODO: Investigate client crash when force closing window and opening a new one
+        //Instead, the window will eventually close by removing the fake blocks
+        session.setLastWindowCloseTime(System.currentTimeMillis());
+
+        /*
         //Spamming close window packets can bug the client
         if (System.currentTimeMillis() - session.getLastWindowCloseTime() > 500) {
             ContainerClosePacket closePacket = new ContainerClosePacket();
@@ -104,6 +109,7 @@ public class InventoryUtils {
             session.sendUpstreamPacket(closePacket);
             session.setLastWindowCloseTime(System.currentTimeMillis());
         }
+        */
     }
 
     public static void updateCursor(GeyserSession session) {

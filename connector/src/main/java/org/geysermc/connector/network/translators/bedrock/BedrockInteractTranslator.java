@@ -28,6 +28,8 @@ package org.geysermc.connector.network.translators.bedrock;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -46,7 +48,13 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
     @Override
     public void translate(InteractPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+        Entity entity;
+        if (packet.getRuntimeEntityId() == session.getPlayerEntity().getGeyserId()) {
+            //Player is not in entity cache
+            entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+        }
         if (entity == null)
             return;
 
@@ -125,6 +133,14 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         session.getPlayerEntity().updateBedrockMetadata(session);
                     }
                 }
+                break;
+            case OPEN_INVENTORY:
+                ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
+                containerOpenPacket.setId((byte) 0);
+                containerOpenPacket.setType(ContainerType.INVENTORY);
+                containerOpenPacket.setUniqueEntityId(-1);
+                containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
+                session.sendUpstreamPacket(containerOpenPacket);
                 break;
         }
     }

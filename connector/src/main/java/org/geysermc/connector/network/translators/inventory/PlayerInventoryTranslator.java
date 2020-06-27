@@ -159,10 +159,10 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             case ContainerId.UI:
                 if (slotnum >= 28 && 31 >= slotnum) {
                     return slotnum - 27;
-                } else if (slotnum == 50) {
-                    return 0;
                 }
                 break;
+            case ContainerId.CRAFTING_RESULT:
+                return 0;
         }
         return slotnum;
     }
