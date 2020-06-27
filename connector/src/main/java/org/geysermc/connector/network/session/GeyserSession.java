@@ -225,9 +225,10 @@ public class GeyserSession implements CommandSender {
         entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
         upstream.sendPacket(entityPacket);
 
-        InventoryContentPacket creativePacket = new InventoryContentPacket();
-        creativePacket.setContainerId(ContainerId.CREATIVE); //TODO: Why is this deprecated?
-        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
+        CreativeContentPacket creativePacket = new CreativeContentPacket();
+        for (int i = 0; i < ItemRegistry.CREATIVE_ITEMS.length; i++) {
+            creativePacket.getEntries().put(i, ItemRegistry.CREATIVE_ITEMS[i]);
+        }
         upstream.sendPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
