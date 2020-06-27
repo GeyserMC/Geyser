@@ -29,13 +29,13 @@ package org.geysermc.platform.velocity;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
-import org.geysermc.connector.dump.BoostrapDumpInfo;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class GeyserVelocityDumpInfo extends BoostrapDumpInfo {
+public class GeyserVelocityDumpInfo extends BootstrapDumpInfo {
 
     private String platformName;
     private String platformVersion;

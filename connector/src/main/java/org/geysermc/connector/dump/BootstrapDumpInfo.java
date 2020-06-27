@@ -34,11 +34,11 @@ import org.geysermc.connector.GeyserConnector;
 import java.util.List;
 
 @Getter
-public class BoostrapDumpInfo {
+public class BootstrapDumpInfo {
 
     private PlatformType platform;
 
-    public BoostrapDumpInfo() {
+    public BootstrapDumpInfo() {
         this.platform = GeyserConnector.getInstance().getPlatformType();
     }
 

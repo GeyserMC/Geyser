@@ -26,7 +26,7 @@
 
 package org.geysermc.connector.bootstrap;
 
-import org.geysermc.connector.dump.BoostrapDumpInfo;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserLogger;
@@ -99,5 +99,5 @@ public interface GeyserBootstrap {
      *
      * @return The info about the bootstrap
      */
-    BoostrapDumpInfo getDumpInfo();
+    BootstrapDumpInfo getDumpInfo();
 }

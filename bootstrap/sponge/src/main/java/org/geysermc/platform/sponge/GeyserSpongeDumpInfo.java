@@ -27,7 +27,7 @@
 package org.geysermc.platform.sponge;
 
 import lombok.Getter;
-import org.geysermc.connector.dump.BoostrapDumpInfo;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.spongepowered.api.Platform;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginContainer;
@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class GeyserSpongeDumpInfo extends BoostrapDumpInfo {
+public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
 
     private String platformName;
     private String platformVersion;

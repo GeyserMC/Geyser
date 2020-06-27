@@ -40,9 +40,9 @@ import java.io.IOException;
 
 public class DumpCommand extends GeyserCommand {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String DUMP_URL = "http://127.0.0.1:7777/";
+    private static final String DUMP_URL = "https://dump.geysermc.org/";
 
     public DumpCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
@@ -63,7 +63,7 @@ public class DumpCommand extends GeyserCommand {
             dumpData = MAPPER.writeValueAsString(new DumpInfo());
         } catch (IOException e) {
             sender.sendMessage(ChatColor.RED + "Failed to collect dump info, check console for more information");
-            GeyserConnector.getInstance().getLogger().error("Failed to collect dump info", e);
+            connector.getLogger().error("Failed to collect dump info", e);
             return;
         }
 
@@ -75,7 +75,7 @@ public class DumpCommand extends GeyserCommand {
             responseNode = MAPPER.readTree(response);
         } catch (IOException e) {
             sender.sendMessage(ChatColor.RED + "Failed to upload dump, check console for more information");
-            GeyserConnector.getInstance().getLogger().error("Failed to upload dump", e);
+            connector.getLogger().error("Failed to upload dump", e);
             return;
         }
 
@@ -87,7 +87,7 @@ public class DumpCommand extends GeyserCommand {
         String uploadedDumpUrl = DUMP_URL + responseNode.get("key").asText();
         sender.sendMessage("We've made a dump with useful information, report your issue and provide this url: " + ChatColor.DARK_AQUA + uploadedDumpUrl);
         if (!sender.isConsole()) {
-            GeyserConnector.getInstance().getLogger().info(sender.getName() + " created a GeyserDump at " + uploadedDumpUrl);
+            connector.getLogger().info(sender.getName() + " created a GeyserDump at " + uploadedDumpUrl);
         }
     }
 }

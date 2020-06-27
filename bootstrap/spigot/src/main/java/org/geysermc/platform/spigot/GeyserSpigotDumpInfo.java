@@ -29,13 +29,13 @@ package org.geysermc.platform.spigot;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-import org.geysermc.connector.dump.BoostrapDumpInfo;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class GeyserSpigotDumpInfo extends BoostrapDumpInfo {
+public class GeyserSpigotDumpInfo extends BootstrapDumpInfo {
 
     private String platformName;
     private String platformVersion;

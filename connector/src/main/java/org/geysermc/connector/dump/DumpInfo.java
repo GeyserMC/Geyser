@@ -43,16 +43,16 @@ import java.util.Properties;
 @Getter
 public class DumpInfo {
 
-    private DumpInfo.VersionInfo versionInfo;
+    private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
-    private GeyserConfiguration config;
-    private BoostrapDumpInfo bootstrapInfo;
+    private final GeyserConfiguration config;
+    private final BootstrapDumpInfo bootstrapInfo;
 
     public DumpInfo() {
         try {
             this.gitInfo = new Properties();
             this.gitInfo.load(FileUtils.getResource("git.properties"));
-        } catch (IOException e) { }
+        } catch (IOException ignored) { }
 
         this.config = GeyserConnector.getInstance().getConfig();
 
@@ -63,18 +63,20 @@ public class DumpInfo {
     @Getter
     public class VersionInfo {
 
-        private String name;
-        private String version;
-        private String javaVersion;
-        private String operatingSystem;
+        private final String name;
+        private final String version;
+        private final String javaVersion;
+        private final String architecture;
+        private final String operatingSystem;
 
-        private NetworkInfo network;
-        private MCInfo mcInfo;
+        private final NetworkInfo network;
+        private final MCInfo mcInfo;
 
         VersionInfo() {
             this.name = GeyserConnector.NAME;
             this.version = GeyserConnector.VERSION;
             this.javaVersion = System.getProperty("java.version");
+            this.architecture = System.getProperty("os.arch"); // Usually gives Java architecture but still may be helpful.
             this.operatingSystem = System.getProperty("os.name");
 
             this.network = new NetworkInfo();
@@ -83,22 +85,22 @@ public class DumpInfo {
     }
 
     @Getter
-    public class NetworkInfo {
+    public static class NetworkInfo {
 
         private String internalIP;
-        private boolean dockerCheck;
+        private final boolean dockerCheck;
 
         NetworkInfo() {
             try {
-                // This is the most reliable for getting the main local ip
+                // This is the most reliable for getting the main local IP
                 Socket socket = new Socket();
                 socket.connect(new InetSocketAddress("geysermc.org", 80));
                 this.internalIP = socket.getLocalAddress().getHostAddress();
             } catch (IOException e1) {
                 try {
-                    // Fallback to the normal way of getting the local ip
+                    // Fallback to the normal way of getting the local IP
                     this.internalIP = InetAddress.getLocalHost().getHostAddress();
-                } catch (UnknownHostException e2) { }
+                } catch (UnknownHostException ignored) { }
             }
 
             this.dockerCheck = DockerCheck.checkBasic();
@@ -106,12 +108,12 @@ public class DumpInfo {
     }
 
     @Getter
-    public class MCInfo {
+    public static class MCInfo {
 
-        private String bedrockVersion;
-        private int bedrockProtocol;
-        private String javaVersion;
-        private int javaProtocol;
+        private final String bedrockVersion;
+        private final int bedrockProtocol;
+        private final String javaVersion;
+        private final int javaProtocol;
 
         MCInfo() {
             this.bedrockVersion = GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion();

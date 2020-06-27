@@ -29,14 +29,14 @@ package org.geysermc.platform.bungeecord;
 import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
-import org.geysermc.connector.dump.BoostrapDumpInfo;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
-public class GeyserBungeeDumpInfo extends BoostrapDumpInfo {
+public class GeyserBungeeDumpInfo extends BootstrapDumpInfo {
 
     private String platformName;
     private String platformVersion;

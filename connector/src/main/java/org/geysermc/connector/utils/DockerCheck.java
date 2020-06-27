@@ -66,7 +66,7 @@ public class DockerCheck {
                     return true;
                 }
             }
-        } catch (Exception e) { } // Ignore any errors, inc ip failed to fetch, process could not run or access denied
+        } catch (Exception ignored) { } // Ignore any errors, inc ip failed to fetch, process could not run or access denied
 
         return false;
     }
