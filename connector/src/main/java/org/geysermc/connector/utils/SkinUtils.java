@@ -33,7 +33,7 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.common.AuthType;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;

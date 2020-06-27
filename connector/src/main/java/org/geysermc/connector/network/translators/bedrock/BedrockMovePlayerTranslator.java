@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.nukkitx.math.vector.Vector3d;
-import org.geysermc.common.ChatColor;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;

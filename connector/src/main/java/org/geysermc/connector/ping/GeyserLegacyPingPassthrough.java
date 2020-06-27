@@ -33,7 +33,7 @@ import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.data.status.handler.ServerInfoHandler;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
-import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.GeyserConnector;
 
 import java.util.concurrent.TimeUnit;

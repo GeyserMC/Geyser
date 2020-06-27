@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.common.serializer;
+package org.geysermc.connector.common.serializer;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 import com.fasterxml.jackson.core.JsonGenerator;

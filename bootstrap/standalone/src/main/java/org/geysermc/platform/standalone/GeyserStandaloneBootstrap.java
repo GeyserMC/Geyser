@@ -25,7 +25,7 @@
 
 package org.geysermc.platform.standalone;
 
-import org.geysermc.common.PlatformType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.configuration.GeyserConfiguration;

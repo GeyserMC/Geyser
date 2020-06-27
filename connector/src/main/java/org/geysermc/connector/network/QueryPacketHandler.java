@@ -29,7 +29,7 @@ package org.geysermc.connector.network;
 import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.MessageUtils;
 

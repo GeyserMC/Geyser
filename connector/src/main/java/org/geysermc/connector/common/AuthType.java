@@ -24,40 +24,36 @@
  *
  */
 
-package org.geysermc.connector.dump;
+package org.geysermc.connector.common;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.connector.common.PlatformType;
-import org.geysermc.connector.GeyserConnector;
-
-import java.util.List;
 
 @Getter
-public class BootstrapDumpInfo {
+public enum AuthType {
+    OFFLINE,
+    ONLINE,
+    FLOODGATE;
 
-    private PlatformType platform;
+    public static final AuthType[] VALUES = values();
 
-    public BootstrapDumpInfo() {
-        this.platform = GeyserConnector.getInstance().getPlatformType();
+    public static AuthType getById(int id) {
+        return id < VALUES.length ? VALUES[id] : OFFLINE;
     }
 
-    @Getter
-    @AllArgsConstructor
-    public class PluginInfo {
-
-        public boolean enabled;
-        public String name;
-        public String version;
-        public String main;
-        public List<String> authors;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public class ListenerInfo {
-
-        public String ip;
-        public int port;
+    /**
+     * Convert the AuthType string (from config) to the enum, OFFLINE on fail
+     *
+     * @param name AuthType string
+     *
+     * @return The converted AuthType
+     */
+    public static AuthType getByName(String name) {
+        String upperCase = name.toUpperCase();
+        for (AuthType type : VALUES) {
+            if (type.name().equals(upperCase)) {
+                return type;
+            }
+        }
+        return OFFLINE;
     }
 }

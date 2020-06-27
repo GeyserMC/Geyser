@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.common.main;
+package org.geysermc.connector.common.main;
 
 import javax.swing.*;
 import java.io.InputStream;

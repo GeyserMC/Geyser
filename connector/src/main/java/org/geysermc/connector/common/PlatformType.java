@@ -24,40 +24,20 @@
  *
  */
 
-package org.geysermc.connector.dump;
+package org.geysermc.connector.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.connector.common.PlatformType;
-import org.geysermc.connector.GeyserConnector;
-
-import java.util.List;
 
 @Getter
-public class BootstrapDumpInfo {
+@AllArgsConstructor
+public enum PlatformType {
 
-    private PlatformType platform;
+    BUNGEECORD("BungeeCord"),
+    SPIGOT("Spigot"),
+    SPONGE("Sponge"),
+    STANDALONE("Standalone"),
+    VELOCITY("Velocity");
 
-    public BootstrapDumpInfo() {
-        this.platform = GeyserConnector.getInstance().getPlatformType();
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public class PluginInfo {
-
-        public boolean enabled;
-        public String name;
-        public String version;
-        public String main;
-        public List<String> authors;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public class ListenerInfo {
-
-        public String ip;
-        public int port;
-    }
+    private String platformName;
 }

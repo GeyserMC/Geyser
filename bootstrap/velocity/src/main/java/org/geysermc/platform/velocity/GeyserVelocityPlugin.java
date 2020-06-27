@@ -35,7 +35,7 @@ import com.velocitypowered.api.plugin.Plugin;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
-import org.geysermc.common.PlatformType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;

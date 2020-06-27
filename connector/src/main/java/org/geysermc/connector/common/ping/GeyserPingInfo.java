@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.common.ping;
+package org.geysermc.connector.common.ping;
 
 import lombok.Data;
 import lombok.Getter;
