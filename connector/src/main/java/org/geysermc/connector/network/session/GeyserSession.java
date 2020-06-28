@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
@@ -52,10 +53,10 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.common.AuthType;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
@@ -366,7 +367,8 @@ public class GeyserSession implements CommandSender {
                         if (event.getCause() != null) {
                             event.getCause().printStackTrace();
                         }
-                        upstream.disconnect(event.getReason());
+
+                        upstream.disconnect(MessageUtils.getBedrockMessage(MessageSerializer.fromString(event.getReason())));
                     }
 
                     @Override
