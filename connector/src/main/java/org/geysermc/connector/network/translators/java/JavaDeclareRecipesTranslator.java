@@ -119,7 +119,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     if (entry.getValue().size() < idCount) {
                         optionSet.addAll(entry.getValue());
                     } else {
-                        optionSet.add(ItemData.of(groupedItem.id, (short) -1, groupedItem.count, groupedItem.tag));
+                        optionSet.add(ItemData.of(groupedItem.id, Short.MAX_VALUE, groupedItem.count, groupedItem.tag));
                     }
                 } else {
                     ItemData item = entry.getValue().get(0);
