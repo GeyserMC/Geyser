@@ -55,6 +55,7 @@ public abstract class InventoryTranslator {
             put(WindowType.CRAFTING, new CraftingInventoryTranslator());
             put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
+            put(WindowType.SMITHING, new SmithingInventoryTranslator());
             //put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
 
             InventoryTranslator furnace = new FurnaceInventoryTranslator();
