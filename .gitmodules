@@ -1,6 +1,7 @@
 [submodule "connector/src/main/resources/bedrock/mappings"]
 	path = connector/src/main/resources/bedrock/mappings
 	url = https://github.com/GeyserMC/mappings.git
+	branch = feature/1.16
 [submodule "connector/src/main/resources/education/mappings"]
 	path = connector/src/main/resources/education/mappings
 	url = https://github.com/Bundabrg/mappings-education.git

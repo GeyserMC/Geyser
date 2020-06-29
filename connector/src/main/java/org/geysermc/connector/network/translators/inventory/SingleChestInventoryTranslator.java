@@ -25,8 +25,7 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;

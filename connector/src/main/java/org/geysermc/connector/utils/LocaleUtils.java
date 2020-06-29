@@ -28,13 +28,18 @@ package org.geysermc.connector.utils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipFile;
 
 public class LocaleUtils {
@@ -49,7 +54,8 @@ public class LocaleUtils {
 
     public static void init() {
         // Create the locales folder
-        File localesFolder = new File("locales/");
+        File localesFolder = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales").toFile();
+        //noinspection ResultOfMethodCallIgnored
         localesFolder.mkdir();
 
         // Download the latest asset list and cache it
@@ -68,7 +74,7 @@ public class LocaleUtils {
             // Get the url for the latest version of the games manifest
             String latestInfoURL = "";
             for (Version version : versionManifest.getVersions()) {
-                if (version.getId().equals(versionManifest.getLatestVersion().getRelease())) {
+                if (version.getId().equals(MinecraftConstants.GAME_VERSION)) {
                     latestInfoURL = version.getUrl();
                     break;
                 }
@@ -82,14 +88,11 @@ public class LocaleUtils {
             // Get the individual version manifest
             VersionInfo versionInfo = GeyserConnector.JSON_MAPPER.readValue(WebUtils.getBody(latestInfoURL), VersionInfo.class);
 
-            // Get the smallest jar for use when downloading the en_us locale, will be either the server or client
-            int currentSize = Integer.MAX_VALUE;
-            for (VersionDownload download : versionInfo.getDownloads().values()) {
-                if (download.getUrl().endsWith(".jar") && download.getSize() < currentSize) {
-                    smallestURL = download.getUrl();
-                    currentSize = download.getSize();
-                }
-            }
+            // Get the client jar for use when downloading the en_us locale
+            GeyserConnector.getInstance().getLogger().debug(GeyserConnector.JSON_MAPPER.writeValueAsString(versionInfo.getDownloads()));
+            VersionDownload download = versionInfo.getDownloads().get("client");
+            GeyserConnector.getInstance().getLogger().debug(GeyserConnector.JSON_MAPPER.writeValueAsString(download));
+            smallestURL = download.getUrl();
 
             // Get the assets list
             JsonNode assets = GeyserConnector.JSON_MAPPER.readTree(WebUtils.getBody(versionInfo.getAssetIndex().getUrl())).get("objects");
@@ -132,7 +135,7 @@ public class LocaleUtils {
      * @param locale Locale to download
      */
     private static void downloadLocale(String locale) {
-        File localeFile = new File("locales/" + locale + ".json");
+        File localeFile = Paths.get(GeyserConnector.getInstance().getBootstrap().getConfigFolder().toString(),"locales",locale + ".json").toFile();
 
         // Check if we have already downloaded the locale file
         if (localeFile.exists()) {
@@ -149,7 +152,7 @@ public class LocaleUtils {
 
         // Get the hash and download the locale
         String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
-        WebUtils.downloadFile("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, "locales/" + locale + ".json");
+        WebUtils.downloadFile("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
     }
 
     /**
@@ -158,7 +161,7 @@ public class LocaleUtils {
      * @param locale Locale to load
      */
     private static void loadLocale(String locale) {
-        File localeFile = new File("locales/" + locale + ".json");
+        File localeFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/" + locale + ".json").toFile();
 
         // Load the locale
         if (localeFile.exists()) {
@@ -205,29 +208,30 @@ public class LocaleUtils {
             GeyserConnector.getInstance().getLogger().debug("Download URL: " + smallestURL);
 
             // Download the smallest JAR (client or server)
-            WebUtils.downloadFile(smallestURL, "tmp_locale.jar");
+            Path tmpFilePath = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
+            WebUtils.downloadFile(smallestURL, tmpFilePath.toString());
 
             // Load in the JAR as a zip and extract the file
-            ZipFile localeJar = new ZipFile("tmp_locale.jar");
-            InputStream inputStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"));
-            FileOutputStream outputStream = new FileOutputStream(localeFile);
+            ZipFile localeJar = new ZipFile(tmpFilePath.toString());
+            InputStream fileStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"));
+            FileOutputStream outStream = new FileOutputStream(localeFile);
 
             // Write the file to the locale dir
-            int data = inputStream.read();
-            while(data != -1){
-                outputStream.write(data);
-                data = inputStream.read();
+            byte[] buf = new byte[fileStream.available()];
+            int length;
+            while ((length = fileStream.read(buf)) != -1) {
+                outStream.write(buf, 0, length);
             }
 
             // Flush all changes to disk and cleanup
-            outputStream.flush();
-            outputStream.close();
+            outStream.flush();
+            outStream.close();
 
-            inputStream.close();
+            fileStream.close();
             localeJar.close();
 
             // Delete the nolonger needed client/server jar
-            Files.delete(Paths.get("tmp_locale.jar"));
+            Files.delete(tmpFilePath);
         } catch (Exception e) {
             throw new AssertionError("Unable to download and extract en_us locale!", e);
         }

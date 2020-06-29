@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.ByteTag;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -40,12 +39,12 @@ import java.util.List;
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public boolean isBlock(BlockState blockState) {
+    public boolean isBlock(int blockState) {
         return BlockStateValues.getSkullVariant(blockState) != -1;
     }
 
     @Override
-    public List<Tag<?>> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, BlockState blockState) {
+    public List<Tag<?>> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, int blockState) {
         List<Tag<?>> tags = new ArrayList<>();
         byte skullVariant = BlockStateValues.getSkullVariant(blockState);
         float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;

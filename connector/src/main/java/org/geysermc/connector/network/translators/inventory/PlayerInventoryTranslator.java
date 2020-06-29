@@ -28,10 +28,10 @@ package org.geysermc.connector.network.translators.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.InventorySource;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
@@ -94,7 +94,7 @@ public class PlayerInventoryTranslator extends BaseInventoryTranslator {
         // Crafting grid
         for (int i = 1; i < 5; i++) {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
-            slotPacket.setContainerId(ContainerId.CURSOR);
+            slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(i + 27);
 
             if (session.getGameMode() == GameMode.CREATIVE) {
@@ -122,7 +122,7 @@ public class PlayerInventoryTranslator extends BaseInventoryTranslator {
                 slotPacket.setContainerId(ContainerId.ARMOR);
                 slotPacket.setSlot(slot - 5);
             } else {
-                slotPacket.setContainerId(ContainerId.CURSOR);
+                slotPacket.setContainerId(ContainerId.UI);
                 slotPacket.setSlot(slot + 27);
             }
             slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(slot)));
@@ -156,13 +156,13 @@ public class PlayerInventoryTranslator extends BaseInventoryTranslator {
                 break;
             case ContainerId.OFFHAND:
                 return 45;
-            case ContainerId.CURSOR:
+            case ContainerId.UI:
                 if (slotnum >= 28 && 31 >= slotnum) {
                     return slotnum - 27;
-                } else if (slotnum == 50) {
-                    return 0;
                 }
                 break;
+            case ContainerId.CRAFTING_RESULT:
+                return 0;
         }
         return slotnum;
     }
@@ -198,7 +198,7 @@ public class PlayerInventoryTranslator extends BaseInventoryTranslator {
         if (session.getGameMode() == GameMode.CREATIVE) {
             //crafting grid is not visible in creative mode in java edition
             for (InventoryActionData action : actions) {
-                if (action.getSource().getContainerId() == ContainerId.CURSOR && (action.getSlot() >= 28 && 31 >= action.getSlot())) {
+                if (action.getSource().getContainerId() == ContainerId.UI && (action.getSlot() >= 28 && 31 >= action.getSlot())) {
                     updateInventory(session, inventory);
                     InventoryUtils.updateCursor(session);
                     return;
@@ -221,7 +221,7 @@ public class PlayerInventoryTranslator extends BaseInventoryTranslator {
                         session.sendDownstreamPacket(creativePacket);
                         inventory.setItem(javaSlot, javaItem);
                         break;
-                    case ContainerId.CURSOR:
+                    case ContainerId.UI:
                         if (action.getSlot() == 0) {
                             session.getInventory().setCursor(ItemTranslator.translateToJava(action.getToItem()));
                         }

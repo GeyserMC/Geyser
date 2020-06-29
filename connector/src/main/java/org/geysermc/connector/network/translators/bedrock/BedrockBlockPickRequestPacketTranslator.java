@@ -26,7 +26,6 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientMoveItemToHotbarPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
@@ -45,10 +44,10 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
     @Override
     public void translate(BlockPickRequestPacket packet, GeyserSession session) {
         Vector3i vector = packet.getBlockPosition();
-        BlockState blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
+        int blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
         
         // Block is air - chunk caching is probably off
-        if (blockToPick.getId() == 0) {
+        if (blockToPick == 0) {
             return;
         }
 

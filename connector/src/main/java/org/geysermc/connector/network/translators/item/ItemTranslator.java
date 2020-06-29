@@ -27,12 +27,12 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.Message;
-import com.nukkitx.nbt.CompoundTagBuilder;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.*;
+import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.Tag;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
@@ -41,11 +41,7 @@ import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
@@ -110,12 +106,20 @@ public abstract class ItemTranslator {
 
         ItemEntry bedrockItem = ItemRegistry.getItem(stack);
 
-        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), stack.getNbt() != null ? stack.getNbt().clone() : null);
+        com.github.steveice10.opennbt.tag.builtin.CompoundTag nbt = stack.getNbt() != null ? stack.getNbt().clone() : null;
 
-        if (itemStack.getNbt() != null) {
+        // This is a fallback for maps with no nbt
+        if (nbt == null && bedrockItem.getJavaIdentifier().equals("minecraft:filled_map")) {
+            nbt = new com.github.steveice10.opennbt.tag.builtin.CompoundTag("");
+            nbt.put(new IntTag("map", 0));
+        }
+
+        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
+
+        if (nbt != null) {
             for (NbtItemStackTranslator translator : NBT_TRANSLATORS) {
                 if (translator.acceptItem(bedrockItem)) {
-                    translator.translateToBedrock(itemStack.getNbt(), bedrockItem);
+                    translator.translateToBedrock(nbt, bedrockItem);
                 }
             }
         }
@@ -139,7 +143,7 @@ public abstract class ItemTranslator {
                 // Check if its a message to translate
                 if (MessageUtils.isMessage(name)) {
                     // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(Message.fromString(name), session.getClientData().getLanguageCode());
+                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
 
                     // Build the new display tag
                     CompoundTagBuilder displayBuilder = display.toBuilder();

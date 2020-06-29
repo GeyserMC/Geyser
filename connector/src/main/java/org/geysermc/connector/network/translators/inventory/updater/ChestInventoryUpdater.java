@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.inventory.updater;
 
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import lombok.AllArgsConstructor;
