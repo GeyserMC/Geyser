@@ -75,7 +75,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public boolean isOutput(InventoryActionData action) {
-        return action.getSource().getContainerId() == ContainerId.CURSOR && action.getSlot() == 50;
+        return action.getSource().getContainerId() == ContainerId.UI && action.getSlot() == 50;
     }
 
     @Override
