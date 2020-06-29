@@ -146,11 +146,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         return geyserPingPassthrough;
     }
 
-    @Override
-    public File getDataFolder() {
-        return configDir;
-    }
-
     @Subscribe
     public void onInit(ProxyInitializeEvent event) {
         onEnable();

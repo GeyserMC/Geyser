@@ -167,7 +167,7 @@ public abstract class GeyserPlugin {
      * Return our dataFolder based upon the plugin name
      */
     public File getDataFolder() {
-        return getConnector().getBootstrap().getDataFolder().toPath().resolve("plugins").resolve(getName()).toFile();
+        return getConnector().getBootstrap().getConfigFolder().resolve("plugins").resolve(getName()).toFile();
     }
 
     /**

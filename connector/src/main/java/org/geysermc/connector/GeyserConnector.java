@@ -112,7 +112,7 @@ public class GeyserConnector {
 
         this.bootstrap = bootstrap;
         this.eventManager = new EventManager(this);
-        this.pluginManager = new PluginManager(this, new File(bootstrap.getDataFolder(), "plugins"));
+        this.pluginManager = new PluginManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
