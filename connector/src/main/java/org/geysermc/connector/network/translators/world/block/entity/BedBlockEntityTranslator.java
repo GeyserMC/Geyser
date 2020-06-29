@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.ByteTag;
@@ -39,12 +38,12 @@ import java.util.List;
 public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public boolean isBlock(BlockState blockState) {
+    public boolean isBlock(int blockState) {
         return BlockStateValues.getBedColor(blockState) != -1;
     }
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
+    public List<Tag<?>> translateTag(CompoundTag tag, int blockState) {
         List<Tag<?>> tags = new ArrayList<>();
         byte bedcolor = BlockStateValues.getBedColor(blockState);
         // Just in case...

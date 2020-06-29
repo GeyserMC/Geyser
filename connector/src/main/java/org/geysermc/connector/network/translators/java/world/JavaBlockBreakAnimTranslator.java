@@ -26,7 +26,6 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockBreakAnimPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
@@ -44,8 +43,8 @@ public class JavaBlockBreakAnimTranslator extends PacketTranslator<ServerBlockBr
 
     @Override
     public void translate(ServerBlockBreakAnimPacket packet, GeyserSession session) {
-        BlockState state = session.getConnector().getWorldManager().getBlockAt(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
-        int breakTime = (int) (65535 / Math.ceil(BlockUtils.getBreakTime(BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(state.getId()), state.getId(), ItemEntry.AIR, new CompoundTag(""), null) * 20));
+        int state = session.getConnector().getWorldManager().getBlockAt(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
+        int breakTime = (int) (65535 / Math.ceil(BlockUtils.getBreakTime(BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(state), state, ItemEntry.AIR, new CompoundTag(""), null) * 20));
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setPosition(Vector3f.from(
                 packet.getPosition().getX(),

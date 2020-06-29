@@ -32,10 +32,10 @@ import com.github.steveice10.mc.protocol.data.game.window.*;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.InventorySource;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
@@ -55,11 +55,11 @@ public class InventoryActionDataTranslator {
         InventoryActionData containerAction = null;
         boolean refresh = false;
         for (InventoryActionData action : actions) {
-            if (action.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT || action.getSource().getContainerId() == ContainerId.CRAFTING_RESULT) {
+            if (action.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT) {
                 return;
             } else if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION) {
                 worldAction = action;
-            } else if (action.getSource().getContainerId() == ContainerId.CURSOR && action.getSlot() == 0) {
+            } else if (action.getSource().getContainerId() == ContainerId.UI && action.getSlot() == 0) {
                 cursorAction = action;
                 ItemData translatedCursor = ItemTranslator.translateToBedrock(session, session.getInventory().getCursor());
                 if (!translatedCursor.equals(action.getFromItem())) {

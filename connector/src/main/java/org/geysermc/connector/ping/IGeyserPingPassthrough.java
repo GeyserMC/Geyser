@@ -26,7 +26,7 @@
 
 package org.geysermc.connector.ping;
 
-import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 
 /**
  * Interface that retrieves ping passthrough information from the Java server

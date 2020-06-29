@@ -31,9 +31,9 @@ import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareRecipesPacket;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.CraftingData;
-import com.nukkitx.protocol.bedrock.data.ItemData;
-import com.nukkitx.protocol.bedrock.data.PotionMixData;
+import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclareRecipesPacket> {
     private static final Collection<PotionMixData> POTION_MIXES =
             Arrays.stream(new int[]{372, 331, 348, 376, 289, 437, 353, 414, 382, 375, 462, 378, 396, 377, 370, 469, 470})
-            .mapToObj(ingredient -> new PotionMixData(0, ingredient, 0))
+            .mapToObj(ingredient -> new PotionMixData(0, ingredient, 0, 0, 0, 0)) //TODO: Confirm this is correct behavior.
             .collect(Collectors.toList());
 
     @Override
@@ -119,7 +119,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     if (entry.getValue().size() < idCount) {
                         optionSet.addAll(entry.getValue());
                     } else {
-                        optionSet.add(ItemData.of(groupedItem.id, (short) -1, groupedItem.count, groupedItem.tag));
+                        optionSet.add(ItemData.of(groupedItem.id, Short.MAX_VALUE, groupedItem.count, groupedItem.tag));
                     }
                 } else {
                     ItemData item = entry.getValue().get(0);

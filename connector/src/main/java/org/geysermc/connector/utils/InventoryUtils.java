@@ -29,11 +29,10 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.StringTag;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ItemData;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import org.geysermc.common.ChatColor;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -97,18 +96,24 @@ public class InventoryUtils {
     }
 
     public static void closeWindow(GeyserSession session, int windowId) {
+        //TODO: Investigate client crash when force closing window and opening a new one
+        //Instead, the window will eventually close by removing the fake blocks
+        session.setLastWindowCloseTime(System.currentTimeMillis());
+
+        /*
         //Spamming close window packets can bug the client
         if (System.currentTimeMillis() - session.getLastWindowCloseTime() > 500) {
             ContainerClosePacket closePacket = new ContainerClosePacket();
-            closePacket.setWindowId((byte) windowId);
+            closePacket.setId((byte) windowId);
             session.sendUpstreamPacket(closePacket);
             session.setLastWindowCloseTime(System.currentTimeMillis());
         }
+        */
     }
 
     public static void updateCursor(GeyserSession session) {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
-        cursorPacket.setContainerId(ContainerId.CURSOR);
+        cursorPacket.setContainerId(ContainerId.UI); //TODO: CHECK IF ACCURATE
         cursorPacket.setSlot(0);
         cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
         session.sendUpstreamPacket(cursorPacket);

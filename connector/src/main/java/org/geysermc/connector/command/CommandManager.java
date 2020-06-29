@@ -49,6 +49,7 @@ public abstract class CommandManager {
         registerCommand(new ReloadCommand(connector, "reload", "Reloads the Geyser configurations. Kicks all players when used!", "geyser.command.reload"));
         registerCommand(new StopCommand(connector, "stop", "Shuts down Geyser.", "geyser.command.stop"));
         registerCommand(new OffhandCommand(connector, "offhand", "Puts an items in your offhand.", "geyser.command.offhand"));
+        registerCommand(new DumpCommand(connector, "dump", "Dumps Geyser debug infomation for bug reports.", "geyser.command.dump"));
     }
 
     public void registerCommand(GeyserCommand command) {
@@ -75,7 +76,7 @@ public abstract class CommandManager {
             args = new String[0];
         } else {
             label = command.substring(0, command.indexOf(" ")).toLowerCase();
-            String argLine = command.substring(command.indexOf(" " + 1));
+            String argLine = command.substring(command.indexOf(" ") + 1);
             args = argLine.contains(" ") ? argLine.split(" ") : new String[] { argLine };
         }
 

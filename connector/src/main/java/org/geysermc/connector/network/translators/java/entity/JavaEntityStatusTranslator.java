@@ -25,14 +25,13 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
+import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
-import com.nukkitx.protocol.bedrock.data.EntityEventType;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 
 @Translator(packet = ServerEntityStatusPacket.class)
 public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntityStatusPacket> {
@@ -53,25 +52,25 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 entityEventPacket.setData(9);
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
-                entityEventPacket.setType(EntityEventType.HURT_ANIMATION);
+                entityEventPacket.setType(EntityEventType.HURT);
                 break;
             case LIVING_DEATH:
-                entityEventPacket.setType(EntityEventType.DEATH_ANIMATION);
+                entityEventPacket.setType(EntityEventType.DEATH);
                 break;
             case WOLF_SHAKE_WATER:
-                entityEventPacket.setType(EntityEventType.SHAKE_WET);
+                entityEventPacket.setType(EntityEventType.SHAKE_WETNESS);
                 break;
             case PLAYER_FINISH_USING_ITEM:
                 entityEventPacket.setType(EntityEventType.USE_ITEM);
                 break;
             case FISHING_HOOK_PULL_PLAYER:
-                entityEventPacket.setType(EntityEventType.FISH_HOOK_LURED);
+                entityEventPacket.setType(EntityEventType.FISH_HOOK_TEASE); //TODO: CHECK
                 break;
             case TAMEABLE_TAMING_FAILED:
-                entityEventPacket.setType(EntityEventType.TAME_FAIL);
+                entityEventPacket.setType(EntityEventType.TAME_FAILED);
                 break;
             case TAMEABLE_TAMING_SUCCEEDED:
-                entityEventPacket.setType(EntityEventType.TAME_SUCCESS);
+                entityEventPacket.setType(EntityEventType.TAME_SUCCEEDED);
                 break;
             case ZOMBIE_VILLAGER_CURE:
                 entityEventPacket.setType(EntityEventType.ZOMBIE_VILLAGER_CURE);
@@ -80,22 +79,22 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 entityEventPacket.setType(EntityEventType.LOVE_PARTICLES);
                 break;
             case FIREWORK_EXPLODE:
-                entityEventPacket.setType(EntityEventType.FIREWORK_PARTICLES);
+                entityEventPacket.setType(EntityEventType.FIREWORK_EXPLODE);
                 break;
             case WITCH_EMIT_PARTICLES:
-                entityEventPacket.setType(EntityEventType.WITCH_SPELL_PARTICLES);
+                entityEventPacket.setType(EntityEventType.WITCH_HAT_MAGIC); //TODO: CHECK
                 break;
             case TOTEM_OF_UNDYING_MAKE_SOUND:
                 entityEventPacket.setType(EntityEventType.CONSUME_TOTEM);
                 break;
             case SHEEP_GRAZE_OR_TNT_CART_EXPLODE:
-                entityEventPacket.setType(EntityEventType.MINECART_TNT_PRIME_FUSE);
+                entityEventPacket.setType(EntityEventType.PRIME_TNT_MINECART);
                 break;
             case IRON_GOLEM_HOLD_POPPY:
-                entityEventPacket.setType(EntityEventType.IRON_GOLEM_OFFER_FLOWER);
+                entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_OFFER);
                 break;
             case IRON_GOLEM_EMPTY_HAND:
-                entityEventPacket.setType(EntityEventType.IRON_GOLEM_WITHDRAW_FLOWER);
+                entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
                 break;
         }
 

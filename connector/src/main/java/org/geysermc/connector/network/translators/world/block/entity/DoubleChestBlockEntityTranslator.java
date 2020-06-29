@@ -26,7 +26,6 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -48,12 +47,12 @@ import java.util.List;
 public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
 
     @Override
-    public boolean isBlock(BlockState blockState) {
-        return BlockStateValues.getDoubleChestValues().containsKey(blockState.getId());
+    public boolean isBlock(int blockState) {
+        return BlockStateValues.getDoubleChestValues().containsKey(blockState);
     }
 
     @Override
-    public void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
+    public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         CompoundTag javaTag = getConstantJavaTag("chest", position.getX(), position.getY(), position.getZ());
         CompoundTagBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId("chest"), position.getX(), position.getY(), position.getZ()).toBuilder();
         translateTag(javaTag, blockState).forEach(tagBuilder::tag);
@@ -61,10 +60,10 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
     }
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
+    public List<Tag<?>> translateTag(CompoundTag tag, int blockState) {
         List<Tag<?>> tags = new ArrayList<>();
-        if (blockState != null && BlockStateValues.getDoubleChestValues().containsKey(blockState.getId())) {
-            DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().get(blockState.getId());
+        if (BlockStateValues.getDoubleChestValues().containsKey(blockState)) {
+            DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().get(blockState);
             if (chestValues != null) {
                 int x = (int) tag.getValue().get("x").getValue();
                 int z = (int) tag.getValue().get("z").getValue();
