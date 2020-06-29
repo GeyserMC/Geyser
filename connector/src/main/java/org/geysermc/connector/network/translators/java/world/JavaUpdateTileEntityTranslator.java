@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTileEntityPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -49,7 +48,7 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
             if (packet.getNbt().contains("Owner") && SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS) {
                 CompoundTag owner = packet.getNbt().get("Owner");
                 if (owner.contains("Properties")) {
-                    BlockState blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition());
+                    int blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition());
                     SkullBlockEntityTranslator.spawnPlayer(session, packet.getNbt(), blockState);
                 }
             }

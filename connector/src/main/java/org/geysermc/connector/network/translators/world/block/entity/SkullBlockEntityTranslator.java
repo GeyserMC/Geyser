@@ -27,7 +27,6 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3f;
@@ -36,7 +35,9 @@ import com.nukkitx.nbt.tag.ByteTag;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.FloatTag;
 import com.nukkitx.nbt.tag.Tag;
-import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -100,7 +101,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return null;
     }
 
-    public static void spawnPlayer(GeyserSession session, com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, BlockState blockState) {
+    public static void spawnPlayer(GeyserSession session, com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, int blockState) {
         float x = (int) tag.get("x").getValue() + .5f;
         float y = (int) tag.get("y").getValue() - .01f;
         float z = (int) tag.get("z").getValue() + .5f;

@@ -170,7 +170,7 @@ public class BlockTranslator {
 
             if (entry.getKey().contains("wall_skull") || entry.getKey().contains("wall_head")) {
                 String direction = entry.getKey().substring(entry.getKey().lastIndexOf("facing=") + 7);
-                BlockStateValues.getWallSkullDirection().put(javaBlockState, direction.substring(0, direction.length() - 1));
+                BlockStateValues.getWallSkullDirection().put(javaRuntimeId, direction.substring(0, direction.length() - 1));
             }
 
             if ("minecraft:water[level=0]".equals(javaId)) {

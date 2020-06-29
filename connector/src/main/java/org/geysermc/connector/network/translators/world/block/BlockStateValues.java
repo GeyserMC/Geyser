@@ -41,7 +41,7 @@ public class BlockStateValues {
     private static final Int2ByteMap BED_COLORS = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
-    private static final Map<BlockState, String> WALL_SKULL_DIRECTION = new HashMap<>();
+    private static final Map<Integer, String> WALL_SKULL_DIRECTION = new HashMap<>();
     private static final Map<String, CompoundTag> FLOWER_POT_BLOCKS = new HashMap<>();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
@@ -209,7 +209,7 @@ public class BlockStateValues {
      *
      * @return Skull wall rotation value with the blockstate
      */
-    public static Map<BlockState, String> getWallSkullDirection() {
+    public static Map<Integer, String> getWallSkullDirection() {
         return WALL_SKULL_DIRECTION;
     }
 
