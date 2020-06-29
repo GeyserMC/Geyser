@@ -31,9 +31,9 @@ import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerTradeListPacket;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.UpdateTradePacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -60,8 +60,8 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
 
         UpdateTradePacket updateTradePacket = new UpdateTradePacket();
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
-        updateTradePacket.setWindowId((short) packet.getWindowId());
-        updateTradePacket.setWindowType((short) ContainerType.TRADING.id());
+        updateTradePacket.setContainerId((short) packet.getWindowId()); //TODO: CHECK THIS AND THE ONE BELOW
+        updateTradePacket.setContainerType(ContainerType.TRADE);
         String displayName;
         Entity realVillager = session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
         if (realVillager != null && realVillager.getMetadata().containsKey(EntityData.NAMETAG) && realVillager.getMetadata().getString(EntityData.NAMETAG) != null) {
@@ -70,9 +70,9 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
             displayName = packet.isRegularVillager() ? "Villager" : "Wandering Trader";
         }
         updateTradePacket.setDisplayName(displayName);
-        updateTradePacket.setUnknownInt(0);
-        updateTradePacket.setScreen2(true);
-        updateTradePacket.setWilling(true);
+        //updateTradePacket.setUnknownInt(0); //TODO
+//        updateTradePacket.setScreen2(true);
+//        updateTradePacket.setWilling(true);
         updateTradePacket.setPlayerUniqueEntityId(session.getPlayerEntity().getGeyserId());
         updateTradePacket.setTraderUniqueEntityId(session.getPlayerEntity().getGeyserId());
         CompoundTagBuilder builder = CompoundTagBuilder.builder();

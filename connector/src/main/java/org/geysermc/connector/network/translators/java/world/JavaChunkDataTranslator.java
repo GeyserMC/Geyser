@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.nbt.NbtUtils;
@@ -105,7 +104,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     int x = blockEntityEntry.getKey().getInt("x");
                     int y = blockEntityEntry.getKey().getInt("y");
                     int z = blockEntityEntry.getKey().getInt("z");
-                    ChunkUtils.updateBlock(session, new BlockState(blockEntityEntry.getIntValue()), new Position(x, y, z));
+                    ChunkUtils.updateBlock(session, blockEntityEntry.getIntValue(), new Position(x, y, z));
                 }
                 chunkData.getLoadBlockEntitiesLater().clear();
                 session.getChunkCache().addToCache(packet.getColumn());

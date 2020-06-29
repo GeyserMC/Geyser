@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerAbilitiesPacket;
+import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -40,11 +41,11 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
     public void translate(AdventureSettingsPacket packet, GeyserSession session) {
         // Only canFly and flying are used by the server
         // https://wiki.vg/Protocol#Player_Abilities_.28serverbound.29
-        boolean canFly = packet.getFlags().contains(AdventureSettingsPacket.Flag.MAY_FLY);
-        boolean flying = packet.getFlags().contains(AdventureSettingsPacket.Flag.FLYING);
+        boolean canFly = packet.getSettings().contains(AdventureSetting.MAY_FLY);
+        boolean flying = packet.getSettings().contains(AdventureSetting.FLYING);
         boolean creative = session.getGameMode() == GameMode.CREATIVE;
         ClientPlayerAbilitiesPacket abilitiesPacket = new ClientPlayerAbilitiesPacket(
-                false, canFly, flying, creative, 0.05f, 0.1f
+                false, canFly, flying, creative
         );
         session.sendDownstreamPacket(abilitiesPacket);
     }

@@ -28,10 +28,16 @@ package org.geysermc.connector.entity.living.merchant;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.living.AgeableEntity;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 
 public class AbstractMerchantEntity extends AgeableEntity {
 
     public AbstractMerchantEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+    }
+
+    @Override
+    public void teleport(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround) {
+        super.teleport(session, position, yaw - 180, pitch, isOnGround);
     }
 }

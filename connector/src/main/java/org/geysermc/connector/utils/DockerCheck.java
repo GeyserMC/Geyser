@@ -55,4 +55,19 @@ public class DockerCheck {
             }
         } catch (Exception e) { } // Ignore any errors, inc ip failed to fetch, process could not run or access denied
     }
+
+    public static boolean checkBasic() {
+        try {
+            String OS = System.getProperty("os.name").toLowerCase();
+            if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
+                String output = new String(Files.readAllBytes(Paths.get("/proc/1/cgroup")));
+
+                if (output.contains("docker")) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) { } // Ignore any errors, inc ip failed to fetch, process could not run or access denied
+
+        return false;
+    }
 }
