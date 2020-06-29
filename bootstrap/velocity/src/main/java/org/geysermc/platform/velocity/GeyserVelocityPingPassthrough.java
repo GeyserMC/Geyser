@@ -32,9 +32,8 @@ import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import lombok.AllArgsConstructor;
-import net.kyori.text.TextComponent;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
-import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
 import java.net.Inet4Address;

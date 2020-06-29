@@ -27,8 +27,8 @@ package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.Attribute;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
@@ -78,14 +78,14 @@ public class AbstractHorseEntity extends AnimalEntity {
 
         float maxHealth = attributes.containsKey(AttributeType.MAX_HEALTH) ? attributes.get(AttributeType.MAX_HEALTH).getValue() : 20f;
 
-        List<com.nukkitx.protocol.bedrock.data.Attribute> attributesLocal = new ArrayList<>();
+        List<AttributeData> attributesLocal = new ArrayList<>();
         for (Map.Entry<AttributeType, org.geysermc.connector.entity.attribute.Attribute> entry : this.attributes.entrySet()) {
             if (!entry.getValue().getType().isBedrockAttribute())
                 continue;
 
             attributesLocal.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
         }
-        attributesLocal.add(new Attribute("minecraft:health", 0.0f, maxHealth, health, maxHealth));
+        attributesLocal.add(new AttributeData("minecraft:health", 0.0f, maxHealth, health, maxHealth));
 
         UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
         updateAttributesPacket.setRuntimeEntityId(geyserId);

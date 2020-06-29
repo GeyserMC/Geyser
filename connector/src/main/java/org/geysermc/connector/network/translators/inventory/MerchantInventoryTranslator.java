@@ -26,9 +26,9 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
@@ -60,7 +60,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
-        if (action.getSource().getContainerId() == ContainerId.CURSOR) {
+        if (action.getSource().getContainerId() == ContainerId.UI) {
             switch (action.getSlot()) {
                 case 4:
                     return 0;

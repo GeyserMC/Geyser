@@ -26,8 +26,8 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.InventorySource;
 import com.nukkitx.protocol.bedrock.data.ItemData;
 import lombok.NonNull;

@@ -27,8 +27,6 @@
 package org.geysermc.connector.network.translators.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -42,29 +40,29 @@ import org.geysermc.connector.network.session.GeyserSession;
 public abstract class WorldManager {
 
     /**
-     * Gets the {@link BlockState} at the specified location
+     * Gets the block state at the specified location
      *
      * @param session the session
      * @param position the position
      * @return the block state at the specified location
      */
-    public BlockState getBlockAt(GeyserSession session, Position position) {
+    public int getBlockAt(GeyserSession session, Position position) {
         return this.getBlockAt(session, position.getX(), position.getY(), position.getZ());
     }
 
     /**
-     * Gets the {@link BlockState} at the specified location
+     * Gets the block state at the specified location
      *
      * @param session the session
      * @param vector the position
      * @return the block state at the specified location
      */
-    public BlockState getBlockAt(GeyserSession session, Vector3i vector) {
+    public int getBlockAt(GeyserSession session, Vector3i vector) {
         return this.getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
     }
 
     /**
-     * Gets the {@link BlockState} at the specified location
+     * Gets the block state at the specified location
      *
      * @param session the session
      * @param x the x coordinate to get the block at
@@ -72,5 +70,5 @@ public abstract class WorldManager {
      * @param z the z coordinate to get the block at
      * @return the block state at the specified location
      */
-    public abstract BlockState getBlockAt(GeyserSession session, int x, int y, int z);
+    public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
 }

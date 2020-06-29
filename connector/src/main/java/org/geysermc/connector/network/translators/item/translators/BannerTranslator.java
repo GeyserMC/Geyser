@@ -32,7 +32,7 @@ import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;

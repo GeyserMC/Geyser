@@ -26,8 +26,9 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.action.Transaction;
@@ -45,7 +46,7 @@ public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
         final int slot = super.bedrockSlotToJava(action);
-        if (action.getSource().getContainerId() == ContainerId.CURSOR) {
+        if (action.getSource().getContainerId() == ContainerId.UI) {
             switch (slot) {
                 case 16:
                     return 0;

@@ -28,9 +28,10 @@ package org.geysermc.connector.network.translators.java;
 import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
 import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareCommandsPacket;
-import com.nukkitx.protocol.bedrock.data.CommandData;
-import com.nukkitx.protocol.bedrock.data.CommandEnumData;
-import com.nukkitx.protocol.bedrock.data.CommandParamData;
+import com.nukkitx.protocol.bedrock.data.command.CommandData;
+import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
+import com.nukkitx.protocol.bedrock.data.command.CommandParamData;
+import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -40,7 +41,10 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Translator(packet = ServerDeclareCommandsPacket.class)
 public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
@@ -151,41 +155,41 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
      *
      * @return Bedrock parameter data type
      */
-    private CommandParamData.Type mapCommandType(CommandParser parser) {
-        if (parser == null) { return CommandParamData.Type.STRING; }
+    private CommandParamType mapCommandType(CommandParser parser) {
+        if (parser == null) { return CommandParamType.STRING; }
 
         switch (parser) {
             case FLOAT:
-                return CommandParamData.Type.FLOAT;
+                return CommandParamType.FLOAT;
 
             case INTEGER:
-                return CommandParamData.Type.INT;
+                return CommandParamType.INT;
 
             case ENTITY:
             case GAME_PROFILE:
-                return CommandParamData.Type.TARGET;
+                return CommandParamType.TARGET;
 
             case BLOCK_POS:
-                return CommandParamData.Type.BLOCK_POSITION;
+                return CommandParamType.BLOCK_POSITION;
 
             case COLUMN_POS:
             case VEC3:
-                return CommandParamData.Type.POSITION;
+                return CommandParamType.POSITION;
 
             case MESSAGE:
-                return CommandParamData.Type.MESSAGE;
+                return CommandParamType.MESSAGE;
 
             case NBT:
             case NBT_COMPOUND_TAG:
             case NBT_TAG:
             case NBT_PATH:
-                return CommandParamData.Type.JSON;
+                return CommandParamType.JSON;
 
             case RESOURCE_LOCATION:
-                return CommandParamData.Type.FILE_PATH;
+                return CommandParamType.FILE_PATH;
 
             case INT_RANGE:
-                return CommandParamData.Type.INT_RANGE;
+                return CommandParamType.INT_RANGE;
 
             case BOOL:
             case DOUBLE:
@@ -217,7 +221,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             case DIMENSION:
             case TIME:
             default:
-                return CommandParamData.Type.STRING;
+                return CommandParamType.STRING;
         }
     }
 

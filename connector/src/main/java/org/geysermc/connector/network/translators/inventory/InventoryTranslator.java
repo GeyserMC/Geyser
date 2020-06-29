@@ -26,8 +26,8 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 import org.geysermc.connector.inventory.Inventory;
@@ -56,6 +56,7 @@ public abstract class InventoryTranslator {
             put(WindowType.CRAFTING, new CraftingInventoryTranslator());
             put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
+            put(WindowType.SMITHING, new SmithingInventoryTranslator());
             //put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
 
             InventoryTranslator furnace = new FurnaceInventoryTranslator();

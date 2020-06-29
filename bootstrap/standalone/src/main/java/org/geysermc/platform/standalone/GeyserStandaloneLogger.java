@@ -31,7 +31,7 @@ import lombok.extern.log4j.Log4j2;
 import net.minecrell.terminalconsole.SimpleTerminalConsole;
 
 import org.apache.logging.log4j.core.config.Configurator;
-import org.geysermc.common.ChatColor;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 
@@ -82,7 +82,7 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements org
 
     @Override
     public void info(String message) {
-        log.info(printConsole(ChatColor.WHITE + message, colored));
+        log.info(printConsole(ChatColor.RESET + ChatColor.BOLD + message, colored));
     }
 
     @Override
