@@ -26,10 +26,10 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,52 +39,17 @@ import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.List;
 
-public class CraftingInventoryTranslator extends BaseInventoryTranslator {
-    private final InventoryUpdater updater;
-
+public class CraftingInventoryTranslator extends BlockInventoryTranslator {
     public CraftingInventoryTranslator() {
-        super(10);
-        this.updater = new CursorInventoryUpdater();
-    }
-
-    @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        //
-    }
-
-    @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) ContainerType.WORKBENCH.id());
-        containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
-        containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
-        session.sendUpstreamPacket(containerOpenPacket);
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        //
-    }
-
-    @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
-    }
-
-    @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
+        super(10, "minecraft:crafting_table", ContainerType.WORKBENCH, new CursorInventoryUpdater());
     }
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
-        if (action.getSource().getContainerId() == ContainerId.CURSOR) {
+        if (action.getSource().getContainerId() == ContainerId.UI) {
             int slotnum = action.getSlot();
             if (slotnum >= 32 && 42 >= slotnum) {
                 return slotnum - 31;
-            } else if (slotnum == 50) {
-                return 0;
             }
         }
         return super.bedrockSlotToJava(action);
@@ -92,7 +57,10 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public int javaSlotToBedrock(int slot) {
-        return slot == 0 ? 50 : slot + 31;
+        if (slot < size) {
+            return slot == 0 ? 50 : slot + 31;
+        }
+        return super.javaSlotToBedrock(slot);
     }
 
     @Override

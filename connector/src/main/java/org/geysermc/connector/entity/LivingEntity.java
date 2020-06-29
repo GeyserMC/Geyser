@@ -27,15 +27,13 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -58,13 +56,13 @@ public class LivingEntity extends Entity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         switch (entityMetadata.getId()) {
             case 8:
-                metadata.put(EntityData.HEALTH, (float) entityMetadata.getValue());
+                metadata.put(EntityData.HEALTH, entityMetadata.getValue());
                 break;
             case 9:
-                metadata.put(EntityData.POTION_COLOR, (int) entityMetadata.getValue());
+                metadata.put(EntityData.POTION_AUX_VALUE, entityMetadata.getValue()); //TODO: CHECK THIS AND THE BOTTOM ONE
                 break;
             case 10:
-                metadata.put(EntityData.POTION_AMBIENT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+                metadata.put(EntityData.EFFECT_AMBIENT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
                 break;
         }
 

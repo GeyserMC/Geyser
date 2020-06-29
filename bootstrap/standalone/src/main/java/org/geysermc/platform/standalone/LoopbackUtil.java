@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Paths;
 
-import org.geysermc.common.ChatColor;
+import org.geysermc.connector.common.ChatColor;
 
 public class LoopbackUtil {
     private static final String checkExemption = "powershell -Command \"CheckNetIsolation LoopbackExempt -s\""; // Java's Exec feature runs as CMD, NetIsolation is only accessible from PowerShell.

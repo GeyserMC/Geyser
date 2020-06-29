@@ -32,7 +32,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -98,7 +98,7 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
-            ItemData itemData = ItemTranslator.translateToBedrock((ItemStack) entityMetadata.getValue());
+            ItemData itemData = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
             ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
             CompoundTagBuilder builder = CompoundTag.builder();
 
@@ -150,7 +150,7 @@ public class ItemFrameEntity extends Entity {
         updateBlockPacket.setBlockPosition(bedrockPosition);
         updateBlockPacket.setRuntimeId(0);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NO_GRAPHIC); //TODO: Used to be NONE
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.sendUpstreamPacket(updateBlockPacket);
         session.getItemFrameCache().remove(position, entityId);
@@ -178,7 +178,7 @@ public class ItemFrameEntity extends Entity {
         updateBlockPacket.setBlockPosition(bedrockPosition);
         updateBlockPacket.setRuntimeId(bedrockRuntimeId);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NO_GRAPHIC); //TODO Same
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.sendUpstreamPacket(updateBlockPacket);
 

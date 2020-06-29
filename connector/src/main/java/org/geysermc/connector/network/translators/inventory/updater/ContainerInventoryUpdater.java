@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.inventory.updater;
 
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
@@ -40,7 +40,7 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
 
         ItemData[] bedrockItems = new ItemData[translator.size];
         for (int i = 0; i < bedrockItems.length; i++) {
-            bedrockItems[translator.javaSlotToBedrock(i)] = ItemTranslator.translateToBedrock(inventory.getItem(i));
+            bedrockItems[translator.javaSlotToBedrock(i)] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
         }
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
@@ -57,7 +57,7 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(inventory.getId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(ItemTranslator.translateToBedrock(inventory.getItem(javaSlot)));
+        slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
         session.sendUpstreamPacket(slotPacket);
         return true;
     }

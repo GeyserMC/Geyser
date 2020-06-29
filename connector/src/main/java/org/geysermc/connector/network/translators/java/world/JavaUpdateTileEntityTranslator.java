@@ -47,7 +47,7 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
                     ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition())), packet.getPosition());
             ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition());
         } else {
-            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), null), packet.getPosition());
+            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), 0), packet.getPosition());
         }
     }
 }

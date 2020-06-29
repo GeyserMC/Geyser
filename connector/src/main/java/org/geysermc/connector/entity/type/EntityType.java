@@ -68,7 +68,7 @@ public enum EntityType {
     CREEPER(CreeperEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
     SKELETON(AbstractSkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
     SPIDER(SpiderEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
-    ZOMBIE_PIGMAN(MonsterEntity.class, 36, 1.8f, 0.6f, 0.6f, 1.62f),
+    ZOMBIFIED_PIGLIN(MonsterEntity.class, 0, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:zombie_pigman"),
     SLIME(SlimeEntity.class, 37, 0.51f),
     ENDERMAN(EndermanEntity.class, 38, 2.9f, 0.6f),
     SILVERFISH(MonsterEntity.class, 39, 0.3f, 0.4f),
@@ -105,7 +105,7 @@ public enum EntityType {
     THROWN_EXP_BOTTLE(ThrowableEntity.class, 68, 0.25f, 0.25f, 0f, 0f, "minecraft:xp_bottle"),
     EXPERIENCE_ORB(ExpOrbEntity.class, 69, 0f, 0f, 0f, 0f, "minecraft:xp_orb"),
     EYE_OF_ENDER(Entity.class, 70, 0.25f, 0.25f, 0f, 0f, "minecraft:eye_of_ender_signal"),
-    END_CRYSTAL(EnderCrystalEntity.class, 71, 0f, 0f, 0f, 0f, "minecraft:ender_crystal"),
+    END_CRYSTAL(EnderCrystalEntity.class, 71, 2.0f, 2.0f, 2.0f, 0f, "minecraft:ender_crystal"),
     FIREWORK_ROCKET(FireworkEntity.class, 72, 0.25f, 0.25f, 0.25f, 0f, "minecraft:fireworks_rocket"),
     TRIDENT(TridentEntity.class, 73, 0f, 0f, 0f, 0f, "minecraft:thrown_trident"),
     TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
@@ -134,11 +134,12 @@ public enum EntityType {
     MINECART_TNT(MinecartEntity.class, 97, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:tnt_minecart"),
     MINECART_CHEST(MinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:chest_minecart"),
     MINECART_FURNACE(FurnaceMinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:minecart"),
+    MINECART_SPAWNER(SpawnerMinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:minecart"),
     MINECART_COMMAND_BLOCK(MinecartEntity.class, 100, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:command_block_minecart"),
     LINGERING_POTION(ThrowableEntity.class, 101, 0f),
     LLAMA_SPIT(Entity.class, 102, 0.25f),
-    EVOKER_FANGS(Entity.class, 103, 0.8f, 0.5f),
-    EVOKER(SpellcasterIllagerEntity.class, 104, 1.95f, 0.5f),
+    EVOKER_FANGS(Entity.class, 103, 0.8f, 0.5f, 0.5f, 0f, "minecraft:evocation_fang"),
+    EVOKER(SpellcasterIllagerEntity.class, 104, 1.95f, 0.6f, 0.6f, 0f, "minecraft:evocation_illager"),
     VEX(MonsterEntity.class, 105, 0.8f, 0.4f),
     ICE_BOMB(Entity.class, 106, 0f),
     BALLOON(Entity.class, 107, 0f), //TODO
@@ -150,6 +151,10 @@ public enum EntityType {
     PANDA(PandaEntity.class, 113, 1.25f, 1.125f, 1.825f),
     FOX(FoxEntity.class, 121, 0.5f, 1.25f),
     BEE(BeeEntity.class, 122, 0.6f, 0.6f),
+    STRIDER(StriderEntity.class, 0, 1.7f, 0.9f, 0f, 0f, "minecraft:strider"), //TODO - update entity metadata
+    HOGLIN(AnimalEntity.class, 0, 0.9f, 0.9f, 0f, 0f, "minecraft:hoglin"), //TODO
+    ZOGLIN(MonsterEntity.class, 0, 0.9f, 0.9f, 0f, 0f, "minecraft:zoglin"), //TODO
+    PIGLIN(MonsterEntity.class, 0, 1.9f, 0.6f, 0f, 0f, "minecraft:piglin"), //TODO
 
     /**
      * Item frames are handled differently since they are a block in Bedrock.
