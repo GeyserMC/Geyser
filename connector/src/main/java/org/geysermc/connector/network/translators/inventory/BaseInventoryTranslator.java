@@ -28,8 +28,8 @@ package org.geysermc.connector.network.translators.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.InventorySource;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.NonNull;
 import lombok.ToString;
 import org.geysermc.connector.GeyserConnector;
@@ -67,7 +67,7 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
                     return slotnum + this.size - 9;
                 }
                 return slotnum + this.size + 27;
-            case ContainerId.CURSOR:
+            case ContainerId.UI:
                 if (action.getSlot() == 0) {
                     return -1;
                 }
@@ -96,7 +96,7 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
      */
     @Override
     public boolean isCursor(InventoryActionData action) {
-        return (action.getSource().getContainerId() == ContainerId.CURSOR && action.getSlot() == 0);
+        return (action.getSource().getContainerId() == ContainerId.UI && action.getSlot() == 0);
     }
 
     /**

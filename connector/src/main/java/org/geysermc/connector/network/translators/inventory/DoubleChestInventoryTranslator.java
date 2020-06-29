@@ -45,7 +45,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
     private int getBlockId() {
         if (blockId == null) {
-            BlockState javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
+            int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
             blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
         }
         return blockId;

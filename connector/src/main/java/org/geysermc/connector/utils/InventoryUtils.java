@@ -31,6 +31,7 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.StringTag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
@@ -113,7 +114,7 @@ public class InventoryUtils {
 
     public static void updateCursor(GeyserSession session) {
         InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
-        inventoryContentPacket.setContainerId(ContainerId.CURSOR);
+        inventoryContentPacket.setContainerId(ContainerId.UI);
         inventoryContentPacket.setContents(new ItemData[] {ItemTranslator.translateToBedrock(session, session.getInventory().getCursor())});
         session.sendUpstreamPacket(inventoryContentPacket);
 

@@ -29,6 +29,7 @@ package org.geysermc.connector.dump;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserEdition;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
@@ -116,8 +117,8 @@ public class DumpInfo {
         private final int javaProtocol;
 
         MCInfo() {
-            this.bedrockVersion = GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion();
-            this.bedrockProtocol = GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion();
+            this.bedrockVersion = GeyserEdition.INSTANCE.getCodec().getMinecraftVersion();
+            this.bedrockProtocol = GeyserEdition.INSTANCE.getCodec().getProtocolVersion();
             this.javaVersion = MinecraftConstants.GAME_VERSION;
             this.javaProtocol = MinecraftConstants.PROTOCOL_VERSION;
         }

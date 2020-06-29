@@ -69,7 +69,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.Serve
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnLivingEntityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPaintingPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnWeatherEntityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
@@ -101,7 +100,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewDistancePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewPositionPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginPluginRequestPacket;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
@@ -209,7 +208,6 @@ import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnExp
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnLivingEntityTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnPaintingTranslator;
 import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnPlayerTranslator;
-import org.geysermc.connector.network.translators.java.entity.spawn.JavaSpawnWeatherEntityTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaDisplayScoreboardTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaScoreboardObjectiveTranslator;
 import org.geysermc.connector.network.translators.java.scoreboard.JavaTeamTranslator;
@@ -267,7 +265,7 @@ import org.geysermc.connector.network.translators.world.block.entity.SpawnerBloc
 public class Edition extends GeyserEdition {
 
     public Edition(GeyserConnector connector) {
-        super(connector, "bedrock:latest");
+        super(connector, "bedrock");
 
         // Version
         codec = Bedrock_v390.V390_CODEC;
@@ -366,8 +364,7 @@ public class Edition extends GeyserEdition {
                 .javaPacketTranslator(ServerSpawnExpOrbPacket.class, new JavaSpawnExpOrbTranslator())
                 .javaPacketTranslator(ServerSpawnLivingEntityPacket.class, new JavaSpawnLivingEntityTranslator())
                 .javaPacketTranslator(ServerSpawnPaintingPacket.class, new JavaSpawnPaintingTranslator())
-                .javaPacketTranslator(ServerSpawnPlayerPacket.class, new JavaSpawnPlayerTranslator())
-                .javaPacketTranslator(ServerSpawnWeatherEntityPacket.class, new JavaSpawnWeatherEntityTranslator());
+                .javaPacketTranslator(ServerSpawnPlayerPacket.class, new JavaSpawnPlayerTranslator());
 
         // Register Java Scoreboard Packet Translators
         PacketTranslatorRegistry.REGISTER

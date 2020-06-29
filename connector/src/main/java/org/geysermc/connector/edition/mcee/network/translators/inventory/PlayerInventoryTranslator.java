@@ -28,9 +28,9 @@ package org.geysermc.connector.edition.mcee.network.translators.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
 import lombok.ToString;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -81,7 +81,7 @@ public class PlayerInventoryTranslator extends org.geysermc.connector.network.tr
                         session.sendDownstreamPacket(creativePacket);
                         inventory.setItem(javaSlot, javaItem);
                         break;
-                    case ContainerId.CURSOR:
+                    case ContainerId.UI:
                         if (action.getSlot() == 0) {
                             session.getInventory().setCursor(ItemTranslator.translateToJava(action.getToItem()));
                         }

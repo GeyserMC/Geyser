@@ -25,10 +25,10 @@
 
 package org.geysermc.connector.edition.mcee.commands;
 
-import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.edition.mcee.utils.TokenManager;
 
 public class EducationCommand extends GeyserCommand {

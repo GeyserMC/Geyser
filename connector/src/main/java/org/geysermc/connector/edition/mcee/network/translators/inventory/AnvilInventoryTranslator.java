@@ -28,12 +28,14 @@ package org.geysermc.connector.edition.mcee.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.message.Message;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
+import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
@@ -118,7 +120,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                     CompoundTag displayTag = tag.get("display");
                     if (displayTag != null) {
                         String itemName = displayTag.get("Name").getValue().toString();
-                        Message message = Message.fromString(itemName);
+                        TextMessage message = (TextMessage) MessageSerializer.fromString(itemName);
                         rename = message.getText();
                     } else {
                         rename = "";
