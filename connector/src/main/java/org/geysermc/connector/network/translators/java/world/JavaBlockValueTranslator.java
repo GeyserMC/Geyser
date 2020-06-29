@@ -32,7 +32,6 @@ import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -74,10 +73,6 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             } else {
                 retractPiston(session, position, 1.0f, 1.0f);
             }
-        }
-        if (packet.getValue() instanceof BeaconValue) {
-            blockEventPacket.setEventType(1);
-            session.sendUpstreamPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof MobSpawnerValue) {
             blockEventPacket.setEventType(1);

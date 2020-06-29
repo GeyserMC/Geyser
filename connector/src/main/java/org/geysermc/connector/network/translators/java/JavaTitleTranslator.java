@@ -42,20 +42,20 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
 
         switch (packet.getAction()) {
             case TITLE:
-                titlePacket.setType(SetTitlePacket.Type.SET_TITLE);
+                titlePacket.setType(SetTitlePacket.Type.TITLE);
                 titlePacket.setText(MessageUtils.getBedrockMessage(packet.getTitle()));
                 break;
             case SUBTITLE:
-                titlePacket.setType(SetTitlePacket.Type.SET_SUBTITLE);
+                titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
                 titlePacket.setText(MessageUtils.getBedrockMessage(packet.getTitle()));
                 break;
             case CLEAR:
             case RESET:
-                titlePacket.setType(SetTitlePacket.Type.RESET_TITLE);
+                titlePacket.setType(SetTitlePacket.Type.CLEAR);
                 titlePacket.setText("");
                 break;
             case ACTION_BAR:
-                titlePacket.setType(SetTitlePacket.Type.SET_ACTIONBAR_MESSAGE);
+                titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
                 titlePacket.setText(MessageUtils.getBedrockMessage(packet.getTitle()));
                 break;
             case TIMES:

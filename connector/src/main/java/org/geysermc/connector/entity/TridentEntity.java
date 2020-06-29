@@ -27,7 +27,7 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -39,7 +39,7 @@ public class TridentEntity extends AbstractArrowEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 11) {
+        if (entityMetadata.getId() == 10) {
             metadata.getFlags().setFlag(EntityFlag.ENCHANTED, (boolean) entityMetadata.getValue());
         }
 

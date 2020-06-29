@@ -27,9 +27,9 @@ package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntitySetPassengersPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.EntityLink;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.geysermc.connector.entity.Entity;
@@ -64,9 +64,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 continue;
             }
 
-            EntityLink.Type type = rider ? EntityLink.Type.RIDER : EntityLink.Type.PASSENGER;
+            EntityLinkData.Type type = rider ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-            linkPacket.setEntityLink(new EntityLink(entity.getGeyserId(), passenger.getGeyserId(), type, false));
+            linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), type, false));
             session.sendUpstreamPacket(linkPacket);
             passengers.add(passengerId);
 
@@ -95,7 +95,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             }
             if (Arrays.stream(packet.getPassengerIds()).noneMatch(id -> id == passengerId)) {
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                linkPacket.setEntityLink(new EntityLink(entity.getGeyserId(), passenger.getGeyserId(), EntityLink.Type.REMOVE, false));
+                linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), EntityLinkData.Type.REMOVE, false));
                 session.sendUpstreamPacket(linkPacket);
                 passengers.remove(passenger.getEntityId());
 

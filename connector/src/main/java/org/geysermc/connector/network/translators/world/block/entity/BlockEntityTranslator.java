@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -45,6 +44,19 @@ public abstract class BlockEntityTranslator {
 
     public static final Map<String, BlockEntityTranslator> BLOCK_ENTITY_TRANSLATORS = new HashMap<>();
     public static ObjectArrayList<RequiresBlockState> REQUIRES_BLOCK_STATE_LIST = new ObjectArrayList<>();
+
+    /**
+     * Contains a list of irregular block entity name translations that can't be fit into the regex
+     */
+    public static final Map<String, String> BLOCK_ENTITY_TRANSLATIONS = new HashMap<String, String>() {
+        {
+            // Bedrock/Java differences
+            put("minecraft:enchanting_table", "EnchantTable");
+            put("minecraft:piston_head", "PistonArm");
+            put("minecraft:trapped_chest", "Chest");
+            // There are some legacy IDs sent but as far as I can tell they are not needed for things to work properly
+        }
+    };
 
     protected BlockEntityTranslator() {
     }
@@ -75,13 +87,13 @@ public abstract class BlockEntityTranslator {
         }
     }
 
-    public abstract List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState);
+    public abstract List<Tag<?>> translateTag(CompoundTag tag, int blockState);
 
     public abstract CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z);
 
     public abstract com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z);
 
-    public com.nukkitx.nbt.tag.CompoundTag getBlockEntityTag(String id, CompoundTag tag, BlockState blockState) {
+    public com.nukkitx.nbt.tag.CompoundTag getBlockEntityTag(String id, CompoundTag tag, int blockState) {
         int x = Integer.parseInt(String.valueOf(tag.getValue().get("x").getValue()));
         int y = Integer.parseInt(String.valueOf(tag.getValue().get("y").getValue()));
         int z = Integer.parseInt(String.valueOf(tag.getValue().get("z").getValue()));

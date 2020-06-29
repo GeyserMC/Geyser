@@ -30,12 +30,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
+import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import lombok.Getter;
-import org.geysermc.common.AuthType;
-import org.geysermc.common.PlatformType;
+import lombok.Setter;
+import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
@@ -71,7 +73,7 @@ public class GeyserConnector {
             .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
             .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v390.V390_CODEC;
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
@@ -81,6 +83,7 @@ public class GeyserConnector {
     private static GeyserConnector instance;
 
     private RemoteServer remoteServer;
+    @Setter
     private AuthType authType;
 
     private boolean shuttingDown = false;

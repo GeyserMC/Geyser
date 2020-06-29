@@ -27,7 +27,7 @@ package org.geysermc.connector.network.session.cache;
 
 import com.github.steveice10.mc.protocol.data.message.Message;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.BossEventPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
@@ -52,10 +52,12 @@ public class BossBar {
         updateBossBar();
     }
 
+    //TODO: There is a player unique entity ID - if this didn't exist before, we may be able to get rid of our hack
+
     public void updateBossBar() {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
-        bossEventPacket.setAction(BossEventPacket.Action.SHOW);
+        bossEventPacket.setAction(BossEventPacket.Action.CREATE);
         bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getClientData().getLanguageCode()));
         bossEventPacket.setHealthPercentage(health);
         bossEventPacket.setColor(color); //ignored by client
@@ -69,7 +71,7 @@ public class BossBar {
         this.title = title;
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
-        bossEventPacket.setAction(BossEventPacket.Action.TITLE);
+        bossEventPacket.setAction(BossEventPacket.Action.UPDATE_NAME);
         bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getClientData().getLanguageCode()));
 
         session.sendUpstreamPacket(bossEventPacket);
@@ -79,7 +81,7 @@ public class BossBar {
         this.health = health;
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
-        bossEventPacket.setAction(BossEventPacket.Action.HEALTH_PERCENTAGE);
+        bossEventPacket.setAction(BossEventPacket.Action.UPDATE_PERCENTAGE);
         bossEventPacket.setHealthPercentage(health);
 
         session.sendUpstreamPacket(bossEventPacket);
@@ -88,7 +90,7 @@ public class BossBar {
     public void removeBossBar() {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
-        bossEventPacket.setAction(BossEventPacket.Action.HIDE);
+        bossEventPacket.setAction(BossEventPacket.Action.REMOVE);
 
         session.sendUpstreamPacket(bossEventPacket);
         removeBossEntity();
