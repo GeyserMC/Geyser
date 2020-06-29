@@ -32,9 +32,9 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class HoglinEntity extends MonsterEntity {
+public class PiglinEntity extends MonsterEntity {
 
-    public HoglinEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public PiglinEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
@@ -47,6 +47,13 @@ public class HoglinEntity extends MonsterEntity {
                 metadata.getFlags().setFlag(EntityFlag.BABY, true);
             }
         }
+        if (entityMetadata.getId() == 17) {
+            metadata.getFlags().setFlag(EntityFlag.CHARGING, (boolean) entityMetadata.getValue());
+        }
+        if (entityMetadata.getId() == 18) {
+            metadata.getFlags().setFlag(EntityFlag.DANCING, (boolean) entityMetadata.getValue());
+        }
+
         super.updateBedrockMetadata(entityMetadata, session);
     }
 }
