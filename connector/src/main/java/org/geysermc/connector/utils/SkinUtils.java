@@ -111,6 +111,7 @@ public class SkinUtils {
         entry.setXuid("");
         entry.setPlatformChatId("");
         entry.setTeacher(false);
+        entry.setTrustedSkin(true);
         return entry;
     }
 
