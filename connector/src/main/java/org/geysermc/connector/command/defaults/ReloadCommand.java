@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.common.ChatColor;
-import org.geysermc.common.PlatformType;
+import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
@@ -48,7 +48,7 @@ public class ReloadCommand extends GeyserCommand {
         }
         sender.sendMessage(ChatColor.YELLOW + "Reloading Geyser configurations... all connected bedrock clients will be kicked.");
         for (GeyserSession session : connector.getPlayers().values()) {
-            session.getUpstream().disconnect("Geyser has been reloaded... sorry for the inconvenience!");
+            session.disconnect("Geyser has been reloaded... sorry for the inconvenience!");
         }
         connector.reload();
     }

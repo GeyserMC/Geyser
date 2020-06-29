@@ -31,19 +31,20 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import org.geysermc.connector.utils.MessageUtils;
 
 @Translator(packet = TextPacket.class)
 public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
 
     @Override
     public void translate(TextPacket packet, GeyserSession session) {
-        if (packet.getMessage().charAt(0) == '.') {
-            ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage().replace(".", "/"));
-            session.getDownstream().getSession().send(chatPacket);
+        String message = packet.getMessage().replaceAll("^\\.", "/").trim();
+
+        if (MessageUtils.isTooLong(message, session)) {
             return;
         }
 
-        ClientChatPacket chatPacket = new ClientChatPacket(packet.getMessage());
-        session.getDownstream().getSession().send(chatPacket);
+        ClientChatPacket chatPacket = new ClientChatPacket(message);
+        session.sendDownstreamPacket(chatPacket);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,12 @@
 
 package org.geysermc.platform.bungeecord;
 
-import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserLogger;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class GeyserBungeeLogger implements IGeyserLogger {
+public class GeyserBungeeLogger implements GeyserLogger {
 
     private Logger logger;
     private boolean debugMode;

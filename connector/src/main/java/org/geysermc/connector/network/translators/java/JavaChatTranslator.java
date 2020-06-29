@@ -25,14 +25,15 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.MessageUtils;
 
-import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import java.util.List;
 
 @Translator(packet = ServerChatPacket.class)
 public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
@@ -58,16 +59,22 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
                 break;
         }
 
+        String locale = session.getClientData().getLanguageCode();
+
         if (packet.getMessage() instanceof TranslationMessage) {
             textPacket.setType(TextPacket.Type.TRANSLATION);
             textPacket.setNeedsTranslation(true);
-            textPacket.setParameters(MessageUtils.getTranslationParams(((TranslationMessage) packet.getMessage()).getTranslationParams()));
-            textPacket.setMessage(MessageUtils.getBedrockMessage(packet.getMessage()));
+
+            List<String> paramsTranslated = MessageUtils.getTranslationParams(((TranslationMessage) packet.getMessage()).getWith(), locale, packet.getMessage());
+            textPacket.setParameters(paramsTranslated);
+
+            textPacket.setMessage(MessageUtils.insertParams(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, true, packet.getMessage()), paramsTranslated));
         } else {
             textPacket.setNeedsTranslation(false);
-            textPacket.setMessage(MessageUtils.getBedrockMessage(packet.getMessage()));
+
+            textPacket.setMessage(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, false, packet.getMessage()));
         }
 
-        session.getUpstream().sendPacket(textPacket);
+        session.sendUpstreamPacket(textPacket);
     }
 }

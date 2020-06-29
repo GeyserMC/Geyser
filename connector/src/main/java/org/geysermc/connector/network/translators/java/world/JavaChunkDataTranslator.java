@@ -25,86 +25,89 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
+import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.stream.NBTOutputStream;
+import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.network.VarInts;
+import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
-import org.geysermc.connector.world.chunk.ChunkSection;
-
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.network.VarInts;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
-        // Not sure if this is safe or not, however without this the client usually times out
+        if (session.isSpawned()) {
+            ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
+        }
+
+        if (packet.getColumn().getBiomeData() == null) //Non-full chunk
+            return;
+
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                if (packet.getColumn().getBiomeData() != null) { //Full chunk
-                    ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
-                    ByteBuf byteBuf = Unpooled.buffer(32);
-                    ChunkSection[] sections = chunkData.sections;
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
+                ByteBuf byteBuf = Unpooled.buffer(32);
+                ChunkSection[] sections = chunkData.sections;
 
-                    int sectionCount = sections.length - 1;
-                    while (sectionCount >= 0 && sections[sectionCount].isEmpty()) {
-                        sectionCount--;
-                    }
-                    sectionCount++;
-
-                    for (int i = 0; i < sectionCount; i++) {
-                        ChunkSection section = chunkData.sections[i];
-                        section.writeToNetwork(byteBuf);
-                    }
-
-                    byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
-
-                    byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
-                    byteBuf.writeByte(0); // Border blocks - Edu edition only
-                    VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
-
-                    byte[] payload = new byte[byteBuf.writerIndex()];
-                    byteBuf.readBytes(payload);
-
-                    LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
-                    levelChunkPacket.setSubChunksLength(sectionCount);
-                    levelChunkPacket.setCachingEnabled(false);
-                    levelChunkPacket.setChunkX(packet.getColumn().getX());
-                    levelChunkPacket.setChunkZ(packet.getColumn().getZ());
-                    levelChunkPacket.setData(payload);
-                    session.getUpstream().sendPacket(levelChunkPacket);
-                } else {
-                    final int xOffset = packet.getColumn().getX() << 4;
-                    final int zOffset = packet.getColumn().getZ() << 4;
-                    Chunk[] chunks = packet.getColumn().getChunks();
-                    for (int i = 0; i < chunks.length; i++) {
-                        Chunk chunk = chunks[i];
-                        if (chunk == null) continue;
-                        final int yOffset = i * 16;
-                        for (int x = 0; x < 16; x++) {
-                            for (int y = 0; y < 16; y++) {
-                                for (int z = 0; z < 16; z++) {
-                                    BlockState blockState = chunk.get(x, y, z);
-                                    Vector3i pos = Vector3i.from(
-                                            x + xOffset,
-                                            y + yOffset,
-                                            z + zOffset);
-                                    ChunkUtils.updateBlock(session, blockState, pos);
-                                }
-                            }
-                        }
-                    }
+                int sectionCount = sections.length - 1;
+                while (sectionCount >= 0 && sections[sectionCount].isEmpty()) {
+                    sectionCount--;
                 }
+                sectionCount++;
+
+                for (int i = 0; i < sectionCount; i++) {
+                    ChunkSection section = chunkData.sections[i];
+                    section.writeToNetwork(byteBuf);
+                }
+
+                byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
+
+                byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
+                byteBuf.writeByte(0); // Border blocks - Edu edition only
+                VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
+
+                ByteBufOutputStream stream = new ByteBufOutputStream(Unpooled.buffer());
+                NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
+                for (CompoundTag blockEntity : chunkData.getBlockEntities()) {
+                    nbtStream.write(blockEntity);
+                }
+
+                byteBuf.writeBytes(stream.buffer());
+
+                byte[] payload = new byte[byteBuf.writerIndex()];
+                byteBuf.readBytes(payload);
+
+                LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
+                levelChunkPacket.setSubChunksLength(sectionCount);
+                levelChunkPacket.setCachingEnabled(false);
+                levelChunkPacket.setChunkX(packet.getColumn().getX());
+                levelChunkPacket.setChunkZ(packet.getColumn().getZ());
+                levelChunkPacket.setData(payload);
+                session.sendUpstreamPacket(levelChunkPacket);
+
+                // Some block entities need to be loaded in later or else text doesn't show (signs) or they crash the game (end gateway blocks)
+                for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.getLoadBlockEntitiesLater().object2IntEntrySet()) {
+                    int x = blockEntityEntry.getKey().getInt("x");
+                    int y = blockEntityEntry.getKey().getInt("y");
+                    int z = blockEntityEntry.getKey().getInt("z");
+                    ChunkUtils.updateBlock(session, blockEntityEntry.getIntValue(), new Position(x, y, z));
+                }
+                chunkData.getLoadBlockEntitiesLater().clear();
+                session.getChunkCache().addToCache(packet.getColumn());
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

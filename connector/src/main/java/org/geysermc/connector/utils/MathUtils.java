@@ -27,8 +27,31 @@ package org.geysermc.connector.utils;
 
 public class MathUtils {
 
+    public static final double SQRT_OF_TWO = Math.sqrt(2);
+
+    /**
+     * Round the given float to the next whole number
+     *
+     * @param floatNumber Float to round
+     * @return Rounded number
+     */
     public static int ceil(float floatNumber) {
         int truncated = (int) floatNumber;
         return floatNumber > truncated ? truncated + 1 : truncated;
+    }
+
+    /**
+     * Converts the given object from an int or byte to byte.
+     * This is used for NBT data that might be either an int
+     * or byte and bedrock only takes it as an byte
+     *
+     * @param value The value to convert
+     * @return The converted byte
+     */
+    public static Byte convertByte(Object value) {
+        if (value instanceof Integer) {
+            return ((Integer) value).byteValue();
+        }
+        return (Byte) value;
     }
 }

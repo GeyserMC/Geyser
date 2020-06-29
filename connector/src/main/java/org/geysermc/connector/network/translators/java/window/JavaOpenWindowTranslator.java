@@ -25,18 +25,62 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 
 @Translator(packet = ServerOpenWindowPacket.class)
 public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
 
     @Override
     public void translate(ServerOpenWindowPacket packet, GeyserSession session) {
-        InventoryUtils.openInventory(session, packet);
+        if (packet.getWindowId() == 0) {
+            return;
+        }
+        InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(packet.getType());
+        Inventory openInventory = session.getInventoryCache().getOpenInventory();
+        if (newTranslator == null) {
+            if (openInventory != null) {
+                InventoryUtils.closeWindow(session, openInventory.getId());
+                InventoryUtils.closeInventory(session, openInventory.getId());
+            }
+            ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
+            session.sendDownstreamPacket(closeWindowPacket);
+            return;
+        }
+
+        String name = packet.getName();
+        try {
+            JsonParser parser = new JsonParser();
+            JsonObject jsonObject = parser.parse(packet.getName()).getAsJsonObject();
+            if (jsonObject.has("text")) {
+                name = jsonObject.get("text").getAsString();
+            } else if (jsonObject.has("translate")) {
+                name = jsonObject.get("translate").getAsString();
+            }
+        } catch (Exception e) {
+            GeyserConnector.getInstance().getLogger().debug("JavaOpenWindowTranslator: " + e.toString());
+        }
+
+        Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);
+        session.getInventoryCache().cacheInventory(newInventory);
+        if (openInventory != null) {
+            InventoryTranslator openTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(openInventory.getWindowType());
+            if (!openTranslator.getClass().equals(newTranslator.getClass())) {
+                InventoryUtils.closeWindow(session, openInventory.getId());
+                InventoryUtils.closeInventory(session, openInventory.getId());
+            }
+        }
+
+        InventoryUtils.openInventory(session, newInventory);
     }
 }

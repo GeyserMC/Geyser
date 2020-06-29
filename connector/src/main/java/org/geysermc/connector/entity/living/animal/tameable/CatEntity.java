@@ -27,7 +27,8 @@ package org.geysermc.connector.entity.living.animal.tameable;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -38,13 +39,38 @@ public class CatEntity extends TameableEntity {
     }
 
     @Override
+    public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(session, 0, 0, 0, Vector3f.from(this.rotation.getX(), pitch, yaw), isOnGround);
+    }
+
+    @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 18) {
-            metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
+            // Different colors in Java and Bedrock for some reason
+            int variantColor;
+            switch ((int) entityMetadata.getValue()) {
+                case 0:
+                    variantColor = 8;
+                    break;
+                case 8:
+                    variantColor = 0;
+                    break;
+                case 9:
+                    variantColor = 10;
+                    break;
+                case 10:
+                    variantColor = 9;
+                    break;
+                default:
+                    variantColor = (int) entityMetadata.getValue();
+            }
+            metadata.put(EntityData.VARIANT, variantColor);
         }
         if (entityMetadata.getId() == 21) {
-            // FIXME: Colors the whole animal instead of just collar
-            metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
+            // Needed or else wild cats are a red color
+            if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
+                metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
+            }
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

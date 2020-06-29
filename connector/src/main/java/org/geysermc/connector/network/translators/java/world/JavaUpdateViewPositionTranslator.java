@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java.world;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.ChunkUtils;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewPositionPacket;
 import com.nukkitx.math.vector.Vector3i;
@@ -38,9 +39,8 @@ public class JavaUpdateViewPositionTranslator extends PacketTranslator<ServerUpd
 
     @Override
     public void translate(ServerUpdateViewPositionPacket packet, GeyserSession session) {
-        NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
-        chunkPublisherUpdatePacket.setPosition(Vector3i.from(packet.getChunkX() << 4, 0, packet.getChunkZ() << 4));
-        chunkPublisherUpdatePacket.setRadius(session.getRenderDistance() << 4);
-        session.getUpstream().sendPacket(chunkPublisherUpdatePacket);
+        if (!session.isSpawned() && session.getLastChunkPosition() == null) {
+            ChunkUtils.updateChunkPosition(session, Vector3i.from(packet.getChunkX() << 4, 64, packet.getChunkZ() << 4));
+        }
     }
 }

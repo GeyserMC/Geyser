@@ -27,7 +27,7 @@ package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -42,6 +42,8 @@ public class BeeEntity extends AnimalEntity {
         if (entityMetadata.getId() == 16) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
+            // If the bee has nectar or not
+            metadata.getFlags().setFlag(EntityFlag.POWERED, (xd & 0x08) == 0x08);
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

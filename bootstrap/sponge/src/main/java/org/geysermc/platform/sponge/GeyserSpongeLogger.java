@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,11 @@ package org.geysermc.platform.sponge;
 
 import lombok.AllArgsConstructor;
 
-import org.geysermc.common.logger.IGeyserLogger;
+import org.geysermc.connector.GeyserLogger;
 import org.slf4j.Logger;
 
 @AllArgsConstructor
-public class GeyserSpongeLogger implements IGeyserLogger {
+public class GeyserSpongeLogger implements GeyserLogger {
 
     private Logger logger;
     private boolean debugMode;

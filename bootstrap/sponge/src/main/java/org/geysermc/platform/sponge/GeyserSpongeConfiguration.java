@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,16 +29,14 @@ import lombok.AllArgsConstructor;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-import org.geysermc.common.IGeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class GeyserSpongeConfiguration implements IGeyserConfiguration {
+public class GeyserSpongeConfiguration implements GeyserConfiguration {
 
     private File dataFolder;
     private ConfigurationNode node;
@@ -60,7 +58,8 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
         if (node.getNode("userAuths").getValue() == null)
             return;
 
-        for (String key : (List<String>) node.getNode("userAuths").getValue()) {
+        List<String> userAuths = new ArrayList<String>(((LinkedHashMap)node.getNode("userAuths").getValue()).keySet());
+        for (String key : userAuths) {
             userAuthInfo.put(key, new SpongeUserAuthenticationInfo(key));
         }
     }
@@ -81,8 +80,28 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
-    public boolean isPingPassthrough() {
-        return node.getNode("ping-passthrough").getBoolean(false);
+    public boolean isCommandSuggestions() {
+        return node.getNode("command-suggestions").getBoolean(true);
+    }
+
+    @Override
+    public boolean isPassthroughMotd() {
+        return node.getNode("passthrough-motd").getBoolean(false);
+    }
+
+    @Override
+    public boolean isPassthroughPlayerCounts() {
+        return node.getNode("passthrough-player-counts").getBoolean(false);
+    }
+
+    @Override
+    public boolean isLegacyPingPassthrough() {
+        return node.getNode("legacy-ping-passthrough").getBoolean(false);
+    }
+
+    @Override
+    public int getPingPassthroughInterval() {
+        return node.getNode("ping-passthrough-interval").getInt(3);
     }
 
     @Override
@@ -106,8 +125,33 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowThirdPartyEars() {
+        return node.getNode("allow-third-party-ears").getBoolean(false);
+    }
+
+    @Override
+    public boolean isShowCooldown() {
+        return node.getNode("show-cooldown").getBoolean(true);
+    }
+
+    @Override
+    public String getDefaultLocale() {
+        return node.getNode("default-locale").getString("en_us");
+    }
+
+    @Override
     public Path getFloodgateKeyFile() {
         return Paths.get(dataFolder.toString(), node.getNode("floodgate-key-file").getString("public-key.pem"));
+    }
+
+    @Override
+    public boolean isCacheChunks() {
+        return node.getNode("cache-chunks").getBoolean(false);
+    }
+
+    @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return node.getNode("above-bedrock-nether-building").getBoolean(false);
     }
 
     @Override
@@ -192,5 +236,10 @@ public class GeyserSpongeConfiguration implements IGeyserConfiguration {
         public String getUniqueId() {
             return node.getNode("metrics").getNode("uuid").getString("generateduuid");
         }
+    }
+
+    @Override
+    public int getConfigVersion() {
+        return node.getNode("config-version").getInt(0);
     }
 }

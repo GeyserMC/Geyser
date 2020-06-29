@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.common.PlatformType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
@@ -48,6 +48,11 @@ public class StopCommand extends GeyserCommand {
         if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
             return;
         }
+
         connector.shutdown();
+
+        if (connector.getPlatformType() == PlatformType.STANDALONE) {
+            System.exit(0);
+        }
     }
 }

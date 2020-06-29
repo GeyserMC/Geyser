@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -41,47 +42,82 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayerListEntryPacket> {
     @Override
     public void translate(ServerPlayerListEntryPacket packet, GeyserSession session) {
-        if (packet.getAction() != PlayerListEntryAction.ADD_PLAYER && packet.getAction() != PlayerListEntryAction.REMOVE_PLAYER) return;
+        if (packet.getAction() != PlayerListEntryAction.ADD_PLAYER && packet.getAction() != PlayerListEntryAction.REMOVE_PLAYER)
+            return;
 
         PlayerListPacket translate = new PlayerListPacket();
         translate.setAction(packet.getAction() == PlayerListEntryAction.ADD_PLAYER ? PlayerListPacket.Action.ADD : PlayerListPacket.Action.REMOVE);
 
         for (PlayerListEntry entry : packet.getEntries()) {
-            if (packet.getAction() == PlayerListEntryAction.ADD_PLAYER) {
-                boolean self = entry.getProfile().getId().equals(session.getPlayerEntity().getUuid());
+            switch (packet.getAction()) {
+                case ADD_PLAYER:
+                    PlayerEntity playerEntity;
+                    boolean self = entry.getProfile().getId().equals(session.getPlayerEntity().getUuid());
 
-                PlayerEntity playerEntity = session.getPlayerEntity();
-                if (self) playerEntity.setProfile(entry.getProfile());
-                else {
-                    playerEntity = new PlayerEntity(
-                            entry.getProfile(),
-                            -1,
-                            session.getEntityCache().getNextEntityId().incrementAndGet(),
-                            Vector3f.ZERO,
-                            Vector3f.ZERO,
-                            Vector3f.ZERO
-                    );
-                }
+                    if (self) {
+                        // Entity is ourself
+                        playerEntity = session.getPlayerEntity();
+                        SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape -> {
+                            GeyserConnector.getInstance().getLogger().debug("Loading Local Bedrock Java Skin Data");
+                        });
+                    } else {
+                        playerEntity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
+                    }
 
-                session.getEntityCache().addPlayerEntity(playerEntity);
-                playerEntity.setPlayerList(true);
+                    if (playerEntity == null) {
+                        // It's a new player
+                        playerEntity = new PlayerEntity(
+                                entry.getProfile(),
+                                -1,
+                                session.getEntityCache().getNextEntityId().incrementAndGet(),
+                                Vector3f.ZERO,
+                                Vector3f.ZERO,
+                                Vector3f.ZERO
+                        );
+                    }
 
-                translate.getEntries().add(SkinUtils.buildCachedEntry(entry.getProfile(), playerEntity.getGeyserId()));
-            } else {
-                PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
-                if (entity != null && entity.isValid()) {
-                    // remove from tablist but player entity is still there
-                    entity.setPlayerList(false);
-                } else {
-                    // just remove it from caching
-                    session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
-                }
-                translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
+                    session.getEntityCache().addPlayerEntity(playerEntity);
+
+                    playerEntity.setProfile(entry.getProfile());
+                    playerEntity.setPlayerList(true);
+                    playerEntity.setValid(true);
+
+                    PlayerListPacket.Entry playerListEntry = SkinUtils.buildCachedEntry(entry.getProfile(), playerEntity.getGeyserId());
+                    if (self) {
+                        // Copy the entry with our identity instead.
+                        PlayerListPacket.Entry copy = new PlayerListPacket.Entry(session.getAuthData().getUUID());
+                        copy.setName(playerListEntry.getName());
+                        copy.setEntityId(playerListEntry.getEntityId());
+                        copy.setSkin(playerListEntry.getSkin());
+                        copy.setXuid(playerListEntry.getXuid());
+                        copy.setPlatformChatId(playerListEntry.getPlatformChatId());
+                        copy.setTeacher(playerListEntry.isTeacher());
+                        playerListEntry = copy;
+                    }
+
+                    translate.getEntries().add(playerListEntry);
+                    break;
+                case REMOVE_PLAYER:
+                    PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
+                    if (entity != null && entity.isValid()) {
+                        // remove from tablist but player entity is still there
+                        entity.setPlayerList(false);
+                    } else {
+                        // just remove it from caching
+                        if (entity == null) {
+                            session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
+                        } else {
+                            entity.setPlayerList(false);
+                            session.getEntityCache().removeEntity(entity, false);
+                        }
+                    }
+                    translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
+                    break;
             }
         }
 
         if (packet.getAction() == PlayerListEntryAction.REMOVE_PLAYER || session.getUpstream().isInitialized()) {
-            session.getUpstream().sendPacket(translate);
+            session.sendUpstreamPacket(translate);
         }
     }
 }

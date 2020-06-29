@@ -25,19 +25,30 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class DimensionUtils {
-    public static void switchDimension(GeyserSession session, int javaDimension) {
+
+    // Changes if the above-bedrock Nether building workaround is applied
+    private static int BEDROCK_NETHER_ID = 1;
+
+    // Static references to all vanilla dimensions
+    public static final String OVERWORLD = "minecraft:overworld";
+    public static final String NETHER = "minecraft:the_nether";
+    public static final String THE_END = "minecraft:the_end";
+
+    public static void switchDimension(GeyserSession session, String javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
-        if (bedrockDimension == player.getDimension())
+        if (javaDimension.equals(player.getDimension()))
             return;
 
         session.getEntityCache().removeAllEntities();
+        session.getItemFrameCache().clear();
         if (session.getPendingDimSwitches().getAndIncrement() > 0) {
             ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
         }
@@ -48,26 +59,48 @@ public class DimensionUtils {
         changeDimensionPacket.setDimension(bedrockDimension);
         changeDimensionPacket.setRespawn(true);
         changeDimensionPacket.setPosition(pos.toFloat());
-        session.getUpstream().sendPacket(changeDimensionPacket);
-        player.setDimension(bedrockDimension);
+        session.sendUpstreamPacket(changeDimensionPacket);
+        player.setDimension(javaDimension);
         player.setPosition(pos.toFloat());
         session.setSpawned(false);
+        session.setLastChunkPosition(null);
+
+        for (Effect effect : session.getPlayerEntity().getEffectCache().getEntityEffects().keySet()) {
+            MobEffectPacket mobEffectPacket = new MobEffectPacket();
+            mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
+            mobEffectPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+            mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
+            session.sendUpstreamPacket(mobEffectPacket);
+        }
+        // Effects are re-sent from server
+        session.getPlayerEntity().getEffectCache().getEntityEffects().clear();
 
         //let java server handle portal travel sound
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
         stopSoundPacket.setStoppingAllSound(true);
         stopSoundPacket.setSoundName("");
-        session.getUpstream().sendPacket(stopSoundPacket);
+        session.sendUpstreamPacket(stopSoundPacket);
     }
 
-    public static int javaToBedrock(int javaDimension) {
+    /**
+     * Map the Java edition dimension IDs to Bedrock edition
+     *
+     * @param javaDimension Dimension ID to convert
+     * @return Converted Bedrock edition dimension ID
+     */
+    public static int javaToBedrock(String javaDimension) {
         switch (javaDimension) {
-            case -1:
-                return 1;
-            case 1:
+            case NETHER:
+                return BEDROCK_NETHER_ID;
+            case THE_END:
                 return 2;
             default:
-                return javaDimension;
+                return 0;
         }
+    }
+
+    public static void changeBedrockNetherId() {
+        // Change dimension ID to the End to allow for building above Bedrock
+        BEDROCK_NETHER_ID = 2;
     }
 }

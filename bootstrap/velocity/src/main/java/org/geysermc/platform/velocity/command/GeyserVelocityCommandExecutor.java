@@ -32,7 +32,7 @@ import lombok.AllArgsConstructor;
 
 import net.kyori.text.TextComponent;
 
-import org.geysermc.common.ChatColor;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
 
@@ -57,6 +57,6 @@ public class GeyserVelocityCommandExecutor implements Command {
     }
 
     private GeyserCommand getCommand(String label) {
-        return connector.getCommandMap().getCommands().get(label);
+        return connector.getCommandManager().getCommands().get(label);
     }
 }

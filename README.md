@@ -1,4 +1,4 @@
-<img src="https://geysermc.org/img/geyserlogo.png" alt="Geyser" width="600"/>
+<img src="https://geysermc.org/img/geyser-1760-860.png" alt="Geyser" width="600"/>
 
 [![forthebadge made-with-java](http://ForTheBadge.com/images/badges/made-with-java.svg)](https://java.com/)
 
@@ -9,11 +9,15 @@
 
 Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition, closing the gap from those wanting to play true cross-platform.
 
+Geyser is an open collaboration project by [CubeCraft Games](https://cubecraft.net).
+
 ## What is Geyser?
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
 The ultimate goal of this project is to allow Minecraft: Bedrock Edition users to join Minecraft: Java Edition servers as seamlessly as possible. **Please note, this project is still a work in progress and should not be used on production. Expect bugs!**
 
-### Currently supporting Minecraft Bedrock v1.14.X and Minecraft Java v1.15.2.
+Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have now joined us here!
+
+### Currently supporting Minecraft Bedrock v1.16.0 and Minecraft Java v1.16.1.
 
 ## Setting Up
 Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set up Geyser.
@@ -28,12 +32,11 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Donate: https://patreon.com/GeyserMC
 
 ## What's Left to be Added/Fixed
-- Inventories ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
-- Crafting ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
-- Creative Mode ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
-- Sounds
-- Block Particles
-- Block Entities ([`inventory`](https://github.com/GeyserMC/Geyser/tree/inventory))
+- The Following Inventories 
+  - [ ] Enchantment Table
+  - [ ] Beacon
+  - [ ] Cartography Table
+  - [ ] Stonecutter
 - Some Entity Flags
 
 ## Compiling

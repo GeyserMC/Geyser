@@ -27,7 +27,8 @@ package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -41,8 +42,9 @@ public class HorseEntity extends AbstractHorseEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 18) {
             metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
+            metadata.put(EntityData.MARK_VARIANT, (((int) entityMetadata.getValue()) >> 8) % 5);
         }
-
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
 }
