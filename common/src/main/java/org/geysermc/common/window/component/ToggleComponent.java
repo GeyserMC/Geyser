@@ -25,9 +25,17 @@
 
 package org.geysermc.common.window.component;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class ToggleComponent extends FormComponent {
 
+    @Getter
+    @Setter
     private String text;
+
+    @Getter
+    @Setter
     private boolean defaultValue;
 
     public ToggleComponent(String text) {

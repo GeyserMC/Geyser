@@ -49,7 +49,7 @@ public class ItemEntity extends Entity {
             itemPacket.setUniqueEntityId(geyserId);
             itemPacket.setFromFishing(false);
             itemPacket.getMetadata().putAll(metadata);
-            itemPacket.setItemInHand(ItemTranslator.translateToBedrock((ItemStack) entityMetadata.getValue()));
+            itemPacket.setItemInHand(ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue()));
             session.sendUpstreamPacket(itemPacket);
         }
 

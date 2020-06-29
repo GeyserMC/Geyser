@@ -41,8 +41,6 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
     @Override
     public void translate(ServerSetSlotPacket packet, GeyserSession session) {
         if (packet.getWindowId() == 255 && packet.getSlot() == -1) { //cursor
-            if (Objects.equals(session.getInventory().getCursor(), packet.getItem()))
-                return;
             if (session.getCraftSlot() != 0)
                 return;
 
