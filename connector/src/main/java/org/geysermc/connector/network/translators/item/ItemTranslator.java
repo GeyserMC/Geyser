@@ -253,8 +253,10 @@ public abstract class ItemTranslator {
         }
 
         if (tag instanceof LongArrayTag) {
-            LongArrayTag longArrayTag = (LongArrayTag) tag;
-            return new com.nukkitx.nbt.tag.LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
+            //Long array tag does not exist in BE
+            //LongArrayTag longArrayTag = (LongArrayTag) tag;
+            //return new com.nukkitx.nbt.tag.LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
+            return null;
         }
 
         if (tag instanceof LongTag) {
