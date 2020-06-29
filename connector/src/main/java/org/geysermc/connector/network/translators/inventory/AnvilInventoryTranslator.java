@@ -30,15 +30,13 @@ import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.*;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     public AnvilInventoryTranslator() {
@@ -56,6 +54,9 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                 case 50:
                     return 2;
             }
+        }
+        if (action.getSource().getContainerId() == ContainerId.ANVIL_RESULT) {
+            return 2;
         }
         return super.bedrockSlotToJava(action);
     }
@@ -112,7 +113,13 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
             session.sendDownstreamPacket(renameItemPacket);
         }
         if (anvilResult != null) {
-            //client will send another packet to grab anvil output
+            //Strip unnecessary actions
+            List<InventoryActionData> strippedActions = actions.stream()
+                    .filter(action -> action.getSource().getContainerId() == ContainerId.ANVIL_RESULT
+                            || (action.getSource().getType() == InventorySource.Type.CONTAINER
+                            && !(action.getSource().getContainerId() == ContainerId.UI && action.getSlot() != 0)))
+                    .collect(Collectors.toList());
+            super.translateActions(session, inventory, strippedActions);
             return;
         }
 
@@ -121,7 +128,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        if (slot >= 0 && slot <= 2) {
+        if (slot == 0) {
             ItemStack item = inventory.getItem(slot);
             if (item != null) {
                 String rename;
