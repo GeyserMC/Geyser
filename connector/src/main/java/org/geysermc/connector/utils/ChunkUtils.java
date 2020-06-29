@@ -211,6 +211,7 @@ public class ChunkUtils {
         updateBlockPacket.setBlockPosition(position);
         updateBlockPacket.setRuntimeId(blockId);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         session.sendUpstreamPacket(updateBlockPacket);
 
         UpdateBlockPacket waterPacket = new UpdateBlockPacket();
