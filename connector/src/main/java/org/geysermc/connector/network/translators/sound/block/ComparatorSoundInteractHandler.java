@@ -41,7 +41,7 @@ public class ComparatorSoundInteractHandler implements BlockSoundInteractionHand
         boolean powered = identifier.contains("mode=compare");
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setPosition(position);
-        levelEventPacket.setType(LevelEventType.REDSTONE_TRIGGER);
+        levelEventPacket.setType(LevelEventType.SOUND_CLICK); //TODO: New ID?
         levelEventPacket.setData(powered ? 500 : 550);
         session.sendUpstreamPacket(levelEventPacket);
     }

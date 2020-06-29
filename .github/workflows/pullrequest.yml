@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -24,31 +24,31 @@ jobs:
       - name: Build with Maven
         run: mvn -B package
       - name: Archive artifacts (Geyser Standalone)
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Standalone
           path: bootstrap/standalone/target/Geyser.jar
-      - name: Archive artifacts (Geyser Bukkit)
-        uses: actions/upload-artifact@v1
+      - name: Archive artifacts (Geyser Spigot)
+        uses: actions/upload-artifact@v2
         if: success()
         with:
-          name: Geyser Bukkit
-          path: bootstrap/bukkit/target/Geyser-Bukkit.jar
+          name: Geyser Spigot
+          path: bootstrap/spigot/target/Geyser-Spigot.jar
       - name: Archive artifacts (Geyser BungeeCord)
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser BungeeCord
           path: bootstrap/bungeecord/target/Geyser-BungeeCord.jar
       - name: Archive artifacts (Geyser Sponge)
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Sponge
           path: bootstrap/sponge/target/Geyser-Sponge.jar
       - name: Archive artifacts (Geyser Velocity)
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Velocity
