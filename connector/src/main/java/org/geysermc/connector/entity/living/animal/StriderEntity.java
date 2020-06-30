@@ -36,6 +36,8 @@ public class StriderEntity extends AnimalEntity {
 
     public StriderEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     @Override
