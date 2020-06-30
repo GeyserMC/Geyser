@@ -135,9 +135,11 @@ import org.geysermc.connector.edition.mcee.network.translators.inventory.Grindst
 import org.geysermc.connector.edition.mcee.network.translators.inventory.MerchantInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.PlayerInventoryTranslator;
 import org.geysermc.connector.edition.mcee.shims.BlockTranslatorShim;
+import org.geysermc.connector.edition.mcee.shims.GeyserSessionShim;
 import org.geysermc.connector.edition.mcee.shims.LoginEncryptionUtilsShim;
 import org.geysermc.connector.edition.mcee.shims.SkinUtilsShim;
 import org.geysermc.connector.edition.mcee.utils.TokenManager;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.bedrock.BedrockAdventureSettingsTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockAnimateTranslator;
@@ -492,6 +494,10 @@ public class Edition extends GeyserEdition {
 
         BlockTranslator.REGISTER
                 .shim(new BlockTranslatorShim());
+
+        // Geyser Session
+        GeyserSession.REGISTER
+                .shim(new GeyserSessionShim());
 
         // Register Commands (we wait till its not null)
         new Thread(() -> {

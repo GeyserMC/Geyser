@@ -24,29 +24,20 @@
  *
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.connector.edition.mcee.shims;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
-public class StriderEntity extends AnimalEntity {
-
-    public StriderEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
-
+public class GeyserSessionShim implements GeyserSession.Shim {
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
-            metadata.getFlags().setFlag(EntityFlag.ALWAYS_SHOW_NAME, (boolean) entityMetadata.getValue());
-        }
-        if (entityMetadata.getId() == 18) {
-            metadata.getFlags().setFlag(EntityFlag.SADDLED, (boolean) entityMetadata.getValue());
-        }
+    public void creativeContent(GeyserSession session) {
+        InventoryContentPacket creativePacket = new InventoryContentPacket();
+        creativePacket.setContainerId(ContainerId.CREATIVE);
+        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
+        session.sendUpstreamPacket(creativePacket);
 
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

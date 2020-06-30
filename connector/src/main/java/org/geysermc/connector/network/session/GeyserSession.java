@@ -55,6 +55,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserEdition;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
@@ -189,7 +190,7 @@ public class GeyserSession implements CommandSender {
     private long lastHitTime;
 
     private MinecraftProtocol protocol;
-
+    
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -225,11 +226,15 @@ public class GeyserSession implements CommandSender {
         entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
         upstream.sendPacket(entityPacket);
 
-        CreativeContentPacket creativePacket = new CreativeContentPacket();
-        for (int i = 0; i < ItemRegistry.CREATIVE_ITEMS.length; i++) {
-            creativePacket.getEntries().put(i + 1, ItemRegistry.CREATIVE_ITEMS[i]);
+        if (SHIM != null) {
+            SHIM.creativeContent(this);
+        } else {
+            CreativeContentPacket creativePacket = new CreativeContentPacket();
+            for (int i = 0; i < ItemRegistry.CREATIVE_ITEMS.length; i++) {
+                creativePacket.getEntries().put(i + 1, ItemRegistry.CREATIVE_ITEMS[i]);
+            }
+            upstream.sendPacket(creativePacket);
         }
-        upstream.sendPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
@@ -599,5 +604,21 @@ public class GeyserSession implements CommandSender {
         } else {
             connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
         }
+    }
+
+    // -- Shims -- //
+    public static Register REGISTER = new Register();
+    private static Shim SHIM;
+
+    public static class Register {
+
+        public Register shim(Shim shim) {
+            SHIM = shim;
+            return this;
+        }
+    }
+
+    public interface Shim {
+        void creativeContent(GeyserSession session);
     }
 }

@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.data.message.style.ChatColor;
 import com.github.steveice10.mc.protocol.data.message.style.ChatFormat;
+import com.github.steveice10.mc.protocol.data.message.style.MessageStyle;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.kyori.text.Component;
@@ -216,25 +217,19 @@ public class MessageUtils {
         if (parent == null) {
             return message;
         }
-        Message newMessage = message;
+        MessageStyle.Builder styleBuilder = message.getStyle().toBuilder();
 
         // Copy color from parent
-        if (newMessage.getStyle().getColor() == ChatColor.NONE) {
-            JsonObject messageObject = MessageSerializer.toJsonObject(newMessage);
-            messageObject.addProperty("color", parent.getStyle().getColor());
-            newMessage = MessageSerializer.fromJson(messageObject);
+        if (message.getStyle().getColor() == ChatColor.NONE) {
+            styleBuilder.color(parent.getStyle().getColor());
         }
 
         // Copy formatting from parent
-        if (newMessage.getStyle().getFormats().size() == 0) {
-            JsonObject messageObject = MessageSerializer.toJsonObject(newMessage);
-            for(ChatFormat format : parent.getStyle().getFormats()) {
-                messageObject.addProperty(format.toString(), true);
-            }
-            newMessage = MessageSerializer.fromJson(messageObject);
+        if (message.getStyle().getFormats().size() == 0) {
+            styleBuilder.formats(parent.getStyle().getFormats());
         }
 
-        return newMessage;
+        return message.toBuilder().style(styleBuilder.build()).build();
     }
 
     public static String getBedrockMessage(Message message) {

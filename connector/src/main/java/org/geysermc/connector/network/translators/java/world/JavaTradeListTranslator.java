@@ -70,9 +70,9 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
             displayName = packet.isRegularVillager() ? "Villager" : "Wandering Trader";
         }
         updateTradePacket.setDisplayName(displayName);
-        //updateTradePacket.setUnknownInt(0); //TODO
-//        updateTradePacket.setScreen2(true);
-//        updateTradePacket.setWilling(true);
+        updateTradePacket.setSize(0);
+        updateTradePacket.setNewTradingUi(true);
+        updateTradePacket.setUsingEconomyTrade(true);
         updateTradePacket.setPlayerUniqueEntityId(session.getPlayerEntity().getGeyserId());
         updateTradePacket.setTraderUniqueEntityId(session.getPlayerEntity().getGeyserId());
         CompoundTagBuilder builder = CompoundTagBuilder.builder();

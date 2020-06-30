@@ -23,47 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session;
+package org.geysermc.connector.entity.living.monster;
 
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 
-import java.net.InetSocketAddress;
+public class ZoglinEntity extends MonsterEntity {
 
-@RequiredArgsConstructor
-public class UpstreamSession {
-    @Getter private final BedrockServerSession session;
-    @Getter @Setter
-    private boolean initialized = false;
-
-    public void sendPacket(@NonNull BedrockPacket packet) {
-        if (isClosed())
-            return;
-        System.err.println("Sending Packet: " + packet);
-
-        session.sendPacket(packet);
+    public ZoglinEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
-    public void sendPacketImmediately(@NonNull BedrockPacket packet) {
-        if (isClosed())
-            return;
-
-        session.sendPacketImmediately(packet);
-    }
-
-    public void disconnect(String reason) {
-        session.disconnect(reason);
-    }
-
-    public boolean isClosed() {
-        return session.isClosed();
-    }
-
-    public InetSocketAddress getAddress() {
-        return session.getAddress();
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 15) {
+            boolean isBaby = (boolean) entityMetadata.getValue();
+            if (isBaby) {
+                metadata.put(EntityData.SCALE, .55f);
+                metadata.getFlags().setFlag(EntityFlag.BABY, true);
+            }
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }
