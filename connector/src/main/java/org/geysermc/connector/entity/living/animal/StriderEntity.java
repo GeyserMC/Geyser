@@ -38,12 +38,14 @@ public class StriderEntity extends AnimalEntity {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
         metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+        metadata.getFlags().setFlag(EntityFlag.BREATHING, true);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 17) {
-            metadata.getFlags().setFlag(EntityFlag.ALWAYS_SHOW_NAME, (boolean) entityMetadata.getValue());
+            metadata.getFlags().setFlag(EntityFlag.BREATHING, !(boolean) entityMetadata.getValue());
+            metadata.getFlags().setFlag(EntityFlag.SHAKING, (boolean) entityMetadata.getValue());
         }
         if (entityMetadata.getId() == 18) {
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (boolean) entityMetadata.getValue());
