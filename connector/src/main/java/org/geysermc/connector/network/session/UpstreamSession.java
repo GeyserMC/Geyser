@@ -43,7 +43,6 @@ public class UpstreamSession {
     public void sendPacket(@NonNull BedrockPacket packet) {
         if (isClosed())
             return;
-        System.err.println("Sending Packet: " + packet);
 
         session.sendPacket(packet);
     }
