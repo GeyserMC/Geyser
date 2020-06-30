@@ -228,3 +228,6 @@ logs/
 public-key.pem
 locales/
 tokens.yml
+
+## Ignore old mappings folder
+connector/src/main/resources/mappings
