@@ -114,7 +114,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
             itemTag.put(new ListTag("Enchantments", enchantments));
         }
         if (!storedEnchantments.isEmpty()) {
-            itemTag.put(new ListTag("StoredEnchantments", enchantments));
+            itemTag.put(new ListTag("StoredEnchantments", storedEnchantments));
         }
         itemTag.remove("ench");
     }
