@@ -122,6 +122,7 @@ import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
 import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
+import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserEdition;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
@@ -268,7 +269,7 @@ public class Edition extends GeyserEdition {
         super(connector, "bedrock");
 
         // Version
-        codec = Bedrock_v390.V390_CODEC;
+        codec = Bedrock_v407.V407_CODEC;
         pongEdition = "MCPE";
 
         // Register Block Entity Translators
