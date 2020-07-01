@@ -28,10 +28,13 @@ package org.geysermc.connector.network.translators.java.entity;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerEntityStatusPacket.class)
 public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntityStatusPacket> {
@@ -99,5 +102,16 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
         }
 
         session.sendUpstreamPacket(entityEventPacket);
+
+        // This fixes some death events not getting registered on the client such as drowning
+        if (entityEventPacket.getType() == EntityEventType.DEATH) {
+            GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
+                EntityEventPacket eventPacket2 = new EntityEventPacket();
+                eventPacket2.setRuntimeEntityId(entityEventPacket.getRuntimeEntityId());
+                eventPacket2.setType(entityEventPacket.getType());
+                eventPacket2.setData(entityEventPacket.getData());
+                session.sendUpstreamPacket(eventPacket2);
+            }, 1, TimeUnit.MILLISECONDS);
+        }
     }
 }

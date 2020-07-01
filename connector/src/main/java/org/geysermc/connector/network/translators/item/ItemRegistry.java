@@ -194,7 +194,10 @@ public class ItemRegistry {
             }
         }
 
-        GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        // This will hide the message when the player clicks with an empty hand
+        if (data.getId() != 0 && data.getDamage() != 0) {
+            GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        }
         return ItemEntry.AIR;
     }
 
