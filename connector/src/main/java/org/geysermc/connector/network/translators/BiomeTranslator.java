@@ -55,7 +55,7 @@ public class BiomeTranslator {
 
         CompoundTag biomesTag;
 
-        try (NBTInputStream biomenbtInputStream = NbtUtils.createNetworkReader(stream)){
+        try (NBTInputStream biomenbtInputStream = NbtUtils.createNetworkReader(stream)) {
             biomesTag = (CompoundTag) biomenbtInputStream.readTag();
             BIOMES = biomesTag;
         } catch (Exception ex) {
@@ -89,7 +89,7 @@ public class BiomeTranslator {
         } else if (biomeId >= 40 && biomeId <= 43) { // Java has multiple End dimensions that Bedrock doesn't recognize
             biomeId = 9;
         } else if (biomeId >= 170) { // Nether biomes. Dunno why it's like this :microjang:
-            biomeId = biomeId + 8;
+            biomeId += 8;
         }
         return (byte) biomeId;
     }
