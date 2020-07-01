@@ -117,11 +117,15 @@ public class LivingEntity extends Entity {
         for (Map.Entry<AttributeType, org.geysermc.connector.entity.attribute.Attribute> entry : this.attributes.entrySet()) {
             if (!entry.getValue().getType().isBedrockAttribute())
                 continue;
+            if (entry.getValue().getType() == AttributeType.HEALTH) {
+                // Add health attribute to properly show hearts when mounting
+                // TODO: Not a perfect system, since it led to respawn bugs
+                attributes.add(new AttributeData("minecraft:health", 0.0f, maxHealth, metadata.getFloat(EntityData.HEALTH, 20f), maxHealth));
+                continue;
+            }
 
             attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
         }
-        // Add health attribute to properly show hearts when mounting
-        attributes.add(new AttributeData("minecraft:health", 0.0f, maxHealth, metadata.getFloat(EntityData.HEALTH, 20f), maxHealth));
 
         UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
         updateAttributesPacket.setRuntimeEntityId(geyserId);
