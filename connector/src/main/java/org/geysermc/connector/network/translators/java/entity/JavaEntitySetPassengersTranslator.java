@@ -141,7 +141,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 yOffset = 1.3f;
                 break;
             case STRIDER:
-                yOffset = 2.8200102f;
+                yOffset = passenger.getEntityType() == EntityType.PLAYER ? 2.8200102f : 1.6f;
                 break;
         }
         Vector3f offset = Vector3f.from(0f, yOffset, 0f);
