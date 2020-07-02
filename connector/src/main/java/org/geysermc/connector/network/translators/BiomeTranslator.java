@@ -55,7 +55,7 @@ public class BiomeTranslator {
 
         CompoundTag biomesTag;
 
-        try (NBTInputStream biomenbtInputStream = NbtUtils.createNetworkReader(stream)){
+        try (NBTInputStream biomenbtInputStream = NbtUtils.createNetworkReader(stream)) {
             biomesTag = (CompoundTag) biomenbtInputStream.readTag();
             BIOMES = biomesTag;
         } catch (Exception ex) {
@@ -70,24 +70,27 @@ public class BiomeTranslator {
             return bedrockData;
         }
 
-        for (int z = 0; z < 16; z += 4) {
-            for (int x = 0; x < 16; x += 4) {
-                byte biomeId = biomeID(biomeData, x, z);
-                fillArray(z, x, bedrockData, biomeId);
-                fillArray(z + 1, x, bedrockData, biomeId);
-                fillArray(z + 2, x, bedrockData, biomeId);
-                fillArray(z + 3, x, bedrockData, biomeId);
+        for (int y = 0; y < 16; y += 4) {
+            for (int z = 0; z < 16; z += 4) {
+                for (int x = 0; x < 16; x += 4) {
+                    byte biomeId = biomeID(biomeData, x, y, z);
+                    int offset = ((z + (y / 4)) << 4) | x;
+                    Arrays.fill(bedrockData, offset, offset + 4, biomeId);
+                }
             }
         }
         return bedrockData;
     }
 
-    private static void fillArray(int z, int x, byte[] legacyBiomeData, int biomeId) {
-        int offset = (z << 4) | x;
-        Arrays.fill(legacyBiomeData, offset, offset + 4, (byte) biomeId);
-    }
-
-    private static byte biomeID(int[] biomeData, int x, int z) {
-        return (byte) biomeData[((z >> 2) & 3) << 2 | ((x >> 2) & 3)];
+    private static byte biomeID(int[] biomeData, int x, int y, int z) {
+        int biomeId = biomeData[((y >> 2) & 63) << 4 | ((z >> 2) & 3) << 2 | ((x >> 2) & 3)];
+        if (biomeId == 0) {
+            biomeId = 42; // Ocean
+        } else if (biomeId >= 40 && biomeId <= 43) { // Java has multiple End dimensions that Bedrock doesn't recognize
+            biomeId = 9;
+        } else if (biomeId >= 170) { // Nether biomes. Dunno why it's like this :microjang:
+            biomeId += 8;
+        }
+        return (byte) biomeId;
     }
 }

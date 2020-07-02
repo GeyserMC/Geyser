@@ -23,30 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.ClientRequest;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.type.EntityType;
 
-@Translator(packet = RespawnPacket.class)
-public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
+public class ZombifiedPiglinEntity extends ZombieEntity {
 
-    @Override
-    public void translate(RespawnPacket packet, GeyserSession session) {
-        if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
-            RespawnPacket respawnPacket = new RespawnPacket();
-            respawnPacket.setRuntimeEntityId(0);
-            respawnPacket.setPosition(Vector3f.ZERO);
-            respawnPacket.setState(RespawnPacket.State.SERVER_SEARCHING);
-            session.sendUpstreamPacket(respawnPacket);
+    public ZombifiedPiglinEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
 
-            ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
-            session.sendDownstreamPacket(javaRespawnPacket);
-        }
+        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 }

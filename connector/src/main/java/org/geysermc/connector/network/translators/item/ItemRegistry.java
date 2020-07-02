@@ -133,6 +133,9 @@ public class ItemRegistry {
             itemIndex++;
         }
 
+        // Add the loadstonecompass since it doesn't exist on java but we need it for item conversion
+        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestonecompass", itemIndex, 741, 0, false));
+
         /* Load creative items */
         stream = FileUtils.getResource("bedrock/creative_items.json");
 
@@ -195,7 +198,10 @@ public class ItemRegistry {
             }
         }
 
-        GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        // This will hide the message when the player clicks with an empty hand
+        if (data.getId() != 0 && data.getDamage() != 0) {
+            GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        }
         return ItemEntry.AIR;
     }
 
