@@ -36,6 +36,7 @@ public class BedrockPacketViolationWarningTranslator extends PacketTranslator<Pa
 
     @Override
     public void translate(PacketViolationWarningPacket packet, GeyserSession session) {
+        // Not translated since this is something that the developers need to know
         session.getConnector().getLogger().error("Packet violation warning sent from client! " + packet.toString());
     }
 }
