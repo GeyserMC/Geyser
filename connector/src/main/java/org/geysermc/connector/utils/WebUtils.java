@@ -25,11 +25,10 @@
 
 package org.geysermc.connector.utils;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -80,5 +79,32 @@ public class WebUtils {
         } catch (Exception e) {
             throw new AssertionError("Unable to download and save file: " + fileLocation + " (" + reqURL + ")", e);
         }
+    }
+
+    public static String post(String reqURL, String postContent) throws IOException {
+        URL url = null;
+        url = new URL(reqURL);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "text/plain");
+        con.setDoOutput(true);
+
+        OutputStream out = con.getOutputStream();
+        out.write(postContent.getBytes(StandardCharsets.UTF_8));
+        out.close();
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer content = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            content.append(inputLine);
+            content.append("\n");
+        }
+
+        in.close();
+        con.disconnect();
+
+        return content.toString();
     }
 }

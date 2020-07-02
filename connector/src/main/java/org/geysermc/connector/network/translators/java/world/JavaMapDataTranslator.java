@@ -35,6 +35,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.BedrockMapIcon;
+import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.MapColor;
 
 @Translator(packet = ServerMapDataPacket.class)
@@ -45,7 +46,7 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
         boolean shouldStore = false;
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
-        mapItemDataPacket.setDimensionId(session.getPlayerEntity().getDimension());
+        mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getPlayerEntity().getDimension()));
         mapItemDataPacket.setLocked(packet.isLocked());
         mapItemDataPacket.setScale(packet.getScale());
 

@@ -27,12 +27,12 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.Message;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.nbt.tag.Tag;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
@@ -159,7 +159,7 @@ public abstract class ItemTranslator {
                 // Check if its a message to translate
                 if (MessageUtils.isMessage(name)) {
                     // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(Message.fromString(name), session.getClientData().getLanguageCode());
+                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
 
                     // Build the new display tag
                     CompoundTagBuilder displayBuilder = display.toBuilder();
@@ -253,8 +253,10 @@ public abstract class ItemTranslator {
         }
 
         if (tag instanceof LongArrayTag) {
-            LongArrayTag longArrayTag = (LongArrayTag) tag;
-            return new com.nukkitx.nbt.tag.LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
+            //Long array tag does not exist in BE
+            //LongArrayTag longArrayTag = (LongArrayTag) tag;
+            //return new com.nukkitx.nbt.tag.LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
+            return null;
         }
 
         if (tag instanceof LongTag) {

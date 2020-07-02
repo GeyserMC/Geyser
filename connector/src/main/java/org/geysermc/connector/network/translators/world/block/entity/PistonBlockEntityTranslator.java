@@ -26,7 +26,6 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
 import com.nukkitx.nbt.tag.CompoundTag;
@@ -42,25 +41,25 @@ public class PistonBlockEntityTranslator {
      * @param blockState Java BlockState of block.
      * @return if block is a piston or not.
      */
-    public static boolean isBlock(BlockState blockState) {
-        return BlockStateValues.getPistonValues().containsKey(blockState.getId());
+    public static boolean isBlock(int blockState) {
+        return BlockStateValues.getPistonValues().containsKey(blockState);
     }
 
     /**
      * Calculates the Nukkit CompoundTag to send to the client on chunk
-     * @param blockState Java BlockState of block.
+     * @param blockState Java block state of block.
      * @param position Bedrock position of piston.
      * @return Bedrock tag of piston.
      */
-    public static CompoundTag getTag(BlockState blockState, Vector3i position) {
+    public static CompoundTag getTag(int blockState, Vector3i position) {
         CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
                 .intTag("x", position.getX())
                 .intTag("y", position.getY())
                 .intTag("z", position.getZ())
                 .byteTag("isMovable", (byte) 1)
                 .stringTag("id", "PistonArm");
-        if (BlockStateValues.getPistonValues().containsKey(blockState.getId())) {
-            boolean extended = BlockStateValues.getPistonValues().get(blockState.getId());
+        if (BlockStateValues.getPistonValues().containsKey(blockState)) {
+            boolean extended = BlockStateValues.getPistonValues().get(blockState);
             // 1f if extended, otherwise 0f
             tagBuilder.floatTag("Progress", (extended) ? 1.0f : 0.0f);
             // 1 if sticky, 0 if not

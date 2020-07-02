@@ -61,6 +61,10 @@
                                     <pattern>it.unimi.dsi.fastutil</pattern>
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.fastutil</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.reflections.reflections</pattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.reflections</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
