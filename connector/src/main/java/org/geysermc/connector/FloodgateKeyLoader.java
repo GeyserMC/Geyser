@@ -27,6 +27,7 @@
 package org.geysermc.connector;
 
 import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

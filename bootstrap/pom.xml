@@ -35,8 +35,8 @@
         </repository>
     </repositories>
     <modules>
-        <module>bukkit</module>
         <module>bungeecord</module>
+        <module>spigot</module>
         <module>sponge</module>
         <module>standalone</module>
         <module>velocity</module>

@@ -50,6 +50,7 @@ public abstract class CommandManager {
         registerCommand(new ReloadCommand(connector, "reload", LanguageUtils.getLocaleStringLog("geyser.commands.reload.desc"), "geyser.command.reload"));
         registerCommand(new StopCommand(connector, "stop", LanguageUtils.getLocaleStringLog("geyser.commands.stop.desc"), "geyser.command.stop"));
         registerCommand(new OffhandCommand(connector, "offhand", LanguageUtils.getLocaleStringLog("geyser.commands.offhand.desc"), "geyser.command.offhand"));
+        registerCommand(new DumpCommand(connector, "dump", LanguageUtils.getLocaleStringLog("geyser.commands.dump.desc"), "geyser.command.dump"));
     }
 
     public void registerCommand(GeyserCommand command) {
@@ -76,7 +77,7 @@ public abstract class CommandManager {
             args = new String[0];
         } else {
             label = command.substring(0, command.indexOf(" ")).toLowerCase();
-            String argLine = command.substring(command.indexOf(" " + 1));
+            String argLine = command.substring(command.indexOf(" ") + 1);
             args = argLine.contains(" ") ? argLine.split(" ") : new String[] { argLine };
         }
 

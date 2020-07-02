@@ -29,11 +29,12 @@ import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
-import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.common.PlatformType;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
@@ -51,6 +52,7 @@ import org.spongepowered.api.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserConnector.NAME + "-Sponge", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -148,6 +150,11 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         return geyserSpongePingPassthrough;
     }
 
+    @Override
+    public Path getConfigFolder() {
+        return configDir.toPath();
+    }
+
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
         onEnable();
@@ -156,5 +163,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Listener
     public void onServerStop(GameStoppedEvent event) {
         onDisable();
+    }
+
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new GeyserSpongeDumpInfo();
     }
 }

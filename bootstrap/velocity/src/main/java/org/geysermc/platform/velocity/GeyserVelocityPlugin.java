@@ -34,10 +34,12 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 
 import com.velocitypowered.api.proxy.ProxyServer;
-import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConfiguration;
+import lombok.Getter;
+import org.geysermc.connector.common.PlatformType;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
@@ -49,6 +51,8 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserConnector.NAME + "-Velocity", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -70,14 +74,16 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     private GeyserConnector connector;
 
+    @Getter
+    private final Path configFolder = Paths.get("plugins/" + GeyserConnector.NAME + "-Velocity/");
+
     @Override
     public void onEnable() {
-        File configDir = new File("plugins/" + GeyserConnector.NAME + "-Velocity/");
-
         try {
-            if (!configDir.exists())
-                configDir.mkdir();
-            File configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            if (!configFolder.toFile().exists())
+                //noinspection ResultOfMethodCallIgnored
+                configFolder.toFile().mkdirs();
+            File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
         } catch (IOException ex) {
             logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
@@ -97,7 +103,12 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        geyserConfig.loadFloodgate(this, proxyServer, configDir);
+        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && !proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
+            geyserLogger.severe("Auth type set to Floodgate but Floodgate not found! Disabling...");
+            return;
+        }
+
+        geyserConfig.loadFloodgate(this, proxyServer, configFolder.toFile());
 
         this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);
 
@@ -143,5 +154,10 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
         onDisable();
+    }
+
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new GeyserVelocityDumpInfo(proxyServer);
     }
 }

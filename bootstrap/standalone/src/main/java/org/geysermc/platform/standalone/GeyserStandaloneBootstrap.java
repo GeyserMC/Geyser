@@ -25,19 +25,22 @@
 
 package org.geysermc.platform.standalone;
 
-import org.geysermc.common.PlatformType;
-import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
-import org.geysermc.connector.GeyserConfiguration;
-import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
@@ -100,5 +103,16 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserPingPassthrough;
+    }
+
+    @Override
+    public Path getConfigFolder() {
+        // Return the current working directory
+        return Paths.get(System.getProperty("user.dir"));
+    }
+
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new BootstrapDumpInfo();
     }
 }
