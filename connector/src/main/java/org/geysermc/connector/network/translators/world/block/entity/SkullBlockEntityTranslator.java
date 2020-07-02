@@ -83,8 +83,8 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static GameProfile getProfile(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, GeyserSession session) {
-        if (tag.contains("Owner")) {
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag owner = tag.get("Owner");
+        if (tag.contains("SkullOwner")) {
+            com.github.steveice10.opennbt.tag.builtin.CompoundTag owner = tag.get("SkullOwner");
             com.github.steveice10.opennbt.tag.builtin.CompoundTag Properties = owner.get("Properties");
 
             ListTag textures = Properties.get("textures");
