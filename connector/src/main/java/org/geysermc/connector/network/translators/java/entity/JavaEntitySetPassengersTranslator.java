@@ -142,13 +142,13 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 break;
             case STRIDER:
                 switch(passenger.getEntityType()) {
-                    case EntityType.STRIDER:
+                    case STRIDER:
                         yOffset = 1.6f;
                         break;
-                    case EntityType.ZOMBIFIED_PIGLIN:
+                    case ZOMBIFIED_PIGLIN:
                         yOffset = 1.4f;
                         break;
-                    case EntityType.PLAYER:
+                    case PLAYER:
                         yOffset = 2.8200102f;
                         break;
                 }
