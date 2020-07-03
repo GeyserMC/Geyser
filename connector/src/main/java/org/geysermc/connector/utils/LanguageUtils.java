@@ -48,12 +48,9 @@ public class LanguageUtils {
 
     static {
         // Load it as a backup in case something goes really wrong
-        if (!"en_US".equals(cleanLocale(getDefaultLocale()))) {
+        if (!"en_US".equals(cleanLocale(getDefaultLocale()))) { // getDefaultLocale() loads the locale automatically
             loadGeyserLocale("en_US");
         }
-
-        // Load the default locale from config
-        loadGeyserLocale(getDefaultLocale());
     }
 
     /**
@@ -152,20 +149,20 @@ public class LanguageUtils {
      * @return the current default locale
      */
     public static String getDefaultLocale() {
-        if (CACHED_LOCALE != null) return CACHED_LOCALE;
+        if (CACHED_LOCALE != null) return CACHED_LOCALE; // We definitely know the locale the user is using
         String locale;
         if (GeyserConnector.getInstance() != null &&
                 GeyserConnector.getInstance().getConfig() != null &&
-                GeyserConnector.getInstance().getConfig().getDefaultLocale() != null) {
+                GeyserConnector.getInstance().getConfig().getDefaultLocale() != null) { // If the config option for getDefaultLocale does not equal null, use that
             locale = GeyserConnector.getInstance().getConfig().getDefaultLocale();
             CACHED_LOCALE = cleanLocale(locale);
         } else {
             locale = Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry();
-            if (GeyserConnector.class.getResource("languages/texts/" + cleanLocale(locale) + ".properties") == null) {
+            if (GeyserConnector.class.getResource("languages/texts/" + cleanLocale(locale) + ".properties") == null) { // Bedrock does not support this language
                 locale = "en_US";
             }
             if (GeyserConnector.getInstance() != null &&
-                    GeyserConnector.getInstance().getConfig() != null && GeyserConnector.getInstance().getConfig().getDefaultLocale() == null) { // Means we should use the system locale
+                    GeyserConnector.getInstance().getConfig() != null && GeyserConnector.getInstance().getConfig().getDefaultLocale() == null) { // Means we should use the system locale for sure
                 CACHED_LOCALE = cleanLocale(locale);
             }
         }
