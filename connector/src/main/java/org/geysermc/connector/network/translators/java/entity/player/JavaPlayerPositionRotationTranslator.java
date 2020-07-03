@@ -34,7 +34,6 @@ import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -42,8 +41,6 @@ import org.geysermc.connector.network.session.cache.TeleportCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
-
-import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerPlayerPositionRotationPacket.class)
 public class JavaPlayerPositionRotationTranslator extends PacketTranslator<ServerPlayerPositionRotationPacket> {
@@ -73,15 +70,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             eventPacket.setType(EntityEventType.RESPAWN);
             eventPacket.setData(0);
             session.sendUpstreamPacket(eventPacket);
-
-            // This will prevent the client getting stuck at the respawn screen
-            GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
-                EntityEventPacket eventPacket2 = new EntityEventPacket();
-                eventPacket2.setRuntimeEntityId(entity.getGeyserId());
-                eventPacket2.setType(EntityEventType.RESPAWN);
-                eventPacket2.setData(0);
-                session.sendUpstreamPacket(eventPacket2);
-            }, 1, TimeUnit.MILLISECONDS);
 
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(entity.getGeyserId());

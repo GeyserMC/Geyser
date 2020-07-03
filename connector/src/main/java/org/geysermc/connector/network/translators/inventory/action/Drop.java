@@ -26,6 +26,7 @@
 
 package org.geysermc.connector.network.translators.inventory.action;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.window.DropItemParam;
@@ -36,6 +37,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindo
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 /**
  * Send a Drop packet to the Downstream server
@@ -52,6 +54,8 @@ public class Drop extends ConfirmAction {
     public void execute() {
         super.execute();
 
+        int slot;
+
         switch (dropType) {
             case DROP_ITEM:
             case DROP_STACK:
@@ -64,6 +68,7 @@ public class Drop extends ConfirmAction {
                         dropType == Type.DROP_ITEM ? DropItemParam.DROP_FROM_SELECTED : DropItemParam.DROP_SELECTED_STACK
                 );
                 transaction.getSession().sendDownstreamPacket(dropPacket);
+                slot = javaSlot;
                 break;
             case DROP_ITEM_HOTBAR:
             case DROP_STACK_HOTBAR:
@@ -73,7 +78,26 @@ public class Drop extends ConfirmAction {
                         BlockFace.DOWN
                 );
                 transaction.getSession().sendDownstreamPacket(actionPacket);
+                slot = transaction.getSession().getInventory().getHeldItemSlot();
                 break;
+            default:
+                transaction.next();
+                return;
+        }
+
+        // Update Inventory
+        ItemStack item = transaction.getSession().getInventory().getItem(slot);
+        if (item != null) {
+            switch (dropType) {
+                case DROP_ITEM:
+                case DROP_ITEM_HOTBAR:
+                    transaction.getSession().getInventory().setItem(slot, new ItemStack(item.getId(),item.getAmount()-1, item.getNbt()));
+                    break;
+                case DROP_STACK:
+                case DROP_STACK_HOTBAR:
+                    transaction.getSession().getInventory().setItem(slot, new ItemStack(BlockTranslator.AIR));
+                    break;
+            }
         }
 
         transaction.next();

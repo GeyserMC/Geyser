@@ -31,7 +31,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.action.Transaction;
 
 public class InventoryCache {
 

@@ -35,7 +35,6 @@ import lombok.ToString;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.action.BaseAction;
 import org.geysermc.connector.network.translators.inventory.action.Click;
 import org.geysermc.connector.network.translators.inventory.action.Execute;
 import org.geysermc.connector.network.translators.inventory.action.Refresh;
@@ -234,16 +233,14 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
                     && from.currentCount == to.toCount
                     && !from.getCurrentItem().equals(to.getCurrentItem()))) {
 
-            if (from != cursor) {
+            if (from != cursor && to != cursor) {
                 transaction.add(new Click(Click.Type.LEFT, from.javaSlot));
-            }
-
-            if (to != cursor) {
                 transaction.add(new Click(Click.Type.LEFT, to.javaSlot));
-            }
-
-            if (from != cursor && to.currentCount > 0) {
-                transaction.add(new Click(Click.Type.LEFT, from.javaSlot));
+                if (to.currentCount != 0) {
+                    transaction.add(new Click(Click.Type.LEFT, from.javaSlot));
+                }
+            } else {
+                transaction.add(new Click(Click.Type.LEFT, from == cursor ? to.javaSlot : from.javaSlot));
             }
 
             int currentCount = from.currentCount;
@@ -267,7 +264,6 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
         if (cursor != to && to.remaining() > 0 && cursor.currentCount > 0 && cursor.getCurrentItem().equals(to.getToItem())
                 && (to.getCurrentItem().equals(ItemData.AIR) || to.getCurrentItem().equals(to.getToItem()))) {
 
-            // @TODO: Optimize by checking if we can left click
             to.currentItem = cursor.getCurrentItem();
             while (cursor.currentCount > 0 && to.remaining() > 0) {
                 transaction.add(new Click(Click.Type.RIGHT, to.javaSlot));
@@ -297,7 +293,6 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
             }
 
             // Pick up everything
-            // @TODO: Maybe optimize here by seeing if we can pick up half and slice it closer to the amount
             transaction.add(new Click(Click.Type.LEFT, from.javaSlot));
             cursor.currentCount += from.currentCount;
             cursor.currentItem = from.getCurrentItem();
@@ -380,7 +375,6 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
 
             to.currentItem = cursor.getCurrentItem();
 
-            // @TODO: Optimize by checking if we can left click
             while (cursor.currentCount > 0 && to.remaining() > 0) {
                 transaction.add(new Click(Click.Type.RIGHT, to.javaSlot));
                 cursor.currentCount--;

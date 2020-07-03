@@ -33,7 +33,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
 
