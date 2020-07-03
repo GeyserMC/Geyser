@@ -236,7 +236,9 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
             if (from != cursor && to != cursor) {
                 transaction.add(new Click(Click.Type.LEFT, from.javaSlot));
                 transaction.add(new Click(Click.Type.LEFT, to.javaSlot));
-                transaction.add(new Click(Click.Type.LEFT, from.javaSlot));
+                if (to.currentCount != 0) {
+                    transaction.add(new Click(Click.Type.LEFT, from.javaSlot));
+                }
             } else {
                 transaction.add(new Click(Click.Type.LEFT, from == cursor ? to.javaSlot : from.javaSlot));
             }
