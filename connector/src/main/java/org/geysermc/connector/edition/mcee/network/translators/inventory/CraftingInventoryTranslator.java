@@ -106,10 +106,6 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
     @Override
     protected void processAction(Transaction transaction, ActionData cursor, ActionData from, ActionData to) {
         super.processAction(transaction, cursor, from, to);
-
-        if (isOutput(from.action)) {
-            transaction.add(new Refresh());
-        }
     }
 
     @Override
