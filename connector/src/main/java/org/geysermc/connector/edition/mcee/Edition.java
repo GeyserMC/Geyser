@@ -126,6 +126,9 @@ import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserEdition;
 import org.geysermc.connector.edition.mcee.commands.EducationCommand;
+import org.geysermc.connector.edition.mcee.entity.living.animal.BeeEntity;
+import org.geysermc.connector.edition.mcee.entity.living.animal.FoxEntity;
+import org.geysermc.connector.edition.mcee.entity.living.animal.StriderEntity;
 import org.geysermc.connector.edition.mcee.network.translators.bedrock.BedrockActionTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.bedrock.BedrockRespawnTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.AnvilInventoryTranslator;
@@ -170,8 +173,6 @@ import org.geysermc.connector.entity.living.SlimeEntity;
 import org.geysermc.connector.entity.living.SquidEntity;
 import org.geysermc.connector.entity.living.WaterEntity;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
-import org.geysermc.connector.entity.living.animal.BeeEntity;
-import org.geysermc.connector.entity.living.animal.FoxEntity;
 import org.geysermc.connector.entity.living.animal.OcelotEntity;
 import org.geysermc.connector.entity.living.animal.PandaEntity;
 import org.geysermc.connector.entity.living.animal.PigEntity;
@@ -179,7 +180,6 @@ import org.geysermc.connector.entity.living.animal.PolarBearEntity;
 import org.geysermc.connector.entity.living.animal.PufferFishEntity;
 import org.geysermc.connector.entity.living.animal.RabbitEntity;
 import org.geysermc.connector.entity.living.animal.SheepEntity;
-import org.geysermc.connector.entity.living.animal.StriderEntity;
 import org.geysermc.connector.entity.living.animal.TropicalFishEntity;
 import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.connector.entity.living.animal.horse.ChestedHorseEntity;
@@ -670,7 +670,7 @@ public class Edition extends GeyserEdition {
                 .entityType(EntityType.ITEM_FRAME, ItemFrameEntity.class, 0, 0,0)
                 .entityType(EntityType.ILLUSIONER, AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager")
                 .entityType(EntityType.BEE, BeeEntity.class, 108, 0.6f, 0.6f, 0.6f, 0f, "minecraft:pufferfish")
-                .entityType(EntityType.STRIDER, StriderEntity.class, 42, 1.7f, 0.9f, 0f, 0f, "minecraft:magma_cube")
+                .entityType(EntityType.STRIDER, StriderEntity.class, 42, 1.7f, 0.9f, 0f, 1f, "minecraft:magma_cube")
                 .entityType(EntityType.HOGLIN,AnimalEntity.class, 11, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:cow")
                 .entityType(EntityType.ZOGLIN, ZoglinEntity.class, 11, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:cow")
                 .entityType(EntityType.PIGLIN, PiglinEntity.class, 36, 1.95f, 0.6f, 0.6f, 0f, "minecraft:zombie_pigman");
