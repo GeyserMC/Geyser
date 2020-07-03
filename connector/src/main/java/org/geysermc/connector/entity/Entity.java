@@ -146,6 +146,12 @@ public class Entity {
     public boolean despawnEntity(GeyserSession session) {
         if (!valid) return true;
 
+        for (long passenger : passengers) {
+            Entity entity = session.getEntityCache().getEntityByJavaId(passenger);
+            entity.getMetadata().getFlags().setFlag(EntityFlag.RIDING, false);
+            entity.updateBedrockMetadata(session);
+        }
+
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
         removeEntityPacket.setUniqueEntityId(geyserId);
         session.sendUpstreamPacket(removeEntityPacket);
