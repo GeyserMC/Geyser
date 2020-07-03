@@ -30,14 +30,18 @@ import org.geysermc.connector.GeyserConnector;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
 public class LanguageUtils {
 
+    /**
+     * If we determine the locale that the user wishes to use, use that locale
+     */
     private static String CACHED_LOCALE;
 
     private static final Map<String, Properties> LOCALE_MAPPINGS = new HashMap<>();
@@ -60,13 +64,13 @@ public class LanguageUtils {
     public static void loadGeyserLocale(String locale) {
         locale = cleanLocale(locale);
 
-        InputStream localeStream = LocaleUtils.class.getClassLoader().getResourceAsStream("languages/texts/" + locale + ".properties");
+        InputStream localeStream = GeyserConnector.class.getClassLoader().getResourceAsStream("languages/texts/" + locale + ".properties");
 
         // Load the locale
         if (localeStream != null) {
             Properties localeProp = new Properties();
             try {
-                localeProp.load(new InputStreamReader(localeStream, Charset.forName("UTF-8")));
+                localeProp.load(new InputStreamReader(localeStream, StandardCharsets.UTF_8));
             } catch (Exception e) {
                 throw new AssertionError(getLocaleStringLog("geyser.language.load_failed", locale), e);
             }
@@ -76,7 +80,6 @@ public class LanguageUtils {
         } else {
             if (locale.toLowerCase().equals(getDefaultLocale().toLowerCase())) {
                 // The default locale was invalid fallback to en_us
-                CACHED_LOCALE = "en_US";
                 loadGeyserLocale(getDefaultLocale());
             } else {
                 GeyserConnector.getInstance().getLogger().warning(getLocaleStringLog("geyser.language.missing_file", locale));
@@ -123,7 +126,7 @@ public class LanguageUtils {
 
         // Final fallback
         if (formatString == null) {
-            formatString = "MISSING LANGUAGE KEY: " + key;
+            formatString = key;
         }
 
         return MessageFormat.format(formatString.replace("&", "\u00a7"), values);
@@ -143,15 +146,29 @@ public class LanguageUtils {
             return locale;
         }
     }
-    
+
+    /**
+     * Get the default locale that Geyser should use
+     * @return the current default locale
+     */
     public static String getDefaultLocale() {
         if (CACHED_LOCALE != null) return CACHED_LOCALE;
-        if (GeyserConnector.getInstance() == null ||
-                GeyserConnector.getInstance().getConfig() == null ||
-                GeyserConnector.getInstance().getConfig().getDefaultLocale() == null) {
-            return "en_us";
+        String locale;
+        if (GeyserConnector.getInstance() != null &&
+                GeyserConnector.getInstance().getConfig() != null &&
+                GeyserConnector.getInstance().getConfig().getDefaultLocale() != null) {
+            locale = GeyserConnector.getInstance().getConfig().getDefaultLocale();
+            CACHED_LOCALE = cleanLocale(locale);
+        } else {
+            locale = Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry();
+            if (GeyserConnector.class.getResource("languages/texts/" + cleanLocale(locale) + ".properties") == null) {
+                locale = "en_US";
+            }
+            if (GeyserConnector.getInstance() != null &&
+                    GeyserConnector.getInstance().getConfig() != null && GeyserConnector.getInstance().getConfig().getDefaultLocale() == null) { // Means we should use the system locale
+                CACHED_LOCALE = cleanLocale(locale);
+            }
         }
-        String locale = GeyserConnector.getInstance().getConfig().getDefaultLocale();
         if (!LOCALE_MAPPINGS.containsKey(locale)) {
             loadGeyserLocale(locale);
         }

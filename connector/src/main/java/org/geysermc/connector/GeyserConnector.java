@@ -169,7 +169,7 @@ public class GeyserConnector {
         }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        String message = LanguageUtils.getLocaleStringLog("geyser.core.done", new DecimalFormat("#.###").format(completeTime)) + " ";
+        String message = LanguageUtils.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
         if (isGui) {
             message += LanguageUtils.getLocaleStringLog("geyser.core.finish.gui");
         } else {

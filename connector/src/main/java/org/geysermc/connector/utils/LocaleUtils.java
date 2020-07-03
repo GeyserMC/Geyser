@@ -48,8 +48,6 @@ public class LocaleUtils {
 
     private static final Map<String, Asset> ASSET_MAP = new HashMap<>();
 
-    private static final String DEFAULT_LOCALE = (GeyserConnector.getInstance().getConfig().getDefaultLocale() != null ? GeyserConnector.getInstance().getConfig().getDefaultLocale() : "en_us");
-
     private static String smallestURL = "";
 
     static {
@@ -60,7 +58,7 @@ public class LocaleUtils {
 
         // Download the latest asset list and cache it
         generateAssetCache();
-        downloadAndLoadLocale(DEFAULT_LOCALE);
+        downloadAndLoadLocale(LanguageUtils.getDefaultLocale());
     }
 
     /**
@@ -247,7 +245,7 @@ public class LocaleUtils {
     public static String getLocaleString(String messageText, String locale) {
         Map<String, String> localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(locale.toLowerCase());
         if (localeStrings == null)
-            localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(DEFAULT_LOCALE);
+            localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(LanguageUtils.getDefaultLocale());
 
         return localeStrings.getOrDefault(messageText, messageText);
     }
