@@ -41,6 +41,9 @@ import java.util.Map;
 @AllArgsConstructor
 public abstract class InventoryTranslator {
 
+    // Just the largest ID that a window can be, used for the armor/offhand gui
+    public static final int ARMOUR_GUI_ID = 127;
+
     public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<WindowType, InventoryTranslator>() {
         {
             put(null, new PlayerInventoryTranslator()); //player inventory
@@ -64,7 +67,7 @@ public abstract class InventoryTranslator {
 
             InventoryUpdater containerUpdater = new ContainerInventoryUpdater();
             put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, containerUpdater));
-            put(WindowType.HOPPER, new BlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, containerUpdater));
+            put(WindowType.HOPPER, new HopperInventoryTranslator(containerUpdater));
             put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, containerUpdater));
             //put(WindowType.BEACON, new BlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO
         }
