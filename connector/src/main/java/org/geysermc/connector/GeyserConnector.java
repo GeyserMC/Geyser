@@ -44,18 +44,18 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
+import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LocaleUtils;
-import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
@@ -159,8 +159,23 @@ public class GeyserConnector {
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
         }
 
+        boolean isGui = false;
+        // This will check if we are in standalone and get the 'useGui' variable from there
+        if (platformType == PlatformType.STANDALONE) {
+            try {
+                Class<?> cls = Class.forName("org.geysermc.platform.standalone.GeyserStandaloneBootstrap");
+                isGui = (boolean) cls.getMethod("isUseGui").invoke(cls.cast(bootstrap));
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        logger.info(LanguageUtils.getLocaleStringLog("geyser.core.done", new DecimalFormat("#.###").format(completeTime)));
+        String message = LanguageUtils.getLocaleStringLog("geyser.core.done", new DecimalFormat("#.###").format(completeTime)) + " ";
+        if (isGui) {
+            message += LanguageUtils.getLocaleStringLog("geyser.core.finish.gui");
+        } else {
+            message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
+        }
+        logger.info(message);
     }
 
     public void shutdown() {
