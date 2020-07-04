@@ -74,8 +74,8 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setVersion(null); // Server tries to connect either way and it looks better
         pong.setIpv4Port(config.getBedrock().getPort());
 
-        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.motd != null) {
-            String[] motd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.motd)).split("\n");
+        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
+            String[] motd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.getDescription())).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
 
@@ -87,8 +87,8 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         }
 
         if (config.isPassthroughPlayerCounts() && pingInfo != null) {
-            pong.setPlayerCount(pingInfo.currentPlayerCount);
-            pong.setMaximumPlayerCount(pingInfo.maxPlayerCount);
+            pong.setPlayerCount(pingInfo.getPlayers().getOnline());
+            pong.setMaximumPlayerCount(pingInfo.getPlayers().getMax());
         } else {
             pong.setPlayerCount(connector.getPlayers().size());
             pong.setMaximumPlayerCount(config.getMaxPlayers());
