@@ -146,9 +146,10 @@ public class Entity {
     public boolean despawnEntity(GeyserSession session) {
         if (!valid) return true;
 
-        for (long passenger : passengers) {
+        for (long passenger : passengers) { // Make sure all passengers on the despawned entity are updated
             Entity entity = session.getEntityCache().getEntityByJavaId(passenger);
-            entity.getMetadata().getFlags().setFlag(EntityFlag.RIDING, false);
+            if (entity == null) continue;
+            entity.getMetadata().getOrCreateFlags().setFlag(EntityFlag.RIDING, false);
             entity.updateBedrockMetadata(session);
         }
 
