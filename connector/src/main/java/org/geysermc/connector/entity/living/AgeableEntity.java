@@ -43,7 +43,7 @@ public class AgeableEntity extends CreatureEntity {
         if (entityMetadata.getId() == 15) {
             boolean isBaby = (boolean) entityMetadata.getValue();
 
-            float currentScale = (float) metadata.getOrDefault(EntityData.SCALE, 1f);
+            float currentScale = metadata.getFloat(EntityData.SCALE, 1f);
             if (isBaby) {
                 currentScale *= 0.55f;
             }
