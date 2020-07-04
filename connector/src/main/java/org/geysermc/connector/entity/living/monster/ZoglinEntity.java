@@ -42,10 +42,17 @@ public class ZoglinEntity extends MonsterEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 15) {
             boolean isBaby = (boolean) entityMetadata.getValue();
+
+            float currentScale = (float) metadata.getOrDefault(EntityData.SCALE, 1f);
             if (isBaby) {
-                metadata.put(EntityData.SCALE, .55f);
-                metadata.getFlags().setFlag(EntityFlag.BABY, true);
+                currentScale *= 0.55f;
             }
+
+            metadata.put(EntityData.SCALE, currentScale);
+            metadata.getFlags().setFlag(EntityFlag.BABY, isBaby);
+
+            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight() * currentScale);
+            metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth() * currentScale);
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
