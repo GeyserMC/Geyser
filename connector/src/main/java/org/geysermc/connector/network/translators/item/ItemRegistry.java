@@ -105,7 +105,9 @@ public class ItemRegistry {
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
                             entry.getValue().get("tool_tier").textValue(),
-                            entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
+                            entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue(),
+                            entry.getValue().get("extra")
+                    ));
                 } else {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
                             entry.getKey(), itemIndex,
@@ -113,14 +115,18 @@ public class ItemRegistry {
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
                             "",
-                            entry.getValue().get("is_block").booleanValue()));
+                            entry.getValue().get("is_block").booleanValue(),
+                            entry.getValue().get("extra")
+                    ));
                 }
             } else {
                 ITEM_ENTRIES.put(itemIndex, new ItemEntry(
                         entry.getKey(), itemIndex,
                         entry.getValue().get("bedrock_id").intValue(),
                         entry.getValue().get("bedrock_data").intValue(),
-                        entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
+                        entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue(),
+                        entry.getValue().get("extra")
+                ));
             }
             if (entry.getKey().equals("minecraft:barrier")) {
                 BARRIER_INDEX = itemIndex;
@@ -130,7 +136,7 @@ public class ItemRegistry {
         }
 
         // Add the loadstonecompass since it doesn't exist on java but we need it for item conversion
-        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestonecompass", itemIndex, 741, 0, false));
+        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestonecompass", itemIndex, 741, 0, false, null));
 
         /* Load creative items */
         stream = FileUtils.getResource("data/creative_items.json");

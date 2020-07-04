@@ -137,6 +137,7 @@ import org.geysermc.connector.edition.mcee.network.translators.inventory.Furnace
 import org.geysermc.connector.edition.mcee.network.translators.inventory.GrindstoneInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.MerchantInventoryTranslator;
 import org.geysermc.connector.edition.mcee.network.translators.inventory.PlayerInventoryTranslator;
+import org.geysermc.connector.edition.mcee.network.translators.item.translators.RemapTranslator;
 import org.geysermc.connector.edition.mcee.shims.BlockTranslatorShim;
 import org.geysermc.connector.edition.mcee.shims.GeyserSessionShim;
 import org.geysermc.connector.edition.mcee.shims.LoginEncryptionUtilsShim;
@@ -529,6 +530,7 @@ public class Edition extends GeyserEdition {
         // Register Item Translators
         ItemTranslator.REGISTER
                 .itemTranslator(new BannerTranslator())
+                .itemTranslator(new RemapTranslator())
                 .itemTranslator(new PotionTranslator());
 
         // Register Item NBT Translators

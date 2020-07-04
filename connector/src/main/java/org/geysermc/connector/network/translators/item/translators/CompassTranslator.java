@@ -43,7 +43,6 @@ public class CompassTranslator extends ItemTranslator {
     private List<ItemEntry> appliedItems;
 
     public CompassTranslator() {
-        appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("compass")).collect(Collectors.toList());
     }
 
     @Override
@@ -116,6 +115,9 @@ public class CompassTranslator extends ItemTranslator {
 
     @Override
     public List<ItemEntry> getAppliedItems() {
+        if (appliedItems == null) {
+            appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("compass")).collect(Collectors.toList());
+        }
         return appliedItems;
     }
 }

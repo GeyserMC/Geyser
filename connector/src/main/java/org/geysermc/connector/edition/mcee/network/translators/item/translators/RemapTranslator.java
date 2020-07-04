@@ -23,60 +23,63 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item.translators;
+package org.geysermc.connector.edition.mcee.network.translators.item.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.Potion;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * RemapTranslator will remap items that don't exist to ones that do with appropriate description updates
+ */
 @ItemRemapper
-public class PotionTranslator extends ItemTranslator {
+public class RemapTranslator extends ItemTranslator {
 
     private List<ItemEntry> appliedItems;
 
-    public PotionTranslator() {
+    public RemapTranslator() {
     }
 
     @Override
     public ItemData translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
-        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, itemEntry);
-        Tag potionTag = itemStack.getNbt().get("Potion");
-        if (potionTag instanceof StringTag) {
-            Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
-            if (potion != null) {
-                return ItemData.of(itemEntry.getBedrockId(), potion.getBedrockId(), itemStack.getAmount(), translateNbtToBedrock(itemStack.getNbt()));
-            }
-            GeyserConnector.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
-        }
-        return super.translateToBedrock(itemStack, itemEntry);
-    }
+        ItemData itemData = super.translateToBedrock(itemStack, itemEntry);
 
-    @Override
-    public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
-        Potion potion = Potion.getByBedrockId(itemData.getDamage());
-        ItemStack itemStack = super.translateToJava(itemData, itemEntry);
-        if (potion != null) {
-            StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
-            itemStack.getNbt().put(potionTag);
+        if (itemEntry.getExtra().has("name")) {
+            CompoundTag tag = itemData.getTag();
+            if (tag == null) {
+                tag = CompoundTag.builder().buildRootTag();
+            }
+
+            CompoundTag display = tag.get("display");
+            if (display == null) {
+                display = CompoundTag.builder().buildRootTag();
+            }
+
+            CompoundTagBuilder displayBuilder = display.toBuilder();
+            displayBuilder.stringTag("Name", itemEntry.getExtra().get("name").textValue());
+
+            CompoundTagBuilder builder = tag.toBuilder();
+            builder.tag(displayBuilder.build("display"));
+
+            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.buildRootTag());
         }
-        return itemStack;
+        return itemData;
     }
 
     @Override
     public List<ItemEntry> getAppliedItems() {
         if (appliedItems == null) {
-            appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("potion")).collect(Collectors.toList());
+            appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getExtra() != null).collect(Collectors.toList());
         }
         return appliedItems;
     }
+
 }

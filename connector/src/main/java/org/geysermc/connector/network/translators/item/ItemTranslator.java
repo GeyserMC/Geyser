@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
 
-    private static Int2ObjectMap<ItemTranslator> ITEM_STACK_TRANSLATORS = new Int2ObjectOpenHashMap();
-    private static List<NbtItemStackTranslator> NBT_TRANSLATORS = new ArrayList<>();
+    private static final Int2ObjectMap<ItemTranslator> ITEM_STACK_TRANSLATORS = new Int2ObjectOpenHashMap<>();
+    private static final List<NbtItemStackTranslator> NBT_TRANSLATORS = new ArrayList<>();
 
     public static final Register REGISTER = new Register();
 
@@ -55,12 +55,21 @@ public abstract class ItemTranslator {
     }
 
     public static class Register {
+        private static final List<ItemTranslator> REGISTERED_TRANSLATORS = new ArrayList<>();
+
         public Register nbtItemStackTranslator(NbtItemStackTranslator translator) {
             NBT_TRANSLATORS.add(translator);
             return this;
         }
 
         public Register itemTranslator(ItemTranslator translator) {
+            REGISTERED_TRANSLATORS.add(translator);
+            return this;
+        }
+    }
+
+    public static void init() {
+        for (ItemTranslator translator : Register.REGISTERED_TRANSLATORS) {
             List<ItemEntry> appliedItems = translator.getAppliedItems();
             for (ItemEntry item : appliedItems) {
                 ItemTranslator registered = ITEM_STACK_TRANSLATORS.get(item.getJavaId());
@@ -71,7 +80,6 @@ public abstract class ItemTranslator {
                 }
                 ITEM_STACK_TRANSLATORS.put(item.getJavaId(), translator);
             }
-            return this;
         }
     }
 

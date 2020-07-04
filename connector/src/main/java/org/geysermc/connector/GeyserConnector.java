@@ -43,6 +43,7 @@ import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -124,12 +125,13 @@ public class GeyserConnector {
             throw new GeyserConnectorException(e.getMessage(), e.getCause());
         }
 
-        /* Initialize translators and registries */
+        // Initialize translators and registries
         BlockTranslator.init();
         EffectRegistry.init();
         EntityIdentifierRegistry.init();
-        ItemRegistry.init();
         LocaleUtils.init();
+        ItemRegistry.init();
+        ItemTranslator.init();
         SoundRegistry.init();
         SkinProvider.init();
 

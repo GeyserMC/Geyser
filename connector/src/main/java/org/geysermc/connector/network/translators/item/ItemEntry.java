@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.item;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -32,7 +33,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ItemEntry {
 
-    public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0, false);
+    public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0, false, null);
 
     private final String javaIdentifier;
     private final int javaId;
@@ -40,6 +41,8 @@ public class ItemEntry {
     private final int bedrockData;
 
     private final boolean block;
+
+    private final JsonNode extra;
 
     @Override
     public boolean equals(Object obj) {
