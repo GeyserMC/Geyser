@@ -191,7 +191,7 @@ public class LanguageUtils {
         if (FileUtils.class.getResource("/languages/texts/" + locale + ".properties") == null) {
             result = false;
             if (GeyserConnector.getInstance() != null && GeyserConnector.getInstance().getLogger() != null) { // Could be too early for these to be initialized
-                GeyserConnector.getInstance().getLogger().info(locale + " is not a valid Bedrock language.");
+                GeyserConnector.getInstance().getLogger().info(locale + " is not a valid Bedrock language."); // We can't translate this since we just loaded an invalid language
             }
         } else {
             if (!LOCALE_MAPPINGS.containsKey(locale)) {
