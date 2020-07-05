@@ -26,12 +26,20 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.type.TemptedEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
-public class PigEntity extends AnimalEntity {
+import java.util.concurrent.TimeUnit;
+
+public class PigEntity extends AnimalEntity implements TemptedEntity {
+    private boolean tempted = false;
+
 
     public PigEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -49,5 +57,49 @@ public class PigEntity extends AnimalEntity {
     @Override
     protected float getDefaultMaxHealth() {
         return 10f;
+    }
+
+    /**
+     * Called when the rider has an equipment change
+     * @param session GeyserSession
+     */
+    @Override
+    public void riderEquipmentUpdated(GeyserSession session) {
+        // Only interested if the held item is a Carrot on a Stick
+        ItemStack item = session.getInventory().getItemInHand();
+        if (item == null || item.getId() != ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.CARROT_ON_STICK_INDEX).getJavaId()) {
+            tempted = false;
+            return;
+        }
+
+        if (tempted) {
+            return;
+        }
+
+        tempted = true;
+        updateVehicle(session);
+    }
+
+    private void updateVehicle(GeyserSession session) {
+        if (!tempted)
+            return;
+
+        Vector3f playerRotation = session.getPlayerEntity().getRotation();
+        Vector3f playerVector = Vector3f.from(
+                Math.cos(Math.toRadians(playerRotation.getX()+90)),
+                0,
+                Math.sin(Math.toRadians(playerRotation.getX()+90))
+        );
+        Vector3f movement = position.clone().add(playerVector.clone().mul(4.19f/20f)); // Pig Average speed: 4.19 blocks per second
+
+        ClientVehicleMovePacket packet = new ClientVehicleMovePacket(
+                movement.getX(),
+                movement.getY(),
+                movement.getZ(),
+                playerRotation.getX(),
+                rotation.getY()
+        );
+        session.sendDownstreamPacket(packet);
+        session.getConnector().getGeneralThreadPool().schedule(() -> updateVehicle(session), 50, TimeUnit.MILLISECONDS); // Once per tick
     }
 }

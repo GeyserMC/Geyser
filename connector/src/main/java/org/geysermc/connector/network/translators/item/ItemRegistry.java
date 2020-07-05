@@ -63,6 +63,9 @@ public class ItemRegistry {
     public static final int SHIELD = 829;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
     public static final int BOAT = 333;
+    // Carrot on a Stick, used in PigEntity.
+    public static int CARROT_ON_STICK_INDEX;
+    public static int FUNGUS_ON_STICK_INDEX;
 
     public static int BARRIER_INDEX = 0;
 
@@ -126,8 +129,16 @@ public class ItemRegistry {
                         entry.getValue().get("bedrock_data").intValue(),
                         entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
             }
-            if (entry.getKey().equals("minecraft:barrier")) {
-                BARRIER_INDEX = itemIndex;
+            switch(entry.getKey()) {
+                case "minecraft:barrier":
+                    BARRIER_INDEX = itemIndex;
+                    break;
+                case "minecraft:carrot_on_a_stick":
+                    CARROT_ON_STICK_INDEX = itemIndex;
+                    break;
+                case "minecraft:warped_fungus_on_a_stick":
+                    FUNGUS_ON_STICK_INDEX = itemIndex;
+                    break;
             }
 
             itemIndex++;

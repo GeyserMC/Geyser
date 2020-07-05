@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import org.geysermc.connector.entity.type.TemptedEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -48,6 +49,11 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
 
         ClientPlayerChangeHeldItemPacket changeHeldItemPacket = new ClientPlayerChangeHeldItemPacket(packet.getHotbarSlot());
         session.sendDownstreamPacket(changeHeldItemPacket);
+
+        // If riding an entity we pass control there
+        if (session.getRidingVehicleEntity() != null && session.getRidingVehicleEntity() instanceof TemptedEntity) {
+            ((TemptedEntity) session.getRidingVehicleEntity()).riderEquipmentUpdated(session);
+        }
 
         // Java sends a cooldown indicator whenever you switch an item
         CooldownUtils.sendCooldown(session);
