@@ -76,7 +76,7 @@ public class BlockStateValues {
             return;
         }
 
-        if (entry.getKey().contains("potted_")) {
+        if (entry.getKey().contains("potted_") || entry.getKey().contains("flower_pot")) {
             FLOWER_POT_VALUES.put(javaBlockState, entry.getKey().replace("potted_", ""));
             return;
         }

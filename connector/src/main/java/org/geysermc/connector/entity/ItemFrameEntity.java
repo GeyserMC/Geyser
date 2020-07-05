@@ -150,7 +150,7 @@ public class ItemFrameEntity extends Entity {
         updateBlockPacket.setBlockPosition(bedrockPosition);
         updateBlockPacket.setRuntimeId(0);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NO_GRAPHIC); //TODO: Used to be NONE
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.sendUpstreamPacket(updateBlockPacket);
         session.getItemFrameCache().remove(position, entityId);
@@ -178,7 +178,7 @@ public class ItemFrameEntity extends Entity {
         updateBlockPacket.setBlockPosition(bedrockPosition);
         updateBlockPacket.setRuntimeId(bedrockRuntimeId);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NO_GRAPHIC); //TODO Same
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.sendUpstreamPacket(updateBlockPacket);
 
