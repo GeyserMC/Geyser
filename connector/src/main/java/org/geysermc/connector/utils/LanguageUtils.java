@@ -48,7 +48,7 @@ public class LanguageUtils {
 
     static {
         // Load it as a backup in case something goes really wrong
-        if (!"en_US".equals(cleanLocale(getDefaultLocale()))) { // getDefaultLocale() loads the locale automatically
+        if (!"en_US".equals(formatLocale(getDefaultLocale()))) { // getDefaultLocale() loads the locale automatically
             loadGeyserLocale("en_US");
         }
     }
@@ -59,7 +59,7 @@ public class LanguageUtils {
      * @param locale Locale to load
      */
     public static void loadGeyserLocale(String locale) {
-        locale = cleanLocale(locale);
+        locale = formatLocale(locale);
 
         InputStream localeStream = GeyserConnector.class.getClassLoader().getResourceAsStream("languages/texts/" + locale + ".properties");
 
@@ -104,14 +104,14 @@ public class LanguageUtils {
      * @return Translated string or the original message if it was not found in the given locale
      */
     public static String getPlayerLocaleString(String key, String locale, Object... values) {
-        locale = cleanLocale(locale);
+        locale = formatLocale(locale);
 
         Properties properties = LOCALE_MAPPINGS.get(locale);
         String formatString = properties.getProperty(key);
 
         // Try and get the key from the default locale
         if (formatString == null) {
-            properties = LOCALE_MAPPINGS.get(cleanLocale(getDefaultLocale()));
+            properties = LOCALE_MAPPINGS.get(formatLocale(getDefaultLocale()));
             formatString = properties.getProperty(key);
         }
 
@@ -135,10 +135,20 @@ public class LanguageUtils {
      * @param locale The locale to format
      * @return The formatted locale
      */
-    private static String cleanLocale(String locale) {
+    private static String formatLocale(String locale) {
         try {
             String[] parts = locale.toLowerCase().split("_");
-            return parts[0] + "_" + parts[1].toUpperCase();
+            String newLocale = parts[0] + "_" + parts[1].toUpperCase();
+            switch (newLocale) { // Fallback to the closest language if we don't support it but Bedrock does.
+                case "es_MX":
+                    return "es_ES";
+                case "pt_BR":
+                    return "pt_PT";
+                case "fr_CA":
+                    return "fr_FR";
+                default:
+                    return newLocale;
+            }
         } catch (Exception e) {
             return locale;
         }
@@ -154,22 +164,41 @@ public class LanguageUtils {
         if (GeyserConnector.getInstance() != null &&
                 GeyserConnector.getInstance().getConfig() != null &&
                 GeyserConnector.getInstance().getConfig().getDefaultLocale() != null) { // If the config option for getDefaultLocale does not equal null, use that
-            locale = GeyserConnector.getInstance().getConfig().getDefaultLocale();
-            CACHED_LOCALE = cleanLocale(locale);
-        } else {
-            locale = Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry();
-            if (GeyserConnector.class.getResource("languages/texts/" + cleanLocale(locale) + ".properties") == null) { // Bedrock does not support this language
-                locale = "en_US";
-            }
-            if (GeyserConnector.getInstance() != null &&
-                    GeyserConnector.getInstance().getConfig() != null && GeyserConnector.getInstance().getConfig().getDefaultLocale() == null) { // Means we should use the system locale for sure
-                CACHED_LOCALE = cleanLocale(locale);
+            locale = formatLocale(GeyserConnector.getInstance().getConfig().getDefaultLocale());
+            if (isValidLanguage(locale)) {
+                CACHED_LOCALE = locale;
+                return locale;
             }
         }
-        if (!LOCALE_MAPPINGS.containsKey(locale)) {
-            loadGeyserLocale(locale);
+        locale = formatLocale(Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry());
+        if (!isValidLanguage(locale)) { // Bedrock does not support this language
+            locale = "en_US";
+        }
+        if (GeyserConnector.getInstance() != null &&
+                GeyserConnector.getInstance().getConfig() != null && GeyserConnector.getInstance().getConfig().getDefaultLocale() == null) { // Means we should use the system locale for sure
+            CACHED_LOCALE = locale;
         }
         return locale;
+    }
+
+    /**
+     * Ensures that the given locale is supported by Bedrock
+     * @param locale the locale to validate
+     * @return true if the given locale is supported by Bedrock and by extension Geyser
+     */
+    private static boolean isValidLanguage(String locale) {
+        boolean result = true;
+        if (FileUtils.class.getResource("/languages/texts/" + locale + ".properties") == null) {
+            result = false;
+            if (GeyserConnector.getInstance() != null && GeyserConnector.getInstance().getLogger() != null) { // Could be too early for these to be initialized
+                GeyserConnector.getInstance().getLogger().info(locale + " is not a valid Bedrock language.");
+            }
+        } else {
+            if (!LOCALE_MAPPINGS.containsKey(locale)) {
+                loadGeyserLocale(locale);
+            }
+        }
+        return result;
     }
 
     public static void init() {
