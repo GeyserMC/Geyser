@@ -135,7 +135,7 @@ public class FileUtils {
     public static InputStream getResource(String resource) {
         InputStream stream = FileUtils.class.getClassLoader().getResourceAsStream(resource);
         if (stream == null) {
-            throw new AssertionError("Unable to find resource: " + resource);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.resource", resource));
         }
         return stream;
     }

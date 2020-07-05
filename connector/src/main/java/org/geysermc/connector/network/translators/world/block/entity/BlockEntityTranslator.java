@@ -34,6 +34,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;
 
 import java.util.HashMap;
@@ -72,7 +73,7 @@ public abstract class BlockEntityTranslator {
             try {
                 BLOCK_ENTITY_TRANSLATORS.put(clazz.getAnnotation(BlockEntity.class).name(), (BlockEntityTranslator) clazz.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block entity " + clazz.getCanonicalName() + ".");
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.block_entity.failed", clazz.getCanonicalName()));
             }
         }
         for (Class<?> clazz : ref.getSubTypesOf(RequiresBlockState.class)) {
@@ -81,7 +82,7 @@ public abstract class BlockEntityTranslator {
             try {
                 REQUIRES_BLOCK_STATE_LIST.add((RequiresBlockState) clazz.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate required block state " + clazz.getCanonicalName() + ".");
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.block_state.failed", clazz.getCanonicalName()));
             }
         }
     }

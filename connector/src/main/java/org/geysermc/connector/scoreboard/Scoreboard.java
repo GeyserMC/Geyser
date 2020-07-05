@@ -34,6 +34,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -78,7 +79,7 @@ public class Scoreboard {
 
     public Team registerNewTeam(String teamName, Set<String> players) {
         if (teams.containsKey(teamName)) {
-            session.getConnector().getLogger().info("Ignoring team " + teamName + ". It overrides without removing old team.");
+            session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
             return getTeam(teamName);
         }
 

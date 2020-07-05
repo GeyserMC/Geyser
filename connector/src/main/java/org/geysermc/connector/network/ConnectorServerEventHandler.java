@@ -37,6 +37,7 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.net.InetSocketAddress;
 
@@ -50,13 +51,13 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().info(inetSocketAddress + " tried to connect!");
+        connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.attempt_connect", inetSocketAddress));
         return true;
     }
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().debug(inetSocketAddress + " has pinged you!");
+        connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
 
         GeyserConfiguration config = connector.getConfig();
 
@@ -108,7 +109,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
-            connector.getLogger().info("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + disconnectReason);
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
 
             GeyserSession player = connector.getPlayers().get(bedrockServerSession.getAddress());
             if (player != null) {

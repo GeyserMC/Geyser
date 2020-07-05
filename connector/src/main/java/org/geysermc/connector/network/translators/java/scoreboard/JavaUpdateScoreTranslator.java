@@ -34,6 +34,7 @@ import org.geysermc.connector.scoreboard.Scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardAction;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
+import org.geysermc.connector.utils.LanguageUtils;
 
 @Translator(packet = ServerUpdateScorePacket.class)
 public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScorePacket> {
@@ -45,7 +46,7 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
 
             Objective objective = scoreboard.getObjective(packet.getObjective());
             if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
-                GeyserConnector.getInstance().getLogger().info("Tried to update score without the existence of its requested objective '" + packet.getObjective() + '\'');
+                GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.translator.score.failed_objective", packet.getObjective()));
                 return;
             }
 

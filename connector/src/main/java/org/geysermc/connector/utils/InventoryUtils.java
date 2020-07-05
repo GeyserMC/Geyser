@@ -140,7 +140,8 @@ public class InventoryUtils {
         NbtMapBuilder root = NbtMap.builder();
         NbtMapBuilder display = NbtMap.builder();
 
-        display.putString("Name", ChatColor.RESET + "Unusable inventory space");
+        // Not ideal to use log here but we dont get a session
+        display.putString("Name", ChatColor.RESET + LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.name"));
         display.putList("Lore", NbtType.STRING, Collections.singletonList(ChatColor.RESET + ChatColor.DARK_PURPLE + description));
 
         root.put("display", display.build());
