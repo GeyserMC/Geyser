@@ -254,6 +254,7 @@ public class GeyserStandaloneGUI {
      */
     public void setupInterface(GeyserStandaloneLogger geyserStandaloneLogger, GeyserCommandManager geyserCommandManager) {
         commandsMenu.removeAll();
+        optionsMenu.removeAll();
 
         for (Map.Entry<String, GeyserCommand> command : geyserCommandManager.getCommands().entrySet()) {
             // Remove the offhand command and any alias commands to prevent duplicates in the list
