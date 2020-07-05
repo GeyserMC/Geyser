@@ -158,6 +158,7 @@ public class LanguageUtils {
     public static String getDefaultLocale() {
         if (CACHED_LOCALE != null) return CACHED_LOCALE; // We definitely know the locale the user is using
         String locale;
+        boolean isValid = true;
         if (GeyserConnector.getInstance() != null &&
                 GeyserConnector.getInstance().getConfig() != null &&
                 GeyserConnector.getInstance().getConfig().getDefaultLocale() != null) { // If the config option for getDefaultLocale does not equal null, use that
@@ -165,6 +166,8 @@ public class LanguageUtils {
             if (isValidLanguage(locale)) {
                 CACHED_LOCALE = locale;
                 return locale;
+            } else {
+                isValid = false;
             }
         }
         locale = formatLocale(Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry());
@@ -172,7 +175,7 @@ public class LanguageUtils {
             locale = "en_US";
         }
         if (GeyserConnector.getInstance() != null &&
-                GeyserConnector.getInstance().getConfig() != null && GeyserConnector.getInstance().getConfig().getDefaultLocale() == null) { // Means we should use the system locale for sure
+                GeyserConnector.getInstance().getConfig() != null && (GeyserConnector.getInstance().getConfig().getDefaultLocale() == null || !isValid)) { // Means we should use the system locale for sure
             CACHED_LOCALE = locale;
         }
         return locale;
@@ -188,7 +191,7 @@ public class LanguageUtils {
         if (FileUtils.class.getResource("/languages/texts/" + locale + ".properties") == null) {
             result = false;
             if (GeyserConnector.getInstance() != null && GeyserConnector.getInstance().getLogger() != null) { // Could be too early for these to be initialized
-                GeyserConnector.getInstance().getLogger().info(locale + " is not a valid Bedrock language."); // We can't translate this since we just loaded an invalid language
+                GeyserConnector.getInstance().getLogger().warning(locale + " is not a valid Bedrock language."); // We can't translate this since we just loaded an invalid language
             }
         } else {
             if (!LOCALE_MAPPINGS.containsKey(locale)) {
