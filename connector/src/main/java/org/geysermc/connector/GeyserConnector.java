@@ -186,7 +186,7 @@ public class GeyserConnector {
             bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));
 
             for (GeyserSession playerSession : players.values()) {
-                playerSession.disconnect(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.message"));
+                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getClientData().getLanguageCode()));
             }
 
             CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {
