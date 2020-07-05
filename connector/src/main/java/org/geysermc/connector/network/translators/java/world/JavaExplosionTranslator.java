@@ -52,7 +52,7 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
         Vector3f pos = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         // Since bedrock does not play an explosion sound and particles sound, we have to manually do so
         LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(packet.getRadius() >= 2.0f ? LevelEventType.PARTICLE_HUGE_EXPLODE : LevelEventType.PARTICLE_LARGE_EXPLOSION);
+        levelEventPacket.setType(packet.getRadius() >= 2.0f ? LevelEventType.PARTICLE_HUGE_EXPLODE : LevelEventType.PARTICLE_EXPLOSION);
         levelEventPacket.setData(0);
         levelEventPacket.setPosition(pos.toFloat());
         session.sendUpstreamPacket(levelEventPacket);

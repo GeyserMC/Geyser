@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareRecipesPacket;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
@@ -169,6 +169,6 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
     private static class GroupedItem {
         int id;
         int count;
-        CompoundTag tag;
+        NbtMap tag;
     }
 }

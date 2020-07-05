@@ -29,6 +29,7 @@ package org.geysermc.connector.network.translators.item;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
@@ -152,7 +153,7 @@ public class ItemRegistry {
                 byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
                 ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
                 try {
-                    com.nukkitx.nbt.tag.CompoundTag tag = (com.nukkitx.nbt.tag.CompoundTag) NbtUtils.createReaderLE(bais).readTag();
+                    NbtMap tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
                     creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
                 } catch (IOException e) {
                     e.printStackTrace();

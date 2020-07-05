@@ -101,6 +101,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
 
                 this.updateOffset(passenger, entity.getEntityType(), session, false, false, (passengers.size() > 1));
             }
+
+            // Force an update to the passenger metadata
+            passenger.updateBedrockMetadata(session);
         }
 
         if (entity.getEntityType() == EntityType.HORSE) {

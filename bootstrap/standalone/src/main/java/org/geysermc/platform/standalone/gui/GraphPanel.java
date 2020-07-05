@@ -43,9 +43,9 @@ public final class GraphPanel extends JPanel {
     private final static int labelPadding = 25;
     private final static int pointWidth = 4;
     private final static int numberYDivisions = 10;
-    private final static Color lineColor = new Color(44, 102, 230, 180);
-    private final static Color pointColor = new Color(100, 100, 100, 180);
-    private final static Color gridColor = new Color(200, 200, 200, 200);
+    private final static Color lineColor = new Color(44, 102, 230, 255);
+    private final static Color pointColor = new Color(100, 100, 100, 255);
+    private final static Color gridColor = new Color(200, 200, 200, 255);
     private static final Stroke graphStroke = new BasicStroke(2f);
     private List<Integer> values = new ArrayList<>(10);
 

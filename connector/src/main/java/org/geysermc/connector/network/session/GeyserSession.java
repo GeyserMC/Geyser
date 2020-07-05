@@ -218,11 +218,11 @@ public class GeyserSession implements CommandSender {
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setTag(BiomeTranslator.BIOMES);
+        biomeDefinitionListPacket.setDefinitions(BiomeTranslator.BIOMES);
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setTag(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
+        entityPacket.setIdentifiers(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
         upstream.sendPacket(entityPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();

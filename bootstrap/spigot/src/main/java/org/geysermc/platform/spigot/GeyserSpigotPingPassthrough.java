@@ -26,6 +26,7 @@
 
 package org.geysermc.platform.spigot;
 
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -48,14 +49,15 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
         try {
             ServerListPingEvent event = new GeyserPingEvent(InetAddress.getLocalHost(), Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers());
             Bukkit.getPluginManager().callEvent(event);
-            GeyserPingInfo geyserPingInfo = new GeyserPingInfo(event.getMotd(), event.getNumPlayers(), event.getMaxPlayers());
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                geyserPingInfo.addPlayer(player.getName());
-            });
+            GeyserPingInfo geyserPingInfo = new GeyserPingInfo(event.getMotd(),
+                    new GeyserPingInfo.Players(event.getMaxPlayers(), event.getNumPlayers()),
+                    new GeyserPingInfo.Version(Bukkit.getVersion(), MinecraftConstants.PROTOCOL_VERSION) // thanks Spigot for not exposing this, just default to latest
+            );
+            Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(geyserPingInfo.getPlayerList()::add);
             return geyserPingInfo;
         } catch (Exception e) {
             logger.debug("Error while getting Bukkit ping passthrough: " + e.toString());
-            return new GeyserPingInfo(null, 0, 0);
+            return new GeyserPingInfo(null, null, null);
         }
     }
 
