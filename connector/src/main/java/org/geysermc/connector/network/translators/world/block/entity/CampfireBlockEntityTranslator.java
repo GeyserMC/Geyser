@@ -27,25 +27,24 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 @BlockEntity(name = "Campfire", regex = "campfire")
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, int blockState) {
-        List<Tag<?>> tags = new ArrayList<>();
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        Map<String, Object> tags = new HashMap<>();
         ListTag items = tag.get("Items");
         int i = 1;
         for (com.github.steveice10.opennbt.tag.builtin.Tag itemTag : items.getValue()) {
-            tags.add(getItem((CompoundTag) itemTag).toBuilder().build("Item" + i));
+            tags.put("Item" + i, getItem((CompoundTag) itemTag));
             i++;
         }
         return tags;
@@ -59,22 +58,17 @@ public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item1", new HashMap<>()));
-        tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item2", new HashMap<>()));
-        tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item3", new HashMap<>()));
-        tagBuilder.tag(new com.nukkitx.nbt.tag.CompoundTag("Item4", new HashMap<>()));
-        return tagBuilder.buildRootTag();
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        return getConstantBedrockTag(bedrockId, x, y, z);
     }
 
-    protected com.nukkitx.nbt.tag.CompoundTag getItem(CompoundTag tag) {
+    protected NbtMap getItem(CompoundTag tag) {
         ItemEntry entry = ItemRegistry.getItemEntry((String) tag.get("id").getValue());
-        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
-                .shortTag("id", (short) entry.getBedrockId())
-                .byteTag("Count", (byte) tag.get("Count").getValue())
-                .shortTag("Damage", (short) entry.getBedrockData())
-                .tag(CompoundTagBuilder.builder().build("tag"));
-        return tagBuilder.buildRootTag();
+        NbtMapBuilder tagBuilder = NbtMap.builder()
+                .putShort("id", (short) entry.getBedrockId())
+                .putByte("Count", (byte) tag.get("Count").getValue())
+                .putShort("Damage", (short) entry.getBedrockData());
+        tagBuilder.put("tag", NbtMap.builder().build());
+        return tagBuilder.build();
     }
 }

@@ -26,9 +26,9 @@
 
 package org.geysermc.connector.network.translators;
 
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
 
@@ -40,7 +40,7 @@ import java.util.Arrays;
 // Array index formula by https://wiki.vg/Chunk_Format
 public class BiomeTranslator {
 
-    public static final CompoundTag BIOMES;
+    public static final NbtMap BIOMES;
 
     private BiomeTranslator() {
     }
@@ -53,10 +53,10 @@ public class BiomeTranslator {
         /* Load biomes */
         InputStream stream = FileUtils.getResource("bedrock/biome_definitions.dat");
 
-        CompoundTag biomesTag;
+        NbtMap biomesTag;
 
         try (NBTInputStream biomenbtInputStream = NbtUtils.createNetworkReader(stream)) {
-            biomesTag = (CompoundTag) biomenbtInputStream.readTag();
+            biomesTag = (NbtMap) biomenbtInputStream.readTag();
             BIOMES = biomesTag;
         } catch (Exception ex) {
             GeyserConnector.getInstance().getLogger().warning("Failed to get biomes from biome definitions, is there something wrong with the file?");
