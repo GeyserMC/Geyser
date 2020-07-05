@@ -47,20 +47,19 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class GeyserStandaloneGUI {
 
-    private static final String[] playerTableHeadings = new String[] {
-            LanguageUtils.getLocaleStringLog("geyser.gui.table.ip"),
-            LanguageUtils.getLocaleStringLog("geyser.gui.table.username")};
+    private static final DefaultTableModel playerTableModel = new DefaultTableModel();
     private static final List<Integer> ramValues = new ArrayList<>();
 
     private static final ColorPane consolePane = new ColorPane();
     private static final GraphPanel ramGraph = new GraphPanel();
-    private static final JTable playerTable = new JTable(new String[][] { }, playerTableHeadings);
+    private static final JTable playerTable = new JTable(playerTableModel);
     private static final int originalFontSize = consolePane.getFont().getSize();
 
     private static final long  MEGABYTE = 1024L * 1024L;
@@ -201,6 +200,9 @@ public class GeyserStandaloneGUI {
         ramGraph.setXLabel(LanguageUtils.getLocaleStringLog("geyser.gui.graph.loading"));
         rightContentPane.add(ramGraph);
 
+        playerTableModel.addColumn(LanguageUtils.getLocaleStringLog("geyser.gui.table.ip"));
+        playerTableModel.addColumn(LanguageUtils.getLocaleStringLog("geyser.gui.table.username"));
+
         JScrollPane playerScrollPane = new JScrollPane(playerTable);
         rightContentPane.add(playerScrollPane);
 
@@ -288,18 +290,17 @@ public class GeyserStandaloneGUI {
         Runnable periodicTask = () -> {
             if (GeyserConnector.getInstance() != null) {
                 // Update player table
-                String[][] playerNames = new String[GeyserConnector.getInstance().getPlayers().size()][2];
-                int i = 0;
-                for (Map.Entry<InetSocketAddress, GeyserSession> player : GeyserConnector.getInstance().getPlayers().entrySet()) {
-                    playerNames[i][0] = player.getKey().getHostName();
-                    playerNames[i][1] = player.getValue().getPlayerEntity().getUsername();
+                playerTableModel.getDataVector().removeAllElements();
 
-                    i++;
+                for (Map.Entry<InetSocketAddress, GeyserSession> player : GeyserConnector.getInstance().getPlayers().entrySet()) {
+                    Vector row = new Vector();
+                    row.add(player.getKey().getHostName());
+                    row.add(player.getValue().getPlayerEntity().getUsername());
+
+                    playerTableModel.addRow(row);
                 }
 
-                DefaultTableModel model = new DefaultTableModel(playerNames, playerTableHeadings);
-                playerTable.setModel(model);
-                model.fireTableDataChanged();
+                playerTableModel.fireTableDataChanged();
             }
 
             // Update ram graph
