@@ -141,6 +141,10 @@ public abstract class ItemTranslator {
             nbt.put(new IntTag("map", 0));
         }
 
+        if (bedrockItem.getBedrockId() == 313) {
+            GeyserConnector.getInstance().getLogger().debug("break");
+        }
+
         ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
 
         if (nbt != null) {

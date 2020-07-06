@@ -25,17 +25,14 @@
 
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.opennbt.tag.builtin.*;
 import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
 import net.kyori.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
@@ -46,6 +43,18 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
+        // Check for a blank int tag and remove it\
+        for (Tag tag : itemTag.values()) {
+            if (tag instanceof IntTag) {
+                IntTag intTag = (IntTag) tag;
+                if (intTag.getValue() == 0 && intTag.getName().equals("")) {
+                    // Remove the blank tag
+                    itemTag.remove("");
+                    break;
+                }
+            }
+        }
+
         if (!itemTag.contains("display")) {
             return;
         }
