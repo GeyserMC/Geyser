@@ -29,6 +29,7 @@ package org.geysermc.connector.network.translators.item;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
@@ -36,16 +37,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Registry for anything item related.
@@ -81,7 +78,7 @@ public class ItemRegistry {
         try {
             itemEntries = GeyserConnector.JSON_MAPPER.readValue(stream, itemEntriesType);
         } catch (Exception e) {
-            throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_bedrock"), e);
         }
 
         for (JsonNode entry : itemEntries) {
@@ -94,7 +91,7 @@ public class ItemRegistry {
         try {
             items = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
-            throw new AssertionError("Unable to load Java runtime item IDs", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
         }
 
         int itemIndex = 0;
@@ -133,6 +130,9 @@ public class ItemRegistry {
             itemIndex++;
         }
 
+        // Add the loadstonecompass since it doesn't exist on java but we need it for item conversion
+        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestonecompass", itemIndex, 741, 0, false));
+
         /* Load creative items */
         stream = FileUtils.getResource("bedrock/creative_items.json");
 
@@ -140,7 +140,7 @@ public class ItemRegistry {
         try {
             creativeItemEntries = GeyserConnector.JSON_MAPPER.readTree(stream).get("items");
         } catch (Exception e) {
-            throw new AssertionError("Unable to load creative items", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
         }
 
         List<ItemData> creativeItems = new ArrayList<>();
@@ -153,7 +153,7 @@ public class ItemRegistry {
                 byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
                 ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
                 try {
-                    com.nukkitx.nbt.tag.CompoundTag tag = (com.nukkitx.nbt.tag.CompoundTag) NbtUtils.createReaderLE(bais).readTag();
+                    NbtMap tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
                     creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -195,7 +195,10 @@ public class ItemRegistry {
             }
         }
 
-        GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        // This will hide the message when the player clicks with an empty hand
+        if (data.getId() != 0 && data.getDamage() != 0) {
+            GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        }
         return ItemEntry.AIR;
     }
 

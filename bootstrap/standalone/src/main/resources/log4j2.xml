@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Appenders>
-        <TerminalConsole name="Console">
+        <TerminalConsole name="TerminalConsole">
             <PatternLayout pattern="[%d{HH:mm:ss} %style{%highlight{%level}{FATAL=red dark, ERROR=red, WARN=yellow bright, INFO=cyan bright, DEBUG=green, TRACE=white}}] %minecraftFormatting{%msg}%n"/>
         </TerminalConsole>
+        <Console name="Console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="[%d{HH:mm:ss} %style{%highlight{%level}{FATAL=red dark, ERROR=red, WARN=yellow bright, INFO=cyan bright, DEBUG=green, TRACE=white}}] %minecraftFormatting{%msg}%n"/>
+        </Console>
         <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %level{length=1} - %msg%n"/>
             <Policies>
@@ -14,6 +17,7 @@
     </Appenders>
     <Loggers>
         <Root level="INFO">
+            <AppenderRef ref="TerminalConsole"/>
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Root>
