@@ -63,6 +63,9 @@ public abstract class GeyserPlugin {
         this.logger = new PluginLogger(this);
 
         logger.info(String.format("Loading %s v%s", getName(), getVersion()));
+
+        //noinspection ResultOfMethodCallIgnored
+        getDataFolder().mkdirs();
     }
 
     // We provide some methods already provided in EventManager as we want to keep track of which EventHandlers

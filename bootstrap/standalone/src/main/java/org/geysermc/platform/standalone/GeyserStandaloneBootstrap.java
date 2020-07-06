@@ -123,12 +123,12 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
+        // Trigger GeyserStart Events
+        connector.getEventManager().triggerEvent(new GeyserStartEvent());
+
         if (!useGui) {
             geyserLogger.start(); // Throws an error otherwise
         }
-
-        // Trigger GeyserStart Events
-        connector.getEventManager().triggerEvent(new GeyserStartEvent());
     }
 
     @Override
