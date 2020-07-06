@@ -27,7 +27,7 @@ package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -39,9 +39,15 @@ public class PigEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+
         if (entityMetadata.getId() == 16) {
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (boolean) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    protected float getDefaultMaxHealth() {
+        return 10f;
     }
 }

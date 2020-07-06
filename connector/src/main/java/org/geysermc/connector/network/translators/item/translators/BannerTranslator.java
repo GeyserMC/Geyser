@@ -31,8 +31,11 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.nbt.NbtList;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
@@ -63,10 +66,10 @@ public class BannerTranslator extends ItemTranslator {
         if (blockEntityTag.contains("Patterns")) {
             ListTag patterns = blockEntityTag.get("Patterns");
 
-            CompoundTagBuilder builder = itemData.getTag().toBuilder();
-            builder.tag(convertBannerPattern(patterns));
+            NbtMapBuilder builder = itemData.getTag().toBuilder();
+            builder.put("Patterns", convertBannerPattern(patterns));
 
-            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.buildRootTag());
+            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.build());
         }
 
         return itemData;
@@ -78,9 +81,9 @@ public class BannerTranslator extends ItemTranslator {
 
         ItemStack itemStack = super.translateToJava(itemData, itemEntry);
 
-        com.nukkitx.nbt.tag.CompoundTag nbtTag = itemData.getTag();
-        if (nbtTag.contains("Patterns")) {
-            com.nukkitx.nbt.tag.ListTag<?> patterns = nbtTag.get("Patterns");
+        NbtMap nbtTag = itemData.getTag();
+        if (nbtTag.containsKey("Patterns", NbtType.COMPOUND)) {
+            List<NbtMap> patterns = nbtTag.getList("Patterns", NbtType.COMPOUND);
 
             CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
             blockEntityTag.put(convertBannerPattern(patterns));
@@ -102,16 +105,16 @@ public class BannerTranslator extends ItemTranslator {
      * @param patterns The patterns to convert
      * @return The new converted patterns
      */
-    public static com.nukkitx.nbt.tag.ListTag convertBannerPattern(ListTag patterns) {
-        List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
+    public static NbtList<NbtMap> convertBannerPattern(ListTag patterns) {
+        List<NbtMap> tagsList = new ArrayList<>();
         for (com.github.steveice10.opennbt.tag.builtin.Tag patternTag : patterns.getValue()) {
-            com.nukkitx.nbt.tag.CompoundTag newPatternTag = getBedrockBannerPattern((CompoundTag) patternTag);
+            NbtMap newPatternTag = getBedrockBannerPattern((CompoundTag) patternTag);
             if (newPatternTag != null) {
                 tagsList.add(newPatternTag);
             }
         }
 
-        return new com.nukkitx.nbt.tag.ListTag<>("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
+        return new NbtList<>(NbtType.COMPOUND, tagsList);
     }
 
     /**
@@ -120,7 +123,7 @@ public class BannerTranslator extends ItemTranslator {
      * @param pattern Java edition pattern nbt
      * @return The Bedrock edition format pattern nbt
      */
-    public static com.nukkitx.nbt.tag.CompoundTag getBedrockBannerPattern(CompoundTag pattern) {
+    public static NbtMap getBedrockBannerPattern(CompoundTag pattern) {
         String patternName = (String) pattern.get("Pattern").getValue();
 
         // Return null if its the globe pattern as it doesn't exist on bedrock
@@ -128,11 +131,11 @@ public class BannerTranslator extends ItemTranslator {
             return null;
         }
 
-        return CompoundTagBuilder.builder()
-                .intTag("Color", 15 - (int) pattern.get("Color").getValue())
-                .stringTag("Pattern", (String) pattern.get("Pattern").getValue())
-                .stringTag("Pattern", patternName)
-                .buildRootTag();
+        return NbtMap.builder()
+                .putInt("Color", 15 - (int) pattern.get("Color").getValue())
+                .putString("Pattern", (String) pattern.get("Pattern").getValue())
+                .putString("Pattern", patternName)
+                .build();
     }
 
     /**
@@ -141,10 +144,10 @@ public class BannerTranslator extends ItemTranslator {
      * @param patterns The patterns to convert
      * @return The new converted patterns
      */
-    public static ListTag convertBannerPattern(com.nukkitx.nbt.tag.ListTag<?> patterns) {
+    public static ListTag convertBannerPattern(List<NbtMap> patterns) {
         List<Tag> tagsList = new ArrayList<>();
-        for (Object patternTag : patterns.getValue()) {
-            CompoundTag newPatternTag = getJavaBannerPattern((com.nukkitx.nbt.tag.CompoundTag) patternTag);
+        for (Object patternTag : patterns) {
+            CompoundTag newPatternTag = getJavaBannerPattern((NbtMap) patternTag);
             tagsList.add(newPatternTag);
         }
 
@@ -157,7 +160,7 @@ public class BannerTranslator extends ItemTranslator {
      * @param pattern Bedorck edition pattern nbt
      * @return The Java edition format pattern nbt
      */
-    public static CompoundTag getJavaBannerPattern(com.nukkitx.nbt.tag.CompoundTag pattern) {
+    public static CompoundTag getJavaBannerPattern(NbtMap pattern) {
         Map<String, Tag> tags = new HashMap<>();
         tags.put("Color", new IntTag("Color", 15 - pattern.getInt("Color")));
         tags.put("Pattern", new StringTag("Pattern", pattern.getString("Pattern")));

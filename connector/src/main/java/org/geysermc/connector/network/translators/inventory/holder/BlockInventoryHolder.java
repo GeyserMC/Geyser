@@ -26,10 +26,9 @@
 package org.geysermc.connector.network.translators.inventory.holder;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ContainerType;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -57,11 +56,11 @@ public class BlockInventoryHolder extends InventoryHolder {
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
 
-        CompoundTag tag = CompoundTag.builder()
-                .intTag("x", position.getX())
-                .intTag("y", position.getY())
-                .intTag("z", position.getZ())
-                .stringTag("CustomName", LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode())).buildRootTag();
+        NbtMap tag = NbtMap.builder()
+                .putInt("x", position.getX())
+                .putInt("y", position.getY())
+                .putInt("z", position.getZ())
+                .putString("CustomName", LocaleUtils.getLocaleString(inventory.getTitle(), session.getClientData().getLanguageCode())).build();
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(position);
@@ -71,8 +70,8 @@ public class BlockInventoryHolder extends InventoryHolder {
     @Override
     public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setWindowId((byte) inventory.getId());
-        containerOpenPacket.setType((byte) containerType.id());
+        containerOpenPacket.setId((byte) inventory.getId());
+        containerOpenPacket.setType(containerType);
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
         session.sendUpstreamPacket(containerOpenPacket);
@@ -82,7 +81,7 @@ public class BlockInventoryHolder extends InventoryHolder {
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         Vector3i holderPos = inventory.getHolderPosition();
         Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        BlockState realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
+        int realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);

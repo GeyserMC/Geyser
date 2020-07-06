@@ -10,12 +10,12 @@
         <relativePath>../</relativePath>
     </parent>
     <artifactId>connector</artifactId>
-    <version>1.0.0-1.14.60</version>
+    <version>1.0.0</version>
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.0.0-1.14.60</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -32,8 +32,8 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
-            <artifactId>bedrock-v390</artifactId>
-            <version>2.5.6-SNAPSHOT</version>
+            <artifactId>bedrock-v407</artifactId>
+            <version>2.6.0-SNAPSHOT</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -68,6 +68,12 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-int-byte-maps</artifactId>
+            <version>8.3.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-double-maps</artifactId>
             <version>8.3.1</version>
             <scope>compile</scope>
@@ -97,9 +103,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.steveice10</groupId>
-            <artifactId>mcprotocollib</artifactId>
-            <version>1.15.2-1-SNAPSHOT</version>
+            <groupId>com.github.GeyserMC</groupId>
+            <artifactId>MCProtocolLib</artifactId>
+            <version>feature~1.16-1.12.1-1-g10bb8e2-319</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -164,7 +170,11 @@
                     <skipPoms>false</skipPoms>
                     <excludeProperties>
                         <excludeProperty>git.user.*</excludeProperty>
-                        <excludeProperty>git.commit.user.*</excludeProperty>
+                        <excludeProperty>git.*.user.*</excludeProperty>
+                        <excludeProperty>git.closest.*</excludeProperty>
+                        <excludeProperty>git.commit.id.describe</excludeProperty>
+                        <excludeProperty>git.commit.id.describe-short</excludeProperty>
+                        <excludeProperty>git.commit.message.short</excludeProperty>
                     </excludeProperties>
                     <commitIdGenerationMode>flat</commitIdGenerationMode>
                     <gitDescribe>
