@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientSettingsPacket;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.ScoreboardCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.DimensionUtils;
@@ -58,6 +59,8 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
             String fakeDim = entity.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
             DimensionUtils.switchDimension(session, fakeDim);
             DimensionUtils.switchDimension(session, packet.getDimension());
+
+            session.getScoreboardCache().removeScoreboard();
         }
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
