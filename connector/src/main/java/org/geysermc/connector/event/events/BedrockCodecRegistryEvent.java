@@ -26,14 +26,14 @@
 
 package org.geysermc.connector.event.events;
 
+import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.plugin.GeyserPlugin;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class PluginEnableEvent extends CancellableGeyserEvent {
-    private GeyserPlugin plugin;
+public class BedrockCodecRegistryEvent extends GeyserEvent {
+    private BedrockPacketCodec codec;
 }

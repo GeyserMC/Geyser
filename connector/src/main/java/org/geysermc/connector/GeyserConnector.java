@@ -38,6 +38,7 @@ import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.event.events.BedrockCodecRegistryEvent;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
@@ -77,7 +78,7 @@ public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC;
+    public static BedrockPacketCodec BEDROCK_PACKET_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
@@ -129,7 +130,9 @@ public class GeyserConnector {
 
         this.eventManager = new EventManager(this);
         this.pluginManager = new PluginManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
-        System.exit(1);
+
+        // Set Codec
+        BEDROCK_PACKET_CODEC = eventManager.triggerEvent(new BedrockCodecRegistryEvent(Bedrock_v407.V407_CODEC)).getEvent().getCodec();
 
         PacketTranslatorRegistry.init();
 

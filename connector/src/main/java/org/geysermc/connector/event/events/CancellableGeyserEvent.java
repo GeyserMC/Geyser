@@ -26,13 +26,12 @@
 
 package org.geysermc.connector.event.events;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Getter
-@ToString
+@EqualsAndHashCode(callSuper = true)
+@Data
 public abstract class CancellableGeyserEvent extends GeyserEvent {
-    @Setter
     private boolean cancelled = false;
 }

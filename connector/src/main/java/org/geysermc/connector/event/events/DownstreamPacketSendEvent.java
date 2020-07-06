@@ -28,6 +28,8 @@ package org.geysermc.connector.event.events;
 
 import com.github.steveice10.packetlib.packet.Packet;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -38,11 +40,10 @@ import org.geysermc.connector.network.session.GeyserSession;
  * If cancelled then regular processes of the packet will not proceed
  */
 
-@Getter
-@ToString
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
+@Data
 public class DownstreamPacketSendEvent<T extends Packet> extends CancellableGeyserEvent {
-
-    private final GeyserSession session;
-    private final T packet;
+    private GeyserSession session;
+    private T packet;
 }

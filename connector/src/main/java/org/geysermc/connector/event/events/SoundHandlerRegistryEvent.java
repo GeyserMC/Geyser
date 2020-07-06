@@ -29,11 +29,17 @@ package org.geysermc.connector.event.events;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.plugin.GeyserPlugin;
+import lombok.Getter;
+import lombok.ToString;
 
+import java.util.Set;
+
+/**
+ * Triggered when registering Sound Handlers
+ */
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class PluginEnableEvent extends CancellableGeyserEvent {
-    private GeyserPlugin plugin;
+public class SoundHandlerRegistryEvent extends GeyserEvent {
+    private Set<Class<?>> registeredTranslators;
 }

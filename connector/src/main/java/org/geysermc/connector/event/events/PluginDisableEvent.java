@@ -27,13 +27,13 @@
 package org.geysermc.connector.event.events;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.plugin.GeyserPlugin;
 
-@Getter
-@ToString
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
+@Data
 public class PluginDisableEvent extends GeyserEvent {
-    private final GeyserPlugin plugin;
+    private GeyserPlugin plugin;
 }

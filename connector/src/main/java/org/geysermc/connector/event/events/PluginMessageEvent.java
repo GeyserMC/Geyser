@@ -27,15 +27,15 @@
 package org.geysermc.connector.event.events;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 
-@Getter
-@ToString
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
+@Data
 public class PluginMessageEvent extends CancellableGeyserEvent {
-    private final GeyserSession session;
-    private final String channel;
-    private final byte[] data;
+    private GeyserSession session;
+    private String channel;
+    private byte[] data;
 }

@@ -47,6 +47,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.ItemRemapperRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.utils.MessageUtils;
@@ -70,10 +72,12 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
-
+        ItemRemapperRegistryEvent itemRemapperEvent = EventManager.getInstance().triggerEvent(new ItemRemapperRegistryEvent(
+                new Reflections("org.geysermc.connector.network.translators.item").getTypesAnnotatedWith(ItemRemapper.class))
+        ).getEvent();
+        
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
+        for (Class<?> clazz : itemRemapperEvent.getRegisteredTranslators()) {
             int priority = clazz.getAnnotation(ItemRemapper.class).priority();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());

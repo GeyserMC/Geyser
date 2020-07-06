@@ -29,11 +29,15 @@ package org.geysermc.connector.event.events;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.plugin.GeyserPlugin;
 
+import java.util.Set;
+
+/**
+ * Triggered when registering Packet Translators
+ */
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class PluginEnableEvent extends CancellableGeyserEvent {
-    private GeyserPlugin plugin;
+public class PacketTranslatorRegistryEvent extends GeyserEvent {
+    private Set<Class<?>> registeredTranslators;
 }
