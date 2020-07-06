@@ -509,7 +509,7 @@ public class SkinProvider {
          * Generate generic geometry
          *
          * @param isSlim Should it be the alex model
-         * @return The generiruc geometry object
+         * @return The generic geometry object
          */
         public static SkinGeometry getLegacy(boolean isSlim) {
             return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.custom" + (isSlim ? "Slim" : "") + "\"}}", "", true);
