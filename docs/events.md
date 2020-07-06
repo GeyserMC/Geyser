@@ -173,7 +173,7 @@ every Downstream packet will trigger this handler.
     }
     ```
 
-### GeyserStopEvent
+### GeyserStartEvent
 
 Triggered after Geyser has finished starting.
 

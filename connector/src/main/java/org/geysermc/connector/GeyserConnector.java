@@ -189,9 +189,6 @@ public class GeyserConnector {
         // Enable Plugins
         pluginManager.enablePlugins();
 
-        // Trigger GeyserStart Events
-        eventManager.triggerEvent(new GeyserStartEvent());
-
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         String message = LanguageUtils.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
         if (isGui) {
