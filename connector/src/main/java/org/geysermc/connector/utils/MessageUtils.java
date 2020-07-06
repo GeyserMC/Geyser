@@ -35,9 +35,9 @@ import com.github.steveice10.mc.protocol.data.message.style.ChatFormat;
 import com.github.steveice10.mc.protocol.data.message.style.MessageStyle;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.kyori.text.Component;
-import net.kyori.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.*;
@@ -263,12 +263,12 @@ public class MessageUtils {
     }
 
     public static Component phraseJavaMessage(String message) {
-        return GsonComponentSerializer.INSTANCE.deserialize(message);
+        return GsonComponentSerializer.gson().deserialize(message);
     }
 
     public static String getJavaMessage(String message) {
         Component component = LegacyComponentSerializer.legacy().deserialize(message);
-        return GsonComponentSerializer.INSTANCE.serialize(component);
+        return GsonComponentSerializer.gson().serialize(component);
     }
 
     /**
