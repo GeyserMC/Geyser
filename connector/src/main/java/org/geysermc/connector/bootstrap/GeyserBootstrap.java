@@ -72,6 +72,7 @@ public interface GeyserBootstrap {
     CommandManager getGeyserCommandManager();
 
     /**
+     * Returns the current PingPassthrough manager
      *
      * @return The current PingPassthrough manager
      */

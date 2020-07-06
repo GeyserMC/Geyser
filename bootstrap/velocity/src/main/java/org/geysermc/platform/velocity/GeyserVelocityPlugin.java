@@ -73,7 +73,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private IGeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserConnector connector;
-    private final File configDir = new File("plugins/" + GeyserConnector.NAME + "-Velocity/");
 
     @Getter
     private final Path configFolder = Paths.get("plugins/" + GeyserConnector.NAME + "-Velocity/");

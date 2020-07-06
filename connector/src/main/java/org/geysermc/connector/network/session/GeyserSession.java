@@ -63,7 +63,6 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.event.events.DownstreamPacketReceiveEvent;
 import org.geysermc.connector.event.events.DownstreamPacketSendEvent;
 import org.geysermc.connector.event.events.UpstreamPacketSendEvent;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
