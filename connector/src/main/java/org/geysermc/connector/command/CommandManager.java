@@ -51,6 +51,7 @@ public abstract class CommandManager {
         registerCommand(new StopCommand(connector, "stop", LanguageUtils.getLocaleStringLog("geyser.commands.stop.desc"), "geyser.command.stop"));
         registerCommand(new OffhandCommand(connector, "offhand", LanguageUtils.getLocaleStringLog("geyser.commands.offhand.desc"), "geyser.command.offhand"));
         registerCommand(new DumpCommand(connector, "dump", LanguageUtils.getLocaleStringLog("geyser.commands.dump.desc"), "geyser.command.dump"));
+        registerCommand(new VersionCommand(connector, "version", LanguageUtils.getLocaleStringLog("geyser.commands.version.desc"), "geyser.command.version"));
     }
 
     public void registerCommand(GeyserCommand command) {
