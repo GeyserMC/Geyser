@@ -75,8 +75,8 @@ public class LanguageUtils {
             // Insert the locale into the mappings
             LOCALE_MAPPINGS.put(locale, localeProp);
         } else {
-            if (!locale.toLowerCase().equals(getDefaultLocale().toLowerCase())) { // The default locale was invalid fallback to en_us
-                GeyserConnector.getInstance().getLogger().warning(getLocaleStringLog("geyser.language.missing_file", locale));
+            if (GeyserConnector.getInstance() != null && GeyserConnector.getInstance().getLogger() != null) {
+                GeyserConnector.getInstance().getLogger().warning("Missing locale: " + locale);
             }
         }
     }
