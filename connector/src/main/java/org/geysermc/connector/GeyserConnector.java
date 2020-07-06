@@ -111,8 +111,6 @@ public class GeyserConnector {
         instance = this;
 
         this.bootstrap = bootstrap;
-        this.eventManager = new EventManager(this);
-        this.pluginManager = new PluginManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
@@ -128,6 +126,10 @@ public class GeyserConnector {
         this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
 
         logger.setDebug(config.isDebugMode());
+
+        this.eventManager = new EventManager(this);
+        this.pluginManager = new PluginManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
+        System.exit(1);
 
         PacketTranslatorRegistry.init();
 
