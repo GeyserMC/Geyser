@@ -85,11 +85,7 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
 
         // Store the map to send when the client requests it, as bedrock expects the data after a MapInfoRequestPacket
         if (shouldStore) {
-            long uniqueMapId = mapItemDataPacket.getUniqueMapId();
-            if (uniqueMapId <= -1l) {
-                uniqueMapId = 0l;
-            }
-            session.getStoredMaps().put(uniqueMapId, mapItemDataPacket);
+            session.getStoredMaps().put(mapItemDataPacket.getUniqueMapId(), mapItemDataPacket);
         }
 
         // Send anyway just in case

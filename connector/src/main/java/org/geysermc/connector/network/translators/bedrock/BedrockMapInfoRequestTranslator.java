@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket;
 import com.nukkitx.protocol.bedrock.packet.MapInfoRequestPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,16 +40,14 @@ public class BedrockMapInfoRequestTranslator extends PacketTranslator<MapInfoReq
     @Override
     public void translate(MapInfoRequestPacket packet, GeyserSession session) {
         long mapID = packet.getUniqueMapId();
-        if (mapID <= -1l) {
-            mapID = 0l;
-        }
 
         if (session.getStoredMaps().containsKey(mapID)) {
             // Delay the packet 100ms to prevent the client from ignoring the packet
-            long finalMapID = mapID;
             GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
-                session.sendUpstreamPacket(session.getStoredMaps().get(finalMapID));
-                session.getStoredMaps().remove(finalMapID);
+                ClientboundMapItemDataPacket mapPacket = session.getStoredMaps().remove(mapID);
+                if (mapPacket != null) {
+                    session.sendUpstreamPacket(mapPacket);
+                }
             }, 100, TimeUnit.MILLISECONDS);
         }
     }
