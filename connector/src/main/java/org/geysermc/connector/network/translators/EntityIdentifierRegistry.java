@@ -26,10 +26,11 @@
 
 package org.geysermc.connector.network.translators;
 
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.InputStream;
 
@@ -38,7 +39,7 @@ import java.io.InputStream;
  */
 public class EntityIdentifierRegistry {
 
-    public static CompoundTag ENTITY_IDENTIFIERS;
+    public static NbtMap ENTITY_IDENTIFIERS;
 
     private EntityIdentifierRegistry() {
     }
@@ -52,9 +53,9 @@ public class EntityIdentifierRegistry {
         InputStream stream = FileUtils.getResource("bedrock/entity_identifiers.dat");
 
         try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-            ENTITY_IDENTIFIERS = (CompoundTag) nbtInputStream.readTag();
+            ENTITY_IDENTIFIERS = (NbtMap) nbtInputStream.readTag();
         } catch (Exception e) {
-            throw new AssertionError("Unable to get entities from entity identifiers", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.entity"), e);
         }
     }
 }

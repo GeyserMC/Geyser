@@ -35,7 +35,7 @@ import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.protocol.ProtocolConstants;
-import org.geysermc.common.ping.GeyserPingInfo;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
 import java.net.Inet4Address;
@@ -60,14 +60,15 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
             else future.complete(event);
         }));
         ProxyPingEvent event = future.join();
+        ServerPing response = event.getResponse();
         GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
-                event.getResponse().getDescription(),
-                event.getResponse().getPlayers().getOnline(),
-                event.getResponse().getPlayers().getMax()
+                response.getDescriptionComponent().toLegacyText(),
+                new GeyserPingInfo.Players(response.getPlayers().getMax(), response.getPlayers().getOnline()),
+                new GeyserPingInfo.Version(response.getVersion().getName(), response.getVersion().getProtocol())
         );
         if (event.getResponse().getPlayers().getSample() != null) {
             Arrays.stream(event.getResponse().getPlayers().getSample()).forEach(proxiedPlayer -> {
-                geyserPingInfo.addPlayer(proxiedPlayer.getName());
+                geyserPingInfo.getPlayerList().add(proxiedPlayer.getName());
             });
         }
         return geyserPingInfo;

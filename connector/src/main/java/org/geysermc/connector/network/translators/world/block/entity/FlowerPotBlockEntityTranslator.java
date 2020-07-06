@@ -26,10 +26,9 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
@@ -39,46 +38,47 @@ import org.geysermc.connector.utils.BlockEntityUtils;
 public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
 
     @Override
-    public boolean isBlock(BlockState blockState) {
-        return (BlockStateValues.getFlowerPotValues().containsKey(blockState.getId()));
+    public boolean isBlock(int blockState) {
+        return (BlockStateValues.getFlowerPotValues().containsKey(blockState));
     }
 
     @Override
-    public void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
+    public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(blockState));
         updateBlockPacket.setBlockPosition(position);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.sendUpstreamPacket(updateBlockPacket);
+        BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
     }
 
     /**
      * Get the Nukkit CompoundTag of the flower pot.
-     * @param blockState Java BlockState of flower pot.
+     * @param blockState Java block state of flower pot.
      * @param position Bedrock position of flower pot.
      * @return Bedrock tag of flower pot.
      */
-    public static CompoundTag getTag(BlockState blockState, Vector3i position) {
-        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
-                .intTag("x", position.getX())
-                .intTag("y", position.getY())
-                .intTag("z", position.getZ())
-                .byteTag("isMovable", (byte) 1)
-                .stringTag("id", "FlowerPot");
+    public static NbtMap getTag(int blockState, Vector3i position) {
+        NbtMapBuilder tagBuilder = NbtMap.builder()
+                .putInt("x", position.getX())
+                .putInt("y", position.getY())
+                .putInt("z", position.getZ())
+                .putByte("isMovable", (byte) 1)
+                .putString("id", "FlowerPot");
         // Get the Java name of the plant inside. e.g. minecraft:oak_sapling
-        String name = BlockStateValues.getFlowerPotValues().get(blockState.getId());
+        String name = BlockStateValues.getFlowerPotValues().get(blockState);
         if (name != null) {
             // Get the Bedrock CompoundTag of the block.
             // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
-            CompoundTag plant = BlockStateValues.getFlowerPotBlocks().get(name);
+            NbtMap plant = BlockStateValues.getFlowerPotBlocks().get(name);
             if (plant != null) {
-                tagBuilder.tag(plant.toBuilder().build("PlantBlock"));
+                tagBuilder.put("PlantBlock", plant.toBuilder().build());
             }
         }
-        return tagBuilder.buildRootTag();
+        return tagBuilder.build();
     }
 }

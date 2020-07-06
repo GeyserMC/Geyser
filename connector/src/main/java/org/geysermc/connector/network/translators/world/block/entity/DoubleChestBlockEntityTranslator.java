@@ -26,20 +26,17 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.ByteTag;
-import com.nukkitx.nbt.tag.IntTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.DoubleChestValue;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Chests have more block entity properties in Bedrock, which is solved by implementing the BedrockOnlyBlockEntity
@@ -48,23 +45,23 @@ import java.util.List;
 public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
 
     @Override
-    public boolean isBlock(BlockState blockState) {
-        return BlockStateValues.getDoubleChestValues().containsKey(blockState.getId());
+    public boolean isBlock(int blockState) {
+        return BlockStateValues.getDoubleChestValues().containsKey(blockState);
     }
 
     @Override
-    public void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
+    public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         CompoundTag javaTag = getConstantJavaTag("chest", position.getX(), position.getY(), position.getZ());
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId("chest"), position.getX(), position.getY(), position.getZ()).toBuilder();
-        translateTag(javaTag, blockState).forEach(tagBuilder::tag);
-        BlockEntityUtils.updateBlockEntity(session, tagBuilder.buildRootTag(), position);
+        NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId("chest"), position.getX(), position.getY(), position.getZ()).toBuilder();
+        translateTag(javaTag, blockState).forEach(tagBuilder::put);
+        BlockEntityUtils.updateBlockEntity(session, tagBuilder.build(), position);
     }
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
-        List<Tag<?>> tags = new ArrayList<>();
-        if (blockState != null && BlockStateValues.getDoubleChestValues().containsKey(blockState.getId())) {
-            DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().get(blockState.getId());
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        Map<String, Object> tags = new HashMap<>();
+        if (BlockStateValues.getDoubleChestValues().containsKey(blockState)) {
+            DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().get(blockState);
             if (chestValues != null) {
                 int x = (int) tag.getValue().get("x").getValue();
                 int z = (int) tag.getValue().get("z").getValue();
@@ -86,10 +83,10 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
                         x = x + (chestValues.isLeft ? 1 : -1);
                     }
                 }
-                tags.add(new IntTag("pairx", x));
-                tags.add(new IntTag("pairz", z));
+                tags.put("pairx", x);
+                tags.put("pairz", z);
                 if (!chestValues.isLeft) {
-                    tags.add(new ByteTag("pairlead", (byte) 1));
+                    tags.put("pairlead", (byte) 1);
                 }
             }
         }
@@ -102,7 +99,7 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
         return null;
     }
 }

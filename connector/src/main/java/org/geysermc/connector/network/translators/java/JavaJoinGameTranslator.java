@@ -52,6 +52,13 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
     public void translate(ServerJoinGamePacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
+        // If the player is already initialized and a join game packet is sent, they
+        // are swapping servers
+        if (session.isSpawned()) {
+            String fakeDim = entity.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
+            DimensionUtils.switchDimension(session, fakeDim);
+            DimensionUtils.switchDimension(session, packet.getDimension());
+        }
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
@@ -80,7 +87,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, Hand.MAIN_HAND);
         session.sendDownstreamPacket(clientSettingsPacket);
 
-        if (DimensionUtils.javaToBedrock(packet.getDimension()) != entity.getDimension()) {
+        if (!packet.getDimension().equals(entity.getDimension())) {
             DimensionUtils.switchDimension(session, packet.getDimension());
         }
     }
