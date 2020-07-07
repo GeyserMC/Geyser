@@ -28,10 +28,10 @@ package org.geysermc.connector.network.translators.item.translators.nbt;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.LongTag;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 
 @ItemRemapper
 public class MapItemTranslator extends NbtItemStackTranslator {
@@ -41,7 +41,7 @@ public class MapItemTranslator extends NbtItemStackTranslator {
         IntTag mapId = itemTag.get("map");
 
         if (mapId != null) {
-            itemTag.put(new StringTag("map_uuid", mapId.getValue().toString()));
+            itemTag.put(new LongTag("map_uuid", mapId.getValue()));
             itemTag.put(new IntTag("map_name_index", mapId.getValue()));
             itemTag.put(new ByteTag("map_display_players", (byte) 1));
             itemTag.remove("map");
