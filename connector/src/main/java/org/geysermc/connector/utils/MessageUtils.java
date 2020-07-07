@@ -391,7 +391,8 @@ public class MessageUtils {
 
         for (Map.Entry<String, Integer> testColor : COLORS.entrySet()) {
             if (testColor.getValue() == rgb) {
-                return testColor.getKey();
+                closest = testColor.getKey();
+                break;
             }
 
             int testR = (testColor.getValue() >> 16) & 0xFF;
