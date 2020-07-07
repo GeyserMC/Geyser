@@ -39,10 +39,15 @@ import org.geysermc.connector.plugin.handlers.PluginMethodEventHandler;
 import org.geysermc.connector.plugin.annotations.Plugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+
+import static jdk.xml.internal.SecuritySupport.getClassLoader;
 
 /**
  * All GeyserPlugins extend from this
@@ -177,6 +182,18 @@ public abstract class GeyserPlugin {
      * Return an InputStream for a resource file
      */
     public InputStream getResourceAsStream(String name) {
-        return getPluginClassLoader().getResourceAsStream(name);
+        try {
+            URL url = getPluginClassLoader().getResource(name);
+
+            if (url == null) {
+                return null;
+            }
+
+            URLConnection connection = url.openConnection();
+            connection.setUseCaches(false);
+            return connection.getInputStream();
+        } catch (IOException ex) {
+            return null;
+        }
     }
 }
