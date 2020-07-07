@@ -60,6 +60,8 @@ public class ItemRegistry {
     public static final int SHIELD = 829;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
     public static final int BOAT = 333;
+    // Gold ID, used in PiglinEntity.java
+    public static final int GOLD = 266;
 
     public static int BARRIER_INDEX = 0;
 
