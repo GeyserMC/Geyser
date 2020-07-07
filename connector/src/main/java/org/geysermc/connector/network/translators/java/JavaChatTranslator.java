@@ -25,14 +25,13 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.MessageUtils;
-
-import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
 
 import java.util.List;
 
@@ -66,14 +65,14 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
             textPacket.setType(TextPacket.Type.TRANSLATION);
             textPacket.setNeedsTranslation(true);
 
-            List<String> paramsTranslated = MessageUtils.getTranslationParams(((TranslationMessage) packet.getMessage()).getTranslationParams(), locale);
+            List<String> paramsTranslated = MessageUtils.getTranslationParams(((TranslationMessage) packet.getMessage()).getWith(), locale, packet.getMessage());
             textPacket.setParameters(paramsTranslated);
 
-            textPacket.setMessage(MessageUtils.insertParams(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, true), paramsTranslated));
+            textPacket.setMessage(MessageUtils.insertParams(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, true, packet.getMessage()), paramsTranslated));
         } else {
             textPacket.setNeedsTranslation(false);
 
-            textPacket.setMessage(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, false));
+            textPacket.setMessage(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, false, packet.getMessage()));
         }
 
         session.sendUpstreamPacket(textPacket);

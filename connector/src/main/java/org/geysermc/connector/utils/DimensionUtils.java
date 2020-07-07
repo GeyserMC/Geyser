@@ -36,10 +36,15 @@ public class DimensionUtils {
     // Changes if the above-bedrock Nether building workaround is applied
     private static int BEDROCK_NETHER_ID = 1;
 
-    public static void switchDimension(GeyserSession session, int javaDimension) {
+    // Static references to all vanilla dimensions
+    public static final String OVERWORLD = "minecraft:overworld";
+    public static final String NETHER = "minecraft:the_nether";
+    public static final String THE_END = "minecraft:the_end";
+
+    public static void switchDimension(GeyserSession session, String javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
-        if (bedrockDimension == player.getDimension())
+        if (javaDimension.equals(player.getDimension()))
             return;
 
         session.getEntityCache().removeAllEntities();
@@ -55,7 +60,7 @@ public class DimensionUtils {
         changeDimensionPacket.setRespawn(true);
         changeDimensionPacket.setPosition(pos.toFloat());
         session.sendUpstreamPacket(changeDimensionPacket);
-        player.setDimension(bedrockDimension);
+        player.setDimension(javaDimension);
         player.setPosition(pos.toFloat());
         session.setSpawned(false);
         session.setLastChunkPosition(null);
@@ -83,14 +88,14 @@ public class DimensionUtils {
      * @param javaDimension Dimension ID to convert
      * @return Converted Bedrock edition dimension ID
      */
-    public static int javaToBedrock(int javaDimension) {
+    public static int javaToBedrock(String javaDimension) {
         switch (javaDimension) {
-            case -1:
+            case NETHER:
                 return BEDROCK_NETHER_ID;
-            case 1:
+            case THE_END:
                 return 2;
             default:
-                return javaDimension;
+                return 0;
         }
     }
 

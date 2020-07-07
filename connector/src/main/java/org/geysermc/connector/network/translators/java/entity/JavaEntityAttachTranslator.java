@@ -27,9 +27,9 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAttachPacket;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -63,7 +63,7 @@ public class JavaEntityAttachTranslator extends PacketTranslator<ServerEntityAtt
             if ((attachedToId == null || packet.getAttachedToId() == 0)) {
                 // Is not being leashed
                 holderId.getMetadata().getFlags().setFlag(EntityFlag.LEASHED, false);
-                holderId.getMetadata().put(EntityData.LEAD_HOLDER_EID, 0);
+                holderId.getMetadata().put(EntityData.LEASH_HOLDER_EID, 0);
                 holderId.updateBedrockMetadata(session);
                 EntityEventPacket eventPacket = new EntityEventPacket();
                 eventPacket.setRuntimeEntityId(holderId.getGeyserId());
@@ -75,7 +75,7 @@ public class JavaEntityAttachTranslator extends PacketTranslator<ServerEntityAtt
         }
 
         holderId.getMetadata().getFlags().setFlag(EntityFlag.LEASHED, true);
-        holderId.getMetadata().put(EntityData.LEAD_HOLDER_EID, attachedToId.getGeyserId());
+        holderId.getMetadata().put(EntityData.LEASH_HOLDER_EID, attachedToId.getGeyserId());
         holderId.updateBedrockMetadata(session);
     }
 }

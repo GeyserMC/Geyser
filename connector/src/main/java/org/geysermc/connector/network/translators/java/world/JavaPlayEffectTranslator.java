@@ -49,6 +49,7 @@ import java.util.List;
 @Translator(packet = ServerPlayEffectPacket.class)
 public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectPacket> {
 
+    // TODO: Update mappings since they're definitely all going to be wrong now
     @Override
     public void translate(ServerPlayEffectPacket packet, GeyserSession session) {
         LevelEventPacket effect = new LevelEventPacket();
@@ -63,21 +64,21 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                 switch (particleEffect) {
                     // TODO: BREAK_SPLASH_POTION has additional data
                     case BONEMEAL_GROW:
-                        effect.setType(LevelEventType.BONEMEAL);
+                        effect.setType(LevelEventType.PARTICLE_CROP_GROWTH);
                         BonemealGrowEffectData growEffectData = (BonemealGrowEffectData) packet.getData();
                         effect.setData(growEffectData.getParticleCount());
                         break;
                     //TODO: Block break particles when under fire
                     case BREAK_BLOCK:
-                        effect.setType(LevelEventType.DESTROY);
+                        effect.setType(LevelEventType.PARTICLE_DESTROY_BLOCK); // TODO: Check to make sure this is right
                         BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
                         effect.setData(BlockTranslator.getBedrockBlockId(breakBlockEffectData.getBlockState()));
                         break;
                     case EXPLOSION:
-                        effect.setType(LevelEventType.PARTICLE_LARGE_EXPLOSION);
+                        effect.setType(LevelEventType.PARTICLE_EXPLOSION);
                         break;
                     case MOB_SPAWN:
-                        effect.setType(LevelEventType.ENTITY_SPAWN);
+                        effect.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
                         break;
                         // Done with a dispenser
                     case SMOKE:
@@ -85,7 +86,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         effect.setType(LevelEventType.PARTICLE_SMOKE);
                         break;
                     case COMPOSTER:
-                        effect.setType(LevelEventType.BONEMEAL);
+                        effect.setType(LevelEventType.PARTICLE_CROP_GROWTH);
 
                         ComposterEffectData composterEffectData = (ComposterEffectData) packet.getData();
                         LevelSoundEventPacket soundEvent = new LevelSoundEventPacket();
@@ -98,7 +99,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         session.sendUpstreamPacket(soundEvent);
                         break;
                     case BLOCK_LAVA_EXTINGUISH:
-                        effect.setType(LevelEventType.SHOOT);
+                        effect.setType(LevelEventType.PARTICLE_SHOOT);
                         effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY() + 1, packet.getPosition().getZ()));
                         session.sendUpstreamPacket(effect);
 
