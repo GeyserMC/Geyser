@@ -40,6 +40,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.BlockEntityRegistryEvent;
+import org.geysermc.connector.event.events.RuntimeBlockStateReadEvent;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
@@ -84,7 +85,8 @@ public class BlockTranslator {
 
         NbtList<NbtMap> blocksTag;
         try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-            blocksTag = (NbtList<NbtMap>) nbtInputStream.readTag();
+            blocksTag = EventManager.getInstance().triggerEvent(new RuntimeBlockStateReadEvent(
+                    (NbtList<NbtMap>) nbtInputStream.readTag())).getEvent().getBlockStates();
         } catch (Exception e) {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
