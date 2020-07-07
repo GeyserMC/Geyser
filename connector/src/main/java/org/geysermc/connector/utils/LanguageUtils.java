@@ -173,6 +173,7 @@ public class LanguageUtils {
         locale = formatLocale(Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry());
         if (!isValidLanguage(locale)) { // Bedrock does not support this language
             locale = "en_US";
+            loadGeyserLocale(locale);
         }
         if (GeyserConnector.getInstance() != null &&
                 GeyserConnector.getInstance().getConfig() != null && (GeyserConnector.getInstance().getConfig().getDefaultLocale() == null || !isValid)) { // Means we should use the system locale for sure

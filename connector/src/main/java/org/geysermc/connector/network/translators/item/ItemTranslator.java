@@ -28,17 +28,7 @@ package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
-import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.DoubleTag;
-import com.github.steveice10.opennbt.tag.builtin.FloatTag;
-import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.LongArrayTag;
-import com.github.steveice10.opennbt.tag.builtin.LongTag;
-import com.github.steveice10.opennbt.tag.builtin.ShortTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -46,13 +36,16 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.ItemRemapperRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
 
 import java.util.*;
@@ -170,6 +163,12 @@ public abstract class ItemTranslator {
             NbtMap display = tag.getCompound("display");
             if (display != null) {
                 String name = display.getString("Name");
+
+                // If its not a message convert it
+                if (!MessageUtils.isMessage(name)) {
+                    TextComponent component = LegacyComponentSerializer.legacy().deserialize(name);
+                    name = GsonComponentSerializer.gson().serialize(component);
+                }
 
                 // Check if its a message to translate
                 if (MessageUtils.isMessage(name)) {
