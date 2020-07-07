@@ -210,6 +210,13 @@ public class GeyserSession implements CommandSender {
         this.loggedIn = false;
 
         this.inventoryCache.getInventories().put(0, inventory);
+
+        bedrockServerSession.addDisconnectHandler(disconnectReason -> {
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
+
+            disconnect(disconnectReason.name());
+            connector.removePlayer(this);
+        });
     }
 
     public void connect(RemoteServer remoteServer) {
@@ -428,7 +435,7 @@ public class GeyserSession implements CommandSender {
                 downstream.getSession().disconnect(reason);
             }
             if (upstream != null && !upstream.isClosed()) {
-                connector.getPlayers().remove(this.upstream.getAddress());
+                connector.getPlayers().remove(this);
                 upstream.disconnect(reason);
             }
         }

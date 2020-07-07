@@ -37,7 +37,7 @@ public class FishingHookEntity extends Entity {
     public FishingHookEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, ProjectileData data) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
-        for (GeyserSession session : GeyserConnector.getInstance().getPlayers().values()) {
+        for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
             Entity entity = session.getEntityCache().getEntityByJavaId(data.getOwnerId());
             if (entity == null && session.getPlayerEntity().getEntityId() == data.getOwnerId()) {
                 entity = session.getPlayerEntity();
