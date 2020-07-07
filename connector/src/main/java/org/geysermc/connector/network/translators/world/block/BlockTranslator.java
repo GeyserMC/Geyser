@@ -40,6 +40,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.BlockEntityRegistryEvent;
+import org.geysermc.connector.event.events.BuildBedrockStateEvent;
+import org.geysermc.connector.event.events.BuildBlockStateMapEvent;
 import org.geysermc.connector.event.events.RuntimeBlockStateReadEvent;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.utils.FileUtils;
@@ -80,26 +82,29 @@ public class BlockTranslator {
     private static final int BLOCK_STATE_VERSION = 17825806;
 
     static {
-        /* Load block palette */
-        InputStream stream = FileUtils.getResource("bedrock/runtime_block_states.dat");
-
-        NbtList<NbtMap> blocksTag;
-        try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-            blocksTag = EventManager.getInstance().triggerEvent(new RuntimeBlockStateReadEvent(
-                    (NbtList<NbtMap>) nbtInputStream.readTag())).getEvent().getBlockStates();
-        } catch (Exception e) {
-            throw new AssertionError("Unable to get blocks from runtime block states", e);
-        }
-
         Map<NbtMap, NbtMap> blockStateMap = new HashMap<>();
 
-        for (NbtMap tag : blocksTag) {
-            if (blockStateMap.putIfAbsent(tag.getCompound("block"), tag) != null) {
-                throw new AssertionError("Duplicate block states in Bedrock palette");
-            }
-        }
+        EventManager.getInstance().triggerEvent(new BuildBlockStateMapEvent(blockStateMap))
+                .onNotCancelled(result -> {
+                    /* Load block palette */
+                    InputStream stream = FileUtils.getResource("bedrock/runtime_block_states.dat");
 
-        stream = FileUtils.getResource("mappings/blocks.json");
+                    NbtList<NbtMap> blocksTag;
+                    try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
+                        blocksTag = EventManager.getInstance().triggerEvent(new RuntimeBlockStateReadEvent(
+                                (NbtList<NbtMap>) nbtInputStream.readTag())).getEvent().getBlockStates();
+                    } catch (Exception e) {
+                        throw new AssertionError("Unable to get blocks from runtime block states", e);
+                    }
+
+                    for (NbtMap tag : blocksTag) {
+                        if (blockStateMap.putIfAbsent(tag.getCompound("block"), tag) != null) {
+                            throw new AssertionError("Duplicate block states in Bedrock palette");
+                        }
+                    }
+                });
+
+        InputStream stream = FileUtils.getResource("mappings/blocks.json");
         JsonNode blocks;
         try {
             blocks = GeyserConnector.JSON_MAPPER.readTree(stream);
@@ -255,6 +260,7 @@ public class BlockTranslator {
         }
 
         BLOCKS = new NbtList<>(NbtType.COMPOUND, paletteList);
+        System.err.println(BLOCKS);
     }
 
     private BlockTranslator() {
@@ -291,7 +297,8 @@ public class BlockTranslator {
             }
         }
         tagBuilder.put("states", statesBuilder.build());
-        return tagBuilder.build();
+
+        return EventManager.getInstance().triggerEvent(new BuildBedrockStateEvent(node, tagBuilder.build())).getEvent().getBlockState();
     }
 
     public static int getBedrockBlockId(int state) {
