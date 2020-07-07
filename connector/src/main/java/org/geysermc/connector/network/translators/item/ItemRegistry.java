@@ -57,11 +57,11 @@ public class ItemRegistry {
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     // Shield ID, used in Entity.java
-    public static final int SHIELD = 829;
+    public static int SHIELD = 0;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
-    public static final int BOAT = 333;
+    public static int BOAT = 0;
     // Gold ID, used in PiglinEntity.java
-    public static final int GOLD = 266;
+    public static int GOLD = 0;
 
     public static int BARRIER_INDEX = 0;
 
@@ -85,6 +85,20 @@ public class ItemRegistry {
 
         for (JsonNode entry : itemEntries) {
             ITEMS.add(new StartGamePacket.ItemEntry(entry.get("name").textValue(), (short) entry.get("id").intValue()));
+
+            switch (entry.get("name").textValue()) {
+                case "minecraft:shield":
+                    SHIELD = entry.get("id").intValue();
+                    break;
+                case "minecraft:boat":
+                    BOAT = entry.get("id").intValue();
+                    break;
+                case "minecraft:gold_ingot":
+                    GOLD = entry.get("id").intValue();
+                    break;
+                default:
+                    break;
+            }
         }
 
         stream = FileUtils.getResource("mappings/items.json");
