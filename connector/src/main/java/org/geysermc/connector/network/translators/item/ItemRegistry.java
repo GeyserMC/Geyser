@@ -57,11 +57,11 @@ public class ItemRegistry {
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     // Shield ID, used in Entity.java
-    public static int SHIELD = 0;
+    public static ItemEntry SHIELD;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
-    public static int BOAT = 0;
+    public static ItemEntry BOAT;
     // Gold ID, used in PiglinEntity.java
-    public static int GOLD = 0;
+    public static ItemEntry GOLD;
 
     public static int BARRIER_INDEX = 0;
 
@@ -85,20 +85,6 @@ public class ItemRegistry {
 
         for (JsonNode entry : itemEntries) {
             ITEMS.add(new StartGamePacket.ItemEntry(entry.get("name").textValue(), (short) entry.get("id").intValue()));
-
-            switch (entry.get("name").textValue()) {
-                case "minecraft:shield":
-                    SHIELD = entry.get("id").intValue();
-                    break;
-                case "minecraft:boat":
-                    BOAT = entry.get("id").intValue();
-                    break;
-                case "minecraft:gold_ingot":
-                    GOLD = entry.get("id").intValue();
-                    break;
-                default:
-                    break;
-            }
         }
 
         stream = FileUtils.getResource("mappings/items.json");
@@ -139,8 +125,21 @@ public class ItemRegistry {
                         entry.getValue().get("bedrock_data").intValue(),
                         entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
             }
-            if (entry.getKey().equals("minecraft:barrier")) {
-                BARRIER_INDEX = itemIndex;
+            switch (entry.getKey()) {
+                case "minecraft:barrier":
+                    BARRIER_INDEX = itemIndex;
+                    break;
+                case "minecraft:oak_boat":
+                    BOAT = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:gold_ingot":
+                    GOLD = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:shield":
+                    SHIELD = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                default:
+                    break;
             }
 
             itemIndex++;

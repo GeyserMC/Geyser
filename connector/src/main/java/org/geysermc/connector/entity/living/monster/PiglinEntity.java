@@ -61,7 +61,7 @@ public class PiglinEntity extends MonsterEntity {
     @Override
     public void updateEquipment(GeyserSession session) {
         // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly
-        metadata.getFlags().setFlag(EntityFlag.ADMIRING, offHand.getId() == ItemRegistry.GOLD);
+        metadata.getFlags().setFlag(EntityFlag.ADMIRING, offHand.getId() == ItemRegistry.GOLD.getBedrockId());
         super.updateBedrockMetadata(session);
 
         super.updateEquipment(session);
