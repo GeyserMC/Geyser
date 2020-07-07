@@ -110,7 +110,6 @@ public class GeyserConnector {
         logger.info("Loading " + NAME + " version " + VERSION);
         logger.info("");
         logger.info("******************************************");
-        logger.warning("This build is for connecting to Java 1.15.2 servers and from Bedrock 1.14.60 clients. Please join our Discord (https://discord.geysermc.org) for up-to-date information about where to download 1.16.");
 
         this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
 
