@@ -177,6 +177,6 @@ public abstract class GeyserPlugin {
      * Return an InputStream for a resource file
      */
     public InputStream getResourceAsStream(String name) {
-        return getClass().getClassLoader().getResourceAsStream(name);
+        return getPluginClassLoader().getResourceAsStream(name);
     }
 }

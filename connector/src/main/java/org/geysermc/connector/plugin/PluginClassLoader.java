@@ -187,6 +187,21 @@ public class PluginClassLoader extends URLClassLoader {
         return cls;
     }
 
+    @Override
+    public URL getResource(String name) {
+        return findResource(name);
+    }
+
+    @Override
+    public Enumeration<URL> getResources(String name) throws IOException {
+        return findResources(name);
+    }
+
+    @Override
+    public InputStream getResourceAsStream(String name) {
+        return super.getResourceAsStream(name);
+    }
+
     public static class InvalidPluginClassLoaderException extends Exception {
         InvalidPluginClassLoaderException(String msg) {
             super(msg);
