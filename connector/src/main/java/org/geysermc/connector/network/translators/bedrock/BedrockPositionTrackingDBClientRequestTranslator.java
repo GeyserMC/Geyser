@@ -26,18 +26,18 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.IntTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.PositionTrackingDBClientRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.PositionTrackingDBServerBroadcastPacket;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LoadstoneTracker;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Translator(packet = PositionTrackingDBClientRequestPacket.class)
 public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTranslator<PositionTrackingDBClientRequestPacket> {
@@ -60,22 +60,20 @@ public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTran
         broadcastPacket.setAction(PositionTrackingDBServerBroadcastPacket.Action.UPDATE);
 
         // Build the nbt data for the update
-        CompoundTagBuilder builder = CompoundTagBuilder.builder();
-        builder.intTag("dim", DimensionUtils.javaToBedrock(pos.getDimension()));
-        builder.stringTag("id", String.format("%08X", packet.getTrackingId()));
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putInt("dim", DimensionUtils.javaToBedrock(pos.getDimension()));
+        builder.putString("id", String.format("%08X", packet.getTrackingId()));
 
-        builder.byteTag("version", (byte) 1); // Not sure what this is for
-        builder.byteTag("status", (byte) 0); // Not sure what this is for
+        builder.putByte("version", (byte) 1); // Not sure what this is for
+        builder.putByte("status", (byte) 0); // Not sure what this is for
 
         // Build the position for the update
-        List<IntTag> posList = new ArrayList<>();
-        posList.add(new IntTag("", pos.getX()));
-        posList.add(new IntTag("", pos.getY()));
-        posList.add(new IntTag("", pos.getZ()));
-
-        builder.listTag("pos", IntTag.class, posList);
-
-        broadcastPacket.setTag(builder.buildRootTag());
+        IntList posList = new IntArrayList();
+        posList.add(pos.getX());
+        posList.add(pos.getY());
+        posList.add(pos.getZ());
+        builder.putList("pos", NbtType.INT, posList);
+        broadcastPacket.setTag(builder.build());
 
         session.sendUpstreamPacket(broadcastPacket);
     }

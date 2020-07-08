@@ -137,7 +137,7 @@ public class FileUtils {
         String resourceName = GeyserEdition.INSTANCE.getEdition() + "/" + resource;
         InputStream stream = FileUtils.class.getClassLoader().getResourceAsStream(resourceName);
         if (stream == null) {
-            throw new AssertionError("Unable to find resource: " + resourceName);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.resource", resourceName));
         }
         return stream;
     }

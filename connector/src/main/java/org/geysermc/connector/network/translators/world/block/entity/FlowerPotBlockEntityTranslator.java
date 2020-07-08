@@ -27,8 +27,8 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
@@ -49,10 +49,11 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(blockState));
         updateBlockPacket.setBlockPosition(position);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NO_GRAPHIC); //TODO: Check
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.sendUpstreamPacket(updateBlockPacket);
+        BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
     }
 
     /**
@@ -61,23 +62,23 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
      * @param position Bedrock position of flower pot.
      * @return Bedrock tag of flower pot.
      */
-    public static CompoundTag getTag(int blockState, Vector3i position) {
-        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
-                .intTag("x", position.getX())
-                .intTag("y", position.getY())
-                .intTag("z", position.getZ())
-                .byteTag("isMovable", (byte) 1)
-                .stringTag("id", "FlowerPot");
+    public static NbtMap getTag(int blockState, Vector3i position) {
+        NbtMapBuilder tagBuilder = NbtMap.builder()
+                .putInt("x", position.getX())
+                .putInt("y", position.getY())
+                .putInt("z", position.getZ())
+                .putByte("isMovable", (byte) 1)
+                .putString("id", "FlowerPot");
         // Get the Java name of the plant inside. e.g. minecraft:oak_sapling
         String name = BlockStateValues.getFlowerPotValues().get(blockState);
         if (name != null) {
             // Get the Bedrock CompoundTag of the block.
             // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
-            CompoundTag plant = BlockStateValues.getFlowerPotBlocks().get(name);
+            NbtMap plant = BlockStateValues.getFlowerPotBlocks().get(name);
             if (plant != null) {
-                tagBuilder.tag(plant.toBuilder().build("PlantBlock"));
+                tagBuilder.put("PlantBlock", plant.toBuilder().build());
             }
         }
-        return tagBuilder.buildRootTag();
+        return tagBuilder.build();
     }
 }

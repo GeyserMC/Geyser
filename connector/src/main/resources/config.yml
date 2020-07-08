@@ -82,8 +82,8 @@ allow-third-party-ears: false
 # Allow a fake cooldown indicator to be sent. Bedrock players do not see a cooldown as they still use 1.8 combat
 show-cooldown: true
 
-# The default locale if we dont have the one the client requested
-default-locale: en_us
+# The default locale if we dont have the one the client requested. Uncomment to not use the default system language.
+# default-locale: en_us
 
 # Configures if chunk caching should be enabled or not. This keeps an individual
 # record of each block the client loads in. While this feature does allow for a few

@@ -25,15 +25,11 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.ByteTag;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.FloatTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @BlockEntity(name = "Skull", regex = "skull")
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
@@ -44,14 +40,14 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     @Override
-    public List<Tag<?>> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, int blockState) {
-        List<Tag<?>> tags = new ArrayList<>();
+    public Map<String, Object> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, int blockState) {
+        Map<String, Object> tags = new HashMap<>();
         byte skullVariant = BlockStateValues.getSkullVariant(blockState);
         float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;
         // Just in case...
         if (skullVariant == -1) skullVariant = 0;
-        tags.add(new FloatTag("Rotation", rotation));
-        tags.add(new ByteTag("SkullType", skullVariant));
+        tags.put("Rotation", rotation);
+        tags.put("SkullType", skullVariant);
         return tags;
     }
 
@@ -61,10 +57,10 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     @Override
-    public CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        tagBuilder.floatTag("Rotation", 0);
-        tagBuilder.byteTag("SkullType", (byte) 0);
-        return tagBuilder.buildRootTag();
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
+                .putFloat("Rotation", 0f)
+                .putByte("SkullType", (byte) 0)
+                .build();
     }
 }

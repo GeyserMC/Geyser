@@ -28,14 +28,15 @@ package org.geysermc.connector.network.translators.world.block.entity;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.connector.utils.LanguageUtils;
+import org.reflections.Reflections;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public abstract class BlockEntityTranslator {
@@ -75,20 +76,21 @@ public abstract class BlockEntityTranslator {
         }
     }
 
-    public abstract List<Tag<?>> translateTag(CompoundTag tag, int blockState);
+    public abstract Map<String, Object> translateTag(CompoundTag tag, int blockState);
 
     public abstract CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z);
 
-    public abstract com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z);
+    public abstract NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z);
 
-    public com.nukkitx.nbt.tag.CompoundTag getBlockEntityTag(String id, CompoundTag tag, int blockState) {
+    public NbtMap getBlockEntityTag(String id, CompoundTag tag, int blockState) {
         int x = Integer.parseInt(String.valueOf(tag.getValue().get("x").getValue()));
         int y = Integer.parseInt(String.valueOf(tag.getValue().get("y").getValue()));
         int z = Integer.parseInt(String.valueOf(tag.getValue().get("z").getValue()));
 
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(id), x, y, z).toBuilder();
-        translateTag(tag, blockState).forEach(tagBuilder::tag);
-        return tagBuilder.buildRootTag();
+        NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(id), x, y, z).toBuilder();
+        Map<String, Object> translatedTags = translateTag(tag, blockState);
+        translatedTags.forEach(tagBuilder::put);
+        return tagBuilder.build();
     }
 
     protected CompoundTag getConstantJavaTag(String javaId, int x, int y, int z) {
@@ -100,13 +102,13 @@ public abstract class BlockEntityTranslator {
         return tag;
     }
 
-    protected com.nukkitx.nbt.tag.CompoundTag getConstantBedrockTag(String bedrockId, int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
-                .intTag("x", x)
-                .intTag("y", y)
-                .intTag("z", z)
-                .stringTag("id", bedrockId);
-        return tagBuilder.buildRootTag();
+    protected NbtMap getConstantBedrockTag(String bedrockId, int x, int y, int z) {
+        return NbtMap.builder()
+                .putInt("x", x)
+                .putInt("y", y)
+                .putInt("z", z)
+                .putString("id", bedrockId)
+                .build();
     }
 
     @SuppressWarnings("unchecked")

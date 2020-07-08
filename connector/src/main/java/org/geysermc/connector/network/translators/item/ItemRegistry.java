@@ -29,6 +29,7 @@ package org.geysermc.connector.network.translators.item;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
@@ -36,16 +37,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Registry for anything item related.
@@ -60,9 +57,11 @@ public class ItemRegistry {
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     // Shield ID, used in Entity.java
-    public static final int SHIELD = 829;
+    public static ItemEntry SHIELD;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
-    public static final int BOAT = 333;
+    public static ItemEntry BOAT;
+    // Gold ID, used in PiglinEntity.java
+    public static ItemEntry GOLD;
 
     public static int BARRIER_INDEX = 0;
 
@@ -77,7 +76,7 @@ public class ItemRegistry {
         try {
             itemEntries = GeyserConnector.JSON_MAPPER.readValue(stream, itemEntriesType);
         } catch (Exception e) {
-            throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_bedrock"), e);
         }
 
         for (JsonNode entry : itemEntries) {
@@ -90,7 +89,7 @@ public class ItemRegistry {
         try {
             items = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
-            throw new AssertionError("Unable to load Java runtime item IDs", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
         }
 
         int itemIndex = 0;
@@ -128,8 +127,21 @@ public class ItemRegistry {
                         entry.getValue().get("extra")
                 ));
             }
-            if (entry.getKey().equals("minecraft:barrier")) {
-                BARRIER_INDEX = itemIndex;
+            switch (entry.getKey()) {
+                case "minecraft:barrier":
+                    BARRIER_INDEX = itemIndex;
+                    break;
+                case "minecraft:oak_boat":
+                    BOAT = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:gold_ingot":
+                    GOLD = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:shield":
+                    SHIELD = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                default:
+                    break;
             }
 
             itemIndex++;
@@ -145,7 +157,7 @@ public class ItemRegistry {
         try {
             creativeItemEntries = GeyserConnector.JSON_MAPPER.readTree(stream).get("items");
         } catch (Exception e) {
-            throw new AssertionError("Unable to load creative items", e);
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
         }
 
         List<ItemData> creativeItems = new ArrayList<>();
@@ -158,7 +170,7 @@ public class ItemRegistry {
                 byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
                 ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
                 try {
-                    com.nukkitx.nbt.tag.CompoundTag tag = (com.nukkitx.nbt.tag.CompoundTag) NbtUtils.createReaderLE(bais).readTag();
+                    NbtMap tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
                     creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
                 } catch (IOException e) {
                     e.printStackTrace();

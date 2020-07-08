@@ -26,12 +26,6 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
-import com.nukkitx.nbt.CompoundTagBuilder;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ItemUtils {
 
