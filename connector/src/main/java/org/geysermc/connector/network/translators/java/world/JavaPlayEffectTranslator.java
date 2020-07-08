@@ -75,7 +75,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         effect.setData(BlockTranslator.getBedrockBlockId(breakBlockEffectData.getBlockState()));
                         break;
                     case EXPLOSION:
-                        effect.setType(LevelEventType.PARTICLE_LARGE_EXPLOSION);
+                        effect.setType(LevelEventType.PARTICLE_EXPLOSION);
                         break;
                     case MOB_SPAWN:
                         effect.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java

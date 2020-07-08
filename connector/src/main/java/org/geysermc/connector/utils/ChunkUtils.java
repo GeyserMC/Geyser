@@ -33,9 +33,9 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.NBTOutputStream;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -64,7 +64,7 @@ public class ChunkUtils {
      */
     public static final Object2IntMap<Position> CACHED_BLOCK_ENTITIES = new Object2IntOpenHashMap<>();
 
-    private static final com.nukkitx.nbt.tag.CompoundTag EMPTY_TAG = CompoundTagBuilder.builder().buildRootTag();
+    private static final NbtMap EMPTY_TAG = NbtMap.builder().build();
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
 
     static {
@@ -72,7 +72,7 @@ public class ChunkUtils {
             outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size
 
             try (NBTOutputStream stream = NbtUtils.createNetworkWriter(outputStream)) {
-                stream.write(EMPTY_TAG);
+                stream.writeTag(EMPTY_TAG);
             }
 
             EMPTY_LEVEL_CHUNK_DATA = outputStream.toByteArray();
@@ -91,7 +91,7 @@ public class ChunkUtils {
         Object2IntMap<Position> blockEntityPositions = new Object2IntOpenHashMap<>();
 
         // Temporarily stores compound tags of Bedrock-only block entities
-        ObjectArrayList<com.nukkitx.nbt.tag.CompoundTag> bedrockOnlyBlockEntities = new ObjectArrayList<>();
+        ObjectArrayList<NbtMap> bedrockOnlyBlockEntities = new ObjectArrayList<>();
 
         for (int chunkY = 0; chunkY < chunks.length; chunkY++) {
             chunkData.sections[chunkY] = new ChunkSection();
@@ -131,7 +131,7 @@ public class ChunkUtils {
 
         }
 
-        com.nukkitx.nbt.tag.CompoundTag[] bedrockBlockEntities = new com.nukkitx.nbt.tag.CompoundTag[blockEntities.length + bedrockOnlyBlockEntities.size()];
+        NbtMap[] bedrockBlockEntities = new NbtMap[blockEntities.length + bedrockOnlyBlockEntities.size()];
         int i = 0;
         while (i < blockEntities.length) {
             CompoundTag tag = blockEntities[i];
@@ -162,7 +162,7 @@ public class ChunkUtils {
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
             i++;
         }
-        for (com.nukkitx.nbt.tag.CompoundTag tag : bedrockOnlyBlockEntities) {
+        for (NbtMap tag : bedrockOnlyBlockEntities) {
             bedrockBlockEntities[i] = tag;
             i++;
         }
@@ -270,8 +270,8 @@ public class ChunkUtils {
         public ChunkSection[] sections;
 
         @Getter
-        private com.nukkitx.nbt.tag.CompoundTag[] blockEntities = new com.nukkitx.nbt.tag.CompoundTag[0];
+        private NbtMap[] blockEntities = new NbtMap[0];
         @Getter
-        private Object2IntMap<com.nukkitx.nbt.tag.CompoundTag> loadBlockEntitiesLater = new Object2IntOpenHashMap<>();
+        private Object2IntMap<NbtMap> loadBlockEntitiesLater = new Object2IntOpenHashMap<>();
     }
 }

@@ -27,8 +27,9 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.StringTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
@@ -120,7 +121,7 @@ public class InventoryUtils {
         // Not sure which way of updating cursor is better but both seem to achieve it. However Bedrock uses a muti
         // slot cursor as an undo so using setSlot is probably better.
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
-        cursorPacket.setContainerId(ContainerId.UI); //TODO: CHECK IF ACCURATE
+        cursorPacket.setContainerId(ContainerId.UI);
         cursorPacket.setSlot(0);
         cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
         session.sendUpstreamPacket(cursorPacket);
@@ -143,13 +144,14 @@ public class InventoryUtils {
      * part of the inventory is unusable.
      */
     public static ItemData createUnusableSpaceBlock(String description) {
-        CompoundTagBuilder root = CompoundTagBuilder.builder();
-        CompoundTagBuilder display = CompoundTagBuilder.builder();
+        NbtMapBuilder root = NbtMap.builder();
+        NbtMapBuilder display = NbtMap.builder();
 
-        display.stringTag("Name", ChatColor.RESET + "Unusable inventory space");
-        display.listTag("Lore", StringTag.class, Collections.singletonList(new StringTag("", ChatColor.RESET + ChatColor.DARK_PURPLE + description)));
+        // Not ideal to use log here but we dont get a session
+        display.putString("Name", ChatColor.RESET + LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.name"));
+        display.putList("Lore", NbtType.STRING, Collections.singletonList(ChatColor.RESET + ChatColor.DARK_PURPLE + description));
 
-        root.tag(display.build("display"));
-        return ItemData.of(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.buildRootTag());
+        root.put("display", display.build());
+        return ItemData.of(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.build());
     }
 }

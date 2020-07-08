@@ -28,24 +28,39 @@ package org.geysermc.connector.common.main;
 
 import javax.swing.*;
 import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class IGeyserMain {
 
+    /**
+     * Displays the run help message in the console and a message box if running with a gui
+     */
     public void displayMessage() {
         String message = createMessage();
 
-        if (System.console() == null) {
+        if (System.console() == null && !isHeadless()) {
             JOptionPane.showMessageDialog(null, message, "GeyserMC Plugin: " + this.getPluginType(), JOptionPane.ERROR_MESSAGE);
         }
 
         printMessage(message);
     }
 
+    /**
+     * Load and format the run help text
+     *
+     * @return The formatted message
+     */
     private String createMessage() {
         String message = "";
 
-        InputStream helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("help.txt");
+        InputStream helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("languages/run-help/" + Locale.getDefault().toString() + ".txt");
+
+        if (helpStream == null) {
+            helpStream = IGeyserMain.class.getClassLoader().getResourceAsStream("languages/run-help/en_US.txt");
+        }
+
         Scanner help = new Scanner(helpStream).useDelimiter("\\Z");
         String line = "";
         while (help.hasNext()) {
@@ -60,14 +75,44 @@ public class IGeyserMain {
         return message;
     }
 
+    /**
+     * Check if we are in a headless environment
+     *
+     * @return Are we in a headless environment?
+     */
+    private boolean isHeadless() {
+        try {
+            Class<?> graphicsEnvironment = Class.forName("java.awt.GraphicsEnvironment");
+            Method isHeadless = graphicsEnvironment.getDeclaredMethod("isHeadless");
+            return (Boolean)isHeadless.invoke(null);
+        } catch (Exception ex) { }
+
+        return true;
+    }
+
+    /**
+     * Simply print a message to console
+     *
+     * @param message The message to print
+     */
     private void printMessage(String message) {
         System.out.print(message);
     }
 
+    /**
+     * Get the platform the plugin is for
+     *
+     * @return The string representation of the plugin platforms name
+     */
     public String getPluginType() {
         return "unknown";
     }
 
+    /**
+     * Get the folder name the plugin should go into
+     *
+     * @return The string representation of the folder
+     */
     public String getPluginFolder() {
         return "unknown";
     }

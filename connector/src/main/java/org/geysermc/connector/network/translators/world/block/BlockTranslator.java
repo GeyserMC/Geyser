@@ -28,11 +28,12 @@ package org.geysermc.connector.network.translators.world.block;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.nukkitx.nbt.CompoundTagBuilder;
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NbtList;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.ListTag;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -45,7 +46,7 @@ import java.io.InputStream;
 import java.util.*;
 
 public class BlockTranslator {
-    public static final ListTag<CompoundTag> BLOCKS;
+    public static final NbtList<NbtMap> BLOCKS;
     public static final int AIR = 0;
     public static final int BEDROCK_WATER_ID;
 
@@ -53,7 +54,7 @@ public class BlockTranslator {
     private static final Int2IntMap BEDROCK_TO_JAVA_BLOCK_MAP = new Int2IntOpenHashMap();
     private static final BiMap<String, Integer> JAVA_ID_BLOCK_MAP = HashBiMap.create();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
-    private static final Object2IntMap<CompoundTag> ITEM_FRAMES = new Object2IntOpenHashMap<>();
+    private static final Object2IntMap<NbtMap> ITEM_FRAMES = new Object2IntOpenHashMap<>();
 
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
@@ -79,16 +80,16 @@ public class BlockTranslator {
         /* Load block palette */
         InputStream stream = FileUtils.getResource("bedrock/runtime_block_states.dat");
 
-        ListTag<CompoundTag> blocksTag;
+        NbtList<NbtMap> blocksTag;
         try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-            blocksTag = (ListTag<CompoundTag>) nbtInputStream.readTag();
+            blocksTag = (NbtList<NbtMap>) nbtInputStream.readTag();
         } catch (Exception e) {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
 
-        Map<CompoundTag, CompoundTag> blockStateMap = new HashMap<>();
+        Map<NbtMap, NbtMap> blockStateMap = new HashMap<>();
 
-        for (CompoundTag tag : blocksTag.getValue()) {
+        for (NbtMap tag : blocksTag) {
             if (blockStateMap.putIfAbsent(tag.getCompound("block"), tag) != null) {
                 throw new AssertionError("Duplicate block states in Bedrock palette");
             }
@@ -101,9 +102,9 @@ public class BlockTranslator {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
-        Object2IntMap<CompoundTag> addedStatesMap = new Object2IntOpenHashMap<>();
+        Object2IntMap<NbtMap> addedStatesMap = new Object2IntOpenHashMap<>();
         addedStatesMap.defaultReturnValue(-1);
-        List<CompoundTag> paletteList = new ArrayList<>();
+        List<NbtMap> paletteList = new ArrayList<>();
 
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.block.entity");
         ref.getTypesAnnotatedWith(BlockEntity.class);
@@ -120,7 +121,7 @@ public class BlockTranslator {
             javaRuntimeId++;
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
             String javaId = entry.getKey();
-            CompoundTag blockTag = buildBedrockState(entry.getValue());
+            NbtMap blockTag = buildBedrockState(entry.getValue());
 
             // TODO fix this, (no block should have a null hardness)
             JsonNode hardnessNode = entry.getValue().get("block_hardness");
@@ -181,7 +182,7 @@ public class BlockTranslator {
                 BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
             }
 
-            CompoundTag runtimeTag = blockStateMap.remove(blockTag);
+            NbtMap runtimeTag = blockStateMap.remove(blockTag);
             if (runtimeTag != null) {
                 addedStatesMap.put(blockTag, bedrockRuntimeId);
                 paletteList.add(runtimeTag);
@@ -240,15 +241,15 @@ public class BlockTranslator {
 
         // Loop around again to find all item frame runtime IDs
         int frameRuntimeId = 0;
-        for (CompoundTag tag : paletteList) {
-            CompoundTag blockTag = tag.getCompound("block");
+        for (NbtMap tag : paletteList) {
+            NbtMap blockTag = tag.getCompound("block");
             if (blockTag.getString("name").equals("minecraft:frame")) {
                 ITEM_FRAMES.put(tag, frameRuntimeId);
             }
             frameRuntimeId++;
         }
 
-        BLOCKS = new ListTag<>("", CompoundTag.class, paletteList);
+        BLOCKS = new NbtList<>(NbtType.COMPOUND, paletteList);
     }
 
     private BlockTranslator() {
@@ -258,12 +259,12 @@ public class BlockTranslator {
         // no-op
     }
 
-    private static CompoundTag buildBedrockState(JsonNode node) {
-        CompoundTagBuilder tagBuilder = CompoundTag.builder();
-        tagBuilder.stringTag("name", node.get("bedrock_identifier").textValue())
-                .intTag("version", BlockTranslator.BLOCK_STATE_VERSION);
+    private static NbtMap buildBedrockState(JsonNode node) {
+        NbtMapBuilder tagBuilder = NbtMap.builder();
+        tagBuilder.putString("name", node.get("bedrock_identifier").textValue())
+                .putInt("version", BlockTranslator.BLOCK_STATE_VERSION);
 
-        CompoundTagBuilder statesBuilder = CompoundTag.builder();
+        NbtMapBuilder statesBuilder = NbtMap.builder();
 
         // check for states
         if (node.has("bedrock_states")) {
@@ -274,17 +275,18 @@ public class BlockTranslator {
                 JsonNode stateValue = stateEntry.getValue();
                 switch (stateValue.getNodeType()) {
                     case BOOLEAN:
-                        statesBuilder.booleanTag(stateEntry.getKey(), stateValue.booleanValue());
+                        statesBuilder.putBoolean(stateEntry.getKey(), stateValue.booleanValue());
                         continue;
                     case STRING:
-                        statesBuilder.stringTag(stateEntry.getKey(), stateValue.textValue());
+                        statesBuilder.putString(stateEntry.getKey(), stateValue.textValue());
                         continue;
                     case NUMBER:
-                        statesBuilder.intTag(stateEntry.getKey(), stateValue.intValue());
+                        statesBuilder.putInt(stateEntry.getKey(), stateValue.intValue());
                 }
             }
         }
-        return tagBuilder.tag(statesBuilder.build("states")).build("block");
+        tagBuilder.put("states", statesBuilder.build());
+        return tagBuilder.build();
     }
 
     public static int getBedrockBlockId(int state) {
@@ -295,7 +297,7 @@ public class BlockTranslator {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
     }
 
-    public static int getItemFrame(CompoundTag tag) {
+    public static int getItemFrame(NbtMap tag) {
         return ITEM_FRAMES.getOrDefault(tag, -1);
     }
 

@@ -27,20 +27,18 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.StringTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @BlockEntity(name = "Sign", regex = "sign")
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, int blockState) {
-        List<Tag<?>> tags = new ArrayList<>();
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        Map<String, Object> tags = new HashMap<>();
 
         StringBuilder signText = new StringBuilder();
         for(int i = 0; i < 4; i++) {
@@ -57,7 +55,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             signText.append("\n");
         }
 
-        tags.add(new StringTag("Text", MessageUtils.getBedrockMessage(MessageSerializer.fromString(signText.toString()))));
+        tags.put("Text", MessageUtils.getBedrockMessage(MessageSerializer.fromString(signText.toString())));
         return tags;
     }
 
@@ -72,9 +70,9 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        tagBuilder.stringTag("Text", "");
-        return tagBuilder.buildRootTag();
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
+                .putString("Text", "")
+                .build();
     }
 }
