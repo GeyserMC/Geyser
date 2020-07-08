@@ -125,7 +125,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
         if (isOutput(from.action)) {
             transaction.add(new Execute(() -> {
                 ItemData item = from.action.getFromItem();
-                com.nukkitx.nbt.tag.CompoundTag tag = item.getTag();
+                NbtMap tag = item.getTag();
                 String rename = tag != null ? tag.getCompound("display").getString("Name") : "";
                 ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
                 transaction.getSession().sendDownstreamPacket(renameItemPacket);
