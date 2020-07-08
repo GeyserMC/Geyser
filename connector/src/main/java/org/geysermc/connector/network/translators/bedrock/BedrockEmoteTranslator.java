@@ -42,7 +42,6 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             if (otherSession != session) {
                 packet.setRuntimeEntityId(otherSession.getEntityCache().getEntityByJavaId(javaId).getGeyserId());
                 otherSession.sendUpstreamPacket(packet);
-                System.out.println(packet);
             }
         }
     }
