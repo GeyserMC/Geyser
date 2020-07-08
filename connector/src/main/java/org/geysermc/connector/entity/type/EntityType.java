@@ -151,10 +151,10 @@ public enum EntityType {
     PANDA(PandaEntity.class, 113, 1.25f, 1.125f, 1.825f),
     FOX(FoxEntity.class, 121, 0.5f, 1.25f),
     BEE(BeeEntity.class, 122, 0.6f, 0.6f),
-    STRIDER(StriderEntity.class, 125, 1.7f, 0.9f, 0f, 0f, "minecraft:strider"), //TODO - update entity metadata
-    HOGLIN(AnimalEntity.class, 124, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:hoglin"), //TODO
-    ZOGLIN(ZoglinEntity.class, 126, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:zoglin"), //TODO
-    PIGLIN(PiglinEntity.class, 123, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin"), //TODO
+    STRIDER(StriderEntity.class, 125, 1.7f, 0.9f, 0f, 0f, "minecraft:strider"),
+    HOGLIN(AnimalEntity.class, 124, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:hoglin"),
+    ZOGLIN(ZoglinEntity.class, 126, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:zoglin"),
+    PIGLIN(PiglinEntity.class, 123, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin"),
 
     /**
      * Item frames are handled differently since they are a block in Bedrock.

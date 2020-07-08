@@ -483,8 +483,7 @@ public class MessageUtils {
      */
     public static boolean isTooLong(String message, GeyserSession session) {
         if (message.length() > 256) {
-            // TODO: Add Geyser localization and translate this based on language
-            session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.chat.too_long", session.getClientData().getLanguageCode(), message.length()));
             return true;
         }
 

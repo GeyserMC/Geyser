@@ -299,7 +299,7 @@ public class Entity {
                         }
                     } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
                         metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                        metadata.getFlags().setFlag(EntityFlag.IS_AVOIDING_BLOCK, true); //TODO: CHECK
+                        metadata.getFlags().setFlag(EntityFlag.IS_AVOIDING_BLOCK, true);
                         ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
                         session.sendDownstreamPacket(releaseItemPacket);
                     }
@@ -337,7 +337,7 @@ public class Entity {
                 if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
                     metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
                     // Has to be a byte or it does not work
-                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2); //TODO: CHECK
+                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
                     if (entityId == session.getPlayerEntity().getEntityId()) {
                         Vector3i lastInteractionPos = session.getLastInteractionPosition();
                         metadata.put(EntityData.BED_POSITION, lastInteractionPos);
