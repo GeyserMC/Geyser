@@ -35,9 +35,9 @@ import com.github.steveice10.mc.protocol.data.message.style.ChatFormat;
 import com.github.steveice10.mc.protocol.data.message.style.MessageStyle;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.kyori.text.Component;
-import net.kyori.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.*;
@@ -263,12 +263,12 @@ public class MessageUtils {
     }
 
     public static Component phraseJavaMessage(String message) {
-        return GsonComponentSerializer.INSTANCE.deserialize(message);
+        return GsonComponentSerializer.gson().deserialize(message);
     }
 
     public static String getJavaMessage(String message) {
         Component component = LegacyComponentSerializer.legacy().deserialize(message);
-        return GsonComponentSerializer.INSTANCE.serialize(component);
+        return GsonComponentSerializer.gson().serialize(component);
     }
 
     /**
@@ -391,7 +391,8 @@ public class MessageUtils {
 
         for (Map.Entry<String, Integer> testColor : COLORS.entrySet()) {
             if (testColor.getValue() == rgb) {
-                return testColor.getKey();
+                closest = testColor.getKey();
+                break;
             }
 
             int testR = (testColor.getValue() >> 16) & 0xFF;
@@ -482,8 +483,7 @@ public class MessageUtils {
      */
     public static boolean isTooLong(String message, GeyserSession session) {
         if (message.length() > 256) {
-            // TODO: Add Geyser localization and translate this based on language
-            session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.chat.too_long", session.getClientData().getLanguageCode(), message.length()));
             return true;
         }
 

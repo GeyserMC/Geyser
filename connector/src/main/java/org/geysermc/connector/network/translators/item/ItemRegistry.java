@@ -57,9 +57,11 @@ public class ItemRegistry {
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     // Shield ID, used in Entity.java
-    public static final int SHIELD = 829;
+    public static ItemEntry SHIELD;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
-    public static final int BOAT = 333;
+    public static ItemEntry BOAT;
+    // Gold ID, used in PiglinEntity.java
+    public static ItemEntry GOLD;
 
     public static int BARRIER_INDEX = 0;
 
@@ -123,8 +125,21 @@ public class ItemRegistry {
                         entry.getValue().get("bedrock_data").intValue(),
                         entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
             }
-            if (entry.getKey().equals("minecraft:barrier")) {
-                BARRIER_INDEX = itemIndex;
+            switch (entry.getKey()) {
+                case "minecraft:barrier":
+                    BARRIER_INDEX = itemIndex;
+                    break;
+                case "minecraft:oak_boat":
+                    BOAT = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:gold_ingot":
+                    GOLD = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:shield":
+                    SHIELD = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                default:
+                    break;
             }
 
             itemIndex++;

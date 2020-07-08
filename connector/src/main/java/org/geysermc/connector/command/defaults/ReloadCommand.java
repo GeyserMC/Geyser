@@ -56,7 +56,7 @@ public class ReloadCommand extends GeyserCommand {
 
         sender.sendMessage(message);
 
-        for (GeyserSession session : connector.getPlayers().values()) {
+        for (GeyserSession session : connector.getPlayers()) {
             session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getClientData().getLanguageCode()));
         }
         connector.reload();

@@ -48,6 +48,7 @@ import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
@@ -107,7 +108,7 @@ public class GeyserSession implements CommandSender {
     private TeleportCache teleportCache;
 
     @Getter
-    private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
     /**
      * A map of Vector3i positions to Java entity IDs.
@@ -209,6 +210,13 @@ public class GeyserSession implements CommandSender {
         this.loggedIn = false;
 
         this.inventoryCache.getInventories().put(0, inventory);
+
+        bedrockServerSession.addDisconnectHandler(disconnectReason -> {
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
+
+            disconnect(disconnectReason.name());
+            connector.removePlayer(this);
+        });
     }
 
     public void connect(RemoteServer remoteServer) {
@@ -427,7 +435,7 @@ public class GeyserSession implements CommandSender {
                 downstream.getSession().disconnect(reason);
             }
             if (upstream != null && !upstream.isClosed()) {
-                connector.getPlayers().remove(this.upstream.getAddress());
+                connector.getPlayers().remove(this);
                 upstream.disconnect(reason);
             }
         }
