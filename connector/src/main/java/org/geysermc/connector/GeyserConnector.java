@@ -167,7 +167,9 @@ public class GeyserConnector {
             try {
                 Class<?> cls = Class.forName("org.geysermc.platform.standalone.GeyserStandaloneBootstrap");
                 isGui = (boolean) cls.getMethod("isUseGui").invoke(cls.cast(bootstrap));
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                logger.debug("Failed detecting if standalone is using a GUI; if this is a GeyserConnect instance this can be safely ignored.");
+            }
         }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
