@@ -26,12 +26,15 @@
 
 package org.geysermc.connector.bootstrap;
 
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.world.CachedChunkManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
+
+import java.nio.file.Path;
 
 public interface GeyserBootstrap {
 
@@ -83,4 +86,18 @@ public interface GeyserBootstrap {
     default WorldManager getWorldManager() {
         return DEFAULT_CHUNK_MANAGER;
     }
+
+    /**
+     * Return the data folder where files get stored
+     *
+     * @return Path location of data folder
+     */
+    Path getConfigFolder();
+
+    /**
+     * Information used for the bootstrap section of the debug dump
+     *
+     * @return The info about the bootstrap
+     */
+    BootstrapDumpInfo getDumpInfo();
 }

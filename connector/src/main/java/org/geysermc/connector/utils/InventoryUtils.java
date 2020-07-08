@@ -27,12 +27,13 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.StringTag;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import org.geysermc.common.ChatColor;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -53,12 +54,18 @@ public class InventoryUtils {
         if (translator != null) {
             session.getInventoryCache().setOpenInventory(inventory);
             translator.prepareInventory(session, inventory);
+            //Ensure at least half a second passes between closing and opening a new window
+            //The client will not open the new window if it is still closing the old one
+            long delay = 500 - (System.currentTimeMillis() - session.getLastWindowCloseTime());
             //TODO: find better way to handle double chest delay
             if (translator instanceof DoubleChestInventoryTranslator) {
+                delay = Math.max(delay, 200);
+            }
+            if (delay > 0) {
                 GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
                     translator.openInventory(session, inventory);
                     translator.updateInventory(session, inventory);
-                }, 200, TimeUnit.MILLISECONDS);
+                }, delay, TimeUnit.MILLISECONDS);
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);
@@ -69,26 +76,47 @@ public class InventoryUtils {
     public static void closeInventory(GeyserSession session, int windowId) {
         if (windowId != 0) {
             Inventory inventory = session.getInventoryCache().getInventories().get(windowId);
-            if (inventory != null) {
+            Inventory openInventory = session.getInventoryCache().getOpenInventory();
+            session.getInventoryCache().uncacheInventory(windowId);
+            if (inventory != null && openInventory != null && inventory.getId() == openInventory.getId()) {
                 InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
                 translator.closeInventory(session, inventory);
-                session.getInventoryCache().uncacheInventory(windowId);
                 session.getInventoryCache().setOpenInventory(null);
+            } else {
+                return;
             }
         } else {
             Inventory inventory = session.getInventory();
             InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
             translator.updateInventory(session, inventory);
         }
+
         session.setCraftSlot(0);
         session.getInventory().setCursor(null);
+        updateCursor(session);
+    }
+
+    public static void closeWindow(GeyserSession session, int windowId) {
+        //TODO: Investigate client crash when force closing window and opening a new one
+        //Instead, the window will eventually close by removing the fake blocks
+        session.setLastWindowCloseTime(System.currentTimeMillis());
+
+        /*
+        //Spamming close window packets can bug the client
+        if (System.currentTimeMillis() - session.getLastWindowCloseTime() > 500) {
+            ContainerClosePacket closePacket = new ContainerClosePacket();
+            closePacket.setId((byte) windowId);
+            session.sendUpstreamPacket(closePacket);
+            session.setLastWindowCloseTime(System.currentTimeMillis());
+        }
+        */
     }
 
     public static void updateCursor(GeyserSession session) {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
-        cursorPacket.setContainerId(ContainerId.CURSOR);
+        cursorPacket.setContainerId(ContainerId.UI);
         cursorPacket.setSlot(0);
-        cursorPacket.setItem(ItemTranslator.translateToBedrock(session.getInventory().getCursor()));
+        cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
         session.sendUpstreamPacket(cursorPacket);
     }
 
@@ -109,13 +137,14 @@ public class InventoryUtils {
      * part of the inventory is unusable.
      */
     public static ItemData createUnusableSpaceBlock(String description) {
-        CompoundTagBuilder root = CompoundTagBuilder.builder();
-        CompoundTagBuilder display = CompoundTagBuilder.builder();
+        NbtMapBuilder root = NbtMap.builder();
+        NbtMapBuilder display = NbtMap.builder();
 
-        display.stringTag("Name", ChatColor.RESET + "Unusable inventory space");
-        display.listTag("Lore", StringTag.class, Collections.singletonList(new StringTag("", ChatColor.RESET + ChatColor.DARK_PURPLE + description)));
+        // Not ideal to use log here but we dont get a session
+        display.putString("Name", ChatColor.RESET + LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.name"));
+        display.putList("Lore", NbtType.STRING, Collections.singletonList(ChatColor.RESET + ChatColor.DARK_PURPLE + description));
 
-        root.tag(display.build("display"));
-        return ItemData.of(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.buildRootTag());
+        root.put("display", display.build());
+        return ItemData.of(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.build());
     }
 }

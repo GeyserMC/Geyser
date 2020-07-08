@@ -31,14 +31,12 @@ import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.FallingBlockEntity;
-import org.geysermc.connector.entity.FishingHookEntity;
-import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.entity.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.EntityUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -55,7 +53,7 @@ public class JavaSpawnEntityTranslator extends PacketTranslator<ServerSpawnEntit
 
         org.geysermc.connector.entity.type.EntityType type = EntityUtils.toBedrockEntity(packet.getType());
         if (type == null) {
-            session.getConnector().getLogger().warning("Entity type " + packet.getType() + " was null.");
+            session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.entity.type_null", packet.getType()));
             return;
         }
 
@@ -73,6 +71,10 @@ public class JavaSpawnEntityTranslator extends PacketTranslator<ServerSpawnEntit
                 // Fishing bobbers need the owner for the line
                 entity = new FishingHookEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                         type, position, motion, rotation, (ProjectileData) packet.getData());
+            } else if (packet.getType() == EntityType.BOAT) {
+                // Initial rotation is incorrect
+                entity = new BoatEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                        type, position, motion, Vector3f.from(packet.getYaw(), 0, packet.getYaw()));
             } else {
                 Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, org.geysermc.connector.entity.type.EntityType.class,
                         Vector3f.class, Vector3f.class, Vector3f.class);
