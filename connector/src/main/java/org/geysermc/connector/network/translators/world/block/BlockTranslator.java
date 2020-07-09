@@ -101,15 +101,15 @@ public class BlockTranslator {
         Map<NbtMap, NbtMap> blockStateMap = new HashMap<>();
 
         for (NbtMap tag : blocksTag) {
-            CompoundTagBuilder tagBuilder = CompoundTag.builder();
+            NbtMapBuilder tagBuilder = NbtMap.builder();
 
-            tagBuilder.tag(tag.getCompound("block"));
+            tagBuilder.put("block", tag.getCompound("block"));
 
             if (tag.getShort("meta", (short) -1) != -1) {
-                tagBuilder.shortTag("meta", tag.getShort("meta"));
+                tagBuilder.putShort("meta", tag.getShort("meta"));
             }
 
-            if (blockStateMap.putIfAbsent(tagBuilder.build("ref"), tag) != null) {
+            if (blockStateMap.putIfAbsent(tagBuilder.build(), tag) != null) {
                 throw new AssertionError("Duplicate block states in Bedrock palette");
             }
         }
@@ -348,6 +348,6 @@ public class BlockTranslator {
     }
 
     public interface Shim {
-        CompoundTag buildBedrockState(JsonNode node);
+        NbtMap buildBedrockState(JsonNode node);
     }
 }

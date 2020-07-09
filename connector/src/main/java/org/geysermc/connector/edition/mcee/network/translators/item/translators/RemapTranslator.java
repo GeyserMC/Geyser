@@ -26,8 +26,8 @@
 package org.geysermc.connector.edition.mcee.network.translators.item.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
@@ -53,23 +53,23 @@ public class RemapTranslator extends ItemTranslator {
         ItemData itemData = super.translateToBedrock(itemStack, itemEntry);
 
         if (itemEntry.getExtra().has("name")) {
-            CompoundTag tag = itemData.getTag();
+            NbtMap tag = itemData.getTag();
             if (tag == null) {
-                tag = CompoundTag.builder().buildRootTag();
+                tag = NbtMap.builder().build();
             }
 
-            CompoundTag display = tag.get("display");
+            NbtMap display = tag.getCompound("display");
             if (display == null) {
-                display = CompoundTag.builder().buildRootTag();
+                display = NbtMap.builder().build();
             }
 
-            CompoundTagBuilder displayBuilder = display.toBuilder();
-            displayBuilder.stringTag("Name", itemEntry.getExtra().get("name").textValue());
+            NbtMapBuilder displayBuilder = display.toBuilder();
+            displayBuilder.putString("Name", itemEntry.getExtra().get("name").textValue());
 
-            CompoundTagBuilder builder = tag.toBuilder();
-            builder.tag(displayBuilder.build("display"));
+            NbtMapBuilder builder = tag.toBuilder();
+            builder.putCompound("display", displayBuilder.build());
 
-            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.buildRootTag());
+            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.build());
         }
         return itemData;
     }

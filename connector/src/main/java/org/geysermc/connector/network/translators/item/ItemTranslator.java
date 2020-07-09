@@ -79,7 +79,8 @@ public abstract class ItemTranslator {
             for (ItemEntry item : appliedItems) {
                 ItemTranslator registered = ITEM_STACK_TRANSLATORS.get(item.getJavaId());
                 if (registered != null) {
-                    GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.item.already_registered", clazz.getCanonicalName(), registered.getClass().getCanonicalName(), item.getJavaIdentifier()));
+                    GeyserConnector.getInstance().getLogger().error("Could not instantiate item translator " + translator.getClass().getCanonicalName() + "." +
+                            " Item translator " + registered.getClass().getCanonicalName() + " is already registered for the item " + item.getJavaIdentifier());
                     continue;
                 }
                 ITEM_STACK_TRANSLATORS.put(item.getJavaId(), translator);

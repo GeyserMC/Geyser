@@ -27,8 +27,8 @@
 package org.geysermc.connector.edition.mcee.shims;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.Getter;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
@@ -36,19 +36,19 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 @Getter
 public class BlockTranslatorShim implements BlockTranslator.Shim {
     @Override
-    public CompoundTag buildBedrockState(JsonNode node) {
-        CompoundTagBuilder tagBuilder = CompoundTag.builder();
-        tagBuilder.stringTag("name", node.get("bedrock_identifier").textValue());
+    public NbtMap buildBedrockState(JsonNode node) {
+        NbtMapBuilder tagBuilder = NbtMap.builder();
+        tagBuilder.putString("name", node.get("bedrock_identifier").textValue());
 
-        tagBuilder = CompoundTagBuilder.builder().tag(tagBuilder.build("block"));
+        tagBuilder = NbtMap.builder().putCompound("block", tagBuilder.build());
 
         // Add Meta tag
         if (node.has("meta")) {
-            tagBuilder.shortTag("meta", node.get("meta").shortValue());
+            tagBuilder.putShort("meta", node.get("meta").shortValue());
         } else {
-            tagBuilder.shortTag("meta", (short) 0);
+            tagBuilder.putShort("meta", (short) 0);
         }
 
-        return tagBuilder.build("ref");
+        return tagBuilder.build();
     }
 }

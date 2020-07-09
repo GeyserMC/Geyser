@@ -27,6 +27,7 @@ package org.geysermc.connector.command.defaults;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserEdition;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.utils.FileUtils;
@@ -49,7 +50,7 @@ public class VersionCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.version", GeyserConnector.NAME, GeyserConnector.VERSION, MinecraftConstants.GAME_VERSION, GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
+        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.version", GeyserConnector.NAME, GeyserConnector.VERSION, MinecraftConstants.GAME_VERSION, GeyserEdition.INSTANCE.getCodec().getMinecraftVersion()));
 
         // Disable update checking in dev mode
         //noinspection ConstantConditions - changes in production
