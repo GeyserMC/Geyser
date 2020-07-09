@@ -34,6 +34,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.dump.DumpInfo;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.WebUtils;
 
 import java.io.IOException;
@@ -57,37 +58,37 @@ public class DumpCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        sender.sendMessage("Collecting dump info");
+        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.dump.collecting"));
         String dumpData = "";
         try {
             dumpData = MAPPER.writeValueAsString(new DumpInfo());
         } catch (IOException e) {
-            sender.sendMessage(ChatColor.RED + "Failed to collect dump info, check console for more information");
-            connector.getLogger().error("Failed to collect dump info", e);
+            sender.sendMessage(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.commands.dump.collect_error"));
+            connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.dump.collect_error_short"), e);
             return;
         }
 
-        sender.sendMessage("Uploading dump");
+        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.dump.uploading"));
         String response;
         JsonNode responseNode;
         try {
             response = WebUtils.post(DUMP_URL + "documents", dumpData);
             responseNode = MAPPER.readTree(response);
         } catch (IOException e) {
-            sender.sendMessage(ChatColor.RED + "Failed to upload dump, check console for more information");
-            connector.getLogger().error("Failed to upload dump", e);
+            sender.sendMessage(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.commands.dump.upload_error"));
+            connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.dump.upload_error_short"), e);
             return;
         }
 
         if (!responseNode.has("key")) {
-            sender.sendMessage(ChatColor.RED + "Failed to upload dump: " + (responseNode.has("message") ? responseNode.get("message").asText() : response));
+            sender.sendMessage(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.commands.dump.upload_error_short") + ": " + (responseNode.has("message") ? responseNode.get("message").asText() : response));
             return;
         }
 
         String uploadedDumpUrl = DUMP_URL + responseNode.get("key").asText();
-        sender.sendMessage("We've made a dump with useful information, report your issue and provide this url: " + ChatColor.DARK_AQUA + uploadedDumpUrl);
+        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.dump.message") + " " + ChatColor.DARK_AQUA + uploadedDumpUrl);
         if (!sender.isConsole()) {
-            connector.getLogger().info(sender.getName() + " created a GeyserDump at " + uploadedDumpUrl);
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.commands.dump.created", sender.getName(), uploadedDumpUrl));
         }
     }
 }

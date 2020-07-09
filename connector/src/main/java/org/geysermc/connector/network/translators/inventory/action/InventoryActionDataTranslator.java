@@ -120,9 +120,9 @@ public class InventoryActionDataTranslator {
                                 session.sendDownstreamPacket(dropPacket);
                             }
                         }
-                        ItemStack item = session.getInventory().getItem(javaSlot);
+                        ItemStack item = inventory.getItem(javaSlot);
                         if (item != null) {
-                            session.getInventory().setItem(javaSlot, new ItemStack(item.getId(), item.getAmount() - dropAmount, item.getNbt()));
+                            inventory.setItem(javaSlot, new ItemStack(item.getId(), item.getAmount() - dropAmount, item.getNbt()));
                         }
                         return;
                     } else { //clicking outside of inventory

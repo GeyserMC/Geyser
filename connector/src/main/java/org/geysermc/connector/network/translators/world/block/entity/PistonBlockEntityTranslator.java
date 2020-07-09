@@ -27,8 +27,8 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 /**
@@ -51,21 +51,21 @@ public class PistonBlockEntityTranslator {
      * @param position Bedrock position of piston.
      * @return Bedrock tag of piston.
      */
-    public static CompoundTag getTag(int blockState, Vector3i position) {
-        CompoundTagBuilder tagBuilder = CompoundTagBuilder.builder()
-                .intTag("x", position.getX())
-                .intTag("y", position.getY())
-                .intTag("z", position.getZ())
-                .byteTag("isMovable", (byte) 1)
-                .stringTag("id", "PistonArm");
+    public static NbtMap getTag(int blockState, Vector3i position) {
+        NbtMapBuilder tagBuilder = NbtMap.builder()
+                .putInt("x", position.getX())
+                .putInt("y", position.getY())
+                .putInt("z", position.getZ())
+                .putByte("isMovable", (byte) 1)
+                .putString("id", "PistonArm");
         if (BlockStateValues.getPistonValues().containsKey(blockState)) {
             boolean extended = BlockStateValues.getPistonValues().get(blockState);
             // 1f if extended, otherwise 0f
-            tagBuilder.floatTag("Progress", (extended) ? 1.0f : 0.0f);
+            tagBuilder.putFloat("Progress", (extended) ? 1.0f : 0.0f);
             // 1 if sticky, 0 if not
-            tagBuilder.byteTag("Sticky", (byte)((BlockStateValues.isStickyPiston(blockState)) ? 1 : 0));
+            tagBuilder.putByte("Sticky", (byte)((BlockStateValues.isStickyPiston(blockState)) ? 1 : 0));
         }
-        return tagBuilder.buildRootTag();
+        return tagBuilder.build();
     }
 
 }

@@ -101,6 +101,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
 
                 this.updateOffset(passenger, entity.getEntityType(), session, false, false, (passengers.size() > 1));
             }
+
+            // Force an update to the passenger metadata
+            passenger.updateBedrockMetadata(session);
         }
 
         if (entity.getEntityType() == EntityType.HORSE) {
@@ -140,8 +143,14 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             case ARMOR_STAND:
                 yOffset = 1.3f;
                 break;
+            case STRIDER:
+                yOffset = passenger.getEntityType() == EntityType.PLAYER ? 2.8200102f : 1.6f;
+                break;
         }
         Vector3f offset = Vector3f.from(0f, yOffset, 0f);
+        if (mountType == EntityType.STRIDER) {
+            offset = offset.add(0f, 0f, -0.2f);
+        }
         // Without the X offset, more than one entity on a boat is stacked on top of each other
         if (rider && moreThanOneEntity) {
             offset = offset.add(Vector3f.from(0.2, 0, 0));

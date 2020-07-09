@@ -41,6 +41,7 @@ import org.geysermc.connector.network.session.cache.TeleportCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 @Translator(packet = ServerPlayerPositionRotationPacket.class)
 public class JavaPlayerPositionRotationTranslator extends PacketTranslator<ServerPlayerPositionRotationPacket> {
@@ -90,7 +91,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
-            session.getConnector().getLogger().info("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
+            session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
             return;
         }
 

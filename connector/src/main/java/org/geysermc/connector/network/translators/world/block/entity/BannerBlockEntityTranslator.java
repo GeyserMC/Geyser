@@ -27,15 +27,14 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.IntTag;
-import com.nukkitx.nbt.tag.StringTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
 import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @BlockEntity(name = "Banner", regex = "banner")
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
@@ -46,21 +45,21 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
     }
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, int blockState) {
-        List<Tag<?>> tags = new ArrayList<>();
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        Map<String, Object> tags = new HashMap<>();
 
         int bannerColor = BlockStateValues.getBannerColor(blockState);
         if (bannerColor != -1) {
-            tags.add(new IntTag("Base", 15 - bannerColor));
+            tags.put("Base", 15 - bannerColor);
         }
 
         if (tag.contains("Patterns")) {
             ListTag patterns = tag.get("Patterns");
-            tags.add(BannerTranslator.convertBannerPattern(patterns));
+            tags.put("Patterns", BannerTranslator.convertBannerPattern(patterns));
         }
 
         if (tag.contains("CustomName")) {
-            tags.add(new StringTag("CustomName", (String) tag.get("CustomName").getValue()));
+            tags.put("CustomName", tag.get("CustomName").getValue());
         }
 
         return tags;
@@ -74,9 +73,9 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        tagBuilder.listTag("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, new ArrayList<>());
-        return tagBuilder.buildRootTag();
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
+                .putList("Patterns", NbtType.COMPOUND, new ArrayList<>())
+                .build();
     }
 }

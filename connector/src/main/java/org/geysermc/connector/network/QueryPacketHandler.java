@@ -148,7 +148,7 @@ public class QueryPacketHandler {
         }
 
         if (connector.getConfig().isPassthroughMotd() && pingInfo != null) {
-            String[] javaMotd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.motd)).split("\n");
+            String[] javaMotd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.getDescription())).split("\n");
             motd = javaMotd[0].trim(); // First line of the motd.
         } else {
             motd = connector.getConfig().getBedrock().getMotd1();
@@ -156,8 +156,8 @@ public class QueryPacketHandler {
 
         // If passthrough player counts is enabled lets get players from the server
         if (connector.getConfig().isPassthroughPlayerCounts() && pingInfo != null) {
-            currentPlayerCount = String.valueOf(pingInfo.currentPlayerCount);
-            maxPlayerCount = String.valueOf(pingInfo.maxPlayerCount);
+            currentPlayerCount = String.valueOf(pingInfo.getPlayers().getOnline());
+            maxPlayerCount = String.valueOf(pingInfo.getPlayers().getMax());
         } else {
             currentPlayerCount = String.valueOf(connector.getPlayers().size());
             maxPlayerCount = String.valueOf(connector.getConfig().getMaxPlayers());
@@ -220,7 +220,7 @@ public class QueryPacketHandler {
 
             // Fill player names
             if(pingInfo != null) {
-                for (String username : pingInfo.getPlayers()) {
+                for (String username : pingInfo.getPlayerList()) {
                     query.write(username.getBytes());
                     query.write((byte) 0x00);
                 }
