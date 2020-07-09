@@ -107,16 +107,20 @@ import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import com.nukkitx.protocol.bedrock.packet.EmoteListPacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemFrameDropItemPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import com.nukkitx.protocol.bedrock.packet.MapInfoRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.PacketViolationWarningPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerInputPacket;
+import com.nukkitx.protocol.bedrock.packet.PositionTrackingDBClientRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
 import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
@@ -206,15 +210,19 @@ import org.geysermc.connector.network.translators.bedrock.BedrockBlockEntityData
 import org.geysermc.connector.network.translators.bedrock.BedrockBlockPickRequestPacketTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockCommandRequestTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockContainerCloseTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockEmoteTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockEntityEventTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockInteractTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockInventoryTransactionTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockItemFrameDropItemTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockLevelSoundEventTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockMapInfoRequestTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockMobEquipmentTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockMoveEntityAbsoluteTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockMovePlayerTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockPacketViolationWarningTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockPlayerInputTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockPositionTrackingDBClientRequestTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockRespawnTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockSetLocalPlayerAsInitializedTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockShowCreditsTranslator;
@@ -331,6 +339,7 @@ import org.geysermc.connector.network.translators.world.block.entity.EmptyBlockE
 import org.geysermc.connector.network.translators.world.block.entity.EndGatewayBlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.FlowerPotBlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.NoteblockBlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.ShulkerBoxBlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SignBlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
@@ -355,6 +364,7 @@ public class Edition extends GeyserEdition {
                 .blockEntityTranslator(new EndGatewayBlockEntityTranslator())
                 .blockEntityTranslator(new FlowerPotBlockEntityTranslator())
                 .blockEntityTranslator(new NoteblockBlockEntityTranslator())
+//                .blockEntityTranslator(new PistonBlockEntityTranslator()) special case
                 .blockEntityTranslator(new ShulkerBoxBlockEntityTranslator())
                 .blockEntityTranslator(new SignBlockEntityTranslator())
                 .blockEntityTranslator(new SkullBlockEntityTranslator())
@@ -369,25 +379,29 @@ public class Edition extends GeyserEdition {
         // Register Bedrock Packet Translators
         PacketTranslatorRegistry.REGISTER
                 .bedrockPacketTranslator(PlayerActionPacket.class, new BedrockActionTranslator())
+                .bedrockPacketTranslator(AdventureSettingsPacket.class, new BedrockAdventureSettingsTranslator())
                 .bedrockPacketTranslator(AnimatePacket.class, new BedrockAnimateTranslator())
                 .bedrockPacketTranslator(BlockEntityDataPacket.class, new BedrockBlockEntityDataTranslator())
                 .bedrockPacketTranslator(BlockPickRequestPacket.class, new BedrockBlockPickRequestPacketTranslator())
                 .bedrockPacketTranslator(CommandRequestPacket.class, new BedrockCommandRequestTranslator())
                 .bedrockPacketTranslator(ContainerClosePacket.class, new BedrockContainerCloseTranslator())
+                .bedrockPacketTranslator(EmoteListPacket.class, new BedrockEmoteTranslator())
                 .bedrockPacketTranslator(EntityEventPacket.class, new BedrockEntityEventTranslator())
                 .bedrockPacketTranslator(InteractPacket.class, new BedrockInteractTranslator())
                 .bedrockPacketTranslator(InventoryTransactionPacket.class, new BedrockInventoryTransactionTranslator())
                 .bedrockPacketTranslator(ItemFrameDropItemPacket.class, new BedrockItemFrameDropItemTranslator())
                 .bedrockPacketTranslator(LevelSoundEventPacket.class, new BedrockLevelSoundEventTranslator())
+                .bedrockPacketTranslator(MapInfoRequestPacket.class, new BedrockMapInfoRequestTranslator())
                 .bedrockPacketTranslator(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator())
                 .bedrockPacketTranslator(MoveEntityAbsolutePacket.class, new BedrockMoveEntityAbsoluteTranslator())
                 .bedrockPacketTranslator(MovePlayerPacket.class, new BedrockMovePlayerTranslator())
+                .bedrockPacketTranslator(PacketViolationWarningPacket.class, new BedrockPacketViolationWarningTranslator())
                 .bedrockPacketTranslator(PlayerInputPacket.class, new BedrockPlayerInputTranslator())
+                .bedrockPacketTranslator(PositionTrackingDBClientRequestPacket.class, new BedrockPositionTrackingDBClientRequestTranslator())
                 .bedrockPacketTranslator(RespawnPacket.class, new BedrockRespawnTranslator())
                 .bedrockPacketTranslator(SetLocalPlayerAsInitializedPacket.class, new BedrockSetLocalPlayerAsInitializedTranslator())
                 .bedrockPacketTranslator(ShowCreditsPacket.class, new BedrockShowCreditsTranslator())
-                .bedrockPacketTranslator(TextPacket.class, new BedrockTextTranslator())
-                .bedrockPacketTranslator(AdventureSettingsPacket.class, new BedrockAdventureSettingsTranslator());
+                .bedrockPacketTranslator(TextPacket.class, new BedrockTextTranslator());
 
         // Register Java Packet Translators
         PacketTranslatorRegistry.REGISTER
