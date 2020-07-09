@@ -29,13 +29,13 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import net.kyori.text.Component;
-import net.kyori.text.TextComponent;
-import net.kyori.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
@@ -101,7 +101,7 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
             message = message.replaceFirst("§r", "");
         }
         Component component = TextComponent.of(message);
-        return GsonComponentSerializer.INSTANCE.serialize(component);
+        return GsonComponentSerializer.gson().serialize(component);
     }
 
     private String toBedrockMessage(StringTag tag) {

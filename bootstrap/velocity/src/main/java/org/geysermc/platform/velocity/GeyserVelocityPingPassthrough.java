@@ -59,13 +59,17 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
             throw new RuntimeException(e);
         }
         GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
-                LegacyComponentSerializer.INSTANCE.serialize(event.getPing().getDescription(), '§'),
-                event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getOnline(),
-                event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getMax()
+                LegacyComponentSerializer.legacy().serialize(event.getPing().getDescription(), '§'),
+                new GeyserPingInfo.Players(
+                        event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getMax(),
+                        event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getOnline()
+                ),
+                new GeyserPingInfo.Version(
+                        event.getPing().getVersion().getName(),
+                        event.getPing().getVersion().getProtocol()
+                )
         );
-        event.getPing().getPlayers().get().getSample().forEach(player -> {
-            geyserPingInfo.addPlayer(player.getName());
-        });
+        event.getPing().getPlayers().get().getSample().stream().map(ServerPing.SamplePlayer::getName).forEach(geyserPingInfo.getPlayerList()::add);
         return geyserPingInfo;
     }
 

@@ -112,7 +112,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case CONTINUE_BREAK:
                 LevelEventPacket continueBreakPacket = new LevelEventPacket();
-                continueBreakPacket.setType(LevelEventType.BLOCK_UPDATE_BREAK); //TODO: There are now level event types for all breaks. Important?
+                continueBreakPacket.setType(LevelEventType.PARTICLE_CRACK_BLOCK);
                 continueBreakPacket.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock()));
                 continueBreakPacket.setPosition(packet.getBlockPosition().toFloat());
                 session.sendUpstreamPacket(continueBreakPacket);
