@@ -27,7 +27,7 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -49,7 +49,7 @@ public interface BedrockOnlyBlockEntity {
      * @param blockState Java BlockState of block.
      * @return Bedrock tag, or null if not a Bedrock-only Block Entity
      */
-    static CompoundTag getTag(Vector3i position, int blockState) {
+    static NbtMap getTag(Vector3i position, int blockState) {
         if (new FlowerPotBlockEntityTranslator().isBlock(blockState)) {
             return FlowerPotBlockEntityTranslator.getTag(blockState, position);
         } else if (PistonBlockEntityTranslator.isBlock(blockState)) {

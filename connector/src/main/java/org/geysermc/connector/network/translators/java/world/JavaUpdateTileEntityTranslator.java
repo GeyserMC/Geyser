@@ -41,20 +41,24 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
+        if (packet.getNbt().isEmpty()) { // Fixes errors in CubeCraft sending empty NBT
+            BlockEntityUtils.updateBlockEntity(session, null, packet.getPosition());
+            return;
+        }
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
         // If not null then the BlockState is used in BlockEntityTranslator.translateTag()
         if (ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition()) != null) {
             // Check for custom skulls.
             if (packet.getNbt().contains("Owner") && SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS) {
-                CompoundTag owner = packet.getNbt().get("Owner");
+                NbtMap owner = packet.getNbt().get("Owner");
                 if (owner.contains("Properties")) {
                     int blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition());
                     SkullBlockEntityTranslator.spawnPlayer(session, packet.getNbt(), blockState);
                 }
             }
             BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(),
-                    ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition())), packet.getPosition());
-            ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition());
+                    blockState), packet.getPosition());
+            ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition(), blockState);
         } else {
             BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), 0), packet.getPosition());
         }

@@ -68,13 +68,13 @@ public enum EntityType {
     CREEPER(CreeperEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
     SKELETON(AbstractSkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
     SPIDER(SpiderEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
-    ZOMBIFIED_PIGLIN(MonsterEntity.class, 0, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:zombie_pigman"),
+    ZOMBIFIED_PIGLIN(ZombifiedPiglinEntity.class, 36, 1.95f, 0.6f, 0.6f, 1.62f, "minecraft:zombie_pigman"),
     SLIME(SlimeEntity.class, 37, 0.51f),
     ENDERMAN(EndermanEntity.class, 38, 2.9f, 0.6f),
     SILVERFISH(MonsterEntity.class, 39, 0.3f, 0.4f),
     CAVE_SPIDER(MonsterEntity.class, 40, 0.5f, 0.7f),
     GHAST(FlyingEntity.class, 41, 4.0f),
-    MAGMA_CUBE(SlimeEntity.class, 42, 0.51f),
+    MAGMA_CUBE(MagmaCubeEntity.class, 42, 0.51f),
     BLAZE(BlazeEntity.class, 43, 1.8f, 0.6f),
     ZOMBIE_VILLAGER(ZombieEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f),
     WITCH(RaidParticipantEntity.class, 45, 1.8f, 0.6f, 0.6f, 1.62f),
@@ -151,10 +151,10 @@ public enum EntityType {
     PANDA(PandaEntity.class, 113, 1.25f, 1.125f, 1.825f),
     FOX(FoxEntity.class, 121, 0.5f, 1.25f),
     BEE(BeeEntity.class, 122, 0.6f, 0.6f),
-    STRIDER(StriderEntity.class, 0, 1.7f, 0.9f, 0f, 0f, "minecraft:strider"), //TODO - update entity metadata
-    HOGLIN(AnimalEntity.class, 0, 0.9f, 0.9f, 0f, 0f, "minecraft:hoglin"), //TODO
-    ZOGLIN(MonsterEntity.class, 0, 0.9f, 0.9f, 0f, 0f, "minecraft:zoglin"), //TODO
-    PIGLIN(MonsterEntity.class, 0, 1.9f, 0.6f, 0f, 0f, "minecraft:piglin"), //TODO
+    STRIDER(StriderEntity.class, 125, 1.7f, 0.9f, 0f, 0f, "minecraft:strider"),
+    HOGLIN(AnimalEntity.class, 124, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:hoglin"),
+    ZOGLIN(ZoglinEntity.class, 126, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:zoglin"),
+    PIGLIN(PiglinEntity.class, 123, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin"),
 
     /**
      * Item frames are handled differently since they are a block in Bedrock.

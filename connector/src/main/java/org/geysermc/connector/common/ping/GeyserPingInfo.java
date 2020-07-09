@@ -26,23 +26,69 @@
 
 package org.geysermc.connector.common.ping;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
-import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserPingInfo {
 
-    public final String motd;
-    public final int currentPlayerCount;
-    public final int maxPlayerCount;
+    private String description;
 
-    @Getter
-    private Collection<String> players = new ArrayList<>();
+    private Players players;
+    private Version version;
 
-    public void addPlayer(String username) {
-        players.add(username);
+    @JsonIgnore
+    private Collection<String> playerList = new ArrayList<>();
+
+    public GeyserPingInfo() {
+    }
+
+    public GeyserPingInfo(String description, Players players, Version version) {
+        this.description = description;
+        this.players = players;
+        this.version = version;
+    }
+
+    @JsonSetter("description")
+    void setDescription(JsonNode description) {
+        this.description = description.toString();
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Players {
+
+        private int max;
+        private int online;
+
+        public Players() {
+        }
+
+        public Players(int max, int online) {
+            this.max = max;
+            this.online = online;
+        }
+    }
+
+    @Data
+    public static class Version {
+
+        private String name;
+        private int protocol;
+
+        public Version() {
+        }
+
+        public Version(String name, int protocol) {
+            this.name = name;
+            this.protocol = protocol;
+        }
     }
 }

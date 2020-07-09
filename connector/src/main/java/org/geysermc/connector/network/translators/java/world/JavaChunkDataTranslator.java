@@ -27,9 +27,9 @@ package org.geysermc.connector.network.translators.java.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
+import com.nukkitx.nbt.NBTOutputStream;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 
@@ -82,8 +82,8 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
                 ByteBufOutputStream stream = new ByteBufOutputStream(Unpooled.buffer());
                 NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
-                for (CompoundTag blockEntity : chunkData.getBlockEntities()) {
-                    nbtStream.write(blockEntity);
+                for (NbtMap blockEntity : chunkData.getBlockEntities()) {
+                    nbtStream.writeTag(blockEntity);
                 }
 
                 byteBuf.writeBytes(stream.buffer());
@@ -100,7 +100,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 session.sendUpstreamPacket(levelChunkPacket);
 
                 // Some block entities need to be loaded in later or else text doesn't show (signs) or they crash the game (end gateway blocks)
-                for (Object2IntMap.Entry<CompoundTag> blockEntityEntry : chunkData.getLoadBlockEntitiesLater().object2IntEntrySet()) {
+                for (Object2IntMap.Entry<NbtMap> blockEntityEntry : chunkData.getLoadBlockEntitiesLater().object2IntEntrySet()) {
                     int x = blockEntityEntry.getKey().getInt("x");
                     int y = blockEntityEntry.getKey().getInt("y");
                     int z = blockEntityEntry.getKey().getInt("z");

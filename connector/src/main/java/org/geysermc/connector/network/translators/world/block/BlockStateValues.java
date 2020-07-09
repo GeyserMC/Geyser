@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.HashMap;
@@ -42,7 +42,7 @@ public class BlockStateValues {
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Map<Integer, String> WALL_SKULL_DIRECTION = new HashMap<>();
-    private static final Map<String, CompoundTag> FLOWER_POT_BLOCKS = new HashMap<>();
+    private static final Map<String, NbtMap> FLOWER_POT_BLOCKS = new HashMap<>();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
@@ -77,7 +77,7 @@ public class BlockStateValues {
             return;
         }
 
-        if (entry.getKey().contains("potted_")) {
+        if (entry.getKey().contains("potted_") || entry.getKey().contains("flower_pot")) {
             FLOWER_POT_VALUES.put(javaBlockState, entry.getKey().replace("potted_", ""));
             return;
         }
@@ -160,7 +160,7 @@ public class BlockStateValues {
      * Get the map of contained flower pot plants to Bedrock CompoundTag
      * @return Map of flower pot blocks.
      */
-    public static Map<String, CompoundTag> getFlowerPotBlocks() {
+    public static Map<String, NbtMap> getFlowerPotBlocks() {
         return FLOWER_POT_BLOCKS;
     }
 
