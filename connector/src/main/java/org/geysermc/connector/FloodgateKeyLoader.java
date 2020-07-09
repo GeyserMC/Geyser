@@ -26,6 +26,9 @@
 
 package org.geysermc.connector;
 
+import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.configuration.GeyserConfiguration;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -35,13 +38,13 @@ public class FloodgateKeyLoader {
             if (floodgate != null) {
                 Path autoKey = floodgateFolder.resolve("public-key.pem");
                 if (Files.exists(autoKey)) {
-                    logger.info("Auto-loaded floodgate key");
+                    logger.info(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.auto_loaded"));
                     floodgateKey = autoKey;
                 } else {
-                    logger.error("Auth-type set to floodgate and the public key is missing!");
+                    logger.error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.missing_key"));
                 }
             } else {
-                logger.error("Auth-type set to floodgate but floodgate is not installed!");
+                logger.error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed"));
             }
         }
 

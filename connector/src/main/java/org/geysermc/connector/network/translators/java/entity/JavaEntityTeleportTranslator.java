@@ -44,6 +44,6 @@ public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityT
         }
         if (entity == null) return;
 
-        entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), packet.isOnGround(), false);
+        entity.teleport(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), packet.isOnGround());
     }
 }

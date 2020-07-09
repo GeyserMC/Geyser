@@ -25,34 +25,34 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.LongTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.IntTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtList;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.Map;
 
 @BlockEntity(name = "EndGateway", regex = "end_gateway")
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
-        List<Tag<?>> tags = new ArrayList<>();
-        tags.add(new IntTag("Age", (int) (long) tag.get("Age").getValue()));
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        Map<String, Object> tags = new HashMap<>();
+        tags.put("Age", (int) ((long) tag.get("Age").getValue()));
         // Java sometimes does not provide this tag, but Bedrock crashes if it doesn't exist
         // Linked coordinates
-        List<IntTag> tagsList = new ArrayList<>();
+        IntList tagsList = new IntArrayList();
         // Yes, the axis letters are capitalized
-        tagsList.add(new IntTag("", getExitPortalCoordinate(tag, "X")));
-        tagsList.add(new IntTag("", getExitPortalCoordinate(tag, "Y")));
-        tagsList.add(new IntTag("", getExitPortalCoordinate(tag, "Z")));
-        com.nukkitx.nbt.tag.ListTag<IntTag> exitPortal =
-                new com.nukkitx.nbt.tag.ListTag<>("ExitPortal", IntTag.class, tagsList);
-        tags.add(exitPortal);
+        tagsList.add(getExitPortalCoordinate(tag, "X"));
+        tagsList.add(getExitPortalCoordinate(tag, "Y"));
+        tagsList.add(getExitPortalCoordinate(tag, "Z"));
+        tags.put("ExitPortal", new NbtList<>(NbtType.INT, tagsList));
         return tags;
     }
 
@@ -64,20 +64,16 @@ public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        List<IntTag> tagsList = new ArrayList<>();
-        tagsList.add(new IntTag("", 0));
-        tagsList.add(new IntTag("", 0));
-        tagsList.add(new IntTag("", 0));
-        tagBuilder.listTag("ExitPortal", IntTag.class, tagsList);
-        return tagBuilder.buildRootTag();
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
+                .putList("ExitPortal", NbtType.INT, Arrays.asList(0, 0, 0))
+                .build();
     }
 
     private int getExitPortalCoordinate(CompoundTag tag, String axis) {
         // Return 0 if it doesn't exist, otherwise give proper value
         if (tag.get("ExitPortal") != null) {
-            LinkedHashMap compoundTag = (LinkedHashMap) tag.get("ExitPortal").getValue();
+            LinkedHashMap<?, ?> compoundTag = (LinkedHashMap<?, ?>) tag.get("ExitPortal").getValue();
             com.github.steveice10.opennbt.tag.builtin.IntTag intTag = (com.github.steveice10.opennbt.tag.builtin.IntTag) compoundTag.get(axis);
             return intTag.getValue();
         } return 0;

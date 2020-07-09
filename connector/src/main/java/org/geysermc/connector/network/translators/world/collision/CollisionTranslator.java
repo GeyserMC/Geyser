@@ -26,24 +26,21 @@
 
 package org.geysermc.connector.network.translators.world.collision;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.collision.translators.*;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.collision.translators.BlockCollision;
+import org.geysermc.connector.network.translators.world.collision.translators.EmptyCollision;
+import org.geysermc.connector.network.translators.world.collision.translators.SolidCollision;
 import org.reflections.Reflections;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.regex.Pattern;
 
 public class CollisionTranslator {
-    private static Map<BlockState, BlockCollision> collisionMap = new HashMap<>();
+    private static Map<Integer, BlockCollision> collisionMap = new HashMap<>();
 
     public static void init() {
         // If chunk caching is off then don't initialize
@@ -71,11 +68,11 @@ public class CollisionTranslator {
 
         System.out.println(collisionTypes);
 
-        BiMap<String, BlockState> javaIdBlockMap = BlockTranslator.getJavaIdBlockMap();
+        BiMap<String, Integer> javaIdBlockMap = BlockTranslator.getJavaIdBlockMap();
         // Map of classes that don't change based on parameters that have already been created
         // BiMap<Class, BlockCollision> instantiatedCollision = HashBiMap.create();
         Map<Class, BlockCollision> instantiatedCollision = new HashMap<>();
-        for (Map.Entry<String, BlockState> entry : javaIdBlockMap.entrySet()) {
+        for (Map.Entry<String, Integer> entry : javaIdBlockMap.entrySet()) {
             BlockCollision newCollision = instantiateCollision(entry.getKey(), collisionTypes, annotationMap, instantiatedCollision);
             if (newCollision != null) {
                 instantiatedCollision.put(newCollision.getClass(), newCollision);
@@ -147,8 +144,8 @@ public class CollisionTranslator {
         }
     }
 
-    public static BlockCollision getCollision(BlockState block, int x, int y, int z) {
-        BlockCollision collision = collisionMap.get(block);
+    public static BlockCollision getCollision(Integer blockID, int x, int y, int z) {
+        BlockCollision collision = collisionMap.get(blockID);
         if (collision != null) {
             collision.setPosition(x, y, z);
         }

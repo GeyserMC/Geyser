@@ -33,20 +33,20 @@ import lombok.Getter;
 public enum AttributeType {
 
     // Universal Attributes
-    FOLLOW_RANGE("generic.followRange", "minecraft:follow_range", 0f, 2048f, 32f),
-    KNOCKBACK_RESISTANCE("generic.knockbackResistance", "minecraft:knockback_resistance", 0f, 1f, 0f),
-    MOVEMENT_SPEED("generic.movementSpeed", "minecraft:movement", 0f, 1024f, 0.1f),
-    FLYING_SPEED("generic.flyingSpeed", "minecraft:movement", 0.0f, 1024.0f, 0.4000000059604645f),
-    ATTACK_DAMAGE("generic.attackDamage", "minecraft:attack_damage", 0f, 2048f, 1f),
-    HORSE_JUMP_STRENGTH("horse.jumpStrength", "minecraft:horse.jump_strength", 0.0f, 2.0f, 0.7f),
+    FOLLOW_RANGE("minecraft:generic.follow_range", "minecraft:follow_range", 0f, 2048f, 32f),
+    KNOCKBACK_RESISTANCE("minecraft:generic.knockback_resistance", "minecraft:knockback_resistance", 0f, 1f, 0f),
+    MOVEMENT_SPEED("minecraft:generic.movement_speed", "minecraft:movement", 0f, 1024f, 0.1f),
+    FLYING_SPEED("minecraft:generic.flying_speed", "minecraft:movement", 0.0f, 1024.0f, 0.4000000059604645f),
+    ATTACK_DAMAGE("minecraft:generic.attack_damage", "minecraft:attack_damage", 0f, 2048f, 1f),
+    HORSE_JUMP_STRENGTH("minecraft:horse.jump_strength", "minecraft:horse.jump_strength", 0.0f, 2.0f, 0.7f),
 
     // Java Attributes
-    ARMOR("generic.armor", null, 0f, 30f, 0f),
-    ARMOR_TOUGHNESS("generic.armorToughness", null, 0F, 20f, 0f),
-    ATTACK_KNOCKBACK("generic.attackKnockback", null, 1.5f, Float.MAX_VALUE, 0f),
-    ATTACK_SPEED("generic.attackSpeed", null, 0f, 1024f, 4f),
-    LUCK("generic.luck", null, -1024f, 1024f, 0f),
-    MAX_HEALTH("generic.maxHealth", null, 0f, 1024f, 20f),
+    ARMOR("minecraft:generic.armor", null, 0f, 30f, 0f),
+    ARMOR_TOUGHNESS("minecraft:generic.armor_toughness", null, 0F, 20f, 0f),
+    ATTACK_KNOCKBACK("minecraft:generic.attack_knockback", null, 1.5f, Float.MAX_VALUE, 0f),
+    ATTACK_SPEED("minecraft:generic.attack_speed", null, 0f, 1024f, 4f),
+    LUCK("minecraft:generic.luck", null, -1024f, 1024f, 0f),
+    MAX_HEALTH("minecraft:generic.max_health", null, 0f, 1024f, 20f),
 
     // Bedrock Attributes
     ABSORPTION(null, "minecraft:absorption", 0f, Float.MAX_VALUE, 0f),
