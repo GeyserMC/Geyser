@@ -107,16 +107,20 @@ import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import com.nukkitx.protocol.bedrock.packet.EmoteListPacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemFrameDropItemPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import com.nukkitx.protocol.bedrock.packet.MapInfoRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.PacketViolationWarningPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerInputPacket;
+import com.nukkitx.protocol.bedrock.packet.PositionTrackingDBClientRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
 import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
@@ -173,6 +177,7 @@ import org.geysermc.connector.entity.living.AmbientEntity;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.living.FlyingEntity;
 import org.geysermc.connector.entity.living.GolemEntity;
+import org.geysermc.connector.entity.living.MagmaCubeEntity;
 import org.geysermc.connector.entity.living.SlimeEntity;
 import org.geysermc.connector.entity.living.SquidEntity;
 import org.geysermc.connector.entity.living.WaterEntity;
@@ -221,15 +226,19 @@ import org.geysermc.connector.network.translators.bedrock.BedrockBlockEntityData
 import org.geysermc.connector.network.translators.bedrock.BedrockBlockPickRequestPacketTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockCommandRequestTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockContainerCloseTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockEmoteTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockEntityEventTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockInteractTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockInventoryTransactionTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockItemFrameDropItemTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockLevelSoundEventTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockMapInfoRequestTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockMobEquipmentTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockMoveEntityAbsoluteTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockMovePlayerTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockPacketViolationWarningTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockPlayerInputTranslator;
+import org.geysermc.connector.network.translators.bedrock.BedrockPositionTrackingDBClientRequestTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockSetLocalPlayerAsInitializedTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockShowCreditsTranslator;
 import org.geysermc.connector.network.translators.bedrock.BedrockTextTranslator;
@@ -371,6 +380,7 @@ public class Edition extends GeyserEdition {
                 .blockEntityTranslator(new EndGatewayBlockEntityTranslator())
                 .blockEntityTranslator(new FlowerPotBlockEntityTranslator())
                 .blockEntityTranslator(new NoteblockBlockEntityTranslator())
+//                .blockEntityTranslator(new PistonBlockEntityTranslator()) special case
                 .blockEntityTranslator(new ShulkerBoxBlockEntityTranslator())
                 .blockEntityTranslator(new SignBlockEntityTranslator())
                 .blockEntityTranslator(new SkullBlockEntityTranslator())
@@ -385,25 +395,29 @@ public class Edition extends GeyserEdition {
         // Register Bedrock Packet Translators
         PacketTranslatorRegistry.REGISTER
                 .bedrockPacketTranslator(PlayerActionPacket.class, new BedrockActionTranslator())
+                .bedrockPacketTranslator(AdventureSettingsPacket.class, new BedrockAdventureSettingsTranslator())
                 .bedrockPacketTranslator(AnimatePacket.class, new BedrockAnimateTranslator())
                 .bedrockPacketTranslator(BlockEntityDataPacket.class, new BedrockBlockEntityDataTranslator())
                 .bedrockPacketTranslator(BlockPickRequestPacket.class, new BedrockBlockPickRequestPacketTranslator())
                 .bedrockPacketTranslator(CommandRequestPacket.class, new BedrockCommandRequestTranslator())
                 .bedrockPacketTranslator(ContainerClosePacket.class, new BedrockContainerCloseTranslator())
+                .bedrockPacketTranslator(EmoteListPacket.class, new BedrockEmoteTranslator())
                 .bedrockPacketTranslator(EntityEventPacket.class, new BedrockEntityEventTranslator())
                 .bedrockPacketTranslator(InteractPacket.class, new BedrockInteractTranslator())
                 .bedrockPacketTranslator(InventoryTransactionPacket.class, new BedrockInventoryTransactionTranslator())
                 .bedrockPacketTranslator(ItemFrameDropItemPacket.class, new BedrockItemFrameDropItemTranslator())
                 .bedrockPacketTranslator(LevelSoundEventPacket.class, new BedrockLevelSoundEventTranslator())
+                .bedrockPacketTranslator(MapInfoRequestPacket.class, new BedrockMapInfoRequestTranslator())
                 .bedrockPacketTranslator(MobEquipmentPacket.class, new BedrockMobEquipmentTranslator())
                 .bedrockPacketTranslator(MoveEntityAbsolutePacket.class, new BedrockMoveEntityAbsoluteTranslator())
                 .bedrockPacketTranslator(MovePlayerPacket.class, new BedrockMovePlayerTranslator())
+                .bedrockPacketTranslator(PacketViolationWarningPacket.class, new BedrockPacketViolationWarningTranslator())
                 .bedrockPacketTranslator(PlayerInputPacket.class, new BedrockPlayerInputTranslator())
+                .bedrockPacketTranslator(PositionTrackingDBClientRequestPacket.class, new BedrockPositionTrackingDBClientRequestTranslator())
                 .bedrockPacketTranslator(RespawnPacket.class, new BedrockRespawnTranslator())
                 .bedrockPacketTranslator(SetLocalPlayerAsInitializedPacket.class, new BedrockSetLocalPlayerAsInitializedTranslator())
                 .bedrockPacketTranslator(ShowCreditsPacket.class, new BedrockShowCreditsTranslator())
-                .bedrockPacketTranslator(TextPacket.class, new BedrockTextTranslator())
-                .bedrockPacketTranslator(AdventureSettingsPacket.class, new BedrockAdventureSettingsTranslator());
+                .bedrockPacketTranslator(TextPacket.class, new BedrockTextTranslator());
 
         // Register Java Packet Translators
         PacketTranslatorRegistry.REGISTER
@@ -496,6 +510,7 @@ public class Edition extends GeyserEdition {
                 .javaPacketTranslator(ServerUpdateViewPositionPacket.class, new JavaUpdateViewPositionTranslator())
                 .javaPacketTranslator(ServerVehicleMovePacket.class, new JavaVehicleMoveTranslator());
 
+        // Register Inventory Translators
         InventoryTranslator.REGISTER
                 .inventoryTranslator(null, new PlayerInventoryTranslator())
                 .inventoryTranslator(WindowType.GENERIC_9X1, new SingleChestInventoryTranslator(9))
@@ -562,23 +577,23 @@ public class Edition extends GeyserEdition {
         // Register EntityTypes
         EntityType.REGISTER
                 .entityType(EntityType.CHICKEN, AnimalEntity.class, 10, 0.7f, 0.4f)
-                .entityType(EntityType.COW,AnimalEntity.class, 11, 1.4f, 0.9f)
+                .entityType(EntityType.COW, AnimalEntity.class, 11, 1.4f, 0.9f)
                 .entityType(EntityType.PIG, PigEntity.class, 12, 0.9f)
                 .entityType(EntityType.SHEEP, SheepEntity.class, 13, 1.3f, 0.9f)
                 .entityType(EntityType.WOLF, WolfEntity.class, 14, 0.85f, 0.6f)
                 .entityType(EntityType.VILLAGER, VillagerEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:villager_v2")
-                .entityType(EntityType.MOOSHROOM,AnimalEntity.class, 16, 1.4f, 0.9f)
+                .entityType(EntityType.MOOSHROOM, AnimalEntity.class, 16, 1.4f, 0.9f)
                 .entityType(EntityType.SQUID, SquidEntity.class, 17, 0.8f)
                 .entityType(EntityType.RABBIT, RabbitEntity.class, 18, 0.5f, 0.4f)
                 .entityType(EntityType.BAT, AmbientEntity.class, 19, 0.9f, 0.5f)
                 .entityType(EntityType.IRON_GOLEM, GolemEntity.class, 20, 2.7f, 1.4f)
-                .entityType(EntityType.SNOW_GOLEM,GolemEntity.class, 21, 1.9f, 0.7f)
+                .entityType(EntityType.SNOW_GOLEM, GolemEntity.class, 21, 1.9f, 0.7f)
                 .entityType(EntityType.OCELOT, OcelotEntity.class, 22, 0.35f, 0.3f)
                 .entityType(EntityType.HORSE, HorseEntity.class, 23, 1.6f, 1.3965f)
                 .entityType(EntityType.DONKEY, ChestedHorseEntity.class, 24, 1.6f, 1.3965f)
-                .entityType(EntityType.MULE,ChestedHorseEntity.class, 25, 1.6f, 1.3965f)
+                .entityType(EntityType.MULE, ChestedHorseEntity.class, 25, 1.6f, 1.3965f)
                 .entityType(EntityType.SKELETON_HORSE, AbstractHorseEntity.class, 26, 1.6f, 1.3965f)
-                .entityType(EntityType.ZOMBIE_HORSE,AbstractHorseEntity.class, 27, 1.6f, 1.3965f)
+                .entityType(EntityType.ZOMBIE_HORSE, AbstractHorseEntity.class, 27, 1.6f, 1.3965f)
                 .entityType(EntityType.POLAR_BEAR, PolarBearEntity.class, 28, 1.4f, 1.3f)
                 .entityType(EntityType.LLAMA, LlamaEntity.class, 29, 1.87f, 0.9f)
                 .entityType(EntityType.TRADER_LLAMA, TraderLlamaEntity.class, 29, 1.187f, 0.9f, 0f, 0f, "minecraft:llama")
@@ -593,83 +608,84 @@ public class Edition extends GeyserEdition {
                 .entityType(EntityType.SLIME, SlimeEntity.class, 37, 0.51f)
                 .entityType(EntityType.ENDERMAN, EndermanEntity.class, 38, 2.9f, 0.6f)
                 .entityType(EntityType.SILVERFISH, MonsterEntity.class, 39, 0.3f, 0.4f)
-                .entityType(EntityType.CAVE_SPIDER,MonsterEntity.class, 40, 0.5f, 0.7f)
+                .entityType(EntityType.CAVE_SPIDER, MonsterEntity.class, 40, 0.5f, 0.7f)
                 .entityType(EntityType.GHAST, FlyingEntity.class, 41, 4.0f)
-                .entityType(EntityType.MAGMA_CUBE,SlimeEntity.class, 42, 0.51f)
+                .entityType(EntityType.MAGMA_CUBE, MagmaCubeEntity.class, 42, 0.51f)
                 .entityType(EntityType.BLAZE, BlazeEntity.class, 43, 1.8f, 0.6f)
-                .entityType(EntityType.ZOMBIE_VILLAGER,ZombieEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f)
+                .entityType(EntityType.ZOMBIE_VILLAGER, ZombieEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f)
                 .entityType(EntityType.WITCH, RaidParticipantEntity.class, 45, 1.8f, 0.6f, 0.6f, 1.62f)
-                .entityType(EntityType.STRAY,AbstractSkeletonEntity.class, 46, 1.8f, 0.6f, 0.6f, 1.62f)
-                .entityType(EntityType.HUSK,ZombieEntity.class, 47, 1.8f, 0.6f, 0.6f, 1.62f)
-                .entityType(EntityType.WITHER_SKELETON,AbstractSkeletonEntity.class, 48, 2.4f, 0.7f)
+                .entityType(EntityType.STRAY, AbstractSkeletonEntity.class, 46, 1.8f, 0.6f, 0.6f, 1.62f)
+                .entityType(EntityType.HUSK, ZombieEntity.class, 47, 1.8f, 0.6f, 0.6f, 1.62f)
+                .entityType(EntityType.WITHER_SKELETON, AbstractSkeletonEntity.class, 48, 2.4f, 0.7f)
                 .entityType(EntityType.GUARDIAN, GuardianEntity.class, 49, 0.85f)
                 .entityType(EntityType.ELDER_GUARDIAN, ElderGuardianEntity.class, 50, 1.9975f)
                 .entityType(EntityType.NPC, PlayerEntity.class, 51, 1.8f, 0.6f, 0.6f, 1.62f)
                 .entityType(EntityType.WITHER, WitherEntity.class, 52, 3.5f, 0.9f)
                 .entityType(EntityType.ENDER_DRAGON, EnderDragonEntity.class, 53, 4f, 13f)
                 .entityType(EntityType.SHULKER, ShulkerEntity.class, 54, 1f, 1f)
-                .entityType(EntityType.ENDERMITE,MonsterEntity.class, 55, 0.3f, 0.4f)
+                .entityType(EntityType.ENDERMITE, MonsterEntity.class, 55, 0.3f, 0.4f)
                 .entityType(EntityType.AGENT, Entity.class, 56, 0f)
                 .entityType(EntityType.VINDICATOR, AbstractIllagerEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f)
-                .entityType(EntityType.PILLAGER,AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f)
+                .entityType(EntityType.PILLAGER, AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f)
                 .entityType(EntityType.WANDERING_TRADER, AbstractMerchantEntity.class, 118, 1.8f, 0.6f, 0.6f, 1.62f)
-                .entityType(EntityType.PHANTOM,FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f)
-                .entityType(EntityType.RAVAGER,RaidParticipantEntity.class, 59, 1.9f, 1.2f)
+                .entityType(EntityType.PHANTOM, FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f)
+                .entityType(EntityType.RAVAGER, RaidParticipantEntity.class, 59, 1.9f, 1.2f)
                 .entityType(EntityType.ARMOR_STAND, ArmorStandEntity.class, 61, 1.975f, 0.5f)
-                .entityType(EntityType.TRIPOD_CAMERA,Entity.class, 62, 0f)
-                .entityType(EntityType.PLAYER,PlayerEntity.class, 63, 1.8f, 0.6f, 0.6f, 1.62f)
+                .entityType(EntityType.TRIPOD_CAMERA, Entity.class, 62, 0f)
+                .entityType(EntityType.PLAYER, PlayerEntity.class, 63, 1.8f, 0.6f, 0.6f, 1.62f)
                 .entityType(EntityType.ITEM, ItemEntity.class, 64, 0.25f, 0.25f)
                 .entityType(EntityType.PRIMED_TNT, TNTEntity.class, 65, 0.98f, 0.98f, 0.98f, 0f, "minecraft:tnt")
                 .entityType(EntityType.FALLING_BLOCK, FallingBlockEntity.class, 66, 0.98f, 0.98f)
-                .entityType(EntityType.MOVING_BLOCK,Entity.class, 67, 0f)
+                .entityType(EntityType.MOVING_BLOCK, Entity.class, 67, 0f)
                 .entityType(EntityType.THROWN_EXP_BOTTLE, ThrowableEntity.class, 68, 0.25f, 0.25f, 0f, 0f, "minecraft:xp_bottle")
                 .entityType(EntityType.EXPERIENCE_ORB, ExpOrbEntity.class, 69, 0f, 0f, 0f, 0f, "minecraft:xp_orb")
-                .entityType(EntityType.EYE_OF_ENDER,Entity.class, 70, 0.25f, 0.25f, 0f, 0f, "minecraft:eye_of_ender_signal")
+                .entityType(EntityType.EYE_OF_ENDER, Entity.class, 70, 0.25f, 0.25f, 0f, 0f, "minecraft:eye_of_ender_signal")
                 .entityType(EntityType.END_CRYSTAL, EnderCrystalEntity.class, 71, 2.0f, 2.0f, 2.0f, 0f, "minecraft:ender_crystal")
                 .entityType(EntityType.FIREWORK_ROCKET, FireworkEntity.class, 72, 0.25f, 0.25f, 0.25f, 0f, "minecraft:fireworks_rocket")
                 .entityType(EntityType.TRIDENT, TridentEntity.class, 73, 0f, 0f, 0f, 0f, "minecraft:thrown_trident")
-                .entityType(EntityType.TURTLE,AnimalEntity.class, 74, 0.4f, 1.2f)
+                .entityType(EntityType.TURTLE, AnimalEntity.class, 74, 0.4f, 1.2f)
                 .entityType(EntityType.CAT, CatEntity.class, 75, 0.35f, 0.3f)
-                .entityType(EntityType.SHULKER_BULLET,Entity.class, 76, 0.3125f)
+                .entityType(EntityType.SHULKER_BULLET, Entity.class, 76, 0.3125f)
                 .entityType(EntityType.FISHING_BOBBER, FishingHookEntity.class, 77, 0f, 0f, 0f, 0f, "minecraft:fishing_hook")
-                .entityType(EntityType.CHALKBOARD,Entity.class, 78, 0f)
+                .entityType(EntityType.CHALKBOARD, Entity.class, 78, 0f)
                 .entityType(EntityType.DRAGON_FIREBALL, ItemedFireballEntity.class, 79, 1.0f)
                 .entityType(EntityType.ARROW, TippedArrowEntity.class, 80, 0.25f, 0.25f)
                 .entityType(EntityType.SPECTRAL_ARROW, AbstractArrowEntity.class, 80, 0.25f, 0.25f, 0.25f, 0f, "minecraft:arrow")
-                .entityType(EntityType.SNOWBALL,ThrowableEntity.class, 81, 0.25f)
-                .entityType(EntityType.THROWN_EGG,ThrowableEntity.class, 82, 0.25f, 0.25f, 0.25f, 0f, "minecraft:egg")
+                .entityType(EntityType.SNOWBALL, ThrowableEntity.class, 81, 0.25f)
+                .entityType(EntityType.THROWN_EGG, ThrowableEntity.class, 82, 0.25f, 0.25f, 0.25f, 0f, "minecraft:egg")
                 .entityType(EntityType.PAINTING, PaintingEntity.class, 83, 0f)
                 .entityType(EntityType.MINECART, MinecartEntity.class, 84, 0.7f, 0.98f, 0.98f, 0.35f)
-                .entityType(EntityType.FIREBALL,ItemedFireballEntity.class, 85, 1.0f)
-                .entityType(EntityType.THROWN_POTION,ThrowableEntity.class, 86, 0.25f, 0.25f, 0.25f, 0f, "minecraft:splash_potion")
-                .entityType(EntityType.THROWN_ENDERPEARL,ThrowableEntity.class, 87, 0.25f, 0.25f, 0.25f, 0f, "minecraft:ender_pearl")
+                .entityType(EntityType.FIREBALL, ItemedFireballEntity.class, 85, 1.0f)
+                .entityType(EntityType.THROWN_POTION, ThrowableEntity.class, 86, 0.25f, 0.25f, 0.25f, 0f, "minecraft:splash_potion")
+                .entityType(EntityType.THROWN_ENDERPEARL, ThrowableEntity.class, 87, 0.25f, 0.25f, 0.25f, 0f, "minecraft:ender_pearl")
                 .entityType(EntityType.LEASH_KNOT, LeashKnotEntity.class, 88, 0.5f, 0.375f)
-                .entityType(EntityType.WITHER_SKULL,Entity.class, 89, 0.3125f)
+                .entityType(EntityType.WITHER_SKULL, Entity.class, 89, 0.3125f)
                 .entityType(EntityType.BOAT, BoatEntity.class, 90, 0.7f, 1.6f, 1.6f, 0.35f)
-                .entityType(EntityType.WITHER_SKULL_DANGEROUS,Entity.class, 91, 0f)
-                .entityType(EntityType.LIGHTNING_BOLT,Entity.class, 93, 0f)
-                .entityType(EntityType.SMALL_FIREBALL,ItemedFireballEntity.class, 94, 0.3125f)
+                .entityType(EntityType.WITHER_SKULL_DANGEROUS, Entity.class, 91, 0f)
+                .entityType(EntityType.LIGHTNING_BOLT, Entity.class, 93, 0f)
+                .entityType(EntityType.SMALL_FIREBALL, ItemedFireballEntity.class, 94, 0.3125f)
                 .entityType(EntityType.AREA_EFFECT_CLOUD, AreaEffectCloudEntity.class, 95, 0.5f, 1.0f)
-                .entityType(EntityType.MINECART_HOPPER,MinecartEntity.class, 96, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:hopper_minecart")
-                .entityType(EntityType.MINECART_TNT,MinecartEntity.class, 97, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:tnt_minecart")
-                .entityType(EntityType.MINECART_CHEST,MinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:chest_minecart")
+                .entityType(EntityType.MINECART_HOPPER, MinecartEntity.class, 96, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:hopper_minecart")
+                .entityType(EntityType.MINECART_TNT, MinecartEntity.class, 97, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:tnt_minecart")
+                .entityType(EntityType.MINECART_CHEST, MinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:chest_minecart")
                 .entityType(EntityType.MINECART_FURNACE, FurnaceMinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:minecart")
                 .entityType(EntityType.MINECART_SPAWNER, SpawnerMinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:minecart")
-                .entityType(EntityType.MINECART_COMMAND_BLOCK,MinecartEntity.class, 100, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:command_block_minecart")
-                .entityType(EntityType.LINGERING_POTION,ThrowableEntity.class, 101, 0f)
-                .entityType(EntityType.LLAMA_SPIT,Entity.class, 102, 0.25f)
-                .entityType(EntityType.EVOKER_FANGS,Entity.class, 103, 0.8f, 0.5f, 0.5f, 0f, "minecraft:evocation_fang")
+                .entityType(EntityType.MINECART_COMMAND_BLOCK, MinecartEntity.class, 100, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:command_block_minecart")
+                .entityType(EntityType.LINGERING_POTION, ThrowableEntity.class, 101, 0f)
+                .entityType(EntityType.LLAMA_SPIT, Entity.class, 102, 0.25f)
+                .entityType(EntityType.EVOKER_FANGS, Entity.class, 103, 0.8f, 0.5f, 0.5f, 0f, "minecraft:evocation_fang")
                 .entityType(EntityType.EVOKER, SpellcasterIllagerEntity.class, 104, 1.95f, 0.6f, 0.6f, 0f, "minecraft:evocation_illager")
-                .entityType(EntityType.VEX,MonsterEntity.class, 105, 0.8f, 0.4f)
-                .entityType(EntityType.ICE_BOMB,Entity.class, 106, 0f)
-                .entityType(EntityType.BALLOON,Entity.class, 107, 0f) //TODO
+                .entityType(EntityType.VEX, MonsterEntity.class, 105, 0.8f, 0.4f)
+                .entityType(EntityType.ICE_BOMB, Entity.class, 106, 0f)
+                .entityType(EntityType.BALLOON, Entity.class, 107, 0f) //TODO
                 .entityType(EntityType.PUFFERFISH, PufferFishEntity.class, 108, 0.7f, 0.7f)
                 .entityType(EntityType.SALMON, AbstractFishEntity.class, 109, 0.5f, 0.7f)
-                .entityType(EntityType.DROWNED,ZombieEntity.class, 110, 1.95f, 0.6f)
+                .entityType(EntityType.DROWNED, ZombieEntity.class, 110, 1.95f, 0.6f)
                 .entityType(EntityType.TROPICAL_FISH, TropicalFishEntity.class, 111, 0.6f, 0.6f, 0f, 0f, "minecraft:tropicalfish")
-                .entityType(EntityType.COD,AbstractFishEntity.class, 112, 0.25f, 0.5f)
+                .entityType(EntityType.COD, AbstractFishEntity.class, 112, 0.25f, 0.5f)
                 .entityType(EntityType.PANDA, PandaEntity.class, 113, 1.25f, 1.125f, 1.825f)
-                .entityType(EntityType.FOX, FoxEntity.class, 14, 0.5f, 1.25f, 1.25f, 0f,"minecraft:wolf")
+                .entityType(EntityType.FOX, FoxEntity.class, 121, 0.5f, 1.25f)
+                .entityType(EntityType.BEE, BeeEntity.class, 122, 0.6f, 0.6f)
                 .entityType(EntityType.ITEM_FRAME, ItemFrameEntity.class, 0, 0,0)
                 .entityType(EntityType.ILLUSIONER, AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager")
                 .entityType(EntityType.BEE, BeeEntity.class, 108, 0.6f, 0.6f, 0.6f, 0f, "minecraft:pufferfish")

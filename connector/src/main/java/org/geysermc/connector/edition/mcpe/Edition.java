@@ -668,6 +668,8 @@ public class Edition extends GeyserEdition {
                 .entityType(EntityType.COD, AbstractFishEntity.class, 112, 0.25f, 0.5f)
                 .entityType(EntityType.PANDA, PandaEntity.class, 113, 1.25f, 1.125f, 1.825f)
                 .entityType(EntityType.FOX, FoxEntity.class, 121, 0.5f, 1.25f)
+                .entityType(EntityType.ITEM_FRAME, ItemFrameEntity.class, 0, 0,0)
+                .entityType(EntityType.ILLUSIONER, AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager")
                 .entityType(EntityType.BEE, BeeEntity.class, 122, 0.6f, 0.6f)
                 .entityType(EntityType.STRIDER, StriderEntity.class, 125, 1.7f, 0.9f, 0f, 0f, "minecraft:strider")
                 .entityType(EntityType.HOGLIN, AnimalEntity.class, 124, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:hoglin")
