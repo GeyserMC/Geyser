@@ -158,7 +158,7 @@ public enum EntityType {
     public static class Register {
         public Register entityType(EntityType entityType, Class<? extends Entity> entityClass, int type, float height, float width,
                                    float length, float offset, String identifier) {
-            VALUES.put(entityType, new Data(entityClass, type, height, width, length, offset, identifier));
+            VALUES.put(entityType, new Data(entityClass, type, height, width, length, offset+ 0.00001f, identifier));
             return this;
         }
         public Register entityType(EntityType entityType, Class<? extends Entity> entityClass, int type, float height, float width,
