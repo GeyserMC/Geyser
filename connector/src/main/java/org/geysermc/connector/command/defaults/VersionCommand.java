@@ -33,6 +33,9 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.WebUtils;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class VersionCommand extends GeyserCommand {
@@ -56,9 +59,9 @@ public class VersionCommand extends GeyserCommand {
                 Properties gitProp = new Properties();
                 gitProp.load(FileUtils.getResource("git.properties"));
 
-                String buildXML = WebUtils.getBody("https://ci.nukkitx.com/job/GeyserMC/job/Geyser/job/" + gitProp.getProperty("git.branch") + "/lastSuccessfulBuild/api/xml?xpath=//master/buildNumber");
+                String buildXML = WebUtils.getBody("https://ci.nukkitx.com/job/GeyserMC/job/Geyser/job/" + URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
                 if (buildXML.startsWith("<buildNumber>")) {
-                    int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?buildNumber>", ""));
+                    int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
                     int buildNum = Integer.parseInt(gitProp.getProperty("git.build.number"));
                     if (latestBuildNum != buildNum) {
                         sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.no_updates"));
@@ -66,10 +69,11 @@ public class VersionCommand extends GeyserCommand {
                         sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.outdated", (latestBuildNum - buildNum), "http://ci.geysermc.org/"));
                     }
                 } else {
-                    throw new AssertionError();
+                    throw new AssertionError("buildNumber missing");
                 }
-            } catch (Exception e) {
-                sender.sendMessage("Failed to check for updates");
+            } catch (IOException | AssertionError | NumberFormatException e) {
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.version.failed"), e);
+                sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.failed"));
             }
         }
     }

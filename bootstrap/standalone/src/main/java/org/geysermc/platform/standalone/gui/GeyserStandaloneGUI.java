@@ -42,7 +42,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -292,10 +291,10 @@ public class GeyserStandaloneGUI {
                 // Update player table
                 playerTableModel.getDataVector().removeAllElements();
 
-                for (Map.Entry<InetSocketAddress, GeyserSession> player : GeyserConnector.getInstance().getPlayers().entrySet()) {
+                for (GeyserSession player : GeyserConnector.getInstance().getPlayers()) {
                     Vector row = new Vector();
-                    row.add(player.getKey().getHostName());
-                    row.add(player.getValue().getPlayerEntity().getUsername());
+                    row.add(player.getSocketAddress().getHostName());
+                    row.add(player.getPlayerEntity().getUsername());
 
                     playerTableModel.addRow(row);
                 }

@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserPingInfo {
 
     private String description;

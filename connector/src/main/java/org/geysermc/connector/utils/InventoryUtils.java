@@ -114,7 +114,7 @@ public class InventoryUtils {
 
     public static void updateCursor(GeyserSession session) {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
-        cursorPacket.setContainerId(ContainerId.UI); //TODO: CHECK IF ACCURATE
+        cursorPacket.setContainerId(ContainerId.UI);
         cursorPacket.setSlot(0);
         cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
         session.sendUpstreamPacket(cursorPacket);
