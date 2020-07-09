@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.utils;
 
+import org.geysermc.connector.GeyserConnector;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -47,6 +49,7 @@ public class WebUtils {
             url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION); // Otherwise Java 8 fails on checking updates
 
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
