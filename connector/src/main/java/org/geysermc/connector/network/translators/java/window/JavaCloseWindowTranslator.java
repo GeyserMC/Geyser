@@ -32,8 +32,6 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.action.Transaction;
 import org.geysermc.connector.utils.InventoryUtils;
 
-import java.util.concurrent.TimeUnit;
-
 @Translator(packet = ServerCloseWindowPacket.class)
 public class JavaCloseWindowTranslator extends PacketTranslator<ServerCloseWindowPacket> {
 
