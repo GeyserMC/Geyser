@@ -24,22 +24,27 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.packet;
 
+import com.github.steveice10.packetlib.packet.Packet;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
-import java.util.Set;
+import org.geysermc.connector.event.events.CancellableGeyserEvent;
+import org.geysermc.connector.network.session.GeyserSession;
 
 /**
- * Triggered when registering Item Remapper Translators
+ * Triggered each time a packet is received from the Downstream server.
+ *
+ * If cancelled then regular processes of the packet will not proceed
  */
+
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class ItemRemapperRegistryEvent extends GeyserEvent {
-    private Set<Class<?>> registeredTranslators;
+public class DownstreamPacketReceiveEvent<T extends Packet> extends CancellableGeyserEvent {
+    private GeyserSession session;
+    private T packet;
 }

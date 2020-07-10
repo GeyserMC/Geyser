@@ -33,7 +33,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
-import org.geysermc.connector.event.events.PacketTranslatorRegistryEvent;
+import org.geysermc.connector.event.events.registry.PacketTranslatorRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;

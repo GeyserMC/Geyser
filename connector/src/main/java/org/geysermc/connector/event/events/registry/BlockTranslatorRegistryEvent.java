@@ -24,20 +24,35 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.registry;
 
+import com.google.common.collect.BiMap;
+import com.nukkitx.nbt.NbtList;
+import com.nukkitx.nbt.NbtMap;
+import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.geysermc.connector.event.events.GeyserEvent;
 
-import java.util.Set;
-
-/**
- * Triggered when registering Packet Translators
- */
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class PacketTranslatorRegistryEvent extends GeyserEvent {
-    private Set<Class<?>> registeredTranslators;
+public class BlockTranslatorRegistryEvent extends GeyserEvent {
+    NbtList<NbtMap> blocks;
+    Int2IntMap javaToBedrockBlockMap;
+    BiMap<String, Integer> javaIdBlockMap;
+    IntSet waterlogged;
+    Object2IntMap<NbtMap> itemFrames;
+    Int2ObjectMap<String> javaIdToBlockEntityMap;
+    Int2DoubleMap javaRuntimeIdToHardness;
+    Int2BooleanMap javaRuntimeIdToCanHarvestWithHand;
+    Int2ObjectMap<String> javaRuntimeIdToToolType;
+    IntSet javaRuntimeWoolIds;
 }

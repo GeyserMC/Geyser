@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
-import org.geysermc.connector.event.events.ResourceReadEvent;
+import org.geysermc.connector.event.events.geyser.ResourceReadEvent;
 
 import java.io.File;
 import java.io.FileOutputStream;

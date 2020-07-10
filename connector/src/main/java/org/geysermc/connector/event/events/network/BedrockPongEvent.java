@@ -24,10 +24,20 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.network;
 
-/**
- * DisableEvent is triggered for each plugin when disabling it
- */
-public class GeyserStopEvent extends GeyserEvent {
+import com.nukkitx.protocol.bedrock.BedrockPong;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.geysermc.connector.event.events.GeyserEvent;
+
+import java.net.InetSocketAddress;
+
+@EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
+@Data
+public class BedrockPongEvent extends GeyserEvent {
+    private InetSocketAddress inetSocketAddress;
+    private BedrockPong pong;
 }

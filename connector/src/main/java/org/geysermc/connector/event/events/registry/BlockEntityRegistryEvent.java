@@ -24,18 +24,23 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.registry;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.nukkitx.nbt.NbtMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import org.geysermc.connector.event.events.GeyserEvent;
 
+import java.util.Set;
+
+/**
+ * Triggered when registering Packet Translators
+ */
 @EqualsAndHashCode(callSuper = true)
-@Data
 @AllArgsConstructor
-public class BuildBedrockStateEvent extends GeyserEvent {
-    JsonNode blockNode;
-    NbtMap blockState;
+@Data
+public class BlockEntityRegistryEvent extends GeyserEvent {
+    private Set<Class<?>> registeredTranslators;
 }

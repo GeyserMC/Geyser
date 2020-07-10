@@ -41,7 +41,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
-import org.geysermc.connector.event.events.ItemRemapperRegistryEvent;
+import org.geysermc.connector.event.events.registry.ItemRemapperRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.utils.LanguageUtils;

@@ -24,19 +24,23 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.registry;
 
-import com.nukkitx.protocol.bedrock.BedrockPong;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import org.geysermc.connector.event.events.GeyserEvent;
 
-import java.net.InetSocketAddress;
+import java.util.Set;
 
+/**
+ * Triggered when registering Sound Handlers
+ */
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class BedrockPongEvent extends GeyserEvent {
-    private InetSocketAddress inetSocketAddress;
-    private BedrockPong pong;
+public class SoundHandlerRegistryEvent extends GeyserEvent {
+    private Set<Class<?>> registeredTranslators;
 }

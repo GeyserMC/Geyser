@@ -24,25 +24,17 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.plugin;
 
-import com.nukkitx.protocol.bedrock.BedrockPacket;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.network.session.GeyserSession;
-
-/**
- * Triggered each time a packet is received from the Downstream server.
- *
- * If cancelled then regular processes of the packet will not proceed
- */
+import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.plugin.GeyserPlugin;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class UpstreamPacketReceiveEvent<T extends BedrockPacket> extends CancellableGeyserEvent {
-
-    private GeyserSession session;
-    private T packet;
+public class PluginDisableEvent extends GeyserEvent {
+    private GeyserPlugin plugin;
 }

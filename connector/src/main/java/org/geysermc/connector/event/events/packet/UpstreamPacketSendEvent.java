@@ -24,12 +24,13 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.packet;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.geysermc.connector.event.events.CancellableGeyserEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**

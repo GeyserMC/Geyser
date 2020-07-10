@@ -31,8 +31,8 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.annotations.Event;
 import org.geysermc.connector.event.events.GeyserEvent;
-import org.geysermc.connector.event.events.PluginDisableEvent;
-import org.geysermc.connector.event.events.PluginEnableEvent;
+import org.geysermc.connector.event.events.plugin.PluginDisableEvent;
+import org.geysermc.connector.event.events.plugin.PluginEnableEvent;
 import org.geysermc.connector.event.handlers.EventHandler;
 import org.geysermc.connector.plugin.handlers.PluginLambdaEventHandler;
 import org.geysermc.connector.plugin.handlers.PluginMethodEventHandler;
@@ -46,8 +46,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-
-import static jdk.xml.internal.SecuritySupport.getClassLoader;
 
 /**
  * All GeyserPlugins extend from this

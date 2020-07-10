@@ -24,17 +24,19 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.geyser;
 
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.event.events.CancellableGeyserEvent;
+import org.geysermc.connector.network.session.auth.BedrockClientData;
 
 @EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
 @Data
-public class RuntimeBlockStateReadEvent extends GeyserEvent {
-    private NbtList<NbtMap> blockStates;
+@AllArgsConstructor
+public class LoadBedrockSkinEvent extends CancellableGeyserEvent {
+    private PlayerEntity playerEntity;
+    private BedrockClientData clientData;
 }

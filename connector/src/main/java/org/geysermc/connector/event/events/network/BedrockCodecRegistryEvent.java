@@ -24,18 +24,17 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.network;
 
+import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.network.session.auth.BedrockClientData;
+import org.geysermc.connector.event.events.GeyserEvent;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
 @AllArgsConstructor
-public class LoadBedrockSkinEvent extends CancellableGeyserEvent {
-    private PlayerEntity playerEntity;
-    private BedrockClientData clientData;
+@Data
+public class BedrockCodecRegistryEvent extends GeyserEvent {
+    private BedrockPacketCodec codec;
 }

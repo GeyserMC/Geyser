@@ -24,22 +24,15 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.geyser;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-
-import java.util.Set;
+import org.geysermc.connector.event.events.GeyserEvent;
 
 /**
- * Triggered when registering Packet Translators
+ * EnableEvent is triggered for each plugin when enabling it
+ *
+ * If the event is cancelled then the plugin will be unregistered from the EventManager and the DisableEvent will
+ * not trigger
  */
-@EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
-@Data
-public class BlockEntityRegistryEvent extends GeyserEvent {
-    private Set<Class<?>> registeredTranslators;
+public class GeyserStartEvent extends GeyserEvent {
 }

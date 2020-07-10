@@ -29,7 +29,6 @@ package org.geysermc.connector.plugin;
 import lombok.Getter;
 import lombok.ToString;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.event.events.PluginEnableEvent;
 
 import java.io.File;
 import java.io.FileNotFoundException;

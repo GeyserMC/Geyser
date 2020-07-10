@@ -24,14 +24,13 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.packet;
 
-import com.github.steveice10.packetlib.packet.Packet;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import org.geysermc.connector.event.events.CancellableGeyserEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -43,7 +42,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class DownstreamPacketReceiveEvent<T extends Packet> extends CancellableGeyserEvent {
+public class UpstreamPacketReceiveEvent<T extends BedrockPacket> extends CancellableGeyserEvent {
+
     private GeyserSession session;
     private T packet;
 }

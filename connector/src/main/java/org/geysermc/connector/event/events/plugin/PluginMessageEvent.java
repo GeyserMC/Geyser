@@ -24,16 +24,19 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.plugin;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.plugin.GeyserPlugin;
+import org.geysermc.connector.event.events.CancellableGeyserEvent;
+import org.geysermc.connector.network.session.GeyserSession;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class PluginEnableEvent extends CancellableGeyserEvent {
-    private GeyserPlugin plugin;
+public class PluginMessageEvent extends CancellableGeyserEvent {
+    private GeyserSession session;
+    private String channel;
+    private byte[] data;
 }
