@@ -31,29 +31,11 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
 import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
+import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
-    private final InventoryHolder holder;
-
+public class SingleChestInventoryTranslator extends MinecartInventoryTranslator {
     public SingleChestInventoryTranslator(int size) {
-        super(size, 27);
-        BlockState javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
-        this.holder = new BlockInventoryHolder(BlockTranslator.getBedrockBlockId(javaBlockState), ContainerType.CONTAINER);
-    }
-
-    @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        holder.prepareInventory(this, session, inventory);
-    }
-
-    @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        holder.openInventory(this, session, inventory);
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory);
+        super(size, ContainerType.CONTAINER, new ChestInventoryUpdater(27));
     }
 }
