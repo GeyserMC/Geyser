@@ -25,19 +25,18 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @BlockEntity(name = "Empty", regex = "")
 public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
-        return new ArrayList<>();
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        return new HashMap<>();
     }
 
     @Override
@@ -46,7 +45,7 @@ public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
         return getConstantBedrockTag(bedrockId, x, y, z);
     }
 }

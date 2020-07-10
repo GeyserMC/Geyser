@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -32,17 +34,16 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.AttributeUtils;
 
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
-
 @Translator(packet = ServerEntityPropertiesPacket.class)
 public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntityPropertiesPacket> {
 
     @Override
     public void translate(ServerEntityPropertiesPacket packet, GeyserSession session) {
+        boolean isSessionPlayer = false;
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+            isSessionPlayer = true;
         }
         if (entity == null) return;
 
@@ -53,6 +54,13 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
                     break;
                 case GENERIC_ATTACK_DAMAGE:
                     entity.getAttributes().put(AttributeType.ATTACK_DAMAGE, AttributeType.ATTACK_DAMAGE.getAttribute((float) AttributeUtils.calculateValue(attribute)));
+                    break;
+                case GENERIC_ATTACK_SPEED:
+                    if (isSessionPlayer) {
+                        // Get attack speed value for use in sending the faux cooldown
+                        double attackSpeed = AttributeUtils.calculateValue(attribute);
+                        session.setAttackSpeed(attackSpeed);
+                    }
                     break;
                 case GENERIC_FLYING_SPEED:
                     entity.getAttributes().put(AttributeType.FLYING_SPEED, AttributeType.FLYING_SPEED.getAttribute((float) AttributeUtils.calculateValue(attribute)));

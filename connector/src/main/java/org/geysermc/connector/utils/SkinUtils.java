@@ -28,14 +28,12 @@ package org.geysermc.connector.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.auth.data.GameProfile;
-import com.nukkitx.protocol.bedrock.data.ImageData;
-import com.nukkitx.protocol.bedrock.data.SerializedSkin;
+import com.nukkitx.protocol.bedrock.data.skin.ImageData;
+import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import org.geysermc.common.AuthType;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -98,6 +96,7 @@ public class SkinUtils {
         entry.setXuid("");
         entry.setPlatformChatId("");
         entry.setTeacher(false);
+        entry.setTrustedSkin(true);
         return entry;
     }
 
@@ -247,7 +246,7 @@ public class SkinUtils {
                                 }
                             }
                         } catch (Exception e) {
-                            GeyserConnector.getInstance().getLogger().error("Failed getting skin for " + entity.getUuid(), e);
+                            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                         }
 
                         if (skinAndCapeConsumer != null) skinAndCapeConsumer.accept(skinAndCape);
@@ -258,7 +257,7 @@ public class SkinUtils {
     public static void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData) {
         GameProfileData data = GameProfileData.from(playerEntity.getProfile());
 
-        GeyserConnector.getInstance().getLogger().info("Registering bedrock skin for " + playerEntity.getUsername() + " (" + playerEntity.getUuid() + ")");
+        GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
 
         try {
             byte[] skinBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getSkinData().getBytes("UTF-8"));
@@ -271,7 +270,7 @@ public class SkinUtils {
                 SkinProvider.storeBedrockSkin(playerEntity.getUuid(), data.getSkinUrl(), skinBytes);
                 SkinProvider.storeBedrockGeometry(playerEntity.getUuid(), geometryNameBytes, geometryBytes);
             } else {
-                GeyserConnector.getInstance().getLogger().info("Unable to load bedrock skin for '" + playerEntity.getUsername() + "' as they are likely using a customised skin");
+                GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.fail", playerEntity.getUsername()));
                 GeyserConnector.getInstance().getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());
             }
 

@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.living.GolemEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
