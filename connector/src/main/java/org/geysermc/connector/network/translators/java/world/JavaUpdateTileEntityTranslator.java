@@ -50,8 +50,8 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
         if (ChunkUtils.CACHED_BLOCK_ENTITIES.get(packet.getPosition()) != null) {
             int blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.getOrDefault(packet.getPosition(), 0);
             // Check for custom skulls.
-            if (packet.getNbt().contains("Owner") && SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS) {
-                CompoundTag owner = packet.getNbt().get("Owner");
+            if (packet.getNbt().contains("SkullOwner") && SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS) {
+                CompoundTag owner = packet.getNbt().get("SkullOwner");
                 if (owner.contains("Properties")) {
                     SkullBlockEntityTranslator.spawnPlayer(session, packet.getNbt(), blockState);
                 }
