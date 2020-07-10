@@ -24,16 +24,19 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.geyser;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
-import org.geysermc.connector.plugin.GeyserPlugin;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.event.events.CancellableGeyserEvent;
+import org.geysermc.connector.network.session.auth.BedrockClientData;
 
-@Getter
-@ToString
+@EqualsAndHashCode(callSuper = true)
+@Data
 @AllArgsConstructor
-public class PluginDisableEvent extends GeyserEvent {
-    private final GeyserPlugin plugin;
+public class LoadBedrockSkinEvent extends CancellableGeyserEvent {
+    private PlayerEntity playerEntity;
+    private BedrockClientData clientData;
 }

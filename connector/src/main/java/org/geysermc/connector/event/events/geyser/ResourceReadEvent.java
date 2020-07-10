@@ -24,16 +24,19 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.geyser;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
-import org.geysermc.connector.plugin.GeyserPlugin;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.geysermc.connector.event.events.GeyserEvent;
 
-@Getter
-@ToString
+import java.io.InputStream;
+
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class PluginEnableEvent extends CancellableGeyserEvent {
-    private final GeyserPlugin plugin;
+@Data
+public class ResourceReadEvent extends GeyserEvent {
+    private String resourceName;
+    private InputStream inputStream;
 }

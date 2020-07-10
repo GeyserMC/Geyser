@@ -31,16 +31,19 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.annotations.Event;
 import org.geysermc.connector.event.events.GeyserEvent;
-import org.geysermc.connector.event.events.PluginDisableEvent;
-import org.geysermc.connector.event.events.PluginEnableEvent;
+import org.geysermc.connector.event.events.plugin.PluginDisableEvent;
+import org.geysermc.connector.event.events.plugin.PluginEnableEvent;
 import org.geysermc.connector.event.handlers.EventHandler;
 import org.geysermc.connector.plugin.handlers.PluginLambdaEventHandler;
 import org.geysermc.connector.plugin.handlers.PluginMethodEventHandler;
 import org.geysermc.connector.plugin.annotations.Plugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +66,9 @@ public abstract class GeyserPlugin {
         this.logger = new PluginLogger(this);
 
         logger.info(String.format("Loading %s v%s", getName(), getVersion()));
+
+        //noinspection ResultOfMethodCallIgnored
+        getDataFolder().mkdirs();
     }
 
     // We provide some methods already provided in EventManager as we want to keep track of which EventHandlers
@@ -174,6 +180,18 @@ public abstract class GeyserPlugin {
      * Return an InputStream for a resource file
      */
     public InputStream getResourceAsStream(String name) {
-        return getClass().getClassLoader().getResourceAsStream(name);
+        try {
+            URL url = getPluginClassLoader().getResource(name);
+
+            if (url == null) {
+                return null;
+            }
+
+            URLConnection connection = url.openConnection();
+            connection.setUseCaches(false);
+            return connection.getInputStream();
+        } catch (IOException ex) {
+            return null;
+        }
     }
 }

@@ -24,14 +24,12 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.geyser;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.geysermc.connector.event.events.GeyserEvent;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-public abstract class CancellableGeyserEvent extends GeyserEvent {
-    private boolean cancelled = false;
+/**
+ * DisableEvent is triggered for each plugin when disabling it
+ */
+public class GeyserStopEvent extends GeyserEvent {
 }

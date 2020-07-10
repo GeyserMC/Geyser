@@ -24,14 +24,21 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.registry;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.geysermc.connector.event.events.GeyserEvent;
 
+import java.util.Set;
+
+/**
+ * Triggered when registering Packet Translators
+ */
 @EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
 @Data
-public abstract class CancellableGeyserEvent extends GeyserEvent {
-    private boolean cancelled = false;
+public class PacketTranslatorRegistryEvent extends GeyserEvent {
+    private Set<Class<?>> registeredTranslators;
 }

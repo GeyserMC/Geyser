@@ -36,6 +36,7 @@ import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
+import org.geysermc.connector.event.events.geyser.GeyserStartEvent;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
@@ -111,6 +112,9 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
 
         this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(connector));
+
+        // Trigger GeyserStart Events
+        connector.getEventManager().triggerEvent(new GeyserStartEvent());
     }
 
     @Override

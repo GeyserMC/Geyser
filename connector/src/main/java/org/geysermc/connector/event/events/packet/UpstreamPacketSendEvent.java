@@ -24,13 +24,13 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.packet;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.geysermc.connector.event.events.CancellableGeyserEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -39,11 +39,10 @@ import org.geysermc.connector.network.session.GeyserSession;
  * If cancelled then regular processes of the packet will not proceed
  */
 
-@Getter
-@ToString
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class UpstreamPacketReceiveEvent<T extends BedrockPacket> extends CancellableGeyserEvent {
-
-    private final GeyserSession session;
-    private final T packet;
+@Data
+public class UpstreamPacketSendEvent<T extends BedrockPacket> extends CancellableGeyserEvent {
+    private GeyserSession session;
+    private T packet;
 }

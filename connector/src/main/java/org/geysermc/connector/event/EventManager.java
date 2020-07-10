@@ -45,12 +45,18 @@ import java.util.PriorityQueue;
 
 @SuppressWarnings("unused")
 @Getter
-@AllArgsConstructor
 public class EventManager {
+    @Getter
+    private static EventManager instance;
     private final Map<Class<? extends GeyserEvent>, PriorityQueue<EventHandler<? extends GeyserEvent>>> eventHandlers = new HashMap<>();
     private final Map<Object, ArrayList<EventHandler<?>>> classEventHandlers = new HashMap<>();
 
     private final GeyserConnector connector;
+
+    public EventManager(GeyserConnector connector) {
+        instance = this;
+        this.connector = connector;
+    }
 
     /**
      * Trigger a new event.

@@ -26,5 +26,8 @@
 
 package org.geysermc.connector.event.events;
 
+import lombok.Data;
+
+@Data
 public abstract class GeyserEvent {
 }

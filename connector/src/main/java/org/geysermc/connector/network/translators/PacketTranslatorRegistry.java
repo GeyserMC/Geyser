@@ -32,6 +32,8 @@ import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.registry.PacketTranslatorRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;
@@ -48,9 +50,11 @@ public class PacketTranslatorRegistry<T> {
     private static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
 
     static {
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators");
+        PacketTranslatorRegistryEvent event = EventManager.getInstance().triggerEvent(new PacketTranslatorRegistryEvent(
+                new Reflections("org.geysermc.connector.network.translators").getTypesAnnotatedWith(Translator.class))
+        ).getEvent();
 
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(Translator.class)) {
+        for (Class<?> clazz : event.getRegisteredTranslators()) {
             Class<?> packet = clazz.getAnnotation(Translator.class).packet();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());

@@ -24,14 +24,20 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.registry;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+
+import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public abstract class CancellableGeyserEvent extends GeyserEvent {
-    private boolean cancelled = false;
+@AllArgsConstructor
+public class InventoryTranslatorRegistryEvent extends GeyserEvent {
+    Map<WindowType, InventoryTranslator> registeredTranslators;
 }

@@ -40,6 +40,7 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
+import org.geysermc.connector.event.events.geyser.GeyserStartEvent;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
@@ -119,6 +120,9 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         } else {
             this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
         }
+
+        // Trigger GeyserStart Events
+        connector.getEventManager().triggerEvent(new GeyserStartEvent());
     }
 
     @Override

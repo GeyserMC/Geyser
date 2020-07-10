@@ -38,6 +38,9 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.registry.BlockEntityRegistryEvent;
+import org.geysermc.connector.event.events.registry.BlockTranslatorRegistryEvent;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
@@ -106,8 +109,9 @@ public class BlockTranslator {
         addedStatesMap.defaultReturnValue(-1);
         List<NbtMap> paletteList = new ArrayList<>();
 
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.block.entity");
-        ref.getTypesAnnotatedWith(BlockEntity.class);
+        Set<Class<?>> blockEntityClasses = EventManager.getInstance().triggerEvent(new BlockEntityRegistryEvent(
+                new Reflections("org.geysermc.connector.network.translators.world.block.entity").getTypesAnnotatedWith(BlockEntity.class))
+        ).getEvent().getRegisteredTranslators();
 
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;
@@ -153,7 +157,7 @@ public class BlockTranslator {
             // Used for adding all "special" Java block states to block state map
             String identifier;
             String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
-            for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
+            for (Class<?> clazz : blockEntityClasses) {
                 identifier = clazz.getAnnotation(BlockEntity.class).regex();
                 // Endswith, or else the block bedrock gets picked up for bed
                 if (bedrock_identifer.endsWith(identifier) && !identifier.equals("")) {
@@ -250,6 +254,20 @@ public class BlockTranslator {
         }
 
         BLOCKS = new NbtList<>(NbtType.COMPOUND, paletteList);
+
+        EventManager.getInstance().triggerEvent(
+                new BlockTranslatorRegistryEvent(
+                        BLOCKS,
+                        JAVA_TO_BEDROCK_BLOCK_MAP,
+                        JAVA_ID_BLOCK_MAP,
+                        WATERLOGGED,
+                        ITEM_FRAMES,
+                        JAVA_ID_TO_BLOCK_ENTITY_MAP,
+                        JAVA_RUNTIME_ID_TO_HARDNESS,
+                        JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND,
+                        JAVA_RUNTIME_ID_TO_TOOL_TYPE,
+                        JAVA_RUNTIME_WOOL_IDS
+                ));
     }
 
     private BlockTranslator() {

@@ -61,9 +61,9 @@ import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.event.events.DownstreamPacketReceiveEvent;
-import org.geysermc.connector.event.events.DownstreamPacketSendEvent;
-import org.geysermc.connector.event.events.UpstreamPacketSendEvent;
+import org.geysermc.connector.event.events.packet.DownstreamPacketReceiveEvent;
+import org.geysermc.connector.event.events.packet.DownstreamPacketSendEvent;
+import org.geysermc.connector.event.events.packet.UpstreamPacketSendEvent;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
@@ -232,21 +232,21 @@ public class GeyserSession implements CommandSender {
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
         biomeDefinitionListPacket.setDefinitions(BiomeTranslator.BIOMES);
-        upstream.sendPacket(biomeDefinitionListPacket);
+        sendUpstreamPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
         entityPacket.setIdentifiers(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
-        upstream.sendPacket(entityPacket);
+        sendUpstreamPacket(entityPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         for (int i = 0; i < ItemRegistry.CREATIVE_ITEMS.length; i++) {
             creativePacket.getEntries().put(i + 1, ItemRegistry.CREATIVE_ITEMS[i]);
         }
-        upstream.sendPacket(creativePacket);
+        sendUpstreamPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-        upstream.sendPacket(playStatusPacket);
+        sendUpstreamPacket(playStatusPacket);
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
@@ -255,7 +255,7 @@ public class GeyserSession implements CommandSender {
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
         attributes.add(new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
         attributesPacket.setAttributes(attributes);
-        upstream.sendPacket(attributesPacket);
+        sendUpstreamPacket(attributesPacket);
     }
 
     public void fetchOurSkin(PlayerListPacket.Entry entry) {
@@ -265,7 +265,7 @@ public class GeyserSession implements CommandSender {
         playerSkinPacket.setOldSkinName("OldName");
         playerSkinPacket.setNewSkinName("NewName");
         playerSkinPacket.setTrustedSkin(true);
-        upstream.sendPacket(playerSkinPacket);
+        sendUpstreamPacket(playerSkinPacket);
         getConnector().getLogger().debug("Sending skin for " + playerEntity.getUsername() + " " + authData.getUUID());
     }
 
@@ -489,7 +489,7 @@ public class GeyserSession implements CommandSender {
         textPacket.setNeedsTranslation(false);
         textPacket.setMessage(message);
 
-        upstream.sendPacket(textPacket);
+        sendUpstreamPacket(textPacket);
     }
 
     @Override
@@ -508,7 +508,7 @@ public class GeyserSession implements CommandSender {
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
         chunkRadiusUpdatedPacket.setRadius(renderDistance);
-        upstream.sendPacket(chunkRadiusUpdatedPacket);
+        sendUpstreamPacket(chunkRadiusUpdatedPacket);
     }
 
     public InetSocketAddress getSocketAddress() {
@@ -568,7 +568,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
         // startGamePacket.setMovementServerAuthoritative(true);
-        upstream.sendPacket(startGamePacket);
+        sendUpstreamPacket(startGamePacket);
     }
 
     public boolean confirmTeleport(Vector3d position) {
@@ -608,7 +608,7 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
-        connector.getEventManager().triggerEvent(new UpstreamPacketSendEvent(this, packet), packet.getClass())
+        connector.getEventManager().triggerEvent(new UpstreamPacketSendEvent<>(this, packet), packet.getClass())
                 .onNotCancelled((result) -> {
                     if (upstream != null && !upstream.isClosed()) {
                         upstream.sendPacketImmediately(packet);

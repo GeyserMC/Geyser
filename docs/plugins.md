@@ -31,7 +31,7 @@ Add the following to the relevant section of your `pom.xml`
     <dependency>
         <groupId>org.geysermc</groupId>
         <artifactId>connector</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.1.0-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>

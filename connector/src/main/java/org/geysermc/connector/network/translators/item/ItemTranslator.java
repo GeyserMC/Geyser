@@ -40,6 +40,8 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.registry.ItemRemapperRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -63,10 +65,12 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
-
+        ItemRemapperRegistryEvent itemRemapperEvent = EventManager.getInstance().triggerEvent(new ItemRemapperRegistryEvent(
+                new Reflections("org.geysermc.connector.network.translators.item").getTypesAnnotatedWith(ItemRemapper.class))
+        ).getEvent();
+        
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
+        for (Class<?> clazz : itemRemapperEvent.getRegisteredTranslators()) {
             int priority = clazz.getAnnotation(ItemRemapper.class).priority();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());

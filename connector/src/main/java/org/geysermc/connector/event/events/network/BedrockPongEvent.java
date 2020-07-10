@@ -24,13 +24,20 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.network;
 
-/**
- * EnableEvent is triggered for each plugin when enabling it
- *
- * If the event is cancelled then the plugin will be unregistered from the EventManager and the DisableEvent will
- * not trigger
- */
-public class GeyserStartEvent extends GeyserEvent {
+import com.nukkitx.protocol.bedrock.BedrockPong;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.geysermc.connector.event.events.GeyserEvent;
+
+import java.net.InetSocketAddress;
+
+@EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
+@Data
+public class BedrockPongEvent extends GeyserEvent {
+    private InetSocketAddress inetSocketAddress;
+    private BedrockPong pong;
 }

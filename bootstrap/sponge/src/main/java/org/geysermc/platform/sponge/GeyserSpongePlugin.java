@@ -35,6 +35,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
+import org.geysermc.connector.event.events.geyser.GeyserStartEvent;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
@@ -123,6 +124,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), connector);
         Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(connector), "geyser");
+
+        // Trigger GeyserStart Events
+        connector.getEventManager().triggerEvent(new GeyserStartEvent());
     }
 
     @Override

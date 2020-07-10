@@ -24,25 +24,15 @@
  *
  */
 
-package org.geysermc.connector.event.events;
+package org.geysermc.connector.event.events.geyser;
 
-import com.github.steveice10.packetlib.packet.Packet;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
-import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.event.events.GeyserEvent;
 
 /**
- * Triggered each time a packet is received from the Downstream server.
+ * EnableEvent is triggered for each plugin when enabling it
  *
- * If cancelled then regular processes of the packet will not proceed
+ * If the event is cancelled then the plugin will be unregistered from the EventManager and the DisableEvent will
+ * not trigger
  */
-
-@Getter
-@ToString
-@AllArgsConstructor
-public class DownstreamPacketReceiveEvent<T extends Packet> extends CancellableGeyserEvent {
-
-    private final GeyserSession session;
-    private final T packet;
+public class GeyserStartEvent extends GeyserEvent {
 }

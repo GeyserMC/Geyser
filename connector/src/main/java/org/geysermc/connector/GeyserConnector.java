@@ -38,6 +38,7 @@ import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.event.events.network.BedrockCodecRegistryEvent;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
@@ -56,8 +57,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.plugin.PluginManager;
-import org.geysermc.connector.event.events.GeyserStopEvent;
-import org.geysermc.connector.event.events.GeyserStartEvent;
+import org.geysermc.connector.event.events.geyser.GeyserStopEvent;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -78,7 +78,7 @@ public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC;
+    public static BedrockPacketCodec BEDROCK_PACKET_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
@@ -112,8 +112,6 @@ public class GeyserConnector {
         instance = this;
 
         this.bootstrap = bootstrap;
-        this.eventManager = new EventManager(this);
-        this.pluginManager = new PluginManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
@@ -129,6 +127,12 @@ public class GeyserConnector {
         this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
 
         logger.setDebug(config.isDebugMode());
+
+        this.eventManager = new EventManager(this);
+        this.pluginManager = new PluginManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
+
+        // Set Codec
+        BEDROCK_PACKET_CODEC = eventManager.triggerEvent(new BedrockCodecRegistryEvent(Bedrock_v407.V407_CODEC)).getEvent().getCodec();
 
         PacketTranslatorRegistry.init();
 
@@ -187,9 +191,6 @@ public class GeyserConnector {
 
         // Enable Plugins
         pluginManager.enablePlugins();
-
-        // Trigger GeyserStart Events
-        eventManager.triggerEvent(new GeyserStartEvent());
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         String message = LanguageUtils.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
