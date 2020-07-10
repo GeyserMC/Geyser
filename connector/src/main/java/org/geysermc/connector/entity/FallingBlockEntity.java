@@ -45,7 +45,7 @@ public class FallingBlockEntity extends Entity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Set the NO_AI flag based on the no gravity flag to prevent movement
         if (entityMetadata.getId() == 5) {
-            this.metadata.getFlags().setFlag(EntityFlag.NO_AI, (boolean)entityMetadata.getValue());
+            this.metadata.getFlags().setFlag(EntityFlag.NO_AI, (boolean) entityMetadata.getValue());
         }
     }
 }
