@@ -26,7 +26,8 @@
 
 package org.geysermc.platform.sponge;
 
-import org.geysermc.common.ping.GeyserPingInfo;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.spongepowered.api.MinecraftVersion;
 import org.spongepowered.api.Sponge;
@@ -35,6 +36,7 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.server.ClientPingServerEvent;
 import org.spongepowered.api.network.status.StatusClient;
+import org.spongepowered.api.profile.GameProfile;
 
 import java.lang.reflect.Method;
 import java.net.Inet4Address;
@@ -68,11 +70,18 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
         Sponge.getEventManager().post(event);
         GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
                 event.getResponse().getDescription().toPlain(),
-                event.getResponse().getPlayers().orElseThrow(IllegalStateException::new).getOnline(),
-                event.getResponse().getPlayers().orElseThrow(IllegalStateException::new).getMax());
-        event.getResponse().getPlayers().get().getProfiles().forEach(player -> {
-            geyserPingInfo.addPlayer(player.getName().orElseThrow(IllegalStateException::new));
-        });
+                new GeyserPingInfo.Players(
+                        event.getResponse().getPlayers().orElseThrow(IllegalStateException::new).getMax(),
+                        event.getResponse().getPlayers().orElseThrow(IllegalStateException::new).getOnline()
+                ),
+                new GeyserPingInfo.Version(
+                        event.getResponse().getVersion().getName(),
+                        MinecraftConstants.PROTOCOL_VERSION) // thanks for also not exposing this sponge
+                );
+        event.getResponse().getPlayers().get().getProfiles().stream()
+                .map(GameProfile::getName)
+                .map(op -> op.orElseThrow(IllegalStateException::new))
+                .forEach(geyserPingInfo.getPlayerList()::add);
         return geyserPingInfo;
     }
 

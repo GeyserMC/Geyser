@@ -53,7 +53,7 @@ public class CooldownUtils {
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         // Needs to be sent or no subtitle packet is recognized by the client
         SetTitlePacket titlePacket = new SetTitlePacket();
-        titlePacket.setType(SetTitlePacket.Type.SET_TITLE);
+        titlePacket.setType(SetTitlePacket.Type.TITLE);
         titlePacket.setText(" ");
         session.sendUpstreamPacket(titlePacket);
         session.setLastHitTime(System.currentTimeMillis());
@@ -70,7 +70,7 @@ public class CooldownUtils {
         if (session.isClosed()) return; // Don't run scheduled tasks if the client left
         if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
-        titlePacket.setType(SetTitlePacket.Type.SET_SUBTITLE);
+        titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
         titlePacket.setText(getTitle(session));
         titlePacket.setFadeInTime(0);
         titlePacket.setFadeOutTime(5);
@@ -80,7 +80,7 @@ public class CooldownUtils {
             session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
-            removeTitlePacket.setType(SetTitlePacket.Type.SET_SUBTITLE);
+            removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
             removeTitlePacket.setText(" ");
             session.sendUpstreamPacket(removeTitlePacket);
         }

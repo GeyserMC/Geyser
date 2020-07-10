@@ -52,7 +52,7 @@ public class PaintingEntity extends Entity {
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);
-        addPaintingPacket.setName(paintingName.getBedrockName());
+        addPaintingPacket.setMotive(paintingName.getBedrockName());
         addPaintingPacket.setPosition(fixOffset(true));
         addPaintingPacket.setDirection(direction);
         session.sendUpstreamPacket(addPaintingPacket);

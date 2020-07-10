@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;
 
 import java.util.HashMap;
@@ -66,10 +67,10 @@ public class PacketTranslatorRegistry<T> {
 
                     BEDROCK_TRANSLATOR.translators.put(targetPacket, translator);
                 } else {
-                    GeyserConnector.getInstance().getLogger().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
+                    GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.invalid_target", clazz.getCanonicalName()));
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated translator " + clazz.getCanonicalName() + ".");
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.failed", clazz.getCanonicalName()));
             }
         }
 
@@ -97,7 +98,7 @@ public class PacketTranslatorRegistry<T> {
                         GeyserConnector.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
                 }
             } catch (Throwable ex) {
-                GeyserConnector.getInstance().getLogger().error("Could not translate packet " + packet.getClass().getSimpleName(), ex);
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
                 ex.printStackTrace();
             }
         }

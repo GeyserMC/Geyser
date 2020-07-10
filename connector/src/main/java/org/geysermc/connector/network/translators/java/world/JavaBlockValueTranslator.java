@@ -28,11 +28,10 @@ package org.geysermc.connector.network.translators.java.world;
 import com.github.steveice10.mc.protocol.data.game.world.block.value.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockValuePacket;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -74,10 +73,6 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             } else {
                 retractPiston(session, position, 1.0f, 1.0f);
             }
-        }
-        if (packet.getValue() instanceof BeaconValue) {
-            blockEventPacket.setEventType(1);
-            session.sendUpstreamPacket(blockEventPacket);
         }
         if (packet.getValue() instanceof MobSpawnerValue) {
             blockEventPacket.setEventType(1);
@@ -137,16 +132,16 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
      * @param state
      * @return Bedrock CompoundTag of piston
      */
-    private CompoundTag buildPistonTag(Vector3i position, float progress, float lastProgress, byte state) {
-        CompoundTagBuilder builder = CompoundTag.EMPTY.toBuilder();
-        builder.intTag("x", position.getX())
-                .intTag("y", position.getY())
-                .intTag("z", position.getZ())
-                .floatTag("Progress", progress)
-                .floatTag("LastProgress", lastProgress)
-                .stringTag("id", "PistonArm")
-                .byteTag("NewState", state)
-                .byteTag("State", state);
-        return builder.buildRootTag();
+    private NbtMap buildPistonTag(Vector3i position, float progress, float lastProgress, byte state) {
+        NbtMapBuilder builder = NbtMap.builder()
+                .putInt("x", position.getX())
+                .putInt("y", position.getY())
+                .putInt("z", position.getZ())
+                .putFloat("Progress", progress)
+                .putFloat("LastProgress", lastProgress)
+                .putString("id", "PistonArm")
+                .putByte("NewState", state)
+                .putByte("State", state);
+        return builder.build();
     }
 }
