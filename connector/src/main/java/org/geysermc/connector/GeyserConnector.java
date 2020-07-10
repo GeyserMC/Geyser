@@ -31,10 +31,12 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
 import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.common.AuthType;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
@@ -78,6 +80,7 @@ public class GeyserConnector {
     private static GeyserConnector instance;
 
     private RemoteServer remoteServer;
+    @Setter
     private AuthType authType;
 
     private boolean shuttingDown = false;
@@ -107,6 +110,7 @@ public class GeyserConnector {
         logger.info("Loading " + NAME + " version " + VERSION);
         logger.info("");
         logger.info("******************************************");
+        logger.warning("This build is for connecting to Java 1.15.2 servers and from Bedrock 1.14.60 clients. Please join our Discord (https://discord.geysermc.org) for up-to-date information about where to download 1.16.");
 
         this.generalThreadPool = Executors.newScheduledThreadPool(config.getGeneralThreadPool());
 

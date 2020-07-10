@@ -78,6 +78,11 @@ public class Entity {
      */
     protected Vector3f rotation;
 
+    /**
+     * Saves if the entity should be on the ground. Otherwise entities like parrots are flapping when rotating
+     */
+    protected boolean onGround;
+
     protected float scale = 1;
 
     protected EntityType entityType;
@@ -150,11 +155,12 @@ public class Entity {
     }
 
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(session, relX, relY, relZ, Vector3f.from(yaw, pitch, yaw), isOnGround);
+        moveRelative(session, relX, relY, relZ, Vector3f.from(yaw, pitch, this.rotation.getZ()), isOnGround);
     }
 
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
         setRotation(rotation);
+        setOnGround(isOnGround);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
@@ -168,12 +174,13 @@ public class Entity {
     }
 
     public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
-        moveAbsolute(session, position, Vector3f.from(yaw, pitch, yaw), isOnGround, teleported);
+        moveAbsolute(session, position, Vector3f.from(yaw, pitch, this.rotation.getZ()), isOnGround, teleported);
     }
 
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         setPosition(position);
         setRotation(rotation);
+        setOnGround(isOnGround);
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
@@ -183,6 +190,52 @@ public class Entity {
         moveEntityPacket.setTeleported(teleported);
 
         session.sendUpstreamPacket(moveEntityPacket);
+    }
+
+    /**
+     * Teleports an entity to a new location. Used in JavaEntityTeleportTranslator.
+     * @param session GeyserSession.
+     * @param position The new position of the entity.
+     * @param yaw The new yaw of the entity.
+     * @param pitch The new pitch of the entity.
+     * @param isOnGround Whether the entity is currently on the ground.
+     */
+    public void teleport(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround) {
+        moveAbsolute(session, position, yaw, pitch, isOnGround, false);
+    }
+
+    /**
+     * Updates an entity's head position. Used in JavaEntityHeadLookTranslator.
+     * @param session GeyserSession.
+     * @param headYaw The new head rotation of the entity.
+     */
+    public void updateHeadLookRotation(GeyserSession session, float headYaw) {
+        moveRelative(session, 0, 0, 0, Vector3f.from(headYaw, rotation.getY(), rotation.getZ()), onGround);
+    }
+
+    /**
+     * Updates an entity's position and rotation. Used in JavaEntityPositionRotationTranslator.
+     * @param session GeyserSession
+     * @param moveX The new X offset of the current position.
+     * @param moveY The new Y offset of the current position.
+     * @param moveZ The new Z offset of the current position.
+     * @param yaw The new yaw of the entity.
+     * @param pitch The new pitch of the entity.
+     * @param isOnGround Whether the entity is currently on the ground.
+     */
+    public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(session, moveX, moveY, moveZ, Vector3f.from(rotation.getX(), pitch, yaw), isOnGround);
+    }
+
+    /**
+     * Updates an entity's rotation. Used in JavaEntityRotationTranslator.
+     * @param session GeyserSession.
+     * @param yaw The new yaw of the entity.
+     * @param pitch The new pitch of the entity.
+     * @param isOnGround Whether the entity is currently on the ground.
+     */
+    public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
+        updatePositionAndRotation(session, 0, 0, 0, yaw, pitch, isOnGround);
     }
 
     public void updateBedrockAttributes(GeyserSession session) {
@@ -210,13 +263,12 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.ON_FIRE, (xd & 0x01) == 0x01);
                     metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
-                    metadata.getFlags().setFlag(EntityFlag.SWIMMING, (xd & 0x10) == 0x10);
+                    metadata.getFlags().setFlag(EntityFlag.SWIMMING, ((xd & 0x10) == 0x10) && metadata.getFlags().getFlag(EntityFlag.SPRINTING)); // Otherwise swimming is enabled on older servers
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
                     if ((xd & 0x20) == 0x20) {
-                        if (this.is(ArmorStandEntity.class)) {
-                            metadata.put(EntityData.SCALE, 0.0f);
-                        } else {
+                        // Armour stands are handled in their own class
+                        if (!this.is(ArmorStandEntity.class)) {
                             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
                         }
                     } else {

@@ -70,7 +70,12 @@ public class AttributeUtils {
         return new com.nukkitx.protocol.bedrock.data.Attribute(type.getBedrockIdentifier(), attribute.getMinimum(), attribute.getMaximum(), attribute.getValue(), attribute.getDefaultValue());
     }
 
-    //https://minecraft.gamepedia.com/Attribute#Modifiers
+    /**
+     * Retrieve the base attribute value with all modifiers applied.
+     * https://minecraft.gamepedia.com/Attribute#Modifiers
+     * @param attribute The attribute to calculate the total value.
+     * @return The finished attribute with all modifiers applied.
+     */
     public static double calculateValue(com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute attribute) {
         double base = attribute.getValue();
         for (AttributeModifier modifier : attribute.getModifiers()) {

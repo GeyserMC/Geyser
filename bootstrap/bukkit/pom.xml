@@ -26,7 +26,7 @@
         <dependency>
             <groupId>us.myles</groupId>
             <artifactId>viaversion</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
+            <version>3.0.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -70,6 +70,10 @@
                                 <relocation>
                                     <pattern>it.unimi.dsi.fastutil</pattern>
                                     <shadedPattern>org.geysermc.platform.bukkit.shaded.fastutil</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.geysermc.platform.bukkit.shaded.jackson</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

@@ -75,7 +75,7 @@ public abstract class CommandManager {
             args = new String[0];
         } else {
             label = command.substring(0, command.indexOf(" ")).toLowerCase();
-            String argLine = command.substring(command.indexOf(" " + 1));
+            String argLine = command.substring(command.indexOf(" ") + 1);
             args = argLine.contains(" ") ? argLine.split(" ") : new String[] { argLine };
         }
 

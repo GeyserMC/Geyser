@@ -1,4 +1,4 @@
-<img src="https://geysermc.org/img/geyserlogo.png" alt="Geyser" width="600"/>
+<img src="https://geysermc.org/img/geyser-1760-860.png" alt="Geyser" width="600"/>
 
 [![forthebadge made-with-java](http://ForTheBadge.com/images/badges/made-with-java.svg)](https://java.com/)
 
@@ -37,7 +37,6 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
   - [ ] Beacon
   - [ ] Cartography Table
   - [ ] Stonecutter
-  - [ ] Villager Trading
 - Some Entity Flags
 
 ## Compiling

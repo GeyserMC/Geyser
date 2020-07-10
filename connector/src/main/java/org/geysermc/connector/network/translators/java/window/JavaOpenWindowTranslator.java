@@ -51,10 +51,8 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
         Inventory openInventory = session.getInventoryCache().getOpenInventory();
         if (newTranslator == null) {
             if (openInventory != null) {
-                ContainerClosePacket closePacket = new ContainerClosePacket();
-                closePacket.setWindowId((byte)openInventory.getId());
-                session.sendUpstreamPacket(closePacket);
-                InventoryTranslator.INVENTORY_TRANSLATORS.get(openInventory.getWindowType()).closeInventory(session, openInventory);
+                InventoryUtils.closeWindow(session, openInventory.getId());
+                InventoryUtils.closeInventory(session, openInventory.getId());
             }
             ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
             session.sendDownstreamPacket(closeWindowPacket);
@@ -83,10 +81,6 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             if (!openTranslator.getClass().equals(newTranslator.getClass())) {
                 InventoryUtils.closeWindow(session, openInventory.getId());
                 InventoryUtils.closeInventory(session, openInventory.getId());
-                session.getInventoryCache().setOpenInventory(newInventory);
-                //The new window will be opened when the bedrock client sends the
-                //window close confirmation in BedrockContainerCloseTranslator
-                return;
             }
         }
 

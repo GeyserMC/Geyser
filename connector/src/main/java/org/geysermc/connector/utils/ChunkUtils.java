@@ -30,6 +30,8 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.CompoundTagBuilder;
@@ -137,11 +139,23 @@ public class ChunkUtils {
         while (i < blockEntities.length) {
             CompoundTag tag = blockEntities[i];
             String tagName;
-            if (!tag.contains("id")) {
-                GeyserConnector.getInstance().getLogger().debug("Got tag with no id: " + tag.getValue());
-                tagName = "Empty";
-            } else {
+            if (tag.contains("id")) {
                 tagName = (String) tag.get("id").getValue();
+            } else {
+                tagName = "Empty";
+                // Sometimes legacy tags have their ID be a StringTag with empty value
+                for (Tag subTag : tag) {
+                    if (subTag instanceof StringTag) {
+                        StringTag stringTag = (StringTag) subTag;
+                        if (stringTag.getValue().equals("")) {
+                            tagName = stringTag.getName();
+                            break;
+                        }
+                    }
+                }
+                if (tagName.equals("Empty")) {
+                    GeyserConnector.getInstance().getLogger().debug("Got tag with no id: " + tag.getValue());
+                }
             }
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
