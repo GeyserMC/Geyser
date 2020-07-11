@@ -157,7 +157,7 @@ public abstract class ItemTranslator {
         NbtMap tag = itemData.getTag();
         if (tag != null) {
             NbtMap display = tag.getCompound("display");
-            if (display != null && !display.isEmpty()) {
+            if (display != null && !display.isEmpty() && display.containsKey("Name")) {
                 String name = display.getString("Name");
 
                 // If its not a message convert it
