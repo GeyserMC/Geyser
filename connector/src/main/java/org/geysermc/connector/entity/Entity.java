@@ -52,10 +52,13 @@ import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,6 +75,19 @@ public class Entity {
 
     protected Vector3f position;
     protected Vector3f motion;
+
+    /**
+     * Villager sleep position
+     */
+    protected int z;
+    protected int bedId;
+    protected String bedRotationZ;
+    protected float BedPositionSubtractorW;
+    protected float BedPositionSubtractorN;
+    protected int Start;
+    protected int End;
+    protected String replacement;
+    protected String Setup;
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
@@ -166,14 +182,52 @@ public class Entity {
     }
 
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
+        Position bedLocation = new Position((int) position.getFloorX(), (int) position.getFloorY(), (int) position.getFloorZ());
+        bedId = session.getConnector().getWorldManager().getBlockAt(session, bedLocation);
+        bedRotationZ = BlockTranslator.getJavaIdBlockMap().inverse().get(bedId);
         setRotation(rotation);
         setOnGround(isOnGround);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(position);
-        moveEntityPacket.setRotation(getBedrockRotation());
+        //Sets Villager position and rotation when sleeping
+        if(!metadata.getFlags().getFlag(EntityFlag.SLEEPING)){
+            moveEntityPacket.setPosition(position);
+            moveEntityPacket.setRotation(getBedrockRotation());
+            }else{
+                //String Setup
+                Start = bedRotationZ.indexOf("m");
+                End = bedRotationZ.indexOf("[");
+                replacement = " ";
+                Setup = bedRotationZ.substring(Start, End + 1);
+
+                switch (bedRotationZ.replace(Setup, replacement)){
+                    case " facing=south,occupied=true,part=head]":
+                    //bed is facing south
+                    z = 180;
+                    BedPositionSubtractorW = -.5f; 
+                    break;
+                    case " facing=east,occupied=true,part=head]":
+                    //bed is facing east
+                    z = 90;
+                    BedPositionSubtractorW = -.5f;
+                    break;
+                    case " facing=west,occupied=true,part=head]":
+                    //bed is facing west
+                    z = 270;
+                    BedPositionSubtractorW = .5f;
+                    break;
+                    case " facing=north,occupied=true,part=head]":
+                    //rotation does not change because north is 0
+                    BedPositionSubtractorN = .5f;
+                    break;
+                }
+                
+                moveEntityPacket.setRotation(Vector3f.from(0,0,z));
+                moveEntityPacket.setPosition(Vector3f.from(position.getX() + BedPositionSubtractorW, position.getY(), position.getZ() + BedPositionSubtractorN));
+            }
+
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(false);
 
