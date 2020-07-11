@@ -70,6 +70,12 @@
             <artifactId>log4j-slf4j18-impl</artifactId>
             <version>2.13.1</version>
         </dependency>
+        <!-- Provide SQLite for sharing with plugins -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.32.3</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${outputName}</finalName>

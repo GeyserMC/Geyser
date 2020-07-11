@@ -63,6 +63,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.geyser.GeyserAuthenticationEvent;
+import org.geysermc.connector.event.events.geyser.GeyserLoginEvent;
 import org.geysermc.connector.event.events.network.SessionConnectEvent;
 import org.geysermc.connector.event.events.network.SessionDisconnectEvent;
 import org.geysermc.connector.event.events.packet.DownstreamPacketReceiveEvent;
@@ -280,6 +281,10 @@ public class GeyserSession implements CommandSender {
     }
 
     public void login() {
+        if (EventManager.getInstance().triggerEvent(new GeyserLoginEvent(this)).isCancelled()) {
+            return;
+        }
+
         if (connector.getAuthType() != AuthType.ONLINE) {
             if (connector.getAuthType() == AuthType.OFFLINE) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.offline"));

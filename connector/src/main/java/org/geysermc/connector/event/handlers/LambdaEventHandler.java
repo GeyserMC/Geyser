@@ -53,9 +53,6 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
         this.priority = priority;
         this.ignoreCancelled = ignoreCancelled;
         Collections.addAll(this.filter, filter);
-
-        // Register with event manager
-        manager.register(this);
     }
 
     @Override
