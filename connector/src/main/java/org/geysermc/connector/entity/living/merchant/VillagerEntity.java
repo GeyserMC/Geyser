@@ -92,13 +92,13 @@ public class VillagerEntity extends AbstractMerchantEntity {
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
+    
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
         int z = 0;
         int bedId = 0;
         float bedPositionSubtractorW = 0;
         float bedPositionSubtractorN = 0;
-
         if (session.getConnector().getConfig().isCacheChunks()) {
             Position bedLocation = new Position((int) position.getFloorX(), (int) position.getFloorY(), (int) position.getFloorZ());
             bedId = session.getConnector().getWorldManager().getBlockAt(session, bedLocation);
@@ -112,40 +112,40 @@ public class VillagerEntity extends AbstractMerchantEntity {
         moveEntityPacket.setRuntimeEntityId(geyserId);
         //Sets Villager position and rotation when sleeping
         if (!metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
-                moveEntityPacket.setPosition(position);
-                moveEntityPacket.setRotation(getBedrockRotation());
-            } else {
-                    //String Setup
-                    Pattern r = Pattern.compile("facing=([a-z]+)");
-                    Matcher m = r.matcher(bedRotationZ);
-                if (m.find()) {
-                    switch (m.group(0)){
-                        case "facing=south":
-                            //bed is facing south
-                            z = 180;
-                            bedPositionSubtractorW = -.5f; 
-                            break;
-                        case "facing=east":
-                            //bed is facing east
-                            z = 90;
-                            bedPositionSubtractorW = -.5f;
-                            break;
-                        case "facing=west":
-                            //bed is facing west
-                            z = 270;
-                            bedPositionSubtractorW = .5f;
-                            break;
-                        case "facing=north":
-                            //rotation does not change because north is 0
-                            bedPositionSubtractorN = .5f;
-                            break;
-                    }
+            moveEntityPacket.setPosition(position);
+            moveEntityPacket.setRotation(getBedrockRotation());
+        } else {
+            //String Setup
+            Pattern r = Pattern.compile("facing=([a-z]+)");
+            Matcher m = r.matcher(bedRotationZ);
+            if (m.find()) {
+                switch (m.group(0)){
+                    case "facing=south":
+                        //bed is facing south
+                        z = 180;
+                        bedPositionSubtractorW = -.5f; 
+                        break;
+                    case "facing=east":
+                        //bed is facing east
+                        z = 90;
+                        bedPositionSubtractorW = -.5f;
+                        break;
+                    case "facing=west":
+                        //bed is facing west
+                        z = 270;
+                        bedPositionSubtractorW = .5f;
+                        break;
+                    case "facing=north":
+                        //rotation does not change because north is 0
+                        bedPositionSubtractorN = .5f;
+                        break;
                 }
-                moveEntityPacket.setRotation(Vector3f.from(0, 0, z));
-                moveEntityPacket.setPosition(Vector3f.from(position.getX() + bedPositionSubtractorW, position.getY(), position.getZ() + bedPositionSubtractorN));
             }
-            moveEntityPacket.setOnGround(isOnGround);
-            moveEntityPacket.setTeleported(false);
-            session.sendUpstreamPacket(moveEntityPacket);
+            moveEntityPacket.setRotation(Vector3f.from(0, 0, z));
+            moveEntityPacket.setPosition(Vector3f.from(position.getX() + bedPositionSubtractorW, position.getY(), position.getZ() + bedPositionSubtractorN));
+        }
+        moveEntityPacket.setOnGround(isOnGround);
+        moveEntityPacket.setTeleported(false);
+        session.sendUpstreamPacket(moveEntityPacket);
     }
 }
