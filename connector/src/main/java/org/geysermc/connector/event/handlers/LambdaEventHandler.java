@@ -105,6 +105,11 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
             return this;
         }
 
+        public Builder<T> filter(Class<?> filter) {
+            this.filter = new Class<?>[]{filter};
+            return this;
+        }
+
         public LambdaEventHandler<T> build() {
             LambdaEventHandler<T> handler = new LambdaEventHandler<>(manager, cls, runnable, priority, ignoreCancelled, filter);
             manager.register(handler);

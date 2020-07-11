@@ -103,7 +103,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), ModalFormResponsePacket.class).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), packet.getClass()).isCancelled()) {
             return true;
         }
 
@@ -129,10 +129,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), SetLocalPlayerAsInitializedPacket.class).isCancelled()) {
-            return true;
-        }
-
         LanguageUtils.loadGeyserLocale(session.getClientData().getLanguageCode());
 
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
@@ -147,10 +143,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), MovePlayerPacket.class).isCancelled()) {
-            return true;
-        }
-
         if (session.isLoggingIn()) {
             session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getClientData().getLanguageCode()));
         }
