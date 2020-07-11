@@ -57,7 +57,6 @@ import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -73,7 +72,7 @@ public class Entity {
 
     protected Vector3f position;
     protected Vector3f motion;
-    
+
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
      */
