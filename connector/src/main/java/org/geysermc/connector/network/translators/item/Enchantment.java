@@ -76,7 +76,7 @@ public enum Enchantment {
 
     public static Enchantment getByJavaIdentifier(String javaIdentifier) {
         for (Enchantment enchantment : Enchantment.values()) {
-            if (enchantment.javaIdentifier.equals(javaIdentifier)) {
+            if (enchantment.javaIdentifier.equals(javaIdentifier) || enchantment.name().toLowerCase(Locale.ENGLISH).equalsIgnoreCase(javaIdentifier)) {
                 return enchantment;
             }
         }
