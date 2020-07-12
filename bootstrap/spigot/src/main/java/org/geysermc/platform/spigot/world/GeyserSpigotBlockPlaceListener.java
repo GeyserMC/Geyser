@@ -30,43 +30,39 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import lombok.AllArgsConstructor;
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.platform.spigot.GeyserSpigotPlugin;
 
 @AllArgsConstructor
 public class GeyserSpigotBlockPlaceListener implements Listener {
 
-    private final GeyserConnector connector;
     private final boolean isLegacy;
     private final boolean isViaVersion;
 
     @EventHandler
     public void place(final BlockPlaceEvent event) {
-        for (GeyserSession session : connector.getPlayers()) {
-            if (event.getPlayer() == Bukkit.getPlayer(session.getPlayerEntity().getUsername())) {
-                LevelSoundEventPacket placeBlockSoundPacket = new LevelSoundEventPacket();
-                placeBlockSoundPacket.setSound(SoundEvent.PLACE);
-                placeBlockSoundPacket.setPosition(Vector3f.from(event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ()));
-                placeBlockSoundPacket.setBabySound(false);
-                String javaBlockId;
-                if (isLegacy) {
-                    javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(GeyserSpigotWorldManager.getLegacyBlock(session,
-                            event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ(), isViaVersion));
-                } else {
-                    javaBlockId = event.getBlockPlaced().getBlockData().getAsString();
-                }
-                placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaIdBlockMap().get(javaBlockId)));
-                placeBlockSoundPacket.setIdentifier(":");
-                session.sendUpstreamPacket(placeBlockSoundPacket);
-                session.setLastBlockPlacePosition(null);
-                session.setLastBlockPlacedId(null);
-                break;
+        GeyserSession session = GeyserSpigotPlugin.PLAYER_SESSION_MAP.get(event.getPlayer());
+        if (session != null) {
+            LevelSoundEventPacket placeBlockSoundPacket = new LevelSoundEventPacket();
+            placeBlockSoundPacket.setSound(SoundEvent.PLACE);
+            placeBlockSoundPacket.setPosition(Vector3f.from(event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ()));
+            placeBlockSoundPacket.setBabySound(false);
+            String javaBlockId;
+            if (isLegacy) {
+                javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(GeyserSpigotWorldManager.getLegacyBlock(session,
+                        event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ(), isViaVersion));
+            } else {
+                javaBlockId = event.getBlockPlaced().getBlockData().getAsString();
             }
+            placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaIdBlockMap().get(javaBlockId)));
+            placeBlockSoundPacket.setIdentifier(":");
+            session.sendUpstreamPacket(placeBlockSoundPacket);
+            session.setLastBlockPlacePosition(null);
+            session.setLastBlockPlacedId(null);
         }
     }
 

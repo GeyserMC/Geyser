@@ -26,13 +26,15 @@
 package org.geysermc.platform.spigot;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
@@ -41,22 +43,26 @@ import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
+import org.geysermc.platform.spigot.world.GeyserSpigotPlayerListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotWorldManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
+    public static final Map<Player, GeyserSession> PLAYER_SESSION_MAP = new HashMap<>();
+
     private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotLogger geyserLogger;
     private IGeyserPingPassthrough geyserSpigotPingPassthrough;
-    private GeyserSpigotBlockPlaceListener blockPlaceListener;
     private GeyserSpigotWorldManager geyserWorldManager;
 
     private GeyserConnector connector;
@@ -117,9 +123,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected.");
 
         this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, isViaVersion);
-        this.blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);
 
-        Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
+
+        Bukkit.getServer().getPluginManager().registerEvents(
+                new GeyserSpigotPlayerListener(connector, (!isCompatible(Bukkit.getServer().getVersion(), "1.12.0")), isViaVersion), this);
+        Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigotBlockPlaceListener(isLegacy, isViaVersion), this);
 
         this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(connector));
     }
