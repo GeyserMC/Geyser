@@ -81,6 +81,8 @@ public interface GeyserConfiguration {
         String getAddress();
 
         int getPort();
+        
+        boolean isCloneRemotePort();
 
         String getMotd1();
 
