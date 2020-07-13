@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
-import com.github.steveice10.opennbt.tag.builtin.*;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
