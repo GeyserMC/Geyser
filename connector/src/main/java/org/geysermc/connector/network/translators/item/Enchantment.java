@@ -66,7 +66,8 @@ public enum Enchantment {
     CHANNELING,
     MULTISHOT,
     PIERCING,
-    QUICK_CHARGE;
+    QUICK_CHARGE,
+    SOUL_SPEED;
 
     private final String javaIdentifier;
 

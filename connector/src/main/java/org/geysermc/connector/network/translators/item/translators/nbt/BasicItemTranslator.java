@@ -47,18 +47,6 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
-        // Check for a blank int tag and remove it\
-        for (Tag tag : itemTag.values()) {
-            if (tag instanceof IntTag) {
-                IntTag intTag = (IntTag) tag;
-                if (intTag.getValue() == 0 && intTag.getName().equals("")) {
-                    // Remove the blank tag
-                    itemTag.remove("");
-                    break;
-                }
-            }
-        }
-
         if (!itemTag.contains("display")) {
             return;
         }
