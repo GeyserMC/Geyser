@@ -61,7 +61,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private GeyserStandaloneGUI gui;
 
     @Getter
-    private boolean useGui = System.console() == null && !checkHeadless();
+    private boolean useGui = System.console() == null && !isHeadless();
 
     private GeyserConnector connector;
 
@@ -133,7 +133,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
      *
      * @return If the current environment is headless
      */
-    private boolean checkHeadless() {
+    private boolean isHeadless() {
         try {
             Class<?> graphicsEnv = Class.forName("java.awt.GraphicsEnvironment");
             Method isHeadless = graphicsEnv.getDeclaredMethod("isHeadless");
