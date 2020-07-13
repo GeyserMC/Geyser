@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.utils;
 
+import org.geysermc.connector.GeyserConnector;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -47,6 +49,7 @@ public class WebUtils {
             url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION); // Otherwise Java 8 fails on checking updates
 
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
@@ -74,7 +77,9 @@ public class WebUtils {
      */
     public static void downloadFile(String reqURL, String fileLocation) {
         try {
-            InputStream in = new URL(reqURL).openStream();
+            HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
+            InputStream in = con.getInputStream();
             Files.copy(in, Paths.get(fileLocation), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
             throw new AssertionError("Unable to download and save file: " + fileLocation + " (" + reqURL + ")", e);
@@ -87,6 +92,7 @@ public class WebUtils {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "text/plain");
+        con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
         con.setDoOutput(true);
 
         OutputStream out = con.getOutputStream();

@@ -76,8 +76,7 @@ public enum Enchantment {
 
     public static Enchantment getByJavaIdentifier(String javaIdentifier) {
         for (Enchantment enchantment : Enchantment.values()) {
-            // Check for both the namespaced enchantment id and non namespaced
-            if (enchantment.javaIdentifier.equals(javaIdentifier) || enchantment.javaIdentifier.equals("minecraft:" + javaIdentifier)) {
+            if (enchantment.javaIdentifier.equals(javaIdentifier) || enchantment.name().toLowerCase(Locale.ENGLISH).equalsIgnoreCase(javaIdentifier)) {
                 return enchantment;
             }
         }
