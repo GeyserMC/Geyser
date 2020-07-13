@@ -25,19 +25,9 @@
 
 package org.geysermc.connector.network.translators.effect;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayEffectPacket;
+import org.geysermc.connector.network.session.GeyserSession;
 
-@Getter
-@Setter
-@AllArgsConstructor
-public class Effect {
-
-    private String javaName;
-    private String bedrockName;
-    private String type;
-    private int data;
-    private String identifier;
-
+public interface Effect {
+    void handleEffectPacket(GeyserSession session, ServerPlayEffectPacket packet);
 }

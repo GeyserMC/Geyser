@@ -27,6 +27,7 @@
 package org.geysermc.connector.network.translators.effect;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.steveice10.mc.protocol.data.game.world.effect.SoundEffect;
 import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
@@ -47,7 +48,7 @@ import java.util.Map;
  */
 public class EffectRegistry {
 
-    public static final Map<String, Effect> EFFECTS = new HashMap<>();
+    public static final Map<SoundEffect, Effect> SOUND_EFFECTS = new HashMap<>();
     public static final Int2ObjectMap<SoundEvent> RECORDS = new Int2ObjectOpenHashMap<>();
 
     private static Map<ParticleType, LevelEventType> particleTypeMap = new HashMap<>();
@@ -98,19 +99,54 @@ public class EffectRegistry {
         Iterator<Map.Entry<String, JsonNode>> effectsIterator = effects.fields();
         while (effectsIterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = effectsIterator.next();
-            // Separate records database since they're handled differently between the two versions
-            if (entry.getValue().has("records")) {
-                JsonNode records = entry.getValue().get("records");
-                Iterator<Map.Entry<String, JsonNode>> recordsIterator = records.fields();
-                while (recordsIterator.hasNext()) {
-                    Map.Entry<String, JsonNode> recordEntry = recordsIterator.next();
-                    RECORDS.put(Integer.parseInt(recordEntry.getKey()), SoundEvent.valueOf(recordEntry.getValue().asText()));
+            JsonNode node = entry.getValue();
+            try {
+                String type = node.get("type").asText();
+                SoundEffect javaEffect = null;
+                Effect effect = null;
+                switch (type) {
+                    case "soundLevel": {
+                        javaEffect = SoundEffect.valueOf(entry.getKey());
+                        LevelEventType levelEventType = LevelEventType.valueOf(node.get("name").asText());
+                        int data = node.has("data") ? node.get("data").intValue() : 0;
+                        effect = new SoundLevelEffect(levelEventType, data);
+                        break;
+                    }
+                    case "soundEvent": {
+                        javaEffect = SoundEffect.valueOf(entry.getKey());
+                        SoundEvent soundEvent = SoundEvent.valueOf(node.get("name").asText());
+                        String identifier = node.has("identifier") ? node.get("identifier").asText() : "";
+                        int extraData = node.has("extraData") ? node.get("extraData").intValue() : -1;
+                        effect = new SoundEventEffect(soundEvent, identifier, extraData);
+                        break;
+                    }
+                    case "playSound": {
+                        javaEffect = SoundEffect.valueOf(entry.getKey());
+                        String name = node.get("name").asText();
+                        float volume = node.has("volume") ? node.get("volume").floatValue() : 1.0f;
+                        boolean pitchSub = node.has("pitch_sub") ? node.get("pitch_sub").booleanValue() : false;
+                        float pitchMul = node.has("pitch_mul") ? node.get("pitch_mul").floatValue() : 1.0f;
+                        float pitchAdd = node.has("pitch_add") ? node.get("pitch_add").floatValue() : 0.0f;
+                        boolean relative = node.has("relative") ? node.get("relative").booleanValue() : true;
+                        effect = new PlaySoundEffect(name, volume, pitchSub, pitchMul, pitchAdd, relative);
+                        break;
+                    }
+                    case "record": {
+                        JsonNode records = entry.getValue().get("records");
+                        Iterator<Map.Entry<String, JsonNode>> recordsIterator = records.fields();
+                        while (recordsIterator.hasNext()) {
+                            Map.Entry<String, JsonNode> recordEntry = recordsIterator.next();
+                            RECORDS.put(Integer.parseInt(recordEntry.getKey()), SoundEvent.valueOf(recordEntry.getValue().asText()));
+                        }
+                        break;
+                    }
                 }
+                if (javaEffect != null) {
+                    SOUND_EFFECTS.put(javaEffect, effect);
+                }
+            } catch (Exception e) {
+                GeyserConnector.getInstance().getLogger().warning("Failed to map sound effect " + entry.getKey() + " : " + e.toString());
             }
-            String identifier = (entry.getValue().has("identifier")) ? entry.getValue().get("identifier").asText() : "";
-            int data = (entry.getValue().has("data")) ? entry.getValue().get("data").asInt() : -1;
-            Effect effect = new Effect(entry.getKey(), entry.getValue().get("name").asText(), entry.getValue().get("type").asText(), data, identifier);
-            EFFECTS.put(entry.getKey(), effect);
         }
     }
 
