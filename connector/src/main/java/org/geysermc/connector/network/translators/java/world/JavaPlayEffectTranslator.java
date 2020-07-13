@@ -55,7 +55,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
         // Separate case since each RecordEffectData in Java is an individual track in Bedrock
         if (packet.getEffect() == SoundEffect.RECORD) {
             RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
-            SoundEvent soundEvent = EffectRegistry.RECORDS.get(recordEffectData.getRecordId());
+            SoundEvent soundEvent = EffectRegistry.RECORDS.getOrDefault(recordEffectData.getRecordId(), SoundEvent.STOP_RECORD);
             Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
 
             LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
