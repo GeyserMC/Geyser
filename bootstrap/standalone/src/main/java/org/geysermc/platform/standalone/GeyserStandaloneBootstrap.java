@@ -137,7 +137,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         try {
             Class<?> graphicsEnv = Class.forName("java.awt.GraphicsEnvironment");
             Method isHeadless = graphicsEnv.getDeclaredMethod("isHeadless");
-            return (boolean)isHeadless.invoke(null);
+            return (boolean) isHeadless.invoke(null);
         } catch (Exception ignore) { }
 
         return true;
