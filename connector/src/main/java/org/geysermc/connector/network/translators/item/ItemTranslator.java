@@ -304,7 +304,7 @@ public abstract class ItemTranslator {
         if (tag != null && !tag.isEmpty()) {
             for (String str : tag.keySet()) {
                 Object bedrockTag = tag.get(str);
-                com.github.steveice10.opennbt.tag.builtin.Tag translatedTag = translateToJavaNBT(name, bedrockTag);
+                com.github.steveice10.opennbt.tag.builtin.Tag translatedTag = translateToJavaNBT(str, bedrockTag);
                 if (translatedTag == null)
                     continue;
 
@@ -370,11 +370,7 @@ public abstract class ItemTranslator {
 
         if (object instanceof NbtMap) {
             NbtMap map = (NbtMap) object;
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if (entry.getValue().equals(map.get(name))) {
-                    return translateToJavaNBT(entry.getKey(), map.getCompound(name));
-                }
-            }
+            return translateToJavaNBT(name, map);
         }
 
         return null;
