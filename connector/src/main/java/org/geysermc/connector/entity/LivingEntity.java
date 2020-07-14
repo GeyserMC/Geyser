@@ -67,7 +67,7 @@ public class LivingEntity extends Entity {
                 metadata.put(EntityData.HEALTH, entityMetadata.getValue());
                 break;
             case 9:
-                metadata.put(EntityData.POTION_AUX_VALUE, entityMetadata.getValue()); //TODO: CHECK THIS AND THE BOTTOM ONE
+                metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
                 break;
             case 10:
                 metadata.put(EntityData.EFFECT_AMBIENT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
