@@ -92,12 +92,16 @@ public class WebUtils {
 
     /**
      * Get the string output from the passed {@link HttpURLConnection}
-     * 
+     *
      * @param con The connection to get the string from
      * @return The body of the returned page
      * @throws IOException
      */
     private static String connectionToString(HttpURLConnection con) throws IOException {
+        // Send the request (we dont use this but its required for getErrorStream() to work)
+        int code = con.getResponseCode();
+
+        // Read the error message if there is one if not just read normally
         InputStream inputStream = con.getErrorStream();
         if (inputStream == null) {
             inputStream = con.getInputStream();
