@@ -91,7 +91,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                 CompoundTag tag = item.getNbt();
                 if (tag != null) {
                     CompoundTag displayTag = tag.get("display");
-                    if (displayTag != null) {
+                    if (displayTag != null && displayTag.contains("Name")) {
                         String itemName = displayTag.get("Name").getValue().toString();
                         TextMessage message = (TextMessage) MessageSerializer.fromString(itemName);
                         rename = message.getText();

@@ -30,6 +30,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserEdition;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.WebUtils;
@@ -64,7 +65,7 @@ public class VersionCommand extends GeyserCommand {
                 if (buildXML.startsWith("<buildNumber>")) {
                     int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
                     int buildNum = Integer.parseInt(gitProp.getProperty("git.build.number"));
-                    if (latestBuildNum != buildNum) {
+                    if (latestBuildNum == buildNum) {
                         sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.no_updates"));
                     } else {
                         sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.outdated", (latestBuildNum - buildNum), "http://ci.geysermc.org/"));
@@ -74,7 +75,7 @@ public class VersionCommand extends GeyserCommand {
                 }
             } catch (IOException | AssertionError | NumberFormatException e) {
                 GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.version.failed"), e);
-                sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.failed"));
+                sender.sendMessage(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.commands.version.failed"));
             }
         }
     }

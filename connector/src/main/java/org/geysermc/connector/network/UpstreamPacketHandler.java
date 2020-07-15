@@ -49,10 +49,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(LoginPacket loginPacket) {
         if (loginPacket.getProtocolVersion() > connector.getEdition().getCodec().getProtocolVersion()) {
-            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.outdated.server", session.getClientData().getLanguageCode(), GeyserEdition.INSTANCE.getCodec().getMinecraftVersion()));
+            // Too early to determine session locale
+            session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", connector.getEdition().getCodec().getMinecraftVersion()));
             return true;
         } else if (loginPacket.getProtocolVersion() < connector.getEdition().getCodec().getProtocolVersion()) {
-            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.outdated.client", session.getClientData().getLanguageCode(), GeyserEdition.INSTANCE.getCodec().getMinecraftVersion()));
+            session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", connector.getEdition().getCodec().getMinecraftVersion()));
             return true;
         }
 
