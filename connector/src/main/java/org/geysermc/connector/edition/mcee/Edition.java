@@ -99,6 +99,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewDistancePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewPositionPacket;
+import com.github.steveice10.mc.protocol.packet.login.server.LoginDisconnectPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginPluginRequestPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
@@ -266,6 +267,7 @@ import org.geysermc.connector.network.translators.java.JavaDeclareCommandsTransl
 import org.geysermc.connector.network.translators.java.JavaDeclareRecipesTranslator;
 import org.geysermc.connector.network.translators.java.JavaDifficultyTranslator;
 import org.geysermc.connector.network.translators.java.JavaJoinGameTranslator;
+import org.geysermc.connector.network.translators.java.JavaLoginDisconnectTranslator;
 import org.geysermc.connector.network.translators.java.JavaLoginPluginMessageTranslator;
 import org.geysermc.connector.network.translators.java.JavaPluginMessageTranslator;
 import org.geysermc.connector.network.translators.java.JavaRespawnTranslator;
@@ -427,6 +429,7 @@ public class Edition extends GeyserEdition {
                 .javaPacketTranslator(ServerDeclareRecipesPacket.class, new JavaDeclareRecipesTranslator())
                 .javaPacketTranslator(ServerDifficultyPacket.class, new JavaDifficultyTranslator())
                 .javaPacketTranslator(ServerJoinGamePacket.class, new JavaJoinGameTranslator())
+                .javaPacketTranslator(LoginDisconnectPacket.class, new JavaLoginDisconnectTranslator())
                 .javaPacketTranslator(LoginPluginRequestPacket.class, new JavaLoginPluginMessageTranslator())
                 .javaPacketTranslator(ServerPluginMessagePacket.class, new JavaPluginMessageTranslator())
                 .javaPacketTranslator(ServerRespawnPacket.class, new JavaRespawnTranslator())
