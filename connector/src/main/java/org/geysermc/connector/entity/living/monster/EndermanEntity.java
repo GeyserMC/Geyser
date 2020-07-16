@@ -26,10 +26,9 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -44,7 +43,7 @@ public class EndermanEntity extends MonsterEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Held block
         if (entityMetadata.getId() == 15) {
-            metadata.put(EntityData.ENDERMAN_HELD_ITEM_ID, BlockTranslator.getBedrockBlockId((BlockState) entityMetadata.getValue()));
+            metadata.put(EntityData.CARRIED_BLOCK, BlockTranslator.getBedrockBlockId((int) entityMetadata.getValue()));
         }
         // 'Angry' - mouth open
         if (entityMetadata.getId() == 16) {

@@ -2,6 +2,7 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
@@ -41,11 +42,11 @@ public class BlockEntityUtils {
         return blockEntityTranslator;
     }
 
-    public static void updateBlockEntity(GeyserSession session, com.nukkitx.nbt.tag.CompoundTag blockEntity, Position position) {
+    public static void updateBlockEntity(GeyserSession session, NbtMap blockEntity, Position position) {
         updateBlockEntity(session, blockEntity, Vector3i.from(position.getX(), position.getY(), position.getZ()));
     }
 
-    public static void updateBlockEntity(GeyserSession session, com.nukkitx.nbt.tag.CompoundTag blockEntity, Vector3i position) {
+    public static void updateBlockEntity(GeyserSession session, NbtMap blockEntity, Vector3i position) {
         BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
         blockEntityPacket.setBlockPosition(position);
         blockEntityPacket.setData(blockEntity);

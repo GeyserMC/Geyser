@@ -27,7 +27,7 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -92,7 +92,7 @@ public class BoatEntity extends Entity {
         } else if (entityMetadata.getId() == 11) {
             isPaddlingLeft = (boolean) entityMetadata.getValue();
             if (!isPaddlingLeft) {
-                metadata.put(EntityData.PADDLE_TIME_LEFT, 0f);
+                metadata.put(EntityData.ROW_TIME_LEFT, 0f);
             }
             else {
                 // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
@@ -106,7 +106,7 @@ public class BoatEntity extends Entity {
         else if (entityMetadata.getId() == 12) {
             isPaddlingRight = (boolean) entityMetadata.getValue();
             if (!isPaddlingRight) {
-                metadata.put(EntityData.PADDLE_TIME_RIGHT, 0f);
+                metadata.put(EntityData.ROW_TIME_RIGHT, 0f);
             } else {
                 paddleTimeRight = 0f;
                 session.getConnector().getGeneralThreadPool().execute(() ->
@@ -124,7 +124,7 @@ public class BoatEntity extends Entity {
     public void updateLeftPaddle(GeyserSession session, EntityMetadata entityMetadata) {
         if (isPaddlingLeft) {
             paddleTimeLeft += ROWING_SPEED;
-            metadata.put(EntityData.PADDLE_TIME_LEFT, paddleTimeLeft);
+            metadata.put(EntityData.ROW_TIME_LEFT, paddleTimeLeft);
             super.updateBedrockMetadata(entityMetadata, session);
             session.getConnector().getGeneralThreadPool().schedule(() ->
                     updateLeftPaddle(session, entityMetadata),
@@ -136,7 +136,7 @@ public class BoatEntity extends Entity {
     public void updateRightPaddle(GeyserSession session, EntityMetadata entityMetadata) {
         if (isPaddlingRight) {
             paddleTimeRight += ROWING_SPEED;
-            metadata.put(EntityData.PADDLE_TIME_RIGHT, paddleTimeRight);
+            metadata.put(EntityData.ROW_TIME_RIGHT, paddleTimeRight);
             super.updateBedrockMetadata(entityMetadata, session);
             session.getConnector().getGeneralThreadPool().schedule(() ->
                             updateRightPaddle(session, entityMetadata),
