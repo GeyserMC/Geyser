@@ -43,8 +43,6 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
@@ -108,17 +106,15 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
-                Matcher m = null;
+                String fireBlock = null;
                 if(session.getConnector().getConfig().isCacheChunks()) {
                     //check if Chunk Cache is enabled
                     int fireLocation = session.getConnector().getWorldManager().getBlockAt(session, Vector3i.from(packet.getBlockPosition().getX(),
                             packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()));
-                    String fireBlock = BlockTranslator.getJavaIdBlockMap().inverse().get(fireLocation);
-                    Pattern r = Pattern.compile("minecraft:fire");
-                    m = r.matcher(fireBlock);
+                    fireBlock = BlockTranslator.getJavaIdBlockMap().inverse().get(fireLocation);
                 }
                 //Check if fire is present to destroy
-                if(m.find() && packet.getFace() == 1) {
+                if((fireBlock.contains("minecraft:fire")|| fireBlock.contains("minecraft:soul_fire")) && packet.getFace() == 1) {
                     //fire is will be hit because it is present
                     ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
                             packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
