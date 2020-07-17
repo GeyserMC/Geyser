@@ -32,10 +32,10 @@ import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
@@ -51,11 +51,11 @@ import org.geysermc.connector.network.translators.item.PotionMixRegistry;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import javax.naming.NamingException;
@@ -64,7 +64,6 @@ import javax.naming.directory.InitialDirContext;
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -143,21 +142,21 @@ public class GeyserConnector {
         }
         String remoteAddress = config.getRemote().getAddress();
         int remotePort = config.getRemote().getPort();
-        if((config.isLegacyPingPassthrough() || platformType == PlatformType.STANDALONE) && !remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")){
+        // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
+        if ((config.isLegacyPingPassthrough() || platformType == PlatformType.STANDALONE) && !remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
             try {
+                // Searches for a server address and a port from a SRV record of the specified host name
                 InitialDirContext ctx = new InitialDirContext();
                 Attribute attr = ctx.getAttributes("dns:///_minecraft._tcp." + remoteAddress, new String[]{"SRV"}).get("SRV");
+                // size > 0 = SRV entry found
                 if (attr.size() > 0) {
                     String[] record = ((String) attr.get(0)).split(" ");
-                    remoteAddress = record[3];
-                    if(remoteAddress.endsWith(".")){
-                        remoteAddress = remoteAddress.substring(0, remoteAddress.length() - 1);
-                    }
-                    config.getRemote().setAddress(remoteAddress);
-                    config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
-                    logger.debug(LanguageUtils.getLocaleStringLog("geyser.core.start.srv_record", remoteAddress, String.valueOf(remotePort)));
+                    // Overwrites the existing address and port with that from the SRV record.
+                    config.getRemote().setAddress(remoteAddress = record[3]);
+                    config.getRemote().setPort(Integer.parseInt(record[2]));
+                    logger.debug("Found SRV record \"" + remoteAddress + ":" + config.getRemote().getPort() + "\"");
                 }
-            }catch (NamingException ex){
+            } catch (NamingException ex) {
                 ex.printStackTrace();
             }
         }
