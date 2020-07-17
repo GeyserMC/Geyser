@@ -58,6 +58,9 @@ import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LocaleUtils;
 
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.InitialDirContext;
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -77,6 +80,8 @@ public class GeyserConnector {
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
+
+    private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
     private final List<GeyserSession> players = new ArrayList<>();
 
@@ -136,8 +141,28 @@ public class GeyserConnector {
         if (platformType != PlatformType.STANDALONE) {
             DockerCheck.check(bootstrap);
         }
+        String remoteAddress = config.getRemote().getAddress();
+        int remotePort = config.getRemote().getPort();
+        if((config.isLegacyPingPassthrough() || platformType == PlatformType.STANDALONE) && !remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")){
+            try {
+                InitialDirContext ctx = new InitialDirContext();
+                Attribute attr = ctx.getAttributes("dns:///_minecraft._tcp." + remoteAddress, new String[]{"SRV"}).get("SRV");
+                if (attr.size() > 0) {
+                    String[] record = ((String) attr.get(0)).split(" ");
+                    remoteAddress = record[3];
+                    if(remoteAddress.endsWith(".")){
+                        remoteAddress = remoteAddress.substring(0, remoteAddress.length() - 1);
+                    }
+                    config.getRemote().setAddress(remoteAddress);
+                    config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
+                    logger.debug(LanguageUtils.getLocaleStringLog("geyser.core.start.srv_record", remoteAddress, String.valueOf(remotePort)));
+                }
+            }catch (NamingException ex){
+                ex.printStackTrace();
+            }
+        }
 
-        remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
+        remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
         if (config.isAboveBedrockNetherBuilding())
