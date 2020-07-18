@@ -153,8 +153,8 @@ public class GeyserConnector {
                     String[] record = ((String) attr.get(0)).split(" ");
                     // Overwrites the existing address and port with that from the SRV record.
                     config.getRemote().setAddress(remoteAddress = record[3]);
-                    config.getRemote().setPort(Integer.parseInt(record[2]));
-                    logger.debug("Found SRV record \"" + remoteAddress + ":" + config.getRemote().getPort() + "\"");
+                    config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
+                    logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
             } catch (NamingException ex) {
                 ex.printStackTrace();
