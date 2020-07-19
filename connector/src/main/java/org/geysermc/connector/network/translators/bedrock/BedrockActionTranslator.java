@@ -106,19 +106,23 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
-                String fireBlock = null;
                 if(session.getConnector().getConfig().isCacheChunks()) {
-                    //check if Chunk Cache is enabled
+                    //check if Cache Chunks is enabled
                     int fireLocation = session.getConnector().getWorldManager().getBlockAt(session, Vector3i.from(packet.getBlockPosition().getX(),
                             packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()));
-                    fireBlock = BlockTranslator.getJavaIdBlockMap().inverse().get(fireLocation);
-                }
+                    String fireBlock = BlockTranslator.getJavaIdBlockMap().inverse().get(fireLocation);
                 //Check if fire is present to destroy
                 if((fireBlock.contains("minecraft:fire")|| fireBlock.contains("minecraft:soul_fire")) && packet.getFace() == 1) {
                     //fire is will be hit because it is present
                     ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
                             packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
                     session.sendDownstreamPacket(startBreakingPacket);
+                } else {
+                    //normal for Cache Chunks
+                    ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
+                            packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
+                    session.sendDownstreamPacket(startBreakingPacket);
+                }
                 } else {
                     //normal
                     ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
