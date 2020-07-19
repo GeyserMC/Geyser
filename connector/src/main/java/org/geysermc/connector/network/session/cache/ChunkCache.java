@@ -28,7 +28,6 @@ package org.geysermc.connector.network.session.cache;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -41,8 +40,7 @@ import java.util.Map;
 
 public class ChunkCache {
 
-    private boolean cache;
-    private final GeyserSession session;
+    private final boolean cache;
 
     @Getter
     private Map<ChunkPosition, Column> chunks = new HashMap<>();
@@ -53,8 +51,11 @@ public class ChunkCache {
     private final ObjectArrayList<Column> cachedNonFullChunks = new ObjectArrayList<>();
 
     public ChunkCache(GeyserSession session) {
-        this.session = session;
-        this.cache = session.getConnector().getConfig().isCacheChunks() && (session.getConnector().getWorldManager().getClass() == GeyserBootstrap.DEFAULT_CHUNK_MANAGER.getClass());
+        if (session.getConnector().getWorldManager().getClass() == GeyserBootstrap.DEFAULT_CHUNK_MANAGER.getClass()) {
+            this.cache = session.getConnector().getConfig().isCacheChunks();
+        } else {
+            this.cache = false; // To prevent Spigot from initializing
+        }
     }
 
     public void addToCache(Column chunk) {
@@ -66,7 +67,7 @@ public class ChunkCache {
         chunks.put(position, chunk);
     }
 
-    public void updateBlock(Position position, BlockState block) {
+    public void updateBlock(Position position, int block) {
         if (!cache) {
             return;
         }
@@ -82,7 +83,7 @@ public class ChunkCache {
         }
     }
 
-    public BlockState getBlockAt(Position position) {
+    public int getBlockAt(Position position) {
         if (!cache) {
             return BlockTranslator.AIR;
         }

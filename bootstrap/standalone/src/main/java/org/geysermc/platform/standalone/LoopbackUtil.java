@@ -1,11 +1,12 @@
 package org.geysermc.platform.standalone;
 
+import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.utils.LanguageUtils;
+
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Paths;
-
-import org.geysermc.common.ChatColor;
 
 public class LoopbackUtil {
     private static final String checkExemption = "powershell -Command \"CheckNetIsolation LoopbackExempt -s\""; // Java's Exec feature runs as CMD, NetIsolation is only accessible from PowerShell.
@@ -31,12 +32,12 @@ public class LoopbackUtil {
                     Files.write(Paths.get(System.getenv("temp") + "/loopback_minecraft.bat"), loopbackCommand.getBytes(), new OpenOption[0]);
                     process = Runtime.getRuntime().exec(startScript);
 
-                    geyserLogger.info(ChatColor.AQUA + "Added loopback exemption to Windows!");
+                    geyserLogger.info(ChatColor.AQUA + LanguageUtils.getLocaleStringLog("geyser.bootstrap.loopback.added"));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
 
-                geyserLogger.error("Couldn't auto add loopback exemption to Windows!");
+                geyserLogger.error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.loopback.failed"));
             }
         }
     }

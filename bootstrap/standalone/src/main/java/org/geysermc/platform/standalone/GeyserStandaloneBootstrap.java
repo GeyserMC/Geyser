@@ -25,18 +25,30 @@
 
 package org.geysermc.platform.standalone;
 
-import org.geysermc.common.PlatformType;
-import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
-import org.geysermc.connector.GeyserConfiguration;
-import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import lombok.Getter;
+import net.minecrell.terminalconsole.TerminalConsoleAppender;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
+import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.standalone.command.GeyserCommandManager;
+import org.geysermc.platform.standalone.gui.GeyserStandaloneGUI;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
@@ -46,14 +58,49 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private GeyserStandaloneLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
 
+    private GeyserStandaloneGUI gui;
+
+    @Getter
+    private boolean useGui = System.console() == null && !isHeadless();
+
     private GeyserConnector connector;
 
     public static void main(String[] args) {
+        for (String arg : args) {
+            // By default, standalone Geyser will check if it should open the GUI based on if the GUI is null
+            // Optionally, you can force the use of a GUI or no GUI by specifying args
+            if (arg.equals("gui")) {
+                new GeyserStandaloneBootstrap().onEnable(true);
+                return;
+            } else if (arg.equals("nogui")) {
+                new GeyserStandaloneBootstrap().onEnable(false);
+                return;
+            }
+        }
         new GeyserStandaloneBootstrap().onEnable();
+    }
+
+    public void onEnable(boolean useGui) {
+        this.useGui = useGui;
+        this.onEnable();
     }
 
     @Override
     public void onEnable() {
+        Logger logger = (Logger) LogManager.getRootLogger();
+        for (Appender appender : logger.getAppenders().values()) {
+            // Remove the appender that is not in use
+            // Prevents multiple appenders/double logging and removes harmless errors
+            if ((useGui && appender instanceof TerminalConsoleAppender) || (!useGui && appender instanceof ConsoleAppender)) {
+                logger.removeAppender(appender);
+            }
+        }
+        if (useGui && gui == null) {
+            gui = new GeyserStandaloneGUI();
+            gui.redirectSystemStreams();
+            gui.startUpdateThread();
+        }
+
         geyserLogger = new GeyserStandaloneLogger();
 
         LoopbackUtil.checkLoopback(geyserLogger);
@@ -62,7 +109,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
         } catch (IOException ex) {
-            geyserLogger.severe("Failed to read/create config.yml! Make sure it's up to date and/or readable+writable!", ex);
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             System.exit(0);
         }
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
@@ -70,9 +117,30 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserCommandManager = new GeyserCommandManager(connector);
 
+        if (gui != null) {
+            gui.setupInterface(geyserLogger, geyserCommandManager);
+        }
+
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
-        geyserLogger.start();
+        if (!useGui) {
+            geyserLogger.start(); // Throws an error otherwise
+        }
+    }
+
+    /**
+     * Check using {@link java.awt.GraphicsEnvironment} that we are a headless client
+     *
+     * @return If the current environment is headless
+     */
+    private boolean isHeadless() {
+        try {
+            Class<?> graphicsEnv = Class.forName("java.awt.GraphicsEnvironment");
+            Method isHeadless = graphicsEnv.getDeclaredMethod("isHeadless");
+            return (boolean) isHeadless.invoke(null);
+        } catch (Exception ignore) { }
+
+        return true;
     }
 
     @Override
@@ -99,5 +167,16 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserPingPassthrough;
+    }
+
+    @Override
+    public Path getConfigFolder() {
+        // Return the current working directory
+        return Paths.get(System.getProperty("user.dir"));
+    }
+
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new BootstrapDumpInfo();
     }
 }
