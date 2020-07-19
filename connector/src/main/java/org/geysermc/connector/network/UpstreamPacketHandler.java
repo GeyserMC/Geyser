@@ -187,6 +187,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(DisconnectPacket packet) {
         final int clientId = packet.getClientId();
+
+        // Don't do anything for main client, that's handled by Session DisconnectHandler
+        if (clientId == 0) return false;
+
         GeyserSession session = sessions.get(clientId);
 
         session.disconnect(packet.getKickMessage());
