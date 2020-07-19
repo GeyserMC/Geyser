@@ -66,7 +66,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 eventPacket.setType(EntityEventType.RESPAWN);
                 eventPacket.setData(0);
                 session.sendUpstreamPacket(eventPacket);
-                session.setServerReadyForRespawn(false);
                 break;
             case START_SWIMMING:
                 ClientPlayerStatePacket startSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);

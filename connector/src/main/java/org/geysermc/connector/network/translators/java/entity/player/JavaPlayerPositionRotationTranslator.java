@@ -77,7 +77,6 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             session.sendUpstreamPacket(movePlayerPacket);
             session.setSpawned(true);
-            session.setServerReadyForRespawn(true);
 
             ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
             session.sendDownstreamPacket(teleportConfirmPacket);

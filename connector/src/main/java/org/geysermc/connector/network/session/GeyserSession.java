@@ -189,12 +189,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private long lastHitTime;
 
-    /**
-     * Saves if the server is ready for respawn and the client can continue on with the respawn process.
-     */
-    @Setter
-    private boolean serverReadyForRespawn;
-
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
