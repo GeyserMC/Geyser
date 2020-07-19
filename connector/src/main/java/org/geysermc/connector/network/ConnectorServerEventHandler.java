@@ -106,6 +106,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
+        // Initial session created is always the main client, so client id 0
         final int clientId = 0;
 
         bedrockServerSession.setLogging(true);

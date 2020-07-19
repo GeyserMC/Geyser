@@ -76,6 +76,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         return true;
     }
 
+    // Subclients login is slightly different
+    // * GeyserSession is created at this point
+    // * Some things have been done for the main client and don't need to be repeated:
+    //   * Version compatibility
+    //   * Encryption
+    //   * Resource packs
+    // Instead we can immediately connect the session
     public boolean handle(SubClientLoginPacket loginPacket) {
         final int clientId = loginPacket.getClientId();
 

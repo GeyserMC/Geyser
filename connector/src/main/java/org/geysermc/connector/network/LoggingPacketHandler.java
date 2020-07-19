@@ -43,6 +43,7 @@ import java.util.ArrayList;
 public class LoggingPacketHandler implements BedrockPacketHandler {
 
     protected GeyserConnector connector;
+    // Sessions have a client id number from 0-n and are looked up in this list by client id
     @Getter
     protected ArrayList<GeyserSession> sessions = new ArrayList<GeyserSession>(1);
 
