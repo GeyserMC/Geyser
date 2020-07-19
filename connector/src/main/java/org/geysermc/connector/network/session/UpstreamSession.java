@@ -45,10 +45,10 @@ public class UpstreamSession {
     private boolean initialized = false;
 
     public void sendPacket(@NonNull BedrockPacket packet) {
-        packet.setSenderId(clientId);
         if (isClosed())
             return;
 
+        packet.setSenderId(clientId);
         session.sendPacket(packet);
     }
 

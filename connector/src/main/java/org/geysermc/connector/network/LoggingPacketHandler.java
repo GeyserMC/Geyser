@@ -25,16 +25,14 @@
 
 package org.geysermc.connector.network;
 
-import java.util.ArrayList;
-
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
-
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import lombok.Getter;
+import java.util.ArrayList;
 
 /**
  * Bare bones implementation of BedrockPacketHandler suitable for extension.

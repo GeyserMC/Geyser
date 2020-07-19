@@ -25,15 +25,6 @@
 
 package org.geysermc.connector.utils;
 
-import java.io.IOException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.ECPublicKey;
-import java.security.spec.ECGenParameterSpec;
-import java.util.UUID;
-
-import javax.crypto.SecretKey;
-
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.packet.SubClientLoginPacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-
+import io.netty.util.AsciiString;
 import org.geysermc.common.window.CustomFormBuilder;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
@@ -61,7 +52,14 @@ import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.connector.network.session.cache.WindowCache;
 
-import io.netty.util.AsciiString;
+import javax.crypto.SecretKey;
+
+import java.io.IOException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECGenParameterSpec;
+import java.util.UUID;
 
 public class LoginEncryptionUtils {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -121,18 +119,19 @@ public class LoginEncryptionUtils {
     private static void handleClientData(GeyserConnector connector, GeyserSession session, AsciiString skinData) {
         BedrockClientData bedrockClientData = getClientData(skinData, session.getIdentityPublicKey());
 
-        // SubClientLoginPacket is missing some clientData fields that we need
+        // SubClientLoginPacket is missing some clientData fields:
+        // * ServerAddress
+        // * LanguageCode
+        // * DeviceModel
+        // * UiProfile
+        // We only really need LanguageCode right now        
         if (session.getClientId() != 0) {
-
             BedrockClientData mainClientData = ((UpstreamPacketHandler)session.getUpstream().getSession().getPacketHandler()).getSessions().get(0).getClientData();
 
             connector.getLogger().debug("" + mainClientData);
             connector.getLogger().debug("" + bedrockClientData);
 
-            // bedrockClientData.setServerAddress(mainClientData.getServerAddress());
             bedrockClientData.setLanguageCode(mainClientData.getLanguageCode());
-            // bedrockClientData.setDeviceModel(mainClientData.getDeviceModel());
-            // bedrockClientData.setUiProfile(mainClientData.getUiProfile());
         }
 
         session.setClientData(bedrockClientData);

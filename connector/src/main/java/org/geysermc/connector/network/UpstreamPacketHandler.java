@@ -27,22 +27,11 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.packet.DisconnectPacket;
-import com.nukkitx.protocol.bedrock.packet.LoginPacket;
-import com.nukkitx.protocol.bedrock.packet.ModalFormResponsePacket;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
-import com.nukkitx.protocol.bedrock.packet.ResourcePackClientResponsePacket;
-import com.nukkitx.protocol.bedrock.packet.ResourcePackStackPacket;
-import com.nukkitx.protocol.bedrock.packet.ResourcePacksInfoPacket;
-import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
-import com.nukkitx.protocol.bedrock.packet.SubClientLoginPacket;
-
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LoginEncryptionUtils;

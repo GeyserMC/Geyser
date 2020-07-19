@@ -25,17 +25,15 @@
 
 package org.geysermc.connector.network.session.auth;
 
-import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import org.geysermc.floodgate.util.DeviceOS;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.geysermc.floodgate.util.DeviceOS;
+
+import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter @Setter
