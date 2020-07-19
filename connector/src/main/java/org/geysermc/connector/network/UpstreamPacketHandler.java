@@ -83,6 +83,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     //   * Encryption
     //   * Resource packs
     // Instead we can immediately connect the session
+    @Override
     public boolean handle(SubClientLoginPacket loginPacket) {
         final int clientId = loginPacket.getClientId();
 

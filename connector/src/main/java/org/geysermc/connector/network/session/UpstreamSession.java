@@ -25,16 +25,15 @@
 
 package org.geysermc.connector.network.session;
 
-import java.net.InetSocketAddress;
-
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.packet.DisconnectPacket;
-
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+
+import java.net.InetSocketAddress;
 
 @RequiredArgsConstructor
 public class UpstreamSession {

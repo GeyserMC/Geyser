@@ -53,7 +53,6 @@ import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.connector.network.session.cache.WindowCache;
 
 import javax.crypto.SecretKey;
-
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
