@@ -106,8 +106,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
+        final int clientId = 0;
+
         bedrockServerSession.setLogging(true);
-        bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
+        bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession, clientId)));
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
     }
 

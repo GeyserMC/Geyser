@@ -25,22 +25,27 @@
 
 package org.geysermc.connector.network.session;
 
+import java.net.InetSocketAddress;
+
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.packet.DisconnectPacket;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.net.InetSocketAddress;
-
 @RequiredArgsConstructor
 public class UpstreamSession {
     @Getter private final BedrockServerSession session;
+    private final int clientId;
+
     @Getter @Setter
     private boolean initialized = false;
 
     public void sendPacket(@NonNull BedrockPacket packet) {
+        packet.setSenderId(clientId);
         if (isClosed())
             return;
 
@@ -51,11 +56,24 @@ public class UpstreamSession {
         if (isClosed())
             return;
 
+        packet.setSenderId(clientId);
         session.sendPacketImmediately(packet);
     }
 
     public void disconnect(String reason) {
-        session.disconnect(reason);
+        if (isClosed()) {
+            throw new IllegalStateException("Connection has been closed");
+        }
+
+        DisconnectPacket packet = new DisconnectPacket();
+        packet.setSenderId(clientId);
+
+        if (reason == null) {
+            packet.setMessageSkipped(true);
+            reason = "disconnect.disconnected";
+        }
+        packet.setKickMessage(reason);
+        this.sendPacketImmediately(packet);
     }
 
     public boolean isClosed() {

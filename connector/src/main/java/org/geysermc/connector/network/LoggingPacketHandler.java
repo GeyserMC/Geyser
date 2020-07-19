@@ -25,11 +25,16 @@
 
 package org.geysermc.connector.network;
 
+import java.util.ArrayList;
+
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
+
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import lombok.Getter;
 
 /**
  * Bare bones implementation of BedrockPacketHandler suitable for extension.
@@ -40,15 +45,16 @@ import org.geysermc.connector.network.session.GeyserSession;
 public class LoggingPacketHandler implements BedrockPacketHandler {
 
     protected GeyserConnector connector;
-    protected GeyserSession session;
+    @Getter
+    protected ArrayList<GeyserSession> sessions = new ArrayList<GeyserSession>(1);
 
     LoggingPacketHandler(GeyserConnector connector, GeyserSession session) {
         this.connector = connector;
-        this.session = session;
+        this.sessions.add(session.getClientId(), session);
     }
 
     boolean defaultHandler(BedrockPacket packet) {
-        connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
+        connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName() + " for client " + packet.getClientId());
         return false;
     }
 

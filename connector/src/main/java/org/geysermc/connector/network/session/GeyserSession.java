@@ -25,6 +25,17 @@
 
 package org.geysermc.connector.network.session;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -38,22 +49,39 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTelepo
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.Client;
-import com.github.steveice10.packetlib.event.session.*;
+import com.github.steveice10.packetlib.event.session.ConnectedEvent;
+import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
+import com.github.steveice10.packetlib.event.session.PacketErrorEvent;
+import com.github.steveice10.packetlib.event.session.PacketReceivedEvent;
+import com.github.steveice10.packetlib.event.session.PacketSendingEvent;
+import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
 import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.*;
+import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector2i;
+import com.nukkitx.math.vector.Vector3d;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.data.*;
-import com.nukkitx.protocol.bedrock.packet.*;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import lombok.Getter;
-import lombok.Setter;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
+import com.nukkitx.protocol.bedrock.data.GameRuleData;
+import com.nukkitx.protocol.bedrock.data.GameType;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
+import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket;
+import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
@@ -64,37 +92,50 @@ import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
-import org.geysermc.connector.network.session.cache.*;
+import org.geysermc.connector.network.session.cache.ChunkCache;
+import org.geysermc.connector.network.session.cache.DataCache;
+import org.geysermc.connector.network.session.cache.EntityCache;
+import org.geysermc.connector.network.session.cache.InventoryCache;
+import org.geysermc.connector.network.session.cache.ScoreboardCache;
+import org.geysermc.connector.network.session.cache.TeleportCache;
+import org.geysermc.connector.network.session.cache.WindowCache;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.utils.*;
+import org.geysermc.connector.utils.ChunkUtils;
+import org.geysermc.connector.utils.DimensionUtils;
+import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.MathUtils;
+import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.utils.SkinUtils;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 public class GeyserSession implements CommandSender {
 
     private final GeyserConnector connector;
     private final UpstreamSession upstream;
+    private final int clientId;
     private RemoteServer remoteServer;
     private Client downstream;
     @Setter
     private AuthData authData;
     @Setter
     private BedrockClientData clientData;
+    @Setter
+    private ECPublicKey identityPublicKey;
 
     private PlayerEntity playerEntity;
     private PlayerInventory inventory;
@@ -191,9 +232,10 @@ public class GeyserSession implements CommandSender {
 
     private MinecraftProtocol protocol;
 
-    public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
+    public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession, int clientId) {
         this.connector = connector;
-        this.upstream = new UpstreamSession(bedrockServerSession);
+        this.upstream = new UpstreamSession(bedrockServerSession, clientId);
+        this.clientId = clientId;
 
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
@@ -324,7 +366,7 @@ public class GeyserSession implements CommandSender {
                                 encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
                                         clientData.getGameVersion(),
                                         authData.getName(),
-                                        authData.getXboxUUID(),
+                                        authData.getUUID().toString(),
                                         clientData.getDeviceOS().ordinal(),
                                         clientData.getLanguageCode(),
                                         clientData.getCurrentInputMode().ordinal(),
@@ -456,10 +498,6 @@ public class GeyserSession implements CommandSender {
         disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.close", getClientData().getLanguageCode()));
     }
 
-    public void setAuthenticationData(AuthData authData) {
-        this.authData = authData;
-    }
-
     @Override
     public String getName() {
         return authData.getName();
@@ -587,7 +625,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Send a packet immediately to the player.
-     * 
+     *
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {

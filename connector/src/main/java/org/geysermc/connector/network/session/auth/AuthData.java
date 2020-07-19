@@ -25,13 +25,15 @@
 
 package org.geysermc.connector.network.session.auth;
 
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.UUID;
+import lombok.ToString;
 
 @Getter
 @AllArgsConstructor
+@ToString
 public class AuthData {
 
     private String name;
