@@ -72,6 +72,8 @@ import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.*;
+import org.geysermc.floodgate.util.BedrockData;
+import org.geysermc.floodgate.util.EncryptionUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
