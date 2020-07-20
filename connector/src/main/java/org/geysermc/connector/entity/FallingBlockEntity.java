@@ -25,9 +25,12 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class FallingBlockEntity extends Entity {
@@ -36,5 +39,13 @@ public class FallingBlockEntity extends Entity {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
         this.metadata.put(EntityData.VARIANT, BlockTranslator.getBedrockBlockId(javaId));
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        // Set the NO_AI flag based on the no gravity flag to prevent movement
+        if (entityMetadata.getId() == 5) {
+            this.metadata.getFlags().setFlag(EntityFlag.NO_AI, (boolean) entityMetadata.getValue());
+        }
     }
 }

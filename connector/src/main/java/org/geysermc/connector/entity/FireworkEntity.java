@@ -31,8 +31,10 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -49,7 +51,6 @@ public class FireworkEntity extends Entity {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
-
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7) {
@@ -62,19 +63,19 @@ public class FireworkEntity extends Entity {
 
             CompoundTag fireworks = tag.get("Fireworks");
 
-            CompoundTagBuilder fireworksBuilder = CompoundTagBuilder.builder();
+            NbtMapBuilder fireworksBuilder = NbtMap.builder();
             if (fireworks.get("Flight") != null) {
-                fireworksBuilder.byteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue()));
+                fireworksBuilder.putByte("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue()));
             }
 
-            List<com.nukkitx.nbt.tag.CompoundTag> explosions = new ArrayList<>();
+            List<NbtMap> explosions = new ArrayList<>();
             if (fireworks.get("Explosions") != null) {
                 for (Tag effect : ((ListTag) fireworks.get("Explosions")).getValue()) {
                     CompoundTag effectData = (CompoundTag) effect;
-                    CompoundTagBuilder effectBuilder = CompoundTagBuilder.builder();
+                    NbtMapBuilder effectBuilder = NbtMap.builder();
 
                     if (effectData.get("Type") != null) {
-                        effectBuilder.byteTag("FireworkType", MathUtils.convertByte(effectData.get("Type").getValue()));
+                        effectBuilder.putByte("FireworkType", MathUtils.convertByte(effectData.get("Type").getValue()));
                     }
 
                     if (effectData.get("Colors") != null) {
@@ -86,7 +87,7 @@ public class FireworkEntity extends Entity {
                             colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
                         }
 
-                        effectBuilder.byteArrayTag("FireworkColor", colors);
+                        effectBuilder.putByteArray("FireworkColor", colors);
                     }
 
                     if (effectData.get("FadeColors") != null) {
@@ -98,24 +99,26 @@ public class FireworkEntity extends Entity {
                             colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
                         }
 
-                        effectBuilder.byteArrayTag("FireworkFade", colors);
+                        effectBuilder.putByteArray("FireworkFade", colors);
                     }
 
                     if (effectData.get("Trail") != null) {
-                        effectBuilder.byteTag("FireworkTrail", MathUtils.convertByte(effectData.get("Trail").getValue()));
+                        effectBuilder.putByte("FireworkTrail", MathUtils.convertByte(effectData.get("Trail").getValue()));
                     }
 
                     if (effectData.get("Flicker") != null) {
-                        effectBuilder.byteTag("FireworkFlicker", MathUtils.convertByte(effectData.get("Flicker").getValue()));
+                        effectBuilder.putByte("FireworkFlicker", MathUtils.convertByte(effectData.get("Flicker").getValue()));
                     }
 
-                    explosions.add(effectBuilder.buildRootTag());
+                    explosions.add(effectBuilder.build());
                 }
             }
 
-            fireworksBuilder.tag(new com.nukkitx.nbt.tag.ListTag<>("Explosions", com.nukkitx.nbt.tag.CompoundTag.class, explosions));
+            fireworksBuilder.putList("Explosions", NbtType.COMPOUND, explosions);
 
-            metadata.put(EntityData.DISPLAY_ITEM, CompoundTagBuilder.builder().tag(fireworksBuilder.build("Fireworks")).buildRootTag());
+            NbtMapBuilder builder = NbtMap.builder();
+            builder.put("Fireworks", fireworksBuilder.build());
+            metadata.put(EntityData.DISPLAY_ITEM, builder.build());
         } else if (entityMetadata.getId() == 8 && !entityMetadata.getValue().equals(OptionalInt.empty()) && ((OptionalInt) entityMetadata.getValue()).getAsInt() == session.getPlayerEntity().getEntityId()) {
             //Checks if the firework has an entity ID (used when a player is gliding) and checks to make sure the player that is gliding is the one getting sent the packet or else every player near the gliding player will boost too.
             PlayerEntity entity = session.getPlayerEntity();

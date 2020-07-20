@@ -26,16 +26,8 @@
 package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
-import com.nukkitx.nbt.tag.CompoundTag;
-import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
-import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ByteMap;
-import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import com.nukkitx.nbt.NbtMap;
+import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,24 +37,24 @@ import java.util.Map;
  */
 public class BlockStateValues {
 
-    private static final Object2IntMap<BlockState> BANNER_COLORS = new Object2IntOpenHashMap<>();
-    private static final Object2ByteMap<BlockState> BED_COLORS = new Object2ByteOpenHashMap<>();
+    private static final Int2IntMap BANNER_COLORS = new Int2IntOpenHashMap();
+    private static final Int2ByteMap BED_COLORS = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
-    private static final Map<String, CompoundTag> FLOWER_POT_BLOCKS = new HashMap<>();
-    private static final Object2IntMap<BlockState> NOTEBLOCK_PITCHES = new Object2IntOpenHashMap<>();
+    private static final Map<String, NbtMap> FLOWER_POT_BLOCKS = new HashMap<>();
+    private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
-    private static final Object2ByteMap<BlockState> SKULL_VARIANTS = new Object2ByteOpenHashMap<>();
-    private static final Object2ByteMap<BlockState> SKULL_ROTATIONS = new Object2ByteOpenHashMap<>();
-    private static final Object2ByteMap<BlockState> SHULKERBOX_DIRECTIONS = new Object2ByteOpenHashMap<>();
+    private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
+    private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
+    private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
 
     /**
      * Determines if the block state contains Bedrock block information
      * @param entry The String to JsonNode map used in BlockTranslator
      * @param javaBlockState the Java Block State of the block
      */
-    public static void storeBlockStateValues(Map.Entry<String, JsonNode> entry, BlockState javaBlockState) {
+    public static void storeBlockStateValues(Map.Entry<String, JsonNode> entry, int javaBlockState) {
         JsonNode bannerColor = entry.getValue().get("banner_color");
         if (bannerColor != null) {
             BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
@@ -80,12 +72,12 @@ public class BlockStateValues {
             boolean isDirectionPositive = ((entry.getValue().get("x") != null && entry.getValue().get("x").asBoolean()) ||
                     (entry.getValue().get("z") != null && entry.getValue().get("z").asBoolean()));
             boolean isLeft = (entry.getValue().get("double_chest_position").asText().contains("left"));
-            DOUBLE_CHEST_VALUES.put(javaBlockState.getId(), new DoubleChestValue(isX, isDirectionPositive, isLeft));
+            DOUBLE_CHEST_VALUES.put(javaBlockState, new DoubleChestValue(isX, isDirectionPositive, isLeft));
             return;
         }
 
-        if (entry.getKey().contains("potted_")) {
-            FLOWER_POT_VALUES.put(javaBlockState.getId(), entry.getKey().replace("potted_", ""));
+        if (entry.getKey().contains("potted_") || entry.getKey().contains("flower_pot")) {
+            FLOWER_POT_VALUES.put(javaBlockState, entry.getKey().replace("potted_", ""));
             return;
         }
 
@@ -97,8 +89,8 @@ public class BlockStateValues {
 
         if (entry.getKey().contains("piston")) {
             // True if extended, false if not
-            PISTON_VALUES.put(javaBlockState.getId(), entry.getKey().contains("extended=true"));
-            IS_STICKY_PISTON.put(javaBlockState.getId(), entry.getKey().contains("sticky"));
+            PISTON_VALUES.put(javaBlockState, entry.getKey().contains("extended=true"));
+            IS_STICKY_PISTON.put(javaBlockState, entry.getKey().contains("sticky"));
             return;
         }
 
@@ -125,9 +117,9 @@ public class BlockStateValues {
      * @param state BlockState of the block
      * @return Banner color integer or -1 if no color
      */
-    public static int getBannerColor(BlockState state) {
+    public static int getBannerColor(int state) {
         if (BANNER_COLORS.containsKey(state)) {
-            return BANNER_COLORS.getInt(state);
+            return BANNER_COLORS.get(state);
         }
         return -1;
     }
@@ -139,9 +131,9 @@ public class BlockStateValues {
      * @param state BlockState of the block
      * @return Bed color byte or -1 if no color
      */
-    public static byte getBedColor(BlockState state) {
+    public static byte getBedColor(int state) {
         if (BED_COLORS.containsKey(state)) {
-            return BED_COLORS.getByte(state);
+            return BED_COLORS.get(state);
         }
         return -1;
     }
@@ -167,7 +159,7 @@ public class BlockStateValues {
      * Get the map of contained flower pot plants to Bedrock CompoundTag
      * @return Map of flower pot blocks.
      */
-    public static Map<String, CompoundTag> getFlowerPotBlocks() {
+    public static Map<String, NbtMap> getFlowerPotBlocks() {
         return FLOWER_POT_BLOCKS;
     }
 
@@ -177,9 +169,9 @@ public class BlockStateValues {
      * @param state BlockState of the block
      * @return note block note integer or -1 if not present
      */
-    public static int getNoteblockPitch(BlockState state) {
+    public static int getNoteblockPitch(int state) {
         if (NOTEBLOCK_PITCHES.containsKey(state)) {
-            return NOTEBLOCK_PITCHES.getInt(state);
+            return NOTEBLOCK_PITCHES.get(state);
         }
         return -1;
     }
@@ -192,8 +184,8 @@ public class BlockStateValues {
         return PISTON_VALUES;
     }
 
-    public static boolean isStickyPiston(BlockState blockState) {
-        return IS_STICKY_PISTON.get(blockState.getId());
+    public static boolean isStickyPiston(int blockState) {
+        return IS_STICKY_PISTON.get(blockState);
     }
 
     /**
@@ -203,9 +195,9 @@ public class BlockStateValues {
      * @param state BlockState of the block
      * @return Skull variant byte or -1 if no variant
      */
-    public static byte getSkullVariant(BlockState state) {
+    public static byte getSkullVariant(int state) {
         if (SKULL_VARIANTS.containsKey(state)) {
-            return SKULL_VARIANTS.getByte(state);
+            return SKULL_VARIANTS.get(state);
         }
         return -1;
     }
@@ -217,9 +209,9 @@ public class BlockStateValues {
      * @param state BlockState of the block
      * @return Skull rotation value or -1 if no value
      */
-    public static byte getSkullRotation(BlockState state) {
+    public static byte getSkullRotation(int state) {
         if (SKULL_ROTATIONS.containsKey(state)) {
-            return SKULL_ROTATIONS.getByte(state);
+            return SKULL_ROTATIONS.get(state);
         }
         return -1;
     }
@@ -232,9 +224,9 @@ public class BlockStateValues {
      * @param state BlockState of the block
      * @return Shulker direction value or -1 if no value
      */
-    public static byte getShulkerBoxDirection(BlockState state) {
+    public static byte getShulkerBoxDirection(int state) {
         if (SHULKERBOX_DIRECTIONS.containsKey(state)) {
-            return SHULKERBOX_DIRECTIONS.getByte(state);
+            return SHULKERBOX_DIRECTIONS.get(state);
         }
         return -1;
     }

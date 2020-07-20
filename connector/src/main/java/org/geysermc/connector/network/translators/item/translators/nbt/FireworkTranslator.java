@@ -98,8 +98,11 @@ public class FireworkTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
+        if (!itemTag.contains("Fireworks")) {
+            return;
+        }
         CompoundTag fireworks = itemTag.get("Fireworks");
-        if (fireworks.get("Flight") != null) {
+        if (fireworks.contains("Flight")) {
             fireworks.put(new ByteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue())));
         }
 

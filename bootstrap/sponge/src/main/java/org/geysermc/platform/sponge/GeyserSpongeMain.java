@@ -26,7 +26,7 @@
 
 package org.geysermc.platform.sponge;
 
-import org.geysermc.common.main.IGeyserMain;
+import org.geysermc.connector.common.main.IGeyserMain;
 
 public class GeyserSpongeMain extends IGeyserMain {
 

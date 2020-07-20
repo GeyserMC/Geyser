@@ -28,13 +28,13 @@ assignees: ''
 <!--- If applicable, add screenshots to help explain your problem. -->
 
 **Server Version**
-<!--- Give us the exact output from /version. Saying "latest" does not help us at all. -->
+<!--- Give us the exact output from `/version`. Saying "latest" does not help us at all. -->
 
 **Geyser Version**
-<!--- Give us the exact build number as well as branch if applicable. Saying "latest" does not help us at all. Please also include if you are running the standalone version, or specify which plugin version you are using. If your issue is a connection problem, please specify if you are using the Floodgate plugin. -->
+<!--- Give us the exact build number as well as branch if applicable. Saying "latest" does not help us at all. This info can be obtained from `/geyser version`.Please also include if you are running the standalone version, or specify which plugin version you are using. If your issue is a connection problem, please specify if you are using the Floodgate plugin. -->
 
 **Minecraft: Bedrock Edition Version**
 <!-- The version of your Minecraft: Bedrock Edition client you tested with. -->
 
 **Additional Context**
-<!--- Add any other context about the problem here. Include any plugins on the Minecraft server that may cause problems. --->
+<!--- Add any other context about the problem here. Include any plugins on the Minecraft server that may cause problems. Please also include the link to a dump by using `/geyser dump` --->
