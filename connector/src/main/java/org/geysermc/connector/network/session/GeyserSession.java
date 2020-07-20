@@ -85,6 +85,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -107,7 +108,7 @@ public class GeyserSession implements CommandSender {
     private InventoryCache inventoryCache;
     private ScoreboardCache scoreboardCache;
     private WindowCache windowCache;
-    private Map<Position, PlayerEntity> skullCache = new HashMap<>();
+    private Map<Position, PlayerEntity> skullCache = new ConcurrentHashMap<>();
     @Setter
     private TeleportCache teleportCache;
 
