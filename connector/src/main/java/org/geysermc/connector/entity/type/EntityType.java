@@ -155,6 +155,7 @@ public enum EntityType {
     HOGLIN(AnimalEntity.class, 124, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:hoglin"),
     ZOGLIN(ZoglinEntity.class, 126, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:zoglin"),
     PIGLIN(PiglinEntity.class, 123, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin"),
+    PIGLIN_BRUTE(BasePiglinEntity.class, 127, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin_brute"),
 
     /**
      * Item frames are handled differently since they are a block in Bedrock.
