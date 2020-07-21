@@ -31,8 +31,6 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
-
-import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.common.AuthType;
@@ -237,16 +235,6 @@ public class SkinUtils {
                                 playerAddPacket.setAction(PlayerListPacket.Action.ADD);
                                 playerAddPacket.getEntries().add(updatedEntry);
                                 session.sendUpstreamPacket(playerAddPacket);
-
-//                                // Update SKin
-//                                PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
-//                                playerSkinPacket.setUuid(updatedEntry.getUuid());
-//                                playerSkinPacket.setSkin(updatedEntry.getSkin());
-//                                playerSkinPacket.setOldSkinName("OldName");
-//                                playerSkinPacket.setNewSkinName("NewName");
-//                                playerSkinPacket.setTrustedSkin(true);
-//                                session.getUpstream().sendPacket(playerSkinPacket);
-//                                session.getConnector().getLogger().debug("Sending skin for " + entity.getUsername());
 
                                 if (!entity.isPlayerList()) {
                                     PlayerListPacket playerRemovePacket = new PlayerListPacket();

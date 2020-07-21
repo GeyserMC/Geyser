@@ -151,7 +151,7 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
 
     @Override
     public int getCacheImages() {
-        return node.getNode("cache-skins").getInt(0);
+        return node.getNode("cache-skins").getInt(180);
     }
 
     @Override

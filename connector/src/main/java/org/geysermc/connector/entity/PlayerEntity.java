@@ -38,7 +38,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.type.EntityType;
@@ -47,7 +46,6 @@ import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.MessageUtils;
-import org.geysermc.connector.network.session.cache.EntityEffectCache;
 
 import java.util.ArrayList;
 import java.util.List;
