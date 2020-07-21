@@ -108,7 +108,7 @@ import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
-import com.nukkitx.protocol.bedrock.packet.EmoteListPacket;
+import com.nukkitx.protocol.bedrock.packet.EmotePacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
@@ -403,7 +403,7 @@ public class Edition extends GeyserEdition {
                 .bedrockPacketTranslator(BlockPickRequestPacket.class, new BedrockBlockPickRequestPacketTranslator())
                 .bedrockPacketTranslator(CommandRequestPacket.class, new BedrockCommandRequestTranslator())
                 .bedrockPacketTranslator(ContainerClosePacket.class, new BedrockContainerCloseTranslator())
-                .bedrockPacketTranslator(EmoteListPacket.class, new BedrockEmoteTranslator())
+                .bedrockPacketTranslator(EmotePacket.class, new BedrockEmoteTranslator())
                 .bedrockPacketTranslator(EntityEventPacket.class, new BedrockEntityEventTranslator())
                 .bedrockPacketTranslator(InteractPacket.class, new BedrockInteractTranslator())
                 .bedrockPacketTranslator(InventoryTransactionPacket.class, new BedrockInventoryTransactionTranslator())
