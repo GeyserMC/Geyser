@@ -108,7 +108,6 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
         if (itemName != null) {
             String rename;
             NbtMap tag = itemName.getTag();
-
             if (tag != null) {
                 String name = tag.getCompound("display").getString("Name");
                 Component component = GsonComponentSerializer.gson().deserialize(name);
