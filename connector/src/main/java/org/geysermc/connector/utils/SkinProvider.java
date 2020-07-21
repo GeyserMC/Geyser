@@ -113,16 +113,19 @@ public class SkinProvider {
                 }
 
                 int count = 0;
+                final long expireTime = ((long)GeyserConnector.getInstance().getConfig().getCacheImages()) * ((long)1000 * 60 * 60 * 24);
                 for (File imageFile : Objects.requireNonNull(cacheFolder.listFiles())) {
-                    if (imageFile.lastModified() < System.currentTimeMillis() - (GeyserConnector.getInstance().getConfig().getCacheImages() * 1000 * 60 * 60 * 24)) {
+                    if (imageFile.lastModified() < System.currentTimeMillis() - expireTime) {
                         //noinspection ResultOfMethodCallIgnored
                         imageFile.delete();
                         count++;
                     }
                 }
 
-                GeyserConnector.getInstance().getLogger().debug(String.format("Removed %d cached image files as they have expired", count));
-            }, 1, 1440, TimeUnit.MINUTES);
+                if (count > 0) {
+                    GeyserConnector.getInstance().getLogger().debug(String.format("Removed %d cached image files as they have expired", count));
+                }
+            }, 10, 1440, TimeUnit.MINUTES);
         }
     }
 
