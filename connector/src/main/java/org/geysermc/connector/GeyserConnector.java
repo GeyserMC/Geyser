@@ -29,10 +29,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v390.Bedrock_v390;
+import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import lombok.Getter;
-import org.geysermc.common.AuthType;
-import org.geysermc.common.PlatformType;
+import lombok.Setter;
+import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
@@ -43,22 +44,25 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.item.PotionMixRegistry;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
+import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LocaleUtils;
-import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -69,16 +73,17 @@ public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v390.V390_CODEC;
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
 
-    private final Map<InetSocketAddress, GeyserSession> players = new HashMap<>();
+    private final List<GeyserSession> players = new ArrayList<>();
 
     private static GeyserConnector instance;
 
     private RemoteServer remoteServer;
+    @Setter
     private AuthType authType;
 
     private boolean shuttingDown = false;
@@ -105,7 +110,7 @@ public class GeyserConnector {
 
         logger.info("******************************************");
         logger.info("");
-        logger.info("Loading " + NAME + " version " + VERSION);
+        logger.info(LanguageUtils.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         logger.info("******************************************");
 
@@ -124,6 +129,7 @@ public class GeyserConnector {
         ItemRegistry.init();
         ItemTranslator.init();
         LocaleUtils.init();
+        PotionMixRegistry.init();
         SoundRegistry.init();
         SoundHandlerRegistry.init();
 
@@ -141,9 +147,9 @@ public class GeyserConnector {
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
-                logger.info("Started Geyser on " + config.getBedrock().getAddress() + ":" + config.getBedrock().getPort());
+                logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
             } else {
-                logger.severe("Failed to start Geyser on " + config.getBedrock().getAddress() + ":" + config.getBedrock().getPort());
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), config.getBedrock().getPort()));
                 throwable.printStackTrace();
             }
         }).join();
@@ -156,19 +162,38 @@ public class GeyserConnector {
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
         }
 
+        boolean isGui = false;
+        // This will check if we are in standalone and get the 'useGui' variable from there
+        if (platformType == PlatformType.STANDALONE) {
+            try {
+                Class<?> cls = Class.forName("org.geysermc.platform.standalone.GeyserStandaloneBootstrap");
+                isGui = (boolean) cls.getMethod("isUseGui").invoke(cls.cast(bootstrap));
+            } catch (Exception e) {
+                logger.debug("Failed detecting if standalone is using a GUI; if this is a GeyserConnect instance this can be safely ignored.");
+            }
+        }
+
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        logger.info(String.format("Done (%ss)! Run /geyser help for help!", new DecimalFormat("#.###").format(completeTime)));
+        String message = LanguageUtils.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
+        if (isGui) {
+            message += LanguageUtils.getLocaleStringLog("geyser.core.finish.gui");
+        } else {
+            message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
+        }
+        logger.info(message);
     }
 
     public void shutdown() {
-        bootstrap.getGeyserLogger().info("Shutting down Geyser.");
+        bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown"));
         shuttingDown = true;
 
         if (players.size() >= 1) {
-            bootstrap.getGeyserLogger().info("Kicking " + players.size() + " player(s)");
+            bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));
 
-            for (GeyserSession playerSession : players.values()) {
-                playerSession.disconnect("Geyser Proxy shutting down.");
+            // Make a copy to prevent ConcurrentModificationException
+            final List<GeyserSession> tmpPlayers = new ArrayList<>(players);
+            for (GeyserSession playerSession : tmpPlayers) {
+                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getClientData().getLanguageCode()));
             }
 
             CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {
@@ -192,7 +217,7 @@ public class GeyserConnector {
             // Block and wait for the future to complete
             try {
                 future.get();
-                bootstrap.getGeyserLogger().info("Kicked all players");
+                bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.done"));
             } catch (Exception e) {
                 // Quietly fail
             }
@@ -205,15 +230,15 @@ public class GeyserConnector {
         authType = null;
         this.getCommandManager().getCommands().clear();
 
-        bootstrap.getGeyserLogger().info("Geyser shutdown successfully.");
+        bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
     }
 
     public void addPlayer(GeyserSession player) {
-        players.put(player.getSocketAddress(), player);
+        players.add(player);
     }
 
     public void removePlayer(GeyserSession player) {
-        players.remove(player.getSocketAddress());
+        players.remove(player);
     }
 
     public static GeyserConnector start(PlatformType platformType, GeyserBootstrap bootstrap) {

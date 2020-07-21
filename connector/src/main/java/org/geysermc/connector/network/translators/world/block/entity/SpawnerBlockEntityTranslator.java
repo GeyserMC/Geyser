@@ -26,65 +26,63 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.*;
+import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.entity.type.EntityType;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @BlockEntity(name = "MobSpawner", regex = "mob_spawner")
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
-        List<Tag<?>> tags = new ArrayList<>();
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        Map<String, Object> tags = new HashMap<>();
 
         if (tag.get("MaxNearbyEntities") != null) {
-            tags.add(new ShortTag("MaxNearbyEntities", (short) tag.get("MaxNearbyEntities").getValue()));
+            tags.put("MaxNearbyEntities", (short) tag.get("MaxNearbyEntities").getValue());
         }
 
         if (tag.get("RequiredPlayerRange") != null) {
-            tags.add(new ShortTag("RequiredPlayerRange", (short) tag.get("RequiredPlayerRange").getValue()));
+            tags.put("RequiredPlayerRange", (short) tag.get("RequiredPlayerRange").getValue());
         }
 
         if (tag.get("SpawnCount") != null) {
-            tags.add(new ShortTag("SpawnCount", (short) tag.get("SpawnCount").getValue()));
+            tags.put("SpawnCount", (short) tag.get("SpawnCount").getValue());
         }
 
         if (tag.get("MaxSpawnDelay") != null) {
-            tags.add(new ShortTag("MaxSpawnDelay", (short) tag.get("MaxSpawnDelay").getValue()));
+            tags.put("MaxSpawnDelay", (short) tag.get("MaxSpawnDelay").getValue());
         }
 
         if (tag.get("Delay") != null) {
-            tags.add(new ShortTag("Delay", (short) tag.get("Delay").getValue()));
+            tags.put("Delay", (short) tag.get("Delay").getValue());
         }
 
         if (tag.get("SpawnRange") != null) {
-            tags.add(new ShortTag("SpawnRange", (short) tag.get("SpawnRange").getValue()));
+            tags.put("SpawnRange", (short) tag.get("SpawnRange").getValue());
         }
 
         if (tag.get("MinSpawnDelay") != null) {
-            tags.add(new ShortTag("MinSpawnDelay", (short) tag.get("MinSpawnDelay").getValue()));
+            tags.put("MinSpawnDelay", (short) tag.get("MinSpawnDelay").getValue());
         }
 
         if (tag.get("SpawnData") != null) {
             CompoundTag spawnData = tag.get("SpawnData");
             String entityID = (String) spawnData.get("id").getValue();
-            tags.add(new StringTag("EntityIdentifier", entityID));
+            tags.put("EntityIdentifier", entityID);
 
             EntityType type = EntityType.getFromIdentifier(entityID);
             if (type != null) {
-                tags.add(new FloatTag("DisplayEntityWidth", type.getWidth()));
-                tags.add(new FloatTag("DisplayEntityHeight", type.getHeight()));
-                tags.add(new FloatTag("DisplayEntityScale", 1.0f));
+                tags.put("DisplayEntityWidth", type.getWidth());
+                tags.put("DisplayEntityHeight", type.getHeight());
+                tags.put("DisplayEntityScale", 1.0f);
             }
         }
 
-        tags.add(new StringTag("id", "MobSpawner"));
-        tags.add(new ByteTag("isMovable", (byte) 1));
+        tags.put("id", "MobSpawner");
+        tags.put("isMovable", (byte) 1);
 
         return tags;
     }
@@ -95,11 +93,10 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        tagBuilder.byteTag("isMovable", (byte) 1)
-                .stringTag("id", "MobSpawner");
-
-        return tagBuilder.buildRootTag();
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
+                .putByte("isMovable", (byte) 1)
+                .putString("id", "MobSpawner")
+                .build();
     }
 }

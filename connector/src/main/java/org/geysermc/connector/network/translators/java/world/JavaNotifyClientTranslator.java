@@ -31,7 +31,11 @@ import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValu
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.AdventureSetting;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.entity.Entity;
@@ -56,35 +60,35 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
         switch (packet.getNotification()) {
             case START_RAIN:
                 LevelEventPacket startRainPacket = new LevelEventPacket();
-                startRainPacket.setType(LevelEventType.START_RAIN);
+                startRainPacket.setType(LevelEventType.START_RAINING);
                 startRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
                 startRainPacket.setPosition(Vector3f.ZERO);
                 session.sendUpstreamPacket(startRainPacket);
                 break;
             case STOP_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
-                stopRainPacket.setType(LevelEventType.STOP_RAIN);
+                stopRainPacket.setType(LevelEventType.STOP_RAINING);
                 stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
                 stopRainPacket.setPosition(Vector3f.ZERO);
                 session.sendUpstreamPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:
-                Set<AdventureSettingsPacket.Flag> playerFlags = new ObjectOpenHashSet<>();
+                Set<AdventureSetting> playerFlags = new ObjectOpenHashSet<>();
                 GameMode gameMode = (GameMode) packet.getValue();
                 if (gameMode == GameMode.ADVENTURE)
-                    playerFlags.add(AdventureSettingsPacket.Flag.IMMUTABLE_WORLD);
+                    playerFlags.add(AdventureSetting.WORLD_IMMUTABLE);
 
                 if (gameMode == GameMode.CREATIVE)
-                    playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
+                    playerFlags.add(AdventureSetting.MAY_FLY);
 
                 if (gameMode == GameMode.SPECTATOR) {
-                    playerFlags.add(AdventureSettingsPacket.Flag.MAY_FLY);
-                    playerFlags.add(AdventureSettingsPacket.Flag.NO_CLIP);
-                    playerFlags.add(AdventureSettingsPacket.Flag.FLYING);
+                    playerFlags.add(AdventureSetting.MAY_FLY);
+                    playerFlags.add(AdventureSetting.NO_CLIP);
+                    playerFlags.add(AdventureSetting.FLYING);
                     gameMode = GameMode.CREATIVE; // spectator doesnt exist on bedrock
                 }
 
-                playerFlags.add(AdventureSettingsPacket.Flag.AUTO_JUMP);
+                playerFlags.add(AdventureSetting.AUTO_JUMP);
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
@@ -97,17 +101,9 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                     adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
                     adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
                     adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
-                    adventureSettingsPacket.getFlags().addAll(playerFlags);
+                    adventureSettingsPacket.getSettings().addAll(playerFlags);
                     session.sendUpstreamPacket(adventureSettingsPacket);
                 }, 50, TimeUnit.MILLISECONDS);
-
-                EntityDataMap metadata = entity.getMetadata();
-                metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE);
-
-                SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-                entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-                entityDataPacket.getMetadata().putAll(metadata);
-                session.sendUpstreamPacket(entityDataPacket);
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());

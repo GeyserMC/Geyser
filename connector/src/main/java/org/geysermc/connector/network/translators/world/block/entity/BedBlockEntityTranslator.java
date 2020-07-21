@@ -25,31 +25,28 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.ByteTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @BlockEntity(name = "Bed", regex = "bed")
 public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public boolean isBlock(BlockState blockState) {
+    public boolean isBlock(int blockState) {
         return BlockStateValues.getBedColor(blockState) != -1;
     }
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
-        List<Tag<?>> tags = new ArrayList<>();
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        Map<String, Object> tags = new HashMap<>();
         byte bedcolor = BlockStateValues.getBedColor(blockState);
         // Just in case...
         if (bedcolor == -1) bedcolor = 0;
-        tags.add(new ByteTag("color", bedcolor));
+        tags.put("color", bedcolor);
         return tags;
     }
 
@@ -59,9 +56,9 @@ public class BedBlockEntityTranslator extends BlockEntityTranslator implements R
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        tagBuilder.byteTag("color", (byte) 0);
-        return tagBuilder.buildRootTag();
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
+                .putByte("color", (byte) 0)
+                .build();
     }
 }

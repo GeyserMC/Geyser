@@ -30,8 +30,9 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerChangeHeldItemPacket;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
+import org.geysermc.connector.utils.CooldownUtils;
 
 @Translator(packet = MobEquipmentPacket.class)
 public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipmentPacket> {
@@ -47,5 +48,8 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
 
         ClientPlayerChangeHeldItemPacket changeHeldItemPacket = new ClientPlayerChangeHeldItemPacket(packet.getHotbarSlot());
         session.sendDownstreamPacket(changeHeldItemPacket);
+
+        // Java sends a cooldown indicator whenever you switch an item
+        CooldownUtils.sendCooldown(session);
     }
 }

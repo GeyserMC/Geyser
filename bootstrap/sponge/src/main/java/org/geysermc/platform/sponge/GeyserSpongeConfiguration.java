@@ -130,6 +130,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isShowCooldown() {
+        return node.getNode("show-cooldown").getBoolean(true);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return node.getNode("default-locale").getString("en_us");
     }

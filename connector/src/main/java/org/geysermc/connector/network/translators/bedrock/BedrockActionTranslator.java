@@ -25,25 +25,26 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import java.util.concurrent.TimeUnit;
-
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerAbilitiesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
@@ -71,6 +72,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamPacket(stopSwimPacket);
                 break;
             case START_GLIDE:
+                // Otherwise gliding will not work in creative
+                ClientPlayerAbilitiesPacket playerAbilitiesPacket = new ClientPlayerAbilitiesPacket(
+                        false, false, false, session.getGameMode() == GameMode.CREATIVE
+                );
+                session.sendDownstreamPacket(playerAbilitiesPacket);
             case STOP_GLIDE:
                 ClientPlayerStatePacket glidePacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
                 session.sendDownstreamPacket(glidePacket);
@@ -113,8 +119,8 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case CONTINUE_BREAK:
                 LevelEventPacket continueBreakPacket = new LevelEventPacket();
-                continueBreakPacket.setType(LevelEventType.PUNCH_BLOCK);
-                continueBreakPacket.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock() == null ? BlockTranslator.AIR : session.getBreakingBlock()));
+                continueBreakPacket.setType(LevelEventType.PARTICLE_CRACK_BLOCK);
+                continueBreakPacket.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock()));
                 continueBreakPacket.setPosition(packet.getBlockPosition().toFloat());
                 session.sendUpstreamPacket(continueBreakPacket);
                 break;
