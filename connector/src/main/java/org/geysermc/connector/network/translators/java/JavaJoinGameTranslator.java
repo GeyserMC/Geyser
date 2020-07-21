@@ -62,12 +62,13 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         }
 
         if (!session.getUpstream().isInitialized()) {
-            entity.setDimension(DimensionUtils.javaToBedrock(packet.getDimension()));
+            entity.setDimension(packet.getDimension());
             session.initialize();
         } else {
-            if (DimensionUtils.javaToBedrock(packet.getDimension()) == entity.getDimension()) {
-                DimensionUtils.switchDimension(session, entity.getDimension() == 0 ? -1 : 0);
-            }
+            // TODO: Fix this
+//            if (packet.getDimension().equals(entity.getDimension())) {
+//                DimensionUtils.switchDimension(session, entity.getDimension() == 0 ? -1 : 0);
+//            }
             DimensionUtils.switchDimension(session, packet.getDimension());
         }
 

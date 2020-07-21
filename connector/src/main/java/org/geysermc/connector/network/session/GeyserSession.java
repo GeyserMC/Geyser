@@ -235,12 +235,12 @@ public class GeyserSession implements CommandSender {
             }
             authenticate(authData.getName());
         } else if (connector.getConfig().getUserAuths() != null && connector.getConfig().getUserAuths().containsKey(authData.getName())) {
-            connector.getLogger().info("Attempting to login using saved credentials for " + authData.getName());
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.stored_credentials", getAuthData().getName()));
             usingSavedCredentials = true;
             GeyserConfiguration.IUserAuthenticationInfo info = connector.getConfig().getUserAuths().get(authData.getName());
             authenticate(info.getEmail(), info.getPassword());
         } else { // Show login form
-            playerEntity.setDimension(2);
+            playerEntity.setDimension(DimensionUtils.THE_END);
             initialize();
             ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
             start();
@@ -263,6 +263,7 @@ public class GeyserSession implements CommandSender {
             attributesPacket.setAttributes(attributes);
             upstream.sendPacket(attributesPacket);
         }
+    }
 
     public void initialize() {
         startGame();
