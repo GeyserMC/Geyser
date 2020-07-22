@@ -137,8 +137,11 @@ public class GeyserConnector {
             // Set the remote address to localhost since that is where we are always connecting
             try {
                 config.getRemote().setAddress(InetAddress.getLocalHost().getHostAddress());
-            } catch (UnknownHostException ignored) {
+            } catch (UnknownHostException ex) {
                 logger.debug("Unknown host when trying to find localhost.");
+                if (config.isDebugMode()) {
+                    ex.printStackTrace();
+                }
             }
         }
 
