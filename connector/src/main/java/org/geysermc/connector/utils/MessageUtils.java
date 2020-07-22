@@ -259,7 +259,7 @@ public class MessageUtils {
 
     public static String getBedrockMessage(String message) {
         Component component = phraseJavaMessage(message);
-        return LegacyComponentSerializer.legacy().serialize(component);
+        return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
     public static Component phraseJavaMessage(String message) {
@@ -267,7 +267,7 @@ public class MessageUtils {
     }
 
     public static String getJavaMessage(String message) {
-        Component component = LegacyComponentSerializer.legacy().deserialize(message);
+        Component component = LegacyComponentSerializer.legacySection().deserialize(message);
         return GsonComponentSerializer.gson().serialize(component);
     }
 
