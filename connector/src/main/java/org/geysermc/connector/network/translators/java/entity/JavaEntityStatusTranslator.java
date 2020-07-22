@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntit
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -48,8 +49,9 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
         switch (packet.getStatus()) {
+            // EntityEventType.HURT sends extra data depending on the type of damage. However this appears to have no visual changes
+            case LIVING_BURN:
             case LIVING_DROWN:
-                entityEventPacket.setData(9);
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
                 entityEventPacket.setType(EntityEventType.HURT);
@@ -88,7 +90,11 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 entityEventPacket.setType(EntityEventType.CONSUME_TOTEM);
                 break;
             case SHEEP_GRAZE_OR_TNT_CART_EXPLODE:
-                entityEventPacket.setType(EntityEventType.PRIME_TNT_MINECART);
+                if (entity.getEntityType() == EntityType.SHEEP) {
+                    entityEventPacket.setType(EntityEventType.EAT_GRASS);
+                } else {
+                    entityEventPacket.setType(EntityEventType.PRIME_TNT_MINECART);
+                }
                 break;
             case IRON_GOLEM_HOLD_POPPY:
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_OFFER);
