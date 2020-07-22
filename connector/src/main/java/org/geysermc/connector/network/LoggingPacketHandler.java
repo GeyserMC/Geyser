@@ -33,6 +33,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Bare bones implementation of BedrockPacketHandler suitable for extension.
@@ -43,9 +44,11 @@ import java.util.ArrayList;
 public class LoggingPacketHandler implements BedrockPacketHandler {
 
     protected GeyserConnector connector;
-    // Sessions have a client id number from 0-n and are looked up in this list by client id
+    /**
+     * Sessions have a client id number from 0-n and are looked up in this list by client id
+     */
     @Getter
-    protected ArrayList<GeyserSession> sessions = new ArrayList<GeyserSession>(1);
+    protected List<GeyserSession> sessions = new ArrayList<>(1);
 
     LoggingPacketHandler(GeyserConnector connector, GeyserSession session) {
         this.connector = connector;

@@ -43,7 +43,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean translateAndDefault(BedrockPacket packet) {
-        final int clientId = packet.getClientId();
+        int clientId = packet.getClientId();
         GeyserSession session = sessions.get(clientId);
 
         return PacketTranslatorRegistry.BEDROCK_TRANSLATOR.translate(packet.getClass(), packet, session);
@@ -51,7 +51,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
-        final int clientId = loginPacket.getClientId();
+        int clientId = loginPacket.getClientId();
         GeyserSession session = sessions.get(clientId);
 
         if (loginPacket.getProtocolVersion() > GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
@@ -76,16 +76,18 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         return true;
     }
 
-    // Subclients login is slightly different
-    // * GeyserSession is created at this point
-    // * Some things have been done for the main client and don't need to be repeated:
-    //   * Version compatibility
-    //   * Encryption
-    //   * Resource packs
-    // Instead we can immediately connect the session
+    /**
+     * Subclients login is slightly different
+     * GeyserSession is created at this point
+     * Some things have been done for the main client and don't need to be repeated:
+     * * Version compatibility
+     * * Encryption
+     * * Resource packs
+     * Instead we can immediately connect the session
+     */ 
     @Override
     public boolean handle(SubClientLoginPacket loginPacket) {
-        final int clientId = loginPacket.getClientId();
+        int clientId = loginPacket.getClientId();
 
         // TODO not very clean reaching through Upstream...
         BedrockServerSession bedrockServerSession = this.sessions.get(0).getUpstream().getSession();
@@ -108,7 +110,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ResourcePackClientResponsePacket packet) {
-        final int clientId = packet.getClientId();
+        int clientId = packet.getClientId();
         GeyserSession session = sessions.get(clientId);
 
         switch (packet.getStatus()) {
@@ -133,7 +135,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        final int clientId = packet.getClientId();
+        int clientId = packet.getClientId();
         GeyserSession session = sessions.get(clientId);
 
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
@@ -160,7 +162,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
-        final int clientId = packet.getClientId();
+        int clientId = packet.getClientId();
         GeyserSession session = sessions.get(clientId);
 
         LanguageUtils.loadGeyserLocale(session.getClientData().getLanguageCode());
@@ -177,7 +179,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
-        final int clientId = packet.getClientId();
+        int clientId = packet.getClientId();
         GeyserSession session = sessions.get(clientId);
 
         if (session.isLoggingIn()) {
@@ -194,7 +196,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(DisconnectPacket packet) {
-        final int clientId = packet.getClientId();
+        int clientId = packet.getClientId();
 
         // Don't do anything for main client, that's handled by Session DisconnectHandler
         if (clientId == 0) return false;

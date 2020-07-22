@@ -94,7 +94,7 @@ public class GeyserSession implements CommandSender {
     /**
      * Id used in protocol to refer to primary client (0) or splitscreen subclients (>0)
      */ 
-    private final int clientId;
+    private int clientId;
     private RemoteServer remoteServer;
     private Client downstream;
     @Setter
