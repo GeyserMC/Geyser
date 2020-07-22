@@ -56,12 +56,14 @@ public class ItemRegistry {
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    // Shield ID, used in Entity.java
-    public static ItemEntry SHIELD;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
     public static ItemEntry BOAT;
+    // Gold ID, used in BedrockInventoryTransactionTranslator.java
+    public static ItemEntry BUCKET;
     // Gold ID, used in PiglinEntity.java
     public static ItemEntry GOLD;
+    // Shield ID, used in Entity.java
+    public static ItemEntry SHIELD;
 
     public static int BARRIER_INDEX = 0;
 
@@ -139,6 +141,9 @@ public class ItemRegistry {
                     break;
                 case "minecraft:shield":
                     SHIELD = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:bucket":
+                    BUCKET = ITEM_ENTRIES.get(itemIndex);
                     break;
                 default:
                     break;

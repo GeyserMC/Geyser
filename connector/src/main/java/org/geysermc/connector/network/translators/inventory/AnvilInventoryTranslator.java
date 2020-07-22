@@ -32,6 +32,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenam
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.action.Transaction;
@@ -39,7 +42,6 @@ import org.geysermc.connector.network.translators.inventory.action.Execute;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     public AnvilInventoryTranslator() {
@@ -93,8 +95,8 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                     CompoundTag displayTag = tag.get("display");
                     if (displayTag != null && displayTag.contains("Name")) {
                         String itemName = displayTag.get("Name").getValue().toString();
-                        TextMessage message = (TextMessage) MessageSerializer.fromString(itemName);
-                        rename = message.getText();
+                        Component component = GsonComponentSerializer.gson().deserialize(itemName);
+                        rename = LegacyComponentSerializer.legacy().serialize(component);
                     } else {
                         rename = "";
                     }
@@ -126,7 +128,14 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
             transaction.add(new Execute(() -> {
                 ItemData item = from.action.getFromItem();
                 NbtMap tag = item.getTag();
-                String rename = tag != null ? tag.getCompound("display").getString("Name") : "";
+                String rename;
+                if (tag != null) {
+                    String name = tag.getCompound("display").getString("Name");
+                    Component component = GsonComponentSerializer.gson().deserialize(name);
+                    rename = LegacyComponentSerializer.legacy().serialize(component);
+                } else {
+                    rename = "";
+                }
                 ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
                 transaction.getSession().sendDownstreamPacket(renameItemPacket);
             }));
