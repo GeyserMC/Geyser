@@ -96,16 +96,15 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             return;
         }
 
-        ConfigurationNode serverIP = config.getNode("remote").getNode("address");
         ConfigurationNode serverPort = config.getNode("remote").getNode("port");
 
         if (Sponge.getServer().getBoundAddress().isPresent()) {
             InetSocketAddress javaAddr = Sponge.getServer().getBoundAddress().get();
 
-            // Don't change the ip if its listening on all interfaces
-            // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                serverIP.setValue("127.0.0.1");
+            if (javaAddr.getHostString().equals("")) {
+                geyserConfig.getBedrock().setAddress("0.0.0.0");
+            } else {
+                geyserConfig.getBedrock().setAddress(javaAddr.getHostString());
             }
 
             serverPort.setValue(javaAddr.getPort());

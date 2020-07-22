@@ -17,6 +17,7 @@ bedrock:
   motd1: "GeyserMC"
   motd2: "Another GeyserMC forced host."
 remote:
+  # The following two values are ignored for plugin versions
   # The IP address of the remote (Java Edition) server
   address: 127.0.0.1
   # The port of the remote (Java Edition) server

@@ -169,6 +169,10 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
             return node.getNode("address").getString("0.0.0.0");
         }
 
+        public void setAddress(String address) {
+            node.getNode("address").setValue(address);
+        }
+
         @Override
         public int getPort() {
             return node.getNode("port").getInt(19132);
@@ -193,6 +197,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         @Override
         public String getAddress() {
             return node.getNode("address").getString("127.0.0.1");
+        }
+
+        @Override
+        public void setAddress(String address) {
+            node.getNode("address").setValue(address);
         }
 
         @Override

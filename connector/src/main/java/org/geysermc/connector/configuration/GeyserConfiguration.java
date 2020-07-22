@@ -91,6 +91,8 @@ public interface GeyserConfiguration {
 
         String getAddress();
 
+        void setAddress(String hostAddress);
+
         int getPort();
 
         String getAuthType();

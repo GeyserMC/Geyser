@@ -27,10 +27,10 @@ package org.geysermc.platform.spigot;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.network.translators.world.WorldManager;
@@ -81,10 +81,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             ex.printStackTrace();
         }
 
-        // Don't change the ip if its listening on all interfaces
-        // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-        if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
-            geyserConfig.getRemote().setAddress(Bukkit.getIp());
+        if (Bukkit.getIp().equals("")) {
+            geyserConfig.getBedrock().setAddress("0.0.0.0");
+        } else {
+            geyserConfig.getBedrock().setAddress(Bukkit.getIp());
         }
 
         geyserConfig.getRemote().setPort(Bukkit.getPort());
@@ -96,6 +96,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             this.getPluginLoader().disablePlugin(this);
             return;
+        } else if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
+            // Floodgate installed means that the user wants Floodgate authentication
+            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+            geyserConfig.getRemote().setAuthType("floodgate");
         }
 
         geyserConfig.loadFloodgate(this);

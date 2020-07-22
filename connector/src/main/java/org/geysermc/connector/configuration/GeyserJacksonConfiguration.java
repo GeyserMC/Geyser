@@ -96,6 +96,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
 
+        @Setter
         private String address;
         private int port;
 
@@ -112,6 +113,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @Setter
         private int port;
 
+        @Setter
         @JsonProperty("auth-type")
         private String authType;
     }

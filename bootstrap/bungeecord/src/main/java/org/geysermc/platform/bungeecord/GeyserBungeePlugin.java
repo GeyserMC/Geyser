@@ -81,10 +81,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
             InetSocketAddress javaAddr = listener.getHost();
 
-            // Don't change the ip if its listening on all interfaces
-            // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
+            if (javaAddr.getHostString().equals("")) {
+                this.geyserConfig.getBedrock().setAddress("0.0.0.0");
+            } else {
+                this.geyserConfig.getBedrock().setAddress(javaAddr.getHostString());
             }
 
             this.geyserConfig.getRemote().setPort(javaAddr.getPort());
@@ -96,6 +96,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyserConfig.getRemote().getAuthType().equals("floodgate") && getProxy().getPluginManager().getPlugin("floodgate-bungee") == null) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
+        } else if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
+            // Floodgate installed means that the user wants Floodgate authentication
+            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+            geyserConfig.getRemote().setAuthType("floodgate");
         }
 
         geyserConfig.loadFloodgate(this, configuration);

@@ -32,10 +32,10 @@ import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
@@ -51,17 +51,17 @@ import org.geysermc.connector.network.translators.item.PotionMixRegistry;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.DockerCheck;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -134,7 +134,12 @@ public class GeyserConnector {
         SoundHandlerRegistry.init();
 
         if (platformType != PlatformType.STANDALONE) {
-            DockerCheck.check(bootstrap);
+            // Set the remote address to localhost since that is where we are always connecting
+            try {
+                config.getRemote().setAddress(InetAddress.getLocalHost().getHostAddress());
+            } catch (UnknownHostException ignored) {
+                logger.debug("Unknown host when trying to find localhost.");
+            }
         }
 
         remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
