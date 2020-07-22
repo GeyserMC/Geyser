@@ -26,8 +26,6 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
-import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMap;
@@ -111,7 +109,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
             if (tag != null) {
                 String name = tag.getCompound("display").getString("Name");
                 Component component = GsonComponentSerializer.gson().deserialize(name);
-                rename = LegacyComponentSerializer.legacy().serialize(component);
+                rename = LegacyComponentSerializer.legacySection().serialize(component);
             } else {
                 rename = "";
             }
@@ -144,7 +142,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                     if (displayTag != null && displayTag.contains("Name")) {
                         String itemName = displayTag.get("Name").getValue().toString();
                         Component component = GsonComponentSerializer.gson().deserialize(itemName);
-                        rename = LegacyComponentSerializer.legacy().serialize(component);
+                        rename = LegacyComponentSerializer.legacySection().serialize(component);
                     } else {
                         rename = "";
                     }
