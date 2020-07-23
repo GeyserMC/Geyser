@@ -141,7 +141,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Handled in ITEM_USE
-                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getJavaId()) {
+                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) {
                             break;
                         }
 
