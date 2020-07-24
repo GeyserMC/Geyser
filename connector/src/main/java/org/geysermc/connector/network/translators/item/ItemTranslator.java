@@ -162,7 +162,7 @@ public abstract class ItemTranslator {
 
                 // If its not a message convert it
                 if (!MessageUtils.isMessage(name)) {
-                    TextComponent component = LegacyComponentSerializer.legacy().deserialize(name);
+                    TextComponent component = LegacyComponentSerializer.legacySection().deserialize(name);
                     name = GsonComponentSerializer.gson().serialize(component);
                 }
 
