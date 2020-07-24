@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
@@ -109,7 +110,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
             if (tag != null) {
                 String name = tag.getCompound("display").getString("Name");
                 Component component = GsonComponentSerializer.gson().deserialize(name);
-                rename = PlainComponentSerializer.plain().serialize(component);
+                rename = ChatColor.stripColors(PlainComponentSerializer.plain().serialize(component));
             } else {
                 rename = "";
             }
@@ -142,7 +143,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                     if (displayTag != null && displayTag.contains("Name")) {
                         String itemName = displayTag.get("Name").getValue().toString();
                         Component component = GsonComponentSerializer.gson().deserialize(itemName);
-                        rename = PlainComponentSerializer.plain().serialize(component);
+                        rename = ChatColor.stripColors(PlainComponentSerializer.plain().serialize(component));
                     } else {
                         rename = "";
                     }
