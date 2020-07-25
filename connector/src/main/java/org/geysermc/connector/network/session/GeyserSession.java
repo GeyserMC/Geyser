@@ -120,7 +120,9 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private Vector2i lastChunkPosition = null;
-    private int renderDistance;
+    private int serverRenderDistance;
+    @Setter
+    private int clientRenderDistance;
 
     private boolean loggedIn;
     private boolean loggingIn;
@@ -487,14 +489,18 @@ public class GeyserSession implements CommandSender {
         windowCache.showWindow(window, id);
     }
 
-    public void setRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
-        if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
-        this.renderDistance = renderDistance;
+    public void setServerRenderDistance(int serverRenderDistance) {
+        serverRenderDistance = GenericMath.ceil(++serverRenderDistance * MathUtils.SQRT_OF_TWO); //square to circle
+        if (serverRenderDistance > 32) serverRenderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
+        this.serverRenderDistance = serverRenderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
-        chunkRadiusUpdatedPacket.setRadius(renderDistance);
+        chunkRadiusUpdatedPacket.setRadius(getRenderDistance());
         upstream.sendPacket(chunkRadiusUpdatedPacket);
+    }
+
+    public int getRenderDistance() {
+        return Math.min(clientRenderDistance, serverRenderDistance);
     }
 
     public InetSocketAddress getSocketAddress() {
