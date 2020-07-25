@@ -46,6 +46,7 @@ import org.geysermc.platform.standalone.gui.GeyserStandaloneGUI;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -60,7 +61,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private GeyserStandaloneGUI gui;
 
     @Getter
-    private boolean useGui = System.console() == null;
+    private boolean useGui = System.console() == null && !isHeadless();
 
     private GeyserConnector connector;
 
@@ -125,6 +126,21 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         if (!useGui) {
             geyserLogger.start(); // Throws an error otherwise
         }
+    }
+
+    /**
+     * Check using {@link java.awt.GraphicsEnvironment} that we are a headless client
+     *
+     * @return If the current environment is headless
+     */
+    private boolean isHeadless() {
+        try {
+            Class<?> graphicsEnv = Class.forName("java.awt.GraphicsEnvironment");
+            Method isHeadless = graphicsEnv.getDeclaredMethod("isHeadless");
+            return (boolean) isHeadless.invoke(null);
+        } catch (Exception ignore) { }
+
+        return true;
     }
 
     @Override

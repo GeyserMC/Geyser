@@ -54,15 +54,15 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                 scoreboard.registerNewTeam(packet.getTeamName(), toPlayerSet(packet.getPlayers()))
                         .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
-                        .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
-                        .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()));
+                        .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getClientData().getLanguageCode()))
+                        .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getClientData().getLanguageCode()));
                 break;
             case UPDATE:
                 if (team != null) {
                     team.setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
                             .setColor(packet.getColor())
-                            .setPrefix(MessageUtils.getBedrockMessage(packet.getPrefix()))
-                            .setSuffix(MessageUtils.getBedrockMessage(packet.getSuffix()))
+                            .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getClientData().getLanguageCode()))
+                            .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getClientData().getLanguageCode()))
                             .setUpdateType(UpdateType.UPDATE);
                 } else {
                     GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_not_registered", packet.getAction(), packet.getTeamName()));

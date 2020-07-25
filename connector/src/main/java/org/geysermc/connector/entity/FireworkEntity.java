@@ -116,7 +116,9 @@ public class FireworkEntity extends Entity {
 
             fireworksBuilder.putList("Explosions", NbtType.COMPOUND, explosions);
 
-            metadata.put(EntityData.DISPLAY_ITEM, NbtMap.builder().put("Fireworks", fireworksBuilder.build()));
+            NbtMapBuilder builder = NbtMap.builder();
+            builder.put("Fireworks", fireworksBuilder.build());
+            metadata.put(EntityData.DISPLAY_ITEM, builder.build());
         } else if (entityMetadata.getId() == 8 && !entityMetadata.getValue().equals(OptionalInt.empty()) && ((OptionalInt) entityMetadata.getValue()).getAsInt() == session.getPlayerEntity().getEntityId()) {
             //Checks if the firework has an entity ID (used when a player is gliding) and checks to make sure the player that is gliding is the one getting sent the packet or else every player near the gliding player will boost too.
             PlayerEntity entity = session.getPlayerEntity();
