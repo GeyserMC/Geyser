@@ -46,14 +46,16 @@ public class BedrockRequestChunkRadiusTranslator extends PacketTranslator<Reques
     public void translate(RequestChunkRadiusPacket packet, GeyserSession session) {
         session.setClientRenderDistance(packet.getRadius());
 
-        ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
-        chunkRadiusUpdatedPacket.setRadius(session.getRenderDistance());
-        session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
+        if (session.isLoggedIn()) {
+            ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
+            chunkRadiusUpdatedPacket.setRadius(session.getRenderDistance());
+            session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
 
-        // Update the server with our new client render distance
-        String locale = session.getClientData().getLanguageCode();
-        List<SkinPart> skinParts = Arrays.asList(SkinPart.values());
-        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getClientRenderDistance(), ChatVisibility.FULL, true, skinParts, HandPreference.RIGHT_HAND);
-        session.sendDownstreamPacket(clientSettingsPacket);
+            // Update the server with our new client render distance
+            String locale = session.getClientData().getLanguageCode();
+            List<SkinPart> skinParts = Arrays.asList(SkinPart.values());
+            ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getClientRenderDistance(), ChatVisibility.FULL, true, skinParts, HandPreference.RIGHT_HAND);
+            session.sendDownstreamPacket(clientSettingsPacket);
+        }
     }
 }
