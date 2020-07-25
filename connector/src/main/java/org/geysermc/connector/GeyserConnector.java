@@ -149,7 +149,7 @@ public class GeyserConnector {
                 InitialDirContext ctx = new InitialDirContext();
                 Attribute attr = ctx.getAttributes("dns:///_minecraft._tcp." + remoteAddress, new String[]{"SRV"}).get("SRV");
                 // size > 0 = SRV entry found
-                if (attr.size() > 0) {
+                if (attr != null && attr.size() > 0) {
                     String[] record = ((String) attr.get(0)).split(" ");
                     // Overwrites the existing address and port with that from the SRV record.
                     config.getRemote().setAddress(remoteAddress = record[3]);
