@@ -120,7 +120,11 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private Vector2i lastChunkPosition = null;
+
+    // This is used to store the render distance sent by the Java server so we can use it to update the client accordingly
     private int serverRenderDistance;
+
+    // This is the bedrock client equivalent of the above `serverRenderDistance`
     @Setter
     private int clientRenderDistance;
 
@@ -499,6 +503,11 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(chunkRadiusUpdatedPacket);
     }
 
+    /**
+     * This returns the smallest render distance between the server or client
+     *
+     * @return The render distance as an int
+     */
     public int getRenderDistance() {
         return Math.min(clientRenderDistance, serverRenderDistance);
     }
