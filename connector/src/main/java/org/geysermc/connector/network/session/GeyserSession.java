@@ -191,7 +191,7 @@ public class GeyserSession implements CommandSender {
     private long lastHitTime;
 
     private MinecraftProtocol protocol;
-    
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -238,9 +238,7 @@ public class GeyserSession implements CommandSender {
             SHIM.creativeContent(this);
         } else {
             CreativeContentPacket creativePacket = new CreativeContentPacket();
-            for (int i = 0; i < ItemRegistry.CREATIVE_ITEMS.length; i++) {
-                creativePacket.getEntries().put(i + 1, ItemRegistry.CREATIVE_ITEMS[i]);
-            }
+            creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
             upstream.sendPacket(creativePacket);
         }
 

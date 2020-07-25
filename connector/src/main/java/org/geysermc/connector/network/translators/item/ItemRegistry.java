@@ -165,23 +165,23 @@ public class ItemRegistry {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
         }
 
+        int netId = 1;
         List<ItemData> creativeItems = new ArrayList<>();
         for (JsonNode itemNode : creativeItemEntries) {
-            short damage = 0;
-            if (itemNode.has("damage")) {
-                damage = itemNode.get("damage").numberValue().shortValue();
-            }
-            if (itemNode.has("nbt_b64")) {
-                byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
-                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-                try {
-                    NbtMap tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
-                    creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
-                } catch (IOException e) {
-                    e.printStackTrace();
+            try {
+                short damage = 0;
+                NbtMap tag = null;
+                if (itemNode.has("damage")) {
+                    damage = itemNode.get("damage").numberValue().shortValue();
                 }
-            } else {
-                creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1));
+                if (itemNode.has("nbt_b64")) {
+                    byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
+                    ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+                    tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
+                }
+                creativeItems.add(ItemData.fromNet(netId++, itemNode.get("id").asInt(), damage, 1, tag));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
