@@ -65,7 +65,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         // If only the pitch and yaw changed
         // This isn't needed, but it makes the packets closer to vanilla
-        // It also means you can't "lag back" while only looking
+        // It also means you can't "lag back" while only looking, in theory
         if (entity.getPosition().equals(packet.getPosition())) {
             // System.out.println("Look only!");
             ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(
@@ -84,9 +84,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
+        double javaY = Double.parseDouble(Float.toString(packet.getPosition().getY())) - EntityType.PLAYER.getOffset();
 
-        System.out.println("Y pos: " + javaY);
+        // System.out.println("Y pos: " + javaY);
 
         if (javaY < -39 && javaY <= -40) {
             // TODO: TP player below void
@@ -101,6 +101,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
                 Double.parseDouble(Float.toString(packet.getPosition().getZ())));
+        System.out.println("Pre-pos: " + position);
 
         if (!session.confirmTeleport(position)){
             return;
@@ -155,6 +156,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
+        System.out.println("Post-pos: " + position);
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
                 packet.isOnGround(), position.getX(), position.getY(), position.getZ(), packet.getRotation().getY(), packet.getRotation().getX()
         );

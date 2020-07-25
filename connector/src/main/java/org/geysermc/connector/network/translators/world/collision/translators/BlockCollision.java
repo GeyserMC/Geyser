@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.world.collision.translators;
 
 import com.nukkitx.math.vector.Vector3d;
 import lombok.EqualsAndHashCode;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.utils.BoundingBox;
 import org.geysermc.connector.utils.MathUtils;
 
@@ -73,9 +74,11 @@ public class BlockCollision {
                 }
            }
 
+            playerCollision.setSizeX(playerCollision.getSizeX() + PlayerEntity.COLLISION_TOLERANCE * 2);
+            playerCollision.setSizeZ(playerCollision.getSizeZ() + PlayerEntity.COLLISION_TOLERANCE * 2);
             // playerCollision.translate(0, 0.1, 0); // Hack to not check y
             // If the player still intersects the block, then push them out
-            /* if (b.checkIntersection(x, y, z, playerCollision)) {
+            if (false && b.checkIntersection(x, y, z, playerCollision)) {
                 /* double relativeX = playerCollision.getMiddleX() - (x + 0.5);
                 double relativeY = playerCollision.getMiddleY() - (y + 0.5);
                 double relativeZ = playerCollision.getMiddleZ() - (z + 0.5);
@@ -88,7 +91,12 @@ public class BlockCollision {
                 /* while (b.checkIntersection(x, y, z, playerCollision)) {
                     playerCollision.translate(0, 0.01, 0);
                     System.out.println("Up");
-                } *//*
+                } */
+
+                Vector3d oldPlayerPosition = Vector3d.from(playerCollision.getMiddleX(),
+                        playerCollision.getMiddleY(),
+                        playerCollision.getMiddleZ());
+
                 Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x,
                         playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2) - y,
                         playerCollision.getMiddleZ() - z);
@@ -138,19 +146,20 @@ public class BlockCollision {
                                          Math.min(eastFaceDistance,
                                                   westFaceDistance)))); // );
 
-                System.out.println("Distance: " + closestDistance);
+                // System.out.println("Distance: " + closestDistance);
                 if (closestDistance == topFaceDistance) {
                     playerCollision.translate(0, (topFacePos.getY() - relativePlayerPosition.getY()), 0);
                     System.out.println("Snapped to top");
                 }/* else if (closestDistance == bottomFaceDistance) {
                     playerCollision.translate(0, (bottomFacePos.getY() - relativePlayerPosition.getY()) + 0.9, 0);
                     System.out.println("Snapped to bottom");
-                }*//* else if (closestDistance == northFaceDistance) {
+                }*/ else if (closestDistance == northFaceDistance) {
                     playerCollision.translate(0, 0, northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2));
                     System.out.println("Snapped to north");
                 } else if (closestDistance == southFaceDistance) {
                     playerCollision.translate(0, 0, southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2));
                     System.out.println("Snapped to south");
+                    System.out.println(playerCollision.getMiddleZ());
                 } else if (closestDistance == eastFaceDistance) {
                     playerCollision.translate(eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2), 0, 0);
                     System.out.println("Snapped to east");
@@ -158,8 +167,26 @@ public class BlockCollision {
                     playerCollision.translate(westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2), 0, 0);
                     System.out.println("Snapped to west");
                 }
-            } */
+
+                Vector3d newPlayerPosition = Vector3d.from(playerCollision.getMiddleX(),
+                        playerCollision.getMiddleY(),
+                        playerCollision.getMiddleZ());
+
+                System.out.println("Diff: " + MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition));
+
+                if (MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition) > PlayerEntity.COLLISION_TOLERANCE + 0.000001) {
+                    playerCollision.setMiddleX(oldPlayerPosition.getX());
+                    playerCollision.setMiddleY(oldPlayerPosition.getY());
+                    playerCollision.setMiddleZ(oldPlayerPosition.getZ());
+                    System.out.println("Cancelled");
+                }
+
+                System.out.println(playerCollision.getMiddleZ());
+                playerCollision.setMiddleX(oldPlayerPosition.getX());
+            }
             // playerCollision.translate(0, -0.1, 0); // Hack to not check y
+            playerCollision.setSizeX(0.6);
+            playerCollision.setSizeZ(0.6);
         }
 
         // Solid checking for NoCheatPlus etc.

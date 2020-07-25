@@ -333,12 +333,14 @@ public class PlayerEntity extends LivingEntity {
         }
     }
 
+    public static final double COLLISION_TOLERANCE = 0.1;
+
     public ArrayList<Vector3i> getCollidableBlocks(Vector3d position) {
         ArrayList<Vector3i> blocks = new ArrayList<Vector3i>();
 
         // Loop through all blocks that could collide with the player
-        int minCollisionX = (int) Math.floor(position.getX() - (boundingBox.getSizeX() / 2));
-        int maxCollisionX = (int) Math.floor(position.getX() + (boundingBox.getSizeX() / 2));
+        int minCollisionX = (int) Math.floor(position.getX() - ((boundingBox.getSizeX() / 2) + COLLISION_TOLERANCE));
+        int maxCollisionX = (int) Math.floor(position.getX() + (boundingBox.getSizeX() / 2) + COLLISION_TOLERANCE);
 
         // Y extends 0.5 blocks down because of fence hitboxes
         int minCollisionY = (int) Math.floor(position.getY() - 0.5);
@@ -348,8 +350,8 @@ public class PlayerEntity extends LivingEntity {
         // Any lower seems to cause issues
         int maxCollisionY = (int) Math.floor(position.getY() + boundingBox.getSizeY());
 
-        int minCollisionZ = (int) Math.floor(position.getZ() - (boundingBox.getSizeZ() / 2));
-        int maxCollisionZ = (int) Math.floor(position.getZ() + (boundingBox.getSizeZ() / 2));
+        int minCollisionZ = (int) Math.floor(position.getZ() - ((boundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE));
+        int maxCollisionZ = (int) Math.floor(position.getZ() + (boundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE);
 
         BlockCollision blockCollision;
 

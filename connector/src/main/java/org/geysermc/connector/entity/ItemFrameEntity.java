@@ -164,6 +164,7 @@ public class ItemFrameEntity extends Entity {
         builder.putInt("y", bedrockPosition.getY());
         builder.putInt("z", bedrockPosition.getZ());
         builder.putByte("isMovable", (byte) 1);
+        builder.putByte("invisible", (byte) 1);
         builder.putString("id", "ItemFrame");
         return builder.build();
     }

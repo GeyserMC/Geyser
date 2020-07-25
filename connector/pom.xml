@@ -105,7 +105,7 @@
         <dependency>
             <groupId>com.github.steveice10</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>ed6e845095</version>
+            <version>1.16.1-SNAPSHOT</version> <!-- TODO: Change back to commit -->
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
