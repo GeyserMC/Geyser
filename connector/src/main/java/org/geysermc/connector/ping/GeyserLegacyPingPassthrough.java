@@ -79,15 +79,17 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
     public void run() {
         try {
             Socket socket = new Socket();
-            socket.connect(new InetSocketAddress(connector.getConfig().getRemote().getAddress(), connector.getConfig().getRemote().getPort()), 5000);
+            String address = connector.getConfig().getRemote().getAddress();
+            int port = connector.getConfig().getRemote().getPort();
+            socket.connect(new InetSocketAddress(address, port), 5000);
 
             ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
             DataOutputStream handshake = new DataOutputStream(byteArrayStream);
             handshake.write(0x0);
             VarInts.writeUnsignedInt(handshake, MinecraftConstants.PROTOCOL_VERSION);
-            VarInts.writeUnsignedInt(handshake, socket.getInetAddress().getHostAddress().length());
-            handshake.writeBytes(socket.getInetAddress().getHostAddress());
-            handshake.writeShort(socket.getPort());
+            VarInts.writeUnsignedInt(handshake, address.length());
+            handshake.writeBytes(address);
+            handshake.writeShort(port);
             VarInts.writeUnsignedInt(handshake, 1);
 
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
