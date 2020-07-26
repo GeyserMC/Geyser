@@ -61,6 +61,16 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
         switch (action.getSource().getContainerId()) {
+            case ContainerId.UI:
+                switch (action.getSlot()) {
+                    case 4:
+                        return 0;
+                    case 5:
+                        return 1;
+                    case 50:
+                        return 2;
+                }
+                break;
             case -28: // Trading 1?
                 return 0;
             case -29: // Trading 2?
