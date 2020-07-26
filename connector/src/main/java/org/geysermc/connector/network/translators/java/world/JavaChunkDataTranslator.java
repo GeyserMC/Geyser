@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.nbt.NBTOutputStream;
@@ -37,7 +38,6 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -61,8 +61,11 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        if (packet.getColumn().getBiomeData() == null && !CACHE_CHUNKS) //Non-full chunk without chunk caching
+        if (packet.getColumn().getBiomeData() == null && !CACHE_CHUNKS) {
+            // Non-full chunk without chunk caching
+            session.getConnector().getLogger().debug("Not sending non-full chunk because chunk caching is off.");
             return;
+        }
 
         // Non-full chunks don't have all the chunk data, and Bedrock won't accept that
         final boolean isNonFullChunk = (packet.getColumn().getBiomeData() == null);
@@ -122,8 +125,6 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     ChunkUtils.updateBlock(session, blockEntityEntry.getIntValue(), new Position(x, y, z));
                 }
                 chunkData.getLoadBlockEntitiesLater().clear();
-                if (session.getConnector().getWorldManager().getClass() == GeyserBootstrap.DEFAULT_CHUNK_MANAGER.getClass())
-                    session.getChunkCache().addToCache(packet.getColumn());
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

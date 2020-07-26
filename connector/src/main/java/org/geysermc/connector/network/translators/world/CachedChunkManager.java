@@ -39,6 +39,8 @@ public class CachedChunkManager extends WorldManager {
 
     @Override
     public int[] getBiomeDataAt(GeyserSession session, int x, int z) {
+        if (!session.getConnector().getConfig().isCacheChunks())
+            return new int[1024];
         return session.getChunkCache().getChunks().get(new ChunkPosition(x, z)).getBiomeData();
     }
 }
