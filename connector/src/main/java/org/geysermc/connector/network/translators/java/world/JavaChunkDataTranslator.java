@@ -48,13 +48,20 @@ import org.geysermc.connector.utils.ChunkUtils;
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
 
+    // Used for determining if we should process non-full chunks
+    private static final boolean CACHE_CHUNKS;
+
+    static {
+        CACHE_CHUNKS = GeyserConnector.getInstance().getConfig().isCacheChunks();
+    }
+
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        if (packet.getColumn().getBiomeData() == null && !session.getConnector().getConfig().isCacheChunks()) //Non-full chunk without chunk caching
+        if (packet.getColumn().getBiomeData() == null && !CACHE_CHUNKS) //Non-full chunk without chunk caching
             return;
 
         // Non-full chunks don't have all the chunk data, and Bedrock won't accept that
