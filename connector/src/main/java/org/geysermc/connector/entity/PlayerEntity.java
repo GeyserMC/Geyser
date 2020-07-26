@@ -77,18 +77,19 @@ public class PlayerEntity extends LivingEntity {
     private Entity rightParrot;
 
     @Getter
-    private BoundingBox boundingBox = new BoundingBox(0, 0, 0, 0.60001, 1.8, 0.60001);
+    private BoundingBox boundingBox;
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
 
-        System.out.println(boundingBox);
 
         profile = gameProfile;
         uuid = gameProfile.getId();
         username = gameProfile.getName();
         effectCache = new EntityEffectCache();
         if (geyserId == 1) valid = true;
+
+        boundingBox = new BoundingBox(0, 0, 0, 0.6, 1.8, 0.6);
     }
 
     @Override
@@ -321,9 +322,13 @@ public class PlayerEntity extends LivingEntity {
     }
 
     public void updateBoundingBox(Vector3d position) {
+        // If this isn't the player logged in through this Geyser session
+        if (geyserId != 1) {
+            return;
+        }
         if (boundingBox == null) {
             System.out.println("BBnull");
-            boundingBox = new BoundingBox(position.getX(), position.getY(), position.getZ(), 0.60001, 1.8, 0.60001);
+            boundingBox = new BoundingBox(position.getX(), position.getY(), position.getZ(), 0.6, 1.8, 0.6);
         } else {
             // TODO: Make bounding box smaller when sneaking
             boundingBox.setMiddleX(position.getX());
