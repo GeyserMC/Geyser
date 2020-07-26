@@ -132,7 +132,7 @@ public class BlockCollision {
                         b.getMiddleZ());
                 double westFaceDistance = MathUtils.taxicabDistance(westFacePos, relativePlayerPosition);
 
-                System.out.println(topFacePos.getY() - relativePlayerPosition.getY());
+                // System.out.println(topFacePos.getY() - relativePlayerPosition.getY());
                 // Unless the player is very close to the top, don't snap them there
                 /* if // (!((topFacePos.getY() - relativePlayerPosition.getY() > 0) && // Positive number (player is below top)
                 ((!   (topFacePos.getY() - relativePlayerPosition.getY() < 0.00001))) { // Player is close to top
@@ -140,12 +140,12 @@ public class BlockCollision {
                     topFaceDistance = 9999;
                 } */
 
-                double closestDistance = // Math.min(topFaceDistance,
+                /* double closestDistance = // Math.min(topFaceDistance,
                                          // Math.min(bottomFaceDistance,
                                          Math.min(northFaceDistance,
                                          Math.min(southFaceDistance,
                                          Math.min(eastFaceDistance,
-                                                  westFaceDistance))); // ); // );
+                                                  westFaceDistance))); // ); // ); */
 
                 // System.out.println("Distance: " + closestDistance);
                 /* if (closestDistance == topFaceDistance) {
@@ -153,19 +153,30 @@ public class BlockCollision {
                     System.out.println("Snapped to top");
                 } else if (closestDistance == bottomFaceDistance) {
                     playerCollision.translate(0, (bottomFacePos.getY() - relativePlayerPosition.getY()) + 0.9, 0);
-                    System.out.println("Snapped to bottom");
-                } else*/ if (closestDistance == northFaceDistance) {
-                    playerCollision.translate(0, 0, northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2));
+                    System.out.println("Snapped to bo
+                    ttom");
+                } else*/
+                double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
+                if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
+                    playerCollision.translate(0, 0, translateDistance);
                     System.out.println("Snapped to north");
-                } else if (closestDistance == southFaceDistance) {
-                    playerCollision.translate(0, 0, southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2));
+                }
+                
+                translateDistance = southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
+                if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
+                    playerCollision.translate(0, 0, translateDistance);
                     System.out.println("Snapped to south");
-                    System.out.println(playerCollision.getMiddleZ());
-                } else if (closestDistance == eastFaceDistance) {
-                    playerCollision.translate(eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2), 0, 0);
+                }
+
+                translateDistance = eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
+                if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
+                    playerCollision.translate(translateDistance, 0, 0);
                     System.out.println("Snapped to east");
-                } else if (closestDistance == westFaceDistance) {
-                    playerCollision.translate(westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2), 0, 0);
+                }
+
+                translateDistance = westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
+                if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
+                    playerCollision.translate(translateDistance, 0, 0);
                     System.out.println("Snapped to west");
                 }
 

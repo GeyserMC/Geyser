@@ -159,7 +159,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         System.out.println("Post-pos: " + position);
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
                 packet.isOnGround(), position.getX(),
-                Math.round(position.getY() * 100.0D) / 100.0d,
+                Math.round(position.getY() * 10000.0D) / 10000.0d,
                 position.getZ(),
                 packet.getRotation().getY(),
                 packet.getRotation().getX()

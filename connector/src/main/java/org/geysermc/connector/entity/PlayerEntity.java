@@ -333,7 +333,7 @@ public class PlayerEntity extends LivingEntity {
         }
     }
 
-    public static final double COLLISION_TOLERANCE = 0.05;
+    public static final double COLLISION_TOLERANCE = 0.000001;
 
     public ArrayList<Vector3i> getCollidableBlocks(Vector3d position) {
         ArrayList<Vector3i> blocks = new ArrayList<Vector3i>();
