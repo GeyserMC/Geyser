@@ -70,8 +70,9 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
             session.getConnector().getLogger().debug("[Builtin] Sound for original " + packetSound + " to mappings " + soundPacket
                             + " was not a playable level sound, or has yet to be mapped to an enum in "
                             + "NukkitX SoundEvent ");
-
+            return;
         }
+
         soundPacket.setSound(sound);
         soundPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
         soundPacket.setIdentifier(soundMapping.getIdentifier());

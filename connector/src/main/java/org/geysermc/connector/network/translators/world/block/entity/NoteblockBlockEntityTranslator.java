@@ -27,7 +27,6 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,12 +39,12 @@ import org.geysermc.connector.utils.ChunkUtils;
 public class NoteblockBlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public boolean isBlock(BlockState blockState) {
+    public boolean isBlock(int blockState) {
         return BlockStateValues.getNoteblockPitch(blockState) != -1;
     }
 
     public static void translate(GeyserSession session, Position position) {
-        BlockState blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.get(position);
+        int blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.getOrDefault(position, 0);
         BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
         blockEventPacket.setEventType(0);

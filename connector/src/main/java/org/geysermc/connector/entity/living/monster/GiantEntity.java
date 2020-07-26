@@ -26,7 +26,7 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class GiantEntity extends MonsterEntity {

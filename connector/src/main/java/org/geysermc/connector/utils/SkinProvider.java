@@ -36,6 +36,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -379,7 +380,11 @@ public class SkinProvider {
     private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {
         if (provider == CapeProvider.FIVEZIG)
             return readFiveZigCape(imageUrl);
-        BufferedImage image = ImageIO.read(new URL(imageUrl));
+
+        HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
+        con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
+
+        BufferedImage image = ImageIO.read(con.getInputStream());
         if (image == null) throw new NullPointerException();
         return image;
     }
@@ -537,7 +542,7 @@ public class SkinProvider {
         OPTIFINE("http://s.optifine.net/capes/%s.png", CapeUrlType.USERNAME),
         LABYMOD("https://www.labymod.net/page/php/getCapeTexture.php?uuid=%s", CapeUrlType.UUID_DASHED),
         FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
-        MINECRAFTCAPES("https://www.minecraftcapes.co.uk/getCape/%s", CapeUrlType.UUID);
+        MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);
 
         public static final CapeProvider[] VALUES = Arrays.copyOfRange(values(), 1, 5);
         private String url;
@@ -573,7 +578,7 @@ public class SkinProvider {
     @NoArgsConstructor
     @Getter
     public enum EarsProvider {
-        MINECRAFTCAPES("https://www.minecraftcapes.co.uk/getEars/%s", CapeUrlType.UUID);
+        MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/ears", CapeUrlType.UUID);
 
         public static final EarsProvider[] VALUES = values();
         private String url;

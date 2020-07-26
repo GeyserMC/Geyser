@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.NonNull;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -80,7 +81,7 @@ public class EffectRegistry {
                             + entry.getValue().asText()
                             + ", it will take effect.");
                 } catch (IllegalArgumentException e2){
-                    GeyserConnector.getInstance().getLogger().warning("Fail to map particle " + entry.getKey() + "=>" + entry.getValue().asText());
+                    GeyserConnector.getInstance().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.particle.failed_map", entry.getKey(), entry.getValue().asText()));
                 }
             }
         }

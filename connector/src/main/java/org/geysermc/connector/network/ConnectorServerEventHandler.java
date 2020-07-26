@@ -25,16 +25,19 @@
 
 package org.geysermc.connector.network;
 
-import com.github.steveice10.mc.protocol.data.message.Message;
-import com.nukkitx.protocol.bedrock.*;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
+import com.nukkitx.protocol.bedrock.BedrockPong;
+import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
+import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
-import org.geysermc.common.ping.GeyserPingInfo;
-import org.geysermc.connector.ping.IGeyserPingPassthrough;
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.net.InetSocketAddress;
 
@@ -48,13 +51,13 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().info(inetSocketAddress + " tried to connect!");
+        connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.attempt_connect", inetSocketAddress));
         return true;
     }
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().debug(inetSocketAddress + " has pinged you!");
+        connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
 
         GeyserConfiguration config = connector.getConfig();
 
@@ -72,8 +75,8 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setVersion(null); // Server tries to connect either way and it looks better
         pong.setIpv4Port(config.getBedrock().getPort());
 
-        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.motd != null) {
-            String[] motd = MessageUtils.getBedrockMessage(Message.fromString(pingInfo.motd)).split("\n");
+        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
+            String[] motd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.getDescription())).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
 
@@ -85,8 +88,8 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         }
 
         if (config.isPassthroughPlayerCounts() && pingInfo != null) {
-            pong.setPlayerCount(pingInfo.currentPlayerCount);
-            pong.setMaximumPlayerCount(pingInfo.maxPlayerCount);
+            pong.setPlayerCount(pingInfo.getPlayers().getOnline());
+            pong.setMaximumPlayerCount(pingInfo.getPlayers().getMax());
         } else {
             pong.setPlayerCount(connector.getPlayers().size());
             pong.setMaximumPlayerCount(config.getMaxPlayers());
@@ -105,15 +108,6 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
-        bedrockServerSession.addDisconnectHandler(disconnectReason -> {
-            connector.getLogger().info("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + disconnectReason);
-
-            GeyserSession player = connector.getPlayers().get(bedrockServerSession.getAddress());
-            if (player != null) {
-                player.disconnect(disconnectReason.name());
-                connector.removePlayer(player);
-            }
-        });
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
     }
 

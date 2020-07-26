@@ -27,9 +27,11 @@ package org.geysermc.connector.network.translators.item;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @AllArgsConstructor
+@ToString
 public class ItemEntry {
 
     public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0, false);

@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -130,6 +130,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isShowCooldown() {
+        return node.getNode("show-cooldown").getBoolean(true);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return node.getNode("default-locale").getString("en_us");
     }
@@ -191,8 +196,18 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         }
 
         @Override
+        public void setAddress(String address) {
+            node.getNode("address").setValue(address);
+        }
+
+        @Override
         public int getPort() {
             return node.getNode("port").getInt(25565);
+        }
+
+        @Override
+        public void setPort(int port) {
+            node.getNode("port").setValue(port);
         }
 
         @Override

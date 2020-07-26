@@ -25,12 +25,12 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.common.ChatColor;
-import org.geysermc.common.PlatformType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.LanguageUtils;
 
 public class ReloadCommand extends GeyserCommand {
 
@@ -46,9 +46,18 @@ public class ReloadCommand extends GeyserCommand {
         if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
             return;
         }
-        sender.sendMessage(ChatColor.YELLOW + "Reloading Geyser configurations... all connected bedrock clients will be kicked.");
-        for (GeyserSession session : connector.getPlayers().values()) {
-            session.disconnect("Geyser has been reloaded... sorry for the inconvenience!");
+
+        String message = "";
+        if (sender instanceof GeyserSession) {
+            message = LanguageUtils.getPlayerLocaleString("geyser.commands.reload.message", ((GeyserSession) sender).getClientData().getLanguageCode());
+        } else {
+            message = LanguageUtils.getLocaleStringLog("geyser.commands.reload.message");
+        }
+
+        sender.sendMessage(message);
+
+        for (GeyserSession session : connector.getPlayers()) {
+            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getClientData().getLanguageCode()));
         }
         connector.reload();
     }
