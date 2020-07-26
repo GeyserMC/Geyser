@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.nbt.NBTOutputStream;
@@ -125,6 +124,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     ChunkUtils.updateBlock(session, blockEntityEntry.getIntValue(), new Position(x, y, z));
                 }
                 chunkData.getLoadBlockEntitiesLater().clear();
+                session.getChunkCache().addToCache(packet.getColumn());
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
