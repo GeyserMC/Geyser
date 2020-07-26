@@ -78,7 +78,8 @@ public class BlockCollision {
             playerCollision.setSizeZ(playerCollision.getSizeZ() + PlayerEntity.COLLISION_TOLERANCE * 2);
             // playerCollision.translate(0, 0.1, 0); // Hack to not check y
             // If the player still intersects the block, then push them out
-            if (false && b.checkIntersection(x, y, z, playerCollision)) {
+            System.out.println("Checking collision...");
+            if (/*false &&*/ b.checkIntersection(x, y, z, playerCollision)) {
                 /* double relativeX = playerCollision.getMiddleX() - (x + 0.5);
                 double relativeY = playerCollision.getMiddleY() - (y + 0.5);
                 double relativeZ = playerCollision.getMiddleZ() - (z + 0.5);
@@ -133,27 +134,27 @@ public class BlockCollision {
 
                 System.out.println(topFacePos.getY() - relativePlayerPosition.getY());
                 // Unless the player is very close to the top, don't snap them there
-                if // (!((topFacePos.getY() - relativePlayerPosition.getY() > 0) && // Positive number (player is below top)
+                /* if // (!((topFacePos.getY() - relativePlayerPosition.getY() > 0) && // Positive number (player is below top)
                 ((!   (topFacePos.getY() - relativePlayerPosition.getY() < 0.00001))) { // Player is close to top
                     // This should never be the lowest number
                     topFaceDistance = 9999;
-                }
+                } */
 
-                double closestDistance = Math.min(topFaceDistance,
+                double closestDistance = // Math.min(topFaceDistance,
                                          // Math.min(bottomFaceDistance,
                                          Math.min(northFaceDistance,
                                          Math.min(southFaceDistance,
                                          Math.min(eastFaceDistance,
-                                                  westFaceDistance)))); // );
+                                                  westFaceDistance))); // ); // );
 
                 // System.out.println("Distance: " + closestDistance);
-                if (closestDistance == topFaceDistance) {
+                /* if (closestDistance == topFaceDistance) {
                     playerCollision.translate(0, (topFacePos.getY() - relativePlayerPosition.getY()), 0);
                     System.out.println("Snapped to top");
-                }/* else if (closestDistance == bottomFaceDistance) {
+                } else if (closestDistance == bottomFaceDistance) {
                     playerCollision.translate(0, (bottomFacePos.getY() - relativePlayerPosition.getY()) + 0.9, 0);
                     System.out.println("Snapped to bottom");
-                }*/ else if (closestDistance == northFaceDistance) {
+                } else*/ if (closestDistance == northFaceDistance) {
                     playerCollision.translate(0, 0, northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2));
                     System.out.println("Snapped to north");
                 } else if (closestDistance == southFaceDistance) {
@@ -174,19 +175,23 @@ public class BlockCollision {
 
                 System.out.println("Diff: " + MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition));
 
-                if (MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition) > PlayerEntity.COLLISION_TOLERANCE + 0.000001) {
+                if (MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition) > PlayerEntity.COLLISION_TOLERANCE + 0.1) {
                     playerCollision.setMiddleX(oldPlayerPosition.getX());
                     playerCollision.setMiddleY(oldPlayerPosition.getY());
                     playerCollision.setMiddleZ(oldPlayerPosition.getZ());
                     System.out.println("Cancelled");
                 }
 
-                System.out.println(playerCollision.getMiddleZ());
-                playerCollision.setMiddleX(oldPlayerPosition.getX());
+                System.out.println(playerCollision.getMiddleX());
+                // playerCollision.setMiddleX(oldPlayerPosition.getX());
             }
             // playerCollision.translate(0, -0.1, 0); // Hack to not check y
             playerCollision.setSizeX(0.6);
             playerCollision.setSizeZ(0.6);
+            /* while (b.checkIntersection(x, y, z, playerCollision)) {
+              playerCollision.translate(0, 0.001, 0);
+              System.out.println("Up");
+            } */
         }
 
         // Solid checking for NoCheatPlus etc.

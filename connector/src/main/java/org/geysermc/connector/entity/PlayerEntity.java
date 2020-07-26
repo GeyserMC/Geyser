@@ -333,7 +333,7 @@ public class PlayerEntity extends LivingEntity {
         }
     }
 
-    public static final double COLLISION_TOLERANCE = 0.1;
+    public static final double COLLISION_TOLERANCE = 0.05;
 
     public ArrayList<Vector3i> getCollidableBlocks(Vector3d position) {
         ArrayList<Vector3i> blocks = new ArrayList<Vector3i>();
@@ -353,7 +353,7 @@ public class PlayerEntity extends LivingEntity {
         int minCollisionZ = (int) Math.floor(position.getZ() - ((boundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE));
         int maxCollisionZ = (int) Math.floor(position.getZ() + (boundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE);
 
-        BlockCollision blockCollision;
+        // BlockCollision blockCollision;
 
         for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
             for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
