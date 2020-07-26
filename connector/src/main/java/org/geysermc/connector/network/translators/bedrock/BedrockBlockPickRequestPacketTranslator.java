@@ -39,7 +39,7 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 @Translator(packet = BlockPickRequestPacket.class)
-public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPickRequestPacket> {
+public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<BlockPickRequestPacket> {
 
     @Override
     public void translate(BlockPickRequestPacket packet, GeyserSession session) {

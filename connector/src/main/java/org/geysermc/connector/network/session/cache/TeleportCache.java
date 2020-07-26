@@ -40,8 +40,10 @@ public class TeleportCache {
 
     private int unconfirmedFor = 0;
 
-    // How many move packets the teleport can be unconfirmed for before it gets resent to the client
-    private static final int RESEND_THRESHOLD = 5;
+    /**
+     * How many move packets the teleport can be unconfirmed for before it gets resent to the client
+     */
+     private static final int RESEND_THRESHOLD = 5;
 
     private final double x, y, z;
     private final double pitch, yaw;
