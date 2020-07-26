@@ -41,7 +41,6 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
 
     @Override
     public void translate(ServerEntityStatusPacket packet, GeyserSession session) {
-        System.out.println(packet);
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
