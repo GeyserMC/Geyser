@@ -27,6 +27,8 @@ package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -56,7 +58,10 @@ public class SkinProvider {
     public static final Skin EMPTY_SKIN = new Skin(-1, "steve", STEVE_SKIN);
     public static final byte[] ALEX_SKIN = new ProvidedSkin("bedrock/skin/skin_alex.png").getSkin();
     public static final Skin EMPTY_SKIN_ALEX = new Skin(-1, "alex", ALEX_SKIN);
-    private static final Map<String, Skin> cachedSkins = new ConcurrentHashMap<>();
+    private static final Cache<String, Skin> cachedSkins = CacheBuilder.newBuilder()
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .build();
+
     private static final Map<String, CompletableFuture<Skin>> requestedSkins = new ConcurrentHashMap<>();
 
     public static final Cape EMPTY_CAPE = new Cape("", "no-cape", new byte[0], -1, true);
@@ -135,7 +140,8 @@ public class SkinProvider {
     }
 
     public static Skin getCachedSkin(String skinUrl) {
-        return cachedSkins.getOrDefault(skinUrl, EMPTY_SKIN);
+        Skin skin = cachedSkins.getIfPresent(skinUrl);
+        return skin != null ? skin : EMPTY_SKIN;
     }
 
     public static Cape getCachedCape(String capeUrl) {
@@ -161,19 +167,22 @@ public class SkinProvider {
         if (textureUrl == null || textureUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_SKIN);
         if (requestedSkins.containsKey(textureUrl)) return requestedSkins.get(textureUrl); // already requested
 
-        if ((System.currentTimeMillis() - CACHE_INTERVAL) < cachedSkins.getOrDefault(textureUrl, EMPTY_SKIN).getRequestedOn()) {
+        Skin cachedSkin = cachedSkins.getIfPresent(textureUrl);
+        if (cachedSkin == null) {
+            cachedSkin = EMPTY_SKIN;
+        }
+
+        if ((System.currentTimeMillis() - CACHE_INTERVAL) < cachedSkin.getRequestedOn()) {
             // no need to update, still cached
-            return CompletableFuture.completedFuture(cachedSkins.get(textureUrl));
+            return CompletableFuture.completedFuture(cachedSkin);
         }
 
         CompletableFuture<Skin> future;
         if (newThread) {
             future = CompletableFuture.supplyAsync(() -> supplySkin(playerId, textureUrl), EXECUTOR_SERVICE)
                     .whenCompleteAsync((skin, throwable) -> {
-                        if (!cachedSkins.getOrDefault(textureUrl, EMPTY_SKIN).getTextureUrl().equals(textureUrl)) {
-                            skin.updated = true;
-                            cachedSkins.put(textureUrl, skin);
-                        }
+                        skin.updated = true;
+                        cachedSkins.put(textureUrl, skin);
                         requestedSkins.remove(textureUrl);
                     });
             requestedSkins.put(textureUrl, future);

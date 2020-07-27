@@ -89,7 +89,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean cacheChunks;
 
     @JsonProperty("cache-images")
-    private int cacheImages = 180;
+    private int cacheImages = 0;
 
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding;
