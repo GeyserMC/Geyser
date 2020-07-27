@@ -57,6 +57,14 @@ public class ChunkCache {
             return;
         }
         ChunkPosition position = new ChunkPosition(chunk.getX(), chunk.getZ());
+        if (chunk.getBiomeData() == null && chunks.containsKey(position)) {
+            Chunk[] oldChunk = chunks.get(position).getChunks();
+            for (int i = 0; i < oldChunk.length; i++) {
+                if (chunk.getChunks()[i] == null) {
+                    chunk.getChunks()[i] = oldChunk[i];
+                }
+            }
+        }
         chunks.put(position, chunk);
     }
 
