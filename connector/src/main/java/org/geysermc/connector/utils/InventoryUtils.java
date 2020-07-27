@@ -87,6 +87,7 @@ public class InventoryUtils {
             }
         } else {
             Inventory inventory = session.getInventory();
+            inventory.setOpen(false);
             InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
             translator.updateInventory(session, inventory);
         }
