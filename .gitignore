@@ -1,6 +1,6 @@
 
-# Created by https://www.toptal.com/developers/gitignore/api/git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
+# Created by https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
+# Edit at https://www.gitignore.io/gitignore?templates=git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
 
 ### Eclipse ###
 .metadata
@@ -233,7 +233,7 @@ nbdist/
 # Ignore all local history of files
 .history
 
-# End of https://www.toptal.com/developers/gitignore/api/git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
+# End of https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
 
 ### Geyser ###
 run/
