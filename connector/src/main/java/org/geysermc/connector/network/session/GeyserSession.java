@@ -102,7 +102,7 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private InventoryCache inventoryCache;
-    private ScoreboardCache scoreboardCache;
+    private WorldCache worldCache;
     private WindowCache windowCache;
     @Setter
     private TeleportCache teleportCache;
@@ -191,6 +191,8 @@ public class GeyserSession implements CommandSender {
 
     private MinecraftProtocol protocol;
 
+    private boolean reducedDebugInfo = false;
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -198,7 +200,7 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
-        this.scoreboardCache = new ScoreboardCache(this);
+        this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
         this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
@@ -445,7 +447,7 @@ public class GeyserSession implements CommandSender {
 
         this.chunkCache = null;
         this.entityCache = null;
-        this.scoreboardCache = null;
+        this.worldCache = null;
         this.inventoryCache = null;
         this.windowCache = null;
 
@@ -609,5 +611,16 @@ public class GeyserSession implements CommandSender {
         } else {
             connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
         }
+    }
+
+    public void setReducedDebugInfo(boolean value) {
+        worldCache.setShowCoordinates(!value);
+        reducedDebugInfo = value;
+    }
+
+    public void sendGameRule(String gameRule, Object value) {
+        GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
+        gameRulesChangedPacket.getGameRules().add(new GameRuleData<>(gameRule, value));
+        upstream.sendPacket(gameRulesChangedPacket);
     }
 }

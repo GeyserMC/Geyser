@@ -25,7 +25,9 @@
 
 package org.geysermc.connector.network.session.cache;
 
+import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
@@ -33,11 +35,18 @@ import org.geysermc.connector.scoreboard.Scoreboard;
 import java.util.Collection;
 
 @Getter
-public class ScoreboardCache {
+public class WorldCache {
+
     private GeyserSession session;
+
+    @Setter
+    private Difficulty difficulty = Difficulty.EASY;
+
+    private boolean showCoordinates = true;
+
     private Scoreboard scoreboard;
 
-    public ScoreboardCache(GeyserSession session) {
+    public WorldCache(GeyserSession session) {
         this.session = session;
         this.scoreboard = new Scoreboard(session);
     }
@@ -51,5 +60,10 @@ public class ScoreboardCache {
                 scoreboard.despawnObjective(objective);
             }
         }
+    }
+
+    public void setShowCoordinates(boolean value) {
+        showCoordinates = value;
+        session.sendGameRule("showcoordinates", value);
     }
 }

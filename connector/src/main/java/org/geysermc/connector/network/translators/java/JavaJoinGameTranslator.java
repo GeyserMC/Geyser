@@ -58,7 +58,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
             DimensionUtils.switchDimension(session, fakeDim);
             DimensionUtils.switchDimension(session, packet.getDimension());
 
-            session.getScoreboardCache().removeScoreboard();
+            session.getWorldCache().removeScoreboard();
         }
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();

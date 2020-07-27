@@ -31,14 +31,14 @@ import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.CommandManager;
-import org.geysermc.connector.network.translators.world.CachedChunkManager;
+import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
 
 import java.nio.file.Path;
 
 public interface GeyserBootstrap {
 
-    CachedChunkManager DEFAULT_CHUNK_MANAGER = new CachedChunkManager();
+    GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
 
     /**
      * Called when the GeyserBootstrap is enabled

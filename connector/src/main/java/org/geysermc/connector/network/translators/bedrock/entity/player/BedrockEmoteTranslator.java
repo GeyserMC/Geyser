@@ -24,15 +24,25 @@
  *
  */
 
-package org.geysermc.connector.network.translators.world;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.nukkitx.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-public class CachedChunkManager extends WorldManager {
+@Translator(packet = EmotePacket.class)
+public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
 
     @Override
-    public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        return session.getChunkCache().getBlockAt(new Position(x, y, z));
+    public void translate(EmotePacket packet, GeyserSession session) {
+        long javaId = session.getPlayerEntity().getEntityId();
+        for (GeyserSession otherSession : GeyserConnector.getInstance().getPlayers()) {
+            if (otherSession != session) {
+                packet.setRuntimeEntityId(otherSession.getEntityCache().getEntityByJavaId(javaId).getGeyserId());
+                otherSession.sendUpstreamPacket(packet);
+            }
+        }
     }
 }

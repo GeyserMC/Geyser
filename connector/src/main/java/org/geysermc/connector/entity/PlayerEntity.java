@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
@@ -49,10 +50,7 @@ import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.SkinUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
@@ -66,6 +64,13 @@ public class PlayerEntity extends LivingEntity {
 
     private Entity leftParrot;
     private Entity rightParrot;
+
+    private int opPermissionLevel = 0;
+    private PlayerPermission playerPermission = PlayerPermission.MEMBER;
+    private boolean canFly = false;
+    private boolean flying = false;
+    private boolean noClip = false;
+    private boolean worldImmutable = false;
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
@@ -97,7 +102,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
         addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
-        addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.VISITOR);
+        addPlayerPacket.getAdventureSettings().setPlayerPermission(playerPermission);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
@@ -112,6 +117,37 @@ public class PlayerEntity extends LivingEntity {
 
         updateEquipment(session);
         updateBedrockAttributes(session);
+    }
+
+    public void sendAdventureSettings(GeyserSession session) {
+        if(opPermissionLevel >= 2) {
+            playerPermission = PlayerPermission.OPERATOR;
+        } else {
+            playerPermission = PlayerPermission.MEMBER;
+        }
+
+        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+        adventureSettingsPacket.setUniqueEntityId(geyserId);
+        adventureSettingsPacket.setPlayerPermission(playerPermission);
+        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
+
+        Set<AdventureSetting> flags = new HashSet<>();
+        if(canFly) {
+            flags.add(AdventureSetting.MAY_FLY);
+        }
+        if(flying) {
+            flags.add(AdventureSetting.FLYING);
+        }
+        if(worldImmutable) {
+            flags.add(AdventureSetting.WORLD_IMMUTABLE);
+        }
+        if(noClip) {
+            flags.add(AdventureSetting.NO_CLIP);
+        }
+        flags.add(AdventureSetting.AUTO_JUMP);
+
+        adventureSettingsPacket.getSettings().addAll(flags);
+        session.getUpstream().sendPacket(adventureSettingsPacket);
     }
 
     public void sendPlayer(GeyserSession session) {
@@ -232,7 +268,7 @@ public class PlayerEntity extends LivingEntity {
 
         if (entityMetadata.getId() == 2) {
             // System.out.println(session.getScoreboardCache().getScoreboard().getObjectives().keySet());
-            for (Team team : session.getScoreboardCache().getScoreboard().getTeams().values()) {
+            for (Team team : session.getWorldCache().getScoreboard().getTeams().values()) {
                 // session.getConnector().getLogger().info("team name " + team.getName());
                 // session.getConnector().getLogger().info("team entities " + team.getEntities());
             }
@@ -241,7 +277,7 @@ public class PlayerEntity extends LivingEntity {
             if (name != null) {
                 username = MessageUtils.getBedrockMessage(name);
             }
-            Team team = session.getScoreboardCache().getScoreboard().getTeamFor(username);
+            Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
                 // session.getConnector().getLogger().info("team name es " + team.getName() + " with prefix " + team.getPrefix() + " and suffix " + team.getSuffix());
                 metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());

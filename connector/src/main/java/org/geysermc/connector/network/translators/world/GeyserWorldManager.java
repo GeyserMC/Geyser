@@ -24,25 +24,32 @@
  *
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.world;
 
-import com.nukkitx.protocol.bedrock.packet.EmotePacket;
-import org.geysermc.connector.GeyserConnector;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = EmotePacket.class)
-public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
+public class GeyserWorldManager extends WorldManager {
 
     @Override
-    public void translate(EmotePacket packet, GeyserSession session) {
-        long javaId = session.getPlayerEntity().getEntityId();
-        for (GeyserSession otherSession : GeyserConnector.getInstance().getPlayers()) {
-            if (otherSession != session) {
-                packet.setRuntimeEntityId(otherSession.getEntityCache().getEntityByJavaId(javaId).getGeyserId());
-                otherSession.sendUpstreamPacket(packet);
-            }
-        }
+    public int getBlockAt(GeyserSession session, int x, int y, int z) {
+        return session.getChunkCache().getBlockAt(new Position(x, y, z));
+    }
+
+    @Override
+    public void setGameRule(GeyserSession session, String name, Object value) {
+        session.getDownstream().getSession().send(new ClientChatPacket("/gamerule " + name + " " + value));
+    }
+
+    @Override
+    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
+        session.getDownstream().getSession().send(new ClientChatPacket("/gamemode " + gameMode.name().toLowerCase()));
+    }
+
+    @Override
+    public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
+        session.getDownstream().getSession().send(new ClientChatPacket("/defaultgamemode " + gameMode.name().toLowerCase()));
     }
 }

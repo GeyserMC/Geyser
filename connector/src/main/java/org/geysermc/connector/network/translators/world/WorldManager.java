@@ -27,6 +27,7 @@
 package org.geysermc.connector.network.translators.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -71,4 +72,10 @@ public abstract class WorldManager {
      * @return the block state at the specified location
      */
     public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
+
+    public abstract void setGameRule(GeyserSession session, String name, Object value);
+
+    public abstract void setPlayerGameMode(GeyserSession session, GameMode gameMode);
+
+    public abstract void setDefaultGameMode(GeyserSession session, GameMode gameMode);
 }

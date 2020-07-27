@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntit
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -49,6 +50,33 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
         switch (packet.getStatus()) {
+            case PLAYER_ENABLE_REDUCED_DEBUG:
+                session.setReducedDebugInfo(true);
+                return;
+            case PLAYER_DISABLE_REDUCED_DEBUG:
+                session.setReducedDebugInfo(false);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_0:
+                ((PlayerEntity) entity).setOpPermissionLevel(0);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_1:
+                ((PlayerEntity) entity).setOpPermissionLevel(1);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_2:
+                ((PlayerEntity) entity).setOpPermissionLevel(2);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_3:
+                ((PlayerEntity) entity).setOpPermissionLevel(3);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_4:
+                ((PlayerEntity) entity).setOpPermissionLevel(4);
+                ((PlayerEntity) entity).sendAdventureSettings(session);
+                return;
+
             // EntityEventType.HURT sends extra data depending on the type of damage. However this appears to have no visual changes
             case LIVING_BURN:
             case LIVING_DROWN:

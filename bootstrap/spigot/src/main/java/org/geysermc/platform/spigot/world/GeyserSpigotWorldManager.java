@@ -26,6 +26,7 @@
 
 package org.geysermc.platform.spigot.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -69,5 +70,20 @@ public class GeyserSpigotWorldManager extends WorldManager {
         } else {
             return BlockTranslator.AIR;
         }
+    }
+
+    @Override
+    public void setGameRule(GeyserSession session, String name, Object value) {
+        Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().setGameRuleValue(name, (String) value);
+    }
+
+    @Override
+    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
+        Bukkit.getPlayer(session.getPlayerEntity().getUsername()).setGameMode(org.bukkit.GameMode.valueOf(gameMode.name()));
+    }
+
+    @Override
+    public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
+        Bukkit.setDefaultGameMode(org.bukkit.GameMode.valueOf(gameMode.name()));
     }
 }
