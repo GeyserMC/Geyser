@@ -65,7 +65,9 @@ public class SkinProvider {
     private static final Map<String, CompletableFuture<Skin>> requestedSkins = new ConcurrentHashMap<>();
 
     public static final Cape EMPTY_CAPE = new Cape("", "no-cape", new byte[0], -1, true);
-    private static final Map<String, Cape> cachedCapes = new ConcurrentHashMap<>();
+    private static final Cache<String, Cape> cachedCapes = CacheBuilder.newBuilder()
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .build();
     private static final Map<String, CompletableFuture<Cape>> requestedCapes = new ConcurrentHashMap<>();
 
     public static final SkinGeometry EMPTY_GEOMETRY = SkinProvider.SkinGeometry.getLegacy(false);
@@ -76,7 +78,6 @@ public class SkinProvider {
     public static String EARS_GEOMETRY_SLIM;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final int CACHE_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
     static {
         /* Load in the normal ears geometry */
@@ -136,7 +137,7 @@ public class SkinProvider {
     }
 
     public static boolean hasCapeCached(String capeUrl) {
-        return cachedCapes.containsKey(capeUrl);
+        return cachedCapes.getIfPresent(capeUrl) != null;
     }
 
     public static Skin getCachedSkin(String skinUrl) {
@@ -145,7 +146,8 @@ public class SkinProvider {
     }
 
     public static Cape getCachedCape(String capeUrl) {
-        return capeUrl != null ? cachedCapes.getOrDefault(capeUrl, EMPTY_CAPE) : EMPTY_CAPE;
+        Cape cape = capeUrl != null ? cachedCapes.getIfPresent(capeUrl) : EMPTY_CAPE;
+        return cape != null ? cape : EMPTY_CAPE;
     }
 
     public static CompletableFuture<SkinAndCape> requestSkinAndCape(UUID playerId, String skinUrl, String capeUrl) {
@@ -168,12 +170,7 @@ public class SkinProvider {
         if (requestedSkins.containsKey(textureUrl)) return requestedSkins.get(textureUrl); // already requested
 
         Skin cachedSkin = cachedSkins.getIfPresent(textureUrl);
-        if (cachedSkin == null) {
-            cachedSkin = EMPTY_SKIN;
-        }
-
-        if ((System.currentTimeMillis() - CACHE_INTERVAL) < cachedSkin.getRequestedOn()) {
-            // no need to update, still cached
+        if (cachedSkin != null) {
             return CompletableFuture.completedFuture(cachedSkin);
         }
 
@@ -199,11 +196,9 @@ public class SkinProvider {
         if (requestedCapes.containsKey(capeUrl)) return requestedCapes.get(capeUrl); // already requested
 
         boolean officialCape = provider == CapeProvider.MINECRAFT;
-        boolean validCache = (System.currentTimeMillis() - CACHE_INTERVAL) < cachedCapes.getOrDefault(capeUrl, EMPTY_CAPE).getRequestedOn();
-
-        if ((cachedCapes.containsKey(capeUrl) && officialCape) || validCache) {
-            // the cape is an official cape (static) or the cape doesn't need a update yet
-            return CompletableFuture.completedFuture(cachedCapes.get(capeUrl));
+        Cape cachedCape = cachedCapes.getIfPresent(capeUrl);
+        if (cachedCape != null) {
+            return CompletableFuture.completedFuture(cachedCape);
         }
 
         CompletableFuture<Cape> future;
@@ -276,7 +271,10 @@ public class SkinProvider {
     }
 
     public static CompletableFuture<Cape> requestBedrockCape(UUID playerID, boolean newThread) {
-        Cape bedrockCape = cachedCapes.getOrDefault(playerID.toString() + ".Bedrock", EMPTY_CAPE);
+        Cape bedrockCape = cachedCapes.getIfPresent(playerID.toString() + ".Bedrock");
+        if (bedrockCape == null) {
+            bedrockCape = EMPTY_CAPE;
+        }
         return CompletableFuture.completedFuture(bedrockCape);
     }
 
