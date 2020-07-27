@@ -32,13 +32,14 @@ import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
 import us.myles.ViaVersion.protocols.protocol1_16to1_15_2.data.MappingData;
 
 @AllArgsConstructor
-public class GeyserSpigotWorldManager extends WorldManager {
+public class GeyserSpigotWorldManager extends GeyserWorldManager {
 
     private final boolean isLegacy;
     // You need ViaVersion to connect to an older server with Geyser.
@@ -74,27 +75,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
     }
 
     @Override
-    public void setGameRule(GeyserSession session, String name, Object value) {
-        Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().setGameRuleValue(name, (String) value);
-    }
-
-    @Override
-    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
-        Bukkit.getPlayer(session.getPlayerEntity().getUsername()).setGameMode(org.bukkit.GameMode.valueOf(gameMode.name()));
-    }
-
-    @Override
     public GameMode getDefaultGameMode(GeyserSession session) {
         return GameMode.valueOf(Bukkit.getDefaultGameMode().name());
-    }
-
-    @Override
-    public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
-        Bukkit.setDefaultGameMode(org.bukkit.GameMode.valueOf(gameMode.name()));
-    }
-
-    @Override
-    public void setDifficulty(GeyserSession session, Difficulty difficulty) {
-        Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().setDifficulty(org.bukkit.Difficulty.valueOf(difficulty.name()));
     }
 }

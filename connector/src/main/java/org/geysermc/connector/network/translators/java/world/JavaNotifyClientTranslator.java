@@ -77,7 +77,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 GameMode gameMode = (GameMode) packet.getValue();
 
                 entity.setNoClip(gameMode == GameMode.SPECTATOR);
-                entity.setWorldImmutable(gameMode == GameMode.ADVENTURE);
+                entity.setWorldImmutable(gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR);
                 entity.sendAdventureSettings(session);
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
