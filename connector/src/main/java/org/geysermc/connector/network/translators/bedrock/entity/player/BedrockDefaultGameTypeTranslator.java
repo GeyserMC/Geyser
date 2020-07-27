@@ -26,37 +26,24 @@
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import com.nukkitx.protocol.bedrock.packet.SetDefaultGameTypePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = SetPlayerGameTypePacket.class)
-public class BedrockPlayerGameTypeTranslator extends PacketTranslator<SetPlayerGameTypePacket> {
+@Translator(packet = SetDefaultGameTypePacket.class)
+public class BedrockDefaultGameTypeTranslator extends PacketTranslator<SetDefaultGameTypePacket> {
 
     @Override
-    public void translate(SetPlayerGameTypePacket packet, GeyserSession session) {
-        // Reset the game mode on the client
-        SetPlayerGameTypePacket setPlayerGameTypePacket = new SetPlayerGameTypePacket();
-        setPlayerGameTypePacket.setGamemode(session.getGameMode().ordinal());
-        session.sendUpstreamPacket(setPlayerGameTypePacket);
+    public void translate(SetDefaultGameTypePacket packet, GeyserSession session) {
+        // Update the client with the changed value
+        SetDefaultGameTypePacket setDefaultGameTypePacket = new SetDefaultGameTypePacket();
+        setDefaultGameTypePacket.setGamemode(packet.getGamemode());
+        session.sendUpstreamPacket(setDefaultGameTypePacket);
 
-        GameMode gameMode = getGameMode(packet.getGamemode());
+        GameMode gameMode = GameMode.values()[packet.getGamemode()];
         if(gameMode != null) {
-            session.getConnector().getWorldManager().setPlayerGameMode(session, gameMode);
+            session.getConnector().getWorldManager().setDefaultGameMode(session, gameMode);
         }
-    }
-
-    /**
-     * This point of this method is because sometimes the bedrock client sends weird values.
-     */
-    private GameMode getGameMode(int mode) {
-        switch(mode) {
-            case 0: return GameMode.SURVIVAL;
-            case 1: return GameMode.CREATIVE;
-            case 2: return GameMode.ADVENTURE;
-            case 3: return GameMode.SPECTATOR;
-        }
-        return null;
     }
 }

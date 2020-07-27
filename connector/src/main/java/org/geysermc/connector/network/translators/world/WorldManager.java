@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -77,5 +78,9 @@ public abstract class WorldManager {
 
     public abstract void setPlayerGameMode(GeyserSession session, GameMode gameMode);
 
+    public abstract GameMode getDefaultGameMode(GeyserSession session);
+
     public abstract void setDefaultGameMode(GeyserSession session, GameMode gameMode);
+
+    public abstract void setDifficulty(GeyserSession session, Difficulty difficulty);
 }

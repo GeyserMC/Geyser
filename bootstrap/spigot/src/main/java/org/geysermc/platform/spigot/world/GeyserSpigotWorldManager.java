@@ -27,6 +27,7 @@
 package org.geysermc.platform.spigot.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -83,7 +84,17 @@ public class GeyserSpigotWorldManager extends WorldManager {
     }
 
     @Override
+    public GameMode getDefaultGameMode(GeyserSession session) {
+        return GameMode.valueOf(Bukkit.getDefaultGameMode().name());
+    }
+
+    @Override
     public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
         Bukkit.setDefaultGameMode(org.bukkit.GameMode.valueOf(gameMode.name()));
+    }
+
+    @Override
+    public void setDifficulty(GeyserSession session, Difficulty difficulty) {
+        Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().setDifficulty(org.bukkit.Difficulty.valueOf(difficulty.name()));
     }
 }
