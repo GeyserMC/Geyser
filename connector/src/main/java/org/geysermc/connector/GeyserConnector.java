@@ -58,7 +58,6 @@ import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
-import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
 import java.net.InetSocketAddress;
@@ -156,8 +155,10 @@ public class GeyserConnector {
                     config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
                     logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
-            } catch (NamingException ex) {
-                ex.printStackTrace();
+            } catch (Exception ex) {
+                logger.debug("Exception while trying to find an SRV record for the remote host.");
+                if (config.isDebugMode())
+                    ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
             }
         }
 
