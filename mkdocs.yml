@@ -22,8 +22,8 @@ theme:
   palette:
     primary: 'indigo'
     accent: 'indigo'
-  features:
-    - instant
+#  features:
+#    - instant
 
 
 

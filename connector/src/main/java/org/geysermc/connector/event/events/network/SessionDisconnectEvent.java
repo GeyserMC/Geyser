@@ -26,16 +26,16 @@
 
 package org.geysermc.connector.event.events.network;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.event.events.CancellableGeyserEvent;
-import org.geysermc.connector.event.events.GeyserEvent;
+import lombok.NonNull;
+import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("JavaDoc")
 public class SessionDisconnectEvent extends GeyserEvent {
-    final GeyserSession session;
+    @NonNull
+    private final GeyserSession session;
 }
