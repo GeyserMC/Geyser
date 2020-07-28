@@ -26,17 +26,40 @@
 
 package org.geysermc.connector.event.events.geyser;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.event.events.GeyserEvent;
+import lombok.NonNull;
+import org.geysermc.connector.event.GeyserEvent;
 
 import java.io.InputStream;
 
-@EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
+
+/**
+ * Triggered when a resource needs to be read
+ */
 @Data
+@EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("JavaDoc")
 public class ResourceReadEvent extends GeyserEvent {
+
+    /**
+     * The name of resource to load
+     *
+     * @param resourceName name of resource
+     * @return name of resource
+     */
+    @NonNull
     private String resourceName;
+
+    /**
+     * InputStream to the loaded data
+     *
+     * Geyser will use the value here for the returned stream. This will initially contain the stream that
+     * Geyser would normally load.
+     *
+     * @param inputStream the InputStream for the data, null if invalid
+     * @return current InputStream for the resource, null if invalid
+     */
+    @NonNull
     private InputStream inputStream;
 }

@@ -108,8 +108,8 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
         String message = tag.getValue();
         if (message == null) return null;
         TextComponent component = (TextComponent) MessageUtils.phraseJavaMessage(message);
-        String legacy = LegacyComponentSerializer.legacy().serialize(component);
-        if (hasFormatting(LegacyComponentSerializer.legacy().deserialize(legacy))) {
+        String legacy = LegacyComponentSerializer.legacySection().serialize(component);
+        if (hasFormatting(LegacyComponentSerializer.legacySection().deserialize(legacy))) {
             return "§r" + legacy;
         }
         return legacy;

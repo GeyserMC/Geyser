@@ -27,7 +27,7 @@
 package org.geysermc.connector.plugin.handlers;
 
 import lombok.Getter;
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.event.handlers.LambdaEventHandler;
 import org.geysermc.connector.plugin.GeyserPlugin;
 
@@ -38,8 +38,8 @@ import org.geysermc.connector.plugin.GeyserPlugin;
 public class PluginLambdaEventHandler<T extends GeyserEvent> extends LambdaEventHandler<T> {
     private final GeyserPlugin plugin;
 
-    public PluginLambdaEventHandler(GeyserPlugin plugin, Class<T> cls, Runnable<T> runnable, int priority, boolean ignoreCancelled, Class<?>[] filter) {
-        super(plugin.getEventManager(), cls, runnable, priority, ignoreCancelled, filter);
+    public PluginLambdaEventHandler(GeyserPlugin plugin, Class<T> cls, Runnable<T> runnable, int priority, boolean ignoreCancelled) {
+        super(plugin.getEventManager(), cls, runnable, priority, ignoreCancelled);
 
         this.plugin = plugin;
     }
@@ -62,7 +62,7 @@ public class PluginLambdaEventHandler<T extends GeyserEvent> extends LambdaEvent
 
         @Override
         public LambdaEventHandler<T> build() {
-            LambdaEventHandler<T> handler = new PluginLambdaEventHandler<>(plugin, getCls(), getRunnable(), getPriority(), isIgnoreCancelled(), getFilter());
+            LambdaEventHandler<T> handler = new PluginLambdaEventHandler<>(plugin, getCls(), getRunnable(), getPriority(), isIgnoreCancelled());
             plugin.register(handler);
             return handler;
         }

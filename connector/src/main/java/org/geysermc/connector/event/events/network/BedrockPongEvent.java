@@ -27,17 +27,36 @@
 package org.geysermc.connector.event.events.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPong;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.event.events.GeyserEvent;
+import lombok.NonNull;
+import org.geysermc.connector.event.GeyserEvent;
 
 import java.net.InetSocketAddress;
 
-@EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
+/**
+ * Triggered just before Geyser sends a Pong to a Ping packet
+ */
 @Data
+@EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("JavaDoc")
 public class BedrockPongEvent extends GeyserEvent {
-    private InetSocketAddress inetSocketAddress;
+    /**
+     * The connecting socket address
+     *
+     * @return get the connecting socket address
+     */
+    @NonNull
+    private final InetSocketAddress inetSocketAddress;
+
+    /**
+     * The pong to broadcast
+     *
+     * This will initially be set to the Pong that Geyser would normally return but can be overridden here
+     *
+     * @param pong set the BedrockPong
+     * @return get current pong
+     */
+    @NonNull
     private BedrockPong pong;
 }

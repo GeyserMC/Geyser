@@ -250,9 +250,7 @@ public class GeyserSession implements CommandSender {
         sendUpstreamPacket(entityPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        for (int i = 0; i < ItemRegistry.CREATIVE_ITEMS.length; i++) {
-            creativePacket.getEntries().put(i + 1, ItemRegistry.CREATIVE_ITEMS[i]);
-        }
+        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
         sendUpstreamPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
@@ -374,6 +372,11 @@ public class GeyserSession implements CommandSender {
                     public void connected(ConnectedEvent event) {
                         loggingIn = false;
                         loggedIn = true;
+                        if (protocol.getProfile() == null) {
+                            // Java account is offline
+                            disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+                            return;
+                        }
                         connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect", authData.getName(), protocol.getProfile().getName(), remoteServer.getAddress()));
                         playerEntity.setUuid(protocol.getProfile().getId());
                         playerEntity.setUsername(protocol.getProfile().getName());
@@ -419,10 +422,9 @@ public class GeyserSession implements CommandSender {
                                 lastDimPacket = event.getPacket();
                                 return;
                             } else if (lastDimPacket != null) {
-                                connector.getEventManager().triggerEvent(new DownstreamPacketReceiveEvent<>(GeyserSession.this, event.getPacket()), event.getPacket().getClass())
-                                        .onNotCancelled((result) -> {
-                                            PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
-                                        });
+                                if (!EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, event.getPacket())).isCancelled()) {
+                                    PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
+                                }
                                 lastDimPacket = null;
                             }
 
@@ -437,10 +439,9 @@ public class GeyserSession implements CommandSender {
                                     SkinUtils.handleBedrockSkin(playerEntity, clientData);
                                 }
                             }
-                            connector.getEventManager().triggerEvent(new DownstreamPacketReceiveEvent<>(GeyserSession.this, event.getPacket()), event.getPacket().getClass())
-                                    .onNotCancelled((result) -> {
-                                        PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
-                                    });
+                            if (!EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, event.getPacket())).isCancelled()) {
+                                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                            }
                         }
                     }
 
@@ -611,14 +612,13 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
-        connector.getEventManager().triggerEvent(new UpstreamPacketSendEvent<>(this, packet), packet.getClass())
-                .onNotCancelled((result) -> {
-                    if (upstream != null && !upstream.isClosed()) {
-                        upstream.sendPacket(packet);
-                    } else {
-                        connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
-                    }
-                });
+        if (!EventManager.getInstance().triggerEvent(UpstreamPacketSendEvent.of(this, packet)).isCancelled()) {
+            if (upstream != null && !upstream.isClosed()) {
+                upstream.sendPacket(packet);
+            } else {
+                connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
+            }
+        }
     }
 
     /**
@@ -627,14 +627,13 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
-        connector.getEventManager().triggerEvent(new UpstreamPacketSendEvent<>(this, packet), packet.getClass())
-                .onNotCancelled((result) -> {
-                    if (upstream != null && !upstream.isClosed()) {
-                        upstream.sendPacketImmediately(packet);
-                    } else {
-                        connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
-                    }
-                });
+        if (!EventManager.getInstance().triggerEvent(UpstreamPacketSendEvent.of(this, packet)).isCancelled()) {
+            if (upstream != null && !upstream.isClosed()) {
+                upstream.sendPacketImmediately(packet);
+            } else {
+                connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
+            }
+        }
     }
 
     /**
@@ -643,14 +642,13 @@ public class GeyserSession implements CommandSender {
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamPacket(Packet packet) {
-        connector.getEventManager().triggerEvent(new DownstreamPacketSendEvent<>(this, packet), packet.getClass())
-                .onNotCancelled((result) -> {
-                    if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
-                        downstream.getSession().send(packet);
-                    } else {
-                        connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
-                    }
-                });
+        if (!EventManager.getInstance().triggerEvent(DownstreamPacketSendEvent.of(this, packet)).isCancelled()) {
+            if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
+                downstream.getSession().send(packet);
+            } else {
+                connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
+            }
+        }
     }
 
     /**

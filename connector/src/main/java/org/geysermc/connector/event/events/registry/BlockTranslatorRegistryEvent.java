@@ -36,10 +36,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.GeyserEvent;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor

@@ -29,7 +29,7 @@ package org.geysermc.connector.event.events.registry;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.GeyserEvent;
 
 import java.util.Set;
 

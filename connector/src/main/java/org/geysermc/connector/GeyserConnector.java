@@ -65,8 +65,6 @@ import org.geysermc.connector.utils.LocaleUtils;
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -81,7 +79,7 @@ public class GeyserConnector {
     public static BedrockPacketCodec BEDROCK_PACKET_CODEC;
 
     public static final String NAME = "Geyser";
-    public static final String VERSION = "DEV"; // A fallback for running in IDEs
+    public static final String VERSION = "1.1.0-SNAPSHOT (git-feature/plugins-registered-f640df9)"; // A fallback for running in IDEs
 
     private final List<GeyserSession> players = new ArrayList<>();
 
@@ -215,7 +213,9 @@ public class GeyserConnector {
         if (players.size() >= 1) {
             bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));
 
-            for (GeyserSession playerSession : players) {
+            // Make a copy to prevent ConcurrentModificationException
+            final List<GeyserSession> tmpPlayers = new ArrayList<>(players);
+            for (GeyserSession playerSession : tmpPlayers) {
                 playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getClientData().getLanguageCode()));
             }
 

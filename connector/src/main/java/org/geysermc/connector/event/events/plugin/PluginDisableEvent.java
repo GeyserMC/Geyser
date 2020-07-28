@@ -26,15 +26,24 @@
 
 package org.geysermc.connector.event.events.plugin;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.event.events.GeyserEvent;
+import lombok.NonNull;
+import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.plugin.GeyserPlugin;
 
-@EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
+/**
+ * Triggered whenever a plugin is disabled and will occur just before it is to be disabled
+ */
 @Data
+@EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("JavaDoc")
 public class PluginDisableEvent extends GeyserEvent {
-    private GeyserPlugin plugin;
+    /**
+     * The plugin which will be disabled
+     *
+     * @return the plugin
+     */
+    @NonNull
+    private final GeyserPlugin plugin;
 }

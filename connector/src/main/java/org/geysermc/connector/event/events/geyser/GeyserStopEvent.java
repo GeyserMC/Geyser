@@ -26,10 +26,10 @@
 
 package org.geysermc.connector.event.events.geyser;
 
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.GeyserEvent;
 
 /**
- * DisableEvent is triggered for each plugin when disabling it
+ * Triggered early in the process when Geyser is stopping
  */
 public class GeyserStopEvent extends GeyserEvent {
 }

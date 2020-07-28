@@ -43,7 +43,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private <T extends BedrockPacket> boolean translateAndDefault(T packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), packet.getClass()).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
             return true;
         }
 
@@ -52,15 +52,16 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, loginPacket), LoginPacket.class).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, loginPacket)).isCancelled()) {
             return true;
         }
 
         if (loginPacket.getProtocolVersion() > GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
-            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.outdated.server", session.getClientData().getLanguageCode(), GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
+            // Too early to determine session locale
+            session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
             return true;
         } else if (loginPacket.getProtocolVersion() < GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
-            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.outdated.client", session.getClientData().getLanguageCode(), GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
+            session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
             return true;
         }
 
@@ -77,7 +78,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ResourcePackClientResponsePacket packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), ResourcePackClientResponsePacket.class).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
             return true;
         }
 
@@ -103,7 +104,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), packet.getClass()).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
             return true;
         }
 
@@ -129,6 +130,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
+            return true;
+        }
+
         LanguageUtils.loadGeyserLocale(session.getClientData().getLanguageCode());
 
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
@@ -143,6 +148,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
+            return true;
+        }
+
         if (session.isLoggingIn()) {
             session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getClientData().getLanguageCode()));
         }

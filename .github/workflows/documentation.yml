@@ -4,6 +4,32 @@ name: documentation
 on: [push]
 
 jobs:
+  javadoc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: submodules-init
+        uses: snickerbockers/submodules-init@v4
+      - name: Build with Maven
+        run: |
+          mvn -B javadoc:aggregate
+      - name: Archive artifacts (Geyser Javadoc)
+        uses: actions/upload-artifact@v2
+        if: success()
+        with:
+          name: javadoc
+          path: target/site/
+
   documentation:
     runs-on: ubuntu-latest
     steps:
@@ -30,15 +56,36 @@ jobs:
 
       - run: mkdocs build
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: documentation
+          path: build/docs
+
+  deploy:
+    if: github.ref == 'refs/heads/feature/plugins'
+    needs: [javadoc, documentation]
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Javadoc Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: javadoc
+          path: target/site
+
+      - name: Download Documentation Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: documentation
+          path: build/docs
+
+      - run: |
+          mv target/site/apidocs build/docs/apidocs
+
       - name: Deploy to Github Pages
-        if: github.ref == 'refs/heads/feature/plugins'
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           publish_dir: ./build/docs
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v1
-        with:
-          name: documentation
-          path: build/docs

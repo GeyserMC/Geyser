@@ -26,17 +26,40 @@
 
 package org.geysermc.connector.event.events.geyser;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.event.events.CancellableGeyserEvent;
+import org.geysermc.connector.event.Cancellable;
+import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 
-@EqualsAndHashCode(callSuper = true)
+/**
+ * Triggered when a Bedrock skin needs to be loaded
+ *
+ * If cancelled then the regular skin loading will not occur.
+ */
 @Data
-@AllArgsConstructor
-public class LoadBedrockSkinEvent extends CancellableGeyserEvent {
+@EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("JavaDoc")
+public class LoadBedrockSkinEvent extends GeyserEvent implements Cancellable {
+    private boolean cancelled;
+
+    /**
+     * The player for which the skin is to be loaded for
+     *
+     * @param playerEntity The player entity
+     * @return The current player entity
+     */
+    @NonNull
     private PlayerEntity playerEntity;
+
+    /**
+     * The client data of the player
+     *
+     * @param clientData Player client data
+     * @return The current client data
+     */
+    @NonNull
     private BedrockClientData clientData;
 }

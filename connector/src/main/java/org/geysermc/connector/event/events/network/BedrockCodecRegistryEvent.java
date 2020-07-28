@@ -27,14 +27,26 @@
 package org.geysermc.connector.event.events.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.event.events.GeyserEvent;
+import lombok.NonNull;
+import org.geysermc.connector.event.GeyserEvent;
 
-@EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
+/**
+ * Triggered when Geyser is setting what Bedrock protocol to use
+ *
+ * Geyser wil use the value of {@code codec}
+ */
 @Data
+@EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("JavaDoc")
 public class BedrockCodecRegistryEvent extends GeyserEvent {
+    /**
+     * The Bedrock codec Geyser will use
+     *
+     * @param codec Set a new Codec
+     * @return get the current codec
+     */
+    @NonNull
     private BedrockPacketCodec codec;
 }

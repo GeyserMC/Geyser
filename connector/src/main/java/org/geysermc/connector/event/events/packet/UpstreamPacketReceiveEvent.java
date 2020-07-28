@@ -27,23 +27,65 @@
 package org.geysermc.connector.event.events.packet;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.geysermc.connector.event.events.CancellableGeyserEvent;
+import lombok.NonNull;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.Cancellable;
+import org.geysermc.connector.event.GeyserEvent;
+import org.geysermc.connector.event.Session;
 import org.geysermc.connector.network.session.GeyserSession;
 
-/**
- * Triggered each time a packet is received from the Downstream server.
- *
- * If cancelled then regular processes of the packet will not proceed
- */
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
-@EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
 @Data
-public class UpstreamPacketReceiveEvent<T extends BedrockPacket> extends CancellableGeyserEvent {
+@EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("JavaDoc")
+public abstract class UpstreamPacketReceiveEvent<T extends BedrockPacket> extends GeyserEvent implements Cancellable, Session {
+    // Cache of Packet Class to Event Class
+    private static final Map<Class<? extends BedrockPacket>, Class<?>> classMap = new HashMap<>();
 
-    private GeyserSession session;
+    private boolean cancelled;
+
+    @NonNull
+    private final GeyserSession session;
+
+    /**
+     * Upstream packet
+     *
+     * @param packet set the upstream packet
+     * @return get the current upstream packet
+     */
+    @NonNull
     private T packet;
+    
+    /**
+     * Create a new UpstreamPacketReceiveEvent based on the packet type
+     * @param session player session
+     * @param packet the packet to wrap
+     * @return an instantiated class that inherits from this one
+     */
+    public static <T extends BedrockPacket> UpstreamPacketReceiveEvent<T> of(GeyserSession session, T packet) {
+        Class<?> cls = classMap.get(packet.getClass());
+        if (cls == null) {
+            try {
+                cls = Class.forName(String.format("org.geysermc.connector.event.events.packet.upstream.%sReceive", packet.getClass().getSimpleName()));
+            } catch (ClassNotFoundException e) {
+                GeyserConnector.getInstance().getLogger().error("Missing event for packet: " + packet.getClass());
+                return null;
+            }
+
+            classMap.put(packet.getClass(), cls);
+        }
+
+        try {
+            //noinspection unchecked
+            return (UpstreamPacketReceiveEvent<T>) cls.getConstructor(GeyserSession.class, BedrockPacket.class).newInstance(session, packet);
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
