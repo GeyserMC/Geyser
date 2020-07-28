@@ -259,7 +259,7 @@ public class MessageUtils {
 
     public static String getBedrockMessage(String message) {
         Component component = phraseJavaMessage(message);
-        return LegacyComponentSerializer.legacy().serialize(component);
+        return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
     public static Component phraseJavaMessage(String message) {
@@ -267,7 +267,7 @@ public class MessageUtils {
     }
 
     public static String getJavaMessage(String message) {
-        Component component = LegacyComponentSerializer.legacy().deserialize(message);
+        Component component = LegacyComponentSerializer.legacySection().deserialize(message);
         return GsonComponentSerializer.gson().serialize(component);
     }
 
@@ -391,7 +391,8 @@ public class MessageUtils {
 
         for (Map.Entry<String, Integer> testColor : COLORS.entrySet()) {
             if (testColor.getValue() == rgb) {
-                return testColor.getKey();
+                closest = testColor.getKey();
+                break;
             }
 
             int testR = (testColor.getValue() >> 16) & 0xFF;
@@ -482,8 +483,7 @@ public class MessageUtils {
      */
     public static boolean isTooLong(String message, GeyserSession session) {
         if (message.length() > 256) {
-            // TODO: Add Geyser localization and translate this based on language
-            session.sendMessage("Your message is bigger than 256 characters (" + message.length() + ") so it has not been sent.");
+            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.chat.too_long", session.getClientData().getLanguageCode(), message.length()));
             return true;
         }
 

@@ -284,11 +284,11 @@ public class Entity {
 
                     // Shield code
                     if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
-                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD) ||
-                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == ItemRegistry.SHIELD)) {
+                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) ||
+                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == ItemRegistry.SHIELD.getJavaId())) {
                             ClientPlayerUseItemPacket useItemPacket;
                             metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
-                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD) {
+                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) {
                                 useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             }
                             // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
@@ -299,7 +299,7 @@ public class Entity {
                         }
                     } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
                         metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                        metadata.getFlags().setFlag(EntityFlag.IS_AVOIDING_BLOCK, true); //TODO: CHECK
+                        metadata.getFlags().setFlag(EntityFlag.IS_AVOIDING_BLOCK, true);
                         ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
                         session.sendDownstreamPacket(releaseItemPacket);
                     }
@@ -337,7 +337,7 @@ public class Entity {
                 if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
                     metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
                     // Has to be a byte or it does not work
-                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2); //TODO: CHECK
+                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
                     if (entityId == session.getPlayerEntity().getEntityId()) {
                         Vector3i lastInteractionPos = session.getLastInteractionPosition();
                         metadata.put(EntityData.BED_POSITION, lastInteractionPos);

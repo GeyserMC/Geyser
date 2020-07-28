@@ -56,10 +56,14 @@ public class ItemRegistry {
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    // Shield ID, used in Entity.java
-    public static final int SHIELD = 829;
     // Boat ID, used in BedrockInventoryTransactionTranslator.java
-    public static final int BOAT = 333;
+    public static ItemEntry BOAT;
+    // Gold ID, used in BedrockInventoryTransactionTranslator.java
+    public static ItemEntry BUCKET;
+    // Gold ID, used in PiglinEntity.java
+    public static ItemEntry GOLD;
+    // Shield ID, used in Entity.java
+    public static ItemEntry SHIELD;
 
     public static int BARRIER_INDEX = 0;
 
@@ -123,8 +127,24 @@ public class ItemRegistry {
                         entry.getValue().get("bedrock_data").intValue(),
                         entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
             }
-            if (entry.getKey().equals("minecraft:barrier")) {
-                BARRIER_INDEX = itemIndex;
+            switch (entry.getKey()) {
+                case "minecraft:barrier":
+                    BARRIER_INDEX = itemIndex;
+                    break;
+                case "minecraft:oak_boat":
+                    BOAT = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:gold_ingot":
+                    GOLD = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:shield":
+                    SHIELD = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:bucket":
+                    BUCKET = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                default:
+                    break;
             }
 
             itemIndex++;
@@ -143,23 +163,23 @@ public class ItemRegistry {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
         }
 
+        int netId = 1;
         List<ItemData> creativeItems = new ArrayList<>();
         for (JsonNode itemNode : creativeItemEntries) {
-            short damage = 0;
-            if (itemNode.has("damage")) {
-                damage = itemNode.get("damage").numberValue().shortValue();
-            }
-            if (itemNode.has("nbt_b64")) {
-                byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
-                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-                try {
-                    NbtMap tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
-                    creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
-                } catch (IOException e) {
-                    e.printStackTrace();
+            try {
+                short damage = 0;
+                NbtMap tag = null;
+                if (itemNode.has("damage")) {
+                    damage = itemNode.get("damage").numberValue().shortValue();
                 }
-            } else {
-                creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1));
+                if (itemNode.has("nbt_b64")) {
+                    byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
+                    ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+                    tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
+                }
+                creativeItems.add(ItemData.fromNet(netId++, itemNode.get("id").asInt(), damage, 1, tag));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);

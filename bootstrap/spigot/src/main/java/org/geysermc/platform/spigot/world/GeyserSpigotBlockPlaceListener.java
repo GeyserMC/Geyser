@@ -47,7 +47,7 @@ public class GeyserSpigotBlockPlaceListener implements Listener {
 
     @EventHandler
     public void place(final BlockPlaceEvent event) {
-        for (GeyserSession session : connector.getPlayers().values()) {
+        for (GeyserSession session : connector.getPlayers()) {
             if (event.getPlayer() == Bukkit.getPlayer(session.getPlayerEntity().getUsername())) {
                 LevelSoundEventPacket placeBlockSoundPacket = new LevelSoundEventPacket();
                 placeBlockSoundPacket.setSound(SoundEvent.PLACE);

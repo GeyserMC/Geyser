@@ -215,6 +215,13 @@ public class GeyserSession implements CommandSender {
         this.loggedIn = false;
 
         this.inventoryCache.getInventories().put(0, inventory);
+
+        bedrockServerSession.addDisconnectHandler(disconnectReason -> {
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
+
+            disconnect(disconnectReason.name());
+            connector.removePlayer(this);
+        });
     }
 
     public void connect(RemoteServer remoteServer) {
@@ -232,9 +239,7 @@ public class GeyserSession implements CommandSender {
         sendUpstreamPacket(entityPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        for (int i = 0; i < ItemRegistry.CREATIVE_ITEMS.length; i++) {
-            creativePacket.getEntries().put(i + 1, ItemRegistry.CREATIVE_ITEMS[i]);
-        }
+        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
         sendUpstreamPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
@@ -348,6 +353,11 @@ public class GeyserSession implements CommandSender {
                     public void connected(ConnectedEvent event) {
                         loggingIn = false;
                         loggedIn = true;
+                        if (protocol.getProfile() == null) {
+                            // Java account is offline
+                            disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+                            return;
+                        }
                         connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect", authData.getName(), protocol.getProfile().getName(), remoteServer.getAddress()));
                         playerEntity.setUuid(protocol.getProfile().getId());
                         playerEntity.setUsername(protocol.getProfile().getName());
@@ -445,7 +455,7 @@ public class GeyserSession implements CommandSender {
                 downstream.getSession().disconnect(reason);
             }
             if (upstream != null && !upstream.isClosed()) {
-                connector.getPlayers().remove(this.upstream.getAddress());
+                connector.getPlayers().remove(this);
                 upstream.disconnect(reason);
             }
         }

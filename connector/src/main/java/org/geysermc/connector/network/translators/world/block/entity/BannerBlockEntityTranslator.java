@@ -55,7 +55,7 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
 
         if (tag.contains("Patterns")) {
             ListTag patterns = tag.get("Patterns");
-            tags.put("", BannerTranslator.convertBannerPattern(patterns));
+            tags.put("Patterns", BannerTranslator.convertBannerPattern(patterns));
         }
 
         if (tag.contains("CustomName")) {

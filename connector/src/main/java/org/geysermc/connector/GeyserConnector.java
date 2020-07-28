@@ -49,6 +49,7 @@ import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.item.PotionMixRegistry;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
@@ -64,9 +65,10 @@ import org.geysermc.connector.utils.LocaleUtils;
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -82,7 +84,7 @@ public class GeyserConnector {
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
 
-    private final Map<InetSocketAddress, GeyserSession> players = new HashMap<>();
+    private final List<GeyserSession> players = new ArrayList<>();
 
     private static GeyserConnector instance;
 
@@ -144,6 +146,7 @@ public class GeyserConnector {
         ItemRegistry.init();
         ItemTranslator.init();
         LocaleUtils.init();
+        PotionMixRegistry.init();
         SoundRegistry.init();
         SoundHandlerRegistry.init();
 
@@ -182,7 +185,9 @@ public class GeyserConnector {
             try {
                 Class<?> cls = Class.forName("org.geysermc.platform.standalone.GeyserStandaloneBootstrap");
                 isGui = (boolean) cls.getMethod("isUseGui").invoke(cls.cast(bootstrap));
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                logger.debug("Failed detecting if standalone is using a GUI; if this is a GeyserConnect instance this can be safely ignored.");
+            }
         }
 
         // Enable Plugins
@@ -211,7 +216,9 @@ public class GeyserConnector {
         if (players.size() >= 1) {
             bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));
 
-            for (GeyserSession playerSession : players.values()) {
+            // Make a copy to prevent ConcurrentModificationException
+            final List<GeyserSession> tmpPlayers = new ArrayList<>(players);
+            for (GeyserSession playerSession : tmpPlayers) {
                 playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getClientData().getLanguageCode()));
             }
 
@@ -253,11 +260,11 @@ public class GeyserConnector {
     }
 
     public void addPlayer(GeyserSession player) {
-        players.put(player.getSocketAddress(), player);
+        players.add(player);
     }
 
     public void removePlayer(GeyserSession player) {
-        players.remove(player.getSocketAddress());
+        players.remove(player);
     }
 
     public static GeyserConnector start(PlatformType platformType, GeyserBootstrap bootstrap) {
