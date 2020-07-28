@@ -27,16 +27,13 @@
 package org.geysermc.connector.event.handlers;
 
 import lombok.Getter;
+import org.geysermc.connector.event.Cancellable;
 import org.geysermc.connector.event.EventManager;
-import org.geysermc.connector.event.annotations.Event;
-import org.geysermc.connector.event.events.CancellableGeyserEvent;
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.annotations.GeyserEventHandler;
+import org.geysermc.connector.event.GeyserEvent;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Provides an event handler for an annotated method
@@ -47,24 +44,22 @@ public class MethodEventHandler<T extends GeyserEvent> extends EventHandler<T> {
     private final Method method;
     private final int priority;
     private final boolean ignoreCancelled;
-    private final List<Class<?>> filter = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public MethodEventHandler(EventManager manager, Object handlerClass, Method method) {
         super(manager, (Class<T>) method.getParameters()[0].getType());
 
-        Event annotation = method.getAnnotation(Event.class);
+        GeyserEventHandler annotation = method.getAnnotation(GeyserEventHandler.class);
         this.handlerClass = handlerClass;
         this.method = method;
         this.priority = annotation.priority();
         this.ignoreCancelled = annotation.ignoreCancelled();
-        Collections.addAll(this.filter, annotation.filter());
     }
 
     @Override
     public void execute(T event) throws EventHandlerException {
-        if (event instanceof CancellableGeyserEvent) {
-            if (((CancellableGeyserEvent) event).isCancelled() && !isIgnoreCancelled()) {
+        if (event instanceof Cancellable) {
+            if (((Cancellable) event).isCancelled() && !isIgnoreCancelled()) {
                 return;
             }
         }
@@ -74,10 +69,5 @@ public class MethodEventHandler<T extends GeyserEvent> extends EventHandler<T> {
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new EventHandlerException("Unable to execute Event Handler", e);
         }
-    }
-
-    @Override
-    public boolean hasFilter(Class<?> filter) {
-        return this.filter.isEmpty() || this.filter.contains(filter);
     }
 }

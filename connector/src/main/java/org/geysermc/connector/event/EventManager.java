@@ -29,9 +29,7 @@ package org.geysermc.connector.event;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.event.annotations.Event;
-import org.geysermc.connector.event.events.CancellableGeyserEvent;
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.annotations.GeyserEventHandler;
 import org.geysermc.connector.event.handlers.EventHandler;
 import org.geysermc.connector.event.handlers.LambdaEventHandler;
 import org.geysermc.connector.event.handlers.MethodEventHandler;
@@ -48,14 +46,12 @@ import java.util.PriorityQueue;
 public class EventManager {
     @Getter
     private static EventManager instance;
-    private final Map<Class<? extends GeyserEvent>, PriorityQueue<EventHandler<? extends GeyserEvent>>> eventHandlers = new HashMap<>();
-    private final Map<Object, ArrayList<EventHandler<?>>> classEventHandlers = new HashMap<>();
 
-    private final GeyserConnector connector;
+    private final Map<Class<? extends GeyserEvent>, PriorityQueue<EventHandler<?>>> eventHandlers = new HashMap<>();
+    private final Map<Object, ArrayList<EventHandler<?>>> classEventHandlers = new HashMap<>();
 
     public EventManager(GeyserConnector connector) {
         instance = this;
-        this.connector = connector;
     }
 
     /**
@@ -63,27 +59,22 @@ public class EventManager {
      *
      * All registered EventHandlers will be executed as long as they have the appropriate filter class (or none)
      * @param event Event being triggered
-     * @param filter Filter Class to be tested against
      * @return TriggerResult Result of the trigger
      */
-    public <T extends GeyserEvent> TriggerResult<T> triggerEvent(T event, Class<?> filter) {
-        if (eventHandlers.containsKey(event.getClass())) {
-            for (EventHandler<?> handler : eventHandlers.get(event.getClass())) {
-                if (handler.hasFilter(filter)) {
+    public <T extends GeyserEvent> EventResult<T> triggerEvent(T event) {
+        if (event != null) {
+            if (eventHandlers.containsKey(event.getClass())) {
+                for (EventHandler<?> handler : eventHandlers.get(event.getClass())) {
                     try {
                         //noinspection unchecked
                         ((EventHandler<T>) handler).execute(event);
-                    } catch (EventHandler.EventHandlerException e) {
-                        connector.getLogger().error(e.getMessage(), e);
+                    } catch (org.geysermc.connector.event.handlers.EventHandler.EventHandlerException e) {
+                        GeyserConnector.getInstance().getLogger().error(e.getMessage(), e);
                     }
                 }
             }
         }
-        return new TriggerResult<>(this, event);
-    }
-
-    public <T extends GeyserEvent> TriggerResult<T> triggerEvent(T event) {
-        return triggerEvent(event, null);
+        return new EventResult<>(this, event);
     }
 
     /**
@@ -119,13 +110,13 @@ public class EventManager {
         List<EventHandler<?>> handlers = new ArrayList<>();
         for (Method method : obj.getClass().getMethods()) {
             // Check that the method is annotated with @Event
-            if (method.getAnnotation(Event.class) == null) {
+            if (method.getAnnotation(GeyserEventHandler.class) == null) {
                 continue;
             }
 
             // Make sure it only has a single Event parameter
             if (method.getParameterCount() != 1 || !GeyserEvent.class.isAssignableFrom(method.getParameters()[0].getType())) {
-                connector.getLogger().error("Cannot register EventHander as its only parameter must be an Event: " + obj.getClass().getSimpleName() + "#" + method.getName());
+                GeyserConnector.getInstance().getLogger().error("Cannot register EventHandler as its only parameter must be an Event: " + obj.getClass().getSimpleName() + "#" + method.getName());
                 continue;
             }
 
@@ -153,57 +144,5 @@ public class EventManager {
         }
 
         classEventHandlers.remove(obj);
-    }
-
-    /**
-     * Provides a chainable result for the triggerinig of an Event
-     */
-    @SuppressWarnings({"UnusedReturnValue", "unused"})
-    @Getter
-    @AllArgsConstructor
-    public static class TriggerResult<T> {
-        private final EventManager manager;
-        private final T event;
-        private final boolean valid;
-
-        public TriggerResult(EventManager manager, T event) {
-            this(manager, event, true);
-        }
-
-        /**
-         * Returns true if the event was cancelled
-         * @return boolean true if cancelled
-         */
-        public boolean isCancelled() {
-            return event instanceof CancellableGeyserEvent && ((CancellableGeyserEvent) event).isCancelled();
-        }
-
-        public TriggerResult<T> onNotCancelled(Runnable<T> runnable) {
-            if (!isCancelled()) {
-                runnable.run(this);
-                return new TriggerResult<>(manager, event, false);
-            }
-            return this;
-        }
-
-        public TriggerResult<T> onCancelled(Runnable<T> runnable) {
-            if (isCancelled()) {
-                runnable.run(this);
-                return new TriggerResult<>(manager, event, false);
-            }
-            return this;
-        }
-
-        public TriggerResult<T> orElse(Runnable<T> runnable) {
-            if (valid) {
-                runnable.run(this);
-                return new TriggerResult<>(manager, event, false);
-            }
-            return this;
-        }
-
-        public interface Runnable<T> {
-            void run(TriggerResult<T> result);
-        }
     }
 }

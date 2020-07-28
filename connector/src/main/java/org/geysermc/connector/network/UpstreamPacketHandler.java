@@ -43,7 +43,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private <T extends BedrockPacket> boolean translateAndDefault(T packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), packet.getClass()).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
             return true;
         }
 
@@ -52,7 +52,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, loginPacket), LoginPacket.class).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, loginPacket)).isCancelled()) {
             return true;
         }
 
@@ -78,7 +78,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ResourcePackClientResponsePacket packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), ResourcePackClientResponsePacket.class).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
             return true;
         }
 
@@ -104,7 +104,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), ModalFormResponsePacket.class).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
             return true;
         }
 
@@ -130,7 +130,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), SetLocalPlayerAsInitializedPacket.class).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
             return true;
         }
 
@@ -148,7 +148,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
-        if (connector.getEventManager().triggerEvent(new UpstreamPacketReceiveEvent<>(session, packet), MovePlayerPacket.class).isCancelled()) {
+        if (connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet)).isCancelled()) {
             return true;
         }
 

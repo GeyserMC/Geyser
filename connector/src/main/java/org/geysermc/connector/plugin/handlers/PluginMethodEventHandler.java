@@ -27,7 +27,7 @@
 package org.geysermc.connector.plugin.handlers;
 
 import lombok.Getter;
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.event.handlers.MethodEventHandler;
 import org.geysermc.connector.plugin.GeyserPlugin;
 

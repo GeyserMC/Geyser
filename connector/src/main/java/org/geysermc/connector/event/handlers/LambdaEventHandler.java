@@ -28,13 +28,9 @@ package org.geysermc.connector.event.handlers;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.geysermc.connector.event.Cancellable;
 import org.geysermc.connector.event.EventManager;
-import org.geysermc.connector.event.events.CancellableGeyserEvent;
-import org.geysermc.connector.event.events.GeyserEvent;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.geysermc.connector.event.GeyserEvent;
 
 
 /**
@@ -45,14 +41,12 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
     private final Runnable<T> runnable;
     private final int priority;
     private final boolean ignoreCancelled;
-    private final List<Class<?>> filter = new ArrayList<>();
 
-    public LambdaEventHandler(EventManager manager, Class<T> cls, Runnable<T> runnable, int priority, boolean ignoreCancelled, Class<?>[] filter) {
+    public LambdaEventHandler(EventManager manager, Class<T> cls, Runnable<T> runnable, int priority, boolean ignoreCancelled) {
         super(manager, cls);
         this.runnable = runnable;
         this.priority = priority;
         this.ignoreCancelled = ignoreCancelled;
-        Collections.addAll(this.filter, filter);
 
         // Register with event manager
         manager.register(this);
@@ -60,8 +54,8 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
 
     @Override
     public void execute(T event) throws EventHandlerException {
-        if (event instanceof CancellableGeyserEvent) {
-            if (((CancellableGeyserEvent) event).isCancelled() && !isIgnoreCancelled()) {
+        if (event instanceof Cancellable) {
+            if (((Cancellable) event).isCancelled() && !isIgnoreCancelled()) {
                 return;
             }
         }
@@ -69,18 +63,13 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
         runnable.run(this, event);
     }
 
-    @Override
-    public boolean hasFilter(Class<?> filter) {
-        return this.filter.isEmpty() || this.filter.contains(filter);
-    }
-
     public interface Runnable<T extends GeyserEvent> {
         void run(EventHandler<T> handler, T event) throws EventHandlerException;
     }
 
-    @SuppressWarnings("unused")
     @Getter
     @RequiredArgsConstructor
+    @SuppressWarnings("unused")
     public static class Builder<T extends GeyserEvent> {
         private final EventManager manager;
         private final Class<T> cls;
@@ -88,7 +77,6 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
 
         private int priority = PRIORITY.NORMAL;
         private boolean ignoreCancelled = true;
-        private Class<?>[] filter = new Class<?>[] {};
 
         public Builder<T> priority(int priority) {
             this.priority = priority;
@@ -100,13 +88,8 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
             return this;
         }
 
-        public Builder<T> filter(Class<?>[] filter) {
-            this.filter = filter;
-            return this;
-        }
-
         public LambdaEventHandler<T> build() {
-            LambdaEventHandler<T> handler = new LambdaEventHandler<>(manager, cls, runnable, priority, ignoreCancelled, filter);
+            LambdaEventHandler<T> handler = new LambdaEventHandler<>(manager, cls, runnable, priority, ignoreCancelled);
             manager.register(handler);
             return handler;
         }

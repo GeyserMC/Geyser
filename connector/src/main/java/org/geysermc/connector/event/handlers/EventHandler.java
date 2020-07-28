@@ -29,7 +29,7 @@ package org.geysermc.connector.event.handlers;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.event.EventManager;
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.GeyserEvent;
 
 import java.util.Comparator;
 
@@ -41,14 +41,10 @@ public abstract class EventHandler<T extends GeyserEvent> implements Comparable<
 
     /**
      * Execute a handler for an event
+     *
      * @param event Event passed to handler
      */
     public abstract void execute(T event) throws EventHandlerException;
-
-    /**
-     * Return true if EventHandler accepts a filter
-     */
-    public abstract boolean hasFilter(Class<?> filter);
 
     /**
      * Unregister ourself

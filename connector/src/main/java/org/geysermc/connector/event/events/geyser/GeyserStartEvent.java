@@ -26,13 +26,10 @@
 
 package org.geysermc.connector.event.events.geyser;
 
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.GeyserEvent;
 
 /**
- * EnableEvent is triggered for each plugin when enabling it
- *
- * If the event is cancelled then the plugin will be unregistered from the EventManager and the DisableEvent will
- * not trigger
+ * Triggered when Geyser has finished starting
  */
 public class GeyserStartEvent extends GeyserEvent {
 }

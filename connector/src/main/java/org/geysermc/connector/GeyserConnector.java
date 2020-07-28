@@ -304,7 +304,7 @@ public class GeyserConnector {
         }
 
         registeredPluginChannels.add(channel);
-        for ( GeyserSession session : getPlayers().values()) {
+        for ( GeyserSession session : getPlayers()) {
             session.registerPluginChannel(channel);
         }
     }
@@ -321,7 +321,7 @@ public class GeyserConnector {
         }
 
         registeredPluginChannels.remove(channel);
-        for ( GeyserSession session : getPlayers().values()) {
+        for ( GeyserSession session : getPlayers()) {
             session.unregisterPluginChannel(channel);
         }
     }

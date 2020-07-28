@@ -29,11 +29,10 @@ package org.geysermc.connector.plugin;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
-import org.geysermc.connector.event.annotations.Event;
-import org.geysermc.connector.event.events.GeyserEvent;
+import org.geysermc.connector.event.annotations.GeyserEventHandler;
+import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.event.events.plugin.PluginDisableEvent;
 import org.geysermc.connector.event.events.plugin.PluginEnableEvent;
-import org.geysermc.connector.event.handlers.EventHandler;
 import org.geysermc.connector.plugin.handlers.PluginLambdaEventHandler;
 import org.geysermc.connector.plugin.handlers.PluginMethodEventHandler;
 import org.geysermc.connector.plugin.annotations.Plugin;
@@ -54,7 +53,7 @@ import java.util.List;
 @Getter
 public abstract class GeyserPlugin {
     // List of EventHandlers associated with this Plugin
-    private final List<EventHandler<?>> pluginEventHandlers = new ArrayList<>();
+    private final List<org.geysermc.connector.event.handlers.EventHandler> pluginEventHandlers = new ArrayList<>();
 
     private final PluginManager pluginManager;
     private final PluginClassLoader pluginClassLoader;
@@ -84,7 +83,7 @@ public abstract class GeyserPlugin {
     /**
      * Register an event handler
      */
-    public <T extends GeyserEvent> void register(EventHandler<T> handler) {
+    public <T extends GeyserEvent> void register(org.geysermc.connector.event.handlers.EventHandler handler) {
         this.pluginEventHandlers.add(handler);
         getEventManager().register(handler);
     }
@@ -92,7 +91,7 @@ public abstract class GeyserPlugin {
     /**
      * Unregister an event handler
      */
-    public <T extends GeyserEvent> void unregister(EventHandler<T> handler) {
+    public <T extends GeyserEvent> void unregister(org.geysermc.connector.event.handlers.EventHandler handler) {
         this.pluginEventHandlers.remove(handler);
         getEventManager().unregister(handler);
     }
@@ -103,7 +102,7 @@ public abstract class GeyserPlugin {
     public void registerEvents(Object obj) {
         for (Method method : obj.getClass().getMethods()) {
             // Check that the method is annotated with @Event
-            if (method.getAnnotation(Event.class) == null) {
+            if (method.getAnnotation(GeyserEventHandler.class) == null) {
                 continue;
             }
 
@@ -113,7 +112,7 @@ public abstract class GeyserPlugin {
                 continue;
             }
 
-            EventHandler<?> handler = new PluginMethodEventHandler<>(this, obj, method);
+            org.geysermc.connector.event.handlers.EventHandler handler = new PluginMethodEventHandler<>(this, obj, method);
             register(handler);
         }
     }
@@ -122,7 +121,7 @@ public abstract class GeyserPlugin {
      * Unregister all events for a plugin
      */
     public void unregisterAllEvents() {
-        for (EventHandler<?> handler : pluginEventHandlers) {
+        for (org.geysermc.connector.event.handlers.EventHandler handler : pluginEventHandlers) {
             unregister(handler);
         }
     }
