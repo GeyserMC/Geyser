@@ -35,6 +35,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.Gamerule;
 import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
 import us.myles.ViaVersion.protocols.protocol1_16to1_15_2.data.MappingData;
 
@@ -77,5 +78,20 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     @Override
     public GameMode getDefaultGameMode(GeyserSession session) {
         return GameMode.valueOf(Bukkit.getDefaultGameMode().name());
+    }
+
+    @Override
+    public Boolean getGameRuleBool(GeyserSession session, Gamerule gamerule) {
+        return Boolean.parseBoolean(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gamerule.getJavaID()));
+    }
+
+    @Override
+    public int getGameRuleInt(GeyserSession session, Gamerule gamerule) {
+        return Integer.parseInt(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gamerule.getJavaID()));
+    }
+
+    @Override
+    public boolean hasPermission(GeyserSession session, String permission) {
+        return Bukkit.getPlayer(session.getPlayerEntity().getUsername()).hasPermission(permission);
     }
 }

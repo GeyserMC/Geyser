@@ -26,39 +26,23 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.nukkitx.protocol.bedrock.packet.SettingsCommandPacket;
-import org.geysermc.connector.GeyserConnector;
+import com.nukkitx.protocol.bedrock.packet.ServerSettingsRequestPacket;
+import com.nukkitx.protocol.bedrock.packet.ServerSettingsResponsePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.Gamerule;
+import org.geysermc.connector.utils.SettingsUtils;
 
-@Translator(packet = SettingsCommandPacket.class)
-public class BedrockSettingsCommandTranslator extends PacketTranslator<SettingsCommandPacket> {
+@Translator(packet = ServerSettingsRequestPacket.class)
+public class BedrockServerSettingsRequestTranslator extends PacketTranslator<ServerSettingsRequestPacket> {
 
     @Override
-    public void translate(SettingsCommandPacket packet, GeyserSession session) {
-        if(!packet.getCommand().startsWith("/gamerule")) {
-            GeyserConnector.getInstance().getLogger().debug("Got SettingsCommand with value '" + packet.getCommand() + "'");
-            return; // We only handle game rules for now
-        }
+    public void translate(ServerSettingsRequestPacket packet, GeyserSession session) {
+        SettingsUtils.buildForm(session);
 
-        String[] args = packet.getCommand().replaceAll("/gamerule ", "").split(" ");
-        Gamerule gamerule = Gamerule.fromBedrockID(args[0]);
-
-        if(gamerule == Gamerule.UNKNOWN) {
-            return;
-        }
-
-        // Coordinates are a special case as they don't exist as a game rule in java edition
-        if(gamerule.equals(Gamerule.SHOWCOORDINATES) && !session.isReducedDebugInfo()) {
-            session.getWorldCache().setShowCoordinates(Boolean.parseBoolean(args[1]));
-            return;
-        }
-
-        session.getConnector().getWorldManager().setGameRule(session, gamerule.getJavaID(), gamerule.convertValue(args[1]));
-
-        // TODO: check if the game rule was changed successfully
-        session.sendGameRule(gamerule.getJavaID(), gamerule.convertValue(args[1]));
+        ServerSettingsResponsePacket serverSettingsResponsePacket = new ServerSettingsResponsePacket();
+        serverSettingsResponsePacket.setFormData(session.getSettingsForm().getJSONData());
+        serverSettingsResponsePacket.setFormId(SettingsUtils.SETTINGS_FORM_ID);
+        session.sendUpstreamPacket(serverSettingsResponsePacket);
     }
 }

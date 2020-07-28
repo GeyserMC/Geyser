@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.Gamerule;
 
 /**
  * Class that manages or retrieves various information
@@ -76,11 +77,15 @@ public abstract class WorldManager {
 
     public abstract void setGameRule(GeyserSession session, String name, Object value);
 
-    public abstract void setPlayerGameMode(GeyserSession session, GameMode gameMode);
+    public abstract Boolean getGameRuleBool(GeyserSession session, Gamerule gamerule);
+
+    public abstract int getGameRuleInt(GeyserSession session, Gamerule gamerule);
 
     public abstract GameMode getDefaultGameMode(GeyserSession session);
 
-    public abstract void setDefaultGameMode(GeyserSession session, GameMode gameMode);
+    public abstract void setPlayerGameMode(GeyserSession session, GameMode gameMode);
 
     public abstract void setDifficulty(GeyserSession session, Difficulty difficulty);
+
+    public abstract boolean hasPermission(GeyserSession session, String permission);
 }

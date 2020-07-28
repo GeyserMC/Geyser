@@ -66,7 +66,6 @@ public class PlayerEntity extends LivingEntity {
     private Entity rightParrot;
 
     private int opPermissionLevel = 0;
-    private PlayerPermission playerPermission = PlayerPermission.MEMBER;
     private boolean canFly = false;
     private boolean flying = false;
     private boolean noClip = false;
@@ -102,7 +101,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
         addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
-        addPlayerPacket.getAdventureSettings().setPlayerPermission(playerPermission);
+        addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
@@ -120,30 +119,28 @@ public class PlayerEntity extends LivingEntity {
     }
 
     public void sendAdventureSettings(GeyserSession session) {
-        if(opPermissionLevel >= 2) {
-            playerPermission = PlayerPermission.OPERATOR;
-        } else {
-            playerPermission = PlayerPermission.MEMBER;
-        }
-
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
         adventureSettingsPacket.setUniqueEntityId(geyserId);
-        adventureSettingsPacket.setPlayerPermission(playerPermission);
+        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
         adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
 
         Set<AdventureSetting> flags = new HashSet<>();
-        if(canFly) {
+        if (canFly) {
             flags.add(AdventureSetting.MAY_FLY);
         }
-        if(flying) {
+
+        if (flying) {
             flags.add(AdventureSetting.FLYING);
         }
-        if(worldImmutable) {
+
+        if (worldImmutable) {
             flags.add(AdventureSetting.WORLD_IMMUTABLE);
         }
-        if(noClip) {
+
+        if (noClip) {
             flags.add(AdventureSetting.NO_CLIP);
         }
+
         flags.add(AdventureSetting.AUTO_JUMP);
 
         adventureSettingsPacket.getSettings().addAll(flags);

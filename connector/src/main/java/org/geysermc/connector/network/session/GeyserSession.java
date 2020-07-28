@@ -54,6 +54,7 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
@@ -192,6 +193,9 @@ public class GeyserSession implements CommandSender {
     private MinecraftProtocol protocol;
 
     private boolean reducedDebugInfo = false;
+
+    @Setter
+    private CustomFormWindow settingsForm;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
@@ -622,5 +626,9 @@ public class GeyserSession implements CommandSender {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
         gameRulesChangedPacket.getGameRules().add(new GameRuleData<>(gameRule, value));
         upstream.sendPacket(gameRulesChangedPacket);
+    }
+
+    public Boolean hasPermission(String permission) {
+        return connector.getWorldManager().hasPermission(this, permission);
     }
 }

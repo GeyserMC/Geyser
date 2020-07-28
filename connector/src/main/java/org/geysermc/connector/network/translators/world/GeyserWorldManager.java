@@ -30,9 +30,14 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.Gamerule;
 
 public class GeyserWorldManager extends WorldManager {
+
+    private static final Object2ObjectMap<String, String> gameruleCache = new Object2ObjectOpenHashMap<>();
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
@@ -41,12 +46,28 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public void setGameRule(GeyserSession session, String name, Object value) {
-        session.getDownstream().getSession().send(new ClientChatPacket("/gamerule " + name + " " + value));
+        session.sendDownstreamPacket(new ClientChatPacket("/gamerule " + name + " " + value));
+        gameruleCache.put(name, String.valueOf(value));
     }
 
     @Override
-    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
-        session.getDownstream().getSession().send(new ClientChatPacket("/gamemode " + gameMode.name().toLowerCase()));
+    public Boolean getGameRuleBool(GeyserSession session, Gamerule gamerule) {
+        String value = gameruleCache.get(gamerule.getJavaID());
+        if (value != null) {
+            return Boolean.parseBoolean(value);
+        }
+
+        return gamerule.getDefaultValue() != null ? (Boolean) gamerule.getDefaultValue() : false;
+    }
+
+    @Override
+    public int getGameRuleInt(GeyserSession session, Gamerule gamerule) {
+        String value = gameruleCache.get(gamerule.getJavaID());
+        if (value != null) {
+            return Integer.parseInt(value);
+        }
+
+        return gamerule.getDefaultValue() != null ? (int) gamerule.getDefaultValue() : 0;
     }
 
     @Override
@@ -55,12 +76,17 @@ public class GeyserWorldManager extends WorldManager {
     }
 
     @Override
-    public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
-        session.getDownstream().getSession().send(new ClientChatPacket("/defaultgamemode " + gameMode.name().toLowerCase()));
+    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
+        session.sendDownstreamPacket(new ClientChatPacket("/gamemode " + gameMode.name().toLowerCase()));
     }
 
     @Override
     public void setDifficulty(GeyserSession session, Difficulty difficulty) {
-        session.getDownstream().getSession().send(new ClientChatPacket("/difficulty " + difficulty.name().toLowerCase()));
+        session.sendDownstreamPacket(new ClientChatPacket("/difficulty " + difficulty.name().toLowerCase()));
+    }
+
+    @Override
+    public boolean hasPermission(GeyserSession session, String permission) {
+        return false;
     }
 }

@@ -34,6 +34,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.utils.SettingsUtils;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -91,6 +92,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
+        if (packet.getFormId() == SettingsUtils.SETTINGS_FORM_ID) {
+            return SettingsUtils.handleSettingsForm(session, packet.getFormData());
+        }
+
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
     }
 

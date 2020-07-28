@@ -31,43 +31,42 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public enum Gamerule {
-    ANNOUNCEADVANCEMENTS("announceAdvancements", Boolean.class), // JE only
-    COMMANDBLOCKOUTPUT("commandBlockOutput", Boolean.class),
-    DISABLEELYTRAMOVEMENTCHECK("disableElytraMovementCheck", Boolean.class), // JE only
-    DISABLERAIDS("disableRaids", Boolean.class), // JE only
-    DODAYLIGHTCYCLE("doDaylightCycle", Boolean.class),
-    DOENTITYDROPS("doEntityDrops", Boolean.class),
-    DOFIRETICK("doFireTick", Boolean.class),
-    DOIMMEDIATERESPAWN("doImmediateRespawn", Boolean.class),
-    DOINSOMNIA("doInsomnia", Boolean.class),
-    DOLIMITEDCRAFTING("doLimitedCrafting", Boolean.class), // JE only
-    DOMOBLOOT("doMobLoot", Boolean.class),
-    DOMOBSPAWNING("doMobSpawning", Boolean.class),
-    DOPATROLSPAWNING("doPatrolSpawning", Boolean.class), // JE only
-    DOTILEDROPS("doTileDrops", Boolean.class),
-    DOTRADERSPAWNING("doTraderSpawning", Boolean.class), // JE only
-    DOWEATHERCYCLE("doWeatherCycle", Boolean.class),
-    DROWNINGDAMAGE("drowningDamage", Boolean.class),
-    FALLDAMAGE("fallDamage", Boolean.class),
-    FIREDAMAGE("fireDamage", Boolean.class),
-    FORGIVEDEADPLAYERS("forgiveDeadPlayers", Boolean.class), // JE only
-    KEEPINVENTORY("keepInventory", Boolean.class),
-    LOGADMINCOMMANDS("logAdminCommands", Boolean.class), // JE only
-    MAXCOMMANDCHAINLENGTH("maxCommandChainLength", Integer.class),
-    MAXENTITYCRAMMING("maxEntityCramming", Integer.class), // JE only
-    MOBGRIEFING("mobGriefing", Boolean.class),
-    NATURALREGENERATION("naturalRegeneration", Boolean.class),
-    RANDOMTICKSPEED("randomTickSpeed", Integer.class),
-    REDUCEDDEBUGINFO("reducedDebugInfo", Boolean.class), // JE only
-    SENDCOMMANDFEEDBACK("sendCommandFeedback", Boolean.class),
-    SHOWCOORDINATES("showCoordinates", Boolean.class), // Handled separately
-    SHOWDEATHMESSAGES("showDeathMessages", Boolean.class),
-    SHOWTAGS("showTags", Boolean.class), // JE only
-    SPAWNRADIUS("spawnRadius", Boolean.class),
-    SPECTATORSGENERATECHUNKS("spectatorsGenerateChunks", Boolean.class), // JE only
-    UNIVERSALANGER("universalAnger", Boolean.class), // JE only
+    ANNOUNCEADVANCEMENTS("announceAdvancements", Boolean.class, true), // JE only
+    COMMANDBLOCKOUTPUT("commandBlockOutput", Boolean.class, true),
+    DISABLEELYTRAMOVEMENTCHECK("disableElytraMovementCheck", Boolean.class, false), // JE only
+    DISABLERAIDS("disableRaids", Boolean.class, false), // JE only
+    DODAYLIGHTCYCLE("doDaylightCycle", Boolean.class, true),
+    DOENTITYDROPS("doEntityDrops", Boolean.class, true),
+    DOFIRETICK("doFireTick", Boolean.class, true),
+    DOIMMEDIATERESPAWN("doImmediateRespawn", Boolean.class, false),
+    DOINSOMNIA("doInsomnia", Boolean.class, true),
+    DOLIMITEDCRAFTING("doLimitedCrafting", Boolean.class, false), // JE only
+    DOMOBLOOT("doMobLoot", Boolean.class, true),
+    DOMOBSPAWNING("doMobSpawning", Boolean.class, true),
+    DOPATROLSPAWNING("doPatrolSpawning", Boolean.class, true), // JE only
+    DOTILEDROPS("doTileDrops", Boolean.class, true),
+    DOTRADERSPAWNING("doTraderSpawning", Boolean.class, true), // JE only
+    DOWEATHERCYCLE("doWeatherCycle", Boolean.class, true),
+    DROWNINGDAMAGE("drowningDamage", Boolean.class, true),
+    FALLDAMAGE("fallDamage", Boolean.class, true),
+    FIREDAMAGE("fireDamage", Boolean.class, true),
+    FORGIVEDEADPLAYERS("forgiveDeadPlayers", Boolean.class, true), // JE only
+    KEEPINVENTORY("keepInventory", Boolean.class, false),
+    LOGADMINCOMMANDS("logAdminCommands", Boolean.class, true), // JE only
+    MAXCOMMANDCHAINLENGTH("maxCommandChainLength", Integer.class, 65536),
+    MAXENTITYCRAMMING("maxEntityCramming", Integer.class, 24), // JE only
+    MOBGRIEFING("mobGriefing", Boolean.class, true),
+    NATURALREGENERATION("naturalRegeneration", Boolean.class, true),
+    RANDOMTICKSPEED("randomTickSpeed", Integer.class, 3),
+    REDUCEDDEBUGINFO("reducedDebugInfo", Boolean.class, false), // JE only
+    SENDCOMMANDFEEDBACK("sendCommandFeedback", Boolean.class, true),
+    SHOWDEATHMESSAGES("showDeathMessages", Boolean.class, true),
+    SHOWTAGS("showTags", Boolean.class, true), // JE only
+    SPAWNRADIUS("spawnRadius", Integer.class, 10),
+    SPECTATORSGENERATECHUNKS("spectatorsGenerateChunks", Boolean.class, true), // JE only
+    UNIVERSALANGER("universalAnger", Boolean.class, false), // JE only
 
-    UNKNOWN("unknown", Boolean.class);
+    UNKNOWN("unknown", Object.class);
 
     private static final Gamerule[] VALUES = values();
 
@@ -77,13 +76,17 @@ public enum Gamerule {
     @Getter
     private Class<?> type;
 
+    @Getter
+    private Object defaultValue;
+
     Gamerule(String javaID, Class<?> type) {
-        this.javaID = javaID;
-        this.type = type;
+        this(javaID, type, null);
     }
 
-    public String getBedrockID() {
-        return this.name().toLowerCase();
+    Gamerule(String javaID, Class<?> type, Object defaultValue) {
+        this.javaID = javaID;
+        this.type = type;
+        this.defaultValue = defaultValue;
     }
 
     public Object convertValue(String value) {
@@ -99,16 +102,6 @@ public enum Gamerule {
     public static Gamerule fromJavaID(String id) {
         for (Gamerule gamerule : VALUES) {
             if (gamerule.javaID.equals(id)) {
-                return gamerule;
-            }
-        }
-
-        return UNKNOWN;
-    }
-
-    public static Gamerule fromBedrockID(String id) {
-        for (Gamerule gamerule : VALUES) {
-            if (gamerule.getBedrockID().equals(id)) {
                 return gamerule;
             }
         }
