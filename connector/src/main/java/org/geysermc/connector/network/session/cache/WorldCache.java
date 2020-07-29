@@ -62,6 +62,11 @@ public class WorldCache {
         }
     }
 
+    /**
+     * Tell the client to hide or show the coordinates
+     *
+     * @param value True to show, false to hide
+     */
     public void setShowCoordinates(boolean value) {
         showCoordinates = value;
         session.sendGameRule("showcoordinates", value);

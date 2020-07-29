@@ -628,28 +628,44 @@ public class GeyserSession implements CommandSender {
         }
     }
 
+    /**
+     * Update the cached value for the reduced debug info game rule
+     * this also toggles the coordinates display
+     *
+     * @param value The new value for reducedDebugInfo
+     */
     public void setReducedDebugInfo(boolean value) {
         worldCache.setShowCoordinates(!value);
         reducedDebugInfo = value;
     }
 
+    /**
+     * Send a game rule value to the client
+     *
+     * @param gameRule The game rule to send
+     * @param value The value of the game rule
+     */
     public void sendGameRule(String gameRule, Object value) {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
         gameRulesChangedPacket.getGameRules().add(new GameRuleData<>(gameRule, value));
         upstream.sendPacket(gameRulesChangedPacket);
     }
 
+    /**
+     * @see org.geysermc.connector.network.translators.world.WorldManager#hasPermission(GeyserSession, String)
+     */
     public Boolean hasPermission(String permission) {
         return connector.getWorldManager().hasPermission(this, permission);
     }
 
-
-
+    /**
+     * Send an AdventureSettingsPacket to the client with the latest flags
+     */
     public void sendAdventureSettings() {
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
         adventureSettingsPacket.setUniqueEntityId(playerEntity.getGeyserId());
-        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
         adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
+        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
 
         Set<AdventureSetting> flags = new HashSet<>();
         if (canFly) {

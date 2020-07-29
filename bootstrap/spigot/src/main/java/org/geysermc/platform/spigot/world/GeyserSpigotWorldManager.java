@@ -27,15 +27,13 @@
 package org.geysermc.platform.spigot.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
-import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.utils.Gamerule;
+import org.geysermc.connector.utils.GameRule;
 import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
 import us.myles.ViaVersion.protocols.protocol1_16to1_15_2.data.MappingData;
 
@@ -81,13 +79,13 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public Boolean getGameRuleBool(GeyserSession session, Gamerule gamerule) {
-        return Boolean.parseBoolean(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gamerule.getJavaID()));
+    public Boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
+        return Boolean.parseBoolean(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID()));
     }
 
     @Override
-    public int getGameRuleInt(GeyserSession session, Gamerule gamerule) {
-        return Integer.parseInt(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gamerule.getJavaID()));
+    public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
+        return Integer.parseInt(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID()));
     }
 
     @Override

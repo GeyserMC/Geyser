@@ -42,8 +42,14 @@ import java.util.ArrayList;
 
 public class SettingsUtils {
 
+    // Used in UpstreamPacketHandler.java
     public static final int SETTINGS_FORM_ID = 1338;
 
+    /**
+     * Build a settings form for the given session and store it for later
+     *
+     * @param session The session to build the form for
+     */
     public static void buildForm(GeyserSession session) {
         CustomFormBuilder builder = new CustomFormBuilder("Settings");
         builder.setIcon(new FormImage(FormImage.FormImageType.PATH, "textures/ui/settings_glyph_color_2x.png"));
@@ -74,8 +80,8 @@ public class SettingsUtils {
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
             builder.addComponent(new LabelComponent("Game rules"));
-            for (Gamerule gamerule : Gamerule.values()) {
-                if (gamerule.equals(Gamerule.UNKNOWN)) {
+            for (GameRule gamerule : GameRule.values()) {
+                if (gamerule.equals(GameRule.UNKNOWN)) {
                     continue;
                 }
 
@@ -90,6 +96,13 @@ public class SettingsUtils {
         session.setSettingsForm(builder.build());
     }
 
+    /**
+     * Handle the settings form response
+     *
+     * @param session The session that sent the response
+     * @param response The response string to parse
+     * @return True if the form was parsed correctly, false if not
+     */
     public static boolean handleSettingsForm(GeyserSession session, String response) {
         CustomFormWindow settingsForm = session.getSettingsForm();
         settingsForm.setResponse(response);
@@ -121,8 +134,8 @@ public class SettingsUtils {
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
             offset++; // Game rule title
 
-            for (Gamerule gamerule : Gamerule.values()) {
-                if (gamerule.equals(Gamerule.UNKNOWN)) {
+            for (GameRule gamerule : GameRule.values()) {
+                if (gamerule.equals(GameRule.UNKNOWN)) {
                     continue;
                 }
 

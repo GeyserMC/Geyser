@@ -90,6 +90,7 @@ public class SkinUtils {
                 ImageData.of(capeData), geometryData, "", true, false, !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, uuid.toString()
         );
 
+        // This attempts to find the xuid of the player so profile images show up for xbox accounts
         String xuid = "";
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
             if (session.getPlayerEntity().getUuid().equals(uuid)) {

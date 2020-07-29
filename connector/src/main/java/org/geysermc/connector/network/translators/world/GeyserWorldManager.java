@@ -33,7 +33,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.Gamerule;
+import org.geysermc.connector.utils.GameRule;
 
 public class GeyserWorldManager extends WorldManager {
 
@@ -51,28 +51,23 @@ public class GeyserWorldManager extends WorldManager {
     }
 
     @Override
-    public Boolean getGameRuleBool(GeyserSession session, Gamerule gamerule) {
-        String value = gameruleCache.get(gamerule.getJavaID());
+    public Boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
+        String value = gameruleCache.get(gameRule.getJavaID());
         if (value != null) {
             return Boolean.parseBoolean(value);
         }
 
-        return gamerule.getDefaultValue() != null ? (Boolean) gamerule.getDefaultValue() : false;
+        return gameRule.getDefaultValue() != null ? (Boolean) gameRule.getDefaultValue() : false;
     }
 
     @Override
-    public int getGameRuleInt(GeyserSession session, Gamerule gamerule) {
-        String value = gameruleCache.get(gamerule.getJavaID());
+    public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
+        String value = gameruleCache.get(gameRule.getJavaID());
         if (value != null) {
             return Integer.parseInt(value);
         }
 
-        return gamerule.getDefaultValue() != null ? (int) gamerule.getDefaultValue() : 0;
-    }
-
-    @Override
-    public GameMode getDefaultGameMode(GeyserSession session) {
-        return GameMode.SURVIVAL;
+        return gameRule.getDefaultValue() != null ? (int) gameRule.getDefaultValue() : 0;
     }
 
     @Override

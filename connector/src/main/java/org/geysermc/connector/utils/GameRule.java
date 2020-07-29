@@ -27,10 +27,7 @@ package org.geysermc.connector.utils;
 
 import lombok.Getter;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-public enum Gamerule {
+public enum GameRule {
     ANNOUNCEADVANCEMENTS("announceAdvancements", Boolean.class, true), // JE only
     COMMANDBLOCKOUTPUT("commandBlockOutput", Boolean.class, true),
     DISABLEELYTRAMOVEMENTCHECK("disableElytraMovementCheck", Boolean.class, false), // JE only
@@ -61,14 +58,13 @@ public enum Gamerule {
     REDUCEDDEBUGINFO("reducedDebugInfo", Boolean.class, false), // JE only
     SENDCOMMANDFEEDBACK("sendCommandFeedback", Boolean.class, true),
     SHOWDEATHMESSAGES("showDeathMessages", Boolean.class, true),
-    SHOWTAGS("showTags", Boolean.class, true), // JE only
     SPAWNRADIUS("spawnRadius", Integer.class, 10),
     SPECTATORSGENERATECHUNKS("spectatorsGenerateChunks", Boolean.class, true), // JE only
     UNIVERSALANGER("universalAnger", Boolean.class, false), // JE only
 
     UNKNOWN("unknown", Object.class);
 
-    private static final Gamerule[] VALUES = values();
+    private static final GameRule[] VALUES = values();
 
     @Getter
     private String javaID;
@@ -79,16 +75,22 @@ public enum Gamerule {
     @Getter
     private Object defaultValue;
 
-    Gamerule(String javaID, Class<?> type) {
+    GameRule(String javaID, Class<?> type) {
         this(javaID, type, null);
     }
 
-    Gamerule(String javaID, Class<?> type, Object defaultValue) {
+    GameRule(String javaID, Class<?> type, Object defaultValue) {
         this.javaID = javaID;
         this.type = type;
         this.defaultValue = defaultValue;
     }
 
+    /**
+     * Convert a string to an object of the correct type for the current game rule
+     *
+     * @param value The string value to convert
+     * @return The converted and formatted value
+     */
     public Object convertValue(String value) {
         if (type.equals(Boolean.class)) {
             return Boolean.parseBoolean(value);
@@ -99,8 +101,14 @@ public enum Gamerule {
         return null;
     }
 
-    public static Gamerule fromJavaID(String id) {
-        for (Gamerule gamerule : VALUES) {
+    /**
+     * Fetch a game rule by the given Java ID
+     *
+     * @param id The ID of the game rule
+     * @return A {@link GameRule} object representing the requested ID or {@link GameRule.UNKNOWN}
+     */
+    public static GameRule fromJavaID(String id) {
+        for (GameRule gamerule : VALUES) {
             if (gamerule.javaID.equals(id)) {
                 return gamerule;
             }
