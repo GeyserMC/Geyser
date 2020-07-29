@@ -52,7 +52,7 @@ public class SettingsUtils {
         builder.addComponent(new ToggleComponent("Show Coordinates", session.getWorldCache().isShowCoordinates()));
 
 
-        if (session.getPlayerEntity().getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
+        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
             builder.addComponent(new LabelComponent("Server settings"));
 
             DropdownComponent gamemodeDropdown = new DropdownComponent();
@@ -72,7 +72,7 @@ public class SettingsUtils {
             builder.addComponent(difficultyDropdown);
         }
 
-        if (session.getPlayerEntity().getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
+        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
             builder.addComponent(new LabelComponent("Game rules"));
             for (Gamerule gamerule : Gamerule.values()) {
                 if (gamerule.equals(Gamerule.UNKNOWN)) {
@@ -102,7 +102,7 @@ public class SettingsUtils {
         session.getWorldCache().setShowCoordinates(settingsResponse.getToggleResponses().get(offset));
         offset++;
 
-        if (session.getPlayerEntity().getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
+        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
             offset++; // Server settings title
 
             GameMode gameMode = GameMode.values()[settingsResponse.getDropdownResponses().get(offset).getElementID()];
@@ -118,7 +118,7 @@ public class SettingsUtils {
             offset++;
         }
 
-        if (session.getPlayerEntity().getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
+        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
             offset++; // Game rule title
 
             for (Gamerule gamerule : Gamerule.values()) {

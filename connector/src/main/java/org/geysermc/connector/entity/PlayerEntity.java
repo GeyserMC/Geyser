@@ -65,12 +65,6 @@ public class PlayerEntity extends LivingEntity {
     private Entity leftParrot;
     private Entity rightParrot;
 
-    private int opPermissionLevel = 0;
-    private boolean canFly = false;
-    private boolean flying = false;
-    private boolean noClip = false;
-    private boolean worldImmutable = false;
-
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
 
@@ -116,35 +110,6 @@ public class PlayerEntity extends LivingEntity {
 
         updateEquipment(session);
         updateBedrockAttributes(session);
-    }
-
-    public void sendAdventureSettings(GeyserSession session) {
-        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-        adventureSettingsPacket.setUniqueEntityId(geyserId);
-        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
-        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
-
-        Set<AdventureSetting> flags = new HashSet<>();
-        if (canFly) {
-            flags.add(AdventureSetting.MAY_FLY);
-        }
-
-        if (flying) {
-            flags.add(AdventureSetting.FLYING);
-        }
-
-        if (worldImmutable) {
-            flags.add(AdventureSetting.WORLD_IMMUTABLE);
-        }
-
-        if (noClip) {
-            flags.add(AdventureSetting.NO_CLIP);
-        }
-
-        flags.add(AdventureSetting.AUTO_JUMP);
-
-        adventureSettingsPacket.getSettings().addAll(flags);
-        session.getUpstream().sendPacket(adventureSettingsPacket);
     }
 
     public void sendPlayer(GeyserSession session) {

@@ -48,8 +48,8 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
         if (entity == null)
             return;
 
-        entity.setCanFly(packet.isCanFly());
-        entity.setFlying(packet.isFlying());
-        entity.sendAdventureSettings(session);
+        session.setCanFly(packet.isCanFly());
+        session.setFlying(packet.isFlying());
+        session.sendAdventureSettings();
     }
 }

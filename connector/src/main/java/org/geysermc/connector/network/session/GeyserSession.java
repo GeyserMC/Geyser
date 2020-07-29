@@ -46,6 +46,7 @@ import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
@@ -80,9 +81,7 @@ import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -196,6 +195,18 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private CustomFormWindow settingsForm;
+
+    // These are used in adventure settings
+    @Setter
+    private int opPermissionLevel = 0;
+    @Setter
+    private boolean canFly = false;
+    @Setter
+    private boolean flying = false;
+    @Setter
+    private boolean noClip = false;
+    @Setter
+    private boolean worldImmutable = false;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
@@ -630,5 +641,36 @@ public class GeyserSession implements CommandSender {
 
     public Boolean hasPermission(String permission) {
         return connector.getWorldManager().hasPermission(this, permission);
+    }
+
+
+
+    public void sendAdventureSettings() {
+        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+        adventureSettingsPacket.setUniqueEntityId(playerEntity.getGeyserId());
+        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
+        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
+
+        Set<AdventureSetting> flags = new HashSet<>();
+        if (canFly) {
+            flags.add(AdventureSetting.MAY_FLY);
+        }
+
+        if (flying) {
+            flags.add(AdventureSetting.FLYING);
+        }
+
+        if (worldImmutable) {
+            flags.add(AdventureSetting.WORLD_IMMUTABLE);
+        }
+
+        if (noClip) {
+            flags.add(AdventureSetting.NO_CLIP);
+        }
+
+        flags.add(AdventureSetting.AUTO_JUMP);
+
+        adventureSettingsPacket.getSettings().addAll(flags);
+        sendUpstreamPacket(adventureSettingsPacket);
     }
 }

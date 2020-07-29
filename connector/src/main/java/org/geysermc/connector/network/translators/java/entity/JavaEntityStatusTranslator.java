@@ -57,24 +57,24 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 session.setReducedDebugInfo(false);
                 return;
             case PLAYER_OP_PERMISSION_LEVEL_0:
-                ((PlayerEntity) entity).setOpPermissionLevel(0);
-                ((PlayerEntity) entity).sendAdventureSettings(session);
+                session.setOpPermissionLevel(0);
+                session.sendAdventureSettings();
                 return;
             case PLAYER_OP_PERMISSION_LEVEL_1:
-                ((PlayerEntity) entity).setOpPermissionLevel(1);
-                ((PlayerEntity) entity).sendAdventureSettings(session);
+                session.setOpPermissionLevel(1);
+                session.sendAdventureSettings();
                 return;
             case PLAYER_OP_PERMISSION_LEVEL_2:
-                ((PlayerEntity) entity).setOpPermissionLevel(2);
-                ((PlayerEntity) entity).sendAdventureSettings(session);
+                session.setOpPermissionLevel(2);
+                session.sendAdventureSettings();
                 return;
             case PLAYER_OP_PERMISSION_LEVEL_3:
-                ((PlayerEntity) entity).setOpPermissionLevel(3);
-                ((PlayerEntity) entity).sendAdventureSettings(session);
+                session.setOpPermissionLevel(3);
+                session.sendAdventureSettings();
                 return;
             case PLAYER_OP_PERMISSION_LEVEL_4:
-                ((PlayerEntity) entity).setOpPermissionLevel(4);
-                ((PlayerEntity) entity).sendAdventureSettings(session);
+                session.setOpPermissionLevel(4);
+                session.sendAdventureSettings();
                 return;
 
             // EntityEventType.HURT sends extra data depending on the type of damage. However this appears to have no visual changes
