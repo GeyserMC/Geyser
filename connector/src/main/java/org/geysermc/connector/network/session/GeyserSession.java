@@ -327,6 +327,7 @@ public class GeyserSession implements CommandSender {
                                         authData.getXboxUUID(),
                                         clientData.getDeviceOS().ordinal(),
                                         clientData.getLanguageCode(),
+                                        clientData.getUiProfile().ordinal(),
                                         clientData.getCurrentInputMode().ordinal(),
                                         upstream.getSession().getAddress().getAddress().getHostAddress()
                                 ));

@@ -12,7 +12,11 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-public class EncryptionUtil {
+/**
+ * The class which contains all the encryption and decryption method used in Geyser and Floodgate
+ * (for Floodgate data). This is only used internally and doesn't serve a purpose for anything else
+ */
+public final class EncryptionUtil {
     public static String encrypt(Key key, String data) throws IllegalBlockSizeException,
             InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
         KeyGenerator generator = KeyGenerator.getInstance("AES");

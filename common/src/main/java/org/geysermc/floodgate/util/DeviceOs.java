@@ -26,9 +26,14 @@
 package org.geysermc.floodgate.util;
 
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
-public enum DeviceOS {
-
+/**
+ * The Operation Systems where Bedrock players can connect with
+ */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public enum DeviceOs {
     @JsonEnumDefaultValue
     UNKNOWN("Unknown"),
     ANDROID("Android"),
@@ -46,15 +51,16 @@ public enum DeviceOS {
     XBOX_ONE("Xbox One"),
     WIN_PHONE("Windows Phone");
 
-    private static final DeviceOS[] VALUES = values();
+    private static final DeviceOs[] VALUES = values();
 
     private final String displayName;
 
-    DeviceOS(final String displayName) {
-        this.displayName = displayName;
-    }
-
-    public static DeviceOS getById(int id) {
+    /**
+     * Get the DeviceOs instance from the identifier.
+     * @param id the DeviceOs identifier
+     * @return The DeviceOs or {@link #UNKNOWN} if the DeviceOs wasn't found
+     */
+    public static DeviceOs getById(int id) {
         return id < VALUES.length ? VALUES[id] : VALUES[0];
     }
 
