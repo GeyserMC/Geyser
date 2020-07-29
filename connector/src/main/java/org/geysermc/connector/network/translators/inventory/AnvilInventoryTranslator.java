@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.google.gson.JsonSyntaxException;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import net.kyori.adventure.text.Component;
@@ -80,7 +81,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public boolean isOutput(InventoryActionData action) {
-        return action.getSlot() == 50;
+        return action.getSource().getContainerId() == ContainerId.ANVIL_RESULT;
     }
 
     @Override
@@ -94,8 +95,12 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                     CompoundTag displayTag = tag.get("display");
                     if (displayTag != null && displayTag.contains("Name")) {
                         String itemName = displayTag.get("Name").getValue().toString();
-                        Component component = GsonComponentSerializer.gson().deserialize(itemName);
-                        rename = LegacyComponentSerializer.legacySection().serialize(component);
+                        try {
+                            Component component = GsonComponentSerializer.gson().deserialize(itemName);
+                            rename = LegacyComponentSerializer.legacySection().serialize(component);
+                        } catch (JsonSyntaxException e) {
+                            rename = itemName;
+                        }
                     } else {
                         rename = "";
                     }
@@ -111,10 +116,14 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        // Ignore these packets
-        if (actions.stream().anyMatch(a -> a.getSource().getContainerId() == ContainerId.ANVIL_RESULT
-                || a.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL)) {
-            return;
+        // Fix up Results
+        if (actions.stream().anyMatch(a -> a.getSource().getContainerId() == ContainerId.ANVIL_RESULT)) {
+            actions = actions.stream()
+                    .filter(a -> {
+                        return (a.getSource().getContainerId() != ContainerId.UI
+                                && a.getSource().getContainerId() != ContainerId.CONTAINER_INPUT);
+                    })
+                    .collect(Collectors.toList());
         }
 
         super.translateActions(session, inventory, actions);
@@ -125,9 +134,20 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
         // If from is the output we add a rename packet
         if (isOutput(from.action)) {
             transaction.add(new Execute(() -> {
+                String rename;
                 ItemData item = from.action.getFromItem();
                 NbtMap tag = item.getTag();
-                String rename = tag != null ? tag.getCompound("display").getString("Name") : "";
+                if (tag != null) {
+                    String name = tag.getCompound("display").getString("Name");
+                    try {
+                        Component component = GsonComponentSerializer.gson().deserialize(name);
+                        rename = LegacyComponentSerializer.legacySection().serialize(component);
+                    } catch (JsonSyntaxException e) {
+                        rename = name;
+                    }
+                } else {
+                    rename = "";
+                }
                 ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
                 transaction.getSession().sendDownstreamPacket(renameItemPacket);
             }));
