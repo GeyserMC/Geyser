@@ -85,6 +85,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                     playerFlags.add(AdventureSetting.MAY_FLY);
                     playerFlags.add(AdventureSetting.NO_CLIP);
                     playerFlags.add(AdventureSetting.FLYING);
+                    playerFlags.add(AdventureSetting.WORLD_IMMUTABLE);
                     gameMode = GameMode.CREATIVE; // spectator doesnt exist on bedrock
                 }
 
