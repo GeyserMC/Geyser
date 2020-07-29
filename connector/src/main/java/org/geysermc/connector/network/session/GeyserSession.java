@@ -120,7 +120,13 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private Vector2i lastChunkPosition = null;
-    private int renderDistance;
+
+    // This is used to store the render distance sent by the Java server so we can use it to update the client accordingly
+    private int serverRenderDistance;
+
+    // This is the bedrock client equivalent of the above `serverRenderDistance`
+    @Setter
+    private int clientRenderDistance;
 
     private boolean loggedIn;
     private boolean loggingIn;
@@ -487,14 +493,23 @@ public class GeyserSession implements CommandSender {
         windowCache.showWindow(window, id);
     }
 
-    public void setRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
-        if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
-        this.renderDistance = renderDistance;
+    public void setServerRenderDistance(int serverRenderDistance) {
+        serverRenderDistance = GenericMath.ceil(++serverRenderDistance * MathUtils.SQRT_OF_TWO); //square to circle
+        if (serverRenderDistance > 32) serverRenderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
+        this.serverRenderDistance = serverRenderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
-        chunkRadiusUpdatedPacket.setRadius(renderDistance);
+        chunkRadiusUpdatedPacket.setRadius(getRenderDistance());
         upstream.sendPacket(chunkRadiusUpdatedPacket);
+    }
+
+    /**
+     * This returns the smallest render distance between the server or client
+     *
+     * @return The render distance as an int
+     */
+    public int getRenderDistance() {
+        return Math.min(clientRenderDistance, serverRenderDistance);
     }
 
     public InetSocketAddress getSocketAddress() {
