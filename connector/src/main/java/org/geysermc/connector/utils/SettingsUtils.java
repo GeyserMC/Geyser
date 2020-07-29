@@ -51,21 +51,24 @@ public class SettingsUtils {
      * @param session The session to build the form for
      */
     public static void buildForm(GeyserSession session) {
-        CustomFormBuilder builder = new CustomFormBuilder("Settings");
+        // Cache the language for cleaner access
+        String language = session.getClientData().getLanguageCode();
+
+        CustomFormBuilder builder = new CustomFormBuilder(LanguageUtils.getPlayerLocaleString("geyser.settings.title.main", language));
         builder.setIcon(new FormImage(FormImage.FormImageType.PATH, "textures/ui/settings_glyph_color_2x.png"));
 
-        builder.addComponent(new LabelComponent("Client settings"));
-        builder.addComponent(new ToggleComponent("Show Coordinates", session.getWorldCache().isShowCoordinates()));
+        builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.client", language)));
+        builder.addComponent(new ToggleComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.option.coordinates", language, session.getWorldCache().isShowCoordinates())));
 
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
-            builder.addComponent(new LabelComponent("Server settings"));
+            builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.server", language)));
 
             DropdownComponent gamemodeDropdown = new DropdownComponent();
             gamemodeDropdown.setText("%createWorldScreen.gameMode.personal");
             gamemodeDropdown.setOptions(new ArrayList<>());
             for (GameMode gamemode : GameMode.values()) {
-                gamemodeDropdown.addOption(LocaleUtils.getLocaleString("selectWorld.gameMode." + gamemode.name().toLowerCase(), session.getClientData().getLanguageCode()), session.getGameMode() == gamemode);
+                gamemodeDropdown.addOption(LocaleUtils.getLocaleString("selectWorld.gameMode." + gamemode.name().toLowerCase(), language), session.getGameMode() == gamemode);
             }
             builder.addComponent(gamemodeDropdown);
 
@@ -79,16 +82,16 @@ public class SettingsUtils {
         }
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
-            builder.addComponent(new LabelComponent("Game rules"));
+            builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.game_rules", language)));
             for (GameRule gamerule : GameRule.values()) {
                 if (gamerule.equals(GameRule.UNKNOWN)) {
                     continue;
                 }
 
                 if (Boolean.class.equals(gamerule.getType())) {
-                    builder.addComponent(new ToggleComponent(LocaleUtils.getLocaleString("gamerule." + gamerule.getJavaID(), session.getClientData().getLanguageCode()), GeyserConnector.getInstance().getWorldManager().getGameRuleBool(session, gamerule)));
+                    builder.addComponent(new ToggleComponent(LocaleUtils.getLocaleString("gamerule." + gamerule.getJavaID(), language), GeyserConnector.getInstance().getWorldManager().getGameRuleBool(session, gamerule)));
                 } else if (Integer.class.equals(gamerule.getType())) {
-                    builder.addComponent(new InputComponent(LocaleUtils.getLocaleString("gamerule." + gamerule.getJavaID(), session.getClientData().getLanguageCode()), "", String.valueOf(GeyserConnector.getInstance().getWorldManager().getGameRuleInt(session, gamerule))));
+                    builder.addComponent(new InputComponent(LocaleUtils.getLocaleString("gamerule." + gamerule.getJavaID(), language), "", String.valueOf(GeyserConnector.getInstance().getWorldManager().getGameRuleInt(session, gamerule))));
                 }
             }
         }
