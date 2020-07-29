@@ -76,28 +76,28 @@ public abstract class WorldManager {
     public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
 
     /**
-     * Updates a game rule value on the Java server
+     * Updates a gamerule value on the Java server
      *
      * @param session The session of the user that requested the change
-     * @param name The game rule to change
-     * @param value The new value for the game rule
+     * @param name The gamerule to change
+     * @param value The new value for the gamerule
      */
     public abstract void setGameRule(GeyserSession session, String name, Object value);
 
     /**
-     * Get a game rule value as a boolean
+     * Get a gamerule value as a boolean
      *
      * @param session The session of the user that requested the value
-     * @param gameRule The game rule to fetch the value of
+     * @param gameRule The gamerule to fetch the value of
      * @return The boolean representation of the value
      */
     public abstract Boolean getGameRuleBool(GeyserSession session, GameRule gameRule);
 
     /**
-     * Get a game rule value as an integer
+     * Get a gamerule value as an integer
      *
      * @param session The session of the user that requested the value
-     * @param gameRule The game rule to fetch the value of
+     * @param gameRule The gamerule to fetch the value of
      * @return The integer representation of the value
      */
     public abstract int getGameRuleInt(GeyserSession session, GameRule gameRule);
@@ -119,7 +119,7 @@ public abstract class WorldManager {
     public abstract void setDifficulty(GeyserSession session, Difficulty difficulty);
 
     /**
-     * Checks if the given sessions player has a permission
+     * Checks if the given session's player has a permission
      *
      * @param session The session of the player to check the permission of
      * @param permission The permission node to check

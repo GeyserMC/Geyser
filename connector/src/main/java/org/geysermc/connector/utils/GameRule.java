@@ -27,6 +27,10 @@ package org.geysermc.connector.utils;
 
 import lombok.Getter;
 
+/**
+ * This enum stores each gamerule along with the value type and the default.
+ * It is used to construct the list for the settings menu
+ */
 public enum GameRule {
     ANNOUNCEADVANCEMENTS("announceAdvancements", Boolean.class, true), // JE only
     COMMANDBLOCKOUTPUT("commandBlockOutput", Boolean.class, true),
@@ -86,7 +90,7 @@ public enum GameRule {
     }
 
     /**
-     * Convert a string to an object of the correct type for the current game rule
+     * Convert a string to an object of the correct type for the current gamerule
      *
      * @param value The string value to convert
      * @return The converted and formatted value
@@ -104,7 +108,7 @@ public enum GameRule {
     /**
      * Fetch a game rule by the given Java ID
      *
-     * @param id The ID of the game rule
+     * @param id The ID of the gamerule
      * @return A {@link GameRule} object representing the requested ID or {@link GameRule.UNKNOWN}
      */
     public static GameRule fromJavaID(String id) {

@@ -88,6 +88,7 @@ public class SettingsUtils {
                     continue;
                 }
 
+                // Add the relevant form item based on the gamerule type
                 if (Boolean.class.equals(gamerule.getType())) {
                     builder.addComponent(new ToggleComponent(LocaleUtils.getLocaleString("gamerule." + gamerule.getJavaID(), language), GeyserConnector.getInstance().getWorldManager().getGameRuleBool(session, gamerule)));
                 } else if (Integer.class.equals(gamerule.getType())) {

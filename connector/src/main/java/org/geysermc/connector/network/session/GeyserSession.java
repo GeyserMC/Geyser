@@ -196,15 +196,23 @@ public class GeyserSession implements CommandSender {
     @Setter
     private CustomFormWindow settingsForm;
 
-    // These are used in adventure settings
+    // The op permission level set by the server
     @Setter
     private int opPermissionLevel = 0;
+
+    // If the current player can fly
     @Setter
     private boolean canFly = false;
+
+    // If the current player is flying
     @Setter
     private boolean flying = false;
+
+    // If the current player is in noclip
     @Setter
     private boolean noClip = false;
+
+    // If the current player can not interact with the world
     @Setter
     private boolean worldImmutable = false;
 
@@ -629,8 +637,8 @@ public class GeyserSession implements CommandSender {
     }
 
     /**
-     * Update the cached value for the reduced debug info game rule
-     * this also toggles the coordinates display
+     * Update the cached value for the reduced debug info gamerule.
+     * This also toggles the coordinates display
      *
      * @param value The new value for reducedDebugInfo
      */
@@ -640,10 +648,10 @@ public class GeyserSession implements CommandSender {
     }
 
     /**
-     * Send a game rule value to the client
+     * Send a gamerule value to the client
      *
-     * @param gameRule The game rule to send
-     * @param value The value of the game rule
+     * @param gameRule The gamerule to send
+     * @param value The value of the gamerule
      */
     public void sendGameRule(String gameRule, Object value) {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
