@@ -62,7 +62,7 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.event.EventManager;
-import org.geysermc.connector.event.events.geyser.GeyserAuthenticationEvent;
+import org.geysermc.connector.event.EventResult;
 import org.geysermc.connector.event.events.geyser.GeyserLoginEvent;
 import org.geysermc.connector.event.events.network.SessionConnectEvent;
 import org.geysermc.connector.event.events.network.SessionDisconnectEvent;
@@ -221,12 +221,11 @@ public class GeyserSession implements CommandSender {
 
         this.inventoryCache.getInventories().put(0, inventory);
 
-        if (EventManager.getInstance().triggerEvent(new SessionConnectEvent(this)).isCancelled()) {
-            disconnect("");
-        }
+        EventManager.getInstance().triggerEvent(new SessionConnectEvent(this, "Disconnected by Server")) // TODO: @translate
+                .onCancelled(result -> disconnect(result.getEvent().getMessage()));
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
-            EventManager.getInstance().triggerEvent(new SessionDisconnectEvent(this));
+            EventManager.getInstance().triggerEvent(new SessionDisconnectEvent(this, disconnectReason));
 
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
 
@@ -298,10 +297,6 @@ public class GeyserSession implements CommandSender {
     }
 
     public void authenticate(String username, String password) {
-        if (EventManager.getInstance().triggerEvent(new GeyserAuthenticationEvent(this, username, password)).isCancelled()) {
-            return;
-        }
-
         if (loggedIn) {
             connector.getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.auth.already_loggedin", username));
             return;
@@ -422,8 +417,9 @@ public class GeyserSession implements CommandSender {
                                 lastDimPacket = event.getPacket();
                                 return;
                             } else if (lastDimPacket != null) {
-                                if (!EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, event.getPacket())).isCancelled()) {
-                                    PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
+                                EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, lastDimPacket));
+                                if (!result.isCancelled()) {
+                                    PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), GeyserSession.this);
                                 }
                                 lastDimPacket = null;
                             }
@@ -439,8 +435,9 @@ public class GeyserSession implements CommandSender {
                                     SkinUtils.handleBedrockSkin(playerEntity, clientData);
                                 }
                             }
-                            if (!EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, event.getPacket())).isCancelled()) {
-                                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                            EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, event.getPacket()));
+                            if (!result.isCancelled()) {
+                                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), GeyserSession.this);
                             }
                         }
                     }
@@ -612,13 +609,14 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
-        if (!EventManager.getInstance().triggerEvent(UpstreamPacketSendEvent.of(this, packet)).isCancelled()) {
-            if (upstream != null && !upstream.isClosed()) {
-                upstream.sendPacket(packet);
-            } else {
-                connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
-            }
-        }
+        EventManager.getInstance().triggerEvent(UpstreamPacketSendEvent.of(this, packet))
+                .onNotCancelled(result -> {
+                    if (upstream != null && !upstream.isClosed()) {
+                        upstream.sendPacket(result.getEvent().getPacket());
+                    } else {
+                        connector.getLogger().debug("Tried to send upstream packet " + result.getEvent().getPacket().getClass().getSimpleName() + " but the session was null");
+                    }
+                });
     }
 
     /**
@@ -627,13 +625,14 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
-        if (!EventManager.getInstance().triggerEvent(UpstreamPacketSendEvent.of(this, packet)).isCancelled()) {
-            if (upstream != null && !upstream.isClosed()) {
-                upstream.sendPacketImmediately(packet);
-            } else {
-                connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
-            }
-        }
+        EventManager.getInstance().triggerEvent(UpstreamPacketSendEvent.of(this, packet))
+                .onNotCancelled(result -> {
+                    if (upstream != null && !upstream.isClosed()) {
+                        upstream.sendPacketImmediately(result.getEvent().getPacket());
+                    } else {
+                        connector.getLogger().debug("Tried to send upstream packet " + result.getEvent().getPacket().getClass().getSimpleName() + " immediately but the session was null");
+                    }
+                });
     }
 
     /**
@@ -642,13 +641,14 @@ public class GeyserSession implements CommandSender {
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamPacket(Packet packet) {
-        if (!EventManager.getInstance().triggerEvent(DownstreamPacketSendEvent.of(this, packet)).isCancelled()) {
-            if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
-                downstream.getSession().send(packet);
-            } else {
-                connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
-            }
-        }
+        EventManager.getInstance().triggerEvent(DownstreamPacketSendEvent.of(this, packet))
+                .onNotCancelled(result -> {
+                    if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
+                        downstream.getSession().send(result.getEvent().getPacket());
+                    } else {
+                        connector.getLogger().debug("Tried to send downstream packet " + result.getEvent().getPacket().getClass().getSimpleName() + " before connected to the server");
+                    }
+                });
     }
 
     /**

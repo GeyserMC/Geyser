@@ -29,6 +29,9 @@ package org.geysermc.connector.plugin;
 import lombok.Getter;
 import lombok.ToString;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.plugin.PluginDisableEvent;
+import org.geysermc.connector.event.events.plugin.PluginEnableEvent;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -85,7 +88,7 @@ public class PluginManager {
             throw new FileNotFoundException(String.format("%s does not exist", pluginFile.getName()));
         }
 
-        PluginClassLoader loader = null;
+        PluginClassLoader loader;
         try {
             loader = new PluginClassLoader(this, getClass().getClassLoader(), pluginFile);
         } catch (PluginClassLoader.InvalidPluginClassLoaderException e) {
@@ -112,6 +115,8 @@ public class PluginManager {
      */
     public void enablePlugins() {
         for (GeyserPlugin plugin : plugins) {
+            connector.getLogger().info(String.format("Enabling %s v%s", plugin.getName(), plugin.getVersion()));
+            EventManager.getInstance().triggerEvent(new PluginEnableEvent(plugin));
             plugin.enable();
         }
     }
@@ -121,10 +126,13 @@ public class PluginManager {
      */
     public void disablePlugins() {
         for (GeyserPlugin plugin : plugins) {
+            connector.getLogger().info(String.format("Disabling %s v%s", plugin.getName(), plugin.getVersion()));
+            EventManager.getInstance().triggerEvent(new PluginDisableEvent(plugin));
             plugin.disable();
         }
     }
 
+    @SuppressWarnings("unused")
     public static class PluginManagerException extends Exception {
 
         public PluginManagerException(String message, Throwable ex) {

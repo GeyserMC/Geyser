@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.registry.PacketTranslatorRegistryEvent;
@@ -41,13 +42,14 @@ import org.reflections.Reflections;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public class PacketTranslatorRegistry<T> {
     private final Map<Class<? extends T>, PacketTranslator<? extends T>> translators = new HashMap<>();
 
     public static final PacketTranslatorRegistry<Packet> JAVA_TRANSLATOR = new PacketTranslatorRegistry<>();
     public static final PacketTranslatorRegistry<BedrockPacket> BEDROCK_TRANSLATOR = new PacketTranslatorRegistry<>();
 
-    private static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
+    public static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
 
     static {
         PacketTranslatorRegistryEvent event = EventManager.getInstance().triggerEvent(new PacketTranslatorRegistryEvent(

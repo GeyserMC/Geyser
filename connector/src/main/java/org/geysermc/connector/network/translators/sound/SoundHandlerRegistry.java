@@ -38,7 +38,7 @@ import java.util.Map;
  */
 public class SoundHandlerRegistry {
 
-    static final Map<SoundHandler, SoundInteractionHandler<?>> INTERACTION_HANDLERS = new HashMap<>();
+    public static final Map<SoundHandler, SoundInteractionHandler<?>> INTERACTION_HANDLERS = new HashMap<>();
 
     static {
         SoundHandlerRegistryEvent soundHandlerEvent = EventManager.getInstance().triggerEvent(new SoundHandlerRegistryEvent(
@@ -63,12 +63,4 @@ public class SoundHandlerRegistry {
         // no-op
     }
 
-    /**
-     * Returns a map of the interaction handlers
-     *
-     * @return a map of the interaction handlers
-     */
-    public static Map<SoundHandler, SoundInteractionHandler<?>> getInteractionHandlers() {
-        return INTERACTION_HANDLERS;
-    }
 }

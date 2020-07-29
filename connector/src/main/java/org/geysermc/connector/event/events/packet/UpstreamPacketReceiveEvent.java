@@ -67,7 +67,7 @@ public abstract class UpstreamPacketReceiveEvent<T extends BedrockPacket> extend
      * @param packet the packet to wrap
      * @return an instantiated class that inherits from this one
      */
-    public static <T extends BedrockPacket> UpstreamPacketReceiveEvent<T> of(GeyserSession session, T packet) {
+    public static <T extends BedrockPacket, P extends UpstreamPacketReceiveEvent<T>> P of(GeyserSession session, T packet) {
         Class<?> cls = classMap.get(packet.getClass());
         if (cls == null) {
             try {
@@ -82,7 +82,7 @@ public abstract class UpstreamPacketReceiveEvent<T extends BedrockPacket> extend
 
         try {
             //noinspection unchecked
-            return (UpstreamPacketReceiveEvent<T>) cls.getConstructor(GeyserSession.class, BedrockPacket.class).newInstance(session, packet);
+            return (P) cls.getConstructor(GeyserSession.class, BedrockPacket.class).newInstance(session, packet);
         } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             e.printStackTrace();
         }

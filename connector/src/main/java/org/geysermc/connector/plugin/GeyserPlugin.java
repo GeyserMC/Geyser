@@ -128,18 +128,18 @@ public abstract class GeyserPlugin {
 
     /**
      * Enable Plugin
+     *
+     * Override this to catch when the plugin is enabled
      */
     public void enable() {
-        logger.info(String.format("Enabling %s v%s", getName(), getVersion()));
-        getEventManager().triggerEvent(new PluginEnableEvent(this));
     }
 
     /**
      * Disable Plugin
+     *
+     * Override this to catch when the plugin is disabled
      */
     public void disable() {
-        logger.info(String.format("Disabling %s v%s", getName(), getVersion()));
-        getEventManager().triggerEvent(new PluginDisableEvent(this));
     }
 
     public GeyserConnector getConnector() {

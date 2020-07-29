@@ -27,17 +27,24 @@
 package org.geysermc.connector.event.events.registry;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 import java.util.Map;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("JavaDoc")
 public class InventoryTranslatorRegistryEvent extends GeyserEvent {
+    /**
+     * List of registered translators
+     *
+     * @param registeredTranslators set the translators
+     * @return get the translators
+     */
+    @NonNull
     Map<WindowType, InventoryTranslator> registeredTranslators;
 }
