@@ -74,11 +74,6 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public GameMode getDefaultGameMode(GeyserSession session) {
-        return GameMode.valueOf(Bukkit.getDefaultGameMode().name());
-    }
-
-    @Override
     public Boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
         return Boolean.parseBoolean(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID()));
     }
