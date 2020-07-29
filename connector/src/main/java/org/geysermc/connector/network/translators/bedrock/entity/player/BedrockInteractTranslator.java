@@ -135,12 +135,15 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 }
                 break;
             case OPEN_INVENTORY:
-                ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-                containerOpenPacket.setId((byte) 0);
-                containerOpenPacket.setType(ContainerType.INVENTORY);
-                containerOpenPacket.setUniqueEntityId(-1);
-                containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
-                session.sendUpstreamPacket(containerOpenPacket);
+                if (!session.getInventory().isOpen()) {
+                    ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
+                    containerOpenPacket.setId((byte) 0);
+                    containerOpenPacket.setType(ContainerType.INVENTORY);
+                    containerOpenPacket.setUniqueEntityId(-1);
+                    containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
+                    session.sendUpstreamPacket(containerOpenPacket);
+                    session.getInventory().setOpen(true);
+                }
                 break;
         }
     }

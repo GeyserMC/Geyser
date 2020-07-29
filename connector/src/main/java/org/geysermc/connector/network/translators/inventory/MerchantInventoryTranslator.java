@@ -60,15 +60,23 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
-        if (action.getSource().getContainerId() == ContainerId.UI) {
-            switch (action.getSlot()) {
-                case 4:
-                    return 0;
-                case 5:
-                    return 1;
-                case 50:
-                    return 2;
-            }
+        switch (action.getSource().getContainerId()) {
+            case ContainerId.UI:
+                switch (action.getSlot()) {
+                    case 4:
+                        return 0;
+                    case 5:
+                        return 1;
+                    case 50:
+                        return 2;
+                }
+                break;
+            case -28: // Trading 1?
+                return 0;
+            case -29: // Trading 2?
+                return 1;
+            case -30: // Trading Output?
+                return 2;
         }
         return super.bedrockSlotToJava(action);
     }
@@ -109,10 +117,8 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        for (InventoryActionData action : actions) {
-            if (action.getSource().getType() == InventorySource.Type.NON_IMPLEMENTED_TODO) {
-                return;
-            }
+        if (actions.stream().anyMatch(a -> a.getSource().getContainerId() == -31)) {
+            return;
         }
 
         super.translateActions(session, inventory, actions);
