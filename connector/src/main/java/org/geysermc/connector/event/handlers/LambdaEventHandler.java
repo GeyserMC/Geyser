@@ -60,11 +60,11 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
             }
         }
 
-        runnable.run(this, event);
+        runnable.run(event);
     }
 
     public interface Runnable<T extends GeyserEvent> {
-        void run(EventHandler<T> handler, T event) throws EventHandlerException;
+        void run(T event) throws EventHandlerException;
     }
 
     @Getter

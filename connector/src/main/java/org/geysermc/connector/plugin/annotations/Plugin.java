@@ -37,9 +37,18 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface Plugin {
+    // Name of Plugin
     String name();
+
+    // Version of Plugin
     String version();
+
+    // Authors of Plugin
     String[] authors();
+
+    // Short description of Plugin
     String description();
+
+    // If Plugin classes are exposed to other plugins or isolated
     boolean global() default true;
 }

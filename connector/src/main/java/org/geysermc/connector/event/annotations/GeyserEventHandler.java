@@ -45,7 +45,4 @@ public @interface GeyserEventHandler {
 
     // If ignoreCancelled is true then the handler will not be executed
     boolean ignoreCancelled() default false;
-
-    // Filters if applicable
-    Class<?>[] filter() default {};
 }

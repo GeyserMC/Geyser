@@ -2,8 +2,7 @@
 
 Geyser provides support for third party plugins which can be placed into a `plugins` folder under the Geyser data folder.
 
-Plugins provide a way to extend the features of Geyser without needing to deal with the Geyser code.  It is hoped that
-developers will be able to create plugins that would be of use to others.
+Plugins provide a way to extend the features of Geyser without needing to deal with the Geyser code. 
 
 This page describes how to write a plugin.
 
@@ -56,38 +55,32 @@ Add the following to the relevant section of your `pom.xml`
             super(pluginManager, pluginClassLoader);
         }
 
-        @Event
-        public void onEnable(PluginEnableEvent event) {
-            if (event.getPlugin() == this) {
-                System.err.println("I'm alive");
-    
-                // Register another class with event handlers
-                registerEvents(new MyAdditionalClass());
-    
-                // Example of lambda event hook
-                on(PluginDisableEvent.class, (handler, event) -> {
-                    if (event.getPlugin() == MyPlugin.this) {
-                        System.err.println("I'm also dead");
-                    }
-                })
-                    .priority(EventHandler.PRIORITY.HIGH)
-                    .build();
-            }
+        @GeyserEventHandler
+        public void onStartup(GeyserStartEvent event) {
+            System.err.println("I'm alive");
+
+            // Register another class with event handlers
+            registerEvents(new MyAdditionalClass());
+
+            // Example of lambda event hook
+            EventHandler<GeyserStopEvent> handler = on(GeyserStopEvent.class, event -> {
+                System.err.println("I'm also dead");
+            })
+                .priority(EventHandler.PRIORITY.HIGH)
+                .build();
         }
         
-        @Event
-        public void onDisable(PluginDisableEvent event) {
-            if (event.getPlugin() == this) {
-                System.err.println("I'm dead");
-            }
+        @GeyserEventHandler
+        public void onDisable(GeyserStopEvent event) {
+            System.err.println("I'm dead");
         }
-
     }
 ```
 
 ## Plugin EntryPoint
 
-A plugin must at a minimum define a class that extends `GeyserPlugin` and be annotated with `@Plugin`. The annotation 
+A plugin must at a minimum define a class that extends [GeyserPlugin](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/plugin/GeyserPlugin.html) 
+and be annotated with [@Plugin](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/plugin/annotations/Plugin.html). The annotation 
 provides details about the plugin such as its version and author(s).
 
 The following fields are available for `@Plugin`:
@@ -100,11 +93,13 @@ The following fields are available for `@Plugin`:
 
 ## Plugin Events
 
-A plugin will generally hook into several events and provides its own event registration inherited from `GeyserPlugin`.
+A plugin will generally hook into several events and provides its own event registration inherited from 
+[GeyserPlugin](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/plugin/GeyserPlugin.html).
 
-A plugin class will look for any methods annotated with `@Event` and will treat them as Event Handlers, using reflection
-to determine which event is being trapped. In the previous example the plugin has trapped both the `PluginEnableEvent` 
-and `PluginDisableEvent`.
+A plugin class will look for any methods annotated with [@GeyserEventHandler](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/event/annotations/GeyserEventHandler.html) 
+and will treat them as Event Handlers, using reflection to determine which event is trapped. 
+In the previous example the plugin has trapped both the [GeyserStartEvent](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/event/events/geyser/GeyserStartEvent.html)
+and [GeyserStopEvent](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/event/events/geyser/GeyserStopEvent.html).
 
 Please refer to [events](events.md) for more information about the event system. 
 
