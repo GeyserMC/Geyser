@@ -96,9 +96,12 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class BedrockConfiguration implements IBedrockConfiguration {
 
         private String address;
+
         @Setter
         private int port;
-        private boolean isCloneRemotePort;
+
+        @JsonProperty("clone-remote-port")
+        private boolean cloneRemotePort;
 
         private String motd1;
         private String motd2;
