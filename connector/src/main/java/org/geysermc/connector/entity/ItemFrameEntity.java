@@ -30,9 +30,9 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.object.HangingDirection;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -66,21 +66,21 @@ public class ItemFrameEntity extends Entity {
     /**
      * Cached item frame's Bedrock compound tag.
      */
-    private CompoundTag cachedTag;
+    private NbtMap cachedTag;
 
     public ItemFrameEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, HangingDirection direction) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-        CompoundTagBuilder builder = CompoundTag.builder();
-        builder.tag(CompoundTag.builder()
-                .stringTag("name", "minecraft:frame")
-                .intTag("version", BlockTranslator.getBlockStateVersion())
-                .tag(CompoundTag.builder()
-                        .intTag("facing_direction", direction.ordinal())
-                        .byteTag("item_frame_map_bit", (byte) 0)
-                        .build("states"))
-                .build("block"));
-        builder.shortTag("id", (short) 199);
-        bedrockRuntimeId = BlockTranslator.getItemFrame(builder.buildRootTag());
+        NbtMapBuilder builder = NbtMap.builder();
+        NbtMapBuilder blockBuilder = NbtMap.builder()
+                .putString("name", "minecraft:frame")
+                .putInt("version", BlockTranslator.getBlockStateVersion());
+        blockBuilder.put("states", NbtMap.builder()
+                .putInt("facing_direction", direction.ordinal())
+                .putByte("item_frame_map_bit", (byte) 0)
+                .build());
+        builder.put("block", blockBuilder.build());
+        builder.putShort("id", (short) 199);
+        bedrockRuntimeId = BlockTranslator.getItemFrame(builder.build());
         bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
     }
 
@@ -98,9 +98,9 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
-            ItemData itemData = ItemTranslator.translateToBedrock((ItemStack) entityMetadata.getValue());
+            ItemData itemData = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
             ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
-            CompoundTagBuilder builder = CompoundTag.builder();
+            NbtMapBuilder builder = NbtMap.builder();
 
             String blockName = "";
             for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
@@ -110,17 +110,17 @@ public class ItemFrameEntity extends Entity {
                 }
             }
 
-            builder.byteTag("Count", (byte) itemData.getCount());
+            builder.putByte("Count", (byte) itemData.getCount());
             if (itemData.getTag() != null) {
-                builder.tag(itemData.getTag().toBuilder().build("tag"));
+                builder.put("tag", itemData.getTag().toBuilder().build());
             }
-            builder.shortTag("Damage", itemData.getDamage());
-            builder.stringTag("Name", blockName);
-            CompoundTagBuilder tag = getDefaultTag().toBuilder();
-            tag.tag(builder.build("Item"));
-            tag.floatTag("ItemDropChance", 1.0f);
-            tag.floatTag("ItemRotation", rotation);
-            cachedTag = tag.buildRootTag();
+            builder.putShort("Damage", itemData.getDamage());
+            builder.putString("Name", blockName);
+            NbtMapBuilder tag = getDefaultTag().toBuilder();
+            tag.put("Item", builder.build());
+            tag.putFloat("ItemDropChance", 1.0f);
+            tag.putFloat("ItemRotation", rotation);
+            cachedTag = tag.build();
             updateBlock(session);
         }
         else if (entityMetadata.getId() == 7 && entityMetadata.getValue() == null && cachedTag != null) {
@@ -133,9 +133,9 @@ public class ItemFrameEntity extends Entity {
                 updateBlock(session);
                 return;
             }
-            CompoundTagBuilder builder = cachedTag.toBuilder();
-            builder.floatTag("ItemRotation", rotation);
-            cachedTag = builder.buildRootTag();
+            NbtMapBuilder builder = cachedTag.toBuilder();
+            builder.putFloat("ItemRotation", rotation);
+            cachedTag = builder.build();
             updateBlock(session);
         }
         else {
@@ -150,7 +150,7 @@ public class ItemFrameEntity extends Entity {
         updateBlockPacket.setBlockPosition(bedrockPosition);
         updateBlockPacket.setRuntimeId(0);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.sendUpstreamPacket(updateBlockPacket);
         session.getItemFrameCache().remove(position, entityId);
@@ -158,14 +158,14 @@ public class ItemFrameEntity extends Entity {
         return true;
     }
 
-    private CompoundTag getDefaultTag() {
-        CompoundTagBuilder builder = CompoundTag.builder();
-        builder.intTag("x", bedrockPosition.getX());
-        builder.intTag("y", bedrockPosition.getY());
-        builder.intTag("z", bedrockPosition.getZ());
-        builder.byteTag("isMovable", (byte) 1);
-        builder.stringTag("id", "ItemFrame");
-        return builder.buildRootTag();
+    private NbtMap getDefaultTag() {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putInt("x", bedrockPosition.getX());
+        builder.putInt("y", bedrockPosition.getY());
+        builder.putInt("z", bedrockPosition.getZ());
+        builder.putByte("isMovable", (byte) 1);
+        builder.putString("id", "ItemFrame");
+        return builder.build();
     }
 
     /**
@@ -178,7 +178,7 @@ public class ItemFrameEntity extends Entity {
         updateBlockPacket.setBlockPosition(bedrockPosition);
         updateBlockPacket.setRuntimeId(bedrockRuntimeId);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NONE);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.sendUpstreamPacket(updateBlockPacket);
 

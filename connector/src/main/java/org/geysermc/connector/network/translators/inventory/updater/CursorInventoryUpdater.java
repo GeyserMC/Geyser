@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.inventory.updater;
 
-import com.nukkitx.protocol.bedrock.data.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -33,6 +33,8 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 public class CursorInventoryUpdater extends InventoryUpdater {
+
+    //TODO: Consider renaming this? Since the Protocol enum updated
     @Override
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
@@ -42,9 +44,9 @@ public class CursorInventoryUpdater extends InventoryUpdater {
             if (bedrockSlot == 50)
                 continue;
             InventorySlotPacket slotPacket = new InventorySlotPacket();
-            slotPacket.setContainerId(ContainerId.CURSOR);
+            slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(bedrockSlot);
-            slotPacket.setItem(ItemTranslator.translateToBedrock(inventory.getItem(i)));
+            slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i)));
             session.sendUpstreamPacket(slotPacket);
         }
     }
@@ -55,9 +57,9 @@ public class CursorInventoryUpdater extends InventoryUpdater {
             return true;
 
         InventorySlotPacket slotPacket = new InventorySlotPacket();
-        slotPacket.setContainerId(ContainerId.CURSOR);
+        slotPacket.setContainerId(ContainerId.UI);
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(ItemTranslator.translateToBedrock(inventory.getItem(javaSlot)));
+        slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
         session.sendUpstreamPacket(slotPacket);
         return true;
     }

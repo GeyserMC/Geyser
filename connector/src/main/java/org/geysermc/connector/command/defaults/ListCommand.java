@@ -25,11 +25,11 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.stream.Collectors;
 
@@ -45,6 +45,13 @@ public class ListCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        sender.sendMessage(ChatColor.YELLOW + "Online Players (" + connector.getPlayers().size() + "): " + ChatColor.WHITE + connector.getPlayers().values().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
+        String message = "";
+        if (sender instanceof GeyserSession) {
+            message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", ((GeyserSession) sender).getClientData().getLanguageCode(), connector.getPlayers().size(), connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
+        } else {
+            message = LanguageUtils.getLocaleStringLog("geyser.commands.list.message", connector.getPlayers().size(), connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
+        }
+
+        sender.sendMessage(message);
     }
 }

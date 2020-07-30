@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -127,6 +127,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     @Override
     public boolean isAllowThirdPartyEars() {
         return node.getNode("allow-third-party-ears").getBoolean(false);
+    }
+
+    @Override
+    public boolean isShowCooldown() {
+        return node.getNode("show-cooldown").getBoolean(true);
     }
 
     @Override

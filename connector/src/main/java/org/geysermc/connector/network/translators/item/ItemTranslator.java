@@ -27,21 +27,26 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.*;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.Tag;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.nbt.NbtList;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
@@ -77,14 +82,13 @@ public abstract class ItemTranslator {
                 for (ItemEntry item : appliedItems) {
                     ItemTranslator registered = ITEM_STACK_TRANSLATORS.get(item.getJavaId());
                     if (registered != null) {
-                        GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName() + "." +
-                                " Item translator " + registered.getClass().getCanonicalName() + " is already registered for the item " + item.getJavaIdentifier());
+                        GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.item.already_registered", clazz.getCanonicalName(), registered.getClass().getCanonicalName(), item.getJavaIdentifier()));
                         continue;
                     }
                     ITEM_STACK_TRANSLATORS.put(item.getJavaId(), itemStackTranslator);
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName() + ".");
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.item.failed", clazz.getCanonicalName()));
             }
         }
 
@@ -115,29 +119,73 @@ public abstract class ItemTranslator {
         return itemStack;
     }
 
-    public static ItemData translateToBedrock(ItemStack stack) {
+    public static ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
         if (stack == null) {
             return ItemData.AIR;
         }
 
         ItemEntry bedrockItem = ItemRegistry.getItem(stack);
 
-        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), stack.getNbt() != null ? stack.getNbt().clone() : null);
+        com.github.steveice10.opennbt.tag.builtin.CompoundTag nbt = stack.getNbt() != null ? stack.getNbt().clone() : null;
 
-        if (itemStack.getNbt() != null) {
+        // This is a fallback for maps with no nbt
+        if (nbt == null && bedrockItem.getJavaIdentifier().equals("minecraft:filled_map")) {
+            nbt = new com.github.steveice10.opennbt.tag.builtin.CompoundTag("");
+            nbt.put(new IntTag("map", 0));
+        }
+
+        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
+
+        if (nbt != null) {
             for (NbtItemStackTranslator translator : NBT_TRANSLATORS) {
                 if (translator.acceptItem(bedrockItem)) {
-                    translator.translateToBedrock(itemStack.getNbt(), bedrockItem);
+                    translator.translateToBedrock(nbt, bedrockItem);
                 }
             }
         }
 
+        ItemData itemData;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
         if (itemStackTranslator != null) {
-            return itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
+            itemData = itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
         } else {
-            return DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
+            itemData = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
         }
+
+
+        // Get the display name of the item
+        NbtMap tag = itemData.getTag();
+        if (tag != null) {
+            NbtMap display = tag.getCompound("display");
+            if (display != null && !display.isEmpty()) {
+                String name = display.getString("Name");
+
+                // If its not a message convert it
+                if (!MessageUtils.isMessage(name)) {
+                    TextComponent component = LegacyComponentSerializer.legacy().deserialize(name);
+                    name = GsonComponentSerializer.gson().serialize(component);
+                }
+
+                // Check if its a message to translate
+                if (MessageUtils.isMessage(name)) {
+                    // Get the translated name
+                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
+
+                    // Build the new display tag
+                    NbtMapBuilder displayBuilder = display.toBuilder();
+                    displayBuilder.putString("Name", name);
+
+                    // Build the new root tag
+                    NbtMapBuilder builder = tag.toBuilder();
+                    builder.put("display", displayBuilder.build());
+
+                    // Create a new item with the original data + updated name
+                    itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.build());
+                }
+            }
+        }
+
+        return itemData;
     }
 
     private static final ItemTranslator DEFAULT_TRANSLATOR = new ItemTranslator() {
@@ -162,108 +210,101 @@ public abstract class ItemTranslator {
         if (itemData.getTag() == null) {
             return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), new com.github.steveice10.opennbt.tag.builtin.CompoundTag(""));
         }
-        return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), this.translateToJavaNBT(itemData.getTag()));
+        return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), this.translateToJavaNBT("", itemData.getTag()));
     }
 
     public abstract List<ItemEntry> getAppliedItems();
 
-    public CompoundTag translateNbtToBedrock(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
-        Map<String, Tag<?>> javaValue = new HashMap<>();
+    public NbtMap translateNbtToBedrock(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
+        Map<String, Object> javaValue = new HashMap<>();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
                 com.github.steveice10.opennbt.tag.builtin.Tag javaTag = tag.get(str);
-                com.nukkitx.nbt.tag.Tag<?> translatedTag = translateToBedrockNBT(javaTag);
+                Object translatedTag = translateToBedrockNBT(javaTag);
                 if (translatedTag == null)
                     continue;
 
-                javaValue.put(translatedTag.getName(), translatedTag);
+                javaValue.put(javaTag.getName(), translatedTag);
             }
         }
-
-        return new CompoundTag(tag.getName(), javaValue);
+        NbtMapBuilder builder = NbtMap.builder();
+        javaValue.forEach(builder::put);
+        return builder.build();
     }
 
-    private Tag<?> translateToBedrockNBT(com.github.steveice10.opennbt.tag.builtin.Tag tag) {
+    private Object translateToBedrockNBT(com.github.steveice10.opennbt.tag.builtin.Tag tag) {
         if (tag instanceof ByteArrayTag) {
-            ByteArrayTag byteArrayTag = (ByteArrayTag) tag;
-            return new com.nukkitx.nbt.tag.ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
+            return ((ByteArrayTag) tag).getValue();
         }
 
         if (tag instanceof ByteTag) {
-            ByteTag byteTag = (ByteTag) tag;
-            return new com.nukkitx.nbt.tag.ByteTag(byteTag.getName(), byteTag.getValue());
+            return ((ByteTag) tag).getValue();
         }
 
         if (tag instanceof DoubleTag) {
-            DoubleTag doubleTag = (DoubleTag) tag;
-            return new com.nukkitx.nbt.tag.DoubleTag(doubleTag.getName(), doubleTag.getValue());
+            return ((DoubleTag) tag).getValue();
         }
 
         if (tag instanceof FloatTag) {
-            FloatTag floatTag = (FloatTag) tag;
-            return new com.nukkitx.nbt.tag.FloatTag(floatTag.getName(), floatTag.getValue());
+            return ((FloatTag) tag).getValue();
         }
 
         if (tag instanceof IntArrayTag) {
-            IntArrayTag intArrayTag = (IntArrayTag) tag;
-            return new com.nukkitx.nbt.tag.IntArrayTag(intArrayTag.getName(), intArrayTag.getValue());
+            return ((IntArrayTag) tag).getValue();
         }
 
         if (tag instanceof IntTag) {
-            IntTag intTag = (IntTag) tag;
-            return new com.nukkitx.nbt.tag.IntTag(intTag.getName(), intTag.getValue());
+            return ((IntTag) tag).getValue();
         }
 
         if (tag instanceof LongArrayTag) {
-            LongArrayTag longArrayTag = (LongArrayTag) tag;
-            return new com.nukkitx.nbt.tag.LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
+            //Long array tag does not exist in BE
+            //LongArrayTag longArrayTag = (LongArrayTag) tag;
+            //return new com.nukkitx.nbt.tag.LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
+            return null;
         }
 
         if (tag instanceof LongTag) {
-            LongTag longTag = (LongTag) tag;
-            return new com.nukkitx.nbt.tag.LongTag(longTag.getName(), longTag.getValue());
+            return ((LongTag) tag).getValue();
         }
 
         if (tag instanceof ShortTag) {
-            ShortTag shortTag = (ShortTag) tag;
-            return new com.nukkitx.nbt.tag.ShortTag(shortTag.getName(), shortTag.getValue());
+            return ((ShortTag) tag).getValue();
         }
 
         if (tag instanceof StringTag) {
-            StringTag stringTag = (StringTag) tag;
-            return new com.nukkitx.nbt.tag.StringTag(stringTag.getName(), stringTag.getValue());
+            return ((StringTag) tag).getValue();
         }
 
         if (tag instanceof ListTag) {
             ListTag listTag = (ListTag) tag;
 
-            List<Tag<?>> tagList = new ArrayList<>();
+            List<Object> tagList = new ArrayList<>();
             for (com.github.steveice10.opennbt.tag.builtin.Tag value : listTag) {
                 tagList.add(translateToBedrockNBT(value));
             }
-            Class<?> clazz = CompoundTag.class;
+            NbtType<?> type = NbtType.COMPOUND;
             if (!tagList.isEmpty()) {
-                clazz = tagList.get(0).getClass();
+                type = NbtType.byClass(tagList.get(0).getClass());
             }
-            return new com.nukkitx.nbt.tag.ListTag(listTag.getName(), clazz, tagList);
+            return new NbtList(type, tagList);
         }
 
         if (tag instanceof com.github.steveice10.opennbt.tag.builtin.CompoundTag) {
             com.github.steveice10.opennbt.tag.builtin.CompoundTag compoundTag = (com.github.steveice10.opennbt.tag.builtin.CompoundTag) tag;
-
             return translateNbtToBedrock(compoundTag);
         }
 
         return null;
     }
 
-    public com.github.steveice10.opennbt.tag.builtin.CompoundTag translateToJavaNBT(com.nukkitx.nbt.tag.CompoundTag tag) {
-        com.github.steveice10.opennbt.tag.builtin.CompoundTag javaTag = new com.github.steveice10.opennbt.tag.builtin.CompoundTag(tag.getName());
+    public com.github.steveice10.opennbt.tag.builtin.CompoundTag translateToJavaNBT(String name, NbtMap tag) {
+        com.github.steveice10.opennbt.tag.builtin.CompoundTag javaTag = new com.github.steveice10.opennbt.tag.builtin.CompoundTag(name);
         Map<String, com.github.steveice10.opennbt.tag.builtin.Tag> javaValue = javaTag.getValue();
-        if (tag.getValue() != null && !tag.getValue().isEmpty()) {
-            for (String str : tag.getValue().keySet()) {
-                Tag<?> bedrockTag = tag.get(str);
-                com.github.steveice10.opennbt.tag.builtin.Tag translatedTag = translateToJavaNBT(bedrockTag);
+        if (tag != null && !tag.isEmpty()) {
+            for (String str : tag.keySet()) {
+                Object bedrockTag = tag.get(str);
+                com.github.steveice10.opennbt.tag.builtin.Tag translatedTag = translateToJavaNBT(name, bedrockTag);
                 if (translatedTag == null)
                     continue;
 
@@ -275,81 +316,113 @@ public abstract class ItemTranslator {
         return javaTag;
     }
 
-    private com.github.steveice10.opennbt.tag.builtin.Tag translateToJavaNBT(com.nukkitx.nbt.tag.Tag<?> tag) {
-        if (tag instanceof com.nukkitx.nbt.tag.ByteArrayTag) {
-            com.nukkitx.nbt.tag.ByteArrayTag byteArrayTag = (com.nukkitx.nbt.tag.ByteArrayTag) tag;
-            return new ByteArrayTag(byteArrayTag.getName(), byteArrayTag.getValue());
+    private com.github.steveice10.opennbt.tag.builtin.Tag translateToJavaNBT(String name, Object object) {
+        if (object instanceof int[]) {
+            return new IntArrayTag(name, (int[]) object);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.ByteTag) {
-            com.nukkitx.nbt.tag.ByteTag byteTag = (com.nukkitx.nbt.tag.ByteTag) tag;
-            return new ByteTag(byteTag.getName(), byteTag.getValue());
+        if (object instanceof byte[]) {
+            return new ByteArrayTag(name, (byte[]) object);
+        }
+        
+        if (object instanceof Byte) {
+            return new ByteTag(name, (byte) object);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.DoubleTag) {
-            com.nukkitx.nbt.tag.DoubleTag doubleTag = (com.nukkitx.nbt.tag.DoubleTag) tag;
-            return new DoubleTag(doubleTag.getName(), doubleTag.getValue());
+        if (object instanceof Float) {
+            return new FloatTag(name, (float) object);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.FloatTag) {
-            com.nukkitx.nbt.tag.FloatTag floatTag = (com.nukkitx.nbt.tag.FloatTag) tag;
-            return new FloatTag(floatTag.getName(), floatTag.getValue());
+        if (object instanceof Double) {
+            return new DoubleTag(name, (double) object);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.IntArrayTag) {
-            com.nukkitx.nbt.tag.IntArrayTag intArrayTag = (com.nukkitx.nbt.tag.IntArrayTag) tag;
-            return new IntArrayTag(intArrayTag.getName(), intArrayTag.getValue());
+        if (object instanceof Integer) {
+            return new IntTag(name, (int) object);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.IntTag) {
-            com.nukkitx.nbt.tag.IntTag intTag = (com.nukkitx.nbt.tag.IntTag) tag;
-            return new IntTag(intTag.getName(), intTag.getValue());
+        if (object instanceof long[]) {
+            return new LongArrayTag(name, (long[]) object);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.LongArrayTag) {
-            com.nukkitx.nbt.tag.LongArrayTag longArrayTag = (com.nukkitx.nbt.tag.LongArrayTag) tag;
-            return new LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
+        if (object instanceof Long) {
+            return new LongTag(name, (long) object);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.LongTag) {
-            com.nukkitx.nbt.tag.LongTag longTag = (com.nukkitx.nbt.tag.LongTag) tag;
-            return new LongTag(longTag.getName(), longTag.getValue());
+        if (object instanceof Short) {
+            return new ShortTag(name, (short) object);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.ShortTag) {
-            com.nukkitx.nbt.tag.ShortTag shortTag = (com.nukkitx.nbt.tag.ShortTag) tag;
-            return new ShortTag(shortTag.getName(), shortTag.getValue());
+        if (object instanceof String) {
+            return new StringTag(name, (String) object);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.StringTag) {
-            com.nukkitx.nbt.tag.StringTag stringTag = (com.nukkitx.nbt.tag.StringTag) tag;
-            return new StringTag(stringTag.getName(), stringTag.getValue());
-        }
-
-        if (tag instanceof com.nukkitx.nbt.tag.ListTag) {
-            com.nukkitx.nbt.tag.ListTag<?> listTag = (com.nukkitx.nbt.tag.ListTag<?>) tag;
-
+        if (object instanceof List) {
             List<com.github.steveice10.opennbt.tag.builtin.Tag> tags = new ArrayList<>();
 
-            for (Object value : listTag.getValue()) {
-                if (!(value instanceof com.nukkitx.nbt.tag.Tag))
-                    continue;
-
-                com.nukkitx.nbt.tag.Tag<?> tagValue = (com.nukkitx.nbt.tag.Tag<?>) value;
-                com.github.steveice10.opennbt.tag.builtin.Tag javaTag = translateToJavaNBT(tagValue);
+            for (Object value : (List<?>) object) {
+                com.github.steveice10.opennbt.tag.builtin.Tag javaTag = translateToJavaNBT("", value);
                 if (javaTag != null)
                     tags.add(javaTag);
             }
-            return new ListTag(listTag.getName(), tags);
+            return new ListTag(name, tags);
         }
 
-        if (tag instanceof com.nukkitx.nbt.tag.CompoundTag) {
-            com.nukkitx.nbt.tag.CompoundTag compoundTag = (com.nukkitx.nbt.tag.CompoundTag) tag;
-            return translateToJavaNBT(compoundTag);
+        if (object instanceof NbtMap) {
+            NbtMap map = (NbtMap) object;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                if (entry.getValue().equals(map.get(name))) {
+                    return translateToJavaNBT(entry.getKey(), map.getCompound(name));
+                }
+            }
         }
 
         return null;
     }
 
+    /**
+     * Checks if an {@link ItemStack} is equal to another item stack
+     *
+     * @param itemStack the item stack to check
+     * @param equalsItemStack the item stack to check if equal to
+     * @param checkAmount if the amount should be taken into account
+     * @param trueIfAmountIsGreater if this should return true if the amount of the
+     *                              first item stack is greater than that of the second
+     * @param checkNbt if NBT data should be checked
+     * @return if an item stack is equal to another item stack
+     */
+    public boolean equals(ItemStack itemStack, ItemStack equalsItemStack, boolean checkAmount, boolean trueIfAmountIsGreater, boolean checkNbt) {
+        if (itemStack.getId() != equalsItemStack.getId()) {
+            return false;
+        }
+        if (checkAmount) {
+            if (trueIfAmountIsGreater) {
+                if (itemStack.getAmount() < equalsItemStack.getAmount()) {
+                    return false;
+                }
+            } else {
+                if (itemStack.getAmount() != equalsItemStack.getAmount()) {
+                    return false;
+                }
+            }
+        }
+
+        if (!checkNbt) {
+            return true;
+        }
+        if ((itemStack.getNbt() == null || itemStack.getNbt().isEmpty()) && (equalsItemStack.getNbt() != null && !equalsItemStack.getNbt().isEmpty())) {
+            return false;
+        }
+
+        if ((itemStack.getNbt() != null && !itemStack.getNbt().isEmpty() && (equalsItemStack.getNbt() == null || !equalsItemStack.getNbt().isEmpty()))) {
+            return false;
+        }
+
+        if (itemStack.getNbt() != null && equalsItemStack.getNbt() != null) {
+            return itemStack.getNbt().equals(equalsItemStack.getNbt());
+        }
+
+        return true;
+    }
 
 }

@@ -32,10 +32,10 @@ import com.github.steveice10.mc.protocol.data.game.window.*;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
-import com.nukkitx.protocol.bedrock.data.ContainerId;
-import com.nukkitx.protocol.bedrock.data.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.InventorySource;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
@@ -55,19 +55,19 @@ public class InventoryActionDataTranslator {
         InventoryActionData containerAction = null;
         boolean refresh = false;
         for (InventoryActionData action : actions) {
-            if (action.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT || action.getSource().getContainerId() == ContainerId.CRAFTING_RESULT) {
+            if (action.getSource().getContainerId() == ContainerId.CRAFTING_USE_INGREDIENT) {
                 return;
             } else if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION) {
                 worldAction = action;
-            } else if (action.getSource().getContainerId() == ContainerId.CURSOR && action.getSlot() == 0) {
+            } else if (action.getSource().getContainerId() == ContainerId.UI && action.getSlot() == 0) {
                 cursorAction = action;
-                ItemData translatedCursor = ItemTranslator.translateToBedrock(session.getInventory().getCursor());
+                ItemData translatedCursor = ItemTranslator.translateToBedrock(session, session.getInventory().getCursor());
                 if (!translatedCursor.equals(action.getFromItem())) {
                     refresh = true;
                 }
             } else {
                 containerAction = action;
-                ItemData translatedItem = ItemTranslator.translateToBedrock(inventory.getItem(translator.bedrockSlotToJava(action)));
+                ItemData translatedItem = ItemTranslator.translateToBedrock(session, inventory.getItem(translator.bedrockSlotToJava(action)));
                 if (!translatedItem.equals(action.getFromItem())) {
                     refresh = true;
                 }
@@ -120,9 +120,9 @@ public class InventoryActionDataTranslator {
                                 session.sendDownstreamPacket(dropPacket);
                             }
                         }
-                        ItemStack item = session.getInventory().getItem(javaSlot);
+                        ItemStack item = inventory.getItem(javaSlot);
                         if (item != null) {
-                            session.getInventory().setItem(javaSlot, new ItemStack(item.getId(), item.getAmount() - dropAmount, item.getNbt()));
+                            inventory.setItem(javaSlot, new ItemStack(item.getId(), item.getAmount() - dropAmount, item.getNbt()));
                         }
                         return;
                     } else { //clicking outside of inventory
@@ -187,11 +187,12 @@ public class InventoryActionDataTranslator {
                     } else if (translator.getSlotType(javaSlot) == SlotType.OUTPUT) {
                         plan.add(Click.LEFT, javaSlot);
                     } else {
-                        int cursorSlot = findTempSlot(inventory, session.getInventory().getCursor(), Collections.singletonList(javaSlot));
+                        int cursorSlot = findTempSlot(inventory, session.getInventory().getCursor(), Collections.singletonList(javaSlot), false);
                         if (cursorSlot != -1) {
                             plan.add(Click.LEFT, cursorSlot);
                         } else {
                             translator.updateInventory(session, inventory);
+                            InventoryUtils.updateCursor(session);
                             return;
                         }
                         plan.add(Click.LEFT, javaSlot);
@@ -245,11 +246,15 @@ public class InventoryActionDataTranslator {
 
             int cursorSlot = -1;
             if (session.getInventory().getCursor() != null) { //move cursor contents to a temporary slot
-                cursorSlot = findTempSlot(inventory, session.getInventory().getCursor(), Arrays.asList(fromSlot, toSlot));
+                cursorSlot = findTempSlot(inventory,
+                        session.getInventory().getCursor(),
+                        Arrays.asList(fromSlot, toSlot),
+                        translator.getSlotType(fromSlot) == SlotType.OUTPUT);
                 if (cursorSlot != -1) {
                     plan.add(Click.LEFT, cursorSlot);
                 } else {
                     translator.updateInventory(session, inventory);
+                    InventoryUtils.updateCursor(session);
                     return;
                 }
             }
@@ -298,7 +303,7 @@ public class InventoryActionDataTranslator {
         InventoryUtils.updateCursor(session);
     }
 
-    private static int findTempSlot(Inventory inventory, ItemStack item, List<Integer> slotBlacklist) {
+    private static int findTempSlot(Inventory inventory, ItemStack item, List<Integer> slotBlacklist, boolean emptyOnly) {
         /*try and find a slot that can temporarily store the given item
         only look in the main inventory and hotbar
         only slots that are empty or contain a different type of item are valid*/
@@ -314,6 +319,9 @@ public class InventoryActionDataTranslator {
             ItemStack testItem = inventory.getItem(i);
             boolean acceptable = true;
             if (testItem != null) {
+                if (emptyOnly) {
+                    continue;
+                }
                 for (ItemStack blacklistItem : itemBlacklist) {
                     if (InventoryUtils.canStack(testItem, blacklistItem)) {
                         acceptable = false;
