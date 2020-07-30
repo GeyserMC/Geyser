@@ -97,7 +97,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class BedrockConfiguration implements IBedrockConfiguration {
 
         private String address;
+        @Setter
         private int port;
+        private boolean isCloneRemotePort;
 
         private String motd1;
         private String motd2;
