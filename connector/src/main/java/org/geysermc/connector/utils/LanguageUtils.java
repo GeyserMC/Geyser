@@ -135,17 +135,7 @@ public class LanguageUtils {
     private static String formatLocale(String locale) {
         try {
             String[] parts = locale.toLowerCase().split("_");
-            String newLocale = parts[0] + "_" + parts[1].toUpperCase();
-            switch (newLocale) { // Fallback to the closest language if we don't support it but Bedrock does.
-                case "es_MX":
-                    return "es_ES";
-                case "pt_BR":
-                    return "pt_PT";
-                case "fr_CA":
-                    return "fr_FR";
-                default:
-                    return newLocale;
-            }
+            return parts[0] + "_" + parts[1].toUpperCase();
         } catch (Exception e) {
             return locale;
         }
