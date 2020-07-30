@@ -26,6 +26,7 @@
 
 package org.geysermc.connector.dump;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -46,6 +47,9 @@ import java.util.Properties;
 
 @Getter
 public class DumpInfo {
+
+    @JsonIgnore
+    private static final long MEGABYTE = 1024L * 1024L;
 
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
@@ -148,8 +152,6 @@ public class DumpInfo {
         private final long max;
 
         RamInfo() {
-            final long MEGABYTE = 1024L * 1024L;
-
             this.free = Runtime.getRuntime().freeMemory() / MEGABYTE;
             this.total = Runtime.getRuntime().totalMemory() / MEGABYTE;
             this.max = Runtime.getRuntime().maxMemory() / MEGABYTE;
