@@ -23,39 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.spigot;
+package org.geysermc.platform.standalone;
 
 import lombok.Getter;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
-public class GeyserSpigotDumpInfo extends BootstrapDumpInfo {
+public class GeyserStandaloneDumpInfo extends BootstrapDumpInfo {
 
-    private String platformName;
-    private String platformVersion;
-    private String platformAPIVersion;
-    private boolean onlineMode;
-    private String serverIP;
-    private int serverPort;
-    private List<PluginInfo> plugins;
+    private boolean isGui;
 
-    GeyserSpigotDumpInfo() {
+    GeyserStandaloneDumpInfo(GeyserStandaloneBootstrap bootstrap) {
         super();
-        this.platformName = Bukkit.getName();
-        this.platformVersion = Bukkit.getVersion();
-        this.platformAPIVersion = Bukkit.getBukkitVersion();
-        this.onlineMode = Bukkit.getOnlineMode();
-        this.serverIP = Bukkit.getIp();
-        this.serverPort = Bukkit.getPort();
-        this.plugins = new ArrayList<>();
-
-        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-            this.plugins.add(new PluginInfo(plugin.isEnabled(), plugin.getName(), plugin.getDescription().getVersion(), plugin.getDescription().getMain(), plugin.getDescription().getAuthors()));
-        }
+        this.isGui = bootstrap.isUseGui();
     }
 }

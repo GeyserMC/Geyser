@@ -37,9 +37,7 @@ import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.entity.Entity;
@@ -89,6 +87,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                     playerFlags.add(AdventureSetting.MAY_FLY);
                     playerFlags.add(AdventureSetting.NO_CLIP);
                     playerFlags.add(AdventureSetting.FLYING);
+                    playerFlags.add(AdventureSetting.WORLD_IMMUTABLE);
                     gameMode = GameMode.CREATIVE; // spectator doesnt exist on bedrock
                 }
 
@@ -108,14 +107,6 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                     adventureSettingsPacket.getSettings().addAll(playerFlags);
                     session.sendUpstreamPacket(adventureSettingsPacket);
                 }, 50, TimeUnit.MILLISECONDS);
-
-                EntityDataMap metadata = entity.getMetadata();
-                metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE);
-
-                SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-                entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-                entityDataPacket.getMetadata().putAll(metadata);
-                session.sendUpstreamPacket(entityDataPacket);
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());

@@ -32,10 +32,10 @@ import com.nukkitx.protocol.bedrock.BedrockServer;
 import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
@@ -51,17 +51,18 @@ import org.geysermc.connector.network.translators.item.PotionMixRegistry;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
+import javax.naming.directory.Attribute;
+import javax.naming.directory.InitialDirContext;
 import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -77,6 +78,8 @@ public class GeyserConnector {
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
+
+    private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
     private final List<GeyserSession> players = new ArrayList<>();
 
@@ -136,8 +139,30 @@ public class GeyserConnector {
         if (platformType != PlatformType.STANDALONE) {
             DockerCheck.check(bootstrap);
         }
+        String remoteAddress = config.getRemote().getAddress();
+        int remotePort = config.getRemote().getPort();
+        // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
+        if ((config.isLegacyPingPassthrough() || platformType == PlatformType.STANDALONE) && !remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+            try {
+                // Searches for a server address and a port from a SRV record of the specified host name
+                InitialDirContext ctx = new InitialDirContext();
+                Attribute attr = ctx.getAttributes("dns:///_minecraft._tcp." + remoteAddress, new String[]{"SRV"}).get("SRV");
+                // size > 0 = SRV entry found
+                if (attr != null && attr.size() > 0) {
+                    String[] record = ((String) attr.get(0)).split(" ");
+                    // Overwrites the existing address and port with that from the SRV record.
+                    config.getRemote().setAddress(remoteAddress = record[3]);
+                    config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
+                    logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
+                }
+            } catch (Exception ex) {
+                logger.debug("Exception while trying to find an SRV record for the remote host.");
+                if (config.isDebugMode())
+                    ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
+            }
+        }
 
-        remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
+        remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
         if (config.isAboveBedrockNetherBuilding())
