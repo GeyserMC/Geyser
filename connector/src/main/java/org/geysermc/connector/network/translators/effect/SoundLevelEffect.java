@@ -35,7 +35,14 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 @Value
 public class SoundLevelEffect implements Effect {
+    /**
+     * Bedrock level event type
+     */
     LevelEventType levelEventType;
+
+    /**
+     * Event data. Usually 0
+     */
     int data;
 
     @Override

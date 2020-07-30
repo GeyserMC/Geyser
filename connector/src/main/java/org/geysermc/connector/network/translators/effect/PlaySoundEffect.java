@@ -37,11 +37,35 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Value
 public class PlaySoundEffect implements Effect {
+    /**
+     * Bedrock playsound identifier
+     */
     String name;
+
+    /**
+     * Volume of the sound
+     */
     float volume;
+
+    /**
+     * If true, the initial value used for random pitch is the difference between two random floats.
+     * If false, it is a single random float
+     */
     boolean pitchSub;
+
+    /**
+     * Multiplier for random pitch value
+     */
     float pitchMul;
+
+    /**
+     * Constant addition to random pitch value after multiplier
+     */
     float pitchAdd;
+
+    /**
+     * True if the sound is meant to be played in 3d space
+     */
     boolean relative;
 
     @Override
@@ -51,7 +75,7 @@ public class PlaySoundEffect implements Effect {
         playSoundPacket.setSound(name);
         playSoundPacket.setPosition(!relative ? session.getPlayerEntity().getPosition() : Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f));
         playSoundPacket.setVolume(volume);
-        playSoundPacket.setPitch((pitchSub ? (rand.nextFloat() - rand.nextFloat()) : rand.nextFloat()) * pitchMul + pitchAdd);
+        playSoundPacket.setPitch((pitchSub ? (rand.nextFloat() - rand.nextFloat()) : rand.nextFloat()) * pitchMul + pitchAdd); //replicates java client randomness
         session.sendUpstreamPacket(playSoundPacket);
     }
 }

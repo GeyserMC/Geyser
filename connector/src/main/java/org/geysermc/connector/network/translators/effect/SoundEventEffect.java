@@ -35,8 +35,19 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 @Value
 public class SoundEventEffect implements Effect {
+    /**
+     * Bedrock sound event
+     */
     SoundEvent soundEvent;
+
+    /**
+     * Entity identifier. Usually an empty string
+     */
     String identifier;
+
+    /**
+     * Extra data. Usually -1
+     */
     int extraData;
 
     @Override
