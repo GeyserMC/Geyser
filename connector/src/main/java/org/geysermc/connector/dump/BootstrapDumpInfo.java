@@ -26,10 +26,14 @@
 
 package org.geysermc.connector.dump;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.floodgate.util.DeviceOS;
 
 import java.util.List;
 

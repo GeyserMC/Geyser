@@ -27,11 +27,15 @@
 package org.geysermc.connector.dump;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.floodgate.util.DeviceOS;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -46,9 +50,13 @@ public class DumpInfo {
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
     private final GeyserConfiguration config;
+    private Object2IntMap<DeviceOS> userPlatforms;
+    private RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
 
     public DumpInfo() {
+        this.versionInfo = new DumpInfo.VersionInfo();
+
         try {
             this.gitInfo = new Properties();
             this.gitInfo.load(FileUtils.getResource("git.properties"));
@@ -56,7 +64,14 @@ public class DumpInfo {
 
         this.config = GeyserConnector.getInstance().getConfig();
 
-        this.versionInfo = new DumpInfo.VersionInfo();
+        this.ramInfo = new DumpInfo.RamInfo();
+
+        this.userPlatforms = new Object2IntOpenHashMap();
+        for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
+            DeviceOS device = session.getClientData().getDeviceOS();
+            userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
+        }
+
         this.bootstrapInfo = GeyserConnector.getInstance().getBootstrap().getDumpInfo();
     }
 
@@ -68,6 +83,7 @@ public class DumpInfo {
         private final String javaVersion;
         private final String architecture;
         private final String operatingSystem;
+        private final String operatingSystemVersion;
 
         private final NetworkInfo network;
         private final MCInfo mcInfo;
@@ -78,6 +94,7 @@ public class DumpInfo {
             this.javaVersion = System.getProperty("java.version");
             this.architecture = System.getProperty("os.arch"); // Usually gives Java architecture but still may be helpful.
             this.operatingSystem = System.getProperty("os.name");
+            this.operatingSystemVersion = System.getProperty("os.version");
 
             this.network = new NetworkInfo();
             this.mcInfo = new MCInfo();
@@ -120,6 +137,22 @@ public class DumpInfo {
             this.bedrockProtocol = GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion();
             this.javaVersion = MinecraftConstants.GAME_VERSION;
             this.javaProtocol = MinecraftConstants.PROTOCOL_VERSION;
+        }
+    }
+
+    @Getter
+    public static class RamInfo {
+
+        private final long free;
+        private final long total;
+        private final long max;
+
+        RamInfo() {
+            final long MEGABYTE = 1024L * 1024L;
+
+            this.free = Runtime.getRuntime().freeMemory() / MEGABYTE;
+            this.total = Runtime.getRuntime().totalMemory() / MEGABYTE;
+            this.max = Runtime.getRuntime().maxMemory() / MEGABYTE;
         }
     }
 }
