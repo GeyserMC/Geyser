@@ -61,7 +61,7 @@ public class GeyserStandaloneGUI {
     private static final JTable playerTable = new JTable(playerTableModel);
     private static final int originalFontSize = consolePane.getFont().getSize();
 
-    private static final long  MEGABYTE = 1024L * 1024L;
+    private static final long MEGABYTE = 1024L * 1024L;
 
     private final JMenu commandsMenu;
     private final JMenu optionsMenu;

@@ -26,6 +26,7 @@
 
 package org.geysermc.connector.configuration;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.connector.GeyserLogger;
 
 import org.geysermc.connector.utils.LanguageUtils;
@@ -46,10 +47,13 @@ public interface GeyserConfiguration {
 
     boolean isCommandSuggestions();
 
+    @JsonIgnore
     boolean isPassthroughMotd();
 
+    @JsonIgnore
     boolean isPassthroughPlayerCounts();
 
+    @JsonIgnore
     boolean isLegacyPingPassthrough();
 
     int getPingPassthroughInterval();

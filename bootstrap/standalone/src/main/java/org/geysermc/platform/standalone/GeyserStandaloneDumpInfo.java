@@ -23,33 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.bungeecord;
+package org.geysermc.platform.standalone;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
-import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.config.Configuration;
-import org.geysermc.connector.FloodgateKeyLoader;
-import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 
 @Getter
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserBungeeConfiguration extends GeyserJacksonConfiguration {
+public class GeyserStandaloneDumpInfo extends BootstrapDumpInfo {
 
-    @JsonIgnore
-    private Path floodgateKey;
+    private boolean isGui;
 
-    public void loadFloodgate(GeyserBungeePlugin plugin, Configuration configuration) {
-        Plugin floodgate = plugin.getProxy().getPluginManager().getPlugin("floodgate-bungee");
-        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(plugin.getDataFolder().toString(), configuration.getString("floodgate-key-file"), "public-key.pem"), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
-    }
-
-    @Override
-    public Path getFloodgateKeyFile() {
-        return floodgateKey;
+    GeyserStandaloneDumpInfo(GeyserStandaloneBootstrap bootstrap) {
+        super();
+        this.isGui = bootstrap.isUseGui();
     }
 }
