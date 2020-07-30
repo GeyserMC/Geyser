@@ -57,7 +57,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         LoginEncryptionUtils.encryptPlayerConnection(connector, session, loginPacket);
+        return true;
+    }
 
+    @Override
+    public boolean handle(ClientToServerHandshakePacket packet) {
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);
