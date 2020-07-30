@@ -29,14 +29,16 @@ import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
-import org.geysermc.common.PlatformType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandManager;
 import org.slf4j.Logger;
@@ -79,7 +81,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         try {
             configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (file) -> file.replaceAll("generateduuid", UUID.randomUUID().toString()));
         } catch (IOException ex) {
-            logger.warn("Failed to copy config.yml from jar path!");
+            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
         }
 
@@ -89,7 +91,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             config = loader.load();
             this.geyserConfig = new GeyserSpongeConfiguration(configDir, config);
         } catch (IOException ex) {
-            logger.warn("Failed to load config.yml!");
+            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
             return;
         }
@@ -166,5 +168,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Listener
     public void onServerStop(GameStoppedEvent event) {
         onDisable();
+    }
+
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new GeyserSpongeDumpInfo();
     }
 }

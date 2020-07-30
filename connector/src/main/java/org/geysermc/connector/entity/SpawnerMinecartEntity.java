@@ -26,7 +26,7 @@
 package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 

@@ -26,7 +26,10 @@
 
 package org.geysermc.connector.configuration;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.connector.GeyserLogger;
+
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -44,10 +47,13 @@ public interface GeyserConfiguration {
 
     boolean isCommandSuggestions();
 
+    @JsonIgnore
     boolean isPassthroughMotd();
 
+    @JsonIgnore
     boolean isPassthroughPlayerCounts();
 
+    @JsonIgnore
     boolean isLegacyPingPassthrough();
 
     int getPingPassthroughInterval();
@@ -92,6 +98,10 @@ public interface GeyserConfiguration {
         String getAddress();
 
         int getPort();
+        
+        void setAddress(String address);
+
+        void setPort(int port);
 
         String getAuthType();
     }
@@ -113,9 +123,9 @@ public interface GeyserConfiguration {
 
     static void checkGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {
         if (geyserConfig.getConfigVersion() < CURRENT_CONFIG_VERSION) {
-            geyserLogger.warning("Your Geyser config is out of date! Please regenerate your config when possible.");
+            geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.outdated"));
         } else if (geyserConfig.getConfigVersion() > CURRENT_CONFIG_VERSION) {
-            geyserLogger.warning("Your Geyser config is too new! Errors may occur.");
+            geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.too_new"));
         }
     }
 }

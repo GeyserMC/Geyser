@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>bootstrap-sponge</artifactId>
@@ -14,7 +14,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -68,6 +68,10 @@
                                 <relocation>
                                     <pattern>it.unimi.dsi.fastutil</pattern>
                                     <shadedPattern>org.geysermc.platform.sponge.shaded.fastutil</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.reflections.reflections</pattern>
+                                    <shadedPattern>org.geysermc.platform.sponge.shaded.reflections</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
