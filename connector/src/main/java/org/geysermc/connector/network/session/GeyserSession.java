@@ -196,23 +196,33 @@ public class GeyserSession implements CommandSender {
     @Setter
     private CustomFormWindow settingsForm;
 
-    // The op permission level set by the server
+    /**
+     * The op permission level set by the server
+     */
     @Setter
     private int opPermissionLevel = 0;
 
-    // If the current player can fly
+    /**
+     * If the current player can fly
+     */
     @Setter
     private boolean canFly = false;
 
-    // If the current player is flying
+    /**
+     * If the current player is flying
+     */
     @Setter
     private boolean flying = false;
 
-    // If the current player is in noclip
+    /**
+     * If the current player is in noclip
+     */
     @Setter
     private boolean noClip = false;
 
-    // If the current player can not interact with the world
+    /**
+     * If the current player can not interact with the world
+     */
     @Setter
     private boolean worldImmutable = false;
 
