@@ -262,6 +262,11 @@ public class Entity {
         session.sendUpstreamPacket(updateAttributesPacket);
     }
 
+    /**
+     * Applies the Java metadata to the local Bedrock metadata copy
+     * @param entityMetadata the Java entity metadata
+     * @param session GeyserSession
+     */
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         switch (entityMetadata.getId()) {
             case 0:
@@ -366,10 +371,12 @@ public class Entity {
                 }
                 break;
         }
-
-        updateBedrockMetadata(session);
     }
 
+    /**
+     * Sends the Bedrock metadata to the client
+     * @param session GeyserSession
+     */
     public void updateBedrockMetadata(GeyserSession session) {
         if (!valid) return;
 

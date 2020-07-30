@@ -25,6 +25,7 @@
 
 package org.geysermc.platform.spigot;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -43,6 +44,7 @@ public class GeyserSpigotConfiguration extends GeyserJacksonConfiguration {
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile;
 
+    @JsonIgnore
     private Path floodgateKey;
 
     public void loadFloodgate(GeyserSpigotPlugin plugin) {

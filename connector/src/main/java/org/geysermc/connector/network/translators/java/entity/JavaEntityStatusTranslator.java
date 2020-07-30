@@ -26,8 +26,10 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -129,6 +131,17 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
             case IRON_GOLEM_EMPTY_HAND:
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
+                break;
+            case RABBIT_JUMP_OR_MINECART_SPAWNER_DELAY_RESET:
+                if (entity.getEntityType() == EntityType.RABBIT) {
+                    // This doesn't match vanilla Bedrock behavior but I'm unsure how to make it better
+                    // I assume part of the problem is that Bedrock uses a duration and Java just says the rabbit is jumping
+                    SetEntityDataPacket dataPacket = new SetEntityDataPacket();
+                    dataPacket.getMetadata().put(EntityData.JUMP_DURATION, (byte) 3);
+                    dataPacket.setRuntimeEntityId(entity.getGeyserId());
+                    session.sendUpstreamPacket(dataPacket);
+                    return;
+                }
                 break;
         }
 

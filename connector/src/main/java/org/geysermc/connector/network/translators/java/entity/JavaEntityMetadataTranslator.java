@@ -47,5 +47,7 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
         for (EntityMetadata metadata : packet.getMetadata()) {
             entity.updateBedrockMetadata(metadata, session);
         }
+
+        entity.updateBedrockMetadata(session);
     }
 }
