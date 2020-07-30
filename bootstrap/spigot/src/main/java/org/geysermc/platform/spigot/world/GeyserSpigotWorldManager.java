@@ -21,7 +21,6 @@
  *
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
- *
  */
 
 package org.geysermc.platform.spigot.world;
