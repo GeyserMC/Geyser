@@ -28,24 +28,24 @@ package org.geysermc.connector.network.translators.item.translators;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.ItemStackTranslator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.Potion;
-import org.geysermc.connector.utils.Toolbox;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @ItemRemapper
-public class PotionTranslator extends ItemStackTranslator {
+public class PotionTranslator extends ItemTranslator {
 
     private List<ItemEntry> appliedItems;
 
     public PotionTranslator() {
-        appliedItems = Toolbox.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("potion")).collect(Collectors.toList());
+        appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("potion")).collect(Collectors.toList());
     }
 
     @Override

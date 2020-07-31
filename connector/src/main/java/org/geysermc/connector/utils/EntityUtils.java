@@ -26,8 +26,6 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
-import com.github.steveice10.mc.protocol.data.game.entity.type.MobType;
-import com.github.steveice10.mc.protocol.data.game.entity.type.object.ObjectType;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class EntityUtils {
@@ -64,21 +62,7 @@ public class EntityUtils {
      * @param type The MobType to convert
      * @return Converted EntityType
      */
-    public static EntityType toBedrockEntity(MobType type) {
-        try {
-            return EntityType.valueOf(type.name());
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
-    }
-
-    /**
-     * Converts a ObjectType to a Bedrock edition EntityType, returns null if the EntityType is not found
-     *
-     * @param type The ObjectType to convert
-     * @return Converted EntityType
-     */
-    public static EntityType toBedrockEntity(ObjectType type) {
+    public static EntityType toBedrockEntity(com.github.steveice10.mc.protocol.data.game.entity.type.EntityType type) {
         try {
             return EntityType.valueOf(type.name());
         } catch (IllegalArgumentException ex) {

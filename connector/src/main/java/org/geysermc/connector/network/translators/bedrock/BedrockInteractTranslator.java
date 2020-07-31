@@ -25,6 +25,11 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -32,32 +37,113 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 @Translator(packet = InteractPacket.class)
 public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> {
 
     @Override
     public void translate(InteractPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+        Entity entity;
+        if (packet.getRuntimeEntityId() == session.getPlayerEntity().getGeyserId()) {
+            //Player is not in entity cache
+            entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+        }
         if (entity == null)
             return;
 
         switch (packet.getAction()) {
             case INTERACT:
-                if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemTranslator.SHIELD) {
+                if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemRegistry.SHIELD.getJavaId()) {
                     break;
                 }
                 ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                        InteractAction.INTERACT, Hand.MAIN_HAND);
+                        InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(interactPacket);
                 break;
             case DAMAGE:
                 ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                        InteractAction.ATTACK, Hand.MAIN_HAND);
+                        InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(attackPacket);
+                break;
+            case LEAVE_VEHICLE:
+                ClientPlayerStatePacket sneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
+                session.sendDownstreamPacket(sneakPacket);
+                session.setRidingVehicleEntity(null);
+                break;
+            case MOUSEOVER:
+                // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
+                if (packet.getRuntimeEntityId() != 0) {
+                    Entity interactEntity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+                    if (interactEntity == null)
+                        return;
+                    EntityDataMap entityMetadata = interactEntity.getMetadata();
+
+                    String interactiveTag;
+                    switch (interactEntity.getEntityType()) {
+                        case BOAT:
+                            interactiveTag = "action.interact.ride.boat";
+                            break;
+                        case DONKEY:
+                        case HORSE:
+                        case LLAMA:
+                        case MULE:
+                        case SKELETON_HORSE:
+                        case TRADER_LLAMA:
+                        case ZOMBIE_HORSE:
+                            if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED)) {
+                                interactiveTag = "action.interact.ride.horse";
+                            } else {
+                                interactiveTag = "action.interact.mount";
+                            }
+                            break;
+                        case MINECART:
+                            interactiveTag = "action.interact.ride.minecart";
+                            break;
+                        case PIG:
+                            if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
+                                interactiveTag = "action.interact.mount";
+                            } else interactiveTag = "";
+                            break;
+                        case VILLAGER:
+                            if (entityMetadata.getInt(EntityData.VARIANT) != 14 && entityMetadata.getInt(EntityData.VARIANT) != 0
+                            && entityMetadata.getFloat(EntityData.SCALE) >= 0.75f) { // Not a nitwit, has a profession and is not a baby
+                                interactiveTag = "action.interact.trade";
+                            } else interactiveTag = "";
+                            break;
+                        case WANDERING_TRADER:
+                            interactiveTag = "action.interact.trade"; // Since you can always trade with a wandering villager, presumably.
+                            break;
+                        default:
+                            return; // No need to process any further since there is no interactive tag
+                    }
+                    session.getPlayerEntity().getMetadata().put(EntityData.INTERACTIVE_TAG, interactiveTag);
+                    session.getPlayerEntity().updateBedrockMetadata(session);
+                } else {
+                    if (!(session.getPlayerEntity().getMetadata().get(EntityData.INTERACTIVE_TAG) == null) ||
+                    !(session.getPlayerEntity().getMetadata().get(EntityData.INTERACTIVE_TAG) == "")) {
+                        // No interactive tag should be sent
+                        session.getPlayerEntity().getMetadata().remove(EntityData.INTERACTIVE_TAG);
+                        session.getPlayerEntity().updateBedrockMetadata(session);
+                    }
+                }
+                break;
+            case OPEN_INVENTORY:
+                if (!session.getInventory().isOpen()) {
+                    ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
+                    containerOpenPacket.setId((byte) 0);
+                    containerOpenPacket.setType(ContainerType.INVENTORY);
+                    containerOpenPacket.setUniqueEntityId(-1);
+                    containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
+                    session.sendUpstreamPacket(containerOpenPacket);
+                    session.getInventory().setOpen(true);
+                }
                 break;
         }
     }

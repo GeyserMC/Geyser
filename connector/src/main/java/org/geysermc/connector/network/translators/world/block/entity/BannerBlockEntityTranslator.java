@@ -25,49 +25,43 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockState;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.IntTag;
-import com.nukkitx.nbt.tag.StringTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
+import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @BlockEntity(name = "Banner", regex = "banner")
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public boolean isBlock(BlockState blockState) {
+    public boolean isBlock(int blockState) {
         return BlockStateValues.getBannerColor(blockState) != -1;
     }
 
     @Override
-    public List<Tag<?>> translateTag(CompoundTag tag, BlockState blockState) {
-        List<Tag<?>> tags = new ArrayList<>();
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        Map<String, Object> tags = new HashMap<>();
+
         int bannerColor = BlockStateValues.getBannerColor(blockState);
         if (bannerColor != -1) {
-            tags.add(new IntTag("Base", 15 - bannerColor));
+            tags.put("Base", 15 - bannerColor);
         }
-        ListTag patterns = tag.get("Patterns");
-        List<com.nukkitx.nbt.tag.CompoundTag> tagsList = new ArrayList<>();
+
         if (tag.contains("Patterns")) {
-            for (com.github.steveice10.opennbt.tag.builtin.Tag patternTag : patterns.getValue()) {
-                com.nukkitx.nbt.tag.CompoundTag newPatternTag = getPattern((CompoundTag) patternTag);
-                if (newPatternTag != null) {
-                    tagsList.add(newPatternTag);
-                }
-            }
-            com.nukkitx.nbt.tag.ListTag<com.nukkitx.nbt.tag.CompoundTag> bedrockPatterns =
-                    new com.nukkitx.nbt.tag.ListTag<>("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, tagsList);
-            tags.add(bedrockPatterns);
+            ListTag patterns = tag.get("Patterns");
+            tags.put("Patterns", BannerTranslator.convertBannerPattern(patterns));
         }
+
         if (tag.contains("CustomName")) {
-            tags.add(new StringTag("CustomName", (String) tag.get("CustomName").getValue()));
+            tags.put("CustomName", tag.get("CustomName").getValue());
         }
+
         return tags;
     }
 
@@ -79,30 +73,9 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
     }
 
     @Override
-    public com.nukkitx.nbt.tag.CompoundTag getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        CompoundTagBuilder tagBuilder = getConstantBedrockTag(bedrockId, x, y, z).toBuilder();
-        tagBuilder.listTag("Patterns", com.nukkitx.nbt.tag.CompoundTag.class, new ArrayList<>());
-        return tagBuilder.buildRootTag();
-    }
-
-    /**
-     * Convert the Java edition pattern nbt to Bedrock edition, null if the pattern doesn't exist
-     *
-     * @param pattern Java edition pattern nbt
-     * @return The Bedrock edition format pattern nbt
-     */
-    protected com.nukkitx.nbt.tag.CompoundTag getPattern(CompoundTag pattern) {
-        String patternName = (String) pattern.get("Pattern").getValue();
-
-        // Return null if its the globe pattern as it doesn't exist on bedrock
-        if (patternName.equals("glb")) {
-            return null;
-        }
-
-        return CompoundTagBuilder.builder()
-                .intTag("Color", 15 - (int) pattern.get("Color").getValue())
-                .stringTag("Pattern", (String) pattern.get("Pattern").getValue())
-                .stringTag("Pattern", patternName)
-                .buildRootTag();
+    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
+                .putList("Patterns", NbtType.COMPOUND, new ArrayList<>())
+                .build();
     }
 }

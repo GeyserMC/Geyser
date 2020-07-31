@@ -29,7 +29,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.NbtItemStackTranslator;
+import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
 @ItemRemapper(priority = 1)
@@ -37,25 +37,27 @@ public class EnchantedBookTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
-        if (itemTag.contains("StoredEnchantments")) {
-            Tag enchTag = itemTag.get("StoredEnchantments");
-            if (enchTag instanceof ListTag) {
-                enchTag = new ListTag("Enchantments", ((ListTag) enchTag).getValue());
-                itemTag.remove("StoredEnchantments");
-                itemTag.put(enchTag);
-            }
+        if (!itemTag.contains("StoredEnchantments")) {
+            return;
+        }
+        Tag enchTag = itemTag.get("StoredEnchantments");
+        if (enchTag instanceof ListTag) {
+            enchTag = new ListTag("Enchantments", ((ListTag) enchTag).getValue());
+            itemTag.remove("StoredEnchantments");
+            itemTag.put(enchTag);
         }
     }
 
     @Override
     public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
-        if (itemTag.contains("Enchantments")) {
-            Tag enchTag = itemTag.get("Enchantments");
-            if (enchTag instanceof ListTag) {
-                enchTag = new ListTag("StoredEnchantments", ((ListTag) enchTag).getValue());
-                itemTag.remove("Enchantments");
-                itemTag.put(enchTag);
-            }
+        if (!itemTag.contains("Enchantments")) {
+            return;
+        }
+        Tag enchTag = itemTag.get("Enchantments");
+        if (enchTag instanceof ListTag) {
+            enchTag = new ListTag("StoredEnchantments", ((ListTag) enchTag).getValue());
+            itemTag.remove("Enchantments");
+            itemTag.put(enchTag);
         }
     }
 

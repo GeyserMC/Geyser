@@ -38,17 +38,24 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
 
     @Override
     public void translate(ContainerClosePacket packet, GeyserSession session) {
-        byte windowId = packet.getWindowId();
+        session.setLastWindowCloseTime(0);
+        byte windowId = packet.getId();
+        Inventory openInventory = session.getInventoryCache().getOpenInventory();
         if (windowId == -1) { //player inventory or crafting table
-            Inventory openInventory = session.getInventoryCache().getOpenInventory();
             if (openInventory != null) {
                 windowId = (byte) openInventory.getId();
             } else {
                 windowId = 0;
             }
         }
-        ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
-        session.sendDownstreamPacket(closeWindowPacket);
-        InventoryUtils.closeInventory(session, windowId);
+
+        if (windowId == 0 || (openInventory != null && openInventory.getId() == windowId)) {
+            ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
+            session.getDownstream().getSession().send(closeWindowPacket);
+            InventoryUtils.closeInventory(session, windowId);
+        }
+
+        //Client wants close confirmation
+        session.sendUpstreamPacket(packet);
     }
 }

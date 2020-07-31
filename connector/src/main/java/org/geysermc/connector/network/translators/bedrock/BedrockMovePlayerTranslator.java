@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.nukkitx.math.vector.Vector3d;
-import org.geysermc.common.ChatColor;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -85,6 +85,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
         entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
         entity.setRotation(rotation);
+        entity.setOnGround(packet.isOnGround());
 
         /*
         boolean colliding = false;
@@ -136,7 +137,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.RESET);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
         session.sendUpstreamPacket(movePlayerPacket);
     }
 }

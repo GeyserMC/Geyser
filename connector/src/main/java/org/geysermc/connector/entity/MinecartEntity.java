@@ -25,12 +25,59 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class MinecartEntity extends Entity {
 
     public MinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+        super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+
+        if (entityMetadata.getId() == 7) {
+            metadata.put(EntityData.HEALTH, entityMetadata.getValue());
+        }
+
+        // Direction in which the minecart is shaking
+        if (entityMetadata.getId() == 8) {
+            metadata.put(EntityData.HURT_DIRECTION, entityMetadata.getValue());
+        }
+
+        // Power in Java, time in Bedrock
+        if (entityMetadata.getId() == 9) {
+            metadata.put(EntityData.HURT_TIME, Math.min((int) (float) entityMetadata.getValue(), 15));
+        }
+
+        if (!(this instanceof DefaultBlockMinecartEntity)) { // Handled in the DefaultBlockMinecartEntity class
+            // Custom block
+            if (entityMetadata.getId() == 10) {
+                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId((int) entityMetadata.getValue()));
+            }
+
+            // Custom block offset
+            if (entityMetadata.getId() == 11) {
+                metadata.put(EntityData.DISPLAY_OFFSET, entityMetadata.getValue());
+            }
+
+            // If the custom block should be enabled
+            if (entityMetadata.getId() == 12) {
+                // Needs a byte based off of Java's boolean
+                metadata.put(EntityData.CUSTOM_DISPLAY, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+            }
+        }
+
+        super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround, teleported);
     }
 }

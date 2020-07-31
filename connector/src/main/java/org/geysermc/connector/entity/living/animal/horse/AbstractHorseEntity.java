@@ -27,7 +27,7 @@ package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,12 +40,19 @@ public class AbstractHorseEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+
         if (entityMetadata.getId() == 16) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x02) == 0x02);
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (xd & 0x04) == 0x04);
             metadata.getFlags().setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
+            metadata.getFlags().setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
         }
+
+        // Needed to control horses
+        metadata.getFlags().setFlag(EntityFlag.CAN_POWER_JUMP, true);
+        metadata.getFlags().setFlag(EntityFlag.WASD_CONTROLLED, true);
+
         super.updateBedrockMetadata(entityMetadata, session);
     }
 }

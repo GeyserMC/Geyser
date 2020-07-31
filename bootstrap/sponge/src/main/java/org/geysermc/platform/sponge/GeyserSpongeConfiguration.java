@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 
 import ninja.leaping.configurate.ConfigurationNode;
 
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -80,8 +80,28 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
-    public boolean isPingPassthrough() {
-        return node.getNode("ping-passthrough").getBoolean(false);
+    public boolean isCommandSuggestions() {
+        return node.getNode("command-suggestions").getBoolean(true);
+    }
+
+    @Override
+    public boolean isPassthroughMotd() {
+        return node.getNode("passthrough-motd").getBoolean(false);
+    }
+
+    @Override
+    public boolean isPassthroughPlayerCounts() {
+        return node.getNode("passthrough-player-counts").getBoolean(false);
+    }
+
+    @Override
+    public boolean isLegacyPingPassthrough() {
+        return node.getNode("legacy-ping-passthrough").getBoolean(false);
+    }
+
+    @Override
+    public int getPingPassthroughInterval() {
+        return node.getNode("ping-passthrough-interval").getInt(3);
     }
 
     @Override
@@ -105,6 +125,16 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isAllowThirdPartyEars() {
+        return node.getNode("allow-third-party-ears").getBoolean(false);
+    }
+
+    @Override
+    public boolean isShowCooldown() {
+        return node.getNode("show-cooldown").getBoolean(true);
+    }
+
+    @Override
     public String getDefaultLocale() {
         return node.getNode("default-locale").getString("en_us");
     }
@@ -117,6 +147,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     @Override
     public boolean isCacheChunks() {
         return node.getNode("cache-chunks").getBoolean(false);
+    }
+
+    @Override
+    public boolean isAboveBedrockNetherBuilding() {
+        return node.getNode("above-bedrock-nether-building").getBoolean(false);
     }
 
     @Override
@@ -137,6 +172,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         @Override
         public int getPort() {
             return node.getNode("port").getInt(19132);
+        }
+
+        @Override
+        public boolean isCloneRemotePort() {
+            return node.getNode("clone-remote-port").getBoolean(false);
         }
 
         @Override
@@ -161,8 +201,18 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         }
 
         @Override
+        public void setAddress(String address) {
+            node.getNode("address").setValue(address);
+        }
+
+        @Override
         public int getPort() {
             return node.getNode("port").getInt(25565);
+        }
+
+        @Override
+        public void setPort(int port) {
+            node.getNode("port").setValue(port);
         }
 
         @Override
@@ -201,5 +251,10 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         public String getUniqueId() {
             return node.getNode("metrics").getNode("uuid").getString("generateduuid");
         }
+    }
+
+    @Override
+    public int getConfigVersion() {
+        return node.getNode("config-version").getInt(0);
     }
 }

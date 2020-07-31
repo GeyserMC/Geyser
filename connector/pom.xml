@@ -10,12 +10,12 @@
         <relativePath>../</relativePath>
     </parent>
     <artifactId>connector</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -32,8 +32,8 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
-            <artifactId>bedrock-v390</artifactId>
-            <version>2.5.6-SNAPSHOT</version>
+            <artifactId>bedrock-v407</artifactId>
+            <version>2.6.0-SNAPSHOT</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -63,6 +63,12 @@
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-long-maps</artifactId>
+            <version>8.3.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-int-byte-maps</artifactId>
             <version>8.3.1</version>
             <scope>compile</scope>
         </dependency>
@@ -98,14 +104,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.steveice10</groupId>
-            <artifactId>opennbt</artifactId>
-            <version>1.4-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.steveice10</groupId>
-            <artifactId>packetlib</artifactId>
-            <version>1.5-SNAPSHOT</version>
+            <artifactId>mcprotocollib</artifactId>
+            <version>46b46001f6</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -115,30 +115,10 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.steveice10</groupId>
-            <artifactId>mcauthlib</artifactId>
-            <version>1.3-SNAPSHOT</version>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns</artifactId>
+            <version>4.1.43.Final</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.steveice10</groupId>
-            <artifactId>mcprotocollib</artifactId>
-            <version>1.15.2-1-SNAPSHOT</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.github.steveice10</groupId>
-                    <artifactId>opennbt</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.github.steveice10</groupId>
-                    <artifactId>packetlib</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.github.steveice10</groupId>
-                    <artifactId>mcauthlib</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
@@ -147,20 +127,20 @@
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
-            <artifactId>text-api</artifactId>
-            <version>3.0.3</version>
+            <artifactId>adventure-api</artifactId>
+            <version>4.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
-            <artifactId>text-serializer-gson</artifactId>
-            <version>3.0.3</version>
+            <artifactId>adventure-text-serializer-gson</artifactId>
+            <version>4.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
-            <artifactId>text-serializer-legacy</artifactId>
-            <version>3.0.3</version>
+            <artifactId>adventure-text-serializer-legacy</artifactId>
+            <version>4.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
@@ -190,6 +170,11 @@
                     <skipPoms>false</skipPoms>
                     <excludeProperties>
                         <excludeProperty>git.user.*</excludeProperty>
+                        <excludeProperty>git.*.user.*</excludeProperty>
+                        <excludeProperty>git.closest.*</excludeProperty>
+                        <excludeProperty>git.commit.id.describe</excludeProperty>
+                        <excludeProperty>git.commit.id.describe-short</excludeProperty>
+                        <excludeProperty>git.commit.message.short</excludeProperty>
                     </excludeProperties>
                     <commitIdGenerationMode>flat</commitIdGenerationMode>
                     <gitDescribe>

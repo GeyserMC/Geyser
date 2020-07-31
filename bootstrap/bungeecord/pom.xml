@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>bootstrap-bungeecord</artifactId>
@@ -14,13 +14,13 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-api</artifactId>
-            <version>1.14-SNAPSHOT</version>
+            <version>1.15-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -64,6 +64,10 @@
                                 <relocation>
                                     <pattern>io.netty</pattern>
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.netty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.reflections.reflections</pattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.reflections</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

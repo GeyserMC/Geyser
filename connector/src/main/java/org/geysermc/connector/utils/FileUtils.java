@@ -125,4 +125,18 @@ public class FileUtils {
     public static void writeFile(String name, char[] data) throws IOException {
         writeFile(new File(name), data);
     }
+
+    /**
+     * Get an InputStream for the given resource path, throws AssertionError if resource is not found
+     *
+     * @param resource Resource to get
+     * @return InputStream of the given resource
+     */
+    public static InputStream getResource(String resource) {
+        InputStream stream = FileUtils.class.getClassLoader().getResourceAsStream(resource);
+        if (stream == null) {
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.resource", resource));
+        }
+        return stream;
+    }
 }

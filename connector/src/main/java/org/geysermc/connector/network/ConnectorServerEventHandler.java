@@ -25,21 +25,25 @@
 
 package org.geysermc.connector.network;
 
-import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo;
+import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-
-import org.geysermc.connector.GeyserConfiguration;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.DatagramPacket;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.net.InetSocketAddress;
 
 public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public ConnectorServerEventHandler(GeyserConnector connector) {
         this.connector = connector;
@@ -47,38 +51,48 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().info(inetSocketAddress + " tried to connect!");
+        connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.attempt_connect", inetSocketAddress));
         return true;
     }
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().debug(inetSocketAddress + " has pinged you!");
+        connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
 
         GeyserConfiguration config = connector.getConfig();
-        ServerStatusInfo serverInfo = connector.getPassthroughThread().getInfo();
+
+        GeyserPingInfo pingInfo = null;
+        if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
+            IGeyserPingPassthrough pingPassthrough = connector.getBootstrap().getGeyserPingPassthrough();
+            pingInfo = pingPassthrough.getPingInformation();
+        }
 
         BedrockPong pong = new BedrockPong();
         pong.setEdition("MCPE");
         pong.setGameType("Default");
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion());
-        pong.setVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+        pong.setVersion(null); // Server tries to connect either way and it looks better
         pong.setIpv4Port(config.getBedrock().getPort());
-        if (connector.getConfig().isPingPassthrough() && serverInfo != null) {
-            String[] motd = MessageUtils.getBedrockMessage(serverInfo.getDescription()).split("\n");
+
+        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
+            String[] motd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.getDescription())).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
 
             pong.setMotd(mainMotd.trim());
             pong.setSubMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
-            pong.setPlayerCount(serverInfo.getPlayerInfo().getOnlinePlayers());
-            pong.setMaximumPlayerCount(serverInfo.getPlayerInfo().getMaxPlayers());
+        } else {
+            pong.setMotd(config.getBedrock().getMotd1());
+            pong.setSubMotd(config.getBedrock().getMotd2());
+        }
+
+        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
+            pong.setPlayerCount(pingInfo.getPlayers().getOnline());
+            pong.setMaximumPlayerCount(pingInfo.getPlayers().getMax());
         } else {
             pong.setPlayerCount(connector.getPlayers().size());
             pong.setMaximumPlayerCount(config.getMaxPlayers());
-            pong.setMotd(config.getBedrock().getMotd1());
-            pong.setMotd(config.getBedrock().getMotd2());
         }
 
         //Bedrock will not even attempt a connection if the client thinks the server is full
@@ -94,15 +108,11 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
-        bedrockServerSession.addDisconnectHandler(disconnectReason -> {
-            connector.getLogger().info("Bedrock user with ip: " + bedrockServerSession.getAddress().getAddress() + " has disconnected for reason " + disconnectReason);
-
-            GeyserSession player = connector.getPlayers().get(bedrockServerSession.getAddress());
-            if (player != null) {
-                player.disconnect(disconnectReason.name());
-                connector.removePlayer(player);
-            }
-        });
         bedrockServerSession.setPacketCodec(GeyserConnector.BEDROCK_PACKET_CODEC);
+    }
+
+    @Override
+    public void onUnhandledDatagram(ChannelHandlerContext ctx, DatagramPacket packet) {
+        new QueryPacketHandler(connector, packet.sender(), packet.content());
     }
 }

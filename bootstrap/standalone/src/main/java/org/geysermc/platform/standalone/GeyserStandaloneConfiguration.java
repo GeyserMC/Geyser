@@ -27,89 +27,21 @@ package org.geysermc.platform.standalone;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Getter;
-import org.geysermc.connector.GeyserConfiguration;
+import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
-public class GeyserStandaloneConfiguration implements GeyserConfiguration {
-
-    private BedrockConfiguration bedrock;
-    private RemoteConfiguration remote;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GeyserStandaloneConfiguration extends GeyserJacksonConfiguration {
 
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile;
 
-    private Map<String, UserAuthenticationInfo> userAuths;
-
-    @JsonProperty("ping-passthrough")
-    private boolean pingPassthrough;
-
-    @JsonProperty("max-players")
-    private int maxPlayers;
-
-    @JsonProperty("debug-mode")
-    private boolean debugMode;
-
-    @JsonProperty("general-thread-pool")
-    private int generalThreadPool;
-
-    @JsonProperty("allow-third-party-capes")
-    private boolean allowThirdPartyCapes;
-
-    @JsonProperty("default-locale")
-    private String defaultLocale;
-
-    @JsonProperty("cache-chunks")
-    private boolean cacheChunks;
-
-    private MetricsInfo metrics;
-
     @Override
     public Path getFloodgateKeyFile() {
         return Paths.get(floodgateKeyFile);
-    }
-
-    @Getter
-    public static class BedrockConfiguration implements IBedrockConfiguration {
-
-        private String address;
-        private int port;
-
-        private String motd1;
-        private String motd2;
-    }
-
-    @Getter
-    public static class RemoteConfiguration implements IRemoteConfiguration {
-
-        private String address;
-        private int port;
-
-        private String motd1;
-        private String motd2;
-
-        @JsonProperty("auth-type")
-        private String authType;
-    }
-
-    @Getter
-    public static class UserAuthenticationInfo implements IUserAuthenticationInfo {
-        private String email;
-        private String password;
-    }
-
-    @Getter
-    public static class MetricsInfo implements IMetricsInfo {
-
-        private boolean enabled;
-
-        @JsonProperty("uuid")
-        private String uniqueId;
     }
 }

@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.item.translators.nbt;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.NbtItemStackTranslator;
+import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.Enchantment;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
@@ -73,54 +73,56 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
-        if (itemTag.contains("ench")) {
-            ListTag enchantmentTag = itemTag.get("ench");
-            List<Tag> enchantments = new ArrayList<>();
-            List<Tag> storedEnchantments = new ArrayList<>();
-            for (Tag value : enchantmentTag.getValue()) {
-                if (!(value instanceof CompoundTag))
-                    continue;
-
-                CompoundTag tagValue = (CompoundTag) value;
-                ShortTag bedrockId = tagValue.get("id");
-                if (bedrockId == null) continue;
-
-                ShortTag geyserStoredEnchantmentTag = tagValue.get("GeyserStoredEnchantment");
-
-                Enchantment enchantment = Enchantment.getByBedrockId(bedrockId.getValue());
-                if (enchantment != null) {
-                    CompoundTag javaTag = new CompoundTag("");
-                    Map<String, Tag> javaValue = javaTag.getValue();
-                    javaValue.put("id", new StringTag("id", enchantment.getJavaIdentifier()));
-                    ShortTag levelTag = tagValue.get("lvl");
-                    javaValue.put("lvl", new IntTag("lvl", levelTag != null ? levelTag.getValue() : 1));
-                    javaTag.setValue(javaValue);
-
-
-                    if (geyserStoredEnchantmentTag != null) {
-                        tagValue.remove("GeyserStoredEnchantment");
-                        storedEnchantments.add(javaTag);
-                    } else {
-                        enchantments.add(javaTag);
-                    }
-                } else {
-                    GeyserConnector.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
-                }
-            }
-            if (!enchantments.isEmpty()) {
-                itemTag.put(new ListTag("Enchantments", enchantments));
-            }
-            if (!storedEnchantments.isEmpty()) {
-                itemTag.put(new ListTag("StoredEnchantments", enchantments));
-            }
-            itemTag.remove("ench");
+        if (!itemTag.contains("ench")) {
+            return;
         }
+
+        ListTag enchantmentTag = itemTag.get("ench");
+        List<Tag> enchantments = new ArrayList<>();
+        List<Tag> storedEnchantments = new ArrayList<>();
+        for (Tag value : enchantmentTag.getValue()) {
+            if (!(value instanceof CompoundTag))
+                continue;
+
+            CompoundTag tagValue = (CompoundTag) value;
+            ShortTag bedrockId = tagValue.get("id");
+            if (bedrockId == null) continue;
+
+            ShortTag geyserStoredEnchantmentTag = tagValue.get("GeyserStoredEnchantment");
+
+            Enchantment enchantment = Enchantment.getByBedrockId(bedrockId.getValue());
+            if (enchantment != null) {
+                CompoundTag javaTag = new CompoundTag("");
+                Map<String, Tag> javaValue = javaTag.getValue();
+                javaValue.put("id", new StringTag("id", enchantment.getJavaIdentifier()));
+                ShortTag levelTag = tagValue.get("lvl");
+                javaValue.put("lvl", new IntTag("lvl", levelTag != null ? levelTag.getValue() : 1));
+                javaTag.setValue(javaValue);
+
+
+                if (geyserStoredEnchantmentTag != null) {
+                    tagValue.remove("GeyserStoredEnchantment");
+                    storedEnchantments.add(javaTag);
+                } else {
+                    enchantments.add(javaTag);
+                }
+            } else {
+                GeyserConnector.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
+            }
+        }
+        if (!enchantments.isEmpty()) {
+            itemTag.put(new ListTag("Enchantments", enchantments));
+        }
+        if (!storedEnchantments.isEmpty()) {
+            itemTag.put(new ListTag("StoredEnchantments", storedEnchantments));
+        }
+        itemTag.remove("ench");
     }
 
 
     private CompoundTag remapEnchantment(CompoundTag tag) {
         Tag javaEnchLvl = tag.get("lvl");
-        if (!(javaEnchLvl instanceof ShortTag))
+        if (!(javaEnchLvl instanceof ShortTag || javaEnchLvl instanceof IntTag))
             return null;
 
         Tag javaEnchId = tag.get("id");
@@ -135,7 +137,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
         CompoundTag bedrockTag = new CompoundTag("");
         bedrockTag.put(new ShortTag("id", (short) enchantment.ordinal()));
-        bedrockTag.put(new ShortTag("lvl", ((ShortTag) javaEnchLvl).getValue()));
+        bedrockTag.put(new ShortTag("lvl", ((Number) javaEnchLvl.getValue()).shortValue()));
         return bedrockTag;
     }
 
