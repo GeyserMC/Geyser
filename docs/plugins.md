@@ -6,6 +6,12 @@ Plugins provide a way to extend the features of Geyser without needing to deal w
 
 This page describes how to write a plugin.
 
+!!! alert
+    Please keep in mind that Geyser itself may run as a plugin to a server or standalone. If you wish to have your plugin
+    supported by a wide audience try to write it as if it runs on the standalone version of Geyser and thus does
+    not have access to the server code. For example don't assume you can access the Spigot API unless you wish to limit
+    your plugin to run only on Geyser running as a Spigot plugin.
+
 ## Maven
 
 Add the following to the relevant section of your `pom.xml`

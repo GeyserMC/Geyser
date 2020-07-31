@@ -78,5 +78,6 @@ nav:
   - Introduction: index.md
   - Events: events.md
   - Plugins: plugins.md
+  - Coding Hints: coding.md
   - Contributing: contributing.md
   - API: 'https://bundabrg.github.io/Geyser/apidocs/'

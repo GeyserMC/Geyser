@@ -145,7 +145,26 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>default</id>
+            <properties>
+                <sourceDirectory>src/main/java</sourceDirectory>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>documentation</id>
+            <properties>
+                <sourceDirectory>${project.build.directory}/delombok</sourceDirectory>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
+        <sourceDirectory>${sourceDirectory}</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.projectlombok</groupId>
@@ -153,6 +172,7 @@
                 <version>1.18.12.0</version>
                 <executions>
                     <execution>
+                        <id>delombok</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>delombok</goal>
@@ -160,18 +180,10 @@
                         <configuration>
                             <addOutputDirectory>false</addOutputDirectory>
                             <sourceDirectory>src/main/java</sourceDirectory>
+                            <outputDirectory>${project.build.directory}/delombok</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <defaultVersion>${project.version}</defaultVersion>
-                    <sourcepath>target/generated-sources/delombok</sourcepath>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>

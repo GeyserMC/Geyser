@@ -22,7 +22,7 @@ jobs:
         uses: snickerbockers/submodules-init@v4
       - name: Build with Maven
         run: |
-          mvn -B javadoc:aggregate
+          mvn -B javadoc:aggregate -P documentation
       - name: Archive artifacts (Geyser Javadoc)
         uses: actions/upload-artifact@v2
         if: success()
