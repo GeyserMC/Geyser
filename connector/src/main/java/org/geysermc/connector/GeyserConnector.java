@@ -206,7 +206,9 @@ public class GeyserConnector {
             message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
         }
         logger.info(message);
-		logger.warning("Geyser doesn't translate Bedrock movement perfectly, using Geyser in servers that has an anticheat like Hypixel will get you banned, be careful.");
+		if (platformType == PlatformType.STANDALONE){
+			logger.warning("geyser.core.movementwarn");
+		}
     }
 
     public void shutdown() {
