@@ -254,6 +254,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public int getMtu() {
+        return node.getNode("mtu").getInt(1400);
+    }
+
+    @Override
     public int getConfigVersion() {
         return node.getNode("config-version").getInt(0);
     }

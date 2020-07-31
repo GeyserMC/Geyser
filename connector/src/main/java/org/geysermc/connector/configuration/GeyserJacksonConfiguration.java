@@ -138,6 +138,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         private String uniqueId;
     }
 
+    @JsonProperty("mtu")
+    private int mtu = 1400;
+
     @JsonProperty("config-version")
     private int configVersion;
 }
