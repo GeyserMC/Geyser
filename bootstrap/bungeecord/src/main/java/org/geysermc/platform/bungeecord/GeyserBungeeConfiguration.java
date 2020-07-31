@@ -25,6 +25,7 @@
 
 package org.geysermc.platform.bungeecord;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -39,6 +40,7 @@ import java.nio.file.Paths;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserBungeeConfiguration extends GeyserJacksonConfiguration {
 
+    @JsonIgnore
     private Path floodgateKey;
 
     public void loadFloodgate(GeyserBungeePlugin plugin, Configuration configuration) {
