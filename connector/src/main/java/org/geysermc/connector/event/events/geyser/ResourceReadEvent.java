@@ -48,7 +48,6 @@ public class ResourceReadEvent extends GeyserEvent {
      * @param resourceName name of resource
      * @return name of resource
      */
-    @NonNull
     private String resourceName;
 
     /**
@@ -60,6 +59,10 @@ public class ResourceReadEvent extends GeyserEvent {
      * @param inputStream the InputStream for the data, null if invalid
      * @return current InputStream for the resource, null if invalid
      */
-    @NonNull
     private InputStream inputStream;
+
+    public ResourceReadEvent(String resourceName, InputStream inputStream) {
+        this.resourceName = resourceName;
+        this.inputStream = inputStream;
+    }
 }
