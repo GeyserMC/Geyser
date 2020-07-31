@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientUpdateSignPacket;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -45,47 +45,45 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
 
     @Override
     public void translate(BlockEntityDataPacket packet, GeyserSession session) {
-        if (packet.getData() instanceof CompoundTag) {
-            CompoundTag tag = (CompoundTag) packet.getData();
-            if (tag.getString("id").equals("Sign")) {
-                // This is the reason why this all works - Bedrock sends packets every time you update the sign, Java only wants the final packet
-                // But Bedrock sends one final packet when you're done editing the sign, which should be equal to the last message since there's no edits
-                // So if the latest update does not match the last cached update then it's still being edited
-                Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
-                if (!tag.getString("Text").equals(lastMessages.get(pos))) {
-                    lastMessages.put(pos, tag.getString("Text"));
-                    return;
-                }
-                // Otherwise the two messages are identical and we can get to work deconstructing
-                StringBuilder newMessage = new StringBuilder();
-                // While Bedrock's sign lines are one string, Java's is an array of each line
-                // (Initialized all with empty strings because it complains about null)
-                String[] lines = new String[] {"", "", "", ""};
-                int iterator = 0;
-                // This converts the message into the array'd message Java wants
-                for (char character : tag.getString("Text").toCharArray()) {
-                    // If we get a return in Bedrock, that signals to use the next line.
-                    if (character == '\n') {
-                        lines[iterator] = newMessage.toString();
-                        iterator++;
-                        // Bedrock, for whatever reason, can hold a message out of bounds
-                        // We don't care about that so we discard that
-                        if (iterator > lines.length - 1) {
-                            break;
-                        }
-                        newMessage = new StringBuilder();
-                    } else newMessage.append(character);
-                }
-                // Put the final line on since it isn't done in the for loop
-                if (iterator < lines.length) lines[iterator] = newMessage.toString();
-                ClientUpdateSignPacket clientUpdateSignPacket = new ClientUpdateSignPacket(pos, lines);
-                session.sendDownstreamPacket(clientUpdateSignPacket);
-                //TODO (potentially): originally I was going to update the sign blocks so Bedrock and Java users would match visually
-                // However Java can still store a lot per-line and visuals are still messed up so that doesn't work
-
-                // We remove the sign position from map to indicate there is no work-in-progress sign
-                lastMessages.remove(pos);
+        NbtMap tag = packet.getData();
+        if (tag.getString("id").equals("Sign")) {
+            // This is the reason why this all works - Bedrock sends packets every time you update the sign, Java only wants the final packet
+            // But Bedrock sends one final packet when you're done editing the sign, which should be equal to the last message since there's no edits
+            // So if the latest update does not match the last cached update then it's still being edited
+            Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
+            if (!tag.getString("Text").equals(lastMessages.get(pos))) {
+                lastMessages.put(pos, tag.getString("Text"));
+                return;
             }
+            // Otherwise the two messages are identical and we can get to work deconstructing
+            StringBuilder newMessage = new StringBuilder();
+            // While Bedrock's sign lines are one string, Java's is an array of each line
+            // (Initialized all with empty strings because it complains about null)
+            String[] lines = new String[] {"", "", "", ""};
+            int iterator = 0;
+            // This converts the message into the array'd message Java wants
+            for (char character : tag.getString("Text").toCharArray()) {
+                // If we get a return in Bedrock, that signals to use the next line.
+                if (character == '\n') {
+                    lines[iterator] = newMessage.toString();
+                    iterator++;
+                    // Bedrock, for whatever reason, can hold a message out of bounds
+                    // We don't care about that so we discard that
+                    if (iterator > lines.length - 1) {
+                        break;
+                    }
+                    newMessage = new StringBuilder();
+                } else newMessage.append(character);
+            }
+            // Put the final line on since it isn't done in the for loop
+            if (iterator < lines.length) lines[iterator] = newMessage.toString();
+            ClientUpdateSignPacket clientUpdateSignPacket = new ClientUpdateSignPacket(pos, lines);
+            session.sendDownstreamPacket(clientUpdateSignPacket);
+            //TODO (potentially): originally I was going to update the sign blocks so Bedrock and Java users would match visually
+            // However Java can still store a lot per-line and visuals are still messed up so that doesn't work
+
+            // We remove the sign position from map to indicate there is no work-in-progress sign
+            lastMessages.remove(pos);
         }
 
     }

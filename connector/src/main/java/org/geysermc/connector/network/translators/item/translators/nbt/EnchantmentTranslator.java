@@ -114,7 +114,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
             itemTag.put(new ListTag("Enchantments", enchantments));
         }
         if (!storedEnchantments.isEmpty()) {
-            itemTag.put(new ListTag("StoredEnchantments", enchantments));
+            itemTag.put(new ListTag("StoredEnchantments", storedEnchantments));
         }
         itemTag.remove("ench");
     }
@@ -122,7 +122,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
     private CompoundTag remapEnchantment(CompoundTag tag) {
         Tag javaEnchLvl = tag.get("lvl");
-        if (!(javaEnchLvl instanceof ShortTag))
+        if (!(javaEnchLvl instanceof ShortTag || javaEnchLvl instanceof IntTag))
             return null;
 
         Tag javaEnchId = tag.get("id");
@@ -137,7 +137,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
         CompoundTag bedrockTag = new CompoundTag("");
         bedrockTag.put(new ShortTag("id", (short) enchantment.ordinal()));
-        bedrockTag.put(new ShortTag("lvl", ((ShortTag) javaEnchLvl).getValue()));
+        bedrockTag.put(new ShortTag("lvl", ((Number) javaEnchLvl.getValue()).shortValue()));
         return bedrockTag;
     }
 
