@@ -55,13 +55,21 @@ public class ItemRegistry {
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    // Boat ID, used in BedrockInventoryTransactionTranslator.java
+    /**
+     * Boat item entry, used in BedrockInventoryTransactionTranslator.java
+     */
     public static ItemEntry BOAT;
-    // Gold ID, used in BedrockInventoryTransactionTranslator.java
+    /**
+     * Bucket item entry, used in BedrockInventoryTransactionTranslator.java
+     */
     public static ItemEntry BUCKET;
-    // Gold ID, used in PiglinEntity.java
+    /**
+     * Gold item entry, used in PiglinEntity.java
+     */
     public static ItemEntry GOLD;
-    // Shield ID, used in Entity.java
+    /**
+     * Shield item entry, used in Entity.java and LivingEntity.java
+     */
     public static ItemEntry SHIELD;
 
     public static int BARRIER_INDEX = 0;
