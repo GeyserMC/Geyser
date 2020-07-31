@@ -99,6 +99,10 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             geyserConfig.getRemote().setAddress(javaAddr.getHostString());
         }
 
+        if (geyserConfig.getBedrock().isCloneRemotePort()) {
+            geyserConfig.getBedrock().setPort(javaAddr.getPort());
+        }
+
         geyserConfig.getRemote().setPort(javaAddr.getPort());
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());

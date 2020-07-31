@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
@@ -46,6 +47,11 @@ public class CraftingInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
+        if (action.getSlot() == 50) {
+            GeyserConnector.getInstance().getLogger().warning("Slot 50 found, please report: " + action);
+            return 0;
+        }
+
         if (action.getSource().getContainerId() == ContainerId.UI) {
             int slotnum = action.getSlot();
             if (slotnum >= 32 && 42 >= slotnum) {

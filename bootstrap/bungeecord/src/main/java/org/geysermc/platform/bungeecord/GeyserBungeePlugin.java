@@ -88,6 +88,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
             }
 
+            if (geyserConfig.getBedrock().isCloneRemotePort()) {
+                geyserConfig.getBedrock().setPort(javaAddr.getPort());
+            }
+
             this.geyserConfig.getRemote().setPort(javaAddr.getPort());
         }
 

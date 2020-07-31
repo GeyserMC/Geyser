@@ -181,6 +181,6 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public BootstrapDumpInfo getDumpInfo() {
-        return new BootstrapDumpInfo();
+        return new GeyserStandaloneDumpInfo(this);
     }
 }

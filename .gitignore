@@ -1,6 +1,6 @@
 
-# Created by https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all
-# Edit at https://www.gitignore.io/?templates=git,java,maven,eclipse,netbeans,jetbrains+all
+# Created by https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
+# Edit at https://www.gitignore.io/gitignore?templates=git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
 
 ### Eclipse ###
 .metadata
@@ -53,22 +53,19 @@ local.properties
 
 # Annotation Processing
 .apt_generated/
+.apt_generated_test/
 
 # Scala IDE specific (Scala & Java development for Eclipse)
 .cache-main
 .scala_dependencies
 .worksheet
 
-### Eclipse Patch ###
-# Eclipse Core
+# Uncomment this line if you wish to ignore the project description file.
+# Typically, this file would be tracked if it contains build/dependency configurations:
 .project
 
-# JDT-specific (Eclipse Java Development Tools)
-.classpath
-
-# Annotation Processing
-.apt_generated
-
+### Eclipse Patch ###
+# Spring Boot Tooling
 .sts4-cache/
 
 ### Git ###
@@ -112,7 +109,7 @@ local.properties
 hs_err_pid*
 
 ### JetBrains+all ###
-# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # User-specific stuff
@@ -142,6 +139,9 @@ hs_err_pid*
 # When using Gradle or Maven with auto-import, you should exclude module files,
 # since they will be recreated, and may cause churn.  Uncomment if using
 # auto-import.
+# .idea/artifacts
+# .idea/compiler.xml
+# .idea/jarRepositories.xml
 # .idea/modules.xml
 # .idea/*.iml
 # .idea/modules
@@ -207,6 +207,7 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
+# https://github.com/takari/maven-wrapper#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar
 
 ### NetBeans ###
@@ -219,7 +220,20 @@ dist/
 nbdist/
 .nb-gradle/
 
-# End of https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all
+### VisualStudioCode ###
+# Note: Manually edited to remove settings files
+.vscode/*
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+# !.vscode/extensions.json
+# *.code-workspace
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+
+# End of https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
 
 ### Geyser ###
 run/
