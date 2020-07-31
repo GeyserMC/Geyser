@@ -84,6 +84,8 @@ import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -411,34 +413,7 @@ public class GeyserSession implements CommandSender {
                     @Override
                     public void packetReceived(PacketReceivedEvent event) {
                         if (!closed) {
-                            //handle consecutive respawn packets
-                            if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
-                                manyDimPackets = lastDimPacket != null;
-                                lastDimPacket = event.getPacket();
-                                return;
-                            } else if (lastDimPacket != null) {
-                                EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, lastDimPacket));
-                                if (!result.isCancelled()) {
-                                    PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), GeyserSession.this);
-                                }
-                                lastDimPacket = null;
-                            }
-
-                            // Required, or else Floodgate players break with Bukkit chunk caching
-                            if (event.getPacket() instanceof LoginSuccessPacket) {
-                                GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
-                                playerEntity.setUsername(profile.getName());
-                                playerEntity.setUuid(profile.getId());
-
-                                // Check if they are not using a linked account
-                                if (connector.getAuthType() == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
-                                    SkinUtils.handleBedrockSkin(playerEntity, clientData);
-                                }
-                            }
-                            EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, event.getPacket()));
-                            if (!result.isCancelled()) {
-                                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), GeyserSession.this);
-                            }
+                            handleDownstreamPacket(event.getPacket());
                         }
                     }
 
@@ -460,6 +435,38 @@ public class GeyserSession implements CommandSender {
                 ex.printStackTrace();
             }
         }).start();
+    }
+
+    public void handleDownstreamPacket(Packet packet) {
+        //handle consecutive respawn packets
+        if (packet.getClass().equals(ServerRespawnPacket.class)) {
+            manyDimPackets = lastDimPacket != null;
+            lastDimPacket = (ServerRespawnPacket) packet;
+            return;
+        } else if (lastDimPacket != null) {
+            EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, lastDimPacket));
+            if (!result.isCancelled()) {
+                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), GeyserSession.this);
+            }
+            lastDimPacket = null;
+        }
+
+        // Required, or else Floodgate players break with Bukkit chunk caching
+        if (packet instanceof LoginSuccessPacket) {
+            GameProfile profile = ((LoginSuccessPacket) packet).getProfile();
+            playerEntity.setUsername(profile.getName());
+            playerEntity.setUuid(profile.getId());
+
+            // Check if they are not using a linked account
+            if (connector.getAuthType() == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
+                SkinUtils.handleBedrockSkin(playerEntity, clientData);
+            }
+        }
+        EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, packet));
+        System.err.println(result);
+        if (!result.isCancelled()) {
+            PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), GeyserSession.this);
+        }
     }
 
     public void disconnect(String reason) {
@@ -617,6 +624,29 @@ public class GeyserSession implements CommandSender {
                         connector.getLogger().debug("Tried to send upstream packet " + result.getEvent().getPacket().getClass().getSimpleName() + " but the session was null");
                     }
                 });
+    }
+
+    /**
+     * Inject a packet as if it was received by the upstream client
+     * @param packet the bedrock packet to be injected
+     */
+    @SuppressWarnings("unused")
+    public void receiveUpstreamPacket(BedrockPacket packet) {
+        try {
+            Method handle = getUpstream().getSession().getPacketHandler().getClass().getMethod("handle", packet.getClass());
+            handle.invoke(getUpstream().getSession().getPacketHandler(), packet);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            connector.getLogger().error("Tried to inject upstream packet " + packet + " but it is not handled");
+        }
+    }
+
+    /**
+     * Inject a packet as if it was received by the downstream server
+     * @param packet the java packet to be injected
+     */
+    @SuppressWarnings("unused")
+    public void receiveDownstreamPacket(Packet packet) {
+        handleDownstreamPacket(packet);
     }
 
     /**

@@ -82,7 +82,7 @@ public abstract class DownstreamPacketReceiveEvent<T extends Packet> extends Gey
 
         try {
             //noinspection unchecked
-            return (DownstreamPacketReceiveEvent<T>) cls.getConstructor(GeyserSession.class, Packet.class).newInstance(session, packet);
+            return (DownstreamPacketReceiveEvent<T>) cls.getConstructor(GeyserSession.class, packet.getClass()).newInstance(session, packet);
         } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             e.printStackTrace();
         }

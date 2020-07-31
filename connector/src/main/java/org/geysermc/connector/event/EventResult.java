@@ -28,6 +28,7 @@ package org.geysermc.connector.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 
 /**
  * Provides a chainable result for the triggering of an Event
@@ -35,6 +36,7 @@ import lombok.Getter;
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 @Getter
 @AllArgsConstructor
+@ToString
 public class EventResult<T extends GeyserEvent> {
     private final EventManager manager;
     private final T event;

@@ -82,7 +82,7 @@ public abstract class UpstreamPacketSendEvent<T extends BedrockPacket> extends G
 
         try {
             //noinspection unchecked
-            return (UpstreamPacketSendEvent<T>) cls.getConstructor(GeyserSession.class, BedrockPacket.class).newInstance(session, packet);
+            return (UpstreamPacketSendEvent<T>) cls.getConstructor(GeyserSession.class, packet.getClass()).newInstance(session, packet);
         } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             e.printStackTrace();
         }
