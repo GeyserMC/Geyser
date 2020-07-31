@@ -444,9 +444,9 @@ public class GeyserSession implements CommandSender {
             lastDimPacket = (ServerRespawnPacket) packet;
             return;
         } else if (lastDimPacket != null) {
-            EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, lastDimPacket));
+            EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(this, lastDimPacket));
             if (!result.isCancelled()) {
-                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), GeyserSession.this);
+                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), this);
             }
             lastDimPacket = null;
         }
@@ -462,10 +462,9 @@ public class GeyserSession implements CommandSender {
                 SkinUtils.handleBedrockSkin(playerEntity, clientData);
             }
         }
-        EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(GeyserSession.this, packet));
-        System.err.println(result);
+        EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(this, packet));
         if (!result.isCancelled()) {
-            PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), GeyserSession.this);
+            PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(result.getEvent().getPacket().getClass(), result.getEvent().getPacket(), this);
         }
     }
 

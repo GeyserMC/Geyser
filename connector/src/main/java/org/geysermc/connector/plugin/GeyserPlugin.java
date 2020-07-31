@@ -31,8 +31,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.annotations.GeyserEventHandler;
 import org.geysermc.connector.event.GeyserEvent;
-import org.geysermc.connector.event.events.plugin.PluginDisableEvent;
-import org.geysermc.connector.event.events.plugin.PluginEnableEvent;
+import org.geysermc.connector.event.handlers.EventHandler;
 import org.geysermc.connector.plugin.handlers.PluginLambdaEventHandler;
 import org.geysermc.connector.plugin.handlers.PluginMethodEventHandler;
 import org.geysermc.connector.plugin.annotations.Plugin;
@@ -45,6 +44,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * All GeyserPlugins extend from this
@@ -53,7 +54,7 @@ import java.util.List;
 @Getter
 public abstract class GeyserPlugin {
     // List of EventHandlers associated with this Plugin
-    private final List<org.geysermc.connector.event.handlers.EventHandler> pluginEventHandlers = new ArrayList<>();
+    private final List<EventHandler<?>> pluginEventHandlers = new ArrayList<>();
 
     private final PluginManager pluginManager;
     private final PluginClassLoader pluginClassLoader;
@@ -76,14 +77,18 @@ public abstract class GeyserPlugin {
     /**
      * Create a new EventHandler using a lambda
      */
-    public <T extends GeyserEvent> PluginLambdaEventHandler.Builder<T> on(Class<T> cls, PluginLambdaEventHandler.Runnable<T> runnable) {
-        return new PluginLambdaEventHandler.Builder<>(this, cls, runnable);
+    public <T extends GeyserEvent> PluginLambdaEventHandler.Builder<T> on(Class<T> cls, Consumer<T> consumer) {
+        return on(cls, (event, handler) -> consumer.accept(event));
+    }
+
+    public <T extends GeyserEvent> PluginLambdaEventHandler.Builder<T> on(Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
+        return new PluginLambdaEventHandler.Builder<>(this, cls, consumer);
     }
 
     /**
      * Register an event handler
      */
-    public <T extends GeyserEvent> void register(org.geysermc.connector.event.handlers.EventHandler handler) {
+    public <T extends GeyserEvent> void register(org.geysermc.connector.event.handlers.EventHandler<T> handler) {
         this.pluginEventHandlers.add(handler);
         getEventManager().register(handler);
     }
@@ -91,7 +96,7 @@ public abstract class GeyserPlugin {
     /**
      * Unregister an event handler
      */
-    public <T extends GeyserEvent> void unregister(org.geysermc.connector.event.handlers.EventHandler handler) {
+    public <T extends GeyserEvent> void unregister(org.geysermc.connector.event.handlers.EventHandler<T> handler) {
         this.pluginEventHandlers.remove(handler);
         getEventManager().unregister(handler);
     }
@@ -112,7 +117,7 @@ public abstract class GeyserPlugin {
                 continue;
             }
 
-            org.geysermc.connector.event.handlers.EventHandler handler = new PluginMethodEventHandler<>(this, obj, method);
+            EventHandler<?> handler = new PluginMethodEventHandler<>(this, obj, method);
             register(handler);
         }
     }
@@ -121,7 +126,7 @@ public abstract class GeyserPlugin {
      * Unregister all events for a plugin
      */
     public void unregisterAllEvents() {
-        for (org.geysermc.connector.event.handlers.EventHandler handler : pluginEventHandlers) {
+        for (EventHandler<?> handler : pluginEventHandlers) {
             unregister(handler);
         }
     }

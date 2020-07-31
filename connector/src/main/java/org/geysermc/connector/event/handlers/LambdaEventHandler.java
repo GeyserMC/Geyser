@@ -32,39 +32,34 @@ import org.geysermc.connector.event.Cancellable;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.GeyserEvent;
 
+import java.util.function.BiConsumer;
+
 
 /**
  * Provides an event handler for an annotated method
  */
 @Getter
 public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
-    private final Runnable<T> runnable;
+    private final BiConsumer<T, EventHandler<T>> consumer;
     private final int priority;
     private final boolean ignoreCancelled;
 
-    public LambdaEventHandler(EventManager manager, Class<T> cls, Runnable<T> runnable, int priority, boolean ignoreCancelled) {
+    public LambdaEventHandler(EventManager manager, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer, int priority, boolean ignoreCancelled) {
         super(manager, cls);
-        this.runnable = runnable;
+        this.consumer = consumer;
         this.priority = priority;
         this.ignoreCancelled = ignoreCancelled;
-
-        // Register with event manager
-        manager.register(this);
     }
 
     @Override
-    public void execute(T event) throws EventHandlerException {
+    public void execute(T event) {
         if (event instanceof Cancellable) {
             if (((Cancellable) event).isCancelled() && !isIgnoreCancelled()) {
                 return;
             }
         }
 
-        runnable.run(event);
-    }
-
-    public interface Runnable<T extends GeyserEvent> {
-        void run(T event) throws EventHandlerException;
+        consumer.accept(event, this);
     }
 
     @Getter
@@ -73,7 +68,7 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
     public static class Builder<T extends GeyserEvent> {
         private final EventManager manager;
         private final Class<T> cls;
-        private final Runnable<T> runnable;
+        private final BiConsumer<T, EventHandler<T>> consumer;
 
         private int priority = PRIORITY.NORMAL;
         private boolean ignoreCancelled = true;
@@ -89,7 +84,7 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
         }
 
         public LambdaEventHandler<T> build() {
-            LambdaEventHandler<T> handler = new LambdaEventHandler<>(manager, cls, runnable, priority, ignoreCancelled);
+            LambdaEventHandler<T> handler = new LambdaEventHandler<>(manager, cls, consumer, priority, ignoreCancelled);
             manager.register(handler);
             return handler;
         }

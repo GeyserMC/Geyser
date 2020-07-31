@@ -69,6 +69,7 @@ public abstract class EventHandler<T extends GeyserEvent> implements Comparable<
     }
 
 
+    @SuppressWarnings("unused")
     public static class EventHandlerException extends Exception {
         public EventHandlerException(String message, Throwable ex) {
             super(message, ex);
@@ -83,6 +84,7 @@ public abstract class EventHandler<T extends GeyserEvent> implements Comparable<
         }
     }
 
+    @SuppressWarnings("unused")
     public static class PRIORITY {
         public final static int LOWEST = 10;
         public final static int LOW = 4;

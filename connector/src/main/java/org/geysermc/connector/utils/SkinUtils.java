@@ -270,7 +270,6 @@ public class SkinUtils {
             byte[] capeBytes = clientData.getCapeData();
 
             byte[] geometryNameBytes = Base64.getDecoder().decode(clientData.getGeometryName().getBytes("UTF-8"));
-            System.err.println(new String(geometryNameBytes));
             byte[] geometryBytes = Base64.getDecoder().decode(clientData.getGeometryData().getBytes("UTF-8"));
 
             if (skinBytes.length <= (128 * 128 * 4) && !clientData.isPersonaSkin()) {

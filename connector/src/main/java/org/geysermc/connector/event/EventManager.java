@@ -26,7 +26,6 @@
 
 package org.geysermc.connector.event;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.annotations.GeyserEventHandler;
@@ -41,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 @Getter
@@ -83,8 +84,12 @@ public class EventManager {
     /**
      * Create a new EventHandler using a Lambda
      */
-    public <T extends GeyserEvent> LambdaEventHandler.Builder<T> on(Class<T> cls, LambdaEventHandler.Runnable<T> runnable) {
-        return new LambdaEventHandler.Builder<>(this, cls, runnable);
+    public <T extends GeyserEvent> LambdaEventHandler.Builder<T> on(Class<T> cls, Consumer<T> consumer) {
+        return on(cls, (event, handler) -> consumer.accept(event));
+    }
+
+    public <T extends GeyserEvent> LambdaEventHandler.Builder<T> on(Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
+        return new LambdaEventHandler.Builder<>(this, cls, consumer);
     }
 
     /**

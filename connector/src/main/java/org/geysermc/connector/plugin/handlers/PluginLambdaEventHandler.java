@@ -28,8 +28,11 @@ package org.geysermc.connector.plugin.handlers;
 
 import lombok.Getter;
 import org.geysermc.connector.event.GeyserEvent;
+import org.geysermc.connector.event.handlers.EventHandler;
 import org.geysermc.connector.event.handlers.LambdaEventHandler;
 import org.geysermc.connector.plugin.GeyserPlugin;
+
+import java.util.function.BiConsumer;
 
 /**
  * Provides a lambda event handler for a plugin.
@@ -38,8 +41,8 @@ import org.geysermc.connector.plugin.GeyserPlugin;
 public class PluginLambdaEventHandler<T extends GeyserEvent> extends LambdaEventHandler<T> {
     private final GeyserPlugin plugin;
 
-    public PluginLambdaEventHandler(GeyserPlugin plugin, Class<T> cls, Runnable<T> runnable, int priority, boolean ignoreCancelled) {
-        super(plugin.getEventManager(), cls, runnable, priority, ignoreCancelled);
+    public PluginLambdaEventHandler(GeyserPlugin plugin, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer, int priority, boolean ignoreCancelled) {
+        super(plugin.getEventManager(), cls, consumer, priority, ignoreCancelled);
 
         this.plugin = plugin;
     }
@@ -54,15 +57,15 @@ public class PluginLambdaEventHandler<T extends GeyserEvent> extends LambdaEvent
     public static class Builder<T extends GeyserEvent> extends LambdaEventHandler.Builder<T> {
         private final GeyserPlugin plugin;
 
-        public Builder(GeyserPlugin plugin, Class<T> cls, Runnable<T> runnable) {
-            super(plugin.getEventManager(), cls, runnable);
+        public Builder(GeyserPlugin plugin, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
+            super(plugin.getEventManager(), cls, consumer);
 
             this.plugin = plugin;
         }
 
         @Override
         public LambdaEventHandler<T> build() {
-            LambdaEventHandler<T> handler = new PluginLambdaEventHandler<>(plugin, getCls(), getRunnable(), getPriority(), isIgnoreCancelled());
+            LambdaEventHandler<T> handler = new PluginLambdaEventHandler<>(plugin, getCls(), getConsumer(), getPriority(), isIgnoreCancelled());
             plugin.register(handler);
             return handler;
         }
