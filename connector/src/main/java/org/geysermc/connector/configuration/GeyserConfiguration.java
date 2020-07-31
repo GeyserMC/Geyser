@@ -115,6 +115,11 @@ public interface GeyserConfiguration {
 
     int getConfigVersion();
 
+    /**
+     * Sends a message to the console if the config is too new or outdated.
+     * @param geyserConfig
+     * @param geyserLogger
+     */
     static void checkGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {
         if (geyserConfig.getConfigVersion() < CURRENT_CONFIG_VERSION) {
             geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.outdated"));

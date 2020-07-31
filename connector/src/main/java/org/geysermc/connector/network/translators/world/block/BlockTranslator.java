@@ -45,8 +45,14 @@ import org.reflections.Reflections;
 import java.io.InputStream;
 import java.util.*;
 
+/**
+ * Holds translations between Java and Bedrock blocks and block states.
+ */
 public class BlockTranslator {
     public static final NbtList<NbtMap> BLOCKS;
+    /**
+     * Static constant for the air block in both Java and Bedrock.
+     */
     public static final int AIR = 0;
     public static final int BEDROCK_WATER_ID;
 
@@ -54,9 +60,14 @@ public class BlockTranslator {
     private static final Int2IntMap BEDROCK_TO_JAVA_BLOCK_MAP = new Int2IntOpenHashMap();
     private static final BiMap<String, Integer> JAVA_ID_BLOCK_MAP = HashBiMap.create();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
+    /**
+     * Stores the NBT data for each Bedrock item frame block state
+     */
     private static final Object2IntMap<NbtMap> ITEM_FRAMES = new Object2IntOpenHashMap<>();
 
-    // Bedrock carpet ID, used in LlamaEntity.java for decoration
+    /**
+     * Bedrock carpet ID, used in LlamaEntity.java for decoration
+     */
     public static final int CARPET = 171;
 
     private static final Int2ObjectMap<String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new Int2ObjectOpenHashMap<>();
@@ -65,13 +76,27 @@ public class BlockTranslator {
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
 
-    // For block breaking animation math
+    /**
+     * For block breaking animation math
+     */
     public static final IntSet JAVA_RUNTIME_WOOL_IDS = new IntOpenHashSet();
+    /**
+     * Used for block breaking animation math for swords on cobwebs
+     */
     public static final int JAVA_RUNTIME_COBWEB_ID;
 
+    /**
+     * Used to determine the furnace block for furnace minecarts as Bedrock has no furnace minecart entity.
+     */
     public static final int JAVA_RUNTIME_FURNACE_ID;
+    /**
+     * Used to determine the lit furnace block for furnace minecarts as Bedrock has no furnace minecart entity.
+     */
     public static final int JAVA_RUNTIME_FURNACE_LIT_ID;
 
+    /**
+     * Used to determine the spawner block for spawner minecarts as Bedrock has no spawner minecart entity.
+     */
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
     private static final int BLOCK_STATE_VERSION = 17825806;
@@ -289,6 +314,10 @@ public class BlockTranslator {
         return tagBuilder.build();
     }
 
+    /**
+     * @param state The Java block state.
+     * @return the Bedrock runtime ID.
+     */
     public static int getBedrockBlockId(int state) {
         return JAVA_TO_BEDROCK_BLOCK_MAP.get(state);
     }
@@ -301,6 +330,11 @@ public class BlockTranslator {
         return ITEM_FRAMES.getOrDefault(tag, -1);
     }
 
+    /**
+     * Determines if a Bedrock block runtime ID is an item frame.
+     * @param bedrockBlockRuntimeId Bedrock block runtime ID
+     * @return true if the runtime ID is an item frame.
+     */
     public static boolean isItemFrame(int bedrockBlockRuntimeId) {
         return ITEM_FRAMES.values().contains(bedrockBlockRuntimeId);
     }
@@ -309,6 +343,10 @@ public class BlockTranslator {
         return BLOCK_STATE_VERSION;
     }
 
+    /**
+     * @param javaId the Java namespaced string of the block
+     * @return the Java block state integer of the block
+     */
     public static int getJavaBlockState(String javaId) {
         return JAVA_ID_BLOCK_MAP.get(javaId);
     }

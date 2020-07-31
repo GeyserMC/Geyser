@@ -29,6 +29,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Stores values of each painting with their Java and Bedrock names along with width and height
+ */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public enum PaintingType {
@@ -68,6 +71,10 @@ public enum PaintingType {
         return com.github.steveice10.mc.protocol.data.game.entity.type.PaintingType.valueOf(name());
     }
 
+    /**
+     * @param javaName The Java Edition name of the painting to look for
+     * @return the PaintingType of the specified Java name, or {@link PaintingType.KEBAB} otherwise.
+     */
     public static PaintingType getByName(String javaName) {
         for (PaintingType paintingName : VALUES) {
             if (paintingName.name().equalsIgnoreCase(javaName)) return paintingName;

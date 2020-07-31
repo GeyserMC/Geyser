@@ -35,6 +35,9 @@ import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
+/**
+ * Manages all incoming packets from the Bedrock client.
+ */
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     public UpstreamPacketHandler(GeyserConnector connector, GeyserSession session) {

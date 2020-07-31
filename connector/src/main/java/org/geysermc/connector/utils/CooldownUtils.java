@@ -45,8 +45,11 @@ public class CooldownUtils {
     }
 
     /**
-     * Starts sending the fake cooldown to the Bedrock client.
-     * @param session GeyserSession
+     * Sends a fake cooldown to the Bedrock client.
+     * attackSpeed in {@link GeyserSession} should be specified first to send an accurate cooldown.
+     * If attackSpeed is 0 or greater than 20, this will not run.
+     * This will not run if "show-cooldown" is disabled in the Geyser config.
+     * @param session the session of the player to send the cooldown to.
      */
     public static void sendCooldown(GeyserSession session) {
         if (!SHOW_COOLDOWN) return;

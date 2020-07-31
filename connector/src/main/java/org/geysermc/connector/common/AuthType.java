@@ -28,10 +28,23 @@ package org.geysermc.connector.common;
 
 import lombok.Getter;
 
+/**
+ * The different kinds of authentication Geyser can use.
+ */
 @Getter
 public enum AuthType {
+    /**
+     * Geyser will join the server without authenticating to Mojang and will be treated as a normal offline mode player.
+     */
     OFFLINE,
+    /**
+     * Geyser will present a login prompt to each player joining the server asking them to enter their Mojang credentials,
+     * unless their credentials are already stored in the config.
+     */
     ONLINE,
+    /**
+     * Geyser will join the server with the Floodgate plugin.
+     */
     FLOODGATE;
 
     public static final AuthType[] VALUES = values();

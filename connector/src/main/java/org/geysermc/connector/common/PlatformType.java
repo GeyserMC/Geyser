@@ -29,6 +29,9 @@ package org.geysermc.connector.common;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * The platform
+ */
 @Getter
 @AllArgsConstructor
 public enum PlatformType {

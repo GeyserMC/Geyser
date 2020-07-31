@@ -35,6 +35,10 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Stores ping information returned from the remote server.
+ * Used in ping passthrough.
+ */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserPingInfo {

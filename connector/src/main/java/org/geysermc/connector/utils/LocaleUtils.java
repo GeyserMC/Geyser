@@ -42,6 +42,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipFile;
 
+/**
+ * Downloads and manages Java Edition locale files for each player.
+ *
+ * When the server sends a translatable string, it expects the client to also have the locale. This is managed here.
+ */
 public class LocaleUtils {
 
     public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();

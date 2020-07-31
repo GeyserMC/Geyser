@@ -36,8 +36,14 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 
 import java.nio.file.Path;
 
+/**
+ * Interface that each starting class extends from.
+ */
 public interface GeyserBootstrap {
 
+    /**
+     * If no specific world manager is applied, the default one here will be used.
+     */
     CachedChunkManager DEFAULT_CHUNK_MANAGER = new CachedChunkManager();
 
     /**

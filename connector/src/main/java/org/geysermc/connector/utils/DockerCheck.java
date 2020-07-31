@@ -56,6 +56,10 @@ public class DockerCheck {
         } catch (Exception e) { } // Ignore any errors, inc ip failed to fetch, process could not run or access denied
     }
 
+    /**
+     * Check to see if Geyser is running in a Docker container. This is used in dumps for debugging purposes.
+     * @return true if Geyser detects it is running in Docker.
+     */
     public static boolean checkBasic() {
         try {
             String OS = System.getProperty("os.name").toLowerCase();

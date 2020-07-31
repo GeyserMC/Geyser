@@ -37,6 +37,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * Manages the loading and sending of translated strings in Geyser.
+ */
 public class LanguageUtils {
 
     /**

@@ -69,20 +69,38 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Starts the Geyser Bedrock server and loads all translation components.
+ */
 @Getter
 public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
+    /**
+     * Specifies the protocol version that Geyser's Bedrock server should emulate.
+     */
     public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC;
 
+    /**
+     * The branding of the software.
+     */
     public static final String NAME = "Geyser";
+    /**
+     * The version of the Geyser instance. Will be DEV in testing instances.
+     */
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
 
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
+    /**
+     * Stores all online players.
+     */
     private final List<GeyserSession> players = new ArrayList<>();
 
+    /**
+     * Returns the running instance of GeyserConnector
+     */
     private static GeyserConnector instance;
 
     private RemoteServer remoteServer;

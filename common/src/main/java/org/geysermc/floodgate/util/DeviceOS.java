@@ -27,6 +27,9 @@ package org.geysermc.floodgate.util;
 
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 
+/**
+ * Used to determine Bedrock client device type.
+ */
 public enum DeviceOS {
 
     @JsonEnumDefaultValue

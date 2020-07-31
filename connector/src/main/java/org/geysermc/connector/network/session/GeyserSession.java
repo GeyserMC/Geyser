@@ -84,6 +84,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Manages a Bedrock player's session, including connecting, disconnecting and sending packets.
+ */
 @Getter
 public class GeyserSession implements CommandSender {
 
