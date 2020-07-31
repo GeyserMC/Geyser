@@ -110,7 +110,7 @@ metrics:
   # UUID of server, don't change!
   uuid: generateduuid
 
-# ADVANCED OPTIONS - DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING! THIS WILL NOT FIX YOUR PROBLEM!
+# ADVANCED OPTIONS - DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING! 
 # The internet supports a maximum MTU of 1492 but could cause issues with packet fragmentation.
 # 1400 is the default.
 # mtu: 1400
