@@ -41,6 +41,7 @@ import org.geysermc.connector.network.translators.inventory.action.Execute;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AnvilInventoryTranslator extends BlockInventoryTranslator {
     public AnvilInventoryTranslator() {
@@ -118,10 +119,8 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
         // Fix up Results
         if (actions.stream().anyMatch(a -> a.getSource().getContainerId() == ContainerId.ANVIL_RESULT)) {
             actions = actions.stream()
-                    .filter(a -> {
-                        return (a.getSource().getContainerId() != ContainerId.UI
-                                && a.getSource().getContainerId() != ContainerId.CONTAINER_INPUT);
-                    })
+                    .filter(a -> (a.getSource().getContainerId() != ContainerId.UI
+                            && a.getSource().getContainerId() != ContainerId.CONTAINER_INPUT))
                     .collect(Collectors.toList());
         }
 

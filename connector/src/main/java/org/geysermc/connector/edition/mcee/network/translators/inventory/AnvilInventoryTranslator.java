@@ -27,16 +27,17 @@
 package org.geysermc.connector.edition.mcee.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.Message;
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
-import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.google.gson.JsonSyntaxException;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BlockInventoryTranslator;
@@ -99,9 +100,20 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
         // If from is ANVIL_RESULT we add a rename packet
         if (from.action.getSource().getContainerId() == ContainerId.ANVIL_RESULT) {
             transaction.add(new Execute(() -> {
+                String rename;
                 ItemData item = from.action.getFromItem();
                 NbtMap tag = item.getTag();
-                String rename = tag != null ? tag.getCompound("display").getString("Name") : "";
+                if (tag != null) {
+                    String name = tag.getCompound("display").getString("Name");
+                    try {
+                        Component component = GsonComponentSerializer.gson().deserialize(name);
+                        rename = LegacyComponentSerializer.legacySection().serialize(component);
+                    } catch (JsonSyntaxException e) {
+                        rename = name;
+                    }
+                } else {
+                    rename = "";
+                }
                 ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(rename);
                 transaction.getSession().sendDownstreamPacket(renameItemPacket);
             }));
@@ -119,10 +131,14 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                 CompoundTag tag = item.getNbt();
                 if (tag != null) {
                     CompoundTag displayTag = tag.get("display");
-                    if (displayTag != null) {
+                    if (displayTag != null && displayTag.contains("Name")) {
                         String itemName = displayTag.get("Name").getValue().toString();
-                        TextMessage message = (TextMessage) MessageSerializer.fromString(itemName);
-                        rename = message.getText();
+                        try {
+                            Component component = GsonComponentSerializer.gson().deserialize(itemName);
+                            rename = LegacyComponentSerializer.legacySection().serialize(component);
+                        } catch (JsonSyntaxException e) {
+                            rename = itemName;
+                        }
                     } else {
                         rename = "";
                     }
