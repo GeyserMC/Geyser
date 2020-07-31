@@ -33,6 +33,8 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +54,14 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
         if (args.length > 0) {
             if (getCommand(args[0]) != null) {
                 if (!sender.hasPermission(getCommand(args[0]).getPermission())) {
-                    sender.sendMessage(TextComponent.fromLegacyText(ChatColor.RED + "You do not have permission to execute this command!"));
+                    String message = "";
+                    if (sender instanceof GeyserSession) {
+                        message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", ((GeyserSession) sender).getClientData().getLanguageCode());
+                    } else {
+                        message = LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail");
+                    }
+
+                    sender.sendMessage(TextComponent.fromLegacyText(ChatColor.RED + message));
                     return;
                 }
                 getCommand(args[0]).execute(new BungeeCommandSender(sender), args);

@@ -25,10 +25,12 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.common.ChatColor;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +50,17 @@ public class HelpCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        sender.sendMessage("---- Showing Help For: Geyser (Page 1/1) ----");
+        int page = 1;
+        int maxPage = 1;
+        String header = "";
+
+        if (sender instanceof GeyserSession) {
+            header = LanguageUtils.getPlayerLocaleString("geyser.commands.help.header", ((GeyserSession) sender).getClientData().getLanguageCode(), page, maxPage);
+        } else {
+            header = LanguageUtils.getLocaleStringLog("geyser.commands.help.header", page, maxPage);
+        }
+
+        sender.sendMessage(header);
         Map<String, GeyserCommand> cmds = connector.getCommandManager().getCommands();
         List<String> commands = connector.getCommandManager().getCommands().keySet().stream().sorted().collect(Collectors.toList());
         commands.forEach(cmd -> sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmd + ChatColor.WHITE + ": " + cmds.get(cmd).getDescription()));
