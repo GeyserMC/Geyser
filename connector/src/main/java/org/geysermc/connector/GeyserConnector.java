@@ -160,6 +160,7 @@ public class GeyserConnector {
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         logger.info(String.format("Done (%ss)! Run /geyser help for help!", new DecimalFormat("#.###").format(completeTime)));
+		logger.warning("Geyser doesn't translate Bedrock movement perfectly, using Geyser in servers that has an anticheat like Hypixel will get you banned, be careful.");
     }
 
     public void shutdown() {
