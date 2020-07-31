@@ -28,16 +28,16 @@ package org.geysermc.connector.network.translators.java.world;
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValue;
+import com.github.steveice10.mc.protocol.data.game.world.notify.RespawnScreenValue;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AdventureSetting;
+import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.entity.Entity;
@@ -87,6 +87,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                     playerFlags.add(AdventureSetting.MAY_FLY);
                     playerFlags.add(AdventureSetting.NO_CLIP);
                     playerFlags.add(AdventureSetting.FLYING);
+                    playerFlags.add(AdventureSetting.WORLD_IMMUTABLE);
                     gameMode = GameMode.CREATIVE; // spectator doesnt exist on bedrock
                 }
 
@@ -106,14 +107,6 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                     adventureSettingsPacket.getSettings().addAll(playerFlags);
                     session.sendUpstreamPacket(adventureSettingsPacket);
                 }, 50, TimeUnit.MILLISECONDS);
-
-                EntityDataMap metadata = entity.getMetadata();
-                metadata.getFlags().setFlag(EntityFlag.CAN_FLY, gameMode == GameMode.CREATIVE);
-
-                SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-                entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-                entityDataPacket.getMetadata().putAll(metadata);
-                session.sendUpstreamPacket(entityDataPacket);
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());
@@ -138,6 +131,13 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 eventPacket.setData(0);
                 eventPacket.setRuntimeEntityId(entity.getGeyserId());
                 session.sendUpstreamPacket(eventPacket);
+                break;
+            case ENABLE_RESPAWN_SCREEN:
+                GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
+                gamerulePacket.getGameRules().add(new GameRuleData<>("doimmediaterespawn",
+                        packet.getValue() == RespawnScreenValue.IMMEDIATE_RESPAWN));
+                session.sendUpstreamPacket(gamerulePacket);
+                break;
             default:
                 break;
         }
