@@ -56,7 +56,7 @@ public class InventoryUtils {
             translator.prepareInventory(session, inventory);
             //Ensure at least half a second passes between closing and opening a new window
             //The client will not open the new window if it is still closing the old one
-            long delay = 500 - (System.currentTimeMillis() - session.getLastWindowCloseTime());
+            long delay = 700 - (System.currentTimeMillis() - session.getLastWindowCloseTime());
             //TODO: find better way to handle double chest delay
             if (translator instanceof DoubleChestInventoryTranslator) {
                 delay = Math.max(delay, 200);
@@ -87,6 +87,7 @@ public class InventoryUtils {
             }
         } else {
             Inventory inventory = session.getInventory();
+            inventory.setOpen(false);
             InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
             translator.updateInventory(session, inventory);
         }
