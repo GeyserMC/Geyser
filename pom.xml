@@ -37,6 +37,17 @@
     </modules>
 
     <repositories>
+        <!-- Bundabrg's Repo -->
+        <repository>
+            <id>bundabrg-repo</id>
+            <url>https://repo.worldguard.com.au/repository/maven-public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
