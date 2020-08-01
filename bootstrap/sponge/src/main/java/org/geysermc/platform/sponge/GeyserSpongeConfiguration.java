@@ -155,6 +155,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isForceResourcePacks() {
+        return node.getNode("force-resource-packs").getBoolean(true);
+    }
+
+    @Override
     public SpongeMetricsInfo getMetrics() {
         return metricsInfo;
     }

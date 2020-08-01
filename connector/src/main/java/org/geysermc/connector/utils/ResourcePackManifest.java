@@ -36,6 +36,10 @@ public class ResourcePackManifest {
         private int[] version;
         @JsonProperty("min_engine_version")
         private int[] minimumSupportedMinecraftVersion;
+
+        public String getVersionString() {
+            return version[0] + "." + version[1] + "." + version[2];
+        }
     }
 
     @Getter

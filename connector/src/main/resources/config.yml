@@ -100,6 +100,11 @@ cache-chunks: false
 # the end sky in the nether, but ultimately it's the only way for this feature to work.
 above-bedrock-nether-building: false
 
+# Force clients to load all resource packs if there is any.
+# If set to false it allows the user to disconnect from the server if they dont
+# want to download the resource packs
+force-resource-packs: true
+
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
 # what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.
@@ -115,4 +120,4 @@ metrics:
 # 1400 is the default.
 # mtu: 1400
 
-config-version: 3
+config-version: 4

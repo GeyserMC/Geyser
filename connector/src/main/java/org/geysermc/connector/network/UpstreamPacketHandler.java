@@ -72,8 +72,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         for(ResourcePack resourcePack : ResourcePack.PACKS.values()) {
             ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
-            String version = header.getVersion()[0] + "." + header.getVersion()[1] + "." + header.getVersion()[2];
-            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), version, resourcePack.getFile().length(), "", "", "", false));
+            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(), "", "", "", false));
         }
         resourcePacksInfo.setForcedToAccept(true);
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -98,7 +97,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     data.setPackId(header.getUuid());
                     int chunkCount = (int) Math.ceil((int) pack.getFile().length() / (double) ResourcePack.CHUNK_SIZE);
                     data.setChunkCount(chunkCount);
-                    //data.setChunkCount(pack.getFile().length()/ResourcePack.CHUNK_SIZE);
                     data.setCompressedPackSize(pack.getFile().length());
                     data.setMaxChunkSize(ResourcePack.CHUNK_SIZE);
                     data.setHash(pack.getSha256());
@@ -113,13 +111,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             case HAVE_ALL_PACKS:
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
                 stackPacket.setExperimental(false);
-                stackPacket.setForcedToAccept(true);
+                stackPacket.setForcedToAccept(GeyserConnector.getInstance().getConfig().isForceResourcePacks());
                 stackPacket.setGameVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
 
                 for(ResourcePack pack : ResourcePack.PACKS.values()) {
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();
-                    String version = header.getVersion()[0] + "." + header.getVersion()[1] + "." + header.getVersion()[2];
-                    stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), version, ""));
+                    stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
                 }
 
                 session.sendUpstreamPacket(stackPacket);

@@ -36,11 +36,13 @@ import java.util.Map;
 public interface GeyserConfiguration {
 
     // Modify this when you update the config
-    int CURRENT_CONFIG_VERSION = 3;
+    int CURRENT_CONFIG_VERSION = 4;
 
     IBedrockConfiguration getBedrock();
 
     IRemoteConfiguration getRemote();
+
+    Path getFloodgateKeyFile();
 
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
 
@@ -71,13 +73,17 @@ public interface GeyserConfiguration {
 
     String getDefaultLocale();
 
-    Path getFloodgateKeyFile();
+    boolean isCacheChunks();
 
     boolean isAboveBedrockNetherBuilding();
 
-    boolean isCacheChunks();
+    boolean isForceResourcePacks();
 
     IMetricsInfo getMetrics();
+
+    int getMtu();
+
+    int getConfigVersion();
 
     interface IBedrockConfiguration {
 
@@ -117,10 +123,6 @@ public interface GeyserConfiguration {
 
         String getUniqueId();
     }
-
-    int getMtu();
-
-    int getConfigVersion();
 
     static void checkGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {
         if (geyserConfig.getConfigVersion() < CURRENT_CONFIG_VERSION) {
