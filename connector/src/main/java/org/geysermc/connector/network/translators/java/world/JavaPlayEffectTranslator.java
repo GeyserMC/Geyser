@@ -262,8 +262,8 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     break;
                 }
                 case EVAPORATE: {
-                    effectPacket.setType(LevelEventType.CAULDRON_EXPLODE);
-                    effectPacket.setPosition(pos.add(0, 0.7f, 0));
+                    effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE_WATER);
+                    effectPacket.setPosition(pos.add(-0.5f, 0.5f, -0.5f));
                     break;
                 }
                 case END_GATEWAY_SPAWN: {
