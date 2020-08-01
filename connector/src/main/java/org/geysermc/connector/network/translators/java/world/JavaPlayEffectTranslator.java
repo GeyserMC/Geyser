@@ -169,34 +169,28 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
 
                     SmokeEffectData smokeEffectData = (SmokeEffectData) packet.getData();
                     int data = 0;
-                    switch (smokeEffectData.ordinal()) {
-                        // DOWN
-                        case 0:
+                    switch (smokeEffectData) {
+                        case DOWN:
                             data = 4;
                             pos = pos.add(0, -0.9f, 0);
                             break;
-                        // UP
-                        case 1:
+                        case UP:
                             data = 4;
                             pos = pos.add(0, 0.5f, 0);
                             break;
-                        // NORTH
-                        case 2:
+                        case NORTH:
                             data = 1;
                             pos = pos.add(0, -0.2f, -0.7f);
                             break;
-                        // SOUTH
-                        case 3:
+                        case SOUTH:
                             data = 7;
                             pos = pos.add(0, -0.2f, 0.7f);
                             break;
-                        // WEST
-                        case 4:
+                        case WEST:
                             data = 3;
                             pos = pos.add(-0.7f, -0.2f, 0);
                             break;
-                        // EAST
-                        case 5:
+                        case EAST:
                             data = 5;
                             pos = pos.add(0.7f, -0.2f, 0);
                             break;
@@ -248,12 +242,41 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                 }
                 case ENDERDRAGON_FIREBALL_EXPLODE: {
                     effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH); // TODO
-                    //there should be an explosion sound if packet data is 1, but it is missing from the protocol library
+
+                    DragonFireballEffectData fireballEffectData = (DragonFireballEffectData) packet.getData();
+                    if (fireballEffectData == DragonFireballEffectData.HAS_SOUND) {
+                        LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                        soundEventPacket.setSound(SoundEvent.EXPLODE);
+                        soundEventPacket.setPosition(pos);
+                        soundEventPacket.setIdentifier("");
+                        soundEventPacket.setExtraData(-1);
+                        soundEventPacket.setBabySound(false);
+                        soundEventPacket.setRelativeVolumeDisabled(false);
+                        session.sendUpstreamPacket(soundEventPacket);
+                    }
                     break;
                 }
                 case EXPLOSION: {
                     effectPacket.setType(LevelEventType.PARTICLE_GENERIC_SPAWN);
                     effectPacket.setData(61);
+                    break;
+                }
+                case EVAPORATE: {
+                    effectPacket.setType(LevelEventType.CAULDRON_EXPLODE);
+                    effectPacket.setPosition(pos.add(0, 0.7f, 0));
+                    break;
+                }
+                case END_GATEWAY_SPAWN: {
+                    effectPacket.setType(LevelEventType.PARTICLE_EXPLOSION);
+
+                    LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                    soundEventPacket.setSound(SoundEvent.EXPLODE);
+                    soundEventPacket.setPosition(pos);
+                    soundEventPacket.setIdentifier("");
+                    soundEventPacket.setExtraData(-1);
+                    soundEventPacket.setBabySound(false);
+                    soundEventPacket.setRelativeVolumeDisabled(false);
+                    session.sendUpstreamPacket(soundEventPacket);
                     break;
                 }
                 default: {
