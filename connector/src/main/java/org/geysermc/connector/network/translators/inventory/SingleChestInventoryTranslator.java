@@ -25,11 +25,34 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.nukkitx.protocol.bedrock.data.ContainerType;
-import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
+import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class SingleChestInventoryTranslator extends BlockInventoryTranslator {
+public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
+    private final InventoryHolder holder;
+
     public SingleChestInventoryTranslator(int size) {
-        super(size, "minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER, new ChestInventoryUpdater(27));
+        super(size, 27);
+        int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
+        this.holder = new BlockInventoryHolder(BlockTranslator.getBedrockBlockId(javaBlockState), ContainerType.CONTAINER);
+    }
+
+    @Override
+    public void prepareInventory(GeyserSession session, Inventory inventory) {
+        holder.prepareInventory(this, session, inventory);
+    }
+
+    @Override
+    public void openInventory(GeyserSession session, Inventory inventory) {
+        holder.openInventory(this, session, inventory);
+    }
+
+    @Override
+    public void closeInventory(GeyserSession session, Inventory inventory) {
+        holder.closeInventory(this, session, inventory);
     }
 }

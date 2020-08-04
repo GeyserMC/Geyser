@@ -10,7 +10,7 @@
         <relativePath>../</relativePath>
     </parent>
     <artifactId>bootstrap-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
     <repositories>
         <repository>
@@ -35,8 +35,8 @@
         </repository>
     </repositories>
     <modules>
-        <module>bukkit</module>
         <module>bungeecord</module>
+        <module>spigot</module>
         <module>sponge</module>
         <module>standalone</module>
         <module>velocity</module>

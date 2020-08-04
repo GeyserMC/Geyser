@@ -52,7 +52,7 @@ public class PaintingEntity extends Entity {
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);
-        addPaintingPacket.setName(paintingName.getBedrockName());
+        addPaintingPacket.setMotive(paintingName.getBedrockName());
         addPaintingPacket.setPosition(fixOffset(true));
         addPaintingPacket.setDirection(direction);
         session.sendUpstreamPacket(addPaintingPacket);
@@ -60,6 +60,11 @@ public class PaintingEntity extends Entity {
         valid = true;
 
         session.getConnector().getLogger().debug("Spawned painting on " + position);
+    }
+
+    @Override
+    public void updateHeadLookRotation(GeyserSession session, float headYaw) {
+        // Do nothing, as head look messes up paintings
     }
 
     public Vector3f fixOffset(boolean toBedrock) {
