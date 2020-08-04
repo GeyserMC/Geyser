@@ -56,7 +56,6 @@ public class AreaEffectCloudEntity extends Entity {
             Particle particle = (Particle) entityMetadata.getValue();
             Integer particleId = EffectRegistry.getParticleId(particle.getType());
             if (EffectRegistry.getParticleId(particle.getType()) != null) {
-                System.out.println(particleId);
                 metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
             } else {
                 session.getConnector().getLogger().error("Couldn't set area effect particle ID because of a missing particle id for particle " + particle.getType().toString());
