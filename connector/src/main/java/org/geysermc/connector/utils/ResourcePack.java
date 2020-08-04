@@ -30,7 +30,7 @@ public class ResourcePack {
      * Loop through the packs directory and locate an valid resource pack files
      */
     public static void loadPacks() {
-        File directory = new File("packs");
+        File directory = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("packs").toFile();
             
         if (!directory.exists()) {
             directory.mkdir();
