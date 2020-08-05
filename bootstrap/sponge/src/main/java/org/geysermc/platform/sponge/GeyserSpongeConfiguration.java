@@ -175,6 +175,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         }
 
         @Override
+        public boolean isCloneRemotePort() {
+            return node.getNode("clone-remote-port").getBoolean(false);
+        }
+
+        @Override
         public String getMotd1() {
             return node.getNode("motd1").getString("GeyserMC");
         }
@@ -246,6 +251,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         public String getUniqueId() {
             return node.getNode("metrics").getNode("uuid").getString("generateduuid");
         }
+    }
+
+    @Override
+    public int getMtu() {
+        return node.getNode("mtu").getInt(1400);
     }
 
     @Override
