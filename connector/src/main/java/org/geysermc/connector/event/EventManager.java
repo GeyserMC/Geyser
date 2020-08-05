@@ -83,17 +83,23 @@ public class EventManager {
 
     /**
      * Create a new EventHandler using a Lambda
+     *
+     * @param cls event class
+     * @param consumer what to execute, passed an event
+     * @return an EventHandler
      */
-    public <T extends GeyserEvent> LambdaEventHandler.Builder<T> on(Class<T> cls, Consumer<T> consumer) {
+    public <T extends GeyserEvent> LambdaEventHandler<T> on(Class<T> cls, Consumer<T> consumer) {
         return on(cls, (event, handler) -> consumer.accept(event));
     }
 
-    public <T extends GeyserEvent> LambdaEventHandler.Builder<T> on(Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
-        return new LambdaEventHandler.Builder<>(this, cls, consumer);
+    public <T extends GeyserEvent> LambdaEventHandler<T> on(Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
+        return new LambdaEventHandler<>(this, cls, consumer);
     }
 
     /**
      * Register an EventHandler
+     *
+     * @param handler EventHandler to register
      */
     public <T extends GeyserEvent> void register(EventHandler<T> handler) {
         if (!eventHandlers.containsKey(handler.getEventClass())) {
@@ -104,6 +110,8 @@ public class EventManager {
 
     /**
      * Unregister an EventHandler
+     *
+     * @param handler EventHandler to unregister
      */
     public <T extends GeyserEvent> void unregister(EventHandler<T> handler) {
         if (eventHandlers.containsKey(handler.getEventClass())) {
@@ -112,7 +120,10 @@ public class EventManager {
     }
 
     /**
-     * Register all Events contained in an instantiated class. The methods must be annotated by @Event
+     * Register all Events contained in an instantiated class.
+     *
+     * The methods must be annotated by @GeyserEventHandler
+     * @param obj The class object to look for methods annotated by @GeyserEventHandlder
      */
     public void registerEvents(Object obj) {
         List<EventHandler<?>> handlers = new ArrayList<>();

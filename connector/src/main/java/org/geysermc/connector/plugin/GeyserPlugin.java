@@ -77,12 +77,12 @@ public abstract class GeyserPlugin {
     /**
      * Create a new EventHandler using a lambda
      */
-    public <T extends GeyserEvent> PluginLambdaEventHandler.Builder<T> on(Class<T> cls, Consumer<T> consumer) {
+    public <T extends GeyserEvent> PluginLambdaEventHandler<T> on(Class<T> cls, Consumer<T> consumer) {
         return on(cls, (event, handler) -> consumer.accept(event));
     }
 
-    public <T extends GeyserEvent> PluginLambdaEventHandler.Builder<T> on(Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
-        return new PluginLambdaEventHandler.Builder<>(this, cls, consumer);
+    public <T extends GeyserEvent> PluginLambdaEventHandler<T> on(Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
+        return new PluginLambdaEventHandler<>(this, cls, consumer);
     }
 
     /**

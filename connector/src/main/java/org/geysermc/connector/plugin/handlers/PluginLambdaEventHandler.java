@@ -41,8 +41,8 @@ import java.util.function.BiConsumer;
 public class PluginLambdaEventHandler<T extends GeyserEvent> extends LambdaEventHandler<T> {
     private final GeyserPlugin plugin;
 
-    public PluginLambdaEventHandler(GeyserPlugin plugin, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer, int priority, boolean ignoreCancelled) {
-        super(plugin.getEventManager(), cls, consumer, priority, ignoreCancelled);
+    public PluginLambdaEventHandler(GeyserPlugin plugin, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
+        super(plugin.getEventManager(), cls, consumer);
 
         this.plugin = plugin;
     }
@@ -51,23 +51,5 @@ public class PluginLambdaEventHandler<T extends GeyserEvent> extends LambdaEvent
     public void unregister() {
         plugin.unregister(this);
         super.unregister();
-    }
-
-    @Getter
-    public static class Builder<T extends GeyserEvent> extends LambdaEventHandler.Builder<T> {
-        private final GeyserPlugin plugin;
-
-        public Builder(GeyserPlugin plugin, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
-            super(plugin.getEventManager(), cls, consumer);
-
-            this.plugin = plugin;
-        }
-
-        @Override
-        public LambdaEventHandler<T> build() {
-            LambdaEventHandler<T> handler = new PluginLambdaEventHandler<>(plugin, getCls(), getConsumer(), getPriority(), isIgnoreCancelled());
-            plugin.register(handler);
-            return handler;
-        }
     }
 }

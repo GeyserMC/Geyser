@@ -41,16 +41,42 @@ import java.util.function.BiConsumer;
 @Getter
 public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
     private final BiConsumer<T, EventHandler<T>> consumer;
-    private final int priority;
-    private final boolean ignoreCancelled;
+    private int priority = PRIORITY.NORMAL;
+    private boolean ignoreCancelled = true;
 
-    public LambdaEventHandler(EventManager manager, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer, int priority, boolean ignoreCancelled) {
+    public LambdaEventHandler(EventManager manager, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
         super(manager, cls);
         this.consumer = consumer;
-        this.priority = priority;
-        this.ignoreCancelled = ignoreCancelled;
     }
 
+    /**
+     * Set the Event Priority
+     *
+     * Defaults to PRIORTY.NORMAL (50)
+     * @param priority Priority to set
+     * @return the Event Handler
+     */
+    public LambdaEventHandler<T> priority(int priority) {
+        this.priority = priority;
+        return this;
+    }
+
+    /**
+     * Set if the handler should ignore cancelled events
+     *
+     * Defaults to True
+     * @param ignoreCancelled set true to ignore cancelled events
+     * @return the Event Handler
+     */
+    public LambdaEventHandler<T> ignoreCancelled(boolean ignoreCancelled) {
+        this.ignoreCancelled = ignoreCancelled;
+        return this;
+    }
+
+    /**
+     * Execute the EventHandler with an Event
+     * @param event Event passed to handler
+     */
     @Override
     public void execute(T event) {
         if (event instanceof Cancellable) {
@@ -60,33 +86,5 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
         }
 
         consumer.accept(event, this);
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    @SuppressWarnings("unused")
-    public static class Builder<T extends GeyserEvent> {
-        private final EventManager manager;
-        private final Class<T> cls;
-        private final BiConsumer<T, EventHandler<T>> consumer;
-
-        private int priority = PRIORITY.NORMAL;
-        private boolean ignoreCancelled = true;
-
-        public Builder<T> priority(int priority) {
-            this.priority = priority;
-            return this;
-        }
-
-        public Builder<T> ignoreCancelled(boolean ignoreCancelled) {
-            this.ignoreCancelled = ignoreCancelled;
-            return this;
-        }
-
-        public LambdaEventHandler<T> build() {
-            LambdaEventHandler<T> handler = new LambdaEventHandler<>(manager, cls, consumer, priority, ignoreCancelled);
-            manager.register(handler);
-            return handler;
-        }
     }
 }
