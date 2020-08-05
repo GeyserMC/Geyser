@@ -6,6 +6,7 @@
 [![Build Status](https://ci.nukkitx.com/job/Geyser/job/master/badge/icon)](https://ci.nukkitx.com/job/Geyser/job/master/)
 [![Discord](https://img.shields.io/discord/613163671870242838.svg?color=%237289da&label=discord)](http://discord.geysermc.org/)
 [![HitCount](http://hits.dwyl.io/Geyser/GeyserMC.svg)](http://hits.dwyl.io/Geyser/GeyserMC)
+[![Crowdin](https://badges.crowdin.net/geyser/localized.svg)](https://translate.geysermc.org/)
 
 Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition, closing the gap from those wanting to play true cross-platform.
 
@@ -29,7 +30,8 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Docs: https://github.com/GeyserMC/Geyser/wiki
 - Download: http://ci.geysermc.org
 - Discord: http://discord.geysermc.org/
-- Donate: https://patreon.com/GeyserMC
+- ~~Donate: https://patreon.com/GeyserMC~~ Currently disabled.
+- Test Server: test.geysermc.org port 25565 for Java and 19132 for Bedrock
 
 ## What's Left to be Added/Fixed
 - The Following Inventories 

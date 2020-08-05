@@ -259,7 +259,7 @@ public class MessageUtils {
 
     public static String getBedrockMessage(String message) {
         Component component = phraseJavaMessage(message);
-        return LegacyComponentSerializer.legacy().serialize(component);
+        return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
     public static Component phraseJavaMessage(String message) {
@@ -267,7 +267,7 @@ public class MessageUtils {
     }
 
     public static String getJavaMessage(String message) {
-        Component component = LegacyComponentSerializer.legacy().deserialize(message);
+        Component component = LegacyComponentSerializer.legacySection().deserialize(message);
         return GsonComponentSerializer.gson().serialize(component);
     }
 
@@ -400,13 +400,16 @@ public class MessageUtils {
             int testB = testColor.getValue() & 0xFF;
 
             // Check by the greatest diff of the 3 values
-            int rDiff = Math.abs(testR - r);
-            int gDiff = Math.abs(testG - g);
-            int bDiff = Math.abs(testB - b);
-            int maxDiff = Math.max(Math.max(rDiff, gDiff), bDiff);
-            if (closest == null || maxDiff < smallestDiff) {
+            int rAverage = (testR + r) / 2;
+            int rDiff = testR - r;
+            int gDiff = testG - g;
+            int bDiff = testB - b;
+            int diff = ((2 + (rAverage >> 8)) * rDiff * rDiff)
+                    + (4 * gDiff * gDiff)
+                    + ((2 + ((255 - rAverage) >> 8)) * bDiff * bDiff);
+            if (closest == null || diff < smallestDiff) {
                 closest = testColor.getKey();
-                smallestDiff = maxDiff;
+                smallestDiff = diff;
             }
         }
 

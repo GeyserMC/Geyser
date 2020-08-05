@@ -51,19 +51,7 @@ public class WebUtils {
             con.setRequestMethod("GET");
             con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION); // Otherwise Java 8 fails on checking updates
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer content = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-                content.append("\n");
-            }
-
-            in.close();
-            con.disconnect();
-
-            return content.toString();
+            return connectionToString(con);
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -99,7 +87,27 @@ public class WebUtils {
         out.write(postContent.getBytes(StandardCharsets.UTF_8));
         out.close();
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        return connectionToString(con);
+    }
+
+    /**
+     * Get the string output from the passed {@link HttpURLConnection}
+     *
+     * @param con The connection to get the string from
+     * @return The body of the returned page
+     * @throws IOException
+     */
+    private static String connectionToString(HttpURLConnection con) throws IOException {
+        // Send the request (we dont use this but its required for getErrorStream() to work)
+        int code = con.getResponseCode();
+
+        // Read the error message if there is one if not just read normally
+        InputStream inputStream = con.getErrorStream();
+        if (inputStream == null) {
+            inputStream = con.getInputStream();
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
         String inputLine;
         StringBuffer content = new StringBuffer();
 

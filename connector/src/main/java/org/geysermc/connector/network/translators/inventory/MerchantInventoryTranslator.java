@@ -1,27 +1,26 @@
 /*
  * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
- *  @author GeyserMC
- *  @link https://github.com/GeyserMC/Geyser
- *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
  */
 
 package org.geysermc.connector.network.translators.inventory;
@@ -60,15 +59,23 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
-        if (action.getSource().getContainerId() == ContainerId.UI) {
-            switch (action.getSlot()) {
-                case 4:
-                    return 0;
-                case 5:
-                    return 1;
-                case 50:
-                    return 2;
-            }
+        switch (action.getSource().getContainerId()) {
+            case ContainerId.UI:
+                switch (action.getSlot()) {
+                    case 4:
+                        return 0;
+                    case 5:
+                        return 1;
+                    case 50:
+                        return 2;
+                }
+                break;
+            case -28: // Trading 1?
+                return 0;
+            case -29: // Trading 2?
+                return 1;
+            case -30: // Trading Output?
+                return 2;
         }
         return super.bedrockSlotToJava(action);
     }
@@ -109,10 +116,8 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        for (InventoryActionData action : actions) {
-            if (action.getSource().getType() == InventorySource.Type.NON_IMPLEMENTED_TODO) {
-                return;
-            }
+        if (actions.stream().anyMatch(a -> a.getSource().getContainerId() == -31)) {
+            return;
         }
 
         super.translateActions(session, inventory, actions);
