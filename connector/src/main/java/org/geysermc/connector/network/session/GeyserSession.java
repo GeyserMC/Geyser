@@ -249,6 +249,12 @@ public class GeyserSession implements CommandSender {
         attributes.add(new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
         attributesPacket.setAttributes(attributes);
         upstream.sendPacket(attributesPacket);
+
+        // Only allow the server to send health information
+        // Setting this to false allows natural regeneration to work false but doesn't break it being true
+        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
+        gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
+        upstream.sendPacket(gamerulePacket);
     }
 
     public void fetchOurSkin(PlayerListPacket.Entry entry) {
