@@ -251,17 +251,6 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(attributesPacket);
     }
 
-    public void fetchOurSkin(PlayerListPacket.Entry entry) {
-        PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
-        playerSkinPacket.setUuid(authData.getUUID());
-        playerSkinPacket.setSkin(entry.getSkin());
-        playerSkinPacket.setOldSkinName("OldName");
-        playerSkinPacket.setNewSkinName("NewName");
-        playerSkinPacket.setTrustedSkin(true);
-        upstream.sendPacket(playerSkinPacket);
-        getConnector().getLogger().debug("Sending skin for " + playerEntity.getUsername() + " " + authData.getUUID());
-    }
-
     public void login() {
         if (connector.getAuthType() != AuthType.ONLINE) {
             if (connector.getAuthType() == AuthType.OFFLINE) {

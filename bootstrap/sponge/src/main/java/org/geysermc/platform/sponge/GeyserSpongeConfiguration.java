@@ -150,6 +150,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public int getCacheImages() {
+        return node.getNode("cache-skins").getInt(0);
+    }
+
+    @Override
     public boolean isAboveBedrockNetherBuilding() {
         return node.getNode("above-bedrock-nether-building").getBoolean(false);
     }

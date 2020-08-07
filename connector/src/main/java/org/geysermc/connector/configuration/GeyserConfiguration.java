@@ -77,6 +77,8 @@ public interface GeyserConfiguration {
 
     boolean isCacheChunks();
 
+    int getCacheImages();
+
     IMetricsInfo getMetrics();
 
     interface IBedrockConfiguration {
