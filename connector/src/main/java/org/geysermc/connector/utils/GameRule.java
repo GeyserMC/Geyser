@@ -109,7 +109,7 @@ public enum GameRule {
      * Fetch a game rule by the given Java ID
      *
      * @param id The ID of the gamerule
-     * @return A {@link GameRule} object representing the requested ID or {@link GameRule.UNKNOWN}
+     * @return A {@link GameRule} object representing the requested ID or {@link GameRule#UNKNOWN}
      */
     public static GameRule fromJavaID(String id) {
         for (GameRule gamerule : VALUES) {

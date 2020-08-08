@@ -665,7 +665,10 @@ public class GeyserSession implements CommandSender {
     }
 
     /**
-     * @see org.geysermc.connector.network.translators.world.WorldManager#hasPermission(GeyserSession, String)
+     * Checks if the given session's player has a permission
+     *
+     * @param permission The permission node to check
+     * @return true if the player has the requested permission, false if not
      */
     public Boolean hasPermission(String permission) {
         return connector.getWorldManager().hasPermission(this, permission);
