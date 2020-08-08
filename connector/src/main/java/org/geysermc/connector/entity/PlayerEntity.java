@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
@@ -47,10 +48,7 @@ import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
@@ -95,7 +93,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
         addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
-        addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.VISITOR);
+        addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.getMetadata().putAll(metadata);
@@ -212,7 +210,7 @@ public class PlayerEntity extends LivingEntity {
 
         if (entityMetadata.getId() == 2) {
             // System.out.println(session.getScoreboardCache().getScoreboard().getObjectives().keySet());
-            for (Team team : session.getScoreboardCache().getScoreboard().getTeams().values()) {
+            for (Team team : session.getWorldCache().getScoreboard().getTeams().values()) {
                 // session.getConnector().getLogger().info("team name " + team.getName());
                 // session.getConnector().getLogger().info("team entities " + team.getEntities());
             }
@@ -221,7 +219,7 @@ public class PlayerEntity extends LivingEntity {
             if (name != null) {
                 username = MessageUtils.getBedrockMessage(name);
             }
-            Team team = session.getScoreboardCache().getScoreboard().getTeamFor(username);
+            Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
                 // session.getConnector().getLogger().info("team name es " + team.getName() + " with prefix " + team.getPrefix() + " and suffix " + team.getSuffix());
                 metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());
