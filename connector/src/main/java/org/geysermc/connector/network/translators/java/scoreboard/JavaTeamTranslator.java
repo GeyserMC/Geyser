@@ -65,21 +65,21 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                             .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getClientData().getLanguageCode()))
                             .setUpdateType(UpdateType.UPDATE);
                 } else {
-                    GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_not_registered", packet.getAction(), packet.getTeamName()));
+                    GeyserConnector.getInstance().getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_not_registered", packet.getAction(), packet.getTeamName()));
                 }
                 break;
             case ADD_PLAYER:
-                if(team != null){
+                if (team != null) {
                     team.addEntities(packet.getPlayers());
                 } else {
-                    GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_not_registered", packet.getAction(), packet.getTeamName()));
+                    GeyserConnector.getInstance().getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_not_registered", packet.getAction(), packet.getTeamName()));
                 }
                 break;
             case REMOVE_PLAYER:
-                if(team != null){
+                if (team != null) {
                     team.removeEntities(packet.getPlayers());
                 } else {
-                    GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_not_registered", packet.getAction(), packet.getTeamName()));
+                    GeyserConnector.getInstance().getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_not_registered", packet.getAction(), packet.getTeamName()));
                 }
                 break;
             case REMOVE:

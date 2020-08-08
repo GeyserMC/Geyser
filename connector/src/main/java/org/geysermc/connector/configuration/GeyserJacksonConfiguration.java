@@ -87,6 +87,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("cache-chunks")
     private boolean cacheChunks;
 
+    @JsonProperty("cache-images")
+    private int cacheImages = 0;
+
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding;
 
@@ -96,9 +99,12 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class BedrockConfiguration implements IBedrockConfiguration {
 
         private String address;
+
         @Setter
         private int port;
-        private boolean isCloneRemotePort;
+
+        @JsonProperty("clone-remote-port")
+        private boolean cloneRemotePort;
 
         private String motd1;
         private String motd2;
@@ -134,6 +140,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @JsonProperty("uuid")
         private String uniqueId;
     }
+
+    @JsonProperty("mtu")
+    private int mtu = 1400;
 
     @JsonProperty("config-version")
     private int configVersion;

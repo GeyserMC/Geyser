@@ -54,9 +54,9 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         entity.setRotation(rotation);
         session.getEntityCache().cacheEntity(entity);
 
-        // async skin loading
         if (session.getUpstream().isInitialized()) {
-            SkinUtils.requestAndHandleSkinAndCape(entity, session, skinAndCape -> entity.sendPlayer(session));
+            entity.sendPlayer(session);
+            SkinUtils.requestAndHandleSkinAndCape(entity, session, null);
         }
     }
 }
