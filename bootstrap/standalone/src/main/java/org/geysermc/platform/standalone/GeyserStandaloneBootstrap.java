@@ -62,22 +62,55 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Getter
     private boolean useGui = System.console() == null && !isHeadless();
+    private String configFilename = "config.yml";
 
     private GeyserConnector connector;
 
+
     public static void main(String[] args) {
-        for (String arg : args) {
+        GeyserStandaloneBootstrap bootstrap = new GeyserStandaloneBootstrap();
+        // set defaults
+        boolean useGuiOpts = bootstrap.useGui;
+        String configFilenameOpt = bootstrap.configFilename;
+        for (int i = 0; i < args.length; i++) {
+        //for (String arg : args) {
             // By default, standalone Geyser will check if it should open the GUI based on if the GUI is null
             // Optionally, you can force the use of a GUI or no GUI by specifying args
-            if (arg.equals("gui")) {
-                new GeyserStandaloneBootstrap().onEnable(true);
-                return;
-            } else if (arg.equals("nogui")) {
-                new GeyserStandaloneBootstrap().onEnable(false);
-                return;
+            String arg = args[i];
+            switch (arg) {
+                case "gui":
+                    useGuiOpts = true;
+                    break;
+                case "nogui":
+                    useGuiOpts = false;
+                    break;
+                case "--config":
+                case "-c":
+                    if (i >= args.length - 1) {
+                        System.err.println("Please specify config file");
+                        return;
+                    }
+                    configFilenameOpt = args[i+1]; i++;
+                    break;
+                case "--help":
+                case "-h":
+                    System.out.println("Usage: [java -jar] Geyser.jar [opts] [gui/nogui]");
+                    System.out.println("  Options:");
+                    System.out.println("    -c, --config [file]    use file for config");
+                    System.out.println("    -h, --help             show this help message");
+                    return;
+                default:
+                    System.err.println("Unrecognised argument " + arg);
+                    return;
             }
         }
-        new GeyserStandaloneBootstrap().onEnable();
+        bootstrap.onEnable(useGuiOpts, configFilenameOpt);
+    }
+
+    public void onEnable(boolean useGui, String configFilename) {
+        this.configFilename = configFilename;
+        this.useGui = useGui;
+        this.onEnable();
     }
 
     public void onEnable(boolean useGui) {
@@ -106,7 +139,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         LoopbackUtil.checkLoopback(geyserLogger);
         
         try {
-            File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource(configFilename, (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
         } catch (IOException ex) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
