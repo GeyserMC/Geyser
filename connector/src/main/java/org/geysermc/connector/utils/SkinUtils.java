@@ -96,9 +96,9 @@ public class SkinUtils {
 
         // This attempts to find the xuid of the player so profile images show up for xbox accounts
         String xuid = "";
-        for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
-            if (session.getPlayerEntity().getUuid().equals(uuid)) {
-                xuid = session.getAuthData().getXboxUUID();
+        for (GeyserSession player : GeyserConnector.getInstance().getPlayers()) {
+            if (player.getPlayerEntity().getUuid().equals(uuid)) {
+                xuid = player.getAuthData().getXboxUUID();
                 break;
             }
         }
