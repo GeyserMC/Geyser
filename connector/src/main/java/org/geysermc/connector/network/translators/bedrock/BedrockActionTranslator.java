@@ -119,29 +119,21 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
-                if(session.getConnector().getConfig().isCacheChunks()) {
-                    //check if Cache Chunks is enabled
-                    int fireLocation = session.getConnector().getWorldManager().getBlockAt(session, Vector3i.from(packet.getBlockPosition().getX(),
-                            packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()));
-                    String fireBlock = BlockTranslator.getJavaIdBlockMap().inverse().get(fireLocation);
-                //Check if fire is present to destroy
-                if((fireBlock.contains("minecraft:fire")|| fireBlock.contains("minecraft:soul_fire")) && packet.getFace() == 1) {
-                    //fire is will be hit because it is present
-                    ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
-                            packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
-                    session.sendDownstreamPacket(startBreakingPacket);
-                } else {
-                    //normal for Cache Chunks
-                    ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
-                            packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
-                    session.sendDownstreamPacket(startBreakingPacket);
+                if (session.getConnector().getConfig().isCacheChunks()) {
+                    if (packet.getFace() == BlockFace.UP.ordinal()) {
+                        int blockUp = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().add(0, 1, 0));
+                        String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockUp);
+                        if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
+                            ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
+                                    packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
+                            session.sendDownstreamPacket(startBreakingPacket);
+                            break;
+                        }
+                    }
                 }
-                } else {
-                    //normal
-                    ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
-                            packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
-                    session.sendDownstreamPacket(startBreakingPacket);
-                }
+                ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
+                        packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
+                session.sendDownstreamPacket(startBreakingPacket);
                 break;
             case CONTINUE_BREAK:
                 LevelEventPacket continueBreakPacket = new LevelEventPacket();
