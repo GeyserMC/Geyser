@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.addon.FormAddonListener;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
@@ -91,7 +92,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+        if (packet.getFormId() == LoginEncryptionUtils.AUTH_FORM_ID || packet.getFormId() == LoginEncryptionUtils.AUTH_DETAILS_FORM_ID) {
+            return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+        }
+        FormAddonListener.get().handleResponse(this.session, packet);
+        return true;
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {

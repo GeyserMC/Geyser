@@ -25,15 +25,21 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.addon.AddonListener;
+import org.geysermc.connector.network.addon.AddonListenerRegistry;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
+import org.geysermc.connector.utils.NetworkUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Translator(packet = ServerPluginMessagePacket.class)
 public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMessagePacket> {
@@ -55,6 +61,23 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
             session.sendDownstreamPacket(
                     new ClientPluginMessagePacket(packet.getChannel(), brandData)
             );
+        }
+        if (packet.getChannel().equals("minecraft:register")) {
+            session.sendDownstreamPacket(new ClientPluginMessagePacket(packet.getChannel(), AddonListener.PLUGIN_MESSAGE_CHANNEL.getBytes(StandardCharsets.UTF_8)));
+        }
+
+        if (!packet.getChannel().equals(AddonListener.PLUGIN_MESSAGE_CHANNEL)) {
+            return;
+        }
+
+        for (Map.Entry<String, AddonListener<?>> entry : AddonListenerRegistry.getListeners().entrySet()) {
+            ByteBuf buffer = Unpooled.wrappedBuffer(packet.getData());
+            String subChannel = NetworkUtils.readString(buffer);
+            if (!subChannel.equals(entry.getKey())) {
+                continue;
+            }
+
+            entry.getValue().onMessageReceive(session, buffer);
         }
     }
 
