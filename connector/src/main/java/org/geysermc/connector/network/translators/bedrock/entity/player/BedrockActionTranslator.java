@@ -119,6 +119,18 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
+                if (session.getConnector().getConfig().isCacheChunks()) {
+                    if (packet.getFace() == BlockFace.UP.ordinal()) {
+                        int blockUp = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().add(0, 1, 0));
+                        String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockUp);
+                        if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
+                            ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
+                                    packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
+                            session.sendDownstreamPacket(startBreakingPacket);
+                            break;
+                        }
+                    }
+                }
                 ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
                         packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
                 session.sendDownstreamPacket(startBreakingPacket);
