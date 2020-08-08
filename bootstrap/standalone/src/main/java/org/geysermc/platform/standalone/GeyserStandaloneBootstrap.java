@@ -69,11 +69,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     public static void main(String[] args) {
         GeyserStandaloneBootstrap bootstrap = new GeyserStandaloneBootstrap();
-        // set defaults
+        // Set defaults
         boolean useGuiOpts = bootstrap.useGui;
         String configFilenameOpt = bootstrap.configFilename;
+
         for (int i = 0; i < args.length; i++) {
-        //for (String arg : args) {
             // By default, standalone Geyser will check if it should open the GUI based on if the GUI is null
             // Optionally, you can force the use of a GUI or no GUI by specifying args
             String arg = args[i];
