@@ -76,11 +76,14 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         for (int i = 0; i < args.length; i++) {
             // By default, standalone Geyser will check if it should open the GUI based on if the GUI is null
             // Optionally, you can force the use of a GUI or no GUI by specifying args
+            // Allows gui and nogui without options, for backwards compatibility
             String arg = args[i];
             switch (arg) {
+                case "--gui":
                 case "gui":
                     useGuiOpts = true;
                     break;
+                case "--nogui":
                 case "nogui":
                     useGuiOpts = false;
                     break;
@@ -94,10 +97,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                     break;
                 case "--help":
                 case "-h":
-                    System.out.println("Usage: [java -jar] Geyser.jar [opts] [gui/nogui]");
+                    System.out.println("Usage: [java -jar] Geyser.jar [opts]");
                     System.out.println("  Options:");
                     System.out.println("    -c, --config [file]    use file for config");
                     System.out.println("    -h, --help             show this help message");
+                    System.out.println("    --gui, --nogui         enable/disable gui");
                     return;
                 default:
                     System.err.println("Unrecognised argument " + arg);
