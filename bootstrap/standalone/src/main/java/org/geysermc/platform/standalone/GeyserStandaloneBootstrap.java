@@ -143,7 +143,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         LoopbackUtil.checkLoopback(geyserLogger);
         
         try {
-            File configFile = FileUtils.fileOrCopiedFromResource(configFilename, (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
         } catch (IOException ex) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
