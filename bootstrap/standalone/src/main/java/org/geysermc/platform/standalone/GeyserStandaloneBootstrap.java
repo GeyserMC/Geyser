@@ -95,10 +95,15 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                         return;
                     }
                     configFilenameOpt = args[i+1]; i++;
+                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.configspecified"), configFilenameOpt));
                     break;
                 case "--help":
                 case "-h":
-                    System.out.println(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.usage"));
+                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.usage"), "[java -jar] Geyser.jar [opts]"));
+                    System.out.println("  " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.options"));
+                    System.out.println("    -c, --config [file]    " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config"));
+                    System.out.println("    -h, --help             " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.help"));
+                    System.out.println("    --gui, --nogui         " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.gui"));
                     return;
                 default:
                     String badArgMsg = LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.unrecognised");
