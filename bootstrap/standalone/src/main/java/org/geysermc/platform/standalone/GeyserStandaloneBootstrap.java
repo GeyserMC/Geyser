@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.UUID;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
@@ -90,21 +91,18 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 case "--config":
                 case "-c":
                     if (i >= args.length - 1) {
-                        System.err.println("Please specify config file");
+                        System.err.println(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.confignotspecified"));
                         return;
                     }
                     configFilenameOpt = args[i+1]; i++;
                     break;
                 case "--help":
                 case "-h":
-                    System.out.println("Usage: [java -jar] Geyser.jar [opts]");
-                    System.out.println("  Options:");
-                    System.out.println("    -c, --config [file]    use file for config");
-                    System.out.println("    -h, --help             show this help message");
-                    System.out.println("    --gui, --nogui         enable/disable gui");
+                    System.out.println(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.usage"));
                     return;
                 default:
-                    System.err.println("Unrecognised argument " + arg);
+                    String badArgMsg = LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.unrecognised");
+                    System.err.println(MessageFormat.format(badArgMsg, arg));
                     return;
             }
         }
