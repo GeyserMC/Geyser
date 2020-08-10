@@ -46,7 +46,6 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
 
     @Override
     public void translate(BookEditPacket packet, GeyserSession session) {
-        System.out.println(packet);
         ItemStack itemStack = session.getInventory().getItemInHand();
         if (itemStack != null) {
             CompoundTag tag = itemStack.getNbt() != null ? itemStack.getNbt() : new CompoundTag("");
