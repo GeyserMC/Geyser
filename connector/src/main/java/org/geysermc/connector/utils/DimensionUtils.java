@@ -116,7 +116,6 @@ public class DimensionUtils {
             return "minecraft:overworld";
         }
         if (dimensionTag.getValue().get("effects") != null) {
-            System.out.println(((StringTag) dimensionTag.getValue().get("effects")).getValue());
             return ((StringTag) dimensionTag.getValue().get("effects")).getValue();
         }
         GeyserConnector.getInstance().getLogger().debug("Effects portion of the tag was null or empty.");
