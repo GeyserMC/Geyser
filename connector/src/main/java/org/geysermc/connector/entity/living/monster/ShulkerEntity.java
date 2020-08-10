@@ -53,14 +53,21 @@ public class ShulkerEntity extends GolemEntity {
                 metadata.put(EntityData.SHULKER_ATTACH_POS, Vector3i.from(position.getX(), position.getY(), position.getZ()));
             }
         }
-        //TODO Outdated metadata flag SHULKER_PEAK_HEIGHT
-//        if (entityMetadata.getId() == 17) {
-//            int height = (byte) entityMetadata.getValue();
-//            metadata.put(EntityData.SHULKER_PEAK_HEIGHT, height);
-//        }
+
+        if (entityMetadata.getId() == 17) {
+            int height = (byte) entityMetadata.getValue();
+            metadata.put(EntityData.SHULKER_PEEK_ID, height);
+        }
+
         if (entityMetadata.getId() == 18) {
-            int color = Math.abs((byte) entityMetadata.getValue() - 15);
-            metadata.put(EntityData.VARIANT, color);
+            byte color = (byte) entityMetadata.getValue();
+            if (color == 16) {
+                // 16 is default on both editions
+                metadata.put(EntityData.VARIANT, 16);
+            } else {
+                // Every other shulker color is offset 15 in bedrock edition
+                metadata.put(EntityData.VARIANT, Math.abs(color - 15));
+            }
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
