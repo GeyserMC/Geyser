@@ -110,14 +110,6 @@ public class MessageUtils {
                     strings.add(builder);
                 }
 
-                if (translation.getKey().equals("commands.gamemode.success.other")) {
-                    strings.add("");
-                }
-
-                if (translation.getKey().equals("command.context.here")) {
-                    strings.add(" - no permission or invalid command!");
-                }
-
                 // Collect all params and add format corrections to the end of them
                 List<String> furtherParams = new ArrayList<>();
                 for (String param : getTranslationParams(translation.getWith(), locale, message)) {
@@ -133,9 +125,16 @@ public class MessageUtils {
                 }
 
                 if (locale != null) {
-                    strings.add(insertParams(LocaleUtils.getLocaleString(translation.getKey(), locale), furtherParams));
+                    String builder = getFormat(message.getStyle().getFormats()) +
+                            getColor(message.getStyle().getColor());
+                    builder += insertParams(LocaleUtils.getLocaleString(translation.getKey(), locale), furtherParams);
+                    strings.add(builder);
                 } else {
-                    strings.addAll(furtherParams);
+                    String format = getFormat(message.getStyle().getFormats()) +
+                            getColor(message.getStyle().getColor());
+                    for (String param : furtherParams) {
+                        strings.add(format + param);
+                    }
                 }
             } else {
                 String builder = getFormat(message.getStyle().getFormats()) +
