@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v408.Bedrock_v408;
+import com.nukkitx.protocol.bedrock.v409.Bedrock_v409;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -75,7 +75,7 @@ public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v408.V408_CODEC;
+    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v409.V409_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
