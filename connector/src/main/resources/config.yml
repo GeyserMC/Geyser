@@ -94,6 +94,10 @@ show-cooldown: true
 # Geyser has direct access to the server itself.
 cache-chunks: false
 
+# Specify how many days images will be cached to disk to save downloading them from the internet.
+# A value of 0 is disabled. (Default: 0)
+cache-images: 0
+
 # Bedrock prevents building and displaying blocks above Y127 in the Nether -
 # enabling this config option works around that by changing the Nether dimension ID
 # to the End ID. The main downside to this is that the sky will resemble that of

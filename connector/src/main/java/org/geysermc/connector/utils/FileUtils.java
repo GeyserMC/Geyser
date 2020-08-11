@@ -46,6 +46,7 @@ public class FileUtils {
      *
      * @param src File to load
      * @param valueType Class to load file into
+     * @param <T> the type
      * @return The data as the given class
      * @throws IOException if the config could not be loaded
      */

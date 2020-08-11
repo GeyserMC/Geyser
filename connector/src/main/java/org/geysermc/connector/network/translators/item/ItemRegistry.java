@@ -214,13 +214,6 @@ public class ItemRegistry {
                 return itemEntry;
             }
         }
-        // If item find was unsuccessful first time, we try again while ignoring damage
-        // Fixes piston, sticky pistons, dispensers and droppers turning into air from creative inventory
-        for (ItemEntry itemEntry : ITEM_ENTRIES.values()) {
-            if (itemEntry.getBedrockId() == data.getId()) {
-                return itemEntry;
-            }
-        }
 
         // This will hide the message when the player clicks with an empty hand
         if (data.getId() != 0 && data.getDamage() != 0) {

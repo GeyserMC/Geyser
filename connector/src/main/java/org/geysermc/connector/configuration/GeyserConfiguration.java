@@ -79,6 +79,8 @@ public interface GeyserConfiguration {
 
     boolean isForceResourcePacks();
 
+    int getCacheImages();
+
     IMetricsInfo getMetrics();
 
     int getMtu();

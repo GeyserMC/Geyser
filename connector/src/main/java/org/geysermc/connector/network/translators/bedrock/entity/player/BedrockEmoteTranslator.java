@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.connector.GeyserConnector;
