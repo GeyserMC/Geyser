@@ -27,7 +27,7 @@ public class ResourcePack {
     private ResourcePackManifest.Version version;
 
     /**
-     * Loop through the packs directory and locate an valid resource pack files
+     * Loop through the packs directory and locate valid resource pack files
      */
     public static void loadPacks() {
         File directory = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("packs").toFile();

@@ -104,8 +104,8 @@ cache-images: 0
 # the end sky in the nether, but ultimately it's the only way for this feature to work.
 above-bedrock-nether-building: false
 
-# Force clients to load all resource packs if there is any.
-# If set to false it allows the user to disconnect from the server if they dont
+# Force clients to load all resource packs if there are any.
+# If set to false it allows the user to disconnect from the server if they don't
 # want to download the resource packs
 force-resource-packs: true
 
