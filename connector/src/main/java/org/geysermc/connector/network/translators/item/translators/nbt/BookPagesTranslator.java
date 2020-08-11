@@ -77,7 +77,7 @@ public class BookPagesTranslator extends NbtItemStackTranslator {
             CompoundTag pageTag = (CompoundTag) tag;
 
             StringTag textTag = pageTag.get("text");
-            pages.add(new StringTag(MessageUtils.getJavaMessage(textTag.getValue())));
+            pages.add(new StringTag("", MessageUtils.getJavaMessage(textTag.getValue())));
         }
 
         itemTag.remove("pages");

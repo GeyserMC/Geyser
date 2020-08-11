@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientEditBookPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -54,39 +55,42 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
 
             int page = packet.getPageNumber();
 
-            switch (packet.getAction()) {
-                case ADD_PAGE: {
-                    pages.add(page, new StringTag("", packet.getText()));
-                }
-                // Called whenever a page is modified
-                case REPLACE_PAGE: {
-                    if (page < pages.size()) {
-                        pages.set(page, new StringTag("", packet.getText()));
-                    } else {
+            // Creative edits the NBT for us
+            if (session.getGameMode() != GameMode.CREATIVE) {
+                switch (packet.getAction()) {
+                    case ADD_PAGE: {
                         pages.add(page, new StringTag("", packet.getText()));
                     }
-                    break;
-                }
-                case DELETE_PAGE: {
-                    if (page < pages.size()) {
-                        pages.remove(page);
+                    // Called whenever a page is modified
+                    case REPLACE_PAGE: {
+                        if (page < pages.size()) {
+                            pages.set(page, new StringTag("", packet.getText()));
+                        } else {
+                            pages.add(page, new StringTag("", packet.getText()));
+                        }
+                        break;
                     }
-                    break;
-                }
-                case SWAP_PAGES: {
-                    int page2 = packet.getSecondaryPageNumber();
-                    if (page < pages.size() && page2 < pages.size()) {
-                        Collections.swap(pages, page, page2);
+                    case DELETE_PAGE: {
+                        if (page < pages.size()) {
+                            pages.remove(page);
+                        }
+                        break;
                     }
-                    break;
+                    case SWAP_PAGES: {
+                        int page2 = packet.getSecondaryPageNumber();
+                        if (page < pages.size() && page2 < pages.size()) {
+                            Collections.swap(pages, page, page2);
+                        }
+                        break;
+                    }
+                    case SIGN_BOOK: {
+                        tag.put(new StringTag("author", packet.getAuthor()));
+                        tag.put(new StringTag("title", packet.getTitle()));
+                        break;
+                    }
+                    default:
+                        return;
                 }
-                case SIGN_BOOK: {
-                    tag.put(new StringTag("author", packet.getAuthor()));
-                    tag.put(new StringTag("title", packet.getTitle()));
-                    break;
-                }
-                default:
-                    return;
             }
             tag.put(new ListTag("pages", pages));
             ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, Hand.MAIN_HAND);
