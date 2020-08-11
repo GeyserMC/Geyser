@@ -27,6 +27,7 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
+import com.nukkitx.protocol.bedrock.v408.Bedrock_v408;
 import com.nukkitx.protocol.bedrock.v409.Bedrock_v409;
 
 import java.util.Set;
@@ -39,7 +40,7 @@ public class BedrockProtocol {
     /**
      * Default Bedrock codec that should act as a fallback and as the version shown in /geyser version
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v409.V409_CODEC;
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v408.V408_CODEC;
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
@@ -48,6 +49,7 @@ public class BedrockProtocol {
     static {
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v407.V407_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v409.V409_CODEC);
     }
 
     /**
