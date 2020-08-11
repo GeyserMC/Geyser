@@ -57,10 +57,6 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             switch (packet.getAction()) {
                 case ADD_PAGE: {
                     pages.add(page, new StringTag("", packet.getText()));
-                    tag.put(new ListTag("pages", pages));
-                    ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, false, Hand.MAIN_HAND);
-                    session.getDownstream().getSession().send(editBookPacket);
-                    break;
                 }
                 // Called whenever a page is modified
                 case REPLACE_PAGE: {
@@ -69,18 +65,11 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                     } else {
                         pages.add(page, new StringTag("", packet.getText()));
                     }
-                    tag.put(new ListTag("pages", pages));
-                    ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, false, Hand.MAIN_HAND);
-                    session.getDownstream().getSession().send(editBookPacket);
                     break;
                 }
                 case DELETE_PAGE: {
                     if (page < pages.size()) {
                         pages.remove(page);
-
-                        tag.put(new ListTag("pages", pages));
-                        ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, false, Hand.MAIN_HAND);
-                        session.getDownstream().getSession().send(editBookPacket);
                     }
                     break;
                 }
@@ -88,22 +77,20 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                     int page2 = packet.getSecondaryPageNumber();
                     if (page < pages.size() && page2 < pages.size()) {
                         Collections.swap(pages, page, page2);
-
-                        tag.put(new ListTag("pages", pages));
-                        ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, false, Hand.MAIN_HAND);
-                        session.getDownstream().getSession().send(editBookPacket);
                     }
                     break;
                 }
                 case SIGN_BOOK: {
                     tag.put(new StringTag("author", packet.getAuthor()));
                     tag.put(new StringTag("title", packet.getTitle()));
-                    tag.put(new ListTag("pages", pages));
-                    ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, true, Hand.MAIN_HAND);
-                    session.getDownstream().getSession().send(editBookPacket);
                     break;
                 }
+                default:
+                    return;
             }
+            tag.put(new ListTag("pages", pages));
+            ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, Hand.MAIN_HAND);
+            session.getDownstream().getSession().send(editBookPacket);
         }
     }
 }
