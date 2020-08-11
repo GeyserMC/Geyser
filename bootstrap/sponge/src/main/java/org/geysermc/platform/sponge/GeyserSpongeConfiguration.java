@@ -90,6 +90,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isPassthroughProtocolName() {
+        return node.getNode("passthrough-protocol-name").getBoolean(false);
+    }
+
+    @Override
     public boolean isPassthroughPlayerCounts() {
         return node.getNode("passthrough-player-counts").getBoolean(false);
     }

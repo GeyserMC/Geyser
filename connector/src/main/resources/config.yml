@@ -50,9 +50,11 @@ floodgate-key-file: public-key.pem
 # Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.
 command-suggestions: true
 
-# The following two options enable "ping passthrough" - the MOTD and/or player count gets retrieved from the Java server.
+# The following three options enable "ping passthrough" - the MOTD and/or player count and/or protocol name gets retrieved from the Java server.
 # Relay the MOTD from the remote server to Bedrock players.
 passthrough-motd: false
+# Relay the protocol name (e.g. BungeeCord [X.X], Paper 1.X) - only really useful when using a custom protocol name!
+passthrough-protocol-name: false
 # Relay the player count and max players from the remote server to Bedrock players.
 passthrough-player-counts: false
 # Enable LEGACY ping passthrough. There is no need to enable this unless your MOTD or player count does not appear properly.
@@ -114,9 +116,9 @@ metrics:
   # UUID of server, don't change!
   uuid: generateduuid
 
-# ADVANCED OPTIONS - DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING! 
+# ADVANCED OPTIONS - DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING!
 # The internet supports a maximum MTU of 1492 but could cause issues with packet fragmentation.
 # 1400 is the default.
 # mtu: 1400
 
-config-version: 3
+config-version: 4
