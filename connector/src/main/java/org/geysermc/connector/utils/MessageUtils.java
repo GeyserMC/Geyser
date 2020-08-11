@@ -95,7 +95,7 @@ public class MessageUtils {
      * @param messages A {@link List} of {@link Message} to parse
      * @param locale A locale loaded to get the message for
      * @param parent A {@link Message} to use as the parent (can be null)
-     * @return
+     * @return the translation parameters
      */
     public static List<String> getTranslationParams(List<Message> messages, String locale, Message parent) {
         List<String> strings = new ArrayList<>();
@@ -160,10 +160,10 @@ public class MessageUtils {
      * Translate a given {@link TranslationMessage} to the given locale
      *
      * @param message The {@link Message} to send
-     * @param locale
-     * @param shouldTranslate
-     * @param parent
-     * @return
+     * @param locale the locale
+     * @param shouldTranslate if the message should be translated
+     * @param parent the parent message
+     * @return the given translation message translated from the given locale
      */
     public static String getTranslatedBedrockMessage(Message message, String locale, boolean shouldTranslate, Message parent) {
         JsonParser parser = new JsonParser();

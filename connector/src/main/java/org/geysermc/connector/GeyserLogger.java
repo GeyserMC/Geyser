@@ -36,6 +36,9 @@ public interface GeyserLogger {
 
     /**
      * Logs a severe message and an exception to console
+     *
+     * @param message the message to log
+     * @param error the error to throw
      */
     void severe(String message, Throwable error);
 
@@ -48,6 +51,9 @@ public interface GeyserLogger {
 
     /**
      * Logs an error message and an exception to console
+     *
+     * @param message the message to log
+     * @param error the error to throw
      */
     void error(String message, Throwable error);
 

@@ -23,15 +23,52 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world;
+package org.geysermc.connector.network.session.cache;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.scoreboard.Objective;
+import org.geysermc.connector.scoreboard.Scoreboard;
 
-public class CachedChunkManager extends WorldManager {
+import java.util.Collection;
 
-    @Override
-    public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        return session.getChunkCache().getBlockAt(new Position(x, y, z));
+@Getter
+public class WorldCache {
+
+    private GeyserSession session;
+
+    @Setter
+    private Difficulty difficulty = Difficulty.EASY;
+
+    private boolean showCoordinates = true;
+
+    private Scoreboard scoreboard;
+
+    public WorldCache(GeyserSession session) {
+        this.session = session;
+        this.scoreboard = new Scoreboard(session);
+    }
+
+    public void removeScoreboard() {
+        if (scoreboard != null) {
+            Collection<Objective> objectives = scoreboard.getObjectives().values();
+            scoreboard = new Scoreboard(session);
+
+            for (Objective objective : objectives) {
+                scoreboard.despawnObjective(objective);
+            }
+        }
+    }
+
+    /**
+     * Tell the client to hide or show the coordinates
+     *
+     * @param value True to show, false to hide
+     */
+    public void setShowCoordinates(boolean value) {
+        showCoordinates = value;
+        session.sendGameRule("showcoordinates", value);
     }
 }

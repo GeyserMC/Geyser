@@ -67,9 +67,7 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
     }
 
     private void setDoDaylightCycleGamerule(GeyserSession session, boolean doCycle) {
-        GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
-        gameRulesChangedPacket.getGameRules().add(new GameRuleData<>("dodaylightcycle", doCycle));
-        session.sendUpstreamPacket(gameRulesChangedPacket);
+        session.sendGameRule("dodaylightcycle", doCycle);
     }
 
 }
