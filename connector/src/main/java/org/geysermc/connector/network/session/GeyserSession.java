@@ -628,15 +628,11 @@ public class GeyserSession implements CommandSender {
     /**
      * Inject a packet as if it was received by the upstream client
      * @param packet the bedrock packet to be injected
+     * @return true if handled
      */
     @SuppressWarnings("unused")
-    public void receiveUpstreamPacket(BedrockPacket packet) {
-        try {
-            Method handle = getUpstream().getSession().getPacketHandler().getClass().getMethod("handle", packet.getClass());
-            handle.invoke(getUpstream().getSession().getPacketHandler(), packet);
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            connector.getLogger().error("Tried to inject upstream packet " + packet + " but it is not handled");
-        }
+    public boolean receiveUpstreamPacket(BedrockPacket packet) {
+        return packet.handle(getUpstream().getSession().getPacketHandler());
     }
 
     /**
