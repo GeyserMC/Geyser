@@ -270,8 +270,6 @@ public class SkinUtils {
             return;
         }
 
-        GameProfileData data = GameProfileData.from(playerEntity.getProfile());
-
         GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
 
         try {
