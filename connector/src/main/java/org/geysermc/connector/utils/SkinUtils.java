@@ -264,8 +264,6 @@ public class SkinUtils {
     }
 
     public static void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData) {
-        GameProfileData data = GameProfileData.from(playerEntity.getProfile());
-
         GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
 
         try {
@@ -276,7 +274,7 @@ public class SkinUtils {
             byte[] geometryBytes = Base64.getDecoder().decode(clientData.getGeometryData().getBytes("UTF-8"));
 
             if (skinBytes.length <= (128 * 128 * 4) && !clientData.isPersonaSkin()) {
-                SkinProvider.storeBedrockSkin(playerEntity.getUuid(), data.getSkinUrl(), skinBytes);
+                SkinProvider.storeBedrockSkin(playerEntity.getUuid(), clientData.getSkinId(), skinBytes);
                 SkinProvider.storeBedrockGeometry(playerEntity.getUuid(), geometryNameBytes, geometryBytes);
             } else {
                 GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.fail", playerEntity.getUsername()));
