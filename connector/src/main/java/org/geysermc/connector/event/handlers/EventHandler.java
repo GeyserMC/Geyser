@@ -43,6 +43,7 @@ public abstract class EventHandler<T extends GeyserEvent> implements Comparable<
      * Execute a handler for an event
      *
      * @param event Event passed to handler
+     * @throws EventHandlerException thrown for errors
      */
     public abstract void execute(T event) throws EventHandlerException;
 
@@ -55,6 +56,7 @@ public abstract class EventHandler<T extends GeyserEvent> implements Comparable<
 
     /**
      * Return our priority
+     * @return the priority
      */
     public abstract int getPriority();
 

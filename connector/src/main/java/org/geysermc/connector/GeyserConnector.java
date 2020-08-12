@@ -323,6 +323,8 @@ public class GeyserConnector {
      *
      * This will maintain what channels are registered and ensure new connections and existing connections
      * are registered correctly
+     *
+     * @param channel Channel to register
      */
     public void registerPluginChannel(String channel) {
         if (registeredPluginChannels.contains(channel)) {
@@ -340,6 +342,8 @@ public class GeyserConnector {
      *
      * This will maintain what channels are registered and ensure new connections and existing connections
      * are registered correctly
+     *
+     * @param channel Channel to unregister
      */
     public void unregisterPluginChannel(String channel) {
         if (!registeredPluginChannels.contains(channel)) {

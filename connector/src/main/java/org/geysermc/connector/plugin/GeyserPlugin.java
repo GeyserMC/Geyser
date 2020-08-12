@@ -76,6 +76,11 @@ public abstract class GeyserPlugin {
 
     /**
      * Create a new EventHandler using a lambda
+     *
+     * @param cls Event class to await
+     * @param consumer code to execute
+     * @param <T> Event class
+     * @return The event handler
      */
     public <T extends GeyserEvent> PluginLambdaEventHandler<T> on(Class<T> cls, Consumer<T> consumer) {
         return on(cls, (event, handler) -> consumer.accept(event));
@@ -87,22 +92,29 @@ public abstract class GeyserPlugin {
 
     /**
      * Register an event handler
+     *
+     * @param handler EventHandler to register
+     * @param <T> Event class
      */
-    public <T extends GeyserEvent> void register(org.geysermc.connector.event.handlers.EventHandler<T> handler) {
+    public <T extends GeyserEvent> void register(EventHandler<T> handler) {
         this.pluginEventHandlers.add(handler);
         getEventManager().register(handler);
     }
 
     /**
      * Unregister an event handler
+     *
+     * @param handler EventHandler to unregister
+     * @param <T> Event class
      */
-    public <T extends GeyserEvent> void unregister(org.geysermc.connector.event.handlers.EventHandler<T> handler) {
+    public <T extends GeyserEvent> void unregister(EventHandler<T> handler) {
         this.pluginEventHandlers.remove(handler);
         getEventManager().unregister(handler);
     }
 
     /**
-     * Register all Events contained in an instantiated class. The methods must be annotated by @Event
+     * Register all Events contained in an instantiated class. The methods must be annotated by {@code GeyserEvent}
+     * @param obj Class to register events
      */
     public void registerEvents(Object obj) {
         for (Method method : obj.getClass().getMethods()) {
@@ -123,7 +135,7 @@ public abstract class GeyserPlugin {
     }
 
     /**
-     * Unregister all events for a plugin
+     *  Unregister all events for a plugin
      */
     public void unregisterAllEvents() {
         for (EventHandler<?> handler : pluginEventHandlers) {
@@ -168,6 +180,7 @@ public abstract class GeyserPlugin {
 
     /**
      * Return our Event Manager
+     * @return Event Manager
      */
     public EventManager getEventManager() {
         return pluginManager.getConnector().getEventManager();
@@ -175,6 +188,7 @@ public abstract class GeyserPlugin {
 
     /**
      * Return our dataFolder based upon the plugin name
+     * @return File to datafolder
      */
     public File getDataFolder() {
         return getConnector().getBootstrap().getConfigFolder().resolve("plugins").resolve(getName()).toFile();
@@ -182,6 +196,9 @@ public abstract class GeyserPlugin {
 
     /**
      * Return an InputStream for a resource file
+     *
+     * @param name Name of file
+     * @return InputStream to resource or null
      */
     public InputStream getResourceAsStream(String name) {
         try {

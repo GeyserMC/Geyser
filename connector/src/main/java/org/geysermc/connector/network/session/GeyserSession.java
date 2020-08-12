@@ -773,6 +773,9 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Send message on a Plugin Channel - https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel
+     *
+     * @param channel channel to send on
+     * @param data payload
      */
     public void sendPluginMessage(String channel, byte[] data) {
         sendDownstreamPacket(new ClientPluginMessagePacket(channel, data));
@@ -780,6 +783,8 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Register a Plugin Channel
+     *
+     * @param channel Channel to register
      */
     public void registerPluginChannel(String channel) {
         sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", channel.getBytes()));
@@ -787,6 +792,8 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Unregister a Plugin Channel
+     *
+     * @param channel Channel to unregister
      */
     public void unregisterPluginChannel(String channel) {
         sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:unregister", channel.getBytes()));
