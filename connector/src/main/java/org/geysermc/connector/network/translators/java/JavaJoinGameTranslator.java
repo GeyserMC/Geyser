@@ -51,12 +51,13 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         entity.setEntityId(packet.getEntityId());
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
+        String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (session.isSpawned()) {
             String fakeDim = entity.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
             DimensionUtils.switchDimension(session, fakeDim);
-            DimensionUtils.switchDimension(session, packet.getDimension());
+            DimensionUtils.switchDimension(session, newDimension);
 
-            session.getScoreboardCache().removeScoreboard();
+            session.getWorldCache().removeScoreboard();
         }
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
@@ -91,8 +92,8 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, HandPreference.RIGHT_HAND);
         session.sendDownstreamPacket(clientSettingsPacket);
 
-        if (!packet.getDimension().equals(entity.getDimension())) {
-            DimensionUtils.switchDimension(session, packet.getDimension());
+        if (!newDimension.equals(entity.getDimension())) {
+            DimensionUtils.switchDimension(session, newDimension);
         }
     }
 }

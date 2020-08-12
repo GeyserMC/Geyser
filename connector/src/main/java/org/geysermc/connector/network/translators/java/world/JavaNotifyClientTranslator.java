@@ -41,6 +41,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -55,7 +56,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
 
     @Override
     public void translate(ServerNotifyClientPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
+        PlayerEntity entity = session.getPlayerEntity();
         if (entity == null)
             return;
 
@@ -75,38 +76,16 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.sendUpstreamPacket(stopRainPacket);
                 break;
             case CHANGE_GAMEMODE:
-                Set<AdventureSetting> playerFlags = new ObjectOpenHashSet<>();
                 GameMode gameMode = (GameMode) packet.getValue();
-                if (gameMode == GameMode.ADVENTURE)
-                    playerFlags.add(AdventureSetting.WORLD_IMMUTABLE);
 
-                if (gameMode == GameMode.CREATIVE)
-                    playerFlags.add(AdventureSetting.MAY_FLY);
-
-                if (gameMode == GameMode.SPECTATOR) {
-                    playerFlags.add(AdventureSetting.MAY_FLY);
-                    playerFlags.add(AdventureSetting.NO_CLIP);
-                    playerFlags.add(AdventureSetting.FLYING);
-                    playerFlags.add(AdventureSetting.WORLD_IMMUTABLE);
-                    gameMode = GameMode.CREATIVE; // spectator doesnt exist on bedrock
-                }
-
-                playerFlags.add(AdventureSetting.AUTO_JUMP);
+                session.setNoClip(gameMode == GameMode.SPECTATOR);
+                session.setWorldImmutable(gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR);
+                session.sendAdventureSettings();
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
                 session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
-
-                // We need to delay this because otherwise it's overridden by the adventure settings from the abilities packet
-                session.getConnector().getGeneralThreadPool().schedule(() -> {
-                    AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-                    adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
-                    adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
-                    adventureSettingsPacket.setUniqueEntityId(entity.getGeyserId());
-                    adventureSettingsPacket.getSettings().addAll(playerFlags);
-                    session.sendUpstreamPacket(adventureSettingsPacket);
-                }, 50, TimeUnit.MILLISECONDS);
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());

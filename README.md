@@ -18,7 +18,7 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have now joined us here!
 
-### Currently supporting Minecraft Bedrock v1.16.0/1 and Minecraft Java v1.16.1.
+### Currently supporting Minecraft Bedrock v1.16.x and Minecraft Java v1.16.2.
 
 ## Setting Up
 Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set up Geyser.
@@ -30,7 +30,8 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Docs: https://github.com/GeyserMC/Geyser/wiki
 - Download: http://ci.geysermc.org
 - Discord: http://discord.geysermc.org/
-- Donate: https://patreon.com/GeyserMC
+- ~~Donate: https://patreon.com/GeyserMC~~ Currently disabled.
+- Test Server: test.geysermc.org port 25565 for Java and 19132 for Bedrock
 
 ## What's Left to be Added/Fixed
 - The Following Inventories 
@@ -38,6 +39,9 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
   - [ ] Beacon
   - [ ] Cartography Table
   - [ ] Stonecutter
+  - [ ] Command Block
+  - [ ] Structure Block
+  - [ ] Horse Inventory
 - Some Entity Flags
 
 ## Compiling

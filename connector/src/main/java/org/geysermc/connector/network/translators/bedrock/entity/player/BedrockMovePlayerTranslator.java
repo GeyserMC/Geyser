@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.nukkitx.math.vector.Vector3d;
 import org.geysermc.connector.common.ChatColor;

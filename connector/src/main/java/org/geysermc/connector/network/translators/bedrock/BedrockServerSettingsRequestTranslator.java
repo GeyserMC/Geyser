@@ -23,33 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.bedrock;
 
-import lombok.Getter;
+import com.nukkitx.protocol.bedrock.packet.ServerSettingsRequestPacket;
+import com.nukkitx.protocol.bedrock.packet.ServerSettingsResponsePacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Objective;
-import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.SettingsUtils;
 
-import java.util.Collection;
+@Translator(packet = ServerSettingsRequestPacket.class)
+public class BedrockServerSettingsRequestTranslator extends PacketTranslator<ServerSettingsRequestPacket> {
 
-@Getter
-public class ScoreboardCache {
-    private GeyserSession session;
-    private Scoreboard scoreboard;
+    @Override
+    public void translate(ServerSettingsRequestPacket packet, GeyserSession session) {
+        SettingsUtils.buildForm(session);
 
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-        this.scoreboard = new Scoreboard(session);
-    }
-
-    public void removeScoreboard() {
-        if (scoreboard != null) {
-            Collection<Objective> objectives = scoreboard.getObjectives().values();
-            scoreboard = new Scoreboard(session);
-
-            for (Objective objective : objectives) {
-                scoreboard.despawnObjective(objective);
-            }
-        }
+        ServerSettingsResponsePacket serverSettingsResponsePacket = new ServerSettingsResponsePacket();
+        serverSettingsResponsePacket.setFormData(session.getSettingsForm().getJSONData());
+        serverSettingsResponsePacket.setFormId(SettingsUtils.SETTINGS_FORM_ID);
+        session.sendUpstreamPacket(serverSettingsResponsePacket);
     }
 }

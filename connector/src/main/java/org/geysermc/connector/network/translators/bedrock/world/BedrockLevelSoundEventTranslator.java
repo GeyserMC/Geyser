@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.world;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;

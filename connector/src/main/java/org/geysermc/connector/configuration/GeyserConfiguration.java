@@ -77,6 +77,8 @@ public interface GeyserConfiguration {
 
     boolean isCacheChunks();
 
+    int getCacheImages();
+
     IMetricsInfo getMetrics();
 
     interface IBedrockConfiguration {
@@ -117,6 +119,8 @@ public interface GeyserConfiguration {
 
         String getUniqueId();
     }
+
+    int getMtu();
 
     int getConfigVersion();
 

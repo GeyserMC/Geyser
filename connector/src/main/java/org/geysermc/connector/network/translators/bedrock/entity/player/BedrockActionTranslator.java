@@ -23,10 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
@@ -79,9 +78,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case START_GLIDE:
                 // Otherwise gliding will not work in creative
-                ClientPlayerAbilitiesPacket playerAbilitiesPacket = new ClientPlayerAbilitiesPacket(
-                        false, false, false, session.getGameMode() == GameMode.CREATIVE
-                );
+                ClientPlayerAbilitiesPacket playerAbilitiesPacket = new ClientPlayerAbilitiesPacket(false);
                 session.sendDownstreamPacket(playerAbilitiesPacket);
             case STOP_GLIDE:
                 ClientPlayerStatePacket glidePacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
@@ -119,6 +116,18 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
+                if (session.getConnector().getConfig().isCacheChunks()) {
+                    if (packet.getFace() == BlockFace.UP.ordinal()) {
+                        int blockUp = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().add(0, 1, 0));
+                        String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockUp);
+                        if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
+                            ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
+                                    packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
+                            session.sendDownstreamPacket(startBreakingPacket);
+                            break;
+                        }
+                    }
+                }
                 ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
                         packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
                 session.sendDownstreamPacket(startBreakingPacket);

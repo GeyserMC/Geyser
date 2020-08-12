@@ -27,9 +27,8 @@ package org.geysermc.connector;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -78,8 +77,6 @@ import java.util.concurrent.TimeUnit;
 public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
-
-    public static BedrockPacketCodec BEDROCK_PACKET_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
@@ -183,6 +180,10 @@ public class GeyserConnector {
 
         if (config.isAboveBedrockNetherBuilding())
             DimensionUtils.changeBedrockNetherId(); // Apply End dimension ID workaround to Nether
+
+        // https://github.com/GeyserMC/Geyser/issues/957
+        RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
+        logger.debug("Setting MTU to " + config.getMtu());
 
         bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
