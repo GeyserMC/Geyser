@@ -131,9 +131,6 @@ public class GeyserConnector {
         this.eventManager = new EventManager(this);
         this.pluginManager = new PluginManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
 
-        // Set Codec
-        BEDROCK_PACKET_CODEC = eventManager.triggerEvent(new BedrockCodecRegistryEvent(Bedrock_v407.V407_CODEC)).getEvent().getCodec();
-
         PacketTranslatorRegistry.init();
 
         /* Initialize translators and registries */
