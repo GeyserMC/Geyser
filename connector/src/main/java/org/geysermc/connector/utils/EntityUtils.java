@@ -42,8 +42,7 @@ public class EntityUtils {
             case LUCK:
             case UNLUCK:
             case DOLPHINS_GRACE:
-            case BAD_OMEN:
-            case HERO_OF_THE_VILLAGE:
+                // All Java-exclusive effects as of 1.16.2
                 return 0;
             case LEVITATION:
                 return 24;
@@ -51,6 +50,10 @@ public class EntityUtils {
                 return 26;
             case SLOW_FALLING:
                 return 27;
+            case BAD_OMEN:
+                return 28;
+            case HERO_OF_THE_VILLAGE:
+                return 29;
             default:
                 return effect.ordinal() + 1;
         }
