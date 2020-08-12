@@ -55,6 +55,9 @@ public class SkinUtils {
         SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
 
         SkinProvider.Skin skin = SkinProvider.getCachedSkin(data.getSkinUrl());
+        if (skin == null) {
+            skin = SkinProvider.EMPTY_SKIN;
+        }
 
         return buildEntryManually(
                 session,
@@ -138,7 +141,7 @@ public class SkinUtils {
          */
         public static GameProfileData from(GameProfile profile) {
             // Fallback to the offline mode of working it out
-            boolean isAlex = ((profile.getId().hashCode() % 2) == 1);
+            boolean isAlex = (Math.abs(profile.getId().hashCode() % 2) == 1);
 
             try {
                 GameProfile.Property skinProperty = profile.getProperty("textures");
