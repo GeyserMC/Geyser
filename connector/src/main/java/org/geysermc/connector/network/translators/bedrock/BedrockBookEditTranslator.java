@@ -55,11 +55,16 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
 
             int page = packet.getPageNumber();
 
+            // Don't spam edit packets - if text is empty and book is also empty no need to process changes
+            if (packet.getText().isEmpty() && (page >= pages.size() || ((StringTag) pages.get(page)).getValue().isEmpty()))
+                return;
+
             // Creative edits the NBT for us
             if (session.getGameMode() != GameMode.CREATIVE) {
                 switch (packet.getAction()) {
                     case ADD_PAGE: {
                         pages.add(page, new StringTag("", packet.getText()));
+                        break;
                     }
                     // Called whenever a page is modified
                     case REPLACE_PAGE: {
@@ -93,6 +98,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                 }
             }
             tag.put(new ListTag("pages", pages));
+            session.getInventory().setItem(36 + session.getInventory().getHeldItemSlot(), bookItem);
             ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, Hand.MAIN_HAND);
             session.getDownstream().getSession().send(editBookPacket);
         }
