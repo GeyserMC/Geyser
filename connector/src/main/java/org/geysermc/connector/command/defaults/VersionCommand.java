@@ -30,6 +30,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.WebUtils;
@@ -50,7 +51,7 @@ public class VersionCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.version", GeyserConnector.NAME, GeyserConnector.VERSION, MinecraftConstants.GAME_VERSION, GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
+        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.version", GeyserConnector.NAME, GeyserConnector.VERSION, MinecraftConstants.GAME_VERSION, BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
 
         // Disable update checking in dev mode
         //noinspection ConstantConditions - changes in production

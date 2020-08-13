@@ -59,7 +59,12 @@ public class WolfEntity extends TameableEntity {
         if (entityMetadata.getId() == 19 && !metadata.getFlags().getFlag(EntityFlag.ANGRY)) {
             metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
         }
-        //TODO: Anger time int?
+
+        // Wolf anger (1.16+)
+        if (entityMetadata.getId() == 20) {
+            metadata.getFlags().setFlag(EntityFlag.ANGRY, (int) entityMetadata.getValue() != 0);
+        }
+
         super.updateBedrockMetadata(entityMetadata, session);
     }
 }

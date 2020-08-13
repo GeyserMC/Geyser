@@ -1,27 +1,26 @@
 /*
  * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
- *  @author GeyserMC
- *  @link https://github.com/GeyserMC/Geyser
- *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
  */
 
 package org.geysermc.connector.ping;
@@ -79,15 +78,17 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
     public void run() {
         try {
             Socket socket = new Socket();
-            socket.connect(new InetSocketAddress(connector.getConfig().getRemote().getAddress(), connector.getConfig().getRemote().getPort()), 5000);
+            String address = connector.getConfig().getRemote().getAddress();
+            int port = connector.getConfig().getRemote().getPort();
+            socket.connect(new InetSocketAddress(address, port), 5000);
 
             ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
             DataOutputStream handshake = new DataOutputStream(byteArrayStream);
             handshake.write(0x0);
             VarInts.writeUnsignedInt(handshake, MinecraftConstants.PROTOCOL_VERSION);
-            VarInts.writeUnsignedInt(handshake, socket.getInetAddress().getHostAddress().length());
-            handshake.writeBytes(socket.getInetAddress().getHostAddress());
-            handshake.writeShort(socket.getPort());
+            VarInts.writeUnsignedInt(handshake, address.length());
+            handshake.writeBytes(address);
+            handshake.writeShort(port);
             VarInts.writeUnsignedInt(handshake, 1);
 
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());

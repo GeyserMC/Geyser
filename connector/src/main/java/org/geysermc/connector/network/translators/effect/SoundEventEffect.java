@@ -24,15 +24,41 @@
  *
  */
 
-package org.geysermc.connector.network.translators.world;
+package org.geysermc.connector.network.translators.effect;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayEffectPacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import lombok.Value;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class CachedChunkManager extends WorldManager {
+@Value
+public class SoundEventEffect implements Effect {
+    /**
+     * Bedrock sound event
+     */
+    SoundEvent soundEvent;
+
+    /**
+     * Entity identifier. Usually an empty string
+     */
+    String identifier;
+
+    /**
+     * Extra data. Usually -1
+     */
+    int extraData;
 
     @Override
-    public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        return session.getChunkCache().getBlockAt(new Position(x, y, z));
+    public void handleEffectPacket(GeyserSession session, ServerPlayEffectPacket packet) {
+        LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+        levelSoundEvent.setSound(soundEvent);
+        levelSoundEvent.setIdentifier(identifier);
+        levelSoundEvent.setExtraData(extraData);
+        levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
+        levelSoundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f));
+        levelSoundEvent.setBabySound(false);
+        session.sendUpstreamPacket(levelSoundEvent);
     }
 }
