@@ -83,15 +83,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         // Don't change the ip if its listening on all interfaces
         // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-        if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
+        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto") && !Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
             geyserConfig.getRemote().setAddress(Bukkit.getIp());
+            geyserConfig.getRemote().setPort(Bukkit.getPort());
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
             geyserConfig.getBedrock().setPort(Bukkit.getPort());
         }
-
-        geyserConfig.getRemote().setPort(Bukkit.getPort());
 
         this.geyserLogger = new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
