@@ -22,10 +22,11 @@ bedrock:
   motd2: "Another GeyserMC forced host."
 remote:
   # The IP address of the remote (Java Edition) server
-  # "auto" means let geyser to choose, in standalone version it will be 127.0.0.1, in plugin version it will de depending on server setting.
+  # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,
+  # for plugins version the remote address will follow the server's listening address.
   address: auto
   # The port of the remote (Java Edition) server
-  # In plugin version, if address has been set to "auto", the port will also depending on server setting.
+  # For plugin versions, if address has been set to "auto", the port will also follow the server's listening port.
   port: 25565
   # Authentication type. Can be offline, online, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).
   auth-type: online
