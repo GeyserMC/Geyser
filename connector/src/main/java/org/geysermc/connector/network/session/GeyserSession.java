@@ -314,7 +314,6 @@ public class GeyserSession implements CommandSender {
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
         upstream.sendPacket(creativePacket);
-    }
 
         // Only allow the server to send health information
         // Setting this to false allows natural regeneration to work false but doesn't break it being true
