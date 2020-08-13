@@ -93,6 +93,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding;
 
+    @JsonProperty("floodgate-login")
+    private boolean isFloodgateLoginEnabled;
+
     private MetricsInfo metrics;
 
     @Getter

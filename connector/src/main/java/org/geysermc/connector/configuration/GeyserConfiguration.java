@@ -79,6 +79,8 @@ public interface GeyserConfiguration {
 
     int getCacheImages();
 
+    boolean isFloodgateLoginEnabled();
+
     IMetricsInfo getMetrics();
 
     interface IBedrockConfiguration {

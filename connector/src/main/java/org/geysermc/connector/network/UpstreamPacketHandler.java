@@ -126,7 +126,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
         LanguageUtils.loadGeyserLocale(session.getClientData().getLanguageCode());
 
-        if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
+        final AuthType authType = GeyserConnector.getInstance().getConfig().isFloodgateLoginEnabled() ? AuthType.FLOODGATE : AuthType.ONLINE;
+        if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == authType) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthData().getName())) {
                 LoginEncryptionUtils.showLoginWindow(session);

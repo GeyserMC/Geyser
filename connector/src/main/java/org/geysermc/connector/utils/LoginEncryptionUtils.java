@@ -169,12 +169,20 @@ public class LoginEncryptionUtils {
     }
 
     public static void showLoginDetailsWindow(GeyserSession session) {
+        final boolean floodgateEnabled = GeyserConnector.getInstance().getConfig().isFloodgateLoginEnabled();
+
         String userLanguage = session.getClientData().getLanguageCode();
         CustomFormWindow window = new CustomFormBuilder(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.title", userLanguage))
-                .addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.desc", userLanguage)))
-                .addComponent(new InputComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.email", userLanguage), "account@geysermc.org", ""))
-                .addComponent(new InputComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.pass", userLanguage), "123456", ""))
                 .build();
+
+        if (!floodgateEnabled) {
+            window.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.desc", userLanguage)));
+            window.addComponent(new InputComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.email", userLanguage), "account@geysermc.org", ""));
+            window.addComponent(new InputComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.pass", userLanguage), "123456", ""));
+        } else {
+            window.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.offline.desc", userLanguage)));
+            window.addComponent(new InputComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.username", userLanguage), "username", ""));
+        }
 
         session.sendForm(window, AUTH_DETAILS_FORM_ID);
     }
