@@ -354,7 +354,7 @@ public class GeyserSession implements CommandSender {
                             try {
                                 encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
                                         clientData.getGameVersion(),
-                                        protocol.getProfile().getName(),
+                                        GeyserConnector.getInstance().getConfig().isFloodgateLoginEnabled() ? protocol.getProfile().getName() : authData.getName(),
                                         authData.getXboxUUID(),
                                         clientData.getDeviceOS().ordinal(),
                                         clientData.getLanguageCode(),
