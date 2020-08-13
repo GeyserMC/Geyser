@@ -114,6 +114,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class RemoteConfiguration implements IRemoteConfiguration {
 
         @Setter
+        @AsteriskSerializer.Asterisk(sensitive = true)
         private String address;
 
         @Setter

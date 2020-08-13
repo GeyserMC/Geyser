@@ -33,6 +33,7 @@ import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.dump.DumpInfo;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.WebUtils;
@@ -49,15 +50,17 @@ public class DumpCommand extends GeyserCommand {
         super(name, description, permission);
 
         this.connector = connector;
-
-        final SimpleFilterProvider filter = new SimpleFilterProvider();
-        filter.addFilter("dump_user_auth", SimpleBeanPropertyFilter.serializeAllExcept(new String[] {"password"}));
-
-        MAPPER.setFilterProvider(filter);
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        if (args.length >= 1 && "full".equals(args[0])) {
+            AsteriskSerializer.showSensitive = true;
+        } else {
+            AsteriskSerializer.showSensitive = false;
+        }
+
+
         sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.dump.collecting"));
         String dumpData = "";
         try {
