@@ -112,7 +112,7 @@ public class AnvilInventoryTranslator extends BlockInventoryTranslator {
                 String name = tag.getCompound("display").getString("Name");
                 try {
                     Component component = GsonComponentSerializer.gson().deserialize(name);
-                    rename = LegacyComponentSerializer.legacySection().serialize(component);
+                    rename = ChatColor.stripColors(PlainComponentSerializer.plain().serialize(component));
                 } catch (JsonSyntaxException e) {
                     rename = name;
                 }
