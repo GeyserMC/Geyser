@@ -87,6 +87,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("cache-chunks")
     private boolean cacheChunks;
 
+    @JsonProperty("allow-custom-skulls")
+    private boolean allowCustomSkulls;
+
     @JsonProperty("cache-images")
     private int cacheImages = 0;
 

@@ -149,6 +149,12 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         return node.getNode("cache-chunks").getBoolean(false);
     }
 
+
+    @Override
+    public boolean isAllowCustomSkulls() {
+        return node.getNode("allow-custom-skulls").getBoolean(true);
+    }
+
     @Override
     public int getCacheImages() {
         return node.getNode("cache-skins").getInt(0);
