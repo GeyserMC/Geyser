@@ -47,6 +47,7 @@ public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
     public LambdaEventHandler(EventManager manager, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
         super(manager, cls);
         this.consumer = consumer;
+        manager.register(this);
     }
 
     /**
