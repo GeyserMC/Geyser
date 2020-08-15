@@ -30,9 +30,11 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.function.Function;
 
 public class FileUtils {
@@ -134,6 +136,11 @@ public class FileUtils {
      * @return InputStream of the given resource
      */
     public static InputStream getResource(String resource) {
+        // First try open file under a resources folder. We use this try format so we don't close it
+        try {
+            return new FileInputStream(Paths.get("resources", resource).toFile());
+        } catch (IOException ignored) { }
+
         InputStream stream = FileUtils.class.getClassLoader().getResourceAsStream(resource);
         if (stream == null) {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.resource", resource));

@@ -42,6 +42,7 @@ import org.geysermc.connector.network.translators.world.block.entity.BlockEntity
 import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -102,6 +103,13 @@ public class BlockTranslator {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
+
+        // Load Block Overrides
+        JsonNode blocksOverride = null;
+        try (InputStream is = FileUtils.getResource("overrides/blocks.json")) {
+            blocksOverride = GeyserConnector.JSON_MAPPER.readTree(is);
+        } catch (IOException | AssertionError ignored) { }
+
         Object2IntMap<NbtMap> addedStatesMap = new Object2IntOpenHashMap<>();
         addedStatesMap.defaultReturnValue(-1);
         List<NbtMap> paletteList = new ArrayList<>();
@@ -121,6 +129,12 @@ public class BlockTranslator {
             javaRuntimeId++;
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
             String javaId = entry.getKey();
+
+            // Check for an override
+            if (blocksOverride != null && blocksOverride.has(javaId)) {
+                entry = new AbstractMap.SimpleEntry<>(javaId, blocksOverride.get(javaId));
+            }
+
             NbtMap blockTag = buildBedrockState(entry.getValue());
 
             // TODO fix this, (no block should have a null hardness)
