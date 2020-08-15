@@ -1,0 +1,211 @@
+# Build, Update, Document and Deploy workflow
+
+name: build
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+          server-id: bundabrg-repo
+          settings-path: ${{ github.workspace }} # location for the settings.xml file
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_TOKEN # env variable for token in deploy
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      #      - name: Updating Version for Release
+      #        if: startsWith(github.ref,'refs/tags/v')
+      #        run: |
+      #          # Remove v from front
+      #          TAG="${GITHUB_REF##*/}"
+      #          MAVEN_VERSION="${TAG/v/}"
+      #
+      #          # Set Maven Version
+      #          mvn -B versions:set -DnewVersion=${MAVEN_VERSION}
+      #
+      #          # Set Plugin Version
+      #          sed -i "/^version:.*/ s/^version:.*/version: \"${MAVEN_VERSION}\"/" src/main/resources/plugin.yml
+      #          sed -i "/^version:.*/ s/^version:.*/version: \"${MAVEN_VERSION}\"/" src/main/resources/bungee.yml
+      #          sed -i "/version = .*/ s/version = \"[^\"]*\"/version = \"${MAVEN_VERSION}\"/" GeyserLink-Geyser/src/main/java/au/com/grieve/geyserlink/geyser/GeyserLink.java
+
+      #      - name: Update Version for Developmental Build
+      #        if: "!startsWith(github.ref,'refs/tags/v')"
+      #        run: |
+      #          sed -i "/^version:.*/ s/-dev$/-b${GITHUB_RUN_NUMBER}/" src/main/resources/plugin.yml
+      #          sed -i "/^version:.*/ s/-dev$/-b${GITHUB_RUN_NUMBER}/" src/main/resources/bungee.yml
+      #          sed -i "/version = .*/ s/-dev/-b${GITHUB_RUN_NUMBER}/" GeyserLink-Geyser/src/main/java/au/com/grieve/geyserlink/geyser/GeyserLink.java
+
+      - if: "!startsWith(github.ref,'refs/tags/v')"
+        name: Build with Maven (Non-Release)
+        run: |
+          git submodule update --init --recursive
+          mkdir -p build/output
+          mvn -B package --file pom.xml && \
+            cp bootstrap/*/target/Geyser*.jar build/output/
+
+      - if: "startsWith(github.ref,'refs/tags/v')"
+        name: Build with Maven (Release)
+        run: |
+          git submodule update --init --recursive
+          mkdir -p build/output
+          mvn -B package --file pom.xml -U && \
+            cp bootstrap/*/target/Geyser*.jar build/output/
+
+          tag_name="${GITHUB_REF##*/}"
+
+          for f in build/output/*.jar; do
+            mv ${f} ${f%.*}-${tag_name}.jar
+          done
+
+      #      - name: Publish to Maven Repo
+      #        if: (github.ref == 'refs/heads/master' || startsWith(github.ref,'refs/tags/v'))
+      #        run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+      #        env:
+      #          GITHUB_TOKEN: ${{ github.token }}
+      #          MAVEN_USERNAME: github-publisher
+      #          MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: binary
+          path: build/output
+
+#  documentation:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Setup Python
+#        uses: actions/setup-python@v1
+#        with:
+#          python-version: '3.6'
+#          architecture: 'x64'
+#
+#      - name: Cache dependencies
+#        uses: actions/cache@v1
+#        with:
+#          path: ~/.cache/pip
+#          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-
+#
+#      - name: Install dependencies
+#        run: |
+#          python3 -m pip install --upgrade pip
+#          python3 -m pip install -r ./requirements.txt
+#
+#      - run: mkdocs build
+#
+#      - name: Deploy to Github Pages
+#        if: github.ref == 'refs/heads/master'
+#        uses: peaceiris/actions-gh-pages@v3
+#        with:
+#          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+#          publish_dir: ./build/docs
+#
+#      - name: Upload Artifact
+#        uses: actions/upload-artifact@v1
+#        with:
+#          name: documentation
+#          path: build/docs
+#
+  # If a tag is pushed starting with 'v' then we create a new release and attach the binary and documentation
+  release:
+    if: startsWith(github.ref,'refs/tags/v')
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
+
+      - name: Download Binary Artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: binary
+          path: build/binary
+
+#      - name: Download Documentation Artifact
+#        uses: actions/download-artifact@v1
+#        with:
+#          name: documentation
+#          path: build/docs
+
+      - name: Create Release
+        # The since last release string will retrieve all commits since the last tag, else if none is found
+        # it will return from the start of history, then pretty it up to show single line logs for each entry
+        run: |
+          set -x
+          assets=()
+          for asset in ./build/binary/*.jar; do
+            assets+=("-a" "$asset")
+          done
+
+          tag_name="${GITHUB_REF##*/}"
+          hub release create \
+            "${assets[@]}" \
+            -F - \
+            "$tag_name" << EOF
+          Release $tag_name
+
+          NOTE: This is an unofficial build and includes bleeding edge features for testing.
+
+          Since Last Release:
+          $(git log $(git describe --tags --abbrev=0 HEAD^ 2> /dev/null || git rev-list --max-parents=0 HEAD)..HEAD --graph --pretty=format:'%h %d %s [%an]' | head -n 300)
+          EOF
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+#      - name: Publish to SpigotMC
+#        run: |
+#          set -x
+#          assets=()
+#          for asset in ./build/binary/*.jar; do
+#            assets+=("$asset")
+#          done
+#          tag_name="${GITHUB_REF##*/}"
+#
+#          docker login -u gitlab+deploy-token-2 -p ${DEPLOY_TOKEN} https://registry.worldguard.com.au
+#          cat > config.yml << EOF
+#          common:
+#            spigot:
+#              username: ${SPIGOT_USERNAME}
+#              password: ${SPIGOT_PASSWORD}
+#          EOF
+#
+#          docker run -i \
+#            --shm-size=2g \
+#            -v $(pwd)/config.yml:/app/config/config.yml \
+#            -v $(pwd)/build:/app/build \
+#            registry.worldguard.com.au/bgrieve/spigot_tools:latest app resource add-version \
+#              portal-network.78053 \
+#              ${assets[0]} \
+#              ${tag_name} \
+#              "Release ${tag_name}" << EOF
+#          [plain]
+#          Release $tag_name
+#
+#          Since Last Release:
+#          $(git log $(git describe --tags --abbrev=0 HEAD^ 2> /dev/null || git rev-list --max-parents=0 HEAD)..HEAD --graph --pretty=format:'%h %d %s [%an]%n%b')
+#          [/plain]
+#          EOF
+#        env:
+#          DEPLOY_TOKEN: ${{ secrets.GITLAB_DEPLOY_TOKEN }}
+#          SPIGOT_USERNAME: ${{ secrets.SPIGOT_USERNAME }}
+#          SPIGOT_PASSWORD: ${{ secrets.SPIGOT_PASSWORD }}
+
