@@ -31,6 +31,13 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.EventResult;
+import org.geysermc.connector.event.events.packet.UpstreamPacketReceiveEvent;
+import org.geysermc.connector.event.events.packet.upstream.LoginPacketReceive;
+import org.geysermc.connector.event.events.packet.upstream.ModalFormResponsePacketReceive;
+import org.geysermc.connector.event.events.packet.upstream.MovePlayerPacketReceive;
+import org.geysermc.connector.event.events.packet.upstream.ResourcePackClientResponsePacketReceive;
+import org.geysermc.connector.event.events.packet.upstream.SetLocalPlayerAsInitializedPacketReceive;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.LoginEncryptionUtils;
@@ -43,12 +50,26 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         super(connector, session);
     }
 
-    private boolean translateAndDefault(BedrockPacket packet) {
+    private <T extends BedrockPacket> boolean translateAndDefault(T packet) {
+        EventResult<UpstreamPacketReceiveEvent<T>> result = connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet));
+        if (result.isCancelled()) {
+            return true;
+        }
+
+        packet = result.getEvent().getPacket();
+
         return PacketTranslatorRegistry.BEDROCK_TRANSLATOR.translate(packet.getClass(), packet, session);
     }
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
+        EventResult<LoginPacketReceive> result = connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, loginPacket));
+        if (result.isCancelled()) {
+            return true;
+        }
+
+        loginPacket = result.getEvent().getPacket();
+
         BedrockPacketCodec packetCodec = BedrockProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
         if (packetCodec == null) {
             if (loginPacket.getProtocolVersion() > BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
@@ -76,6 +97,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ResourcePackClientResponsePacket packet) {
+        EventResult<ResourcePackClientResponsePacketReceive> result = connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet));
+        if (result.isCancelled()) {
+            return true;
+        }
+
+        packet = result.getEvent().getPacket();
+
         switch (packet.getStatus()) {
             case COMPLETED:
                 session.connect(connector.getRemoteServer());
@@ -98,6 +126,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
+        EventResult<ModalFormResponsePacketReceive> result = connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet));
+        if (result.isCancelled()) {
+            return true;
+        }
+
+        packet = result.getEvent().getPacket();
+
         if (packet.getFormId() == SettingsUtils.SETTINGS_FORM_ID) {
             return SettingsUtils.handleSettingsForm(session, packet.getFormData());
         }
@@ -124,6 +159,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
+        EventResult<SetLocalPlayerAsInitializedPacketReceive> result = connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet));
+        if (result.isCancelled()) {
+            return true;
+        }
+
+        packet = result.getEvent().getPacket();
+
         LanguageUtils.loadGeyserLocale(session.getClientData().getLanguageCode());
 
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
@@ -138,6 +180,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
+        EventResult<MovePlayerPacketReceive> result = connector.getEventManager().triggerEvent(UpstreamPacketReceiveEvent.of(session, packet));
+        if (result.isCancelled()) {
+            return true;
+        }
+
+        packet = result.getEvent().getPacket();
+
         if (session.isLoggingIn()) {
             session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getClientData().getLanguageCode()));
         }
@@ -146,7 +195,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    boolean defaultHandler(BedrockPacket packet) {
+    <T extends BedrockPacket> boolean defaultHandler(T packet) {
         return translateAndDefault(packet);
     }
 }

@@ -1,0 +1,323 @@
+@import "https://fonts.googleapis.com/icon?family=Material+Icons";
+
+@import "stylesheets/extensions.scss";
+
+$bgColor: rgb(63, 81, 181);
+$bgTextColor: #fff;
+
+
+@font-face {
+  font-family: Fira Sans;
+  font-weight: 400;
+  src: url(FiraSans-Regular.otf);
+}
+
+
+@font-face {
+  font-family: Fira Sans;
+  font-style: italic;
+  font-weight: 400;
+  src: url(FiraSans-Italic.otf);
+}
+
+
+@font-face {
+  font-family: Fira Sans;
+  font-weight: 300;
+  src: url(FiraSans-Light.otf);
+}
+
+
+@font-face {
+  font-family: Fira Sans;
+  font-style: italic;
+  font-weight: 300;
+  src: url(FiraSans-LightItalic.otf);
+}
+
+
+@font-face {
+  font-family: Fira Sans;
+  font-weight: bold;
+  src: url(FiraSans-Bold.otf);
+}
+
+
+@page {
+  @top-left {
+    background: $bgColor;
+    content: counter(page);
+    height: 1cm;
+    color: $bgTextColor;
+    text-align: center;
+    width: 1cm;
+  }
+
+  @top-center {
+    background: $bgColor;
+    content: '';
+    display: block;
+    height: .05cm;
+    opacity: .5;
+    width: 100%;
+  }
+
+  @top-right {
+    content: string(heading);
+    font-size: 9pt;
+    height: 1cm;
+    vertical-align: middle;
+    width: 100%;
+  }
+
+  @bottom-right {
+    content: string(copyright);
+    font-size: 9pt;
+    height: 1cm;
+    vertical-align: middle;
+    width: 100%;
+  }
+}
+
+
+@page :blank {
+  @top-left {
+    background: none;
+    content: '';
+  }
+
+  @top-center {
+    content: none;
+  }
+
+  @top-right {
+    content: none;
+  }
+
+  @bottom-right {
+    content: none;
+  }
+}
+
+
+@page no-chapter {
+  @top-left {
+    background: none;
+    content: none;
+  }
+
+  @top-center {
+    content: none;
+  }
+
+  @top-right {
+    content: none;
+  }
+
+  @bottom-right {
+    content: none;
+  }
+}
+
+
+@page :first {
+  background: url(../img/logo.png) no-repeat center;
+  background-size: auto;
+  margin: 0;
+  counter-reset: page -1;
+}
+
+
+html {
+  article#doc-cover h1#doc-title {
+    color: $bgColor;
+    font-size: 38pt;
+    margin: 5cm 2cm 0 2cm;
+    page: no-chapter;
+    width: 100%;
+  }
+  body article#doc-cover {
+    break-after: right;
+    align-content: space-between;
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    height: 297mm;
+    address {
+      background: $bgColor;
+      flex: 1;
+      color: $bgTextColor;
+      margin: 0 -2cm;
+      padding: 1cm 0;
+      font-style: normal;
+      white-space: pre-wrap;
+      &:last-of-type {
+        padding-right: 3cm;
+        text-align: right;
+      }
+      &:first-of-type {
+        padding-left: 3cm;
+      }
+      p{
+        margin: 0;
+        padding: 0;
+      }
+      p#copyright {
+        string-set: copyright content();
+      }
+    }
+  }
+  color: #393939;
+  font-family: Fira Sans, helvetica, arial;
+  font-size: 11pt;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+@page chapter {
+  background: $bgColor;
+  margin: 0;
+  @top-left {
+    content: none;
+  }
+
+  @top-center {
+    content: none;
+  }
+
+  @top-right {
+    content: none;
+  }
+}
+
+
+.html iframe, html img, .html svg {
+  max-width: 100%;
+  margin-top: 5px;
+}
+
+html body {
+  h1 {
+    color: $bgColor;
+    string-set: heading content();
+  }
+  h2, h3, h4 {
+    color: black;
+    font-weight: 400;
+  }
+  h2 {
+    font-size: 20pt;
+  }
+  h3 {
+    font-weight: 300;
+    font-size: 15pt;
+  }
+  h4 {
+    font-size: 13pt;
+  }
+  article {
+    break-before: always;
+    video {
+      source::before {
+        content: attr(src);
+      }
+      &[src]::before {
+        content: attr(data-title) " https://mkpdfs.comwes.eu" attr(src);
+      }
+    }
+  }
+}
+
+h2, h3, h4, h5 {
+  margin-bottom: 0.1em;
+}
+
+html body article {
+  h1, h2, h3, h4, h5, h6 {
+      a {
+        &.external-link::after {
+          content: none !important;
+        }
+      }
+    }
+  a {
+      color: $bgColor;
+      text-decoration: none;
+//     &.external-link::after {
+//       content: " (" attr(href) ")";
+//       font-style: italic;
+//     }
+  }
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    tr {
+      border-bottom: 1px solid #888;
+      td {
+        padding: 4px 7px;
+      }
+    }
+  }
+  &#contents {
+    break-before: right;
+    break-after: left;
+    page: no-chapter;
+    h2 {
+      font-size: 20pt;
+      font-weight: 400;
+      margin-bottom: 3cm;
+    }
+    h3 {
+      font-weight: 500;
+      margin: 3em 0 1em;
+      &::before {
+        background: $bgColor;
+        content: '';
+        display: block;
+        height: .08cm;
+        margin-bottom: .25cm;
+        width: 2cm;
+      }
+    }
+    ul {
+      list-style: none;
+      padding-left: .5cm;
+      li {
+        border-top: .25pt solid #c1c1c1;
+        margin: .15cm 0;
+        padding-top: .15cm;
+        &::before {
+          color: $bgColor;
+          content: '• ';
+          font-size: 40pt;
+          line-height: 16pt;
+          vertical-align: bottom;
+        }
+        a {
+          color: inherit;
+          text-decoration: inherit;
+        }
+      }
+    }
+    > ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    div h4 a::after, ul li a::after {
+      color: $bgColor;
+      content: target-counter(attr(href), page);
+      float: right;
+    }
+    div h4 {
+      margin: .15cm 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      a {
+        color: inherit;
+      }
+    }
+  }
+  p {
+    text-align: justify;
+  }
+}

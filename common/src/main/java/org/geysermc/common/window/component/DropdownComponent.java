@@ -28,6 +28,7 @@ package org.geysermc.common.window.component;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DropdownComponent extends FormComponent {
@@ -38,7 +39,7 @@ public class DropdownComponent extends FormComponent {
 
     @Getter
     @Setter
-    private List<String> options;
+    private List<String> options = new ArrayList<>();
 
     @Getter
     @Setter

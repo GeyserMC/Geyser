@@ -73,14 +73,16 @@
 
     <distributionManagement>
         <repository>
-            <id>releases</id>
-            <name>nukkitx-releases</name>
-            <url>https://repo.nukkitx.com/maven-releases</url>
+            <id>bundabrg-repo</id>
+            <url>
+                https://repo.worldguard.com.au/repository/maven-releases
+            </url>
         </repository>
         <snapshotRepository>
-            <id>snapshots</id>
-            <name>nukkitx-snapshots</name>
-            <url>https://repo.nukkitx.com/maven-snapshots</url>
+            <id>bundabrg-repo</id>
+            <url>
+                https://repo.worldguard.com.au/repository/maven-snapshots
+            </url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -88,8 +90,22 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.4</version>
+            <version>1.18.12</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <!-- Disable doclint until Geyser's javadocs are cleaned up -->
+                    <doclint>none</doclint>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

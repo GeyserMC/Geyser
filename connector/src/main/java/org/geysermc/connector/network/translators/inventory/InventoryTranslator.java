@@ -29,6 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
 import lombok.AllArgsConstructor;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.registry.InventoryTranslatorRegistryEvent;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
@@ -41,7 +43,8 @@ import java.util.Map;
 @AllArgsConstructor
 public abstract class InventoryTranslator {
 
-    public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<WindowType, InventoryTranslator>() {
+    public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = EventManager.getInstance()
+            .triggerEvent(new InventoryTranslatorRegistryEvent(new HashMap<WindowType, InventoryTranslator>() {
         {
             put(null, new PlayerInventoryTranslator()); //player inventory
             put(WindowType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
@@ -68,8 +71,7 @@ public abstract class InventoryTranslator {
             put(WindowType.HOPPER, new BlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, containerUpdater));
             put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, containerUpdater));
             //put(WindowType.BEACON, new BlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO
-        }
-    };
+        }})).getEvent().getRegisteredTranslators();
 
     public final int size;
 
