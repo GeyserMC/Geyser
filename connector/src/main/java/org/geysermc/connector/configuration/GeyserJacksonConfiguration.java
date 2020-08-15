@@ -98,6 +98,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
 
+        @AsteriskSerializer.Asterisk(sensitive = true)
         private String address;
 
         @Setter
@@ -114,6 +115,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class RemoteConfiguration implements IRemoteConfiguration {
 
         @Setter
+        @AsteriskSerializer.Asterisk(sensitive = true)
         private String address;
 
         @Setter
