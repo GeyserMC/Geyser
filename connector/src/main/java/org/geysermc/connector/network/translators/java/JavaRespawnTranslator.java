@@ -65,13 +65,14 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         stopRainPacket.setPosition(Vector3f.ZERO);
         session.sendUpstreamPacket(stopRainPacket);
 
-        if (!entity.getDimension().equals(packet.getDimension())) {
-            DimensionUtils.switchDimension(session, packet.getDimension());
+        String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
+        if (!entity.getDimension().equals(newDimension)) {
+            DimensionUtils.switchDimension(session, newDimension);
         } else {
             if (session.isManyDimPackets()) { //reloading world
                 String fakeDim = entity.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
                 DimensionUtils.switchDimension(session, fakeDim);
-                DimensionUtils.switchDimension(session, packet.getDimension());
+                DimensionUtils.switchDimension(session, newDimension);
             } else {
                 // Handled in JavaPlayerPositionRotationTranslator
                 session.setSpawned(false);

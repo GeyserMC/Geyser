@@ -23,28 +23,52 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.session.cache;
 
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.CooldownUtils;
+import org.geysermc.connector.scoreboard.Objective;
+import org.geysermc.connector.scoreboard.Scoreboard;
 
-@Translator(packet = LevelSoundEventPacket.class)
-public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoundEventPacket> {
+import java.util.Collection;
 
-    @Override
-    public void translate(LevelSoundEventPacket packet, GeyserSession session) {
-        // lol what even :thinking:
-        session.sendUpstreamPacket(packet);
+@Getter
+public class WorldCache {
 
-        // Yes, what even, but thankfully we can hijack this packet to send the cooldown
-        if (packet.getSound() == SoundEvent.ATTACK_NODAMAGE || packet.getSound() == SoundEvent.ATTACK || packet.getSound() == SoundEvent.ATTACK_STRONG) {
-            // Send a faux cooldown since Bedrock has no cooldown support
-            // Sent here because Java still sends a cooldown if the player doesn't hit anything but Bedrock always sends a sound
-            CooldownUtils.sendCooldown(session);
+    private GeyserSession session;
+
+    @Setter
+    private Difficulty difficulty = Difficulty.EASY;
+
+    private boolean showCoordinates = true;
+
+    private Scoreboard scoreboard;
+
+    public WorldCache(GeyserSession session) {
+        this.session = session;
+        this.scoreboard = new Scoreboard(session);
+    }
+
+    public void removeScoreboard() {
+        if (scoreboard != null) {
+            Collection<Objective> objectives = scoreboard.getObjectives().values();
+            scoreboard = new Scoreboard(session);
+
+            for (Objective objective : objectives) {
+                scoreboard.despawnObjective(objective);
+            }
         }
+    }
+
+    /**
+     * Tell the client to hide or show the coordinates
+     *
+     * @param value True to show, false to hide
+     */
+    public void setShowCoordinates(boolean value) {
+        showCoordinates = value;
+        session.sendGameRule("showcoordinates", value);
     }
 }
