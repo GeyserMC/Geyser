@@ -26,6 +26,8 @@
 
 package org.geysermc.connector.event.annotations;
 
+import org.geysermc.connector.event.handlers.EventHandler;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -41,7 +43,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface GeyserEventHandler {
     // Events are processed from lowest to highest priority
-    int priority() default org.geysermc.connector.event.handlers.EventHandler.PRIORITY.NORMAL;
+    int priority() default EventHandler.PRIORITY.NORMAL;
 
     // If ignoreCancelled is true then the handler will not be executed
     boolean ignoreCancelled() default false;
