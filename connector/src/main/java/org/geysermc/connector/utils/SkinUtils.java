@@ -63,7 +63,7 @@ public class SkinUtils {
         }
 
         return buildEntryManually(
-                session.
+                session,
                 playerEntity.getProfile().getId(),
                 playerEntity.getProfile().getName(),
                 playerEntity.getGeyserId(),
