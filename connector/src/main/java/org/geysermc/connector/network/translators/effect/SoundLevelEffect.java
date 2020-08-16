@@ -32,7 +32,6 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import lombok.Value;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
 
 @Value
 public class SoundLevelEffect implements Effect {
@@ -53,12 +52,5 @@ public class SoundLevelEffect implements Effect {
         eventPacket.setData(data);
         eventPacket.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f));
         session.sendUpstreamPacket(eventPacket);
-    }
-
-    @Override
-    public int[] getBiomeDataAt(GeyserSession session, int x, int z) {
-        if (!session.getConnector().getConfig().isCacheChunks())
-            return new int[1024];
-        return session.getChunkCache().getChunks().get(new ChunkPosition(x, z)).getBiomeData();
     }
 }
