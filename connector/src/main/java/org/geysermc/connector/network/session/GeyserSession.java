@@ -226,6 +226,18 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean worldImmutable = false;
 
+    /**
+     * Caches current rain status.
+     */
+    @Setter
+    private boolean raining = false;
+
+    /**
+     * Caches current thunder status.
+     */
+    @Setter
+    private boolean thunder = false;
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
