@@ -23,7 +23,7 @@ bedrock:
 remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,
-  # for plugins version the remote address will follow the server's listening address.
+  # for plugin versions, Geyser will attempt to find the best address to connect to.
   address: auto
   # The port of the remote (Java Edition) server
   # For plugin versions, if address has been set to "auto", the port will also follow the server's listening port.
