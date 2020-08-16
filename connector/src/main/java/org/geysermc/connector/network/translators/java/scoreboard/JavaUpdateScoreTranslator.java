@@ -42,7 +42,7 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
     @Override
     public void translate(ServerUpdateScorePacket packet, GeyserSession session) {
         try {
-            Scoreboard scoreboard = session.getScoreboardCache().getScoreboard();
+            Scoreboard scoreboard = session.getWorldCache().getScoreboard();
 
             Objective objective = scoreboard.getObjective(packet.getObjective());
             if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {

@@ -82,18 +82,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     playerEntity.setPlayerList(true);
                     playerEntity.setValid(true);
 
-                    PlayerListPacket.Entry playerListEntry = SkinUtils.buildCachedEntry(entry.getProfile(), playerEntity.getGeyserId());
-                    if (self) {
-                        // Copy the entry with our identity instead.
-                        PlayerListPacket.Entry copy = new PlayerListPacket.Entry(session.getAuthData().getUUID());
-                        copy.setName(playerListEntry.getName());
-                        copy.setEntityId(playerListEntry.getEntityId());
-                        copy.setSkin(playerListEntry.getSkin());
-                        copy.setXuid(playerListEntry.getXuid());
-                        copy.setPlatformChatId(playerListEntry.getPlatformChatId());
-                        copy.setTeacher(playerListEntry.isTeacher());
-                        playerListEntry = copy;
-                    }
+                    PlayerListPacket.Entry playerListEntry = SkinUtils.buildCachedEntry(session, entry.getProfile(), playerEntity.getGeyserId());
 
                     translate.getEntries().add(playerListEntry);
                     break;
@@ -103,15 +92,20 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                         // remove from tablist but player entity is still there
                         entity.setPlayerList(false);
                     } else {
-                        // just remove it from caching
                         if (entity == null) {
+                            // just remove it from caching
                             session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
                         } else {
                             entity.setPlayerList(false);
                             session.getEntityCache().removeEntity(entity, false);
                         }
                     }
-                    translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
+                    if (entity == session.getPlayerEntity()) {
+                        // If removing ourself we use our AuthData UUID
+                        translate.getEntries().add(new PlayerListPacket.Entry(session.getAuthData().getUUID()));
+                    } else {
+                        translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
+                    }
                     break;
             }
         }
