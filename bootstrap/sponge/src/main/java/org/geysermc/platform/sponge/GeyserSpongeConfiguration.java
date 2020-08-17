@@ -259,6 +259,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isEnableProxyConnections() {
+        return node.getNode("enable-proxy-connections").getBoolean(false);
+    }
+
+    @Override
     public int getMtu() {
         return node.getNode("mtu").getInt(1400);
     }

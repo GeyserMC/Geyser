@@ -143,6 +143,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         private String uniqueId;
     }
 
+    @JsonProperty("enable-proxy-connections")
+    private boolean enableProxyConnections = false;
+
     @JsonProperty("mtu")
     private int mtu = 1400;
 
