@@ -55,8 +55,8 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
 
             int page = packet.getPageNumber();
 
-            // Don't spam edit packets - if text is empty and book is also empty no need to process changes
-            if (packet.getText().isEmpty() && (page >= pages.size() || pages.get(page) != null && ((StringTag) pages.get(page)).getValue().isEmpty()))
+            // Don't spam edit packets - if text matches the current book contents no need to process changes
+            if (page < pages.size() && pages.get(page) != null && ((StringTag) pages.get(page)).getValue() != null && ((StringTag) pages.get(page)).getValue().equals(packet.getText()))
                 return;
 
             // Creative edits the NBT for us
