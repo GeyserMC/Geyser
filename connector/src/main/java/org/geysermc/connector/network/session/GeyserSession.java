@@ -46,6 +46,7 @@ import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
@@ -54,6 +55,7 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
@@ -100,7 +102,7 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private InventoryCache inventoryCache;
-    private ScoreboardCache scoreboardCache;
+    private WorldCache worldCache;
     private WindowCache windowCache;
     private final HashMap<Integer, TeleportCache> teleportMap = new HashMap<Integer, TeleportCache>();
 
@@ -188,6 +190,53 @@ public class GeyserSession implements CommandSender {
 
     private MinecraftProtocol protocol;
 
+    private boolean reducedDebugInfo = false;
+
+    @Setter
+    private CustomFormWindow settingsForm;
+
+    /**
+     * The op permission level set by the server
+     */
+    @Setter
+    private int opPermissionLevel = 0;
+
+    /**
+     * If the current player can fly
+     */
+    @Setter
+    private boolean canFly = false;
+
+    /**
+     * If the current player is flying
+     */
+    @Setter
+    private boolean flying = false;
+
+    /**
+     * If the current player is in noclip
+     */
+    @Setter
+    private boolean noClip = false;
+
+    /**
+     * If the current player can not interact with the world
+     */
+    @Setter
+    private boolean worldImmutable = false;
+
+    /**
+     * Caches current rain status.
+     */
+    @Setter
+    private boolean raining = false;
+
+    /**
+     * Caches current thunder status.
+     */
+    @Setter
+    private boolean thunder = false;
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -195,7 +244,7 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
-        this.scoreboardCache = new ScoreboardCache(this);
+        this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
         this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
@@ -246,17 +295,12 @@ public class GeyserSession implements CommandSender {
         attributes.add(new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
         attributesPacket.setAttributes(attributes);
         upstream.sendPacket(attributesPacket);
-    }
 
-    public void fetchOurSkin(PlayerListPacket.Entry entry) {
-        PlayerSkinPacket playerSkinPacket = new PlayerSkinPacket();
-        playerSkinPacket.setUuid(authData.getUUID());
-        playerSkinPacket.setSkin(entry.getSkin());
-        playerSkinPacket.setOldSkinName("OldName");
-        playerSkinPacket.setNewSkinName("NewName");
-        playerSkinPacket.setTrustedSkin(true);
-        upstream.sendPacket(playerSkinPacket);
-        getConnector().getLogger().debug("Sending skin for " + playerEntity.getUsername() + " " + authData.getUUID());
+        // Only allow the server to send health information
+        // Setting this to false allows natural regeneration to work false but doesn't break it being true
+        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
+        gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
+        upstream.sendPacket(gamerulePacket);
     }
 
     public void login() {
@@ -442,7 +486,7 @@ public class GeyserSession implements CommandSender {
 
         this.chunkCache = null;
         this.entityCache = null;
-        this.scoreboardCache = null;
+        this.worldCache = null;
         this.inventoryCache = null;
         this.windowCache = null;
 
@@ -645,5 +689,70 @@ public class GeyserSession implements CommandSender {
         } else {
             connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
         }
+    }
+
+    /**
+     * Update the cached value for the reduced debug info gamerule.
+     * This also toggles the coordinates display
+     *
+     * @param value The new value for reducedDebugInfo
+     */
+    public void setReducedDebugInfo(boolean value) {
+        worldCache.setShowCoordinates(!value);
+        reducedDebugInfo = value;
+    }
+
+    /**
+     * Send a gamerule value to the client
+     *
+     * @param gameRule The gamerule to send
+     * @param value The value of the gamerule
+     */
+    public void sendGameRule(String gameRule, Object value) {
+        GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
+        gameRulesChangedPacket.getGameRules().add(new GameRuleData<>(gameRule, value));
+        upstream.sendPacket(gameRulesChangedPacket);
+    }
+
+    /**
+     * Checks if the given session's player has a permission
+     *
+     * @param permission The permission node to check
+     * @return true if the player has the requested permission, false if not
+     */
+    public Boolean hasPermission(String permission) {
+        return connector.getWorldManager().hasPermission(this, permission);
+    }
+
+    /**
+     * Send an AdventureSettingsPacket to the client with the latest flags
+     */
+    public void sendAdventureSettings() {
+        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+        adventureSettingsPacket.setUniqueEntityId(playerEntity.getGeyserId());
+        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
+        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
+
+        Set<AdventureSetting> flags = new HashSet<>();
+        if (canFly) {
+            flags.add(AdventureSetting.MAY_FLY);
+        }
+
+        if (flying) {
+            flags.add(AdventureSetting.FLYING);
+        }
+
+        if (worldImmutable) {
+            flags.add(AdventureSetting.WORLD_IMMUTABLE);
+        }
+
+        if (noClip) {
+            flags.add(AdventureSetting.NO_CLIP);
+        }
+
+        flags.add(AdventureSetting.AUTO_JUMP);
+
+        adventureSettingsPacket.getSettings().addAll(flags);
+        sendUpstreamPacket(adventureSettingsPacket);
     }
 }

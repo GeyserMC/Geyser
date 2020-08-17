@@ -27,9 +27,8 @@ package org.geysermc.connector;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -55,14 +54,14 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.collision.CollisionTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
-import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,8 +74,6 @@ import java.util.concurrent.TimeUnit;
 public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
-
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC;
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
@@ -139,8 +136,16 @@ public class GeyserConnector {
         SoundRegistry.init();
         SoundHandlerRegistry.init();
 
-        if (platformType != PlatformType.STANDALONE) {
-            DockerCheck.check(bootstrap);
+        if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
+            // Set the remote address to localhost since that is where we are always connecting
+            try {
+                config.getRemote().setAddress(InetAddress.getLocalHost().getHostAddress());
+            } catch (UnknownHostException ex) {
+                logger.debug("Unknown host when trying to find localhost.");
+                if (config.isDebugMode()) {
+                    ex.printStackTrace();
+                }
+            }
         }
         String remoteAddress = config.getRemote().getAddress();
         int remotePort = config.getRemote().getPort();
@@ -158,8 +163,10 @@ public class GeyserConnector {
                     config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
                     logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
-            } catch (NamingException ex) {
-                ex.printStackTrace();
+            } catch (Exception ex) {
+                logger.debug("Exception while trying to find an SRV record for the remote host.");
+                if (config.isDebugMode())
+                    ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
             }
         }
 
@@ -168,6 +175,10 @@ public class GeyserConnector {
 
         if (config.isAboveBedrockNetherBuilding())
             DimensionUtils.changeBedrockNetherId(); // Apply End dimension ID workaround to Nether
+
+        // https://github.com/GeyserMC/Geyser/issues/957
+        RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
+        logger.debug("Setting MTU to " + config.getMtu());
 
         bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));

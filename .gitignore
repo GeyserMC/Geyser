@@ -244,3 +244,4 @@ locales/
 
 ### VS Code ###
 .vscode
+cache/

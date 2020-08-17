@@ -55,6 +55,9 @@ public class FireworkEntity extends Entity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7) {
             ItemStack item = (ItemStack) entityMetadata.getValue();
+            if (item == null) {
+                return;
+            }
             CompoundTag tag = item.getNbt();
 
             if (tag == null) {
