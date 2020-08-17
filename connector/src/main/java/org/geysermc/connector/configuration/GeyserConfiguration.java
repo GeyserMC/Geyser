@@ -120,6 +120,9 @@ public interface GeyserConfiguration {
         String getUniqueId();
     }
 
+    // if u have offline mode enabled pls be safe
+    boolean isEnableProxyConnections();
+
     int getMtu();
 
     int getConfigVersion();
