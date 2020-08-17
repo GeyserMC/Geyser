@@ -54,7 +54,7 @@ command-suggestions: true
 # Relay the MOTD from the remote server to Bedrock players.
 passthrough-motd: false
 # Relay the protocol name (e.g. BungeeCord [X.X], Paper 1.X) - only really useful when using a custom protocol name!
-# This will also show up on sites like MCSrvStatus <mcsrvstat.us>
+# This will also show up on sites like MCSrvStatus. <mcsrvstat.us>
 passthrough-protocol-name: false
 # Relay the player count and max players from the remote server to Bedrock players.
 passthrough-player-counts: false
