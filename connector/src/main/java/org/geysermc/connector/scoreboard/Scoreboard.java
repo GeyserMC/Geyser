@@ -26,73 +26,72 @@
 package org.geysermc.connector.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.ScoreInfo;
 import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.geysermc.connector.scoreboard.UpdateType.*;
 
 @Getter
 public class Scoreboard {
-    private GeyserSession session;
-    private AtomicLong nextId = new AtomicLong(0);
+    private final GeyserSession session;
+    private final GeyserLogger logger;
+    private final AtomicLong nextId = new AtomicLong(0);
 
-    private Map<String, Objective> objectives = new HashMap<>();
-    private Map<String, Team> teams = new HashMap<>();
+    private final Map<String, Objective> objectives = new ConcurrentHashMap<>();
+    private final Map<String, Team> teams = new HashMap<>();
+
+    private int lastScoreCount = 0;
 
     public Scoreboard(GeyserSession session) {
         this.session = session;
+        this.logger = GeyserConnector.getInstance().getLogger();
     }
 
-    public Objective registerNewObjective(String objectiveId, boolean temp) {
-        if (!temp || objectives.containsKey(objectiveId)) return objectives.get(objectiveId);
+    public Objective registerNewObjective(String objectiveId, boolean active) {
+        if (active || objectives.containsKey(objectiveId)) {
+            return objectives.get(objectiveId);
+        }
         Objective objective = new Objective(this, objectiveId);
         objectives.put(objectiveId, objective);
         return objective;
     }
 
     public Objective registerNewObjective(String objectiveId, ScoreboardPosition displaySlot) {
-        Objective objective = null;
-        if (objectives.containsKey(objectiveId)) {
-            objective = objectives.get(objectiveId);
-            if (objective.isTemp()) objective.removeTemp(displaySlot);
-            else {
-                despawnObjective(objective);
-                objective = null;
+        Objective objective = objectives.get(objectiveId);
+        if (objective != null) {
+            if (!objective.isActive()) {
+                objective.setActive(displaySlot);
+                return objective;
             }
+            despawnObjective(objective);
         }
-        if (objective == null) {
-            objective = new Objective(this, objectiveId, displaySlot, "unknown", 0);
-            objectives.put(objectiveId, objective);
-        }
+
+        objective = new Objective(this, objectiveId, displaySlot, "unknown", 0);
+        objectives.put(objectiveId, objective);
         return objective;
     }
 
     public Team registerNewTeam(String teamName, Set<String> players) {
-        if (teams.containsKey(teamName)) {
-            session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
-            return getTeam(teamName);
+        Team team = teams.get(teamName);
+        if (team != null) {
+            logger.info(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
+            return team;
         }
 
-        Team team = new Team(this, teamName).setEntities(players);
+        team = new Team(this, teamName).setEntities(players);
         teams.put(teamName, team);
-
-        for (Objective objective : objectives.values()) {
-            for (Score score : objective.getScores().values()) {
-                if (players.contains(score.getName())) {
-                    score.setTeam(team);
-                }
-            }
-        }
         return team;
     }
 
@@ -106,102 +105,152 @@ public class Scoreboard {
 
     public void unregisterObjective(String objectiveName) {
         Objective objective = getObjective(objectiveName);
-        if (objective != null) objective.setUpdateType(REMOVE);
+        if (objective != null) {
+            objective.setUpdateType(REMOVE);
+        }
     }
 
     public void removeTeam(String teamName) {
         Team remove = teams.remove(teamName);
-        if (remove != null) remove.setUpdateType(REMOVE);
+        if (remove != null) {
+            remove.setUpdateType(REMOVE);
+        }
     }
 
     public void onUpdate() {
-        Set<Objective> changedObjectives = new ObjectOpenHashSet<>();
-        List<ScoreInfo> addScores = new ArrayList<>();
-        List<ScoreInfo> removeScores = new ArrayList<>();
+        onUpdate(false);
+    }
 
-        for (String objectiveId : new ArrayList<>(objectives.keySet())) {
-            Objective objective = objectives.get(objectiveId);
-            if (objective.isTemp()) {
-                session.getConnector().getLogger().debug("Ignoring temp Scoreboard Objective '"+ objectiveId +'\'');
+    public void onUpdate(boolean isUsingScoreboardUpdater) {
+        List<ScoreInfo> addScores = new ArrayList<>(getLastScoreCount());
+        List<ScoreInfo> removeScores = new ArrayList<>(getLastScoreCount());
+
+        for (Objective objective : objectives.values()) {
+            if (!objective.isActive()) {
+                logger.debug("Ignoring non-active Scoreboard Objective '"+ objective.getObjectiveName() +'\'');
+                continue;
+            }
+            boolean changed = false;
+
+            // hearts can't hold teams, so we treat them differently
+            if (objective.getType() == 1) {
+                for (Score score : objective.getScores().values()) {
+                    if (score.getUpdateType() == NOTHING) {
+                        continue;
+                    }
+
+                    boolean update = score.getUpdateType() == UPDATE;
+                    if (update) {
+                        score.update();
+                    }
+
+                    if (score.getUpdateType() == ADD || update) {
+                        addScores.add(score.getCachedInfo());
+                    }
+                    if (score.getUpdateType() == REMOVE || update) {
+                        removeScores.add(score.getCachedInfo());
+                    }
+                }
                 continue;
             }
 
-            if (objective.getUpdateType() != NOTHING) changedObjectives.add(objective);
+            if (objective.getUpdateType() != NOTHING) {
+                changed = true;
+            }
 
             boolean globalUpdate = objective.getUpdateType() == UPDATE;
-            boolean globalAdd = objective.getUpdateType() == ADD || globalUpdate;
-            boolean globalRemove = objective.getUpdateType() == REMOVE || globalUpdate;
-
-            boolean hasUpdate = globalUpdate;
+            boolean globalAdd = objective.getUpdateType() == ADD;
+            boolean globalRemove = objective.getUpdateType() == REMOVE;
 
             List<Score> handledScores = new ArrayList<>();
-            for (String identifier : new ObjectOpenHashSet<>(objective.getScores().keySet())) {
-                Score score = objective.getScores().get(identifier);
+            for (Score score : objective.getScores().values()) {
                 Team team = score.getTeam();
 
-                boolean inTeam = team != null && team.getEntities().contains(score.getName());
+                boolean add = globalAdd || globalUpdate;
+                boolean remove = globalRemove || globalUpdate;
+                boolean teamUpdate = false;
+                if (team != null) {
+                    if (team.getUpdateType() == REMOVE || !team.hasEntity(score.getName())) {
+                        score.setTeam(null);
+                    }
 
-                boolean teamAdd = team != null && (team.getUpdateType() == ADD || team.getUpdateType() == UPDATE);
-                boolean teamRemove = team != null && (team.getUpdateType() == REMOVE || team.getUpdateType() == UPDATE);
+                    teamUpdate = team.getUpdateType() == UPDATE;
 
-                if (team != null && (team.getUpdateType() == REMOVE || !inTeam)) score.setTeam(null);
+                    boolean teamAdd = team.getUpdateType() == ADD || team.getUpdateType() == UPDATE;
+                    boolean teamRemove = team.getUpdateType() == REMOVE || team.getUpdateType() == UPDATE;
 
-                boolean add = (hasUpdate || globalAdd || teamAdd || teamRemove || score.getUpdateType() == ADD || score.getUpdateType() == UPDATE) && (score.getUpdateType() != REMOVE);
-                boolean remove = hasUpdate || globalRemove || teamAdd || teamRemove || score.getUpdateType() == REMOVE || score.getUpdateType() == UPDATE;
-
-                boolean updated = false;
-                if (!hasUpdate) {
-                    updated = hasUpdate = add;
+                    add |= teamAdd || teamRemove;
+                    remove |= teamAdd || teamRemove;
                 }
 
-                if (updated) {
-                    for (Score score1 : handledScores) {
-                        ScoreInfo scoreInfo = new ScoreInfo(score1.getId(), score1.getObjective().getObjectiveName(), score1.getScore(), score1.getDisplayName());
-                        addScores.add(scoreInfo);
-                        removeScores.add(scoreInfo);
+                add |= score.getUpdateType() == ADD || score.getUpdateType() == UPDATE;
+                remove |= score.getUpdateType() == REMOVE || score.getUpdateType() == UPDATE;
+                if (score.getUpdateType() == REMOVE) {
+                    add = false;
+                }
+
+                if (score.getUpdateType() == UPDATE || teamUpdate) {
+                    score.update();
+                }
+
+                if (!globalUpdate && add) {
+                    globalUpdate = true;
+                    for (Score handledScore : handledScores) {
+                        addScores.add(handledScore.getCachedInfo());
+                        removeScores.add(handledScore.getCachedInfo());
                     }
                 }
 
                 if (add) {
-                    addScores.add(new ScoreInfo(score.getId(), score.getObjective().getObjectiveName(), score.getScore(), score.getDisplayName()));
+                    addScores.add(score.getCachedInfo());
                 }
                 if (remove) {
-                    removeScores.add(new ScoreInfo(score.getId(), score.getObjective().getObjectiveName(), score.getOldScore(), score.getDisplayName()));
+                    removeScores.add(score.getCachedInfo());
                 }
+                // score is pending to be updated, so we use the current score as the old score
                 score.setOldScore(score.getScore());
 
+                // score is pending to be removed, so we can remove it from the objective
                 if (score.getUpdateType() == REMOVE) {
-                    objective.removeScore(score.getName());
+                    objective.removeScore0(score.getName());
                 }
 
                 if (add || remove) {
-                    changedObjectives.add(objective);
-                } else { // stays the same like before
+                    // a score inside the objective has been changed, so the objective has to update as well
+                    changed = true;
+                } else {
+                    // the score hasn't changed, so we store them in case we still need it
                     handledScores.add(score);
                 }
                 score.setUpdateType(NOTHING);
             }
-        }
 
-        for (Objective objective : changedObjectives) {
+            if (!changed) {
+                continue;
+            }
+
             boolean update = objective.getUpdateType() == NOTHING || objective.getUpdateType() == UPDATE;
+
             if (objective.getUpdateType() == REMOVE || update) {
                 RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
                 removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
-                session.sendUpstreamPacket(removeObjectivePacket);
+                sendPacket(removeObjectivePacket, isUsingScoreboardUpdater);
                 if (objective.getUpdateType() == REMOVE) {
                     objectives.remove(objective.getObjectiveName()); // now we can deregister
+                    objective.removed();
                 }
             }
+
             if (objective.getUpdateType() == ADD || update) {
                 SetDisplayObjectivePacket displayObjectivePacket = new SetDisplayObjectivePacket();
                 displayObjectivePacket.setObjectiveId(objective.getObjectiveName());
                 displayObjectivePacket.setDisplayName(objective.getDisplayName());
                 displayObjectivePacket.setCriteria("dummy");
-                displayObjectivePacket.setDisplaySlot(objective.getDisplaySlot());
+                displayObjectivePacket.setDisplaySlot(objective.getDisplaySlotName());
                 displayObjectivePacket.setSortOrder(1); // ??
-                session.sendUpstreamPacket(displayObjectivePacket);
+                sendPacket(displayObjectivePacket, isUsingScoreboardUpdater);
             }
+
             objective.setUpdateType(NOTHING);
         }
 
@@ -209,15 +258,27 @@ public class Scoreboard {
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(SetScorePacket.Action.REMOVE);
             setScorePacket.setInfos(removeScores);
-            session.sendUpstreamPacket(setScorePacket);
+            sendPacket(setScorePacket, isUsingScoreboardUpdater);
         }
 
         if (!addScores.isEmpty()) {
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(SetScorePacket.Action.SET);
             setScorePacket.setInfos(addScores);
-            session.sendUpstreamPacket(setScorePacket);
+            sendPacket(setScorePacket, isUsingScoreboardUpdater);
         }
+
+        lastScoreCount = addScores.size();
+    }
+
+    public void sendPacket(BedrockPacket packet, boolean isUsingScoreboardUpdater) {
+        // huge score update packets will stay forever in the packet queue,
+        // so we send them immediately
+        if (isUsingScoreboardUpdater) {
+            session.sendUpstreamPacketImmediately(packet);
+            return;
+        }
+        session.sendUpstreamPacket(packet);
     }
 
     public void despawnObjective(Objective objective) {
@@ -234,6 +295,8 @@ public class Scoreboard {
                     0, ""
             ));
         }
+        
+        objective.removed();
 
         if (!toRemove.isEmpty()) {
             SetScorePacket setScorePacket = new SetScorePacket();
