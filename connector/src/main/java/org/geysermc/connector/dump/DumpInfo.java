@@ -36,7 +36,7 @@ import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.floodgate.util.DeviceOS;
+import org.geysermc.floodgate.util.DeviceOs;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -54,7 +54,7 @@ public class DumpInfo {
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
     private final GeyserConfiguration config;
-    private Object2IntMap<DeviceOS> userPlatforms;
+    private Object2IntMap<DeviceOs> userPlatforms;
     private RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
 
@@ -72,7 +72,7 @@ public class DumpInfo {
 
         this.userPlatforms = new Object2IntOpenHashMap();
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
-            DeviceOS device = session.getClientData().getDeviceOS();
+            DeviceOs device = session.getClientData().getDeviceOS();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
 
