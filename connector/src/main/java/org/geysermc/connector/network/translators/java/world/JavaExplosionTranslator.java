@@ -66,7 +66,7 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
         levelSoundEventPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
         session.sendUpstreamPacket(levelSoundEventPacket);
 
-        if (packet.getPushX() > 0f && packet.getPushY() > 0f && packet.getPushZ() > 0f) {
+        if (packet.getPushX() > 0f || packet.getPushY() > 0f || packet.getPushZ() > 0f) {
             SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
             motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
             motionPacket.setMotion(Vector3f.from(packet.getPushX(), packet.getPushY(), packet.getPushZ()));
