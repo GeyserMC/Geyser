@@ -33,6 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.scoreboard.UpdateType;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -54,6 +55,8 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
         if (logger.isDebug()) {
             logger.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
         }
+
+        int pps = session.getWorldCache().increaseAndGetScoreboardPacketsPerSecond();
 
         Scoreboard scoreboard = session.getWorldCache().getScoreboard();
         Team team = scoreboard.getTeam(packet.getTeamName());
@@ -104,7 +107,12 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                 scoreboard.removeTeam(packet.getTeamName());
                 break;
         }
-        scoreboard.onUpdate();
+
+        // ScoreboardUpdater will handle it for us if the packets per second
+        // (for score and team packets) is higher then the first threshold
+        if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+            scoreboard.onUpdate();
+        }
     }
 
     private Set<String> toPlayerSet(String[] players) {

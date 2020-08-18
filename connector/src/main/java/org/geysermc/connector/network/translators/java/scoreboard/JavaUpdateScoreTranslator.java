@@ -50,7 +50,7 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
     public void translate(ServerUpdateScorePacket packet, GeyserSession session) {
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
-        int pps = worldCache.increaseAndGetScorePacketsPerSecond();
+        int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
 
         Objective objective = scoreboard.getObjective(packet.getObjective());
         if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
@@ -73,7 +73,8 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
                 break;
         }
 
-        // ScoreboardUpdater will handle it for us if the score packets per second is higher then the first threshold
+        // ScoreboardUpdater will handle it for us if the packets per second
+        // (for score and team packets) is higher then the first threshold
         if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
             scoreboard.onUpdate();
         }

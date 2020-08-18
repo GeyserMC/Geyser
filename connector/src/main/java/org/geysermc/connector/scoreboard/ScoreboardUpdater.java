@@ -50,8 +50,8 @@ public class ScoreboardUpdater extends Thread {
     private long lastLog = -1;
 
     private long lastPacketsPerSecondUpdate = System.currentTimeMillis();
-    private final AtomicInteger scorePacketsPerSecond = new AtomicInteger(0);
-    private final AtomicInteger pendingScorePacketsPerSecond = new AtomicInteger(0);
+    private final AtomicInteger packetsPerSecond = new AtomicInteger(0);
+    private final AtomicInteger pendingPacketsPerSecond = new AtomicInteger(0);
 
     public ScoreboardUpdater(WorldCache worldCache) {
         super("Scoreboard Updater");
@@ -65,25 +65,24 @@ public class ScoreboardUpdater extends Thread {
             long currentTime = System.currentTimeMillis();
 
             // reset score-packets per second every second
-            if (currentTime - lastPacketsPerSecondUpdate  > 1000) {
+            if (currentTime - lastPacketsPerSecondUpdate > 1000) {
                 lastPacketsPerSecondUpdate = currentTime;
-                scorePacketsPerSecond.set(pendingScorePacketsPerSecond.get());
-                pendingScorePacketsPerSecond.set(0);
+                packetsPerSecond.set(pendingPacketsPerSecond.get());
+                pendingPacketsPerSecond.set(0);
             }
 
             if (currentTime - lastUpdate > millisBetweenUpdates) {
                 lastUpdate = currentTime;
 
-                int pps = scorePacketsPerSecond.get();
+                int pps = packetsPerSecond.get();
+                if (pps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+                    boolean reachedSecondThreshold = pps >= SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD;
+                    if (reachedSecondThreshold) {
+                        millisBetweenUpdates = SECOND_MILLIS_BETWEEN_UPDATES;
+                    } else {
+                        millisBetweenUpdates = FIRST_MILLIS_BETWEEN_UPDATES;
+                    }
 
-                boolean reachedSecondThreshold = pps > SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD;
-                if (reachedSecondThreshold) {
-                    millisBetweenUpdates = SECOND_MILLIS_BETWEEN_UPDATES;
-                } else {
-                    millisBetweenUpdates = FIRST_MILLIS_BETWEEN_UPDATES;
-                }
-
-                if (pps > FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
                     worldCache.getScoreboard().onUpdate(true);
 
                     if (failedBetweenLastLog && currentTime - lastLog > 60000) { // one minute
@@ -111,18 +110,14 @@ public class ScoreboardUpdater extends Thread {
         }
     }
 
-    public int getPendingScorePacketsPerSecond() {
-        return pendingScorePacketsPerSecond.get();
-    }
-
-    public int getScorePacketsPerSecond() {
-        return scorePacketsPerSecond.get();
+    public int getPacketsPerSecond() {
+        return packetsPerSecond.get();
     }
 
     /**
-     * Increase the Score Packets Per Second and return the updated value
+     * Increase the Scoreboard Packets Per Second and return the updated value
      */
-    public int incrementAndGetScorePacketsPerScond() {
-        return pendingScorePacketsPerSecond.incrementAndGet();
+    public int incrementAndGetPacketsPerSecond() {
+        return pendingPacketsPerSecond.incrementAndGet();
     }
 }

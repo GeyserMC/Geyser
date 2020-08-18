@@ -35,7 +35,7 @@ import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 
 @Getter
 public class WorldCache {
-    private GeyserSession session;
+    private final GeyserSession session;
     @Setter
     private Difficulty difficulty = Difficulty.EASY;
     private boolean showCoordinates = true;
@@ -59,9 +59,10 @@ public class WorldCache {
         }
     }
 
-    public int increaseAndGetScorePacketsPerSecond() {
-        scoreboardUpdater.incrementAndGetScorePacketsPerScond();
-        return scoreboardUpdater.getScorePacketsPerSecond();
+    public int increaseAndGetScoreboardPacketsPerSecond() {
+        int pendingPps = scoreboardUpdater.incrementAndGetPacketsPerSecond();
+        int pps = scoreboardUpdater.getPacketsPerSecond();
+        return Math.max(pps, pendingPps);
     }
 
     /**
