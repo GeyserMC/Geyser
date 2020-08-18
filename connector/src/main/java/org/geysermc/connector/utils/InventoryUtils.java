@@ -136,6 +136,9 @@ public class InventoryUtils {
     /**
      * Returns a barrier block with custom name and lore to explain why
      * part of the inventory is unusable.
+     *
+     * @param description the description
+     * @return the unusable space block
      */
     public static ItemData createUnusableSpaceBlock(String description) {
         NbtMapBuilder root = NbtMap.builder();

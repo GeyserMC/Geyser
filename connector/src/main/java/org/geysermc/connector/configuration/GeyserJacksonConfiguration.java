@@ -1,27 +1,26 @@
 /*
  * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
- *  @author GeyserMC
- *  @link https://github.com/GeyserMC/Geyser
- *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
  */
 
 package org.geysermc.connector.configuration;
@@ -58,6 +57,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("passthrough-player-counts")
     private boolean isPassthroughPlayerCounts;
 
+    @JsonProperty("passthrough-protocol-name")
+    private boolean isPassthroughProtocolName;
+
     @JsonProperty("legacy-ping-passthrough")
     private boolean isLegacyPingPassthrough;
 
@@ -88,6 +90,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("cache-chunks")
     private boolean cacheChunks;
 
+    @JsonProperty("cache-images")
+    private int cacheImages = 0;
+
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding;
 
@@ -96,8 +101,14 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
 
+        @AsteriskSerializer.Asterisk(sensitive = true)
         private String address;
+
+        @Setter
         private int port;
+
+        @JsonProperty("clone-remote-port")
+        private boolean cloneRemotePort;
 
         private String motd1;
         private String motd2;
@@ -107,6 +118,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class RemoteConfiguration implements IRemoteConfiguration {
 
         @Setter
+        @AsteriskSerializer.Asterisk(sensitive = true)
         private String address;
 
         @Setter
@@ -133,6 +145,12 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @JsonProperty("uuid")
         private String uniqueId;
     }
+
+    @JsonProperty("enable-proxy-connections")
+    private boolean enableProxyConnections = false;
+
+    @JsonProperty("mtu")
+    private int mtu = 1400;
 
     @JsonProperty("config-version")
     private int configVersion;

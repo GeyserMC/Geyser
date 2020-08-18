@@ -26,9 +26,12 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -49,6 +52,33 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
         switch (packet.getStatus()) {
+            case PLAYER_ENABLE_REDUCED_DEBUG:
+                session.setReducedDebugInfo(true);
+                return;
+            case PLAYER_DISABLE_REDUCED_DEBUG:
+                session.setReducedDebugInfo(false);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_0:
+                session.setOpPermissionLevel(0);
+                session.sendAdventureSettings();
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_1:
+                session.setOpPermissionLevel(1);
+                session.sendAdventureSettings();
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_2:
+                session.setOpPermissionLevel(2);
+                session.sendAdventureSettings();
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_3:
+                session.setOpPermissionLevel(3);
+                session.sendAdventureSettings();
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_4:
+                session.setOpPermissionLevel(4);
+                session.sendAdventureSettings();
+                return;
+
             // EntityEventType.HURT sends extra data depending on the type of damage. However this appears to have no visual changes
             case LIVING_BURN:
             case LIVING_DROWN:
@@ -101,6 +131,17 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
             case IRON_GOLEM_EMPTY_HAND:
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
+                break;
+            case RABBIT_JUMP_OR_MINECART_SPAWNER_DELAY_RESET:
+                if (entity.getEntityType() == EntityType.RABBIT) {
+                    // This doesn't match vanilla Bedrock behavior but I'm unsure how to make it better
+                    // I assume part of the problem is that Bedrock uses a duration and Java just says the rabbit is jumping
+                    SetEntityDataPacket dataPacket = new SetEntityDataPacket();
+                    dataPacket.getMetadata().put(EntityData.JUMP_DURATION, (byte) 3);
+                    dataPacket.setRuntimeEntityId(entity.getGeyserId());
+                    session.sendUpstreamPacket(dataPacket);
+                    return;
+                }
                 break;
         }
 

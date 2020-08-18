@@ -45,123 +45,246 @@ import org.geysermc.connector.utils.LocaleUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Translator(packet = ServerPlayEffectPacket.class)
 public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectPacket> {
 
-    // TODO: Update mappings since they're definitely all going to be wrong now
     @Override
     public void translate(ServerPlayEffectPacket packet, GeyserSession session) {
-        LevelEventPacket effect = new LevelEventPacket();
-        // Some things here are particles, others are not
-        if (packet.getEffect() instanceof ParticleEffect) {
-            ParticleEffect particleEffect = (ParticleEffect) packet.getEffect();
-            Effect geyserEffect = EffectRegistry.EFFECTS.get(particleEffect.name());
+        // Separate case since each RecordEffectData in Java is an individual track in Bedrock
+        if (packet.getEffect() == SoundEffect.RECORD) {
+            RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
+            SoundEvent soundEvent = EffectRegistry.RECORDS.getOrDefault(recordEffectData.getRecordId(), SoundEvent.STOP_RECORD);
+            Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
+
+            LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+            levelSoundEvent.setIdentifier("");
+            levelSoundEvent.setSound(soundEvent);
+            levelSoundEvent.setPosition(pos);
+            levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
+            levelSoundEvent.setExtraData(-1);
+            levelSoundEvent.setBabySound(false);
+            session.sendUpstreamPacket(levelSoundEvent);
+
+            if (soundEvent != SoundEvent.STOP_RECORD) {
+                // Send text packet as it seems to be handled in Java Edition client-side.
+                TextPacket textPacket = new TextPacket();
+                textPacket.setType(TextPacket.Type.JUKEBOX_POPUP);
+                textPacket.setNeedsTranslation(true);
+                textPacket.setXuid("");
+                textPacket.setPlatformChatId("");
+                textPacket.setSourceName(null);
+                textPacket.setMessage("record.nowPlaying");
+                List<String> params = new ArrayList<>();
+                String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
+                params.add(LocaleUtils.getLocaleString(recordString, session.getClientData().getLanguageCode()));
+                textPacket.setParameters(params);
+                session.sendUpstreamPacket(textPacket);
+            }
+            return;
+        }
+
+        if (packet.getEffect() instanceof SoundEffect) {
+            SoundEffect soundEffect = (SoundEffect) packet.getEffect();
+            Effect geyserEffect = EffectRegistry.SOUND_EFFECTS.get(soundEffect);
             if (geyserEffect != null) {
-                String name = geyserEffect.getBedrockName();
-                effect.setType(LevelEventType.valueOf(name));
-            } else {
-                switch (particleEffect) {
-                    // TODO: BREAK_SPLASH_POTION has additional data
-                    case BONEMEAL_GROW:
-                        effect.setType(LevelEventType.PARTICLE_CROP_GROWTH);
-                        BonemealGrowEffectData growEffectData = (BonemealGrowEffectData) packet.getData();
-                        effect.setData(growEffectData.getParticleCount());
-                        break;
-                    //TODO: Block break particles when under fire
-                    case BREAK_BLOCK:
-                        effect.setType(LevelEventType.PARTICLE_DESTROY_BLOCK); // TODO: Check to make sure this is right
-                        BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
-                        effect.setData(BlockTranslator.getBedrockBlockId(breakBlockEffectData.getBlockState()));
-                        break;
-                    case EXPLOSION:
-                        effect.setType(LevelEventType.PARTICLE_EXPLOSION);
-                        break;
-                    case MOB_SPAWN:
-                        effect.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
-                        break;
-                        // Done with a dispenser
-                    case SMOKE:
-                        // Might need to be SHOOT
-                        effect.setType(LevelEventType.PARTICLE_SMOKE);
-                        break;
-                    case COMPOSTER:
-                        effect.setType(LevelEventType.PARTICLE_CROP_GROWTH);
+                geyserEffect.handleEffectPacket(session, packet);
+                return;
+            }
+            GeyserConnector.getInstance().getLogger().debug("Unhandled sound effect: " + soundEffect.name());
+        } else if (packet.getEffect() instanceof ParticleEffect) {
+            ParticleEffect particleEffect = (ParticleEffect) packet.getEffect();
+            Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
 
-                        ComposterEffectData composterEffectData = (ComposterEffectData) packet.getData();
-                        LevelSoundEventPacket soundEvent = new LevelSoundEventPacket();
-                        soundEvent.setSound(SoundEvent.valueOf("COMPOSTER_" + composterEffectData.name()));
-                        soundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-                        soundEvent.setIdentifier(":");
-                        soundEvent.setExtraData(-1);
-                        soundEvent.setBabySound(false);
-                        soundEvent.setRelativeVolumeDisabled(false);
-                        session.sendUpstreamPacket(soundEvent);
-                        break;
-                    case BLOCK_LAVA_EXTINGUISH:
-                        effect.setType(LevelEventType.PARTICLE_SHOOT);
-                        effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY() + 1, packet.getPosition().getZ()));
-                        session.sendUpstreamPacket(effect);
+            LevelEventPacket effectPacket = new LevelEventPacket();
+            effectPacket.setPosition(pos);
+            effectPacket.setData(0);
+            switch (particleEffect) {
+                case COMPOSTER: {
+                    effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
 
+                    ComposterEffectData composterEffectData = (ComposterEffectData) packet.getData();
+                    LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                    switch (composterEffectData) {
+                        case FILL:
+                            soundEventPacket.setSound(SoundEvent.COMPOSTER_FILL);
+                            break;
+                        case FILL_SUCCESS:
+                            soundEventPacket.setSound(SoundEvent.COMPOSTER_FILL_LAYER);
+                            break;
+                    }
+                    soundEventPacket.setPosition(pos);
+                    soundEventPacket.setIdentifier("");
+                    soundEventPacket.setExtraData(-1);
+                    soundEventPacket.setBabySound(false);
+                    soundEventPacket.setRelativeVolumeDisabled(false);
+                    session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                case BLOCK_LAVA_EXTINGUISH: {
+                    effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE);
+                    effectPacket.setPosition(pos.add(-0.5f, 0.7f, -0.5f));
+
+                    LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                    soundEventPacket.setSound(SoundEvent.EXTINGUISH_FIRE);
+                    soundEventPacket.setPosition(pos);
+                    soundEventPacket.setIdentifier("");
+                    soundEventPacket.setExtraData(-1);
+                    soundEventPacket.setBabySound(false);
+                    soundEventPacket.setRelativeVolumeDisabled(false);
+                    session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                case BLOCK_REDSTONE_TORCH_BURNOUT: {
+                    effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE);
+                    effectPacket.setPosition(pos.add(-0.5f, 0, -0.5f));
+
+                    LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                    soundEventPacket.setSound(SoundEvent.EXTINGUISH_FIRE);
+                    soundEventPacket.setPosition(pos);
+                    soundEventPacket.setIdentifier("");
+                    soundEventPacket.setExtraData(-1);
+                    soundEventPacket.setBabySound(false);
+                    soundEventPacket.setRelativeVolumeDisabled(false);
+                    session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                case BLOCK_END_PORTAL_FRAME_FILL: {
+                    effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE);
+                    effectPacket.setPosition(pos.add(-0.5f, 0.3125f, -0.5f));
+
+                    LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                    soundEventPacket.setSound(SoundEvent.BLOCK_END_PORTAL_FRAME_FILL);
+                    soundEventPacket.setPosition(pos);
+                    soundEventPacket.setIdentifier("");
+                    soundEventPacket.setExtraData(-1);
+                    soundEventPacket.setBabySound(false);
+                    soundEventPacket.setRelativeVolumeDisabled(false);
+                    session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                case SMOKE: {
+                    effectPacket.setType(LevelEventType.PARTICLE_SHOOT);
+
+                    SmokeEffectData smokeEffectData = (SmokeEffectData) packet.getData();
+                    int data = 0;
+                    switch (smokeEffectData) {
+                        case DOWN:
+                            data = 4;
+                            pos = pos.add(0, -0.9f, 0);
+                            break;
+                        case UP:
+                            data = 4;
+                            pos = pos.add(0, 0.5f, 0);
+                            break;
+                        case NORTH:
+                            data = 1;
+                            pos = pos.add(0, -0.2f, -0.7f);
+                            break;
+                        case SOUTH:
+                            data = 7;
+                            pos = pos.add(0, -0.2f, 0.7f);
+                            break;
+                        case WEST:
+                            data = 3;
+                            pos = pos.add(-0.7f, -0.2f, 0);
+                            break;
+                        case EAST:
+                            data = 5;
+                            pos = pos.add(0.7f, -0.2f, 0);
+                            break;
+
+                    }
+                    effectPacket.setPosition(pos);
+                    effectPacket.setData(data);
+                    break;
+                }
+                //TODO: Block break particles when under fire
+                case BREAK_BLOCK: {
+                    effectPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
+
+                    BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
+                    effectPacket.setData(BlockTranslator.getBedrockBlockId(breakBlockEffectData.getBlockState()));
+                    break;
+                }
+                case BREAK_SPLASH_POTION: {
+                    effectPacket.setType(LevelEventType.PARTICLE_POTION_SPLASH);
+                    effectPacket.setPosition(pos.add(0, -0.5f, 0));
+
+                    BreakPotionEffectData splashPotionData = (BreakPotionEffectData) packet.getData();
+                    effectPacket.setData(splashPotionData.getPotionId());
+
+                    LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                    soundEventPacket.setSound(SoundEvent.GLASS);
+                    soundEventPacket.setPosition(pos);
+                    soundEventPacket.setIdentifier("");
+                    soundEventPacket.setExtraData(-1);
+                    soundEventPacket.setBabySound(false);
+                    soundEventPacket.setRelativeVolumeDisabled(false);
+                    session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                case BREAK_EYE_OF_ENDER: {
+                    effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH);
+                    break;
+                }
+                case MOB_SPAWN: {
+                    effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
+                    break;
+                }
+                case BONEMEAL_GROW: {
+                    effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
+
+                    BonemealGrowEffectData growEffectData = (BonemealGrowEffectData) packet.getData();
+                    effectPacket.setData(growEffectData.getParticleCount());
+                    break;
+                }
+                case ENDERDRAGON_FIREBALL_EXPLODE: {
+                    effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH); // TODO
+
+                    DragonFireballEffectData fireballEffectData = (DragonFireballEffectData) packet.getData();
+                    if (fireballEffectData == DragonFireballEffectData.HAS_SOUND) {
                         LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
-                        soundEventPacket.setSound(SoundEvent.EXTINGUISH_FIRE);
-                        soundEventPacket.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-                        soundEventPacket.setIdentifier(":");
+                        soundEventPacket.setSound(SoundEvent.EXPLODE);
+                        soundEventPacket.setPosition(pos);
+                        soundEventPacket.setIdentifier("");
                         soundEventPacket.setExtraData(-1);
                         soundEventPacket.setBabySound(false);
                         soundEventPacket.setRelativeVolumeDisabled(false);
                         session.sendUpstreamPacket(soundEventPacket);
-                        return;
-                    default:
-                        GeyserConnector.getInstance().getLogger().debug("No effect handling for particle effect: " + packet.getEffect());
-                }
-            }
-            effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-            session.sendUpstreamPacket(effect);
-        } else if (packet.getEffect() instanceof SoundEffect) {
-            SoundEffect soundEffect = (SoundEffect) packet.getEffect();
-            Effect geyserEffect = EffectRegistry.EFFECTS.get(soundEffect.name());
-            if (geyserEffect != null) {
-                // Some events are LevelEventTypes, some are SoundEvents.
-                if (geyserEffect.getType().equals("soundLevel")) {
-                    effect.setType(LevelEventType.valueOf(geyserEffect.getBedrockName()));
-                } else if (geyserEffect.getType().equals("soundEvent")) {
-                    LevelSoundEventPacket soundEvent = new LevelSoundEventPacket();
-                    // Separate case since each RecordEffectData in Java is an individual track in Bedrock
-                    if (geyserEffect.getJavaName().equals("RECORD")) {
-                        RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
-                        soundEvent.setSound(EffectRegistry.RECORDS.get(recordEffectData.getRecordId()));
-                        if (EffectRegistry.RECORDS.get(recordEffectData.getRecordId()) != SoundEvent.STOP_RECORD) {
-                            // Send text packet as it seems to be handled in Java Edition client-side.
-                            TextPacket textPacket = new TextPacket();
-                            textPacket.setType(TextPacket.Type.JUKEBOX_POPUP);
-                            textPacket.setNeedsTranslation(true);
-                            textPacket.setXuid("");
-                            textPacket.setPlatformChatId("");
-                            textPacket.setSourceName(null);
-                            textPacket.setMessage("record.nowPlaying");
-                            List<String> params = new ArrayList<>();
-                            String recordString = "%item." + EffectRegistry.RECORDS.get(recordEffectData.getRecordId()).name().toLowerCase() + ".desc";
-                            params.add(LocaleUtils.getLocaleString(recordString, session.getClientData().getLanguageCode()));
-                            textPacket.setParameters(params);
-                            session.sendUpstreamPacket(textPacket);
-                        }
-                    } else {
-                        soundEvent.setSound(SoundEvent.valueOf(geyserEffect.getBedrockName()));
                     }
-                    soundEvent.setExtraData(geyserEffect.getData());
-                    soundEvent.setIdentifier(geyserEffect.getIdentifier());
-                    soundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-                    session.sendUpstreamPacket(soundEvent);
+                    break;
                 }
-            } else {
-                GeyserConnector.getInstance().getLogger().debug("No effect handling for sound effect: " + packet.getEffect());
-            }
-        }
-        if (effect.getType() != null) {
-            effect.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-            session.sendUpstreamPacket(effect);
-        }
+                case EXPLOSION: {
+                    effectPacket.setType(LevelEventType.PARTICLE_GENERIC_SPAWN);
+                    effectPacket.setData(61);
+                    break;
+                }
+                case EVAPORATE: {
+                    effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE_WATER);
+                    effectPacket.setPosition(pos.add(-0.5f, 0.5f, -0.5f));
+                    break;
+                }
+                case END_GATEWAY_SPAWN: {
+                    effectPacket.setType(LevelEventType.PARTICLE_EXPLOSION);
 
+                    LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                    soundEventPacket.setSound(SoundEvent.EXPLODE);
+                    soundEventPacket.setPosition(pos);
+                    soundEventPacket.setIdentifier("");
+                    soundEventPacket.setExtraData(-1);
+                    soundEventPacket.setBabySound(false);
+                    soundEventPacket.setRelativeVolumeDisabled(false);
+                    session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                default: {
+                    GeyserConnector.getInstance().getLogger().debug("Unhandled particle effect: " + particleEffect.name());
+                    return;
+                }
+            }
+            session.sendUpstreamPacket(effectPacket);
+        }
     }
 }

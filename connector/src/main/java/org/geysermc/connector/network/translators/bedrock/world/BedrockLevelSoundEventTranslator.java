@@ -23,33 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.bedrock.world;
 
-import lombok.Getter;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Objective;
-import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.CooldownUtils;
 
-import java.util.Collection;
+@Translator(packet = LevelSoundEventPacket.class)
+public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoundEventPacket> {
 
-@Getter
-public class ScoreboardCache {
-    private GeyserSession session;
-    private Scoreboard scoreboard;
+    @Override
+    public void translate(LevelSoundEventPacket packet, GeyserSession session) {
+        // lol what even :thinking:
+        session.sendUpstreamPacket(packet);
 
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-        this.scoreboard = new Scoreboard(session);
-    }
-
-    public void removeScoreboard() {
-        if (scoreboard != null) {
-            Collection<Objective> objectives = scoreboard.getObjectives().values();
-            scoreboard = new Scoreboard(session);
-
-            for (Objective objective : objectives) {
-                scoreboard.despawnObjective(objective);
-            }
+        // Yes, what even, but thankfully we can hijack this packet to send the cooldown
+        if (packet.getSound() == SoundEvent.ATTACK_NODAMAGE || packet.getSound() == SoundEvent.ATTACK || packet.getSound() == SoundEvent.ATTACK_STRONG) {
+            // Send a faux cooldown since Bedrock has no cooldown support
+            // Sent here because Java still sends a cooldown if the player doesn't hit anything but Bedrock always sends a sound
+            CooldownUtils.sendCooldown(session);
         }
     }
 }
