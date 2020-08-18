@@ -45,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -58,6 +59,10 @@ public class SkinProvider {
     public static final Skin EMPTY_SKIN = new Skin(-1, "steve", STEVE_SKIN);
     public static final byte[] ALEX_SKIN = new ProvidedSkin("bedrock/skin/skin_alex.png").getSkin();
     public static final Skin EMPTY_SKIN_ALEX = new Skin(-1, "alex", ALEX_SKIN);
+    private static final Map<String, Skin> permanentSkins = new HashMap<String, Skin>() {{
+        put("steve", EMPTY_SKIN);
+        put("alex", EMPTY_SKIN_ALEX);
+    }};
     private static final Cache<String, Skin> cachedSkins = CacheBuilder.newBuilder()
             .expireAfterAccess(1, TimeUnit.HOURS)
             .build();
@@ -141,8 +146,7 @@ public class SkinProvider {
     }
 
     public static Skin getCachedSkin(String skinUrl) {
-        Skin skin = cachedSkins.getIfPresent(skinUrl);
-        return skin != null ? skin : EMPTY_SKIN;
+        return permanentSkins.getOrDefault(skinUrl, cachedSkins.getIfPresent(skinUrl));
     }
 
     public static Cape getCachedCape(String capeUrl) {
@@ -169,7 +173,7 @@ public class SkinProvider {
         if (textureUrl == null || textureUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_SKIN);
         if (requestedSkins.containsKey(textureUrl)) return requestedSkins.get(textureUrl); // already requested
 
-        Skin cachedSkin = cachedSkins.getIfPresent(textureUrl);
+        Skin cachedSkin = getCachedSkin(textureUrl);
         if (cachedSkin != null) {
             return CompletableFuture.completedFuture(cachedSkin);
         }

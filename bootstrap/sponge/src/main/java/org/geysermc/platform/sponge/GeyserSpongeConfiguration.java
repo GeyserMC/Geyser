@@ -90,6 +90,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
     }
 
     @Override
+    public boolean isPassthroughProtocolName() {
+        return node.getNode("passthrough-protocol-name").getBoolean(false);
+    }
+
+    @Override
     public boolean isPassthroughPlayerCounts() {
         return node.getNode("passthrough-player-counts").getBoolean(false);
     }
@@ -261,6 +266,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         public String getUniqueId() {
             return node.getNode("metrics").getNode("uuid").getString("generateduuid");
         }
+    }
+
+    @Override
+    public boolean isEnableProxyConnections() {
+        return node.getNode("enable-proxy-connections").getBoolean(false);
     }
 
     @Override

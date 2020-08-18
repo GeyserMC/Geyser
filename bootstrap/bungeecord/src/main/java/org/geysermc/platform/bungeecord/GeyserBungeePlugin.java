@@ -81,17 +81,14 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
             InetSocketAddress javaAddr = listener.getHost();
 
-            // Don't change the ip if its listening on all interfaces
-            // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
+            // By default this should be localhost but may need to be changed in some circumstances
+            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+                this.geyserConfig.getRemote().setPort(javaAddr.getPort());
             }
 
             if (geyserConfig.getBedrock().isCloneRemotePort()) {
                 geyserConfig.getBedrock().setPort(javaAddr.getPort());
             }
-
-            this.geyserConfig.getRemote().setPort(javaAddr.getPort());
         }
 
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
