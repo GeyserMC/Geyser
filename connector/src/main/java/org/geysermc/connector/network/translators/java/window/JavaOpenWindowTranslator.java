@@ -37,6 +37,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.utils.LocaleUtils;
 
 @Translator(packet = ServerOpenWindowPacket.class)
 public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
@@ -70,6 +71,8 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
         } catch (Exception e) {
             GeyserConnector.getInstance().getLogger().debug("JavaOpenWindowTranslator: " + e.toString());
         }
+
+        name = LocaleUtils.getLocaleString(name, session.getClientData().getLanguageCode());
 
         Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);
         session.getInventoryCache().cacheInventory(newInventory);
