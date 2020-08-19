@@ -41,7 +41,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     /**
      * If the config was originally 'auto' before the values changed
      */
-    @Getter @Setter
+    @Setter
     private boolean autoconfiguredRemote = false;
 
     private BedrockConfiguration bedrock;
