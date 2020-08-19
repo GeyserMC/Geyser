@@ -29,6 +29,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 
 import java.nio.file.Path;
@@ -112,6 +114,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         private String motd1;
         private String motd2;
+
+        @JsonProperty("server-name")
+        private String serverName = GeyserConnector.NAME;
     }
 
     @Getter
