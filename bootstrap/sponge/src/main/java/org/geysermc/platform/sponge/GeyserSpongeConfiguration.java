@@ -27,6 +27,8 @@ package org.geysermc.platform.sponge;
 
 import lombok.AllArgsConstructor;
 
+import lombok.Getter;
+import lombok.Setter;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import org.geysermc.connector.configuration.GeyserConfiguration;
@@ -40,6 +42,13 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
 
     private File dataFolder;
     private ConfigurationNode node;
+
+    /**
+     * If the config was originally 'auto' before the values changed
+     */
+    @Getter
+    @Setter
+    private boolean autoconfiguredRemote = false;
 
     private SpongeBedrockConfiguration bedrockConfig;
     private SpongeRemoteConfiguration remoteConfig;

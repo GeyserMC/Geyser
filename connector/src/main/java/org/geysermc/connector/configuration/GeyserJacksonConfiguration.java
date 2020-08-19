@@ -38,6 +38,12 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class GeyserJacksonConfiguration implements GeyserConfiguration {
 
+    /**
+     * If the config was originally 'auto' before the values changed
+     */
+    @Getter @Setter
+    private boolean autoconfiguredRemote = false;
+
     private BedrockConfiguration bedrock;
     private RemoteConfiguration remote;
 
@@ -121,6 +127,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @Setter
         private int port;
 
+        @Setter
         @JsonProperty("auth-type")
         private String authType;
     }
