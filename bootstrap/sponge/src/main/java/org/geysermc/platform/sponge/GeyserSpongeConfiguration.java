@@ -26,9 +26,7 @@
 package org.geysermc.platform.sponge;
 
 import lombok.AllArgsConstructor;
-
 import ninja.leaping.configurate.ConfigurationNode;
-
 import org.geysermc.connector.configuration.GeyserConfiguration;
 
 import java.io.File;
@@ -40,6 +38,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
 
     private File dataFolder;
     private ConfigurationNode node;
+
+    /**
+     * If the config was originally 'auto' before the values changed
+     */
+    private boolean autoconfiguredRemote = false;
 
     private SpongeBedrockConfiguration bedrockConfig;
     private SpongeRemoteConfiguration remoteConfig;
@@ -62,6 +65,10 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         for (String key : userAuths) {
             userAuthInfo.put(key, new SpongeUserAuthenticationInfo(key));
         }
+    }
+
+    public void setAutoconfiguredRemote(boolean autoconfiguredRemote) {
+        this.autoconfiguredRemote = autoconfiguredRemote;
     }
 
     @Override

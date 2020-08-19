@@ -29,11 +29,11 @@ import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
-import org.geysermc.connector.common.PlatformType;
-import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.PlatformType;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
@@ -105,6 +105,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
             if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+                this.geyserConfig.setAutoconfiguredRemote(true);
                 serverPort.setValue(javaAddr.getPort());
             }
         }
