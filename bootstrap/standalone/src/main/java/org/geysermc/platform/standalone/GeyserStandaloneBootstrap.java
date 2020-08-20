@@ -91,7 +91,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 case "--config":
                 case "-c":
                     if (i >= args.length - 1) {
-                        System.err.println(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.confignotspecified"));
+                        System.err.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.confignotspecified"), "-c"));
                         return;
                     }
                     configFilenameOpt = args[i+1]; i++;
