@@ -33,8 +33,8 @@ import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
@@ -109,6 +109,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
             if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+                geyserConfig.setAutoconfiguredRemote(true); // Doesn't really need to be set but /shrug
                 geyserConfig.getRemote().setAddress("127.0.0.1");
             }
         } catch (IOException ex) {

@@ -36,7 +36,7 @@ import java.util.Map;
 public interface GeyserConfiguration {
 
     // Modify this when you update the config
-    int CURRENT_CONFIG_VERSION = 3;
+    int CURRENT_CONFIG_VERSION = 4;
 
     IBedrockConfiguration getBedrock();
 
@@ -48,6 +48,9 @@ public interface GeyserConfiguration {
 
     @JsonIgnore
     boolean isPassthroughMotd();
+
+    @JsonIgnore
+    boolean isPassthroughProtocolName();
 
     @JsonIgnore
     boolean isPassthroughPlayerCounts();
@@ -119,6 +122,9 @@ public interface GeyserConfiguration {
 
         String getUniqueId();
     }
+
+    // if u have offline mode enabled pls be safe
+    boolean isEnableProxyConnections();
 
     int getMtu();
 
