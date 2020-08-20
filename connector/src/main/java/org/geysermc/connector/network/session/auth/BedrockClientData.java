@@ -25,18 +25,25 @@
 
 package org.geysermc.connector.network.session.auth;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import net.minidev.json.JSONObject;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
+import org.geysermc.floodgate.util.RawSkin;
 import org.geysermc.floodgate.util.UiProfile;
 
+import java.util.Base64;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 public final class BedrockClientData {
+    @JsonIgnore
+    private JSONObject jsonData;
+
     @JsonProperty(value = "GameVersion")
     private String gameVersion;
     @JsonProperty(value = "ServerAddress")
@@ -104,4 +111,44 @@ public final class BedrockClientData {
     private String skinColor;
     @JsonProperty(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
+
+    public void setJsonData(JSONObject data) {
+        if (this.jsonData != null && data != null) {
+            this.jsonData = data;
+        }
+    }
+
+    /**
+     * Taken from https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/network/protocol/LoginPacket.java<br>
+     * Internally only used for Skins, but can be used for Capes too
+     */
+    public RawSkin getImage(String name) {
+        if (jsonData == null || !jsonData.containsKey(name + "Data")) return null;
+        byte[] image = Base64.getDecoder().decode(jsonData.getAsString(name + "Data"));
+        if (jsonData.containsKey(name + "ImageWidth") && jsonData.containsKey(name + "ImageHeight")) {
+            return new RawSkin(
+                    (int) jsonData.getAsNumber(name + "ImageWidth"),
+                    (int) jsonData.get(name + "ImageHeight"),
+                    image
+            );
+        }
+        return getLegacyImage(image);
+    }
+
+    private static RawSkin getLegacyImage(byte[] imageData) {
+        if (imageData == null) return null;
+        // width * height * 4 (rgba)
+        switch (imageData.length) {
+            case 8192:
+                return new RawSkin(64, 32, imageData);
+            case 16384:
+                return new RawSkin(64, 64, imageData);
+            case 32768:
+                return new RawSkin(64, 128, imageData);
+            case 65536:
+                return new RawSkin(128, 128, imageData);
+            default:
+                throw new IllegalArgumentException("Unknown legacy skin size");
+        }
+    }
 }

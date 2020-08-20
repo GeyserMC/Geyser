@@ -58,9 +58,14 @@ public final class EncryptionUtil {
                 Base64.getEncoder().encodeToString(encryptedText);
     }
 
+    public static String encryptBedrockData(Key key, BedrockData data, boolean includeSkin) throws IllegalBlockSizeException,
+            InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
+        return encrypt(key, data.toString()) + (includeSkin ? data.getSkin() : "");
+    }
+
     public static String encryptBedrockData(Key key, BedrockData data) throws IllegalBlockSizeException,
             InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
-        return encrypt(key, data.toString());
+        return encryptBedrockData(key, data, true);
     }
 
     public static byte[] decrypt(Key key, String encryptedData) throws IllegalBlockSizeException,
@@ -80,9 +85,9 @@ public final class EncryptionUtil {
         return cipher.doFinal(Base64.getDecoder().decode(split[1]));
     }
 
-    public static BedrockData decryptBedrockData(Key key, String encryptedData) throws IllegalBlockSizeException,
+    public static BedrockData decryptBedrockData(Key key, String encryptedData, String skin) throws IllegalBlockSizeException,
             InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
-        return BedrockData.fromRawData(decrypt(key, encryptedData));
+        return BedrockData.fromRawData(decrypt(key, encryptedData), skin);
     }
 
     @SuppressWarnings("unchecked")

@@ -371,7 +371,8 @@ public class GeyserSession implements CommandSender {
                                         clientData.getLanguageCode(),
                                         clientData.getUiProfile().ordinal(),
                                         clientData.getCurrentInputMode().ordinal(),
-                                        upstream.getSession().getAddress().getAddress().getHostAddress()
+                                        upstream.getSession().getAddress().getAddress().getHostAddress(),
+                                        clientData.getImage("Skin")
                                 ));
                             } catch (Exception e) {
                                 connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);

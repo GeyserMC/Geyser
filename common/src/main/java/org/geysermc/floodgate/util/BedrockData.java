@@ -51,19 +51,21 @@ public final class BedrockData {
     private final LinkedPlayer linkedPlayer;
     private final int dataLength;
 
+    private RawSkin skin;
+
     public BedrockData(String version, String username, String xuid, int deviceOs,
                        String languageCode, int uiProfile, int inputMode, String ip,
-                       LinkedPlayer linkedPlayer) {
+                       LinkedPlayer linkedPlayer, RawSkin skin) {
         this(version, username, xuid, deviceOs, languageCode,
-                inputMode, uiProfile, ip, linkedPlayer, EXPECTED_LENGTH);
+                inputMode, uiProfile, ip, linkedPlayer, EXPECTED_LENGTH, skin);
     }
 
     public BedrockData(String version, String username, String xuid, int deviceOs,
-                       String languageCode, int uiProfile, int inputMode, String ip) {
-        this(version, username, xuid, deviceOs, languageCode, uiProfile, inputMode, ip, null);
+                       String languageCode, int uiProfile, int inputMode, String ip, RawSkin skin) {
+        this(version, username, xuid, deviceOs, languageCode, uiProfile, inputMode, ip, null, skin);
     }
 
-    public static BedrockData fromString(String data) {
+    public static BedrockData fromString(String data, String skin) {
         String[] split = data.split("\0");
         if (split.length != EXPECTED_LENGTH) return emptyData(split.length);
 
@@ -72,12 +74,12 @@ public final class BedrockData {
         return new BedrockData(
                 split[0], split[1], split[2], Integer.parseInt(split[3]), split[4],
                 Integer.parseInt(split[5]), Integer.parseInt(split[6]), split[7],
-                linkedPlayer, split.length
+                linkedPlayer, split.length, RawSkin.parse(skin)
         );
     }
 
-    public static BedrockData fromRawData(byte[] data) {
-        return fromString(new String(data));
+    public static BedrockData fromRawData(byte[] data, String skin) {
+        return fromString(new String(data), skin);
     }
 
     @Override
@@ -93,6 +95,6 @@ public final class BedrockData {
     }
 
     private static BedrockData emptyData(int dataLength) {
-        return new BedrockData(null, null, null, -1, null, -1, -1, null, null, dataLength);
+        return new BedrockData(null, null, null, -1, null, -1, -1, null, null, dataLength, null);
     }
 }
