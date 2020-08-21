@@ -207,7 +207,7 @@ public class GeyserConnector {
         }
         logger.info(message);
         if (platformType == PlatformType.STANDALONE) {
-                logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movementwarn"));
+            logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movementwarn"));
         }
     }
 
