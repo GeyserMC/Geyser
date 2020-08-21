@@ -70,6 +70,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.*;
@@ -178,6 +179,11 @@ public class GeyserSession implements CommandSender {
     private long lastInteractedVillagerEid;
 
     /**
+     * Stores the enchantment information the client has received if they are in an enchantment table GUI
+     */
+    private final EnchantmentInventoryTranslator.EnchantmentSlotData[] enchantmentSlotData = new EnchantmentInventoryTranslator.EnchantmentSlotData[3];
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      */
     @Setter
@@ -188,8 +194,6 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private long lastHitTime;
-
-    private MinecraftProtocol protocol;
 
     private boolean reducedDebugInfo = false;
 
@@ -237,6 +241,8 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private boolean thunder = false;
+
+    private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;

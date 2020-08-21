@@ -56,7 +56,6 @@ public abstract class InventoryTranslator {
             put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
             put(WindowType.SMITHING, new SmithingInventoryTranslator());
-            //put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
 
             InventoryTranslator furnace = new FurnaceInventoryTranslator();
             put(WindowType.FURNACE, furnace);
@@ -64,6 +63,7 @@ public abstract class InventoryTranslator {
             put(WindowType.SMOKER, furnace);
 
             InventoryUpdater containerUpdater = new ContainerInventoryUpdater();
+            put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator(containerUpdater)); //TODO
             put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, containerUpdater));
             put(WindowType.HOPPER, new BlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, containerUpdater));
             put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, containerUpdater));
