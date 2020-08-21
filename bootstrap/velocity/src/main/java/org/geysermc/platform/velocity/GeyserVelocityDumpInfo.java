@@ -28,6 +28,7 @@ package org.geysermc.platform.velocity;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
+import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 
 import java.util.ArrayList;
@@ -50,7 +51,11 @@ public class GeyserVelocityDumpInfo extends BootstrapDumpInfo {
         this.platformVersion = proxy.getVersion().getVersion();
         this.platformVendor = proxy.getVersion().getVendor();
         this.onlineMode = proxy.getConfiguration().isOnlineMode();
-        this.serverIP = proxy.getBoundAddress().getHostString();
+        if (AsteriskSerializer.showSensitive || (proxy.getBoundAddress().getHostString().equals("") || proxy.getBoundAddress().getHostString().equals("0.0.0.0"))) {
+            this.serverIP = proxy.getBoundAddress().getHostString();
+        } else {
+            this.serverIP = "***";
+        }
         this.serverPort = proxy.getBoundAddress().getPort();
         this.plugins = new ArrayList<>();
 

@@ -28,6 +28,7 @@ package org.geysermc.platform.bungeecord;
 import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
+import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 
 import java.util.ArrayList;
@@ -52,7 +53,13 @@ public class GeyserBungeeDumpInfo extends BootstrapDumpInfo {
         this.plugins = new ArrayList<>();
 
         for (net.md_5.bungee.api.config.ListenerInfo listener : proxy.getConfig().getListeners()) {
-            this.listeners.add(new ListenerInfo(listener.getHost().getHostString(), listener.getHost().getPort()));
+            String hostname;
+            if (AsteriskSerializer.showSensitive || (listener.getHost().getHostString().equals("") || listener.getHost().getHostString().equals("0.0.0.0"))) {
+                hostname = listener.getHost().getHostString();
+            } else {
+                hostname = "***";
+            }
+            this.listeners.add(new ListenerInfo(hostname, listener.getHost().getPort()));
         }
 
         for (Plugin plugin : proxy.getPluginManager().getPlugins()) {

@@ -141,6 +141,7 @@ public class QueryPacketHandler {
         String motd;
         String currentPlayerCount;
         String maxPlayerCount;
+        String map;
 
         if (connector.getConfig().isPassthroughMotd() || connector.getConfig().isPassthroughPlayerCounts()) {
             pingInfo = connector.getBootstrap().getGeyserPingPassthrough().getPingInformation();
@@ -162,6 +163,13 @@ public class QueryPacketHandler {
             maxPlayerCount = String.valueOf(connector.getConfig().getMaxPlayers());
         }
 
+        // If passthrough protocol name is enabled let's get the protocol name from the ping response.
+        if (connector.getConfig().isPassthroughProtocolName() && pingInfo != null) {
+            map = String.valueOf((pingInfo.getVersion().getName()));
+        } else {
+            map = GeyserConnector.NAME;
+        }
+
         // Create a hashmap of all game data needed in the query
         Map<String, String> gameData = new HashMap<String, String>();
         gameData.put("hostname", motd);
@@ -169,7 +177,7 @@ public class QueryPacketHandler {
         gameData.put("game_id", "MINECRAFT");
         gameData.put("version", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion());
         gameData.put("plugins", "");
-        gameData.put("map", GeyserConnector.NAME);
+        gameData.put("map", map);
         gameData.put("numplayers", currentPlayerCount);
         gameData.put("maxplayers", maxPlayerCount);
         gameData.put("hostport", String.valueOf(connector.getConfig().getBedrock().getPort()));

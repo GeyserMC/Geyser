@@ -59,13 +59,14 @@ import org.geysermc.connector.network.translators.world.block.entity.BlockEntity
 import org.geysermc.connector.plugin.PluginManager;
 import org.geysermc.connector.event.events.geyser.GeyserStopEvent;
 import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -149,8 +150,16 @@ public class GeyserConnector {
         SoundRegistry.init();
         SoundHandlerRegistry.init();
 
-        if (platformType != PlatformType.STANDALONE) {
-            DockerCheck.check(bootstrap);
+        if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
+            // Set the remote address to localhost since that is where we are always connecting
+            try {
+                config.getRemote().setAddress(InetAddress.getLocalHost().getHostAddress());
+            } catch (UnknownHostException ex) {
+                logger.debug("Unknown host when trying to find localhost.");
+                if (config.isDebugMode()) {
+                    ex.printStackTrace();
+                }
+            }
         }
         String remoteAddress = config.getRemote().getAddress();
         int remotePort = config.getRemote().getPort();
