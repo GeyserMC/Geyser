@@ -29,11 +29,11 @@ import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
-import org.geysermc.connector.common.PlatformType;
-import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.PlatformType;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.event.events.geyser.GeyserStartEvent;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
@@ -105,11 +105,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
             // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                serverIP.setValue("127.0.0.1");
+            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+                this.geyserConfig.setAutoconfiguredRemote(true);
+                serverPort.setValue(javaAddr.getPort());
             }
-
-            serverPort.setValue(javaAddr.getPort());
         }
 
         ConfigurationNode bedrockPort = config.getNode("bedrock").getNode("port");
