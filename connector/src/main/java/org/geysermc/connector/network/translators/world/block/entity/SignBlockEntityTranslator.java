@@ -81,6 +81,14 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                 .build();
     }
 
+    /**
+     * Maps a color stored in a sign's Color tag to a Bedrock Edition formatting code.
+     * <br>
+     * The color names correspond to dye names, because of this we can't use {@link MessageUtils#getColor(String)}.
+     *
+     * @param javaColor The dye color stored in the sign's Color tag.
+     * @return A Bedrock Edition formatting code for valid dye colors, otherwise an empty string.
+     */
     private static String getBedrockSignColor(String javaColor) {
         String base = "\u00a7";
         switch (javaColor) {
