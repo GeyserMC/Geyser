@@ -37,8 +37,6 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.DimensionUtils;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 @Translator(packet = ServerRespawnPacket.class)
 public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket> {
 
@@ -59,11 +57,14 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         session.sendUpstreamPacket(playerGameTypePacket);
         session.setGameMode(packet.getGamemode());
 
-        LevelEventPacket stopRainPacket = new LevelEventPacket();
-        stopRainPacket.setType(LevelEventType.STOP_RAINING);
-        stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
-        stopRainPacket.setPosition(Vector3f.ZERO);
-        session.sendUpstreamPacket(stopRainPacket);
+        if (session.isRaining()) {
+            LevelEventPacket stopRainPacket = new LevelEventPacket();
+            stopRainPacket.setType(LevelEventType.STOP_RAINING);
+            stopRainPacket.setData(0);
+            stopRainPacket.setPosition(Vector3f.ZERO);
+            session.sendUpstreamPacket(stopRainPacket);
+            session.setRaining(false);
+        }
 
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (!entity.getDimension().equals(newDimension)) {

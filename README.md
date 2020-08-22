@@ -35,7 +35,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 
 ## What's Left to be Added/Fixed
 - The Following Inventories 
-  - [ ] Enchantment Table
+  - [ ] Enchantment Table (as a proper GUI)
   - [ ] Beacon
   - [ ] Cartography Table
   - [ ] Stonecutter
