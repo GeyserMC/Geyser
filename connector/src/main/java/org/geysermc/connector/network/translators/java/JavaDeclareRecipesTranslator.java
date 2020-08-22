@@ -96,6 +96,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 case CRAFTING_SPECIAL_ARMORDYE: {
                     // This one's even worse since it's not actually on Bedrock, but it still works!
                     craftingDataPacket.getCraftingData().addAll(RecipeRegistry.LEATHER_DYEING_RECIPES);
+                    break;
                 }
             }
         }
