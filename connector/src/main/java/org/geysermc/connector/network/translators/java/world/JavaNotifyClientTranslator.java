@@ -28,28 +28,21 @@ package org.geysermc.connector.network.translators.java.world;
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValue;
+import com.github.steveice10.mc.protocol.data.game.world.notify.RainStrengthValue;
 import com.github.steveice10.mc.protocol.data.game.world.notify.RespawnScreenValue;
+import com.github.steveice10.mc.protocol.data.game.world.notify.ThunderStrengthValue;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.*;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.PlayerInventoryTranslator;
-
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerNotifyClientPacket.class)
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
@@ -64,16 +57,47 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case START_RAIN:
                 LevelEventPacket startRainPacket = new LevelEventPacket();
                 startRainPacket.setType(LevelEventType.START_RAINING);
-                startRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
+                startRainPacket.setData(Integer.MAX_VALUE);
                 startRainPacket.setPosition(Vector3f.ZERO);
                 session.sendUpstreamPacket(startRainPacket);
+                session.setRaining(true);
                 break;
             case STOP_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
                 stopRainPacket.setType(LevelEventType.STOP_RAINING);
-                stopRainPacket.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
+                stopRainPacket.setData(0);
                 stopRainPacket.setPosition(Vector3f.ZERO);
                 session.sendUpstreamPacket(stopRainPacket);
+                session.setRaining(false);
+                break;
+            case RAIN_STRENGTH:
+                // While the above values are used, they CANNOT BE TRUSTED on a vanilla server as they are swapped around
+                // Spigot and forks implement it correctly
+                // Rain strength is your best way for determining if there is any rain
+                RainStrengthValue value = (RainStrengthValue) packet.getValue();
+                boolean isCurrentlyRaining = value.getStrength() > 0f;
+                // Java sends the rain level. Bedrock doesn't care, so we don't care if it's already raining.
+                if (isCurrentlyRaining != session.isRaining()) {
+                    LevelEventPacket changeRainPacket = new LevelEventPacket();
+                    changeRainPacket.setType(isCurrentlyRaining ? LevelEventType.START_RAINING : LevelEventType.STOP_RAINING);
+                    changeRainPacket.setData(Integer.MAX_VALUE); // Dunno what this does; used to be implemented with ThreadLocalRandom
+                    changeRainPacket.setPosition(Vector3f.ZERO);
+                    session.sendUpstreamPacket(changeRainPacket);
+                    session.setRaining(isCurrentlyRaining);
+                }
+                break;
+            case THUNDER_STRENGTH:
+                // See above, same process
+                ThunderStrengthValue thunderValue = (ThunderStrengthValue) packet.getValue();
+                boolean isCurrentlyThundering = thunderValue.getStrength() > 0f;
+                if (isCurrentlyThundering != session.isThunder()) {
+                    LevelEventPacket changeThunderPacket = new LevelEventPacket();
+                    changeThunderPacket.setType(isCurrentlyThundering ? LevelEventType.START_THUNDERSTORM : LevelEventType.STOP_THUNDERSTORM);
+                    changeThunderPacket.setData(Integer.MAX_VALUE);
+                    changeThunderPacket.setPosition(Vector3f.ZERO);
+                    session.sendUpstreamPacket(changeThunderPacket);
+                    session.setThunder(isCurrentlyThundering);
+                }
                 break;
             case CHANGE_GAMEMODE:
                 GameMode gameMode = (GameMode) packet.getValue();

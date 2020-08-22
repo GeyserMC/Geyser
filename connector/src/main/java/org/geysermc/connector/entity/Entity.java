@@ -32,8 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
-import com.github.steveice10.mc.protocol.data.message.TextMessage;
-import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
+import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
@@ -318,13 +317,10 @@ public class Entity {
                 }
                 break;
             case 2: // custom name
-                if (entityMetadata.getValue() instanceof TextMessage) {
-                    TextMessage name = (TextMessage) entityMetadata.getValue();
-                    if (name != null)
-                        metadata.put(EntityData.NAMETAG, MessageUtils.getBedrockMessage(name));
-                } else if (entityMetadata.getValue() instanceof TranslationMessage) {
-                    TranslationMessage message = (TranslationMessage) entityMetadata.getValue();
+                if (entityMetadata.getValue() instanceof Message) {
+                    Message message = (Message) entityMetadata.getValue();
                     if (message != null)
+                        // Always translate even if it's a TextMessage since there could be translatable parameters
                         metadata.put(EntityData.NAMETAG, MessageUtils.getTranslatedBedrockMessage(message, session.getClientData().getLanguageCode(), true));
                 }
                 break;

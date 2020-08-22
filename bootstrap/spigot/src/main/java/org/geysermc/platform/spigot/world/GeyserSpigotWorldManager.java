@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.GameRule;
 import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
-import us.myles.ViaVersion.protocols.protocol1_16to1_15_2.data.MappingData;
+import us.myles.ViaVersion.protocols.protocol1_16_2to1_16_1.data.MappingData;
 
 @AllArgsConstructor
 public class GeyserSpigotWorldManager extends GeyserWorldManager {
@@ -61,12 +61,13 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             Block block = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z);
             // Black magic that gets the old block state ID
             int oldBlockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
-            // Convert block state from old version -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16
+            // Convert block state from old version -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
             int thirteenBlockId = us.myles.ViaVersion.protocols.protocol1_13to1_12_2.data.MappingData.blockMappings.getNewId(oldBlockId);
             int thirteenPointOneBlockId = Protocol1_13_1To1_13.getNewBlockStateId(thirteenBlockId);
             int fourteenBlockId = us.myles.ViaVersion.protocols.protocol1_14to1_13_2.data.MappingData.blockStateMappings.getNewId(thirteenPointOneBlockId);
             int fifteenBlockId = us.myles.ViaVersion.protocols.protocol1_15to1_14_4.data.MappingData.blockStateMappings.getNewId(fourteenBlockId);
-            return MappingData.blockStateMappings.getNewId(fifteenBlockId);
+            int sixteenBlockId = us.myles.ViaVersion.protocols.protocol1_16to1_15_2.data.MappingData.blockStateMappings.getNewId(fifteenBlockId);
+            return MappingData.blockStateMappings.getNewId(sixteenBlockId);
         } else {
             return BlockTranslator.AIR;
         }

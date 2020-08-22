@@ -108,6 +108,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         try {
             File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
+            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+                geyserConfig.getRemote().setAddress("127.0.0.1");
+            }
         } catch (IOException ex) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             System.exit(0);

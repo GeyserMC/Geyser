@@ -27,6 +27,7 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
+import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
@@ -55,14 +56,19 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
-        if (loginPacket.getProtocolVersion() > GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
-            // Too early to determine session locale
-            session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
-            return true;
-        } else if (loginPacket.getProtocolVersion() < GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion()) {
-            session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion()));
-            return true;
+        BedrockPacketCodec packetCodec = BedrockProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
+        if (packetCodec == null) {
+            if (loginPacket.getProtocolVersion() > BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                // Too early to determine session locale
+                session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
+                return true;
+            } else if (loginPacket.getProtocolVersion() < BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
+                return true;
+            }
         }
+
+        session.getUpstream().getSession().setPacketCodec(packetCodec);
 
         LoginEncryptionUtils.encryptPlayerConnection(connector, session, loginPacket);
 
@@ -113,7 +119,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
                 stackPacket.setExperimental(false);
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
-                stackPacket.setGameVersion(GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion());
+                stackPacket.setGameVersion(session.getClientData().getGameVersion());
 
                 for(ResourcePack pack : ResourcePack.PACKS.values()) {
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();

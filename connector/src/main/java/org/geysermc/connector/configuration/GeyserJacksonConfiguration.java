@@ -57,6 +57,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("passthrough-player-counts")
     private boolean isPassthroughPlayerCounts;
 
+    @JsonProperty("passthrough-protocol-name")
+    private boolean isPassthroughProtocolName;
+
     @JsonProperty("legacy-ping-passthrough")
     private boolean isLegacyPingPassthrough;
 
@@ -98,15 +101,10 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     private MetricsInfo metrics;
 
-    @JsonProperty("mtu")
-    private int mtu = 1400;
-
-    @JsonProperty("config-version")
-    private int configVersion;
-
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
 
+        @AsteriskSerializer.Asterisk(sensitive = true)
         private String address;
 
         @Setter
@@ -123,6 +121,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class RemoteConfiguration implements IRemoteConfiguration {
 
         @Setter
+        @AsteriskSerializer.Asterisk(sensitive = true)
         private String address;
 
         @Setter
@@ -149,4 +148,13 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @JsonProperty("uuid")
         private String uniqueId;
     }
+
+    @JsonProperty("enable-proxy-connections")
+    private boolean enableProxyConnections = false;
+
+    @JsonProperty("mtu")
+    private int mtu = 1400;
+
+    @JsonProperty("config-version")
+    private int configVersion;
 }

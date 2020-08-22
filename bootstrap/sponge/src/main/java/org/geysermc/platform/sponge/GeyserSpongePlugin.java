@@ -104,11 +104,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
             // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                serverIP.setValue("127.0.0.1");
+            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+                serverPort.setValue(javaAddr.getPort());
             }
-
-            serverPort.setValue(javaAddr.getPort());
         }
 
         ConfigurationNode bedrockPort = config.getNode("bedrock").getNode("port");
