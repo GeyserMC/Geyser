@@ -33,7 +33,7 @@ import org.geysermc.connector.utils.FireworkColor;
 import org.geysermc.connector.utils.MathUtils;
 
 @ItemRemapper
-public class FireworkTranslator extends NbtItemStackTranslator {
+public class FireworkRocketTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
@@ -106,6 +106,9 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             fireworks.put(new ByteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue())));
         }
 
+        if (!itemTag.contains("Explosions")) {
+            return;
+        }
         ListTag explosions = fireworks.get("Explosions");
         for (Tag effect : explosions.getValue()) {
             CompoundTag effectData = (CompoundTag) effect;
