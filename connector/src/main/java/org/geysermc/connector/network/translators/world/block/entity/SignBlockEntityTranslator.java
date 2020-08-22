@@ -136,13 +136,10 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             case "black":
                 base += '0';
                 break;
+            default:
+                return "";
         }
-
-        if (base.length() > 1) {
-            return base;
-        } else {
-            return "";
-        }
+        return base;
     }
 
 }
