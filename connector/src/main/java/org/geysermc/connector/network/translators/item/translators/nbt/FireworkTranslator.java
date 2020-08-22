@@ -33,7 +33,7 @@ import org.geysermc.connector.utils.FireworkColor;
 import org.geysermc.connector.utils.MathUtils;
 
 @ItemRemapper
-public class FireworkRocketTranslator extends NbtItemStackTranslator {
+public class FireworkTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
