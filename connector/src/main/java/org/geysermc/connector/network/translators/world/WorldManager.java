@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.nukkitx.math.vector.Vector3i;
+import lombok.NonNull;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.GameRule;
 
@@ -74,7 +75,15 @@ public abstract class WorldManager {
      */
     public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
 
-    public abstract int[] getBiomeDataAt(GeyserSession session, int x, int z);
+    /**
+     * Gets the biome data for the specified chunk.
+     *
+     * @param session the session of the player
+     * @param x the chunk's X coordinate
+     * @param z the chunk's Z coordinate
+     * @return the biome data for the specified region with a length of 1024.
+     */
+    public abstract @NonNull int[] getBiomeDataAt(GeyserSession session, int x, int z);
 
     /**
      * Updates a gamerule value on the Java server

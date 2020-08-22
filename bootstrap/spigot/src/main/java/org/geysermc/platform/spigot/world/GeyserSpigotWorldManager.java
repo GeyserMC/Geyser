@@ -82,7 +82,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     @SuppressWarnings("deprecation")
     public int[] getBiomeDataAt(GeyserSession session, int x, int z) {
         if (session.getPlayerEntity() == null) {
-            return null;
+            return new int[1024];
         }
         int[] biomeData = new int[1024];
         ChunkSnapshot chunk = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getChunkAt(x, z).getChunkSnapshot(true, true, true);
