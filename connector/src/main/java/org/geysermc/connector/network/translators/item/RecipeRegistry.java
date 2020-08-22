@@ -102,6 +102,11 @@ public class RecipeRegistry {
             inputs.add(ItemRegistry.getBedrockItemFromJson(entry));
         }
         UUID uuid = UUID.randomUUID();
+        if (node.get("type").asInt() == 5) {
+            // Shulker box
+            return CraftingData.fromShulkerBox(uuid.toString(),
+                    inputs.toArray(new ItemData[0]), new ItemData[]{output}, uuid, "crafting_table", 0);
+        }
         return CraftingData.fromShapeless(uuid.toString(),
                 inputs.toArray(new ItemData[0]), new ItemData[]{output}, uuid, "crafting_table", 0);
     }
