@@ -42,6 +42,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
   - [ ] Command Block
   - [ ] Structure Block
   - [ ] Horse Inventory
+  - [ ] Loom
   - [ ] Smithing Table
 - Some Entity Flags
 
