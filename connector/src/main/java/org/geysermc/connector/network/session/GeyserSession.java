@@ -311,7 +311,10 @@ public class GeyserSession implements CommandSender {
         gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
         upstream.sendPacket(gamerulePacket);
 
-        login();
+        // Spawn the player
+        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+        sendUpstreamPacket(playStatusPacket);
     }
 
     public void login() {
@@ -420,6 +423,15 @@ public class GeyserSession implements CommandSender {
 
                         // Download and load the language for the player
                         LocaleUtils.downloadAndLoadLocale(locale);
+
+                        for (Entity entity : getEntityCache().getEntities().values()) {
+                            if (!entity.isValid()) {
+                                if (entity instanceof PlayerEntity) {
+                                    SkinUtils.requestAndHandleSkinAndCape((PlayerEntity) entity, GeyserSession.this, null);
+                                }
+                                entity.spawnEntity(GeyserSession.this);
+                            }
+                        }
                     }
 
                     @Override
