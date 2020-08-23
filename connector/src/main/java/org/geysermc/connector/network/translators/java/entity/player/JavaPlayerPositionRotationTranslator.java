@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTelepo
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.PlayerEntity;
@@ -49,6 +50,13 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         PlayerEntity entity = session.getPlayerEntity();
         if (entity == null)
             return;
+
+        if (!session.getUpstream().isInitialized()) {
+            // Spawn the player
+            PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+            playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+            session.sendUpstreamPacket(playStatusPacket);
+        }
 
         if (!session.isLoggedIn())
             return;

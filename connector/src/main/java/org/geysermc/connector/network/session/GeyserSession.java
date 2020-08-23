@@ -295,8 +295,14 @@ public class GeyserSession implements CommandSender {
     }
 
     public void connect(RemoteServer remoteServer) {
-        startGame();
         this.remoteServer = remoteServer;
+
+        PlayerListPacket playerListPacket = new PlayerListPacket();
+        playerListPacket.setAction(PlayerListPacket.Action.ADD);
+        playerListPacket.getEntries().add(SkinUtils.buildCachedEntry(this, playerEntity.getProfile(), playerEntity.getGeyserId()));
+        sendUpstreamPacket(playerListPacket);
+
+        startGame();
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
@@ -312,10 +318,6 @@ public class GeyserSession implements CommandSender {
         creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
         sendUpstreamPacket(creativePacket);
 
-        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-        sendUpstreamPacket(playStatusPacket);
-
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
         List<AttributeData> attributes = new ArrayList<>();
@@ -330,6 +332,8 @@ public class GeyserSession implements CommandSender {
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
         sendUpstreamPacket(gamerulePacket);
+
+        login();
     }
 
     public void login() {

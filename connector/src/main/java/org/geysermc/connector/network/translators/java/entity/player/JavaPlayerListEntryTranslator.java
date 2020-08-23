@@ -81,7 +81,6 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
 
                     playerEntity.setProfile(entry.getProfile());
                     playerEntity.setPlayerList(true);
-                    playerEntity.setValid(true);
                     playerEntity.setDisplayName(entry.getDisplayName() != null ? MessageUtils.getTranslatedBedrockMessage(entry.getDisplayName(), session.getClientData().getLanguageCode()) : null);
 
                     PlayerListPacket.Entry playerListEntry = SkinUtils.buildCachedEntry(session, playerEntity);
@@ -112,8 +111,8 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
             }
         }
 
-        if (packet.getAction() == PlayerListEntryAction.REMOVE_PLAYER || session.getUpstream().isInitialized()) {
+//        if (packet.getAction() == PlayerListEntryAction.REMOVE_PLAYER || session.getUpstream().isInitialized()) {
             session.sendUpstreamPacket(translate);
-        }
+//        }
     }
 }
