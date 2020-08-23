@@ -216,6 +216,10 @@ public class GeyserConnector {
             message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
         }
         logger.info(message);
+        
+        if (platformType == PlatformType.STANDALONE) {
+            logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
+        }
     }
 
     public void shutdown() {
