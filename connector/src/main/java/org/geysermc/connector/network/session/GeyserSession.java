@@ -49,6 +49,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
@@ -299,7 +300,7 @@ public class GeyserSession implements CommandSender {
 
         PlayerListPacket playerListPacket = new PlayerListPacket();
         playerListPacket.setAction(PlayerListPacket.Action.ADD);
-        playerListPacket.getEntries().add(SkinUtils.buildCachedEntry(this, playerEntity.getProfile(), playerEntity.getGeyserId()));
+        playerListPacket.getEntries().add(SkinUtils.buildCachedEntry(this, playerEntity));
         sendUpstreamPacket(playerListPacket);
 
         startGame();
@@ -460,12 +461,12 @@ public class GeyserSession implements CommandSender {
                         }
 
                         // Send Skulls
-                        for (PlayerEntity entity : session.getSkullCache().values()) {
-                            entity.spawnEntity(session);
+                        for (PlayerEntity entity : getSkullCache().values()) {
+                            entity.spawnEntity(GeyserSession.this);
 
-                            SkinUtils.requestAndHandleSkinAndCape(entity, session, (skinAndCape) -> session.getConnector().getGeneralThreadPool().schedule(() -> {
+                            SkinUtils.requestAndHandleSkinAndCape(entity, GeyserSession.this, (skinAndCape) -> getConnector().getGeneralThreadPool().schedule(() -> {
                                 entity.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
-                                entity.updateBedrockMetadata(session);
+                                entity.updateBedrockMetadata(GeyserSession.this);
                             }, 2, TimeUnit.SECONDS));
                         }
 
