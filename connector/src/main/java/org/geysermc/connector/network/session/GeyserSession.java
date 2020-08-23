@@ -333,7 +333,10 @@ public class GeyserSession implements CommandSender {
         gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
         sendUpstreamPacket(gamerulePacket);
 
-        login();
+        // Spawn the player
+        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+        sendUpstreamPacket(playStatusPacket);
     }
 
     public void login() {
@@ -446,6 +449,25 @@ public class GeyserSession implements CommandSender {
 
                         // Download and load the language for the player
                         LocaleUtils.downloadAndLoadLocale(locale);
+
+                        for (Entity entity : getEntityCache().getEntities().values()) {
+                            if (!entity.isValid()) {
+                                if (entity instanceof PlayerEntity) {
+                                    SkinUtils.requestAndHandleSkinAndCape((PlayerEntity) entity, GeyserSession.this, null);
+                                }
+                                entity.spawnEntity(GeyserSession.this);
+                            }
+                        }
+
+                        // Send Skulls
+                        for (PlayerEntity entity : session.getSkullCache().values()) {
+                            entity.spawnEntity(session);
+
+                            SkinUtils.requestAndHandleSkinAndCape(entity, session, (skinAndCape) -> session.getConnector().getGeneralThreadPool().schedule(() -> {
+                                entity.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
+                                entity.updateBedrockMetadata(session);
+                            }, 2, TimeUnit.SECONDS));
+                        }
 
                         // Register plugin channels
                         connector.getGeneralThreadPool().schedule(() -> {
