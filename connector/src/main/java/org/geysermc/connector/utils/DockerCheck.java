@@ -25,36 +25,13 @@
 
 package org.geysermc.connector.utils;
 
-import org.geysermc.connector.bootstrap.GeyserBootstrap;
-
-import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class DockerCheck {
-    public static void check(GeyserBootstrap bootstrap) {
-        try {
-            String OS = System.getProperty("os.name").toLowerCase();
-            String ipAddress = InetAddress.getLocalHost().getHostAddress();
 
-            // Check if the user is already using the recommended IP
-            if (ipAddress.equals(bootstrap.getGeyserConfig().getRemote().getAddress())) {
-                return;
-            }
-
-            if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
-                bootstrap.getGeyserLogger().debug("We are on a Unix system, checking for Docker...");
-
-                String output = new String(Files.readAllBytes(Paths.get("/proc/1/cgroup")));
-
-                if (output.contains("docker")) {
-                    bootstrap.getGeyserLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.docker_warn.line1"));
-                    bootstrap.getGeyserLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.docker_warn.line2", ipAddress));
-                }
-            }
-        } catch (Exception e) { } // Ignore any errors, inc ip failed to fetch, process could not run or access denied
-    }
-
+    // By default, Geyser now sets the IP to the local IP in all cases on plugin versions so we don't notify the user of anything
+    // However we still have this check for the potential future bug
     public static boolean checkBasic() {
         try {
             String OS = System.getProperty("os.name").toLowerCase();

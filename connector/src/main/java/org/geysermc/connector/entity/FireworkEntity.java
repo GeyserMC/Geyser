@@ -40,6 +40,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FireworkColor;
 import org.geysermc.connector.utils.MathUtils;
+import org.geysermc.floodgate.util.DeviceOS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,9 +56,18 @@ public class FireworkEntity extends Entity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7) {
             ItemStack item = (ItemStack) entityMetadata.getValue();
+            if (item == null) {
+                return;
+            }
             CompoundTag tag = item.getNbt();
 
             if (tag == null) {
+                return;
+            }
+
+            // TODO: Remove once Mojang fixes bugs with fireworks crashing clients on these specific devices.
+            // https://bugs.mojang.com/browse/MCPE-89115
+            if (session.getClientData().getDeviceOS() == DeviceOS.XBOX_ONE || session.getClientData().getDeviceOS() == DeviceOS.ORBIS) {
                 return;
             }
 

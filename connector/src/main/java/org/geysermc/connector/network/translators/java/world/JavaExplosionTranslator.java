@@ -32,6 +32,7 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -64,5 +65,12 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
         session.sendUpstreamPacket(levelSoundEventPacket);
+
+        if (packet.getPushX() > 0f || packet.getPushY() > 0f || packet.getPushZ() > 0f) {
+            SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+            motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+            motionPacket.setMotion(Vector3f.from(packet.getPushX(), packet.getPushY(), packet.getPushZ()));
+            session.sendUpstreamPacket(motionPacket);
+        }
     }
 }

@@ -38,6 +38,12 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class GeyserJacksonConfiguration implements GeyserConfiguration {
 
+    /**
+     * If the config was originally 'auto' before the values changed
+     */
+    @Setter
+    private boolean autoconfiguredRemote = false;
+
     private BedrockConfiguration bedrock;
     private RemoteConfiguration remote;
 
@@ -56,6 +62,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("passthrough-player-counts")
     private boolean isPassthroughPlayerCounts;
+
+    @JsonProperty("passthrough-protocol-name")
+    private boolean isPassthroughProtocolName;
 
     @JsonProperty("legacy-ping-passthrough")
     private boolean isLegacyPingPassthrough;
@@ -98,6 +107,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
 
+        @AsteriskSerializer.Asterisk(sensitive = true)
         private String address;
 
         @Setter
@@ -114,11 +124,13 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class RemoteConfiguration implements IRemoteConfiguration {
 
         @Setter
+        @AsteriskSerializer.Asterisk(sensitive = true)
         private String address;
 
         @Setter
         private int port;
 
+        @Setter
         @JsonProperty("auth-type")
         private String authType;
     }
@@ -140,6 +152,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @JsonProperty("uuid")
         private String uniqueId;
     }
+
+    @JsonProperty("enable-proxy-connections")
+    private boolean enableProxyConnections = false;
 
     @JsonProperty("mtu")
     private int mtu = 1400;
