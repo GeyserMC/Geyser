@@ -26,6 +26,7 @@
 package org.geysermc.connector.scoreboard;
 
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -33,20 +34,19 @@ import org.geysermc.connector.utils.LanguageUtils;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScoreboardUpdater extends Thread {
-    public static final int FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD = 10;
+    public static final int FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
     public static final int SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD = 250;
 
     private static final int FIRST_MILLIS_BETWEEN_UPDATES = 1000; // 1 update per second
     private static final int SECOND_MILLIS_BETWEEN_UPDATES = 1000 * 3; // 1 update per 3 seconds
+
+    private static final boolean DEBUG_ENABLED;
 
     private final WorldCache worldCache;
     private final GeyserSession session;
 
     private int millisBetweenUpdates = FIRST_MILLIS_BETWEEN_UPDATES;
     private long lastUpdate = System.currentTimeMillis();
-
-    // If the Score Packets Per Second dropped below the lowest threshold once since the lastLog
-    private boolean failedBetweenLastLog = true;
     private long lastLog = -1;
 
     private long lastPacketsPerSecondUpdate = System.currentTimeMillis();
@@ -85,7 +85,7 @@ public class ScoreboardUpdater extends Thread {
 
                     worldCache.getScoreboard().onUpdate(true);
 
-                    if (failedBetweenLastLog && currentTime - lastLog > 60000) { // one minute
+                    if (DEBUG_ENABLED && (currentTime - lastLog > 60000)) { // one minute
                         int threshold = reachedSecondThreshold ?
                                 SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD :
                                 FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
@@ -95,17 +95,9 @@ public class ScoreboardUpdater extends Thread {
                                 LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
                         );
 
-                        String languageCode = session.getClientData().getLanguageCode();
-                        session.sendMessage(
-                                LanguageUtils.getPlayerLocaleString("geyser.scoreboard.updater.threshold_reached.player", languageCode, threshold, pps) + ' ' +
-                                LanguageUtils.getPlayerLocaleString("geyser.scoreboard.updater.threshold_reached", languageCode, (millisBetweenUpdates / 1000.0))
-                        );
-
                         lastLog = currentTime;
                     }
-                    continue;
                 }
-                failedBetweenLastLog = true;
             }
         }
     }
@@ -119,5 +111,11 @@ public class ScoreboardUpdater extends Thread {
      */
     public int incrementAndGetPacketsPerSecond() {
         return pendingPacketsPerSecond.incrementAndGet();
+    }
+
+    static {
+        GeyserConfiguration config = GeyserConnector.getInstance().getConfig();
+        FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD = Math.min(config.getScoreboardPacketThreshold(), SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD);
+        DEBUG_ENABLED = config.isDebugMode();
     }
 }

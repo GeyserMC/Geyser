@@ -43,6 +43,7 @@ public class Team {
 
     private UpdateType updateType = UpdateType.ADD;
     private String name;
+
     private String prefix;
     private TeamColor color;
     private String suffix;
@@ -79,6 +80,28 @@ public class Team {
 
     public boolean hasEntity(String name) {
         return entities.contains(name);
+    }
+
+    public Team setPrefix(String prefix) {
+        // replace "null" to an empty string,
+        // we do this here to improve the performance of Score#getDisplayName
+        if (prefix.length() == 4 && "null".equals(prefix)) {
+            this.prefix = "";
+            return this;
+        }
+        this.prefix = prefix;
+        return this;
+    }
+
+    public Team setSuffix(String suffix) {
+        // replace "null" to an empty string,
+        // we do this here to improve the performance of Score#getDisplayName
+        if (suffix.length() == 4 && "null".equals(suffix)) {
+            this.suffix = "";
+            return this;
+        }
+        this.suffix = suffix;
+        return this;
     }
 
     @Override
