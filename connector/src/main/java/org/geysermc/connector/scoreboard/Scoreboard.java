@@ -118,10 +118,6 @@ public class Scoreboard {
     }
 
     public void onUpdate() {
-        onUpdate(false);
-    }
-
-    public void onUpdate(boolean isUsingScoreboardUpdater) {
         List<ScoreInfo> addScores = new ArrayList<>(getLastScoreCount());
         List<ScoreInfo> removeScores = new ArrayList<>(getLastScoreCount());
 
@@ -231,10 +227,12 @@ public class Scoreboard {
 
             boolean update = objective.getUpdateType() == NOTHING || objective.getUpdateType() == UPDATE;
 
+            boolean hugeObjective = handledScores.size() > 500;
+
             if (objective.getUpdateType() == REMOVE || update) {
                 RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
                 removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
-                sendPacket(removeObjectivePacket, isUsingScoreboardUpdater);
+                sendPacket(removeObjectivePacket, hugeObjective);
                 if (objective.getUpdateType() == REMOVE) {
                     objectives.remove(objective.getObjectiveName()); // now we can deregister
                     objective.removed();
@@ -248,33 +246,35 @@ public class Scoreboard {
                 displayObjectivePacket.setCriteria("dummy");
                 displayObjectivePacket.setDisplaySlot(objective.getDisplaySlotName());
                 displayObjectivePacket.setSortOrder(1); // ??
-                sendPacket(displayObjectivePacket, isUsingScoreboardUpdater);
+                sendPacket(displayObjectivePacket, hugeObjective);
             }
 
             objective.setUpdateType(NOTHING);
         }
 
+        boolean hugeUpdate = addScores.size() + removeScores.size() > 500;
+
         if (!removeScores.isEmpty()) {
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(SetScorePacket.Action.REMOVE);
             setScorePacket.setInfos(removeScores);
-            sendPacket(setScorePacket, isUsingScoreboardUpdater);
+            sendPacket(setScorePacket, hugeUpdate);
         }
 
         if (!addScores.isEmpty()) {
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(SetScorePacket.Action.SET);
             setScorePacket.setInfos(addScores);
-            sendPacket(setScorePacket, isUsingScoreboardUpdater);
+            sendPacket(setScorePacket, hugeUpdate);
         }
 
         lastScoreCount = addScores.size();
     }
 
-    public void sendPacket(BedrockPacket packet, boolean isUsingScoreboardUpdater) {
+    public void sendPacket(BedrockPacket packet, boolean hugeObjective) {
         // huge score update packets will stay forever in the packet queue,
         // so we send them immediately
-        if (isUsingScoreboardUpdater) {
+        if (hugeObjective) {
             session.sendUpstreamPacketImmediately(packet);
             return;
         }

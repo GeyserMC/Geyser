@@ -41,17 +41,15 @@ public class UpstreamSession {
     private boolean initialized = false;
 
     public void sendPacket(@NonNull BedrockPacket packet) {
-        if (session.isClosed()) {
-            return;
+        if (!isClosed()) {
+            session.sendPacket(packet);
         }
-        session.sendPacket(packet);
     }
 
     public void sendPacketImmediately(@NonNull BedrockPacket packet) {
-        if (session.isClosed()) {
-            return;
+        if (!isClosed()) {
+            session.sendPacketImmediately(packet);
         }
-        session.sendPacketImmediately(packet);
     }
 
     public void disconnect(String reason) {

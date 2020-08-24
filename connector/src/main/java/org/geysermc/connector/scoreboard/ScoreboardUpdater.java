@@ -83,7 +83,7 @@ public class ScoreboardUpdater extends Thread {
                         millisBetweenUpdates = FIRST_MILLIS_BETWEEN_UPDATES;
                     }
 
-                    worldCache.getScoreboard().onUpdate(true);
+                    worldCache.getScoreboard().onUpdate();
 
                     if (DEBUG_ENABLED && (currentTime - lastLog > 60000)) { // one minute
                         int threshold = reachedSecondThreshold ?
