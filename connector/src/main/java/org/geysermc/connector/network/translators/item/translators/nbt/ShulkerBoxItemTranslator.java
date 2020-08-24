@@ -59,8 +59,8 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
             }
 
             boxItemTag.put(new StringTag("Name", blockName));
-            boxItemTag.put(new ByteTag("Count", (byte) (short) boxItemEntry.getBedrockData()));
-            boxItemTag.put(new ShortTag("Damage", ((ByteTag) itemData.get("Count")).getValue()));
+            boxItemTag.put(new ShortTag("Damage", (short) boxItemEntry.getBedrockData()));
+            boxItemTag.put(new ByteTag("Count", ((ByteTag) itemData.get("Count")).getValue()));
             if (itemData.contains("tag")) {
                 // Only the display name is what we have interest in, so just translate that if relevant
                 CompoundTag displayTag = itemData.get("tag");
