@@ -205,6 +205,11 @@ public class GeyserSpongeConfiguration implements GeyserConfiguration {
         public String getMotd2() {
             return node.getNode("motd2").getString("GeyserMC");
         }
+
+        @Override
+        public String getServerName() {
+            return node.getNode("server-name").getString("Geyser");
+        }
     }
 
     @AllArgsConstructor
