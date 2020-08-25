@@ -92,7 +92,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean allowThirdPartyEars = false;
 
     @JsonProperty("default-locale")
-    private String defaultLocale = "en_us";
+    private String defaultLocale = null; // is null by default so system language takes priority
 
     @JsonProperty("cache-chunks")
     private boolean cacheChunks = false;
@@ -127,7 +127,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class RemoteConfiguration implements IRemoteConfiguration {
         @Setter
         @AsteriskSerializer.Asterisk(sensitive = true)
-        private String address = "127.0.0.1";
+        private String address = "auto";
 
         @Setter
         private int port = 25565;
