@@ -186,7 +186,7 @@ public class GeyserConnector {
             if (throwable == null) {
                 logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
             } else {
-                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), config.getBedrock().getPort()));
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
                 throwable.printStackTrace();
             }
         }).join();
@@ -218,6 +218,10 @@ public class GeyserConnector {
             message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
         }
         logger.info(message);
+        
+        if (platformType == PlatformType.STANDALONE) {
+            logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
+        }
     }
 
     public void shutdown() {
