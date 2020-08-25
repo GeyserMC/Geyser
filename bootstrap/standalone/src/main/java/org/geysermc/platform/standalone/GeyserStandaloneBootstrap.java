@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.UUID;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
@@ -62,22 +63,61 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Getter
     private boolean useGui = System.console() == null && !isHeadless();
+    private String configFilename = "config.yml";
 
     private GeyserConnector connector;
 
+
     public static void main(String[] args) {
-        for (String arg : args) {
+        GeyserStandaloneBootstrap bootstrap = new GeyserStandaloneBootstrap();
+        // Set defaults
+        boolean useGuiOpts = bootstrap.useGui;
+        String configFilenameOpt = bootstrap.configFilename;
+
+        for (int i = 0; i < args.length; i++) {
             // By default, standalone Geyser will check if it should open the GUI based on if the GUI is null
             // Optionally, you can force the use of a GUI or no GUI by specifying args
-            if (arg.equals("gui")) {
-                new GeyserStandaloneBootstrap().onEnable(true);
-                return;
-            } else if (arg.equals("nogui")) {
-                new GeyserStandaloneBootstrap().onEnable(false);
-                return;
+            // Allows gui and nogui without options, for backwards compatibility
+            String arg = args[i];
+            switch (arg) {
+                case "--gui":
+                case "gui":
+                    useGuiOpts = true;
+                    break;
+                case "--nogui":
+                case "nogui":
+                    useGuiOpts = false;
+                    break;
+                case "--config":
+                case "-c":
+                    if (i >= args.length - 1) {
+                        System.err.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.confignotspecified"), "-c"));
+                        return;
+                    }
+                    configFilenameOpt = args[i+1]; i++;
+                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.configspecified"), configFilenameOpt));
+                    break;
+                case "--help":
+                case "-h":
+                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.usage"), "[java -jar] Geyser.jar [opts]"));
+                    System.out.println("  " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.options"));
+                    System.out.println("    -c, --config [file]    " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config"));
+                    System.out.println("    -h, --help             " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.help"));
+                    System.out.println("    --gui, --nogui         " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.gui"));
+                    return;
+                default:
+                    String badArgMsg = LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.unrecognised");
+                    System.err.println(MessageFormat.format(badArgMsg, arg));
+                    return;
             }
         }
-        new GeyserStandaloneBootstrap().onEnable();
+        bootstrap.onEnable(useGuiOpts, configFilenameOpt);
+    }
+
+    public void onEnable(boolean useGui, String configFilename) {
+        this.configFilename = configFilename;
+        this.useGui = useGui;
+        this.onEnable();
     }
 
     public void onEnable(boolean useGui) {
@@ -106,7 +146,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         LoopbackUtil.checkLoopback(geyserLogger);
         
         try {
-            File configFile = FileUtils.fileOrCopiedFromResource("config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
             if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
                 geyserConfig.setAutoconfiguredRemote(true); // Doesn't really need to be set but /shrug
