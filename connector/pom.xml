@@ -129,7 +129,7 @@
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
-            <version>0.9.11</version>
+            <version>0.9.11</version> <!-- This isn't the latest version to get round https://github.com/ronmamo/reflections/issues/273 -->
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
