@@ -107,6 +107,9 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             fireworks.put(new ByteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue())));
         }
 
+        if (!itemTag.contains("Explosions")) {
+            return;
+        }
         ListTag explosions = fireworks.get("Explosions");
         for (Tag effect : explosions.getValue()) {
             CompoundTag effectData = (CompoundTag) effect;
