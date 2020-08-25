@@ -62,7 +62,7 @@
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections.reflections</pattern>
+                                    <pattern>org.reflections</pattern>
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.reflections</shadedPattern>
                                 </relocation>
                             </relocations>
