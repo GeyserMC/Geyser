@@ -27,7 +27,6 @@ package org.geysermc.connector.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.connector.GeyserLogger;
-
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.nio.file.Path;
@@ -36,7 +35,7 @@ import java.util.Map;
 public interface GeyserConfiguration {
 
     // Modify this when you update the config
-    int CURRENT_CONFIG_VERSION = 5;
+    int CURRENT_CONFIG_VERSION = 4;
 
     IBedrockConfiguration getBedrock();
 
@@ -74,7 +73,7 @@ public interface GeyserConfiguration {
 
     String getDefaultLocale();
 
-    Path getFloodgateKeyFile();
+    Path getFloodgateKeyPath();
 
     boolean isAboveBedrockNetherBuilding();
 

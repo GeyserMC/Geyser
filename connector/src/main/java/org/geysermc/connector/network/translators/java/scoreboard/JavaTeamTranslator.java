@@ -44,16 +44,12 @@ import java.util.Set;
 
 @Translator(packet = ServerTeamPacket.class)
 public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
-    private final GeyserLogger logger;
-
-    public JavaTeamTranslator() {
-        logger = GeyserConnector.getInstance().getLogger();
-    }
+    private static final GeyserLogger LOGGER = GeyserConnector.getInstance().getLogger();
 
     @Override
     public void translate(ServerTeamPacket packet, GeyserSession session) {
-        if (logger.isDebug()) {
-            logger.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
+        if (LOGGER.isDebug()) {
+            LOGGER.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
         }
 
         int pps = session.getWorldCache().increaseAndGetScoreboardPacketsPerSecond();
@@ -70,7 +66,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                 break;
             case UPDATE:
                 if (team == null) {
-                    logger.debug(LanguageUtils.getLocaleStringLog(
+                    LOGGER.debug(LanguageUtils.getLocaleStringLog(
                             "geyser.network.translator.team.failed_not_registered",
                             packet.getAction(), packet.getTeamName()
                     ));
@@ -85,7 +81,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                 break;
             case ADD_PLAYER:
                 if (team == null) {
-                    logger.debug(LanguageUtils.getLocaleStringLog(
+                    LOGGER.debug(LanguageUtils.getLocaleStringLog(
                             "geyser.network.translator.team.failed_not_registered",
                             packet.getAction(), packet.getTeamName()
                     ));
@@ -95,7 +91,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                 break;
             case REMOVE_PLAYER:
                 if (team == null) {
-                    logger.debug(LanguageUtils.getLocaleStringLog(
+                    LOGGER.debug(LanguageUtils.getLocaleStringLog(
                             "geyser.network.translator.team.failed_not_registered",
                             packet.getAction(), packet.getTeamName()
                     ));

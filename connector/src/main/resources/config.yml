@@ -136,4 +136,4 @@ enable-proxy-connections: false
 # 1400 is the default.
 # mtu: 1400
 
-config-version: 5
+config-version: 4
