@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 
 import java.nio.file.Path;
@@ -88,7 +89,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean showCooldown = true;
 
     @JsonProperty("allow-third-party-ears")
-    private boolean allowThirdPartyEars;
+    private boolean allowThirdPartyEars = false;
 
     @JsonProperty("default-locale")
     private String defaultLocale = "en_us";
@@ -106,7 +107,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
-
         @AsteriskSerializer.Asterisk(sensitive = true)
         private String address = "0.0.0.0";
 
@@ -118,11 +118,13 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         private String motd1 = "GeyserMC";
         private String motd2 = "Geyser";
+
+        @JsonProperty("server-name")
+        private String serverName = GeyserConnector.NAME;
     }
 
     @Getter
     public static class RemoteConfiguration implements IRemoteConfiguration {
-
         @Setter
         @AsteriskSerializer.Asterisk(sensitive = true)
         private String address = "127.0.0.1";
@@ -149,7 +151,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         private boolean enabled = true;
 
         @JsonProperty("uuid")
-        private String uniqueId;
+        private String uniqueId = "generateuuid";
     }
 
     @JsonProperty("scoreboard-packet-threshold")
