@@ -283,7 +283,5 @@ public class ChunkUtils {
 
         @Getter
         private NbtMap[] blockEntities = new NbtMap[0];
-        @Getter
-        private Object2IntMap<NbtMap> loadBlockEntitiesLater = new Object2IntOpenHashMap<>();
     }
 }

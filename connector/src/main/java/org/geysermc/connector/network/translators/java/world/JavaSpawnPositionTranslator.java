@@ -32,6 +32,7 @@ import org.geysermc.connector.network.translators.Translator;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnPositionPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.SetSpawnPositionPacket;
+import org.geysermc.connector.utils.DimensionUtils;
 
 @Translator(packet = ServerSpawnPositionPacket.class)
 public class JavaSpawnPositionTranslator extends PacketTranslator<ServerSpawnPositionPacket> {
@@ -41,6 +42,7 @@ public class JavaSpawnPositionTranslator extends PacketTranslator<ServerSpawnPos
         SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
         spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
         spawnPositionPacket.setSpawnForced(true);
+        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getPlayerEntity().getDimension()));
         spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
         session.sendUpstreamPacket(spawnPositionPacket);
     }
