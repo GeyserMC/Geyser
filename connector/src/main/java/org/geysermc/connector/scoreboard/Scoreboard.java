@@ -126,7 +126,6 @@ public class Scoreboard {
                 logger.debug("Ignoring non-active Scoreboard Objective '"+ objective.getObjectiveName() +'\'');
                 continue;
             }
-            boolean changed = false;
 
             // hearts can't hold teams, so we treat them differently
             if (objective.getType() == 1) {
@@ -150,51 +149,36 @@ public class Scoreboard {
                 continue;
             }
 
-            if (objective.getUpdateType() != NOTHING) {
-                changed = true;
-            }
-
             boolean globalUpdate = objective.getUpdateType() == UPDATE;
             boolean globalAdd = objective.getUpdateType() == ADD;
             boolean globalRemove = objective.getUpdateType() == REMOVE;
 
-            List<Score> handledScores = new ArrayList<>();
             for (Score score : objective.getScores().values()) {
                 Team team = score.getTeam();
 
                 boolean add = globalAdd || globalUpdate;
-                boolean remove = globalRemove || globalUpdate;
-                boolean teamUpdate = false;
+                boolean remove = globalRemove;
+                boolean teamChanged = false;
                 if (team != null) {
                     if (team.getUpdateType() == REMOVE || !team.hasEntity(score.getName())) {
                         score.setTeam(null);
+                        teamChanged = true;
                     }
 
-                    teamUpdate = team.getUpdateType() == UPDATE;
+                    teamChanged |= team.getUpdateType() == UPDATE;
 
-                    boolean teamAdd = team.getUpdateType() == ADD || team.getUpdateType() == UPDATE;
-                    boolean teamRemove = team.getUpdateType() == REMOVE || team.getUpdateType() == UPDATE;
-
-                    add |= teamAdd || teamRemove;
-                    remove |= teamAdd || teamRemove;
+                    add |= team.getUpdateType() == ADD || team.getUpdateType() == UPDATE;
+                    remove |= team.getUpdateType() == REMOVE;
                 }
 
                 add |= score.getUpdateType() == ADD || score.getUpdateType() == UPDATE;
-                remove |= score.getUpdateType() == REMOVE || score.getUpdateType() == UPDATE;
+                remove |= score.getUpdateType() == REMOVE;
                 if (score.getUpdateType() == REMOVE) {
                     add = false;
                 }
 
-                if (score.getUpdateType() == UPDATE || teamUpdate) {
+                if (score.getUpdateType() == UPDATE || teamChanged) {
                     score.update();
-                }
-
-                if (!globalUpdate && add) {
-                    globalUpdate = true;
-                    for (Score handledScore : handledScores) {
-                        addScores.add(handledScore.getCachedInfo());
-                        removeScores.add(handledScore.getCachedInfo());
-                    }
                 }
 
                 if (add) {
@@ -211,74 +195,47 @@ public class Scoreboard {
                     objective.removeScore0(score.getName());
                 }
 
-                if (add || remove) {
-                    // a score inside the objective has been changed, so the objective has to update as well
-                    changed = true;
-                } else {
-                    // the score hasn't changed, so we store them in case we still need it
-                    handledScores.add(score);
-                }
                 score.setUpdateType(NOTHING);
             }
 
-            if (!changed) {
-                continue;
-            }
-
-            boolean update = objective.getUpdateType() == NOTHING || objective.getUpdateType() == UPDATE;
-
-            boolean hugeObjective = handledScores.size() > 500;
-
-            if (objective.getUpdateType() == REMOVE || update) {
+            if (globalRemove || globalUpdate) {
                 RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
                 removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
-                sendPacket(removeObjectivePacket, hugeObjective);
+                session.sendUpstreamPacket(removeObjectivePacket);
                 if (objective.getUpdateType() == REMOVE) {
                     objectives.remove(objective.getObjectiveName()); // now we can deregister
                     objective.removed();
                 }
             }
 
-            if (objective.getUpdateType() == ADD || update) {
+            if (globalAdd || globalUpdate) {
                 SetDisplayObjectivePacket displayObjectivePacket = new SetDisplayObjectivePacket();
                 displayObjectivePacket.setObjectiveId(objective.getObjectiveName());
                 displayObjectivePacket.setDisplayName(objective.getDisplayName());
                 displayObjectivePacket.setCriteria("dummy");
                 displayObjectivePacket.setDisplaySlot(objective.getDisplaySlotName());
                 displayObjectivePacket.setSortOrder(1); // ??
-                sendPacket(displayObjectivePacket, hugeObjective);
+                session.sendUpstreamPacket(displayObjectivePacket);
             }
 
             objective.setUpdateType(NOTHING);
         }
 
-        boolean hugeUpdate = addScores.size() + removeScores.size() > 500;
-
         if (!removeScores.isEmpty()) {
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(SetScorePacket.Action.REMOVE);
             setScorePacket.setInfos(removeScores);
-            sendPacket(setScorePacket, hugeUpdate);
+            session.sendUpstreamPacket(setScorePacket);
         }
 
         if (!addScores.isEmpty()) {
             SetScorePacket setScorePacket = new SetScorePacket();
             setScorePacket.setAction(SetScorePacket.Action.SET);
             setScorePacket.setInfos(addScores);
-            sendPacket(setScorePacket, hugeUpdate);
+            session.sendUpstreamPacket(setScorePacket);
         }
 
         lastScoreCount = addScores.size();
-    }
-
-    public void sendPacket(BedrockPacket packet, boolean hugeObjective) {
-        // huge score update packets will stay forever in the packet queue,
-        // so we send them immediately
-        if (hugeObjective) {
-            session.sendUpstreamPacketImmediately(packet);
-            return;
-        }
-        session.sendUpstreamPacket(packet);
     }
 
     public void despawnObjective(Objective objective) {

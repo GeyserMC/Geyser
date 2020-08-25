@@ -41,7 +41,6 @@ public class Objective {
     @Setter
     private UpdateType updateType = UpdateType.ADD;
     private String objectiveName;
-    private ScoreboardPosition displaySlot;
     private String displaySlotName;
     private String displayName = "unknown";
     private int type = 0; // 0 = integer, 1 = heart
@@ -68,8 +67,7 @@ public class Objective {
     public Objective(Scoreboard scoreboard, String objectiveName, ScoreboardPosition displaySlot, String displayName, int type) {
         this(scoreboard);
         this.objectiveName = objectiveName;
-        this.displaySlot = displaySlot;
-        this.displaySlotName = displaySlot.name().toLowerCase();
+        this.displaySlotName = translateDisplaySlot(displaySlot);
         this.displayName = displayName;
         this.type = type;
     }
@@ -139,19 +137,22 @@ public class Objective {
     public void setActive(ScoreboardPosition displaySlot) {
         if (!active) {
             active = true;
-            this.displaySlot = displaySlot;
-            this.displaySlotName = displaySlot.name().toLowerCase();
+            displaySlotName = translateDisplaySlot(displaySlot);
         }
-    }
-
-    public boolean isSidebar() {
-        if (displaySlot != null) {
-            return displaySlot != ScoreboardPosition.BELOW_NAME && displaySlot != ScoreboardPosition.PLAYER_LIST;
-        }
-        return false;
     }
 
     public void removed() {
         scores = null;
+    }
+
+    private static String translateDisplaySlot(ScoreboardPosition displaySlot) {
+        switch (displaySlot) {
+            case BELOW_NAME:
+                return "belowname";
+            case PLAYER_LIST:
+                return "list";
+            default:
+                return "sidebar";
+        }
     }
 }
