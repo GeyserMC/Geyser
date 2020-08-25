@@ -138,6 +138,7 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.security.interfaces.ECPublicKey;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -147,6 +148,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements GeyserConnection, CommandSender {
+
+    /**
+     * Id used in protocol to refer to primary client (0) or splitscreen subclients (>0)
+     */
+    private int clientId;
+
+    @Setter
+    private ECPublicKey identityPublicKey;
 
     private final @Nonnull GeyserImpl geyser;
     private final @Nonnull UpstreamSession upstream;
@@ -539,9 +548,10 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
     private MinecraftProtocol protocol;
 
-    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
+    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop, int clientId) {
         this.geyser = geyser;
-        this.upstream = new UpstreamSession(bedrockServerSession);
+        this.upstream = new UpstreamSession(bedrockServerSession, clientId);
+        this.clientId = clientId;
         this.eventLoop = eventLoop;
 
         this.advancementsCache = new AdvancementsCache(this);
@@ -1167,10 +1177,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
-    }
-
-    public void setAuthenticationData(AuthData authData) {
-        this.authData = authData;
     }
 
     public void startSneaking() {

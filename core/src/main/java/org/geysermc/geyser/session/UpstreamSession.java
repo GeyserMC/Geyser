@@ -27,6 +27,7 @@ package org.geysermc.geyser.session;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.packet.DisconnectPacket;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -39,30 +40,46 @@ import java.util.Queue;
 @RequiredArgsConstructor
 public class UpstreamSession {
     @Getter private final BedrockServerSession session;
+    private final int clientId;
     @Getter @Setter
     private boolean initialized = false;
     private Queue<BedrockPacket> postStartGamePackets = new ArrayDeque<>();
 
     public void sendPacket(@NonNull BedrockPacket packet) {
         if (!isClosed()) {
+            packet.setSenderId(clientId);
             session.sendPacket(packet);
         }
     }
 
     public void sendPacketImmediately(@NonNull BedrockPacket packet) {
         if (!isClosed()) {
+            packet.setSenderId(clientId);
             session.sendPacketImmediately(packet);
         }
     }
 
     public void disconnect(String reason) {
-        session.disconnect(reason);
+        if (isClosed()) {
+            throw new IllegalStateException("Connection has been closed");
+        }
+
+        DisconnectPacket packet = new DisconnectPacket();
+        packet.setSenderId(clientId);
+
+        if (reason == null) {
+            packet.setMessageSkipped(true);
+            reason = "disconnect.disconnected";
+        }
+        packet.setKickMessage(reason);
+        this.sendPacketImmediately(packet);
     }
 
     /**
      * Queue a packet that must be delayed until after login.
      */
     public void queuePostStartGamePacket(BedrockPacket packet) {
+        packet.setClientId(clientId);
         postStartGamePackets.add(packet);
     }
 
@@ -73,6 +90,7 @@ public class UpstreamSession {
 
         BedrockPacket packet;
         while ((packet = postStartGamePackets.poll()) != null) {
+            packet.setClientId(clientId);
             session.sendPacket(packet);
         }
         postStartGamePackets = null;
