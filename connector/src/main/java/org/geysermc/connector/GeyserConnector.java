@@ -163,7 +163,7 @@ public class GeyserConnector {
                     config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
                     logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
-            } catch (Exception ex) {
+            } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
                 logger.debug("Exception while trying to find an SRV record for the remote host.");
                 if (config.isDebugMode())
                     ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
@@ -305,6 +305,10 @@ public class GeyserConnector {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    public boolean isProduction() {
+        return !"DEV".equals(GeyserConnector.VERSION);
     }
 
     public static GeyserConnector getInstance() {
