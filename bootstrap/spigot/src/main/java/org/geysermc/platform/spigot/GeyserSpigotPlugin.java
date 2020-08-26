@@ -56,7 +56,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotLogger geyserLogger;
     private IGeyserPingPassthrough geyserSpigotPingPassthrough;
-    private GeyserSpigotBlockPlaceListener blockPlaceListener;
     private GeyserSpigotWorldManager geyserWorldManager;
 
     private GeyserConnector connector;
@@ -132,7 +131,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, use3dBiomes, isViaVersion);
-        this.blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);
+        GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);
 
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
