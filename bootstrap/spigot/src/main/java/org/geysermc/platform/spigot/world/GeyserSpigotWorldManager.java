@@ -61,6 +61,8 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
      * 2: There is no way to get the Minecraft biome ID from the name itself with Spigot.
      * To solve both of these problems, we store a JSON file of every Biome enum that has existed,
      * along with its 1.16 biome number.
+     *
+     * The key is the Spigot Biome ordinal; the value is the Minecraft Java biome numerical ID
      */
     private static final Int2IntMap biomeToIdMap = new Int2IntOpenHashMap(Biome.values().length);
 
@@ -132,9 +134,9 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         World world = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld();
         // 3D biomes didn't exist until 1.15
         if (use3dBiomes) {
-            for (int localX = x << 4; localX < 16; localX += + 4) {
+            for (int localX = x << 4; localX < (x << 4) + 16; localX += + 4) {
                 for (int localY = 0; localY < 255; localY += + 4) {
-                    for (int localZ = z << 4; localZ < 16; localZ += + 4) {
+                    for (int localZ = z << 4; localZ < (z << 4) + 16; localZ += + 4) {
                         // Index is based on wiki.vg's index requirements
                         final int i = ((localY >> 2) & 63) << 4 | ((localZ >> 2) & 3) << 2 | ((localX >> 2) & 3);
                         biomeData[i] = biomeToIdMap.getOrDefault(world.getBiome(localX, localY, localZ).ordinal(), 0);
@@ -143,9 +145,9 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             }
         } else {
             // Looks like the same code, but we're not checking the Y coordinate here
-            for (int localX = x << 4; localX < 16; localX += + 4) {
+            for (int localX = x << 4; localX < (x << 4) + 16; localX += + 4) {
                 for (int localY = 0; localY < 255; localY += + 4) {
-                    for (int localZ = z << 4; localZ < 16; localZ += + 4) {
+                    for (int localZ = z << 4; localZ < (z << 4) + 16; localZ += + 4) {
                         // Index is based on wiki.vg's index requirements
                         final int i = ((localY >> 2) & 63) << 4 | ((localZ >> 2) & 3) << 2 | ((localX >> 2) & 3);
                         biomeData[i] = biomeToIdMap.getOrDefault(world.getBiome(localX, localZ).ordinal(), 0);
