@@ -132,11 +132,15 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         }
         int[] biomeData = new int[1024];
         World world = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld();
+        int chunkX = x << 4;
+        int chunkZ = z << 4;
+        int chunkXmax = chunkX + 16;
+        int chunkZmax = chunkZ + 16;
         // 3D biomes didn't exist until 1.15
         if (use3dBiomes) {
-            for (int localX = x << 4; localX < (x << 4) + 16; localX += + 4) {
+            for (int localX = chunkX; localX < chunkXmax; localX += 4) {
                 for (int localY = 0; localY < 255; localY += + 4) {
-                    for (int localZ = z << 4; localZ < (z << 4) + 16; localZ += + 4) {
+                    for (int localZ = chunkZ; localZ < chunkZmax; localZ += 4) {
                         // Index is based on wiki.vg's index requirements
                         final int i = ((localY >> 2) & 63) << 4 | ((localZ >> 2) & 3) << 2 | ((localX >> 2) & 3);
                         biomeData[i] = biomeToIdMap.getOrDefault(world.getBiome(localX, localY, localZ).ordinal(), 0);
@@ -145,9 +149,9 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             }
         } else {
             // Looks like the same code, but we're not checking the Y coordinate here
-            for (int localX = x << 4; localX < (x << 4) + 16; localX += + 4) {
+            for (int localX = chunkX; localX < chunkXmax; localX += 4) {
                 for (int localY = 0; localY < 255; localY += + 4) {
-                    for (int localZ = z << 4; localZ < (z << 4) + 16; localZ += + 4) {
+                    for (int localZ = chunkZ; localZ < chunkZmax; localZ += 4) {
                         // Index is based on wiki.vg's index requirements
                         final int i = ((localY >> 2) & 63) << 4 | ((localZ >> 2) & 3) << 2 | ((localX >> 2) & 3);
                         biomeData[i] = biomeToIdMap.getOrDefault(world.getBiome(localX, localZ).ordinal(), 0);
