@@ -1,0 +1,14 @@
+[
+  {
+    "from": "net.md_5.bungee.jni",
+    "to": "org.geysermc.platform.bungeecord.shaded.jni"
+  },
+  {
+    "from": "io.netty",
+    "to": "org.geysermc.platform.bungeecord.shaded.netty"
+  },
+  {
+    "from": "org.reflections.reflections",
+    "to": "org.geysermc.platform.bungeecord.shaded.reflections"
+  }
+]

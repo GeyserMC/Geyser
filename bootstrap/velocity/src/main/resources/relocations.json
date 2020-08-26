@@ -1,0 +1,10 @@
+[
+  {
+    "from": "it.unimi.dsi.fastutil",
+    "to": "org.geysermc.platform.velocity.shaded.fastutil"
+  },
+  {
+    "from": "org.reflections.reflections",
+    "to": "org.geysermc.platform.velocity.shaded.reflections"
+  }
+]

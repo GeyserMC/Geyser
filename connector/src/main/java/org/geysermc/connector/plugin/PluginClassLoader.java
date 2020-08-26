@@ -31,6 +31,8 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import lombok.Getter;
 import org.geysermc.connector.plugin.annotations.Plugin;
+import org.geysermc.connector.plugin.relocator.JavaRelocator;
+import org.geysermc.connector.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,8 +58,12 @@ public class PluginClassLoader extends URLClassLoader {
     @Getter
     private final Class<? extends GeyserPlugin> pluginClass;
 
+    private final JavaRelocator relocator;
+
     PluginClassLoader(PluginManager pluginManager, ClassLoader parent, File pluginFile) throws IOException, InvalidPluginClassLoaderException {
         super(new URL[] {pluginFile.toURI().toURL()}, parent);
+
+        relocator = new JavaRelocator(FileUtils.getResource("relocations.json"));
 
         this.jar = new JarFile(pluginFile);
         this.pluginManager = pluginManager;
@@ -125,7 +131,7 @@ public class PluginClassLoader extends URLClassLoader {
 
         try {
             try (InputStream is = jar.getInputStream(entry)) {
-                classBytes = ByteStreams.toByteArray(is);
+                classBytes = relocator.load(entry.getName(), is);
             }
         } catch (IOException e) {
             throw new ClassNotFoundException(entry.getName(), e);
@@ -179,12 +185,15 @@ public class PluginClassLoader extends URLClassLoader {
         }
 
         // Try load from parent
-        Class<?> cls = super.findClass(name);
-
-        if (cls != null) {
+        try {
+            Class<?> cls = getParent().loadClass(name);
+            resolveClass(cls);
             cacheClass(cls, global);
+            return cls;
+        } catch (ClassNotFoundException ignored) {
         }
-        return cls;
+
+        throw new ClassNotFoundException(name);
     }
 
     @Override
