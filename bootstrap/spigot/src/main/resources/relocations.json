@@ -1,0 +1,18 @@
+[
+  {
+    "from": "io.netty",
+    "to": "org.geysermc.platform.spigot.shaded.netty"
+  },
+  {
+    "from": "it.unimi.dsi.fastutil",
+    "to": "org.geysermc.platform.spigot.shaded.fastutil"
+  },
+  {
+    "from": "com.fasterxml.jackson",
+    "to": "org.geysermc.platform.spigot.shaded.jackson"
+  },
+  {
+    "from": "org.reflections.reflections",
+    "to": "org.geysermc.platform.spigot.shaded.reflections"
+  }
+]
