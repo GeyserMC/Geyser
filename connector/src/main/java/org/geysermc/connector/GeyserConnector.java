@@ -307,7 +307,15 @@ public class GeyserConnector {
         return bootstrap.getWorldManager();
     }
 
+    /**
+     * Get the production status of the current runtime.
+     * Will return true if the version number is not 'DEV'.
+     * Should only happen in compiled jars.
+     *
+     * @return If we are in a production build/environment
+     */
     public boolean isProduction() {
+        //noinspection ConstantConditions
         return !"DEV".equals(GeyserConnector.VERSION);
     }
 
