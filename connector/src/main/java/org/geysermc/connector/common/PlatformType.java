@@ -36,7 +36,8 @@ public enum PlatformType {
     SPIGOT("Spigot"),
     SPONGE("Sponge"),
     STANDALONE("Standalone"),
-    VELOCITY("Velocity");
+    VELOCITY("Velocity"),
+    ANDROID("Android");
 
     private String platformName;
 }
