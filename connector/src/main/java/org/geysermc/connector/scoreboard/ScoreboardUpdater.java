@@ -37,7 +37,7 @@ public class ScoreboardUpdater extends Thread {
     public static final int FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
     public static final int SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD = 250;
 
-    private static final int FIRST_MILLIS_BETWEEN_UPDATES = 1000; // 1 update per second
+    private static final int FIRST_MILLIS_BETWEEN_UPDATES = 250; // 4 updates per second
     private static final int SECOND_MILLIS_BETWEEN_UPDATES = 1000 * 3; // 1 update per 3 seconds
 
     private static final boolean DEBUG_ENABLED;
