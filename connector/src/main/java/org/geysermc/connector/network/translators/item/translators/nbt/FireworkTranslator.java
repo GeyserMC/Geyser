@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
@@ -36,7 +37,7 @@ import org.geysermc.connector.utils.MathUtils;
 public class FireworkTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
         if (!itemTag.contains("Fireworks")) {
             return;
         }
@@ -106,6 +107,9 @@ public class FireworkTranslator extends NbtItemStackTranslator {
             fireworks.put(new ByteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue())));
         }
 
+        if (!itemTag.contains("Explosions")) {
+            return;
+        }
         ListTag explosions = fireworks.get("Explosions");
         for (Tag effect : explosions.getValue()) {
             CompoundTag effectData = (CompoundTag) effect;

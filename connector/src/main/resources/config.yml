@@ -20,6 +20,8 @@ bedrock:
   # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. Irrelevant if "passthrough-motd" is set to true
   motd1: "GeyserMC"
   motd2: "Another GeyserMC forced host."
+  # The Server Name that will be sent to Minecraft: Bedrock Edition clients. Visible in both the pause menu and the settings menu.
+  server-name: "Geyser"
 remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,

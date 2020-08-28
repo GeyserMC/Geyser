@@ -51,6 +51,11 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                 signLine = signLine.substring(0, 14);
             }
 
+            // Java Edition 1.14 added the ability to change the text color of the whole sign using dye
+            if (tag.contains("Color")) {
+                signText.append(getBedrockSignColor(tag.get("Color").getValue().toString()));
+            }
+
             signText.append(signLine);
             signText.append("\n");
         }
@@ -75,4 +80,66 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                 .putString("Text", "")
                 .build();
     }
+
+    /**
+     * Maps a color stored in a sign's Color tag to a Bedrock Edition formatting code.
+     * <br>
+     * The color names correspond to dye names, because of this we can't use {@link MessageUtils#getColor(String)}.
+     *
+     * @param javaColor The dye color stored in the sign's Color tag.
+     * @return A Bedrock Edition formatting code for valid dye colors, otherwise an empty string.
+     */
+    private static String getBedrockSignColor(String javaColor) {
+        String base = "\u00a7";
+        switch (javaColor) {
+            case "white":
+                base += 'f';
+                break;
+            case "orange":
+                base += '6';
+                break;
+            case "magenta":
+            case "purple":
+                base += '5';
+                break;
+            case "light_blue":
+                base += 'b';
+                break;
+            case "yellow":
+                base += 'e';
+                break;
+            case "lime":
+                base += 'a';
+                break;
+            case "pink":
+                base += 'd';
+                break;
+            case "gray":
+                base += '8';
+                break;
+            case "light_gray":
+                base += '7';
+                break;
+            case "cyan":
+                base += '3';
+                break;
+            case "blue":
+                base += '9';
+                break;
+            case "brown": // Brown does not have a bedrock counterpart.
+            case "red": // In Java Edition light red (&c) can only be applied using commands. Red dye gives &4.
+                base += '4';
+                break;
+            case "green":
+                base += '2';
+                break;
+            case "black":
+                base += '0';
+                break;
+            default:
+                return "";
+        }
+        return base;
+    }
+
 }
