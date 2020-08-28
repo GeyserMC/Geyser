@@ -47,6 +47,7 @@ import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.item.PotionMixRegistry;
+import org.geysermc.connector.network.translators.item.RecipeRegistry;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
@@ -133,6 +134,7 @@ public class GeyserConnector {
         CollisionTranslator.init();
         LocaleUtils.init();
         PotionMixRegistry.init();
+        RecipeRegistry.init();
         SoundRegistry.init();
         SoundHandlerRegistry.init();
 
@@ -163,7 +165,7 @@ public class GeyserConnector {
                     config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
                     logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
-            } catch (Exception ex) {
+            } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
                 logger.debug("Exception while trying to find an SRV record for the remote host.");
                 if (config.isDebugMode())
                     ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
@@ -186,7 +188,7 @@ public class GeyserConnector {
             if (throwable == null) {
                 logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
             } else {
-                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), config.getBedrock().getPort()));
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
                 throwable.printStackTrace();
             }
         }).join();
@@ -218,6 +220,10 @@ public class GeyserConnector {
             message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
         }
         logger.info(message);
+        
+        if (platformType == PlatformType.STANDALONE) {
+            logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
+        }
     }
 
     public void shutdown() {
@@ -301,6 +307,18 @@ public class GeyserConnector {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    /**
+     * Get the production status of the current runtime.
+     * Will return true if the version number is not 'DEV'.
+     * Should only happen in compiled jars.
+     *
+     * @return If we are in a production build/environment
+     */
+    public boolean isProduction() {
+        //noinspection ConstantConditions
+        return !"DEV".equals(GeyserConnector.VERSION);
     }
 
     public static GeyserConnector getInstance() {

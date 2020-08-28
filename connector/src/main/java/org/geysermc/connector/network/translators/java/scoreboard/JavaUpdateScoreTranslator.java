@@ -25,48 +25,58 @@
 
 package org.geysermc.connector.network.translators.java.scoreboard;
 
+import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardAction;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
-
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardAction;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
+import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.utils.LanguageUtils;
 
 @Translator(packet = ServerUpdateScorePacket.class)
 public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScorePacket> {
+    private final GeyserLogger logger;
+
+    public JavaUpdateScoreTranslator() {
+        logger = GeyserConnector.getInstance().getLogger();
+    }
 
     @Override
     public void translate(ServerUpdateScorePacket packet, GeyserSession session) {
-        try {
-            Scoreboard scoreboard = session.getWorldCache().getScoreboard();
+        WorldCache worldCache = session.getWorldCache();
+        Scoreboard scoreboard = worldCache.getScoreboard();
+        int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
 
-            Objective objective = scoreboard.getObjective(packet.getObjective());
-            if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
-                GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.translator.score.failed_objective", packet.getObjective()));
-                return;
-            }
+        Objective objective = scoreboard.getObjective(packet.getObjective());
+        if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
+            logger.info(LanguageUtils.getLocaleStringLog("geyser.network.translator.score.failed_objective", packet.getObjective()));
+            return;
+        }
 
-            switch (packet.getAction()) {
-                case ADD_OR_UPDATE:
-                    objective.setScore(packet.getEntry(), packet.getValue());
-                    break;
-                case REMOVE:
-                    if (objective != null) {
-                        objective.resetScore(packet.getEntry());
-                    } else {
-                        for (Objective objective1 : scoreboard.getObjectives().values()) {
-                            objective1.resetScore(packet.getEntry());
-                        }
+        switch (packet.getAction()) {
+            case ADD_OR_UPDATE:
+                objective.setScore(packet.getEntry(), packet.getValue());
+                break;
+            case REMOVE:
+                if (objective != null) {
+                    objective.removeScore(packet.getEntry());
+                } else {
+                    for (Objective objective1 : scoreboard.getObjectives().values()) {
+                        objective1.removeScore(packet.getEntry());
                     }
-                    break;
-            }
+                }
+                break;
+        }
+
+        // ScoreboardUpdater will handle it for us if the packets per second
+        // (for score and team packets) is higher then the first threshold
+        if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
             scoreboard.onUpdate();
-        } catch (Exception ex) {
-            ex.printStackTrace();
         }
     }
 }

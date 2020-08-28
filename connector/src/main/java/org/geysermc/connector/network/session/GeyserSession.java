@@ -70,6 +70,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.*;
@@ -157,8 +158,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private Vector3i lastInteractionPosition;
 
-    @Setter
-    private boolean switchingDimension = false;
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
 
@@ -177,6 +176,11 @@ public class GeyserSession implements CommandSender {
     private long lastInteractedVillagerEid;
 
     /**
+     * Stores the enchantment information the client has received if they are in an enchantment table GUI
+     */
+    private final EnchantmentInventoryTranslator.EnchantmentSlotData[] enchantmentSlotData = new EnchantmentInventoryTranslator.EnchantmentSlotData[3];
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      */
     @Setter
@@ -187,8 +191,6 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private long lastHitTime;
-
-    private MinecraftProtocol protocol;
 
     private boolean reducedDebugInfo = false;
 
@@ -236,6 +238,8 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private boolean thunder = false;
+
+    private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
@@ -341,7 +345,7 @@ public class GeyserSession implements CommandSender {
                     PublicKey key = null;
                     try {
                         key = EncryptionUtil.getKeyFromFile(
-                                connector.getConfig().getFloodgateKeyFile(),
+                                connector.getConfig().getFloodgateKeyPath(),
                                 PublicKey.class
                         );
                     } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
@@ -585,8 +589,10 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setFromWorldTemplate(false);
         startGamePacket.setWorldTemplateOptionLocked(false);
 
-        startGamePacket.setLevelId("world");
-        startGamePacket.setLevelName("world");
+        String serverName = connector.getConfig().getBedrock().getServerName();
+        startGamePacket.setLevelId(serverName);
+        startGamePacket.setLevelName(serverName);
+
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
         // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
@@ -658,7 +664,7 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
-        if (upstream != null && !upstream.isClosed()) {
+        if (upstream != null) {
             upstream.sendPacket(packet);
         } else {
             connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
@@ -671,7 +677,7 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
-        if (upstream != null && !upstream.isClosed()) {
+        if (upstream != null) {
             upstream.sendPacketImmediately(packet);
         } else {
             connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");

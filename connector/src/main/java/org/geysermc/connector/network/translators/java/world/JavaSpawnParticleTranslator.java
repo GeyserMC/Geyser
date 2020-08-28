@@ -50,7 +50,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
         LevelEventPacket particle = new LevelEventPacket();
         switch (packet.getParticle().getType()) {
             case BLOCK:
-                particle.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
+                particle.setType(LevelEventType.PARTICLE_DESTROY_BLOCK_NO_SOUND);
                 particle.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
                 particle.setData(BlockTranslator.getBedrockBlockId(((BlockParticleData) packet.getParticle().getData()).getBlockState()));
                 session.sendUpstreamPacket(particle);

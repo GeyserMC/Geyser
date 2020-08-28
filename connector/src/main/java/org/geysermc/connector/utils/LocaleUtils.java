@@ -150,7 +150,7 @@ public class LocaleUtils {
 
         // Get the hash and download the locale
         String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
-        WebUtils.downloadFile("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
+        WebUtils.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
     }
 
     /**

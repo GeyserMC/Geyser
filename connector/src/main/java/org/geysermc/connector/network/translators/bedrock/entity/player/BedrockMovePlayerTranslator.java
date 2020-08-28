@@ -138,6 +138,28 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                 }
             }
 
+
+
+
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+
+
+
+
             // System.out.println("Final Y: " + (entity.getBoundingBox().getMiddleY() - 0.9));
             position = Vector3d.from(entity.getBoundingBox().getMiddleX(), entity.getBoundingBox().getMiddleY() - 0.9,
                     entity.getBoundingBox().getMiddleZ());

@@ -20,6 +20,8 @@ bedrock:
   # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. Irrelevant if "passthrough-motd" is set to true
   motd1: "GeyserMC"
   motd2: "Another GeyserMC forced host."
+  # The Server Name that will be sent to Minecraft: Bedrock Edition clients. Visible in both the pause menu and the settings menu.
+  server-name: "Geyser"
 remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,
@@ -121,6 +123,12 @@ metrics:
   uuid: generateduuid
 
 # ADVANCED OPTIONS - DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING!
+
+# Geyser updates the Scoreboard after every Scoreboard packet, but when Geyser tries to handle
+# a lot of scoreboard packets per second can cause serious lag.
+# This option allows you to specify after how many Scoreboard packets per seconds
+# the Scoreboard updates will be limited to four updates per second.
+scoreboard-packet-threshold: 20
 
 # Allow connections from ProxyPass and Waterdog.
 # See https://www.spigotmc.org/wiki/firewall-guide/ for assistance - use UDP instead of TCP.

@@ -41,6 +41,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
@@ -62,7 +63,7 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
+        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
         for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
@@ -138,10 +139,12 @@ public abstract class ItemTranslator {
         if (nbt != null) {
             for (NbtItemStackTranslator translator : NBT_TRANSLATORS) {
                 if (translator.acceptItem(bedrockItem)) {
-                    translator.translateToBedrock(nbt, bedrockItem);
+                    translator.translateToBedrock(session, nbt, bedrockItem);
                 }
             }
         }
+
+        translateDisplayProperties(session, nbt);
 
         ItemData itemData;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
@@ -149,39 +152,6 @@ public abstract class ItemTranslator {
             itemData = itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
         } else {
             itemData = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
-        }
-
-
-        // Get the display name of the item
-        NbtMap tag = itemData.getTag();
-        if (tag != null) {
-            NbtMap display = tag.getCompound("display");
-            if (display != null && !display.isEmpty() && display.containsKey("Name")) {
-                String name = display.getString("Name");
-
-                // If its not a message convert it
-                if (!MessageUtils.isMessage(name)) {
-                    TextComponent component = LegacyComponentSerializer.legacySection().deserialize(name);
-                    name = GsonComponentSerializer.gson().serialize(component);
-                }
-
-                // Check if its a message to translate
-                if (MessageUtils.isMessage(name)) {
-                    // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
-
-                    // Build the new display tag
-                    NbtMapBuilder displayBuilder = display.toBuilder();
-                    displayBuilder.putString("Name", name);
-
-                    // Build the new root tag
-                    NbtMapBuilder builder = tag.toBuilder();
-                    builder.put("display", displayBuilder.build());
-
-                    // Create a new item with the original data + updated name
-                    itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.build());
-                }
-            }
         }
 
         return itemData;
@@ -373,6 +343,38 @@ public abstract class ItemTranslator {
         }
 
         return null;
+    }
+
+    /**
+     * Translates the display name of the item
+     * @param session the Bedrock client's session
+     * @param tag the tag to translate
+     */
+    public static void translateDisplayProperties(GeyserSession session, CompoundTag tag) {
+        if (tag != null) {
+            CompoundTag display = tag.get("display");
+            if (display != null && !display.isEmpty() && display.contains("Name")) {
+                String name = ((StringTag) display.get("Name")).getValue();
+
+                // If its not a message convert it
+                if (!MessageUtils.isMessage(name)) {
+                    TextComponent component = LegacyComponentSerializer.legacySection().deserialize(name);
+                    name = GsonComponentSerializer.gson().serialize(component);
+                }
+
+                // Check if its a message to translate
+                if (MessageUtils.isMessage(name)) {
+                    // Get the translated name
+                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
+
+                    // Add the new name tag
+                    display.put(new StringTag("Name", name));
+
+                    // Add to the new root tag
+                    tag.put(display);
+                }
+            }
+        }
     }
 
     /**
