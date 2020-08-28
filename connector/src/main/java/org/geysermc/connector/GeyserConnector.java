@@ -38,8 +38,6 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
-import org.geysermc.connector.event.events.network.BedrockCodecRegistryEvent;
-import org.geysermc.connector.event.events.network.NewBedrockServerEvent;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
@@ -196,10 +194,6 @@ public class GeyserConnector {
 
         bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
-        bedrockServer = EventManager.getInstance().triggerEvent(
-                new NewBedrockServerEvent(bedrockServer)
-        ).getEvent().getBedrockServer();
-
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
                 logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
