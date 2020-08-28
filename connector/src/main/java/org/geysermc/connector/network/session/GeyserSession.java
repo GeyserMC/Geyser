@@ -305,7 +305,8 @@ public class GeyserSession implements CommandSender {
         // Only allow the server to send health information
         // Setting this to false allows natural regeneration to work false but doesn't break it being true
         gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
-        // Set Keep Inventory to "true" so the client doesn't try to remove items upon death should Keep Inventory be false
+        // Don't let the client modify the inventory on death
+        // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         upstream.sendPacket(gamerulePacket);
     }
