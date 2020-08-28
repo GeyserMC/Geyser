@@ -70,7 +70,7 @@
                                     <shadedPattern>org.geysermc.platform.sponge.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections.reflections</pattern>
+                                    <pattern>org.reflections</pattern>
                                     <shadedPattern>org.geysermc.platform.sponge.shaded.reflections</shadedPattern>
                                 </relocation>
                             </relocations>

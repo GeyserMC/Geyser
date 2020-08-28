@@ -66,7 +66,7 @@
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections.reflections</pattern>
+                                    <pattern>org.reflections</pattern>
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.reflections</shadedPattern>
                                 </relocation>
                             </relocations>
