@@ -26,18 +26,16 @@
 package org.geysermc.platform.standalone;
 
 import lombok.extern.log4j.Log4j2;
-
 import net.minecrell.terminalconsole.SimpleTerminalConsole;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.common.ChatColor;
 
 @Log4j2
-public class GeyserStandaloneLogger extends SimpleTerminalConsole implements org.geysermc.connector.GeyserLogger, CommandSender {
-
+public class GeyserStandaloneLogger extends SimpleTerminalConsole implements GeyserLogger, CommandSender {
     private boolean colored = true;
 
     @Override
@@ -99,10 +97,6 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements org
         Configurator.setLevel(log.getName(), debug ? Level.DEBUG : Level.INFO);
     }
 
-    /**
-     * Used for setting debug mode in GUI mode
-     * @return if debug is enabled
-     */
     public boolean isDebug() {
         return log.isDebugEnabled();
     }

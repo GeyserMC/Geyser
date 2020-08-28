@@ -27,9 +27,6 @@ package org.geysermc.platform.bungeecord;
 
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
@@ -64,13 +61,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (!getDataFolder().exists())
             getDataFolder().mkdir();
 
-        Configuration configuration = null;
         try {
             if (!getDataFolder().exists())
                 getDataFolder().mkdir();
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
-            configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
         } catch (IOException ex) {
             getLogger().log(Level.WARNING, LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
@@ -108,7 +103,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             geyserConfig.getRemote().setAuthType("floodgate");
         }
 
-        geyserConfig.loadFloodgate(this, configuration);
+        geyserConfig.loadFloodgate(this);
 
         this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
 
