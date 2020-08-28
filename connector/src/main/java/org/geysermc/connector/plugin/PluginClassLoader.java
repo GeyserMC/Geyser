@@ -63,7 +63,13 @@ public class PluginClassLoader extends URLClassLoader {
     PluginClassLoader(PluginManager pluginManager, ClassLoader parent, File pluginFile) throws IOException, InvalidPluginClassLoaderException {
         super(new URL[] {pluginFile.toURI().toURL()}, parent);
 
-        relocator = new JavaRelocator(FileUtils.getResource("relocations.json"));
+        JavaRelocator relocator;
+        try {
+            relocator = new JavaRelocator(FileUtils.getResource("relocations.json"));
+        } catch (AssertionError e) {
+            relocator = new JavaRelocator();
+        }
+        this.relocator = relocator;
 
         this.jar = new JarFile(pluginFile);
         this.pluginManager = pluginManager;
@@ -132,6 +138,7 @@ public class PluginClassLoader extends URLClassLoader {
         try {
             try (InputStream is = jar.getInputStream(entry)) {
                 classBytes = relocator.load(entry.getName(), is);
+//                classBytes = ByteStreams.toByteArray(is);
             }
         } catch (IOException e) {
             throw new ClassNotFoundException(entry.getName(), e);

@@ -41,6 +41,10 @@ public class JavaRelocator {
     @Getter
     private final RelocatingRemapper remapper;
 
+    public JavaRelocator() {
+        this.remapper = new RelocatingRemapper(new ArrayList<>());
+    }
+
     public JavaRelocator(Collection<Relocation> relocations) {
         this.remapper = new RelocatingRemapper(relocations);
     }
