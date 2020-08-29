@@ -24,61 +24,61 @@
  *
  */
 
-package org.geysermc.connector.plugin;
+package org.geysermc.connector.extension;
 
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserLogger;
 
 
 /**
- * Provides a proxy to the main logger that prefixes the plugin name to messages
+ * Provides a proxy to the main logger that prefixes the extension name to messages
  */
 @AllArgsConstructor
-public class PluginLogger implements GeyserLogger {
+public class ExtensionLogger implements GeyserLogger {
 
-    private final GeyserPlugin plugin;
+    private final GeyserExtension extension;
 
     private String prefixMessage(String message) {
-        return String.format("{%s} %s", plugin.getName(), message);
+        return String.format("{%s} %s", extension.getName(), message);
     }
 
     @Override
     public void severe(String message) {
-        plugin.getConnector().getLogger().severe(prefixMessage(message));
+        extension.getConnector().getLogger().severe(prefixMessage(message));
     }
 
     @Override
     public void severe(String message, Throwable error) {
-        plugin.getConnector().getLogger().severe(prefixMessage(message), error);
+        extension.getConnector().getLogger().severe(prefixMessage(message), error);
     }
 
     @Override
     public void error(String message) {
-        plugin.getConnector().getLogger().error(prefixMessage(message));
+        extension.getConnector().getLogger().error(prefixMessage(message));
     }
 
     @Override
     public void error(String message, Throwable error) {
-        plugin.getConnector().getLogger().severe(prefixMessage(message), error);
+        extension.getConnector().getLogger().severe(prefixMessage(message), error);
     }
 
     @Override
     public void warning(String message) {
-        plugin.getConnector().getLogger().warning(prefixMessage(message));
+        extension.getConnector().getLogger().warning(prefixMessage(message));
     }
 
     @Override
     public void info(String message) {
-        plugin.getConnector().getLogger().info(prefixMessage(message));
+        extension.getConnector().getLogger().info(prefixMessage(message));
     }
 
     @Override
     public void debug(String message) {
-        plugin.getConnector().getLogger().debug(prefixMessage(message));
+        extension.getConnector().getLogger().debug(prefixMessage(message));
     }
 
     @Override
     public void setDebug(boolean debug) {
-        plugin.getConnector().getLogger().setDebug(debug);
+        extension.getConnector().getLogger().setDebug(debug);
     }
 }

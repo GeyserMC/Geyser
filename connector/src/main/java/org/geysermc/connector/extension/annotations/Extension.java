@@ -24,32 +24,51 @@
  *
  */
 
-package org.geysermc.connector.plugin.handlers;
+package org.geysermc.connector.extension.annotations;
 
-import lombok.Getter;
-import org.geysermc.connector.event.GeyserEvent;
-import org.geysermc.connector.event.handlers.EventHandler;
-import org.geysermc.connector.event.handlers.LambdaEventHandler;
-import org.geysermc.connector.plugin.GeyserPlugin;
-
-import java.util.function.BiConsumer;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Provides a lambda event handler for a plugin.
+ * A extension main class must be decorated with this annotation
  */
-@Getter
-public class PluginLambdaEventHandler<T extends GeyserEvent> extends LambdaEventHandler<T> {
-    private final GeyserPlugin plugin;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface Extension {
+    /**
+     * A short name for the extension
+     *
+     * @return extension name
+     */
+    String name();
 
-    public PluginLambdaEventHandler(GeyserPlugin plugin, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
-        super(plugin.getEventManager(), cls, consumer);
+    /**
+     * The version of the extension
+     *
+     * @return extension version
+     */
+    String version();
 
-        this.plugin = plugin;
-    }
+    /**
+     * List of authors of the extension
+     *
+     * @return authors
+     */
+    String[] authors();
 
-    @Override
-    public void unregister() {
-        plugin.unregister(this);
-        super.unregister();
-    }
+    /**
+     * A short one line description of the extension
+     *
+     * @return extension description
+     */
+    String description();
+
+    /**
+     * If set to true then the extension will expose its classes to other extensions
+     *
+     * @return boolean
+     */
+    boolean global() default true;
 }

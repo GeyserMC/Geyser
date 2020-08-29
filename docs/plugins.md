@@ -57,8 +57,8 @@ Add the following to the relevant section of your `pom.xml`
         description = "Provides an example plugin"
     )
     public class MyPlugin extends GeyserPlugin {
-        public MyPlugin(PluginManager pluginManager, PluginClassLoader pluginClassLoader) {
-            super(pluginManager, pluginClassLoader);
+        public MyPlugin(PluginManager extensionManager, PluginClassLoader extensionClassLoader) {
+            super(extensionManager, extensionClassLoader);
         }
 
         @GeyserEventHandler

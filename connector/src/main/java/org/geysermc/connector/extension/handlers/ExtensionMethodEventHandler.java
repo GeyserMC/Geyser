@@ -24,51 +24,31 @@
  *
  */
 
-package org.geysermc.connector.plugin.annotations;
+package org.geysermc.connector.extension.handlers;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Getter;
+import org.geysermc.connector.event.GeyserEvent;
+import org.geysermc.connector.event.handlers.MethodEventHandler;
+import org.geysermc.connector.extension.GeyserExtension;
+
+import java.lang.reflect.Method;
 
 /**
- * A plugin main class must be decorated with this annotation
+ * Provides a method event handler for a extension.
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface Plugin {
-    /**
-     * A short name for the plugin
-     *
-     * @return plugin name
-     */
-    String name();
+@Getter
+public class ExtensionMethodEventHandler<T extends GeyserEvent> extends MethodEventHandler<T> {
+    private final GeyserExtension extension;
 
-    /**
-     * The version of the plugin
-     *
-     * @return plugin version
-     */
-    String version();
+    public ExtensionMethodEventHandler(GeyserExtension extension, Object handlerClass, Method method) {
+        super(extension.getEventManager(), handlerClass, method);
 
-    /**
-     * List of authors of the plugin
-     *
-     * @return authors
-     */
-    String[] authors();
+        this.extension = extension;
+    }
 
-    /**
-     * A short one line description of the plugin
-     *
-     * @return plugin description
-     */
-    String description();
-
-    /**
-     * If set to true then the plugin will expose its classes to other plugins
-     *
-     * @return boolean
-     */
-    boolean global() default true;
+    @Override
+    public void unregister() {
+        extension.unregister(this);
+        super.unregister();
+    }
 }

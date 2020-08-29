@@ -30,7 +30,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import org.geysermc.connector.event.GeyserEvent;
-import org.geysermc.connector.plugin.GeyserPlugin;
+import org.geysermc.connector.extension.GeyserExtension;
 
 /**
  * Triggered whenever any GeyserPlugin is enabled and will occur after it has finished enabling
@@ -45,5 +45,5 @@ public class PluginEnableEvent extends GeyserEvent  {
      * @return the enabled plugin
      */
     @NonNull
-    private final GeyserPlugin plugin;
+    private final GeyserExtension plugin;
 }
