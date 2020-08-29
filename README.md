@@ -31,9 +31,10 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Download: http://ci.geysermc.org
 - Discord: http://discord.geysermc.org/
 - ~~Donate: https://patreon.com/GeyserMC~~ Currently disabled.
-- Test Server: test.geysermc.org port 25565 for Java and 19132 for Bedrock
+- Test Server: test.geysermc.org port 25565 for Java and port 19132 for Bedrock
 
 ## What's Left to be Added/Fixed
+**Note that using Geyser on servers with an anticheat may cause you to be banned.**
 - The Following Inventories 
   - [ ] Enchantment Table (as a proper GUI)
   - [ ] Beacon
@@ -45,6 +46,8 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
   - [ ] Loom
   - [ ] Smithing Table
 - Some Entity Flags
+- Some Movement Bugs
+- Movement Speed
 
 ## Compiling
 1. Clone the repo to your computer
