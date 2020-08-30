@@ -37,6 +37,7 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.extension.ExtensionManager;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
@@ -54,7 +55,6 @@ import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
-import org.geysermc.connector.plugin.PluginManager;
 import org.geysermc.connector.event.events.geyser.GeyserStopEvent;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -100,7 +100,7 @@ public class GeyserConnector {
     private GeyserBootstrap bootstrap;
 
     private final EventManager eventManager;
-    private final PluginManager pluginManager;
+    private final ExtensionManager extensionManager;
 
     private final List<String> registeredPluginChannels = new ArrayList<>();
 
@@ -129,7 +129,7 @@ public class GeyserConnector {
         logger.setDebug(config.isDebugMode());
 
         this.eventManager = new EventManager(this);
-        this.pluginManager = new PluginManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
+        this.extensionManager = new ExtensionManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
 
         PacketTranslatorRegistry.init();
 
@@ -174,7 +174,7 @@ public class GeyserConnector {
                     config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
                     logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
-            } catch (Exception ex) {
+            } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
                 logger.debug("Exception while trying to find an SRV record for the remote host.");
                 if (config.isDebugMode())
                     ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
@@ -222,7 +222,7 @@ public class GeyserConnector {
         }
 
         // Enable Plugins
-        pluginManager.enablePlugins();
+        extensionManager.enableExtensions();
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         String message = LanguageUtils.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
@@ -246,7 +246,7 @@ public class GeyserConnector {
         eventManager.triggerEvent(new GeyserStopEvent());
 
         // Disable Plugins
-        pluginManager.disablePlugins();
+        extensionManager.disableExtensions();
 
         if (players.size() >= 1) {
             bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));
@@ -325,6 +325,18 @@ public class GeyserConnector {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    /**
+     * Get the production status of the current runtime.
+     * Will return true if the version number is not 'DEV'.
+     * Should only happen in compiled jars.
+     *
+     * @return If we are in a production build/environment
+     */
+    public boolean isProduction() {
+        //noinspection ConstantConditions
+        return !"DEV".equals(GeyserConnector.VERSION);
     }
 
     /**

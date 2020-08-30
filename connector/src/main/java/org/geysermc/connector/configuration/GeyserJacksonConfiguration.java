@@ -49,76 +49,75 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private RemoteConfiguration remote;
 
     @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile;
+    private String floodgateKeyFile = "public-key.pem";
 
-    public abstract Path getFloodgateKeyFile();
+    public abstract Path getFloodgateKeyPath();
 
     private Map<String, UserAuthenticationInfo> userAuths;
 
     @JsonProperty("command-suggestions")
-    private boolean commandSuggestions;
+    private boolean commandSuggestions = true;
 
     @JsonProperty("passthrough-motd")
-    private boolean isPassthroughMotd;
+    private boolean isPassthroughMotd = false;
 
     @JsonProperty("passthrough-player-counts")
-    private boolean isPassthroughPlayerCounts;
+    private boolean isPassthroughPlayerCounts = false;
 
     @JsonProperty("passthrough-protocol-name")
-    private boolean isPassthroughProtocolName;
+    private boolean isPassthroughProtocolName = false;
 
     @JsonProperty("legacy-ping-passthrough")
-    private boolean isLegacyPingPassthrough;
+    private boolean isLegacyPingPassthrough = false;
 
     @JsonProperty("ping-passthrough-interval")
-    private int pingPassthroughInterval;
+    private int pingPassthroughInterval = 3;
 
     @JsonProperty("max-players")
-    private int maxPlayers;
+    private int maxPlayers = 100;
 
     @JsonProperty("debug-mode")
-    private boolean debugMode;
+    private boolean debugMode = false;
 
     @JsonProperty("general-thread-pool")
-    private int generalThreadPool;
+    private int generalThreadPool = 32;
 
     @JsonProperty("allow-third-party-capes")
-    private boolean allowThirdPartyCapes;
+    private boolean allowThirdPartyCapes = true;
 
     @JsonProperty("show-cooldown")
     private boolean showCooldown = true;
 
     @JsonProperty("allow-third-party-ears")
-    private boolean allowThirdPartyEars;
+    private boolean allowThirdPartyEars = false;
 
     @JsonProperty("default-locale")
-    private String defaultLocale;
+    private String defaultLocale = null; // is null by default so system language takes priority
 
     @JsonProperty("cache-chunks")
-    private boolean cacheChunks;
+    private boolean cacheChunks = false;
 
     @JsonProperty("cache-images")
     private int cacheImages = 0;
 
     @JsonProperty("above-bedrock-nether-building")
-    private boolean aboveBedrockNetherBuilding;
+    private boolean aboveBedrockNetherBuilding = false;
 
     private MetricsInfo metrics;
 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
-
         @AsteriskSerializer.Asterisk(sensitive = true)
-        private String address;
+        private String address = "0.0.0.0";
 
         @Setter
-        private int port;
+        private int port = 19132;
 
         @JsonProperty("clone-remote-port")
-        private boolean cloneRemotePort;
+        private boolean cloneRemotePort = false;
 
-        private String motd1;
-        private String motd2;
+        private String motd1 = "GeyserMC";
+        private String motd2 = "Geyser";
 
         @JsonProperty("server-name")
         private String serverName = GeyserConnector.NAME;
@@ -126,17 +125,16 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @Getter
     public static class RemoteConfiguration implements IRemoteConfiguration {
-
         @Setter
         @AsteriskSerializer.Asterisk(sensitive = true)
-        private String address;
+        private String address = "auto";
 
         @Setter
-        private int port;
+        private int port = 25565;
 
         @Setter
         @JsonProperty("auth-type")
-        private String authType;
+        private String authType = "online";
     }
 
     @Getter
@@ -150,12 +148,14 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @Getter
     public static class MetricsInfo implements IMetricsInfo {
-
-        private boolean enabled;
+        private boolean enabled = true;
 
         @JsonProperty("uuid")
-        private String uniqueId;
+        private String uniqueId = "generateuuid";
     }
+
+    @JsonProperty("scoreboard-packet-threshold")
+    private int scoreboardPacketThreshold = 10;
 
     @JsonProperty("enable-proxy-connections")
     private boolean enableProxyConnections = false;
@@ -164,5 +164,5 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private int mtu = 1400;
 
     @JsonProperty("config-version")
-    private int configVersion;
+    private int configVersion = 0;
 }

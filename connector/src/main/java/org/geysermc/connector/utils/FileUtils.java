@@ -28,6 +28,9 @@ package org.geysermc.connector.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.connector.GeyserConnector;
+import org.reflections.Reflections;
+import org.reflections.serializers.XmlSerializer;
+import org.reflections.util.ConfigurationBuilder;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.geyser.ResourceReadEvent;
 
@@ -35,6 +38,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.function.Function;
 
 public class FileUtils {
@@ -144,5 +148,22 @@ public class FileUtils {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.resource", resource));
         }
         return event.getInputStream();
+    }
+
+    /**
+     * Get the stored reflection data for a given path
+     *
+     * @param path The path to get the reflection data for
+     * @return The created Reflections object
+     */
+    public static Reflections getReflections(String path) {
+        Reflections reflections = new Reflections(new ConfigurationBuilder());
+        XmlSerializer serializer = new XmlSerializer();
+        URL resource = FileUtils.class.getClassLoader().getResource("META-INF/reflections/" + path + "-reflections.xml");
+        try (InputStream inputStream = resource.openConnection().getInputStream()) {
+            reflections.merge(serializer.read(inputStream));
+        } catch (IOException e) { }
+
+        return reflections;
     }
 }

@@ -367,7 +367,7 @@ public class GeyserSession implements CommandSender {
                     PublicKey key = null;
                     try {
                         key = EncryptionUtil.getKeyFromFile(
-                                connector.getConfig().getFloodgateKeyFile(),
+                                connector.getConfig().getFloodgateKeyPath(),
                                 PublicKey.class
                         );
                     } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
@@ -665,7 +665,7 @@ public class GeyserSession implements CommandSender {
     public void sendUpstreamPacket(BedrockPacket packet) {
         EventManager.getInstance().triggerEvent(UpstreamPacketSendEvent.of(this, packet))
                 .onNotCancelled(result -> {
-                    if (upstream != null && !upstream.isClosed()) {
+                    if (upstream != null) {
                         upstream.sendPacket(result.getEvent().getPacket());
                     } else {
                         connector.getLogger().debug("Tried to send upstream packet " + result.getEvent().getPacket().getClass().getSimpleName() + " but the session was null");
@@ -700,7 +700,7 @@ public class GeyserSession implements CommandSender {
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
         EventManager.getInstance().triggerEvent(UpstreamPacketSendEvent.of(this, packet))
                 .onNotCancelled(result -> {
-                    if (upstream != null && !upstream.isClosed()) {
+                    if (upstream != null) {
                         upstream.sendPacketImmediately(result.getEvent().getPacket());
                     } else {
                         connector.getLogger().debug("Tried to send upstream packet " + result.getEvent().getPacket().getClass().getSimpleName() + " immediately but the session was null");

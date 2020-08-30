@@ -36,6 +36,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.registry.PacketTranslatorRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;
 
@@ -52,8 +53,9 @@ public class PacketTranslatorRegistry<T> {
     public static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
 
     static {
+        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators") : new Reflections("org.geysermc.connector.network.translators");
         PacketTranslatorRegistryEvent event = EventManager.getInstance().triggerEvent(new PacketTranslatorRegistryEvent(
-                new Reflections("org.geysermc.connector.network.translators").getTypesAnnotatedWith(Translator.class))
+                ref.getTypesAnnotatedWith(Translator.class))
         ).getEvent();
 
         for (Class<?> clazz : event.getRegisteredTranslators()) {

@@ -34,6 +34,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;
 
@@ -66,7 +67,7 @@ public abstract class BlockEntityTranslator {
     }
 
     static {
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.block.entity");
+        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
         for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
             GeyserConnector.getInstance().getLogger().debug("Found annotated block entity: " + clazz.getCanonicalName());
 

@@ -24,51 +24,26 @@
  *
  */
 
-package org.geysermc.connector.plugin.annotations;
+package org.geysermc.connector.event.events.extension;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import org.geysermc.connector.event.GeyserEvent;
+import org.geysermc.connector.extension.GeyserExtension;
 
 /**
- * A plugin main class must be decorated with this annotation
+ * Triggered whenever a extension is disabled and will occur just before it is to be disabled
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface Plugin {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@SuppressWarnings("JavaDoc")
+public class ExtensionDisableEvent extends GeyserEvent {
     /**
-     * A short name for the plugin
+     * The extension which will be disabled
      *
-     * @return plugin name
+     * @return the extension
      */
-    String name();
-
-    /**
-     * The version of the plugin
-     *
-     * @return plugin version
-     */
-    String version();
-
-    /**
-     * List of authors of the plugin
-     *
-     * @return authors
-     */
-    String[] authors();
-
-    /**
-     * A short one line description of the plugin
-     *
-     * @return plugin description
-     */
-    String description();
-
-    /**
-     * If set to true then the plugin will expose its classes to other plugins
-     *
-     * @return boolean
-     */
-    boolean global() default true;
+    @NonNull
+    private final GeyserExtension extension;
 }
