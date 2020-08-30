@@ -108,8 +108,9 @@ public class BlockTranslator {
         addedStatesMap.defaultReturnValue(-1);
         List<NbtMap> paletteList = new ArrayList<>();
 
+        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
         Set<Class<?>> blockEntityClasses = EventManager.getInstance().triggerEvent(new BlockEntityRegistryEvent(
-                new Reflections("org.geysermc.connector.network.translators.world.block.entity").getTypesAnnotatedWith(BlockEntity.class))
+                ref.getTypesAnnotatedWith(BlockEntity.class)
         ).getEvent().getRegisteredTranslators();
 
         int waterRuntimeId = -1;

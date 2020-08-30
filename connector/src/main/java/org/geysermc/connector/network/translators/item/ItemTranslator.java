@@ -43,6 +43,7 @@ import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.registry.ItemRemapperRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
@@ -64,10 +65,11 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
+        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
         ItemRemapperRegistryEvent itemRemapperEvent = EventManager.getInstance().triggerEvent(new ItemRemapperRegistryEvent(
-                new Reflections("org.geysermc.connector.network.translators.item").getTypesAnnotatedWith(ItemRemapper.class))
+                ref.getTypesAnnotatedWith(ItemRemapper.class)
         ).getEvent();
-        
+
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
         for (Class<?> clazz : itemRemapperEvent.getRegisteredTranslators()) {
             int priority = clazz.getAnnotation(ItemRemapper.class).priority();

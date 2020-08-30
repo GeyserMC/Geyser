@@ -27,7 +27,6 @@ package org.geysermc.connector.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.connector.GeyserLogger;
-
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.nio.file.Path;
@@ -74,7 +73,7 @@ public interface GeyserConfiguration {
 
     String getDefaultLocale();
 
-    Path getFloodgateKeyFile();
+    Path getFloodgateKeyPath();
 
     boolean isAboveBedrockNetherBuilding();
 
@@ -124,6 +123,8 @@ public interface GeyserConfiguration {
 
         String getUniqueId();
     }
+
+    int getScoreboardPacketThreshold();
 
     // if u have offline mode enabled pls be safe
     boolean isEnableProxyConnections();
