@@ -74,7 +74,7 @@ The class it belongs to must also be registered with the event manager.
     ```
 
 !!! important
-    Plugins should use the `registerEvents` method inherited from `GeyserPlugin`.
+    Extensions should use the `registerEvents` method inherited from `GeyserExtension`.
 
 `MyCustomEvent` is the event defined previously.
 
@@ -93,7 +93,7 @@ method listeners. You will need to remember to unregister an event handler when 
     ```
 
 !!! important
-    Plugins should use the `on` method inherited from [GeyserPlugin](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/plugin/GeyserPlugin.html).
+    Extensions should use the `on` method inherited from [GeyserExtension](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/extension/GeyserExtension.html).
     
 You'll note the `build()` on the end. `on()` returns a Builder that can add optional parameters. This must be finalized with a
 `build()` that generates the EventHandler and registers it with the EventManager. 
