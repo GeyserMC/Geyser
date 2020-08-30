@@ -42,6 +42,7 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
         if (!itemTag.contains("BlockEntityTag")) return; // Empty shulker box
 
         CompoundTag blockEntityTag = itemTag.get("BlockEntityTag");
+        if (blockEntityTag.get("Items") == null) return;
         ListTag itemsList = new ListTag("Items");
         for (Tag item : (ListTag) blockEntityTag.get("Items")) {
             CompoundTag itemData = (CompoundTag) item; // Information about the item
