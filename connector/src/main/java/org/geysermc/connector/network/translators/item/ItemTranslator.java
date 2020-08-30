@@ -35,7 +35,7 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
@@ -43,11 +43,13 @@ import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.registry.ItemRemapperRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
 
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
@@ -64,12 +66,13 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        ItemRemapperRegistryEvent itemRemapperEvent = EventManager.getInstance().triggerEvent(new ItemRemapperRegistryEvent(
-                new Reflections("org.geysermc.connector.network.translators.item").getTypesAnnotatedWith(ItemRemapper.class))
-        ).getEvent();
-        
+        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
+        Set<Class<?>> itemRemapperClasses = EventManager.getInstance().triggerEvent(new ItemRemapperRegistryEvent(
+                ref.getTypesAnnotatedWith(ItemRemapper.class)
+        )).getEvent().getRegisteredTranslators();
+
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
-        for (Class<?> clazz : itemRemapperEvent.getRegisteredTranslators()) {
+        for (Class<?> clazz : itemRemapperClasses) {
             int priority = clazz.getAnnotation(ItemRemapper.class).priority();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());
@@ -361,7 +364,7 @@ public abstract class ItemTranslator {
 
                 // If its not a message convert it
                 if (!MessageUtils.isMessage(name)) {
-                    TextComponent component = LegacyComponentSerializer.legacySection().deserialize(name);
+                    Component component = LegacyComponentSerializer.legacySection().deserialize(name);
                     name = GsonComponentSerializer.gson().serialize(component);
                 }
 

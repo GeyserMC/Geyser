@@ -76,7 +76,7 @@
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections.reflections</pattern>
+                                    <pattern>org.reflections</pattern>
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.reflections</shadedPattern>
                                 </relocation>
                             </relocations>

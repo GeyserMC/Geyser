@@ -77,7 +77,7 @@ plugins:
 nav:
   - Introduction: index.md
   - Events: events.md
-  - Plugins: plugins.md
+  - Extensions: extensions.md
   - Coding Hints: coding.md
   - Contributing: contributing.md
   - API: 'https://bundabrg.github.io/Geyser/apidocs/'

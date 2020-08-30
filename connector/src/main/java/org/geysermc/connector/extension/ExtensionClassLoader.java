@@ -24,14 +24,13 @@
  *
  */
 
-package org.geysermc.connector.plugin;
+package org.geysermc.connector.extension;
 
-import com.google.common.io.ByteStreams;
 import javassist.ClassPool;
 import javassist.CtClass;
 import lombok.Getter;
-import org.geysermc.connector.plugin.annotations.Plugin;
-import org.geysermc.connector.plugin.relocator.JavaRelocator;
+import org.geysermc.connector.extension.annotations.Extension;
+import org.geysermc.connector.extension.relocator.JavaRelocator;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.File;
@@ -46,22 +45,22 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- * ClassLoader for Plugins
+ * ClassLoader for Extensions
  *
- * If a plugin is marked as shared then its libraries will be available to other plugins.
+ * If a extension is marked as shared then its libraries will be available to other extensions.
  */
-public class PluginClassLoader extends URLClassLoader {
-    private final PluginManager pluginManager;
+public class ExtensionClassLoader extends URLClassLoader {
+    private final ExtensionManager extensionManager;
     private final JarFile jar;
     private final Map<String, Class<?>> classes = new ConcurrentHashMap<>();
 
     @Getter
-    private final Class<? extends GeyserPlugin> pluginClass;
+    private final Class<? extends GeyserExtension> extensionClass;
 
     private final JavaRelocator relocator;
 
-    PluginClassLoader(PluginManager pluginManager, ClassLoader parent, File pluginFile) throws IOException, InvalidPluginClassLoaderException {
-        super(new URL[] {pluginFile.toURI().toURL()}, parent);
+    ExtensionClassLoader(ExtensionManager extensionManager, ClassLoader parent, File extensionFile) throws IOException, InvalidExtensionClassLoaderException {
+        super(new URL[] {extensionFile.toURI().toURL()}, parent);
 
         JavaRelocator relocator;
         try {
@@ -71,20 +70,20 @@ public class PluginClassLoader extends URLClassLoader {
         }
         this.relocator = relocator;
 
-        this.jar = new JarFile(pluginFile);
-        this.pluginManager = pluginManager;
-        this.pluginClass = findPlugin();
+        this.jar = new JarFile(extensionFile);
+        this.extensionManager = extensionManager;
+        this.extensionClass = findExtension();
 
-        if (this.pluginClass == null) {
-            throw new InvalidPluginClassLoaderException("Unable to find class annotated by @Plugin");
+        if (this.extensionClass == null) {
+            throw new InvalidExtensionClassLoaderException("Unable to find class annotated by @Extension");
         }
     }
 
     /**
-     * Find first class annotated by @Plugin
+     * Find first class annotated by @Extension
      */
     @SuppressWarnings("unchecked")
-    private Class<? extends GeyserPlugin> findPlugin() {
+    private Class<? extends GeyserExtension> findExtension() {
         for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements();) {
             JarEntry entry = entries.nextElement();
             if (!entry.getName().endsWith(".class")) {
@@ -94,10 +93,10 @@ public class PluginClassLoader extends URLClassLoader {
                 ClassPool cp = ClassPool.getDefault();
                 CtClass ct = cp.makeClass(is);
 
-                if (ct.getAnnotation(Plugin.class) != null) {
+                if (ct.getAnnotation(Extension.class) != null) {
                     Class<?> cls = loadFromJar(entry);
                     cacheClass(cls, true);
-                    return (Class<? extends GeyserPlugin>) cls;
+                    return (Class<? extends GeyserExtension>) cls;
                 }
             } catch (IOException | ClassNotFoundException ignored) {
             }
@@ -112,7 +111,7 @@ public class PluginClassLoader extends URLClassLoader {
         classes.put(cls.getName(), cls);
 
         if (global) {
-            pluginManager.getGlobalClasses().put(cls.getName(), cls);
+            extensionManager.getGlobalClasses().put(cls.getName(), cls);
         }
     }
 
@@ -172,11 +171,11 @@ public class PluginClassLoader extends URLClassLoader {
             return classes.get(name);
         }
 
-        boolean global = pluginClass != null && pluginClass.getAnnotation(Plugin.class).global();
+        boolean global = extensionClass != null && extensionClass.getAnnotation(Extension.class).global();
 
         // Now try load from global if permitted
         if (global) {
-            Class<?> cls = pluginManager.getGlobalClasses().get(name);
+            Class<?> cls = extensionManager.getGlobalClasses().get(name);
             if (cls != null) {
                 return cls;
             }
@@ -218,8 +217,8 @@ public class PluginClassLoader extends URLClassLoader {
         return super.getResourceAsStream(name);
     }
 
-    public static class InvalidPluginClassLoaderException extends Exception {
-        InvalidPluginClassLoaderException(String msg) {
+    public static class InvalidExtensionClassLoaderException extends Exception {
+        InvalidExtensionClassLoaderException(String msg) {
             super(msg);
         }
     }

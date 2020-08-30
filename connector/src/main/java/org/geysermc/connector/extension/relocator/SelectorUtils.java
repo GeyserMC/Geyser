@@ -52,7 +52,7 @@
  * <http://www.codehaus.org/>.
  */
 
-package org.geysermc.connector.plugin.relocator;
+package org.geysermc.connector.extension.relocator;
 
 import java.io.File;
 import java.util.ArrayList;

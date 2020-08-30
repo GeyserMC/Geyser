@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.connector.plugin;
+package org.geysermc.connector.extension;
 
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
@@ -32,9 +32,9 @@ import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.annotations.GeyserEventHandler;
 import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.event.handlers.EventHandler;
-import org.geysermc.connector.plugin.handlers.PluginLambdaEventHandler;
-import org.geysermc.connector.plugin.handlers.PluginMethodEventHandler;
-import org.geysermc.connector.plugin.annotations.Plugin;
+import org.geysermc.connector.extension.handlers.ExtensionLambdaEventHandler;
+import org.geysermc.connector.extension.handlers.ExtensionMethodEventHandler;
+import org.geysermc.connector.extension.annotations.Extension;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,22 +48,22 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * All GeyserPlugins extend from this
+ * All GeyserExtensions extend from this
  */
 @SuppressWarnings("unused")
 @Getter
-public abstract class GeyserPlugin {
-    // List of EventHandlers associated with this Plugin
-    private final List<EventHandler<?>> pluginEventHandlers = new ArrayList<>();
+public abstract class GeyserExtension {
+    // List of EventHandlers associated with this Extension
+    private final List<EventHandler<?>> extensionEventHandlers = new ArrayList<>();
 
-    private final PluginManager pluginManager;
-    private final PluginClassLoader pluginClassLoader;
-    private final PluginLogger logger;
+    private final ExtensionManager extensionManager;
+    private final ExtensionClassLoader extensionClassLoader;
+    private final ExtensionLogger logger;
 
-    public GeyserPlugin(PluginManager pluginManager, PluginClassLoader pluginClassLoader) {
-        this.pluginManager = pluginManager;
-        this.pluginClassLoader = pluginClassLoader;
-        this.logger = new PluginLogger(this);
+    public GeyserExtension(ExtensionManager extensionManager, ExtensionClassLoader extensionClassLoader) {
+        this.extensionManager = extensionManager;
+        this.extensionClassLoader = extensionClassLoader;
+        this.logger = new ExtensionLogger(this);
 
         logger.info(String.format("Loading %s v%s", getName(), getVersion()));
 
@@ -72,7 +72,7 @@ public abstract class GeyserPlugin {
     }
 
     // We provide some methods already provided in EventManager as we want to keep track of which EventHandlers
-    // belong to a particular plugin. That way we can unregister them all easily.
+    // belong to a particular extension. That way we can unregister them all easily.
 
     /**
      * Create a new EventHandler using a lambda
@@ -82,12 +82,12 @@ public abstract class GeyserPlugin {
      * @param <T> Event class
      * @return The event handler
      */
-    public <T extends GeyserEvent> PluginLambdaEventHandler<T> on(Class<T> cls, Consumer<T> consumer) {
+    public <T extends GeyserEvent> ExtensionLambdaEventHandler<T> on(Class<T> cls, Consumer<T> consumer) {
         return on(cls, (event, handler) -> consumer.accept(event));
     }
 
-    public <T extends GeyserEvent> PluginLambdaEventHandler<T> on(Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
-        return new PluginLambdaEventHandler<>(this, cls, consumer);
+    public <T extends GeyserEvent> ExtensionLambdaEventHandler<T> on(Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {
+        return new ExtensionLambdaEventHandler<>(this, cls, consumer);
     }
 
     /**
@@ -97,7 +97,7 @@ public abstract class GeyserPlugin {
      * @param <T> Event class
      */
     public <T extends GeyserEvent> void register(EventHandler<T> handler) {
-        this.pluginEventHandlers.add(handler);
+        this.extensionEventHandlers.add(handler);
         getEventManager().register(handler);
     }
 
@@ -108,7 +108,7 @@ public abstract class GeyserPlugin {
      * @param <T> Event class
      */
     public <T extends GeyserEvent> void unregister(EventHandler<T> handler) {
-        this.pluginEventHandlers.remove(handler);
+        this.extensionEventHandlers.remove(handler);
         getEventManager().unregister(handler);
     }
 
@@ -129,53 +129,53 @@ public abstract class GeyserPlugin {
                 continue;
             }
 
-            EventHandler<?> handler = new PluginMethodEventHandler<>(this, obj, method);
+            EventHandler<?> handler = new ExtensionMethodEventHandler<>(this, obj, method);
             register(handler);
         }
     }
 
     /**
-     *  Unregister all events for a plugin
+     *  Unregister all events for a extension
      */
     public void unregisterAllEvents() {
-        for (EventHandler<?> handler : pluginEventHandlers) {
+        for (EventHandler<?> handler : extensionEventHandlers) {
             unregister(handler);
         }
     }
 
     /**
-     * Enable Plugin
+     * Enable Extension
      *
-     * Override this to catch when the plugin is enabled
+     * Override this to catch when the extension is enabled
      */
     public void enable() {
     }
 
     /**
-     * Disable Plugin
+     * Disable Extension
      *
-     * Override this to catch when the plugin is disabled
+     * Override this to catch when the extension is disabled
      */
     public void disable() {
     }
 
     public GeyserConnector getConnector() {
-        return pluginManager.getConnector();
+        return extensionManager.getConnector();
     }
 
     public String getName() {
-        Plugin pluginAnnotation = getClass().getAnnotation(Plugin.class);
-        return pluginAnnotation != null && !pluginAnnotation.name().isEmpty() ? pluginAnnotation.name().replace("..","") : "unknown";
+        Extension extensionAnnotation = getClass().getAnnotation(Extension.class);
+        return extensionAnnotation != null && !extensionAnnotation.name().isEmpty() ? extensionAnnotation.name().replace("..","") : "unknown";
     }
 
     public String getDescription() {
-        Plugin pluginAnnotation = getClass().getAnnotation(Plugin.class);
-        return pluginAnnotation != null ? pluginAnnotation.description() : "";
+        Extension extensionAnnotation = getClass().getAnnotation(Extension.class);
+        return extensionAnnotation != null ? extensionAnnotation.description() : "";
     }
 
     public String getVersion() {
-        Plugin pluginAnnotation = getClass().getAnnotation(Plugin.class);
-        return pluginAnnotation != null ? pluginAnnotation.version() : "unknown";
+        Extension extensionAnnotation = getClass().getAnnotation(Extension.class);
+        return extensionAnnotation != null ? extensionAnnotation.version() : "unknown";
     }
 
     /**
@@ -183,15 +183,15 @@ public abstract class GeyserPlugin {
      * @return Event Manager
      */
     public EventManager getEventManager() {
-        return pluginManager.getConnector().getEventManager();
+        return extensionManager.getConnector().getEventManager();
     }
 
     /**
-     * Return our dataFolder based upon the plugin name
+     * Return our dataFolder based upon the extension name
      * @return File to datafolder
      */
     public File getDataFolder() {
-        return getConnector().getBootstrap().getConfigFolder().resolve("plugins").resolve(getName()).toFile();
+        return getConnector().getBootstrap().getConfigFolder().resolve("extensions").resolve(getName()).toFile();
     }
 
     /**
@@ -202,7 +202,7 @@ public abstract class GeyserPlugin {
      */
     public InputStream getResourceAsStream(String name) {
         try {
-            URL url = getPluginClassLoader().getResource(name);
+            URL url = getExtensionClassLoader().getResource(name);
 
             if (url == null) {
                 return null;

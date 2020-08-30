@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.connector.plugin.annotations;
+package org.geysermc.connector.extension.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -32,23 +32,43 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A plugin main class must be decorated with this annotation
+ * A extension main class must be decorated with this annotation
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface Plugin {
-    // Name of Plugin
+public @interface Extension {
+    /**
+     * A short name for the extension
+     *
+     * @return extension name
+     */
     String name();
 
-    // Version of Plugin
+    /**
+     * The version of the extension
+     *
+     * @return extension version
+     */
     String version();
 
-    // Authors of Plugin
+    /**
+     * List of authors of the extension
+     *
+     * @return authors
+     */
     String[] authors();
 
-    // Short description of Plugin
+    /**
+     * A short one line description of the extension
+     *
+     * @return extension description
+     */
     String description();
 
-    // If Plugin classes are exposed to other plugins or isolated
+    /**
+     * If set to true then the extension will expose its classes to other extensions
+     *
+     * @return boolean
+     */
     boolean global() default true;
 }

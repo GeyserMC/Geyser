@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.geysermc.connector.plugin.relocator;
+package org.geysermc.connector.extension.relocator;
 
 import lombok.ToString;
 

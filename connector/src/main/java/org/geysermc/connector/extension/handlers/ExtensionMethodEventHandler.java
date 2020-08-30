@@ -24,31 +24,31 @@
  *
  */
 
-package org.geysermc.connector.plugin.handlers;
+package org.geysermc.connector.extension.handlers;
 
 import lombok.Getter;
 import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.event.handlers.MethodEventHandler;
-import org.geysermc.connector.plugin.GeyserPlugin;
+import org.geysermc.connector.extension.GeyserExtension;
 
 import java.lang.reflect.Method;
 
 /**
- * Provides a method event handler for a plugin.
+ * Provides a method event handler for a extension.
  */
 @Getter
-public class PluginMethodEventHandler<T extends GeyserEvent> extends MethodEventHandler<T> {
-    private final GeyserPlugin plugin;
+public class ExtensionMethodEventHandler<T extends GeyserEvent> extends MethodEventHandler<T> {
+    private final GeyserExtension extension;
 
-    public PluginMethodEventHandler(GeyserPlugin plugin, Object handlerClass, Method method) {
-        super(plugin.getEventManager(), handlerClass, method);
+    public ExtensionMethodEventHandler(GeyserExtension extension, Object handlerClass, Method method) {
+        super(extension.getEventManager(), handlerClass, method);
 
-        this.plugin = plugin;
+        this.extension = extension;
     }
 
     @Override
     public void unregister() {
-        plugin.unregister(this);
+        extension.unregister(this);
         super.unregister();
     }
 }
