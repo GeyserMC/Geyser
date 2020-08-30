@@ -49,6 +49,7 @@ import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
 
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
@@ -66,12 +67,12 @@ public abstract class ItemTranslator {
     static {
         /* Load item translators */
         Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
-        ItemRemapperRegistryEvent itemRemapperEvent = EventManager.getInstance().triggerEvent(new ItemRemapperRegistryEvent(
+        Set<Class<?>> itemRemapperClasses = EventManager.getInstance().triggerEvent(new ItemRemapperRegistryEvent(
                 ref.getTypesAnnotatedWith(ItemRemapper.class)
-        ).getEvent();
+        )).getEvent().getRegisteredTranslators();
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
-        for (Class<?> clazz : itemRemapperEvent.getRegisteredTranslators()) {
+        for (Class<?> clazz : itemRemapperClasses) {
             int priority = clazz.getAnnotation(ItemRemapper.class).priority();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());

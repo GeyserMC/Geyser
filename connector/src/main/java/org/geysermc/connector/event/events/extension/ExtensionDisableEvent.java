@@ -24,7 +24,7 @@
  *
  */
 
-package org.geysermc.connector.event.events.plugin;
+package org.geysermc.connector.event.events.extension;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,17 +33,17 @@ import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.extension.GeyserExtension;
 
 /**
- * Triggered whenever any GeyserPlugin is enabled and will occur after it has finished enabling
+ * Triggered whenever a extension is disabled and will occur just before it is to be disabled
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuppressWarnings("JavaDoc")
-public class PluginEnableEvent extends GeyserEvent  {
+public class ExtensionDisableEvent extends GeyserEvent {
     /**
-     * The plugin that has been enabled
+     * The extension which will be disabled
      *
-     * @return the enabled plugin
+     * @return the extension
      */
     @NonNull
-    private final GeyserExtension plugin;
+    private final GeyserExtension extension;
 }

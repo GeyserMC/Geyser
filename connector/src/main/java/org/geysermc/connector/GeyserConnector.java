@@ -222,7 +222,7 @@ public class GeyserConnector {
         }
 
         // Enable Plugins
-        extensionManager.enablePlugins();
+        extensionManager.enableExtensions();
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         String message = LanguageUtils.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
@@ -246,7 +246,7 @@ public class GeyserConnector {
         eventManager.triggerEvent(new GeyserStopEvent());
 
         // Disable Plugins
-        extensionManager.disablePlugins();
+        extensionManager.disableExtensions();
 
         if (players.size() >= 1) {
             bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));

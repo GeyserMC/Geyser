@@ -111,7 +111,7 @@ public class BlockTranslator {
         Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
         Set<Class<?>> blockEntityClasses = EventManager.getInstance().triggerEvent(new BlockEntityRegistryEvent(
                 ref.getTypesAnnotatedWith(BlockEntity.class)
-        ).getEvent().getRegisteredTranslators();
+        )).getEvent().getRegisteredTranslators();
 
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;

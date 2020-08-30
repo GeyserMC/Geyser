@@ -37,6 +37,7 @@ import org.reflections.Reflections;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Registry that holds {@link SoundInteractionHandler}s.
@@ -48,11 +49,11 @@ public class SoundHandlerRegistry {
     static {
         Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.sound") : new Reflections("org.geysermc.connector.network.translators.sound");
 
-        SoundHandlerRegistryEvent soundHandlerEvent = EventManager.getInstance().triggerEvent(new SoundHandlerRegistryEvent(
+        Set<Class<?>> soundHandlerClasses = EventManager.getInstance().triggerEvent(new SoundHandlerRegistryEvent(
                 new Reflections("org.geysermc.connector.network.translators.sound").getTypesAnnotatedWith(SoundHandler.class))
         ).getEvent().getRegisteredTranslators();
 
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(SoundHandler.class)) {
+        for (Class<?> clazz : soundHandlerClasses) {
             try {
                 SoundInteractionHandler<?> interactionHandler = (SoundInteractionHandler<?>) clazz.newInstance();
                 SoundHandler annotation = clazz.getAnnotation(SoundHandler.class);

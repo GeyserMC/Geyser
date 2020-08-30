@@ -81,4 +81,9 @@ public class ExtensionLogger implements GeyserLogger {
     public void setDebug(boolean debug) {
         extension.getConnector().getLogger().setDebug(debug);
     }
+
+    @Override
+    public boolean isDebug() {
+        return extension.getConnector().getLogger().isDebug();
+    }
 }
