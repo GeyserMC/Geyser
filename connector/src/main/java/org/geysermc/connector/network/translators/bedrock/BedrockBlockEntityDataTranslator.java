@@ -67,7 +67,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
                     widthCount = 0;
                     // Saves if we're moving a word to the next line
                     String word = null;
-                    if (wentOverMax) {
+                    if (wentOverMax && iterator < lines.length - 1) {
                         // If we went over the max, we want to try to wrap properly like Bedrock does.
                         // So we look for a space in the Bedrock user's text to imply a word.
                         int index = newMessage.lastIndexOf(" ");
