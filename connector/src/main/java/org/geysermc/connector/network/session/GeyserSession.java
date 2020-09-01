@@ -430,7 +430,6 @@ public class GeyserSession implements CommandSender {
 
                     @Override
                     public void packetReceived(PacketReceivedEvent event) {
-                        System.out.println(event.getPacket().toString());
                         if (!closed) {
                             //handle consecutive respawn packets
                             if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
