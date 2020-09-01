@@ -43,6 +43,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.EntityEffectCache;
@@ -65,8 +66,14 @@ public class PlayerEntity extends LivingEntity {
     private boolean playerList = true;  // Player is in the player list
     private final EntityEffectCache effectCache;
 
-    private Entity leftParrot;
-    private Entity rightParrot;
+    /**
+     * Saves the parrot currently on the player's left shoulder; otherwise null
+     */
+    private ParrotEntity leftParrot;
+    /**
+     * Saves the parrot currently on the player's right shoulder; otherwise null
+     */
+    private ParrotEntity rightParrot;
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
@@ -189,6 +196,12 @@ public class PlayerEntity extends LivingEntity {
     @Override
     public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
         moveRelative(session, moveX, moveY, moveZ, yaw, pitch, isOnGround);
+        if (leftParrot != null) {
+            leftParrot.moveRelative(session, moveX, moveY, moveZ, yaw, pitch, isOnGround);
+        }
+        if (rightParrot != null) {
+            rightParrot.moveRelative(session, moveX, moveY, moveZ, yaw, pitch, isOnGround);
+        }
     }
 
     @Override
@@ -202,6 +215,12 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(MovePlayerPacket.Mode.HEAD_ROTATION);
         session.sendUpstreamPacket(movePlayerPacket);
+        if (leftParrot != null) {
+            leftParrot.updateRotation(session, yaw, pitch, isOnGround);
+        }
+        if (rightParrot != null) {
+            rightParrot.updateRotation(session, yaw, pitch, isOnGround);
+        }
     }
 
     @Override
@@ -237,11 +256,15 @@ public class PlayerEntity extends LivingEntity {
         }
 
         // Parrot occupying shoulder
-        if ((entityMetadata.getId() == 18 && leftParrot == null) || (entityMetadata.getId() == 19 && rightParrot == null)) { // null check since this code just creates the parrot
+        if (entityMetadata.getId() == 18 || entityMetadata.getId() == 19) {
             CompoundTag tag = (CompoundTag) entityMetadata.getValue();
             if (tag != null && !tag.isEmpty()) {
+                if ((entityMetadata.getId() == 18 && leftParrot != null) || (entityMetadata.getId() == 19 && rightParrot != null)) {
+                    // No need to update a parrot's data when it already exists
+                    return;
+                }
                 // The parrot is a separate entity in Bedrock, but part of the player entity in Java
-                Entity parrot = new Entity(0, session.getEntityCache().getNextEntityId().incrementAndGet(),
+                ParrotEntity parrot = new ParrotEntity(0, session.getEntityCache().getNextEntityId().incrementAndGet(),
                         EntityType.PARROT, position, motion, rotation);
                 parrot.spawnEntity(session);
                 parrot.getMetadata().put(EntityData.VARIANT, tag.get("Variant").getValue());

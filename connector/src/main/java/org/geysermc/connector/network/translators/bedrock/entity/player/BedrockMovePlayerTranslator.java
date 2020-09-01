@@ -86,6 +86,13 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
         entity.setRotation(rotation);
         entity.setOnGround(packet.isOnGround());
+        // Move parrots to match if applicable
+        if (entity.getLeftParrot() != null) {
+            entity.getLeftParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
+        }
+        if (entity.getRightParrot() != null) {
+            entity.getRightParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
+        }
 
         /*
         boolean colliding = false;
