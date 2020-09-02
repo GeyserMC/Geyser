@@ -120,6 +120,10 @@ public class Entity {
     }
 
     public void spawnEntity(GeyserSession session) {
+        if (!session.getUpstream().isInitialized()) {
+            return;
+        }
+
         AddEntityPacket addEntityPacket = new AddEntityPacket();
         addEntityPacket.setIdentifier(entityType.getIdentifier());
         addEntityPacket.setRuntimeEntityId(geyserId);

@@ -280,8 +280,14 @@ public class GeyserSession implements CommandSender {
     }
 
     public void connect(RemoteServer remoteServer) {
-        startGame();
         this.remoteServer = remoteServer;
+
+        PlayerListPacket playerListPacket = new PlayerListPacket();
+        playerListPacket.setAction(PlayerListPacket.Action.ADD);
+        playerListPacket.getEntries().add(SkinUtils.buildCachedEntry(this, playerEntity.getProfile(), playerEntity.getGeyserId()));
+        sendUpstreamPacket(playerListPacket);
+
+        startGame();
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
@@ -296,10 +302,6 @@ public class GeyserSession implements CommandSender {
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
         upstream.sendPacket(creativePacket);
-
-        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-        upstream.sendPacket(playStatusPacket);
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
@@ -318,6 +320,11 @@ public class GeyserSession implements CommandSender {
         // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         upstream.sendPacket(gamerulePacket);
+
+        // Spawn the player
+        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+        sendUpstreamPacket(playStatusPacket);
     }
 
     public void login() {
@@ -426,6 +433,15 @@ public class GeyserSession implements CommandSender {
 
                         // Download and load the language for the player
                         LocaleUtils.downloadAndLoadLocale(locale);
+
+                        for (Entity entity : getEntityCache().getEntities().values()) {
+                            if (!entity.isValid()) {
+                                if (entity instanceof PlayerEntity) {
+                                    SkinUtils.requestAndHandleSkinAndCape((PlayerEntity) entity, GeyserSession.this, null);
+                                }
+                                entity.spawnEntity(GeyserSession.this);
+                            }
+                        }
                     }
 
                     @Override
