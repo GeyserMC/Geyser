@@ -74,10 +74,10 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         session.sendUpstreamPacket(playerGameTypePacket);
         session.setGameMode(packet.getGameMode());
 
-        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityDataPacket.getMetadata().putAll(entity.getMetadata());
-        session.sendUpstreamPacket(entityDataPacket);
+//        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+//        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
+//        entityDataPacket.getMetadata().putAll(entity.getMetadata());
+//        session.sendUpstreamPacket(entityDataPacket);
 
         // Send if client should show respawn screen
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
