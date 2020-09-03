@@ -64,7 +64,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
      *
      * The key is the Spigot Biome ordinal; the value is the Minecraft Java biome numerical ID
      */
-    private static final Int2IntMap biomeToIdMap = new Int2IntOpenHashMap(Biome.values().length);
+    private final Int2IntMap biomeToIdMap = new Int2IntOpenHashMap(Biome.values().length);
 
     public GeyserSpigotWorldManager(boolean isLegacy, boolean use3dBiomes, boolean isViaVersion) {
         this.isLegacy = isLegacy;
