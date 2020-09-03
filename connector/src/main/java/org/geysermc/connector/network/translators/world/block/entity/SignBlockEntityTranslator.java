@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.utils.SignUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,9 +47,17 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             String signLine = getOrDefault(tag.getValue().get("Text" + currentLine), "");
             signLine = MessageUtils.getBedrockMessage(MessageSerializer.fromString(signLine));
 
-            //Java allows up to 16+ characters on certain symbols. 
-            if(signLine.length() >= 15 && (signLine.contains("-") || signLine.contains("="))) {
-                signLine = signLine.substring(0, 14);
+            // Check the character width on the sign to ensure there is no overflow that is usually hidden
+            // to Java Edition clients but will appear to Bedrock clients
+            int signWidth = 0;
+            StringBuilder finalSignLine = new StringBuilder();
+            for (char c : signLine.toCharArray()) {
+                signWidth += SignUtils.getCharacterWidth(c);
+                if (signWidth <= SignUtils.BEDROCK_CHARACTER_WIDTH_MAX) {
+                    finalSignLine.append(c);
+                } else {
+                    break;
+                }
             }
 
             // Java Edition 1.14 added the ability to change the text color of the whole sign using dye
@@ -56,7 +65,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                 signText.append(getBedrockSignColor(tag.get("Color").getValue().toString()));
             }
 
-            signText.append(signLine);
+            signText.append(finalSignLine.toString());
             signText.append("\n");
         }
 

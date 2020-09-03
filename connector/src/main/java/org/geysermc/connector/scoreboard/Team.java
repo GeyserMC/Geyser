@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.scoreboard;
 
+import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
@@ -44,6 +45,7 @@ public class Team {
     private UpdateType updateType = UpdateType.ADD;
     private String name;
 
+    private NameTagVisibility nameTagVisibility;
     private String prefix;
     private TeamColor color;
     private String suffix;

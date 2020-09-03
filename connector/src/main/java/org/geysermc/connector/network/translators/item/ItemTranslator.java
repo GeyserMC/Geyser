@@ -35,7 +35,7 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
@@ -358,7 +358,7 @@ public abstract class ItemTranslator {
 
                 // If its not a message convert it
                 if (!MessageUtils.isMessage(name)) {
-                    TextComponent component = LegacyComponentSerializer.legacySection().deserialize(name);
+                    Component component = LegacyComponentSerializer.legacySection().deserialize(name);
                     name = GsonComponentSerializer.gson().serialize(component);
                 }
 
