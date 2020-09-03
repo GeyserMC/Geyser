@@ -45,18 +45,33 @@ import org.geysermc.connector.utils.ChunkUtils;
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
 
+    /**
+     * Determines if we should process non-full chunks
+     */
+    private final boolean isCacheChunks;
+
+    public JavaChunkDataTranslator() {
+        isCacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
+    }
+
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        if (packet.getColumn().getBiomeData() == null) //Non-full chunk
+        if (packet.getColumn().getBiomeData() == null && !isCacheChunks) {
+            // Non-full chunk without chunk caching
+            session.getConnector().getLogger().debug("Not sending non-full chunk because chunk caching is off.");
             return;
+        }
+
+        // Non-full chunks don't have all the chunk data, and Bedrock won't accept that
+        final boolean isNonFullChunk = (packet.getColumn().getBiomeData() == null);
 
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, packet.getColumn(), isNonFullChunk);
                 ByteBuf byteBuf = Unpooled.buffer(32);
                 ChunkSection[] sections = chunkData.sections;
 
@@ -71,7 +86,12 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     section.writeToNetwork(byteBuf);
                 }
 
-                byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
+                byte[] bedrockBiome;
+                if (packet.getColumn().getBiomeData() == null) {
+                    bedrockBiome = BiomeTranslator.toBedrockBiome(session.getConnector().getWorldManager().getBiomeDataAt(session, packet.getColumn().getX(), packet.getColumn().getZ()));
+                } else {
+                    bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
+                }
 
                 byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
                 byteBuf.writeByte(0); // Border blocks - Edu edition only
