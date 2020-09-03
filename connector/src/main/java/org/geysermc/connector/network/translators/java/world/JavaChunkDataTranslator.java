@@ -45,7 +45,9 @@ import org.geysermc.connector.utils.ChunkUtils;
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
 
-    // Used for determining if we should process non-full chunks
+    /**
+     * Determines if we should process non-full chunks
+     */
     private final boolean isCacheChunks;
 
     public JavaChunkDataTranslator() {
