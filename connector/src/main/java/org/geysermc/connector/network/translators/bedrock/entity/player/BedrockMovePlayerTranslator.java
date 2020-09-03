@@ -39,7 +39,9 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.world.collision.translators.BlockCollision;
+import org.geysermc.connector.utils.BoundingBox;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -101,7 +103,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
                 Double.parseDouble(Float.toString(packet.getPosition().getZ())));
-        System.out.println("Pre-pos!!!: " + position);
+        // System.out.println("Pre-pos!!!: " + position);
 
         if (!session.confirmTeleport(position)){
             return;
@@ -148,6 +150,66 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
 
 
+
+
+
+
+
+
+
+
+            BoundingBox playerCollision = entity.getBoundingBox();// new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.6, 1.8, 0.6);
+
+            // Loop through all blocks that could collide with the player
+            int minCollisionX = (int) Math.floor(position.getX() - 0.3);
+            int maxCollisionX = (int) Math.floor(position.getX() + 0.3);
+
+            // Y extends 0.5 blocks down because of fence hitboxes
+            int minCollisionY = (int) Math.floor(position.getY() - 0.5);
+
+            // Hitbox height is currently set to 0.5 to improve performance, as only blocks below the player need checking
+            // Any lower seems to cause issues
+            int maxCollisionY = (int) Math.floor(position.getY() + 0.5);
+
+            int minCollisionZ = (int) Math.floor(position.getZ() - 0.3);
+            int maxCollisionZ = (int) Math.floor(position.getZ() + 0.3);
+
+            BlockCollision blockCollision;
+
+            for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
+                // Need to run twice?
+                for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
+                    for (int z = minCollisionZ; z < maxCollisionZ + 1; z++) {
+                        blockCollision = CollisionTranslator.getCollision(
+                                session.getConnector().getWorldManager().getBlockAt(session, x, y, z),
+                                x, y, z
+                        );
+
+                        if (blockCollision != null) {
+                            blockCollision.correctPosition(playerCollision);
+                        }
+                    }
+                }
+            }
+            /* position = Vector3d.from(playerCollision.getMiddleX(), playerCollision.getMiddleY() - 0.9,
+                    playerCollision.getMiddleZ()); */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             
 
 
@@ -178,7 +240,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        System.out.println("Post-pos: " + position);
+        // System.out.println("Post-pos: " + position);
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
                 packet.isOnGround(), position.getX(),
                 Math.round(position.getY() * 10000.0D) / 10000.0d,

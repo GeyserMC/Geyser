@@ -78,7 +78,6 @@ public class BlockCollision {
             playerCollision.setSizeZ(playerCollision.getSizeZ() + PlayerEntity.COLLISION_TOLERANCE * 2);
             // playerCollision.translate(0, 0.1, 0); // Hack to not check y
             // If the player still intersects the block, then push them out
-            System.out.println("Checking collision...");
             if (/*false &&*/ b.checkIntersection(x, y, z, playerCollision)) {
                 /* double relativeX = playerCollision.getMiddleX() - (x + 0.5);
                 double relativeY = playerCollision.getMiddleY() - (y + 0.5);
@@ -159,32 +158,32 @@ public class BlockCollision {
                 double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
                 if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(0, 0, translateDistance);
-                    System.out.println("Snapped to north");
+                    // System.out.println("Snapped to north");
                 }
                 
                 translateDistance = southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
                 if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(0, 0, translateDistance);
-                    System.out.println("Snapped to south");
+                    // System.out.println("Snapped to south");
                 }
 
                 translateDistance = eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
                 if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(translateDistance, 0, 0);
-                    System.out.println("Snapped to east");
+                    // System.out.println("Snapped to east");
                 }
 
                 translateDistance = westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
                 if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(translateDistance, 0, 0);
-                    System.out.println("Snapped to west");
+                    // System.out.println("Snapped to west");
                 }
 
-                Vector3d newPlayerPosition = Vector3d.from(playerCollision.getMiddleX(),
+                Vector3d newPlayerPosition = Vector3d.from(playerCollision.getMiddleX(), // TODO: Use next possible double?
                         playerCollision.getMiddleY(),
                         playerCollision.getMiddleZ());
 
-                System.out.println("Diff: " + MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition));
+                // System.out.println("Diff: " + MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition));
 
                 if (MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition) > PlayerEntity.COLLISION_TOLERANCE + 0.1) {
                     playerCollision.setMiddleX(oldPlayerPosition.getX());
@@ -193,7 +192,7 @@ public class BlockCollision {
                     System.out.println("Cancelled");
                 }
 
-                System.out.println(playerCollision.getMiddleX());
+                // System.out.println(playerCollision.getMiddleX());
                 // playerCollision.setMiddleX(oldPlayerPosition.getX());
             }
             // playerCollision.translate(0, -0.1, 0); // Hack to not check y
