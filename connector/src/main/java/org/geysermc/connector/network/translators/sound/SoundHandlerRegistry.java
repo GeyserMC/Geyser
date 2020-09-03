@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network.translators.sound;
 
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
 import java.util.HashMap;
@@ -38,7 +40,7 @@ public class SoundHandlerRegistry {
     static final Map<SoundHandler, SoundInteractionHandler<?>> INTERACTION_HANDLERS = new HashMap<>();
 
     static {
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.sound");
+        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.sound") : new Reflections("org.geysermc.connector.network.translators.sound");
         for (Class<?> clazz : ref.getTypesAnnotatedWith(SoundHandler.class)) {
             try {
                 SoundInteractionHandler<?> interactionHandler = (SoundInteractionHandler<?>) clazz.newInstance();
