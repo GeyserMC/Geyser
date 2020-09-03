@@ -80,8 +80,12 @@
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.reflections</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>com.google.guava</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.guava</shadedPattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.google.guava</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.dom4j</pattern>

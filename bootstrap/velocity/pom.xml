@@ -70,8 +70,12 @@
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.reflections</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>com.google.guava</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.guava</shadedPattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.google.guava</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.dom4j</pattern>
