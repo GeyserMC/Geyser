@@ -74,8 +74,12 @@
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.reflections</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>com.google.guava</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.guava</shadedPattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.guava</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.dom4j</pattern>
