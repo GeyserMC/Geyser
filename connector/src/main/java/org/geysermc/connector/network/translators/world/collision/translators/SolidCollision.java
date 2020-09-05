@@ -30,11 +30,10 @@ import org.geysermc.connector.network.translators.world.collision.CollisionRemap
 import org.geysermc.connector.utils.BoundingBox;
 
 // TODO: usesParams?
-@CollisionRemapper(regex = "_slab$", paramRegex = "type=(?!double)") // Handle double slabs
+@CollisionRemapper(regex = "_slab$", paramRegex = "type=(?:double)", usesParams = true) // Handle double slabs
 public class SolidCollision extends BlockCollision {
     public SolidCollision(String params) {
         super();
-        System.out.println("Instance (solid)!");
         boundingBoxes = new BoundingBox[]{
                 new BoundingBox(0.5, 0.5, 0.5, 1, 1, 1)
         };

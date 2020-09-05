@@ -394,6 +394,9 @@ public class PlayerEntity extends LivingEntity {
             BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
                     blockPos.getX(), blockPos.getY(), blockPos.getZ(), session
             );
+            if (blockCollision == null) {
+                continue;
+            }
             possibleCollision.add(blockCollision);
         }
         return possibleCollision;
