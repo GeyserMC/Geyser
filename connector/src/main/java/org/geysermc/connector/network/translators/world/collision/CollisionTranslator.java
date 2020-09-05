@@ -27,6 +27,8 @@
 package org.geysermc.connector.network.translators.world.collision;
 
 import com.google.common.collect.BiMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -40,7 +42,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class CollisionTranslator {
-    private static Map<Integer, BlockCollision> collisionMap = new HashMap<>();
+    private static Int2ObjectMap<BlockCollision> collisionMap = new Int2ObjectOpenHashMap<>();
 
     public static void init() {
         // If chunk caching is off then don't initialize
@@ -48,9 +50,9 @@ public class CollisionTranslator {
             return;
         }
 
-        List<Class> collisionTypes = new ArrayList<Class>();
+        List<Class<?>> collisionTypes = new ArrayList<>();
 
-        Map<Class, CollisionRemapper> annotationMap = new HashMap<>();
+        Map<Class<?>, CollisionRemapper> annotationMap = new HashMap<>();
         // Map<Class, Pattern> paramRegexMap = new HashMap<>();
 
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.collision.translators");
@@ -71,7 +73,7 @@ public class CollisionTranslator {
         BiMap<String, Integer> javaIdBlockMap = BlockTranslator.getJavaIdBlockMap();
         // Map of classes that don't change based on parameters that have already been created
         // BiMap<Class, BlockCollision> instantiatedCollision = HashBiMap.create();
-        Map<Class, BlockCollision> instantiatedCollision = new HashMap<>();
+        Map<Class<?>, BlockCollision> instantiatedCollision = new HashMap<>();
         for (Map.Entry<String, Integer> entry : javaIdBlockMap.entrySet()) {
             BlockCollision newCollision = instantiateCollision(entry.getKey(), collisionTypes, annotationMap, instantiatedCollision);
             if (newCollision != null) {
@@ -81,7 +83,7 @@ public class CollisionTranslator {
         }
     }
 
-    private static BlockCollision instantiateCollision(String blockID, List<Class> collisionTypes, Map<Class, CollisionRemapper> annotationMap, Map<Class, BlockCollision> instantiatedCollision) {
+    private static BlockCollision instantiateCollision(String blockID, List<Class<?>> collisionTypes, Map<Class<?>, CollisionRemapper> annotationMap, Map<Class<?>, BlockCollision> instantiatedCollision) {
 
         String blockName = blockID.split("\\[")[0].replace("minecraft:", "");
         String params = "";
@@ -89,10 +91,8 @@ public class CollisionTranslator {
             params = "[" + blockID.split("\\[")[1];
         }
 
-        Iterator i = collisionTypes.iterator();
-        while (i.hasNext()) {
-            Class collisionType = (Class) i.next();
-            CollisionRemapper annotation = annotationMap.get(collisionType);
+        for (Class<?> type : collisionTypes) {
+            CollisionRemapper annotation = annotationMap.get(type);
 
             Pattern pattern = Pattern.compile(annotation.regex());
             Pattern paramsPattern = Pattern.compile(annotation.paramRegex());
@@ -108,26 +108,26 @@ public class CollisionTranslator {
                         System.out.println(!annotation.usesParams());
                         System.out.println(instantiatedCollision.containsKey(collisionType));
                     } */
-                    if (!annotation.usesParams() && instantiatedCollision.containsKey(collisionType)) {
+                    if (!annotation.usesParams() && instantiatedCollision.containsKey(type)) {
                         // System.out.println("Early return (found): " + collisionType);
-                        return instantiatedCollision.get(collisionType);
+                        return instantiatedCollision.get(type);
                     }
                     // Return null when empty to save unnecessary checks
-                    if (collisionType == EmptyCollision.class) {
+                    if (type == EmptyCollision.class) {
                         // System.out.println("null!!!");
                         return null;
                     }
-                    BlockCollision collision = (BlockCollision) collisionType.getDeclaredConstructor(String.class).newInstance(params);
+                    BlockCollision collision = (BlockCollision) type.getDeclaredConstructor(String.class).newInstance(params);
                     // If there's an existing instance equal to this one, use that instead
                     // if (instantiatedCollision.containsValue(collision)) {
-                        // System.out.println("Can delete " + collision);
-                        for (Map.Entry<Class, BlockCollision> entry : instantiatedCollision.entrySet()) {
-                            if (entry.getValue().equals(collision)) {
-                                // System.out.println("Deleting " + collision);
-                                collision = entry.getValue();
-                                break;
-                            }
+                    // System.out.println("Can delete " + collision);
+                    for (Map.Entry<Class<?>, BlockCollision> entry : instantiatedCollision.entrySet()) {
+                        if (entry.getValue().equals(collision)) {
+                            // System.out.println("Deleting " + collision);
+                            collision = entry.getValue();
+                            break;
                         }
+                    }
                     // }
                     return collision;
                 } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {

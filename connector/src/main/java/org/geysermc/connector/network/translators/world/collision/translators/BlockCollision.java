@@ -32,23 +32,19 @@ import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.utils.BoundingBox;
 import org.geysermc.connector.utils.MathUtils;
 
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode
 public class BlockCollision {
-    @EqualsAndHashCode.Include
-    BoundingBox[] boundingBoxes;
 
-    @EqualsAndHashCode.Include
-    int x;
-    @EqualsAndHashCode.Include
-    int y;
-    @EqualsAndHashCode.Include
-    int z;
+    protected BoundingBox[] boundingBoxes;
+
+    protected int x, y, z;
 
     // This is used for the step up logic.
     // Usually, the player can only step up a block if they are on the same Y level as its bottom face or higher
     // For snow layers, due to its beforeCorrectPosition method the player can be slightly below (0.125 blocks) and still need to step up
     // Currently only used for snow layers
-    double pushUpTolerance = 0;
+    @EqualsAndHashCode.Exclude
+    protected double pushUpTolerance = 0;
 
     public void setPosition(int x, int y, int z) {
         this.x = x;

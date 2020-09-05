@@ -45,6 +45,7 @@ import org.geysermc.connector.utils.BoundingBox;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
@@ -90,7 +91,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         // System.out.println("Y pos: " + javaY);
 
-        if (javaY < -39 && javaY <= -40) {
+        if (javaY <= -40) {
             // TODO: TP player below void
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -114,7 +115,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
             entity.updateBoundingBox(position);
             // System.out.println("First Y: " + (entity.getBoundingBox().getMiddleY() - 0.9));
-            ArrayList<BlockCollision> possibleCollision = entity.getPossibleCollision(position, session);
+            List<BlockCollision> possibleCollision = entity.getPossibleCollision(position, session);
 
             Iterator<BlockCollision> i = possibleCollision.iterator();
             while (i.hasNext()) {
@@ -139,24 +140,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                     entity.getBoundingBox().translate(0, -0.1, 0); // Hack to not check y */
                 }
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             BoundingBox playerCollision = entity.getBoundingBox();// new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.6, 1.8, 0.6);
 
@@ -193,34 +176,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             }
             /* position = Vector3d.from(playerCollision.getMiddleX(), playerCollision.getMiddleY() - 0.9,
                     playerCollision.getMiddleZ()); */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-
-
-
-
-
-
-
-
-
-
 
             // System.out.println("Final Y: " + (entity.getBoundingBox().getMiddleY() - 0.9));
             position = Vector3d.from(entity.getBoundingBox().getMiddleX(), entity.getBoundingBox().getMiddleY() - 0.9,

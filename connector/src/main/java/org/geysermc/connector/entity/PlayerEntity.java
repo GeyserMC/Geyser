@@ -33,7 +33,6 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
@@ -59,7 +58,6 @@ import org.geysermc.connector.utils.BoundingBox;
 import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -357,8 +355,8 @@ public class PlayerEntity extends LivingEntity {
 
     public static final double COLLISION_TOLERANCE = 0.000001;
 
-    public ArrayList<Vector3i> getCollidableBlocks(Vector3d position) {
-        ArrayList<Vector3i> blocks = new ArrayList<Vector3i>();
+    public List<Vector3i> getCollidableBlocks(Vector3d position) {
+        List<Vector3i> blocks = new ArrayList<>();
 
         // Loop through all blocks that could collide with the player
         int minCollisionX = (int) Math.floor(position.getX() - ((boundingBox.getSizeX() / 2) + COLLISION_TOLERANCE));
@@ -388,13 +386,11 @@ public class PlayerEntity extends LivingEntity {
         return blocks;
     }
 
-    public ArrayList<BlockCollision> getPossibleCollision(Vector3d position, GeyserSession session) {
-        ArrayList<BlockCollision> possibleCollision = new ArrayList<BlockCollision>();
-        ArrayList<Vector3i> collidableBlocks = getCollidableBlocks(position);
+    public List<BlockCollision> getPossibleCollision(Vector3d position, GeyserSession session) {
+        List<BlockCollision> possibleCollision = new ArrayList<>();
+        List<Vector3i> collidableBlocks = getCollidableBlocks(position);
 
-        Iterator<Vector3i> i = collidableBlocks.iterator();
-        while (i.hasNext()) {
-            Vector3i blockPos = i.next();
+        for (Vector3i blockPos : collidableBlocks) {
             BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
                     blockPos.getX(), blockPos.getY(), blockPos.getZ(), session
             );
