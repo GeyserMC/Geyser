@@ -28,11 +28,12 @@ package org.geysermc.connector.network.translators.world.collision.translators;
 import org.geysermc.connector.network.translators.world.collision.CollisionRemapper;
 import org.geysermc.connector.utils.BoundingBox;
 
-@CollisionRemapper(regex = ".*flower_pot$|^.*potted_.*$")
-public class FlowerPotCollision extends BlockCollision {
-    public FlowerPotCollision(String params) {
+@CollisionRemapper(regex = ".*enchanting_table$")
+public class EnchantingTableCollision extends BlockCollision {
+    public EnchantingTableCollision(String params) {
+        super();
         boundingBoxes = new BoundingBox[]{
-                new BoundingBox(0.5, 0.15, 0.5, 0.375, 0.45, 0.375)
+                new BoundingBox(0.5, 0.5, 0.5, 1, 0.5, 1)
         };
     }
 }
