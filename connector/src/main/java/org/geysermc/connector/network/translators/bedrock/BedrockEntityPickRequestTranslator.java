@@ -44,9 +44,9 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
 
     @Override
     public void translate(EntityPickRequestPacket packet, GeyserSession session) {
+        if (session.getGameMode() != GameMode.CREATIVE) return; // Apparently Java behavior
         Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
         if (entity == null) return;
-        if (session.getGameMode() != GameMode.CREATIVE) return; // Apparently Java behavior
 
         // Get the corresponding item
         String itemName;
