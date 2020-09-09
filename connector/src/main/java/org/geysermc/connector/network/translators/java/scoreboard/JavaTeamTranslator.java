@@ -61,6 +61,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                 scoreboard.registerNewTeam(packet.getTeamName(), toPlayerSet(packet.getPlayers()))
                         .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
+                        .setNameTagVisibility(packet.getNameTagVisibility())
                         .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getClientData().getLanguageCode()))
                         .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getClientData().getLanguageCode()));
                 break;
@@ -75,6 +76,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
 
                 team.setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
+                        .setNameTagVisibility(packet.getNameTagVisibility())
                         .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getClientData().getLanguageCode()))
                         .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getClientData().getLanguageCode()))
                         .setUpdateType(UpdateType.UPDATE);
