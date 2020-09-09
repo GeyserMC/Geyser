@@ -242,4 +242,4 @@ logs/
 public-key.pem
 locales/
 /cache/
-plugins/
+/extensions/
