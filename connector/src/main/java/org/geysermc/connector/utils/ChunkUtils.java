@@ -81,7 +81,7 @@ public class ChunkUtils {
         }
     }
 
-    public static ChunkData translateToBedrock(Column column, GeyserSession session) {
+    public static ChunkData translateToBedrock(GeyserSession session, Column column, boolean isNonFullChunk) {
         ChunkData chunkData = new ChunkData();
         Chunk[] chunks = column.getChunks();
         chunkData.sections = new ChunkSection[chunks.length];
@@ -97,14 +97,26 @@ public class ChunkUtils {
             chunkData.sections[chunkY] = new ChunkSection();
             Chunk chunk = chunks[chunkY];
 
-            if (chunk == null || chunk.isEmpty())
+            // Chunk is null and caching chunks is off or this isn't a non-full chunk
+            if (chunk == null && (!session.getConnector().getConfig().isCacheChunks() || !isNonFullChunk))
+                continue;
+
+            // If chunk is empty then no need to process
+            if (chunk != null && chunk.isEmpty())
                 continue;
 
             ChunkSection section = chunkData.sections[chunkY];
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
-                        int blockState = chunk.get(x, y, z);
+                        int blockState;
+                        // If a non-full chunk, then grab the block that should be here to create a 'full' chunk
+                        if (chunk == null) {
+                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
+                            blockState = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
+                        } else {
+                            blockState = chunk.get(x, y, z);
+                        }
                         int id = BlockTranslator.getBedrockBlockId(blockState);
 
                         // Check to see if the name is in BlockTranslator.getBlockEntityString, and therefore must be handled differently

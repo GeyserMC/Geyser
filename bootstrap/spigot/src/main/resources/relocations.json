@@ -14,5 +14,21 @@
   {
     "from": "org.reflections.reflections",
     "to": "org.geysermc.platform.spigot.shaded.reflections"
+  },
+  {
+    "from": "com.google.common",
+    "to": "org.geysermc.platform.spigot.shaded.google.common"
+  },
+  {
+    "from": "com.google.guava",
+    "to": "org.geysermc.platform.spigot.shaded.guava"
+  },
+  {
+    "from": "org.dom4j",
+    "to": "org.geysermc.platform.spigot.shaded.dom4j"
+  },
+  {
+    "from": "net.kyori.adventure",
+    "to": "org.geysermc.platform.spigot.shaded.adventure"
   }
 ]

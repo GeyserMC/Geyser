@@ -13,14 +13,14 @@ bedrock:
   address: 0.0.0.0
   # The port that will listen for connections
   port: 19132
-  # Some hosting services change your Java port everytime you open the server, and require the same port to be used for Bedrock.
+  # Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
   # This option makes the Bedrock port the same as the Java port every time you start the server.
   # This option is for the plugin version only.
   clone-remote-port: false
-  # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. Irrelevant if "passthrough-motd" is set to true
+  # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. This is irrelevant if "passthrough-motd" is set to true
   motd1: "GeyserMC"
   motd2: "Another GeyserMC forced host."
-  # The Server Name that will be sent to Minecraft: Bedrock Edition clients. Visible in both the pause menu and the settings menu.
+  # The Server Name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.
   server-name: "Geyser"
 remote:
   # The IP address of the remote (Java Edition) server
@@ -55,7 +55,7 @@ floodgate-key-file: public-key.pem
 # Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.
 command-suggestions: true
 
-# The following three options enable "ping passthrough" -the MOTD, player count and/or protocol name gets retrieved from the Java server.
+# The following three options enable "ping passthrough" - the MOTD, player count and/or protocol name gets retrieved from the Java server.
 # Relay the MOTD from the remote server to Bedrock players.
 passthrough-motd: false
 # Relay the protocol name (e.g. BungeeCord [X.X], Paper 1.X) - only really useful when using a custom protocol name!

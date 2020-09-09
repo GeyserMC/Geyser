@@ -132,7 +132,7 @@ public class GeyserConnector {
         logger.setDebug(config.isDebugMode());
 
         this.eventManager = new EventManager(this);
-        this.extensionManager = new ExtensionManager(this, bootstrap.getConfigFolder().resolve("plugins").toFile());
+        this.extensionManager = new ExtensionManager(this, bootstrap.getConfigFolder().resolve("extensions").toFile());
 
         PacketTranslatorRegistry.init();
 

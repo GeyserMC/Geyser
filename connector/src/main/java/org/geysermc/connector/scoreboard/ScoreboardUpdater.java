@@ -31,6 +31,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScoreboardUpdater extends Thread {
@@ -61,7 +62,7 @@ public class ScoreboardUpdater extends Thread {
 
     @Override
     public void run() {
-        while (!session.isClosed()) {
+        if (!session.isClosed()) {
             long currentTime = System.currentTimeMillis();
 
             // reset score-packets per second every second
@@ -99,6 +100,8 @@ public class ScoreboardUpdater extends Thread {
                     }
                 }
             }
+
+            session.getConnector().getGeneralThreadPool().schedule(this, 50, TimeUnit.MILLISECONDS);
         }
     }
 

@@ -258,6 +258,15 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean thunder = false;
 
+    /**
+     * Stores the last text inputted into a sign.
+     *
+     * Bedrock sends packets every time you update the sign, Java only wants the final packet.
+     * Until we determine that the user has finished editing, we save the sign's current status.
+     */
+    @Setter
+    private String lastSignMessage;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -326,10 +335,13 @@ public class GeyserSession implements CommandSender {
         attributesPacket.setAttributes(attributes);
         sendUpstreamPacket(attributesPacket);
 
+        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         // Only allow the server to send health information
         // Setting this to false allows natural regeneration to work false but doesn't break it being true
-        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
+        // Don't let the client modify the inventory on death
+        // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
+        gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         sendUpstreamPacket(gamerulePacket);
 
         // Spawn the player
@@ -795,7 +807,10 @@ public class GeyserSession implements CommandSender {
     public void sendAdventureSettings() {
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
         adventureSettingsPacket.setUniqueEntityId(playerEntity.getGeyserId());
-        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
+        // Set command permission if OP permission level is high enough
+        // This allows mobile players access to a GUI for doing commands. The commands there do not change above OPERATOR
+        // and all commands there are accessible with OP permission level 2
+        adventureSettingsPacket.setCommandPermission(opPermissionLevel >= 2 ? CommandPermission.OPERATOR : CommandPermission.NORMAL);
         adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
 
         Set<AdventureSetting> flags = new HashSet<>();
