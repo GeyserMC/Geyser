@@ -244,4 +244,5 @@ locales/
 
 ### VS Code ###
 .vscode
-cache/
+# Note: Manually edited to change cache/ to /cache/
+/cache/
