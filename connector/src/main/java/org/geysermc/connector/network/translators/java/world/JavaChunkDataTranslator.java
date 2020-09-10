@@ -25,28 +25,34 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
+import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
+
+    /**
+     * Determines if we should process non-full chunks
+     */
+    private final boolean isCacheChunks;
+
+    public JavaChunkDataTranslator() {
+        isCacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
+    }
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
@@ -54,12 +60,18 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        if (packet.getColumn().getBiomeData() == null) //Non-full chunk
+        if (packet.getColumn().getBiomeData() == null && !isCacheChunks) {
+            // Non-full chunk without chunk caching
+            session.getConnector().getLogger().debug("Not sending non-full chunk because chunk caching is off.");
             return;
+        }
+
+        // Non-full chunks don't have all the chunk data, and Bedrock won't accept that
+        final boolean isNonFullChunk = (packet.getColumn().getBiomeData() == null);
 
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(packet.getColumn());
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, packet.getColumn(), isNonFullChunk);
                 ByteBuf byteBuf = Unpooled.buffer(32);
                 ChunkSection[] sections = chunkData.sections;
 
@@ -74,7 +86,12 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     section.writeToNetwork(byteBuf);
                 }
 
-                byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
+                byte[] bedrockBiome;
+                if (packet.getColumn().getBiomeData() == null) {
+                    bedrockBiome = BiomeTranslator.toBedrockBiome(session.getConnector().getWorldManager().getBiomeDataAt(session, packet.getColumn().getX(), packet.getColumn().getZ()));
+                } else {
+                    bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
+                }
 
                 byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
                 byteBuf.writeByte(0); // Border blocks - Edu edition only
@@ -99,14 +116,6 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 levelChunkPacket.setData(payload);
                 session.sendUpstreamPacket(levelChunkPacket);
 
-                // Some block entities need to be loaded in later or else text doesn't show (signs) or they crash the game (end gateway blocks)
-                for (Object2IntMap.Entry<NbtMap> blockEntityEntry : chunkData.getLoadBlockEntitiesLater().object2IntEntrySet()) {
-                    int x = blockEntityEntry.getKey().getInt("x");
-                    int y = blockEntityEntry.getKey().getInt("y");
-                    int z = blockEntityEntry.getKey().getInt("z");
-                    ChunkUtils.updateBlock(session, blockEntityEntry.getIntValue(), new Position(x, y, z));
-                }
-                chunkData.getLoadBlockEntitiesLater().clear();
                 session.getChunkCache().addToCache(packet.getColumn());
             } catch (Exception ex) {
                 ex.printStackTrace();

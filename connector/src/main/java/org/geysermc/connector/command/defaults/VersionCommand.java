@@ -26,6 +26,7 @@
 package org.geysermc.connector.command.defaults;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
@@ -38,6 +39,7 @@ import org.geysermc.connector.utils.WebUtils;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Properties;
 
 public class VersionCommand extends GeyserCommand {
@@ -51,7 +53,15 @@ public class VersionCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.version", GeyserConnector.NAME, GeyserConnector.VERSION, MinecraftConstants.GAME_VERSION, BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
+        String bedrockVersions;
+        List<BedrockPacketCodec> supportedCodecs = BedrockProtocol.SUPPORTED_BEDROCK_CODECS;
+        if (supportedCodecs.size() > 1) {
+            bedrockVersions = supportedCodecs.get(0).getMinecraftVersion() + " - " + supportedCodecs.get(supportedCodecs.size() - 1).getMinecraftVersion();
+        } else {
+            bedrockVersions = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
+        }
+
+        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.version", GeyserConnector.NAME, GeyserConnector.VERSION, MinecraftConstants.GAME_VERSION, bedrockVersions));
 
         // Disable update checking in dev mode
         //noinspection ConstantConditions - changes in production

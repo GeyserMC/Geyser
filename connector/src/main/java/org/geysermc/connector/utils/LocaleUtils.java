@@ -150,7 +150,7 @@ public class LocaleUtils {
 
         // Get the hash and download the locale
         String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
-        WebUtils.downloadFile("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
+        WebUtils.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
     }
 
     /**
@@ -246,6 +246,11 @@ public class LocaleUtils {
         Map<String, String> localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(locale.toLowerCase());
         if (localeStrings == null)
             localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(LanguageUtils.getDefaultLocale());
+        if (localeStrings == null) {
+            // Don't cause a NPE if the locale is STILL missing
+            GeyserConnector.getInstance().getLogger().debug("MISSING DEFAULT LOCALE: " + LanguageUtils.getDefaultLocale());
+            return messageText;
+        }
 
         return localeStrings.getOrDefault(messageText, messageText);
     }
