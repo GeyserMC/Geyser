@@ -133,7 +133,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
                     ProtocolVersion.v1_13.getId());
             for (int i = protocolList.size() - 1; i >= 0; i--) {
-                if (!protocolList.get(i).getValue().hasMappingDataToLoad()) continue;
+                if (protocolList.get(i).getValue().getMappingData() == null) continue;
                 blockId = protocolList.get(i).getValue().getMappingData().getNewBlockStateId(blockId);
             }
             return blockId;
