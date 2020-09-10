@@ -61,8 +61,8 @@ public class BlockCollision {
             double boxMinY = (b.getMiddleY() + y) - (b.getSizeY() / 2);
             double boxMaxY = (b.getMiddleY() + y) + (b.getSizeY() / 2);
             if (b.checkIntersection(x, y, z, playerCollision) && (playerMinY + pushUpTolerance) >= boxMinY) {
-                // Max steppable distance in Minecraft is 0.5 blocks
-                if (boxMaxY - playerMinY <= 0.5) {
+                // Max steppable distance in Minecraft as far as we know is 0.5625 blocks (for beds)
+                if (boxMaxY - playerMinY <= 0.5625) {
                     playerCollision.translate(0, boxMaxY - playerMinY, 0);
                     // System.out.println("2: Moved by " + (boxMaxY - playerMinY));
                     // Update player Y for next collision box
