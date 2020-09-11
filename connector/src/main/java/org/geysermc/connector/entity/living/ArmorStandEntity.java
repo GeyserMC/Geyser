@@ -53,6 +53,10 @@ public class ArmorStandEntity extends LivingEntity {
      * Whether this is the primary armor stand that holds the armor and not the name tag.
      */
     private boolean primaryEntity = true;
+    /**
+     * Whether the last position update included the offset.
+     */
+    private boolean lastPositionIncludedOffset = false;
     private GeyserSession session;
 
     public ArmorStandEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
@@ -76,10 +80,12 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         // Fake the height to be above where it is so the nametag appears in the right location for invisible non-marker armour stands
+        lastPositionIncludedOffset = false;
         if (secondEntity != null) {
             secondEntity.moveAbsolute(session, position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d), rotation, isOnGround, teleported);
         } else if (!isMarker && isInvisible && !metadata.getFlags().getFlag(EntityFlag.INVISIBLE)) { // Means it's not visible
             position = position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
+            lastPositionIncludedOffset = true;
         }
 
         super.moveAbsolute(session, position, rotation, isOnGround, teleported);
@@ -223,7 +229,11 @@ public class ArmorStandEntity extends LivingEntity {
             // Update the position of the armor stands
             updatePosition();
 
-            secondEntity.updatePositionWithOffset();
+            if (lastPositionIncludedOffset) {
+                secondEntity.updatePosition();
+            } else {
+                secondEntity.updatePositionWithOffset();
+            }
         } else if (metadata.getString(EntityData.NAMETAG).equals("")) {
             // We can just make an invisible entity
             // Reset scale of the proper armor stand
@@ -255,7 +265,7 @@ public class ArmorStandEntity extends LivingEntity {
     private void updatePosition() {
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(position);
+        moveEntityPacket.setPosition(lastPositionIncludedOffset ? position.sub(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d) : position);
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(onGround);
         moveEntityPacket.setTeleported(false);
@@ -266,9 +276,11 @@ public class ArmorStandEntity extends LivingEntity {
      * Updates position without calling movement code and includes the offset.
      */
     private void updatePositionWithOffset() {
+        System.out.println(secondEntity);
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d));
+        moveEntityPacket.setPosition(primaryEntity && lastPositionIncludedOffset ?
+                position : position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d));
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(onGround);
         moveEntityPacket.setTeleported(false);
