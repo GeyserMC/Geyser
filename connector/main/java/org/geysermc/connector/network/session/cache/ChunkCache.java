@@ -42,7 +42,7 @@ public class ChunkCache {
     private final boolean cache;
 
     @Getter
-    private final Map<ChunkPosition, Column> chunks = new HashMap<>();
+    private Map<ChunkPosition, Column> chunks = new HashMap<>();
 
     public ChunkCache(GeyserSession session) {
         if (session.getConnector().getWorldManager().getClass() == GeyserBootstrap.DEFAULT_CHUNK_MANAGER.getClass()) {
@@ -57,15 +57,6 @@ public class ChunkCache {
             return;
         }
         ChunkPosition position = new ChunkPosition(chunk.getX(), chunk.getZ());
-        if (chunk.getBiomeData() == null && chunks.containsKey(position)) {
-            Column newColumn = chunk;
-            chunk = chunks.get(position);
-            for (int i = 0; i < newColumn.getChunks().length; i++) {
-                if (newColumn.getChunks()[i] != null) {
-                    chunk.getChunks()[i] = newColumn.getChunks()[i];
-                }
-            }
-        }
         chunks.put(position, chunk);
     }
 

@@ -25,41 +25,13 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.nukkitx.math.vector.Vector3d;
-import com.nukkitx.math.vector.Vector3f;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 
-@RequiredArgsConstructor
-@Data
-public class TeleportCache {
+import java.util.HashMap;
+import java.util.Map;
 
-    private static final double ERROR = 0.1;
-    private static final double ERROR_Y = 0.1;
+public class DataCache<T> {
 
-    private int unconfirmedFor = 0;
-
-    /**
-     * How many move packets the teleport can be unconfirmed for before it gets resent to the client
-     */
-     private static final int RESEND_THRESHOLD = 5;
-
-    private final double x, y, z;
-    private final double pitch, yaw;
-    private final int teleportConfirmId;
-
-    public boolean canConfirm(Vector3d position) {
-        return (Math.abs(this.x - position.getX()) < ERROR &&
-                Math.abs(this.y - position.getY()) < ERROR_Y &&
-                Math.abs(this.z - position.getZ()) < ERROR);
-    }
-
-    public void incrementUnconfirmedFor() {
-        unconfirmedFor++;
-    }
-
-    public boolean shouldResend() {
-        return unconfirmedFor >= RESEND_THRESHOLD;
-    }
+    @Getter
+    private Map<String, T> cachedValues = new HashMap<String, T>();
 }

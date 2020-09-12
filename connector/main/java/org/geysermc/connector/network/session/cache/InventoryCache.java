@@ -25,41 +25,37 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.nukkitx.math.vector.Vector3d;
-import com.nukkitx.math.vector.Vector3f;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.Getter;
+import lombok.Setter;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
 
-@RequiredArgsConstructor
-@Data
-public class TeleportCache {
+public class InventoryCache {
 
-    private static final double ERROR = 0.1;
-    private static final double ERROR_Y = 0.1;
+    private GeyserSession session;
 
-    private int unconfirmedFor = 0;
+    @Getter
+    @Setter
+    private Inventory openInventory;
 
-    /**
-     * How many move packets the teleport can be unconfirmed for before it gets resent to the client
-     */
-     private static final int RESEND_THRESHOLD = 5;
+    @Getter
+    private Int2ObjectMap<Inventory> inventories = new Int2ObjectOpenHashMap<>();
 
-    private final double x, y, z;
-    private final double pitch, yaw;
-    private final int teleportConfirmId;
-
-    public boolean canConfirm(Vector3d position) {
-        return (Math.abs(this.x - position.getX()) < ERROR &&
-                Math.abs(this.y - position.getY()) < ERROR_Y &&
-                Math.abs(this.z - position.getZ()) < ERROR);
+    public InventoryCache(GeyserSession session) {
+        this.session = session;
     }
 
-    public void incrementUnconfirmedFor() {
-        unconfirmedFor++;
+    public Inventory getPlayerInventory() {
+        return inventories.get(0);
     }
 
-    public boolean shouldResend() {
-        return unconfirmedFor >= RESEND_THRESHOLD;
+    public void cacheInventory(Inventory inventory) {
+        inventories.put(inventory.getId(), inventory);
+    }
+
+    public void uncacheInventory(int id) {
+        inventories.remove(id);
     }
 }

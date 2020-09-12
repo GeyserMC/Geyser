@@ -23,43 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.world.collision.translators;
 
-import com.nukkitx.math.vector.Vector3d;
-import com.nukkitx.math.vector.Vector3f;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import org.geysermc.connector.network.translators.world.collision.CollisionRemapper;
+import org.geysermc.connector.utils.BoundingBox;
 
-@RequiredArgsConstructor
-@Data
-public class TeleportCache {
-
-    private static final double ERROR = 0.1;
-    private static final double ERROR_Y = 0.1;
-
-    private int unconfirmedFor = 0;
-
-    /**
-     * How many move packets the teleport can be unconfirmed for before it gets resent to the client
-     */
-     private static final int RESEND_THRESHOLD = 5;
-
-    private final double x, y, z;
-    private final double pitch, yaw;
-    private final int teleportConfirmId;
-
-    public boolean canConfirm(Vector3d position) {
-        return (Math.abs(this.x - position.getX()) < ERROR &&
-                Math.abs(this.y - position.getY()) < ERROR_Y &&
-                Math.abs(this.z - position.getZ()) < ERROR);
-    }
-
-    public void incrementUnconfirmedFor() {
-        unconfirmedFor++;
-    }
-
-    public boolean shouldResend() {
-        return unconfirmedFor >= RESEND_THRESHOLD;
+@CollisionRemapper(regex = "_bed$")
+public class BedCollision extends BlockCollision {
+    public BedCollision(String params) {
+        super();
+        boundingBoxes = new BoundingBox[]{
+                new BoundingBox(0.5, 0.28125, 0.5, 1, 0.5625, 1)
+        };
     }
 }
