@@ -55,12 +55,16 @@ import org.geysermc.connector.network.translators.world.block.entity.BlockEntity
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.floodgate.crypto.AesCipher;
+import org.geysermc.floodgate.crypto.AesKeyProducer;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +90,8 @@ public class GeyserConnector {
     private RemoteServer remoteServer;
     @Setter
     private AuthType authType;
+
+    private FloodgateCipher cipher;
 
     private boolean shuttingDown = false;
 
@@ -170,6 +176,17 @@ public class GeyserConnector {
 
         remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
         authType = AuthType.getByName(config.getRemote().getAuthType());
+
+        if (authType == AuthType.FLOODGATE) {
+            try {
+                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyFile());
+                cipher = new AesCipher();
+                cipher.init(key);
+                logger.info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+            } catch (Exception exception) {
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+            }
+        }
 
         if (config.isAboveBedrockNetherBuilding())
             DimensionUtils.changeBedrockNetherId(); // Apply End dimension ID workaround to Nether

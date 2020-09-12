@@ -34,11 +34,10 @@ import lombok.Getter;
  * This class is only used internally, and you should look at FloodgatePlayer instead
  * (FloodgatePlayer is present in the common module in the Floodgate repo)
  */
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter
 public final class BedrockData {
     public static final int EXPECTED_LENGTH = 9;
-    public static final String FLOODGATE_IDENTIFIER = "Geyser-Floodgate";
 
     private final String version;
     private final String username;
@@ -65,9 +64,15 @@ public final class BedrockData {
         this(version, username, xuid, deviceOs, languageCode, uiProfile, inputMode, ip, null, skin);
     }
 
+    public boolean hasPlayerLink() {
+        return linkedPlayer != null;
+    }
+
     public static BedrockData fromString(String data, String skin) {
         String[] split = data.split("\0");
-        if (split.length != EXPECTED_LENGTH) return emptyData(split.length);
+        if (split.length != EXPECTED_LENGTH) {
+            return emptyData(split.length);
+        }
 
         LinkedPlayer linkedPlayer = LinkedPlayer.fromString(split[8]);
         // The format is the same as the order of the fields in this class
@@ -88,10 +93,6 @@ public final class BedrockData {
         return version + '\0' + username + '\0' + xuid + '\0' + deviceOs + '\0' +
                 languageCode + '\0' + uiProfile + '\0' + inputMode + '\0' + ip + '\0' +
                 (linkedPlayer != null ? linkedPlayer.toString() : "null");
-    }
-
-    public boolean hasPlayerLink() {
-        return linkedPlayer != null;
     }
 
     private static BedrockData emptyData(int dataLength) {

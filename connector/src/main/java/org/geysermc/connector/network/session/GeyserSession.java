@@ -73,15 +73,19 @@ import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.*;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
-import org.geysermc.floodgate.util.EncryptionUtil;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -336,24 +340,6 @@ public class GeyserSession implements CommandSender {
                 }
 
                 boolean floodgate = connector.getAuthType() == AuthType.FLOODGATE;
-                final PublicKey publicKey;
-
-                if (floodgate) {
-                    PublicKey key = null;
-                    try {
-                        key = EncryptionUtil.getKeyFromFile(
-                                connector.getConfig().getFloodgateKeyFile(),
-                                PublicKey.class
-                        );
-                    } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
-                        connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), e);
-                    }
-                    publicKey = key;
-                } else publicKey = null;
-
-                if (publicKey != null) {
-                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
-                }
 
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
                 downstream.getSession().addListener(new SessionAdapter() {
@@ -361,9 +347,11 @@ public class GeyserSession implements CommandSender {
                     public void packetSending(PacketSendingEvent event) {
                         //todo move this somewhere else
                         if (event.getPacket() instanceof HandshakePacket && floodgate) {
-                            String encrypted = "";
+                            byte[] encryptedData;
+
                             try {
-                                encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
+                                FloodgateCipher cipher = connector.getCipher();
+                                encryptedData = cipher.encryptFromString(new BedrockData(
                                         clientData.getGameVersion(),
                                         authData.getName(),
                                         authData.getXboxUUID(),
@@ -373,15 +361,22 @@ public class GeyserSession implements CommandSender {
                                         clientData.getCurrentInputMode().ordinal(),
                                         upstream.getSession().getAddress().getAddress().getHostAddress(),
                                         clientData.getImage("Skin")
-                                ));
+                                ).toString());
                             } catch (Exception e) {
                                 connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                                disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.floodgate.encryption_fail", getClientData().getLanguageCode()));
+                                return;
                             }
+
+                            String encrypted = new String(
+                                    Base64.getEncoder().encode(encryptedData),
+                                    StandardCharsets.UTF_8
+                            );
 
                             HandshakePacket handshakePacket = event.getPacket();
                             event.setPacket(new HandshakePacket(
                                     handshakePacket.getProtocolVersion(),
-                                    handshakePacket.getHostname() + '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted,
+                                    handshakePacket.getHostname() + '\0' + encrypted,
                                     handshakePacket.getPort(),
                                     handshakePacket.getIntent()
                             ));
