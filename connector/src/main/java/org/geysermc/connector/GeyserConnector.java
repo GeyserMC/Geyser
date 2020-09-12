@@ -57,10 +57,14 @@ import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.floodgate.crypto.AesCipher;
+import org.geysermc.floodgate.crypto.AesKeyProducer;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
 import java.net.InetSocketAddress;
+import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +81,7 @@ public class GeyserConnector {
     public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC;
 
     public static final String NAME = "Geyser";
-    public static final String VERSION = "DEV"; // A fallback for running in IDEs
+    public static final String VERSION = "1.0.0 (git-master-35d8edd)"; // A fallback for running in IDEs
 
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
@@ -88,6 +92,8 @@ public class GeyserConnector {
     private RemoteServer remoteServer;
     @Setter
     private AuthType authType;
+
+    private FloodgateCipher cipher;
 
     private boolean shuttingDown = false;
 
@@ -164,6 +170,17 @@ public class GeyserConnector {
 
         remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
         authType = AuthType.getByName(config.getRemote().getAuthType());
+
+        if (authType == AuthType.FLOODGATE) {
+            try {
+                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyFile());
+                cipher = new AesCipher();
+                cipher.init(key);
+                logger.info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+            } catch (Exception exception) {
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+            }
+        }
 
         if (config.isAboveBedrockNetherBuilding())
             DimensionUtils.changeBedrockNetherId(); // Apply End dimension ID workaround to Nether
