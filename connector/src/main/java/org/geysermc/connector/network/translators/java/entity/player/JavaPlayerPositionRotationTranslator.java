@@ -99,11 +99,13 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
         // Ignore certain move correction packets for smoother movement
         // These are never relative
-        if (packet.getRelative().isEmpty()) {
+        // When chunk caching is enabled this isn't needed as we shouldn't get these
+        if (!session.getConnector().getConfig().isCacheChunks() &&
+                packet.getRelative().isEmpty()) {
             double xDis = Math.abs(entity.getPosition().getX() - packet.getX());
             double yDis = entity.getPosition().getY() - packet.getY();
             double zDis = Math.abs(entity.getPosition().getZ() - packet.getZ());
-            if (!(xDis > 1.5 || (yDis < 1.45 || yDis > (session.isJumping() ? 4.3 : (session.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5)) {
+            if (!(xDis > 1.5 || (yDis < 1.45 || yDis > (entity.isJumping() ? 4.3 : (entity.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5)) {
                 // Fake confirm the teleport but don't send it to the client
                 ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
                 session.sendDownstreamPacket(teleportConfirmPacket);
@@ -124,8 +126,14 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         double newYaw = packet.getYaw() +
                 (packet.getRelative().contains(PositionElement.YAW) ? entity.getBedrockRotation().getY() : 0);
 
+        // TODO: Remove this part
+        System.out.println("Old pos: " + entity.getPosition().getX() + ", " + entity.getPosition().getY() + ", " + entity.getPosition().getZ());
 
-        session.setTeleportCache(new TeleportCache(newX, newY, newZ, packet.getTeleportId()));
+        // TODO: Add back session.addTeleport(new TeleportCache(newX, newY, newZ, newPitch, newYaw, packet.getTeleportId()));
         entity.moveAbsolute(session, Vector3f.from(newX, newY, newZ), (float) newYaw, (float) newPitch, true, true);
+        // TODO: Remove this part
+        System.out.println("New pos: " + newX + ", " + newY + ", " + newZ);
+        ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
+        session.sendDownstreamPacket(teleportConfirmPacket);
     }
 }
