@@ -26,7 +26,6 @@
 package org.geysermc.connector.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.ScoreInfo;
 import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
@@ -177,7 +176,7 @@ public class Scoreboard {
                     add = false;
                 }
 
-                if (score.getUpdateType() == UPDATE || teamChanged) {
+                if (add || teamChanged) {
                     score.update();
                 }
 
