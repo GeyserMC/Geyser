@@ -176,7 +176,7 @@ public class Scoreboard {
                     add = false;
                 }
 
-                if (add || teamChanged) {
+                if (score.getUpdateType() == UPDATE || teamChanged) {
                     score.update();
                 }
 

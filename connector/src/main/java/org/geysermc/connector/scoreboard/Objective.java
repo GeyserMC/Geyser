@@ -83,7 +83,7 @@ public class Objective {
 
     public void setScore(String id, int score) {
         if (scores.containsKey(id)) {
-            scores.get(id).setScore(score).setUpdateType(UpdateType.ADD);
+            scores.get(id).setScore(score);
             return;
         }
         registerScore(id, score);
