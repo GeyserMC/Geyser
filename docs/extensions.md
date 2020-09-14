@@ -7,10 +7,10 @@ Extensions provide a way to extend the features of Geyser without needing to dea
 This page describes how to write a extension.
 
 !!! alert
-    Please keep in mind that Geyser itself may run as a extension to a server or standalone. If you wish to have your extension
+    Please keep in mind that Geyser itself may run as a plugin to a server or standalone. If you wish to have your extension
     supported by a wide audience try to write it as if it runs on the standalone version of Geyser and thus does
     not have access to the server code. For example don't assume you can access the Spigot API unless you wish to limit
-    your extension to run only on Geyser running as a Spigot extension.
+    your extension to run only on Geyser running as a Spigot plugin.
 
 ## Maven
 
@@ -72,8 +72,7 @@ Add the following to the relevant section of your `pom.xml`
             EventHandler<GeyserStopEvent> handler = on(GeyserStopEvent.class, event -> {
                 System.err.println("I'm also dead");
             })
-                .priority(EventHandler.PRIORITY.HIGH)
-                .build();
+                .priority(EventHandler.PRIORITY.HIGH);
         }
         
         @GeyserEventHandler
@@ -117,35 +116,35 @@ Please refer to [events](events.md) for more information about the event system.
     should use the extensions own registration methods in preference to those in the Event Manger. This includes
     `registerEvents` and `on`.
 
-## Extension Messages
+## Plugin Messages
 
-A extension can communicate with a extension on the downstream server through the use of extension message channels. More information about
-this can be found [here](https://www.spigotmc.org/wiki/bukkit-bungee-extension-messaging-channel). 
+A extension can communicate with a extension on the downstream server through the use of plugin message channels. More information about
+this can be found [here](https://www.spigotmc.org/wiki/bukkit-bungee-plugin-messaging-channel). 
 
-### Sending a Extension Message
+### Sending a Plugin Message
 
-To send a extension message use `GeyserSession#sendExtensionMessage.`
+To send a plugin message use `GeyserSession#sendPluginMessage.`
 
 !!! example
     ```java
     ByteArrayDataOutput out = ByteStreams.newDataOutput();
     out.writeUTF("Data1");
     out.writeUTF("Data2");
-    session.sendExtensionMessage("myextension:channel", out.toByteArray());
+    session.sendPluginMessage("myextension:channel", out.toByteArray());
     ```
     
-### Receiving Extension Messages
+### Receiving Plugin Messages
 
-To receive extension messages you need to first register to receive the message then listen for the `ExtensionMessageEvent`.
+To receive plugin messages you need to first register to receive the message then listen for the `PluginMessageEvent`.
 
 !!! example
     ```java
-    GeyserConnector.getInstance().registerExtensionChannel("myextension:channelname");
+    GeyserConnector.getInstance().registerPluginChannel("myextension:channelname");
     
     '''
     
     @Event
-    void public onExtensionMessageEvent(ExtensionMessageEvent event) {
+    void public onPluginMessageEvent(PluginMessageEvent event) {
         if (!event.getChannel().equals("myextension:channelname")) {
             return;
         }
