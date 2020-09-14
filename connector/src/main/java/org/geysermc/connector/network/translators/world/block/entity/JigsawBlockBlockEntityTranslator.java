@@ -26,27 +26,22 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@BlockEntity(name = "Bed", regex = "bed")
-public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getBedColor(blockState) != -1;
-    }
+@BlockEntity(name = "JigsawBlock", regex = "jigsaw")
+public class JigsawBlockBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
-        byte bedcolor = BlockStateValues.getBedColor(blockState);
-        // Just in case...
-        if (bedcolor == -1) bedcolor = 0;
-        tags.put("color", bedcolor);
-        return tags;
+        Map<String, Object> map = new HashMap<>();
+        map.put("joint", ((StringTag) tag.get("joint")).getValue());
+        map.put("name", ((StringTag) tag.get("name")).getValue());
+        map.put("target_pool", ((StringTag) tag.get("pool")).getValue());
+        map.put("final_state", ((StringTag) tag.get("final_state")).getValue());
+        map.put("target", ((StringTag) tag.get("target")).getValue());
+        return map;
     }
-
 }
