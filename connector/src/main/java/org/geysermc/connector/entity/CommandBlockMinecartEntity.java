@@ -56,6 +56,9 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
+    /**
+     * By default, the command block shown is purple on Bedrock, which does not match Java Edition's orange.
+     */
     @Override
     public void updateDefaultBlockMetadata() {
         metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.BEDROCK_RUNTIME_COMMAND_BLOCK_ID);
