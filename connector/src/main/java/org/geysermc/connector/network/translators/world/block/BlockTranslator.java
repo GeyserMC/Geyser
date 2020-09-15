@@ -67,6 +67,11 @@ public class BlockTranslator {
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
 
+    /**
+     * Runtime command block ID, used for fixing command block minecart appearances
+     */
+    public static final int BEDROCK_RUNTIME_COMMAND_BLOCK_ID;
+
     // For block breaking animation math
     public static final IntSet JAVA_RUNTIME_WOOL_IDS = new IntOpenHashSet();
     public static final int JAVA_RUNTIME_COBWEB_ID;
@@ -115,6 +120,7 @@ public class BlockTranslator {
         int javaRuntimeId = -1;
         int bedrockRuntimeId = 0;
         int cobwebRuntimeId = -1;
+        int commandBlockRuntimeId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
         int spawnerRuntimeId = -1;
@@ -140,14 +146,6 @@ public class BlockTranslator {
             JsonNode toolTypeNode = entry.getValue().get("tool_type");
             if (toolTypeNode != null) {
                 JAVA_RUNTIME_ID_TO_TOOL_TYPE.put(javaRuntimeId, toolTypeNode.textValue());
-            }
-
-            if (javaId.contains("wool")) {
-                JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
-            }
-
-            if (javaId.contains("cobweb")) {
-                cobwebRuntimeId = javaRuntimeId;
             }
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
@@ -205,15 +203,23 @@ public class BlockTranslator {
             }
             JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
 
-            if (javaId.startsWith("minecraft:furnace[facing=north")) {
+            if (javaId.contains("wool")) {
+                JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
+
+            } else if (javaId.contains("cobweb")) {
+                cobwebRuntimeId = javaRuntimeId;
+
+            } else if (javaId.equals("minecraft:command_block[conditional=false,facing=north]")) {
+                commandBlockRuntimeId = bedrockRuntimeId;
+
+            } else if (javaId.startsWith("minecraft:furnace[facing=north")) {
                 if (javaId.contains("lit=true")) {
                     furnaceLitRuntimeId = javaRuntimeId;
                 } else {
                     furnaceRuntimeId = javaRuntimeId;
                 }
-            }
 
-            if (javaId.startsWith("minecraft:spawner")) {
+            } else if (javaId.startsWith("minecraft:spawner")) {
                 spawnerRuntimeId = javaRuntimeId;
             }
 
@@ -224,6 +230,11 @@ public class BlockTranslator {
             throw new AssertionError("Unable to find cobwebs in palette");
         }
         JAVA_RUNTIME_COBWEB_ID = cobwebRuntimeId;
+
+        if (commandBlockRuntimeId == -1) {
+            throw new AssertionError("Unable to find command block in palette");
+        }
+        BEDROCK_RUNTIME_COMMAND_BLOCK_ID = commandBlockRuntimeId;
 
         if (furnaceRuntimeId == -1) {
             throw new AssertionError("Unable to find furnace in palette");
