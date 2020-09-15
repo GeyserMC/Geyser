@@ -39,7 +39,7 @@ import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -52,7 +52,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
     @Override
     public void translate(PlayerActionPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
+        Entity entity = session.getPlayerEntity();
         if (entity == null)
             return;
 
@@ -87,22 +87,22 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case START_SNEAK:
                 ClientPlayerStatePacket startSneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(startSneakPacket);
-                entity.setSneaking(true);
+                session.setSneaking(true);
                 break;
             case STOP_SNEAK:
                 ClientPlayerStatePacket stopSneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SNEAKING);
                 session.sendDownstreamPacket(stopSneakPacket);
-                entity.setSneaking(false);
+                session.setSneaking(false);
                 break;
             case START_SPRINT:
                 ClientPlayerStatePacket startSprintPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
                 session.sendDownstreamPacket(startSprintPacket);
-                entity.setSprinting(true);
+                session.setSprinting(true);
                 break;
             case STOP_SPRINT:
                 ClientPlayerStatePacket stopSprintPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
                 session.sendDownstreamPacket(stopSprintPacket);
-                entity.setSprinting(false);
+                session.setSprinting(false);
                 break;
             case DROP_ITEM:
                 ClientPlayerActionPacket dropItemPacket = new ClientPlayerActionPacket(PlayerAction.DROP_ITEM, position, BlockFace.values()[packet.getFace()]);
@@ -158,9 +158,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 }
                 break;
             case JUMP:
-                entity.setJumping(true);
+                session.setJumping(true);
                 session.getConnector().getGeneralThreadPool().schedule(() -> {
-                    entity.setJumping(false);
+                    session.setJumping(false);
                 }, 1, TimeUnit.SECONDS);
                 break;
         }
