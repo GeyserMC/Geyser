@@ -90,10 +90,10 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
                     if (entity != null) {
                         // Just remove the entity's player list status
-                        // Don't despawn the entity - the server will also take care of that.
+                        // Don't despawn the entity - the Java server will also take care of that.
                         entity.setPlayerList(false);
                     }
-                    // just remove it from caching
+                    // As the player entity is no longer present, we can remove the entry
                     session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
                     if (entity == session.getPlayerEntity()) {
                         // If removing ourself we use our AuthData UUID
