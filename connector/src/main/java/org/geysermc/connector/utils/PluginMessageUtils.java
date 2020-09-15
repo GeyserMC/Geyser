@@ -42,6 +42,7 @@ public class PluginMessageUtils {
     }
 
     /**
+     * Get the prebuilt brand as a byte array
      * @return the brand information of the Geyser client
      */
     public static byte[] getGeyserBrandData() {
@@ -75,5 +76,4 @@ public class PluginMessageUtils {
         }
         return 5;
     }
-
 }
