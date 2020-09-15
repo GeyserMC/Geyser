@@ -28,15 +28,12 @@ package org.geysermc.connector.network.translators.world.block;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.*;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.utils.FileUtils;
@@ -52,6 +49,11 @@ public class BlockTranslator {
 
     private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
     private static final Int2IntMap BEDROCK_TO_JAVA_BLOCK_MAP = new Int2IntOpenHashMap();
+    /**
+     * Stores a list of differences in block identifiers.
+     * Items will not be added to this list if the key and value is the same.
+     */
+    private static final Object2ObjectMap<String, String> JAVA_TO_BEDROCK_IDENTIFIERS = new Object2ObjectOpenHashMap<>();
     private static final BiMap<String, Integer> JAVA_ID_BLOCK_MAP = HashBiMap.create();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
     private static final Object2IntMap<NbtMap> ITEM_FRAMES = new Object2IntOpenHashMap<>();
@@ -152,11 +154,11 @@ public class BlockTranslator {
 
             // Used for adding all "special" Java block states to block state map
             String identifier;
-            String bedrock_identifer = entry.getValue().get("bedrock_identifier").asText();
+            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
             for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
                 identifier = clazz.getAnnotation(BlockEntity.class).regex();
                 // Endswith, or else the block bedrock gets picked up for bed
-                if (bedrock_identifer.endsWith(identifier) && !identifier.equals("")) {
+                if (bedrockIdentifier.endsWith(identifier) && !identifier.equals("")) {
                     JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaRuntimeId, clazz.getAnnotation(BlockEntity.class).name());
                     break;
                 }
@@ -164,9 +166,15 @@ public class BlockTranslator {
 
             BlockStateValues.storeBlockStateValues(entry, javaRuntimeId);
 
+            String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+
+            if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
+                JAVA_TO_BEDROCK_IDENTIFIERS.put(cleanJavaIdentifier, bedrockIdentifier);
+            }
+
             // Get the tag needed for non-empty flower pots
             if (entry.getValue().get("pottable") != null) {
-                BlockStateValues.getFlowerPotBlocks().put(entry.getKey().split("\\[")[0], buildBedrockState(entry.getValue()));
+                BlockStateValues.getFlowerPotBlocks().put(cleanJavaIdentifier, buildBedrockState(entry.getValue()));
             }
 
             if ("minecraft:water[level=0]".equals(javaId)) {
@@ -295,6 +303,14 @@ public class BlockTranslator {
 
     public static int getJavaBlockState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
+    }
+
+    /**
+     * @param javaIdentifier the Java identifier of the block to search for
+     * @return the Bedrock identifier if different, or else the Java identifier
+     */
+    public static String getBedrockBlockIdentifier(String javaIdentifier) {
+        return JAVA_TO_BEDROCK_IDENTIFIERS.getOrDefault(javaIdentifier, javaIdentifier);
     }
 
     public static int getItemFrame(NbtMap tag) {
