@@ -88,18 +88,13 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     break;
                 case REMOVE_PLAYER:
                     PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
-                    if (entity != null && entity.isValid()) {
-                        // remove from tablist but player entity is still there
+                    if (entity != null) {
+                        // Just remove the entity's player list status
+                        // Don't despawn the entity - the server will also take care of that.
                         entity.setPlayerList(false);
-                    } else {
-                        if (entity == null) {
-                            // just remove it from caching
-                            session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
-                        } else {
-                            entity.setPlayerList(false);
-                            session.getEntityCache().removeEntity(entity, false);
-                        }
                     }
+                    // just remove it from caching
+                    session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
                     if (entity == session.getPlayerEntity()) {
                         // If removing ourself we use our AuthData UUID
                         translate.getEntries().add(new PlayerListPacket.Entry(session.getAuthData().getUUID()));
