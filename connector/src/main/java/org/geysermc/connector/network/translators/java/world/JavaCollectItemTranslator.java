@@ -41,7 +41,6 @@ public class JavaCollectItemTranslator extends PacketTranslator<ServerEntityColl
         TakeItemEntityPacket takeItemEntityPacket = new TakeItemEntityPacket();
         // Collected entity is the item
         Entity collectedEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectedEntityId());
-        if (collectedEntity == null) return;
         // Collector is the entity picking up the item
         Entity collectorEntity;
         if (packet.getCollectorEntityId() == session.getPlayerEntity().getEntityId()) {
@@ -49,7 +48,6 @@ public class JavaCollectItemTranslator extends PacketTranslator<ServerEntityColl
         } else {
             collectorEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectorEntityId());
         }
-        if (collectorEntity == null) return;
         takeItemEntityPacket.setRuntimeEntityId(collectorEntity.getGeyserId());
         takeItemEntityPacket.setItemRuntimeEntityId(collectedEntity.getGeyserId());
         session.sendUpstreamPacket(takeItemEntityPacket);

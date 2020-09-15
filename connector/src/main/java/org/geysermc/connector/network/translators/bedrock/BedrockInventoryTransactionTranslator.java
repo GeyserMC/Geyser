@@ -98,9 +98,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(blockPacket);
 
                         // Otherwise boats will not be able to be placed in survival and buckets wont work on mobile
-                        // Check actions, otherwise buckets may be activated when block inventories are accessed
-                        if (packet.getItemInHand() != null && (packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId() ||
-                                packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) && !packet.getActions().isEmpty()) {
+                        if (packet.getItemInHand() != null && (packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId() || packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId())) {
                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                            session.sendDownstreamPacket(itemPacket);
                         }
