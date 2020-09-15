@@ -222,6 +222,23 @@ public class ItemRegistry {
     }
 
     /**
+     * Finds the Bedrock string identifier of an ItemEntry
+     *
+     * @param entry the ItemEntry to search for
+     * @return the Bedrock identifier
+     */
+    public static String getBedrockIdentifer(ItemEntry entry) {
+        String blockName = "";
+        for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
+            if (startGamePacketItemEntry.getId() == (short) entry.getBedrockId()) {
+                blockName = startGamePacketItemEntry.getIdentifier(); // Find the Bedrock string name
+                break;
+            }
+        }
+        return blockName;
+    }
+
+    /**
      * Gets a Bedrock {@link ItemData} from a {@link JsonNode}
      * @param itemNode the JSON node that contains ProxyPass-compatible Bedrock item data
      * @return

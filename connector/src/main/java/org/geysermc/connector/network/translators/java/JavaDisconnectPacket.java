@@ -23,30 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block.entity;
+package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDisconnectPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
-@BlockEntity(name = "Bed", regex = "bed")
-public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getBedColor(blockState) != -1;
-    }
+@Translator(packet = ServerDisconnectPacket.class)
+public class JavaDisconnectPacket extends PacketTranslator<ServerDisconnectPacket> {
 
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
-        byte bedcolor = BlockStateValues.getBedColor(blockState);
-        // Just in case...
-        if (bedcolor == -1) bedcolor = 0;
-        tags.put("color", bedcolor);
-        return tags;
+    public void translate(ServerDisconnectPacket packet, GeyserSession session) {
+        session.disconnect(MessageUtils.getTranslatedBedrockMessage(packet.getReason(), session.getClientData().getLanguageCode(), true));
     }
-
 }

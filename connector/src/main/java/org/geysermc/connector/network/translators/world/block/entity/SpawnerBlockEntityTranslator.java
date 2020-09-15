@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.entity.type.EntityType;
 
 import java.util.HashMap;
@@ -86,16 +85,4 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
         return tags;
     }
 
-    @Override
-    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        return null;
-    }
-
-    @Override
-    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
-                .putByte("isMovable", (byte) 1)
-                .putString("id", "MobSpawner")
-                .build();
-    }
 }
