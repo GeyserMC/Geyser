@@ -44,6 +44,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean translateAndDefault(BedrockPacket packet) {
+        System.out.println("I: " + packet.toString());
         return PacketTranslatorRegistry.BEDROCK_TRANSLATOR.translate(packet.getClass(), packet, session);
     }
 
@@ -83,7 +84,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 break;
             case HAVE_ALL_PACKS:
                 ResourcePackStackPacket stack = new ResourcePackStackPacket();
-                stack.setExperimental(false);
+                stack.setExperimentsPreviouslyToggled(false);
                 stack.setForcedToAccept(false);
                 stack.setGameVersion("*");
                 session.sendUpstreamPacket(stack);
