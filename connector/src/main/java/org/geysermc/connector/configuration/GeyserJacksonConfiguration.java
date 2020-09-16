@@ -104,7 +104,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean aboveBedrockNetherBuilding = false;
 
     @JsonProperty("force-resource-packs")
-    private boolean forceResourcePacks;
+    private boolean forceResourcePacks = true;
 
     private MetricsInfo metrics;
 
