@@ -27,7 +27,6 @@ package org.geysermc.connector.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.connector.GeyserLogger;
-
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.nio.file.Path;
@@ -41,8 +40,6 @@ public interface GeyserConfiguration {
     IBedrockConfiguration getBedrock();
 
     IRemoteConfiguration getRemote();
-
-    Path getFloodgateKeyFile();
 
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
 
@@ -76,9 +73,11 @@ public interface GeyserConfiguration {
 
     String getDefaultLocale();
 
-    boolean isCacheChunks();
+    Path getFloodgateKeyPath();
 
     boolean isAboveBedrockNetherBuilding();
+
+    boolean isCacheChunks();
 
     boolean isForceResourcePacks();
 
@@ -97,6 +96,8 @@ public interface GeyserConfiguration {
         String getMotd1();
 
         String getMotd2();
+
+        String getServerName();
     }
 
     interface IRemoteConfiguration {
@@ -124,6 +125,8 @@ public interface GeyserConfiguration {
 
         String getUniqueId();
     }
+
+    int getScoreboardPacketThreshold();
 
     // if u have offline mode enabled pls be safe
     boolean isEnableProxyConnections();

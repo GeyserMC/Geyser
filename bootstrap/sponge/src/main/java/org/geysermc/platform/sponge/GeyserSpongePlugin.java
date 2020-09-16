@@ -26,14 +26,11 @@
 package org.geysermc.platform.sponge;
 
 import com.google.inject.Inject;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
-import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
-import org.geysermc.connector.common.PlatformType;
-import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.PlatformType;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
@@ -85,19 +82,13 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             ex.printStackTrace();
         }
 
-        ConfigurationLoader loader = YAMLConfigurationLoader.builder().setPath(configFile.toPath()).build();
-        ConfigurationNode config;
         try {
-            config = loader.load();
-            this.geyserConfig = new GeyserSpongeConfiguration(configDir, config);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpongeConfiguration.class);
         } catch (IOException ex) {
             logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
             return;
         }
-
-        ConfigurationNode serverIP = config.getNode("remote").getNode("address");
-        ConfigurationNode serverPort = config.getNode("remote").getNode("port");
 
         if (Sponge.getServer().getBoundAddress().isPresent()) {
             InetSocketAddress javaAddr = Sponge.getServer().getBoundAddress().get();
@@ -105,13 +96,13 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
             if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
-                serverPort.setValue(javaAddr.getPort());
+                this.geyserConfig.setAutoconfiguredRemote(true);
+                geyserConfig.getRemote().setPort(javaAddr.getPort());
             }
         }
 
-        ConfigurationNode bedrockPort = config.getNode("bedrock").getNode("port");
         if (geyserConfig.getBedrock().isCloneRemotePort()){
-            bedrockPort.setValue(serverPort.getValue());
+            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
         }
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());

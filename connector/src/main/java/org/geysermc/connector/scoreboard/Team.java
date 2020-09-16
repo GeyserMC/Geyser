@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.scoreboard;
 
+import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
@@ -35,8 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@Getter
-@Setter
+@Getter @Setter
 @Accessors(chain = true)
 public class Team {
     private final Scoreboard scoreboard;
@@ -44,6 +44,8 @@ public class Team {
 
     private UpdateType updateType = UpdateType.ADD;
     private String name;
+
+    private NameTagVisibility nameTagVisibility;
     private String prefix;
     private TeamColor color;
     private String suffix;
@@ -57,8 +59,7 @@ public class Team {
     public void addEntities(String... names) {
         List<String> added = new ArrayList<>();
         for (String name : names) {
-            if (!entities.contains(name)) {
-                entities.add(name);
+            if (entities.add(name)) {
                 added.add(name);
             }
         }
@@ -77,5 +78,36 @@ public class Team {
             entities.remove(name);
         }
         setUpdateType(UpdateType.UPDATE);
+    }
+
+    public boolean hasEntity(String name) {
+        return entities.contains(name);
+    }
+
+    public Team setPrefix(String prefix) {
+        // replace "null" to an empty string,
+        // we do this here to improve the performance of Score#getDisplayName
+        if (prefix.length() == 4 && "null".equals(prefix)) {
+            this.prefix = "";
+            return this;
+        }
+        this.prefix = prefix;
+        return this;
+    }
+
+    public Team setSuffix(String suffix) {
+        // replace "null" to an empty string,
+        // we do this here to improve the performance of Score#getDisplayName
+        if (suffix.length() == 4 && "null".equals(suffix)) {
+            this.suffix = "";
+            return this;
+        }
+        this.suffix = suffix;
+        return this;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

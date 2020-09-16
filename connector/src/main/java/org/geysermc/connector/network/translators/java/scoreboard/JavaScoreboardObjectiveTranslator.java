@@ -41,13 +41,11 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
 
     @Override
     public void translate(ServerScoreboardObjectivePacket packet, GeyserSession session) {
-        WorldCache cache = session.getWorldCache();
-        Scoreboard scoreboard = cache.getScoreboard();
-
+        Scoreboard scoreboard = session.getWorldCache().getScoreboard();
         Objective objective = scoreboard.getObjective(packet.getName());
 
         if (objective == null && packet.getAction() != ObjectiveAction.REMOVE) {
-            objective = scoreboard.registerNewObjective(packet.getName(), true);
+            objective = scoreboard.registerNewObjective(packet.getName(), false);
         }
 
         switch (packet.getAction()) {
@@ -61,6 +59,8 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
                 break;
         }
 
-        if (objective != null && !objective.isTemp()) scoreboard.onUpdate();
+        if (objective != null && objective.isActive()) {
+            scoreboard.onUpdate();
+        }
     }
 }

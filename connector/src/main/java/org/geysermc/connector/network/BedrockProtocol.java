@@ -28,28 +28,27 @@ package org.geysermc.connector.network;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import com.nukkitx.protocol.bedrock.v408.Bedrock_v408;
-import com.nukkitx.protocol.bedrock.v409.Bedrock_v409;
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Contains information about the supported Bedrock protocols in Geyser.
  */
 public class BedrockProtocol {
     /**
-     * Default Bedrock codec that should act as a fallback and as the version shown in /geyser version
+     * Default Bedrock codec that should act as a fallback. Should represent the latest available
+     * release of the game that Geyser supports.
      */
     public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v408.V408_CODEC;
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
-    public static final Set<BedrockPacketCodec> SUPPORTED_BEDROCK_CODECS = ConcurrentHashMap.newKeySet();
+    public static final List<BedrockPacketCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v407.V407_CODEC);
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v409.V409_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
 
     /**

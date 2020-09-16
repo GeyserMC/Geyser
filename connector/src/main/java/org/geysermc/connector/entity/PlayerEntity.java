@@ -27,20 +27,24 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.EntityEffectCache;
@@ -48,7 +52,10 @@ import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
@@ -60,8 +67,14 @@ public class PlayerEntity extends LivingEntity {
     private boolean playerList = true;  // Player is in the player list
     private final EntityEffectCache effectCache;
 
-    private Entity leftParrot;
-    private Entity rightParrot;
+    /**
+     * Saves the parrot currently on the player's left shoulder; otherwise null
+     */
+    private ParrotEntity leftParrot;
+    /**
+     * Saves the parrot currently on the player's right shoulder; otherwise null
+     */
+    private ParrotEntity rightParrot;
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
@@ -71,12 +84,6 @@ public class PlayerEntity extends LivingEntity {
         username = gameProfile.getName();
         effectCache = new EntityEffectCache();
         if (geyserId == 1) valid = true;
-    }
-
-    @Override
-    public boolean despawnEntity(GeyserSession session) {
-        super.despawnEntity(session);
-        return !playerList; // don't remove from cache when still on playerlist
     }
 
     @Override
@@ -111,7 +118,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     public void sendPlayer(GeyserSession session) {
-        if(session.getEntityCache().getPlayerEntity(uuid) == null)
+        if (session.getEntityCache().getPlayerEntity(uuid) == null)
             return;
 
         if (session.getUpstream().isInitialized() && session.getEntityCache().getEntityByGeyserId(geyserId) == null) {
@@ -184,6 +191,12 @@ public class PlayerEntity extends LivingEntity {
     @Override
     public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
         moveRelative(session, moveX, moveY, moveZ, yaw, pitch, isOnGround);
+        if (leftParrot != null) {
+            leftParrot.moveRelative(session, moveX, moveY, moveZ, yaw, pitch, isOnGround);
+        }
+        if (rightParrot != null) {
+            rightParrot.moveRelative(session, moveX, moveY, moveZ, yaw, pitch, isOnGround);
+        }
     }
 
     @Override
@@ -197,6 +210,12 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(MovePlayerPacket.Mode.HEAD_ROTATION);
         session.sendUpstreamPacket(movePlayerPacket);
+        if (leftParrot != null) {
+            leftParrot.updateRotation(session, yaw, pitch, isOnGround);
+        }
+        if (rightParrot != null) {
+            rightParrot.updateRotation(session, yaw, pitch, isOnGround);
+        }
     }
 
     @Override
@@ -209,11 +228,6 @@ public class PlayerEntity extends LivingEntity {
         super.updateBedrockMetadata(entityMetadata, session);
 
         if (entityMetadata.getId() == 2) {
-            // System.out.println(session.getScoreboardCache().getScoreboard().getObjectives().keySet());
-            for (Team team : session.getWorldCache().getScoreboard().getTeams().values()) {
-                // session.getConnector().getLogger().info("team name " + team.getName());
-                // session.getConnector().getLogger().info("team entities " + team.getEntities());
-            }
             String username = this.username;
             TextMessage name = (TextMessage) entityMetadata.getValue();
             if (name != null) {
@@ -221,8 +235,18 @@ public class PlayerEntity extends LivingEntity {
             }
             Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
-                // session.getConnector().getLogger().info("team name es " + team.getName() + " with prefix " + team.getPrefix() + " and suffix " + team.getSuffix());
-                metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());
+                // Cover different visibility settings
+                if (team.getNameTagVisibility() == NameTagVisibility.NEVER) {
+                    metadata.put(EntityData.NAMETAG, "");
+                } else if (team.getNameTagVisibility() == NameTagVisibility.HIDE_FOR_OTHER_TEAMS &&
+                        !team.getEntities().contains(session.getPlayerEntity().getUsername())) {
+                    metadata.put(EntityData.NAMETAG, "");
+                } else if (team.getNameTagVisibility() == NameTagVisibility.HIDE_FOR_OWN_TEAM &&
+                        team.getEntities().contains(session.getPlayerEntity().getUsername())) {
+                    metadata.put(EntityData.NAMETAG, "");
+                } else {
+                    metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());
+                }
             }
         }
 
@@ -238,11 +262,15 @@ public class PlayerEntity extends LivingEntity {
         }
 
         // Parrot occupying shoulder
-        if ((entityMetadata.getId() == 18 && leftParrot == null) || (entityMetadata.getId() == 19 && rightParrot == null)) { // null check since this code just creates the parrot
+        if (entityMetadata.getId() == 18 || entityMetadata.getId() == 19) {
             CompoundTag tag = (CompoundTag) entityMetadata.getValue();
             if (tag != null && !tag.isEmpty()) {
+                if ((entityMetadata.getId() == 18 && leftParrot != null) || (entityMetadata.getId() == 19 && rightParrot != null)) {
+                    // No need to update a parrot's data when it already exists
+                    return;
+                }
                 // The parrot is a separate entity in Bedrock, but part of the player entity in Java
-                Entity parrot = new Entity(0, session.getEntityCache().getNextEntityId().incrementAndGet(),
+                ParrotEntity parrot = new ParrotEntity(0, session.getEntityCache().getNextEntityId().incrementAndGet(),
                         EntityType.PARROT, position, motion, rotation);
                 parrot.spawnEntity(session);
                 parrot.getMetadata().put(EntityData.VARIANT, tag.get("Variant").getValue());

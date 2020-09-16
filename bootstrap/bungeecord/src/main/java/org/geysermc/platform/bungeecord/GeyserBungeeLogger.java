@@ -25,19 +25,21 @@
 
 package org.geysermc.platform.bungeecord;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.GeyserLogger;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class GeyserBungeeLogger implements GeyserLogger {
+    private final Logger logger;
+    @Getter @Setter
+    private boolean debug;
 
-    private Logger logger;
-    private boolean debugMode;
-
-    public GeyserBungeeLogger(Logger logger, boolean debugMode) {
+    public GeyserBungeeLogger(Logger logger, boolean debug) {
         this.logger = logger;
-        this.debugMode = debugMode;
+        this.debug = debug;
     }
 
     @Override
@@ -72,12 +74,8 @@ public class GeyserBungeeLogger implements GeyserLogger {
 
     @Override
     public void debug(String message) {
-        if (debugMode)
+        if (debug) {
             info(message);
-    }
-
-    @Override
-    public void setDebug(boolean debug) {
-        debugMode = debug;
+        }
     }
 }
