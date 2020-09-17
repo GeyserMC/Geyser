@@ -27,7 +27,6 @@ package org.geysermc.connector.network.session;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -42,11 +41,6 @@ public class UpstreamSession {
     private boolean initialized = false;
 
     public void sendPacket(@NonNull BedrockPacket packet) {
-        if (packet instanceof LevelChunkPacket) {
-            System.out.println("O: " + packet.getPacketType());
-        } else {
-            System.out.println("O: " + packet);
-        }
         if (!isClosed()) {
             session.sendPacket(packet);
         }

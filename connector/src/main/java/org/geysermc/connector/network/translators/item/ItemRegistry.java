@@ -80,7 +80,7 @@ public class ItemRegistry {
 
     static {
         /* Load item palette */
-        InputStream stream = FileUtils.getResource("bedrock/items.json");
+        InputStream stream = FileUtils.getResource("bedrock/runtime_item_states.json");
 
         TypeReference<List<JsonNode>> itemEntriesType = new TypeReference<List<JsonNode>>() {
         };
