@@ -41,6 +41,26 @@ public class MathUtils {
     }
 
     /**
+     * If number is greater than the max, set it to max, and if number is lower than low, set it to low.
+     * @param num number to calculate
+     * @param min the lowest value the number can be
+     * @param max the greatest value the number can be
+     * @return - min if num is lower than min <br>
+     * - max if num is greater than max <br>
+     * - num otherwise
+     */
+    public static double constrain(double num, double min, double max) {
+        if (num > max) {
+            num = max;
+        }
+        if (num < min) {
+            num = min;
+        }
+
+        return num;
+    }
+
+    /**
      * Converts the given object from an int or byte to byte.
      * This is used for NBT data that might be either an int
      * or byte and bedrock only takes it as an byte
