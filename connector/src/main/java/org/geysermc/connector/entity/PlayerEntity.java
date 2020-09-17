@@ -120,7 +120,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     public void sendPlayer(GeyserSession session) {
-        if(session.getEntityCache().getPlayerEntity(uuid) == null)
+        if (session.getEntityCache().getPlayerEntity(uuid) == null)
             return;
 
         if (session.getEntityCache().getEntityByGeyserId(geyserId) == null) {
