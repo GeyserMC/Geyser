@@ -22,7 +22,7 @@ jobs:
       - name: submodules-init
         uses: snickerbockers/submodules-init@v4
       - name: Build with Maven
-        run: mvn -B package -T 2C -pl spigot -am
+        run: mvn -B package -T 2C -pl :geyser-parent -pl :connector -pl :bootstrap-parent -pl :bootstrap-spigot -pl :common -am
       - name: Copy file to home directory
         run: mv bootstrap/spigot/target/Geyser-Spigot.jar ./
       - name: Archive artifacts (Spigot)
