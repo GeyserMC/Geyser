@@ -85,6 +85,10 @@ public class DimensionUtils {
         stopSoundPacket.setStoppingAllSound(true);
         stopSoundPacket.setSoundName("");
         session.sendUpstreamPacket(stopSoundPacket);
+
+        // TODO - fix this hack of a fix by sending the final dimension switching logic after chunks have been sent.
+        // The client wants chunks sent to it before it can successfully respawn.
+        ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
     }
 
     /**

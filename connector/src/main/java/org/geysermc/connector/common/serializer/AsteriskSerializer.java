@@ -42,34 +42,46 @@ import java.lang.annotation.Target;
 import java.util.Optional;
 
 public class AsteriskSerializer extends StdSerializer<Object> implements ContextualSerializer {
+
+    public static boolean showSensitive = false;
+
     @Target({ElementType.FIELD})
     @Retention(RetentionPolicy.RUNTIME)
     @JacksonAnnotationsInside
     @JsonSerialize(using = AsteriskSerializer.class)
     public @interface Asterisk {
         String value() default "***";
+        boolean sensitive() default false;
     }
 
     String asterisk;
+    boolean sensitive;
 
     public AsteriskSerializer() {
         super(Object.class);
     }
 
-    public AsteriskSerializer(String asterisk) {
+    public AsteriskSerializer(String asterisk, boolean sensitive) {
         super(Object.class);
         this.asterisk = asterisk;
+        this.sensitive = sensitive;
     }
 
     @Override
     public JsonSerializer<?> createContextual(SerializerProvider serializerProvider, BeanProperty property) {
         Optional<Asterisk> anno = Optional.ofNullable(property)
                 .map(prop -> prop.getAnnotation(Asterisk.class));
-        return new AsteriskSerializer(anno.map(Asterisk::value).orElse(null));
+
+        return new AsteriskSerializer(anno.map(Asterisk::value).orElse(null), anno.map(Asterisk::sensitive).orElse(null));
     }
 
     @Override
     public void serialize(Object obj, JsonGenerator gen, SerializerProvider prov) throws IOException {
+        if (sensitive && showSensitive) {
+            gen.writeObject(obj);
+            return;
+        }
+
         gen.writeString(asterisk);
     }
 }

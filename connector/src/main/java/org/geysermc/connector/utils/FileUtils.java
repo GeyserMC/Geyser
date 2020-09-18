@@ -25,14 +25,22 @@
 
 package org.geysermc.connector.utils;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.connector.GeyserConnector;
+import org.reflections.Reflections;
+import org.reflections.serializers.XmlSerializer;
+import org.reflections.util.ConfigurationBuilder;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.security.MessageDigest;
 import java.util.function.Function;
 
 public class FileUtils {
@@ -49,6 +57,15 @@ public class FileUtils {
     public static <T> T loadConfig(File src, Class<T> valueType) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         return objectMapper.readValue(src, valueType);
+    }
+
+    public static <T> T loadYaml(InputStream src, Class<T> valueType) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory()).enable(JsonParser.Feature.IGNORE_UNDEFINED).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        return objectMapper.readValue(src, valueType);
+    }
+
+    public static <T> T loadJson(InputStream src, Class<T> valueType) throws IOException {
+        return GeyserConnector.JSON_MAPPER.readValue(src, valueType);
     }
 
     /**
@@ -139,5 +156,39 @@ public class FileUtils {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.resource", resource));
         }
         return stream;
+    }
+
+    /**
+     * Calculate the SHA256 hash of the resource pack file
+     * @param file File to calculate the hash for
+     * @return A byte[] representation of the hash
+     */
+    public static byte[] calculateSHA256(File file) {
+        byte[] sha256;
+
+        try {
+            sha256 = MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file.toPath()));
+        } catch (Exception e) {
+            throw new RuntimeException("Could not calculate pack hash", e);
+        }
+
+        return sha256;
+    }
+
+    /**
+     * Get the stored reflection data for a given path
+     *
+     * @param path The path to get the reflection data for
+     * @return The created Reflections object
+     */
+    public static Reflections getReflections(String path) {
+        Reflections reflections = new Reflections(new ConfigurationBuilder());
+        XmlSerializer serializer = new XmlSerializer();
+        URL resource = FileUtils.class.getClassLoader().getResource("META-INF/reflections/" + path + "-reflections.xml");
+        try (InputStream inputStream = resource.openConnection().getInputStream()) {
+            reflections.merge(serializer.read(inputStream));
+        } catch (IOException e) { }
+
+        return reflections;
     }
 }

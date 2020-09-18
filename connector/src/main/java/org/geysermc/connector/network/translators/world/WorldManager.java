@@ -75,6 +75,16 @@ public abstract class WorldManager {
     public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
 
     /**
+     * Gets the biome data for the specified chunk.
+     *
+     * @param session the session of the player
+     * @param x the chunk's X coordinate
+     * @param z the chunk's Z coordinate
+     * @return the biome data for the specified region with a length of 1024.
+     */
+    public abstract int[] getBiomeDataAt(GeyserSession session, int x, int z);
+
+    /**
      * Updates a gamerule value on the Java server
      *
      * @param session The session of the user that requested the change

@@ -70,6 +70,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.*;
@@ -158,8 +159,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private Vector3i lastInteractionPosition;
 
-    @Setter
-    private boolean switchingDimension = false;
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
 
@@ -178,6 +177,11 @@ public class GeyserSession implements CommandSender {
     private long lastInteractedVillagerEid;
 
     /**
+     * Stores the enchantment information the client has received if they are in an enchantment table GUI
+     */
+    private final EnchantmentInventoryTranslator.EnchantmentSlotData[] enchantmentSlotData = new EnchantmentInventoryTranslator.EnchantmentSlotData[3];
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      */
     @Setter
@@ -188,8 +192,6 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private long lastHitTime;
-
-    private MinecraftProtocol protocol;
 
     private boolean reducedDebugInfo = false;
 
@@ -225,6 +227,29 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private boolean worldImmutable = false;
+
+    /**
+     * Caches current rain status.
+     */
+    @Setter
+    private boolean raining = false;
+
+    /**
+     * Caches current thunder status.
+     */
+    @Setter
+    private boolean thunder = false;
+
+    /**
+     * Stores the last text inputted into a sign.
+     *
+     * Bedrock sends packets every time you update the sign, Java only wants the final packet.
+     * Until we determine that the user has finished editing, we save the sign's current status.
+     */
+    @Setter
+    private String lastSignMessage;
+
+    private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
@@ -285,10 +310,13 @@ public class GeyserSession implements CommandSender {
         attributesPacket.setAttributes(attributes);
         upstream.sendPacket(attributesPacket);
 
+        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         // Only allow the server to send health information
         // Setting this to false allows natural regeneration to work false but doesn't break it being true
-        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
+        // Don't let the client modify the inventory on death
+        // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
+        gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -330,7 +358,7 @@ public class GeyserSession implements CommandSender {
                     PublicKey key = null;
                     try {
                         key = EncryptionUtil.getKeyFromFile(
-                                connector.getConfig().getFloodgateKeyFile(),
+                                connector.getConfig().getFloodgateKeyPath(),
                                 PublicKey.class
                         );
                     } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
@@ -574,8 +602,10 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setFromWorldTemplate(false);
         startGamePacket.setWorldTemplateOptionLocked(false);
 
-        startGamePacket.setLevelId("world");
-        startGamePacket.setLevelName("world");
+        String serverName = connector.getConfig().getBedrock().getServerName();
+        startGamePacket.setLevelId(serverName);
+        startGamePacket.setLevelName(serverName);
+
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
         // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
@@ -583,7 +613,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setBlockPalette(BlockTranslator.BLOCKS);
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
-        // startGamePacket.setMovementServerAuthoritative(true);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         upstream.sendPacket(startGamePacket);
     }
 
@@ -608,7 +638,7 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
-        if (upstream != null && !upstream.isClosed()) {
+        if (upstream != null) {
             upstream.sendPacket(packet);
         } else {
             connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
@@ -621,7 +651,7 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
-        if (upstream != null && !upstream.isClosed()) {
+        if (upstream != null) {
             upstream.sendPacketImmediately(packet);
         } else {
             connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
@@ -680,8 +710,12 @@ public class GeyserSession implements CommandSender {
     public void sendAdventureSettings() {
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
         adventureSettingsPacket.setUniqueEntityId(playerEntity.getGeyserId());
-        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
-        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
+        // Set command permission if OP permission level is high enough
+        // This allows mobile players access to a GUI for doing commands. The commands there do not change above OPERATOR
+        // and all commands there are accessible with OP permission level 2
+        adventureSettingsPacket.setCommandPermission(opPermissionLevel >= 2 ? CommandPermission.OPERATOR : CommandPermission.NORMAL);
+        // Required to make command blocks destroyable
+        adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
 
         Set<AdventureSetting> flags = new HashSet<>();
         if (canFly) {

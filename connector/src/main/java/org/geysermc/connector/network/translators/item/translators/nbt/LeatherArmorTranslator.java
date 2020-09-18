@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.item.translators.nbt;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
@@ -37,7 +38,7 @@ public class LeatherArmorTranslator extends NbtItemStackTranslator {
     private static final String[] ITEMS = new String[]{"minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"};
 
     @Override
-    public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
         if (!itemTag.contains("display")) {
             return;
         }
