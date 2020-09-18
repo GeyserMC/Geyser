@@ -27,7 +27,6 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerChangeHeldItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientMoveItemToHotbarPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -241,8 +240,6 @@ public class InventoryUtils {
         hotbarPacket.setSelectedHotbarSlot(slot - 36);
         hotbarPacket.setSelectHotbarSlot(true);
         session.sendUpstreamPacket(hotbarPacket);
-        ClientPlayerChangeHeldItemPacket heldItemPacket = new ClientPlayerChangeHeldItemPacket(slot);
-        session.sendDownstreamPacket(heldItemPacket);
-        session.getInventory().setHeldItemSlot(slot - 36);
+        // No need to send a Java packet as Bedrock sends a confirmation packet back that we translate
     }
 }
