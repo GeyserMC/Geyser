@@ -63,6 +63,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     @Override
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
+        System.out.println(packet.toString());
         switch (packet.getTransactionType()) {
             case NORMAL:
                 Inventory inventory = session.getInventoryCache().getOpenInventory();
@@ -101,11 +102,16 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(blockPacket);
 
                         // Otherwise boats will not be able to be placed in survival and buckets wont work on mobile
+                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId()) {
+                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                            session.sendDownstreamPacket(itemPacket);
+                        }
                         // Check actions, otherwise buckets may be activated when block inventories are accessed
-                        if (packet.getItemInHand() != null && (packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId() ||
-                                packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) && !packet.getActions().isEmpty()) {
-                           ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                           session.sendDownstreamPacket(itemPacket);
+                        // But don't check actions if the item damage is 0
+                        else if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
+                        (packet.getItemInHand().getDamage() == 0 || !packet.getActions().isEmpty())) {
+                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                            session.sendDownstreamPacket(itemPacket);
                         }
 
                         if (packet.getActions().isEmpty()) {
