@@ -31,35 +31,38 @@ import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
-
-import java.util.Collection;
+import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 
 @Getter
 public class WorldCache {
-
-    private GeyserSession session;
-
+    private final GeyserSession session;
     @Setter
     private Difficulty difficulty = Difficulty.EASY;
-
     private boolean showCoordinates = true;
 
     private Scoreboard scoreboard;
+    private final ScoreboardUpdater scoreboardUpdater;
 
     public WorldCache(GeyserSession session) {
         this.session = session;
         this.scoreboard = new Scoreboard(session);
+        scoreboardUpdater = new ScoreboardUpdater(this);
+        scoreboardUpdater.start();
     }
 
     public void removeScoreboard() {
         if (scoreboard != null) {
-            Collection<Objective> objectives = scoreboard.getObjectives().values();
-            scoreboard = new Scoreboard(session);
-
-            for (Objective objective : objectives) {
+            for (Objective objective : scoreboard.getObjectives().values()) {
                 scoreboard.despawnObjective(objective);
             }
+            scoreboard = new Scoreboard(session);
         }
+    }
+
+    public int increaseAndGetScoreboardPacketsPerSecond() {
+        int pendingPps = scoreboardUpdater.incrementAndGetPacketsPerSecond();
+        int pps = scoreboardUpdater.getPacketsPerSecond();
+        return Math.max(pps, pendingPps);
     }
 
     /**

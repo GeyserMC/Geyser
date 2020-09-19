@@ -119,7 +119,7 @@ public class SkinProvider {
         // Schedule Daily Image Expiry if we are caching them
         if (GeyserConnector.getInstance().getConfig().getCacheImages() > 0) {
             GeyserConnector.getInstance().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-                File cacheFolder = Paths.get("cache", "images").toFile();
+                File cacheFolder = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").toFile();
                 if (!cacheFolder.exists()) {
                     return;
                 }
@@ -395,7 +395,7 @@ public class SkinProvider {
         BufferedImage image = null;
 
         // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
-        File imageFile = Paths.get("cache", "images", UUID.nameUUIDFromBytes(imageUrl.getBytes()).toString() + ".png").toFile();
+        File imageFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").resolve(UUID.nameUUIDFromBytes(imageUrl.getBytes()).toString() + ".png").toFile();
         if (imageFile.exists()) {
             try {
                 GeyserConnector.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
@@ -600,7 +600,7 @@ public class SkinProvider {
     @Getter
     public enum CapeProvider {
         MINECRAFT,
-        OPTIFINE("http://s.optifine.net/capes/%s.png", CapeUrlType.USERNAME),
+        OPTIFINE("https://optifine.net/capes/%s.png", CapeUrlType.USERNAME),
         LABYMOD("https://www.labymod.net/page/php/getCapeTexture.php?uuid=%s", CapeUrlType.UUID_DASHED),
         FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
         MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);

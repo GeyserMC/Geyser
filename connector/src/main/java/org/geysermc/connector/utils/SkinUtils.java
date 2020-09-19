@@ -150,14 +150,14 @@ public class SkinUtils {
                 JsonNode textures = skinObject.get("textures");
 
                 JsonNode skinTexture = textures.get("SKIN");
-                String skinUrl = skinTexture.get("url").asText();
+                String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
 
                 isAlex = skinTexture.has("metadata");
 
                 String capeUrl = null;
                 if (textures.has("CAPE")) {
                     JsonNode capeTexture = textures.get("CAPE");
-                    capeUrl = capeTexture.get("url").asText();
+                    capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
                 }
 
                 return new GameProfileData(skinUrl, capeUrl, isAlex);
@@ -270,7 +270,7 @@ public class SkinUtils {
         GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
 
         try {
-            byte[] skinBytes = com.github.steveice10.mc.auth.util.Base64.decode(clientData.getSkinData().getBytes("UTF-8"));
+            byte[] skinBytes = Base64.getDecoder().decode(clientData.getSkinData().getBytes("UTF-8"));
             byte[] capeBytes = clientData.getCapeData();
 
             byte[] geometryNameBytes = Base64.getDecoder().decode(clientData.getGeometryName().getBytes("UTF-8"));

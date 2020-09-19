@@ -72,6 +72,10 @@ public class FireworkEntity extends Entity {
             }
 
             CompoundTag fireworks = tag.get("Fireworks");
+            if (fireworks == null) {
+                // Thank you Mineplex very cool
+                return;
+            }
 
             NbtMapBuilder fireworksBuilder = NbtMap.builder();
             if (fireworks.get("Flight") != null) {

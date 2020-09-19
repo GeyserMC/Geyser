@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
-import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -37,9 +37,12 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
     @Override
     public void translate(EmotePacket packet, GeyserSession session) {
         long javaId = session.getPlayerEntity().getEntityId();
-        for (GeyserSession otherSession : GeyserConnector.getInstance().getPlayers()) {
+        for (GeyserSession otherSession : session.getConnector().getPlayers()) {
             if (otherSession != session) {
-                packet.setRuntimeEntityId(otherSession.getEntityCache().getEntityByJavaId(javaId).getGeyserId());
+                if (otherSession.isClosed()) continue;
+                Entity otherEntity = otherSession.getEntityCache().getEntityByJavaId(javaId);
+                if (otherEntity == null) continue;
+                packet.setRuntimeEntityId(otherEntity.getGeyserId());
                 otherSession.sendUpstreamPacket(packet);
             }
         }

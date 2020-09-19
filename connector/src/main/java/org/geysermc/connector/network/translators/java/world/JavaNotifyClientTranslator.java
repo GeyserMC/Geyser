@@ -43,6 +43,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.PlayerInventoryTranslator;
+import org.geysermc.connector.utils.LocaleUtils;
 
 @Translator(packet = ServerNotifyClientPacket.class)
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
@@ -140,6 +141,11 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 gamerulePacket.getGameRules().add(new GameRuleData<>("doimmediaterespawn",
                         packet.getValue() == RespawnScreenValue.IMMEDIATE_RESPAWN));
                 session.sendUpstreamPacket(gamerulePacket);
+                break;
+            case INVALID_BED:
+                // Not sent as a proper message? Odd.
+                session.sendMessage(LocaleUtils.getLocaleString("block.minecraft.spawn.not_valid",
+                        session.getClientData().getLanguageCode()));
                 break;
             default:
                 break;

@@ -41,10 +41,7 @@ import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.item.PotionMixRegistry;
+import org.geysermc.connector.network.translators.item.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -81,6 +78,24 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), inputs,
                                 new ItemData[]{output}, uuid, "crafting_table", 0));
                     }
+                    break;
+                }
+                case CRAFTING_SPECIAL_FIREWORK_ROCKET: {
+                    // Java doesn't actually tell us the recipes so we need to calculate this ahead of time.
+                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.FIREWORK_ROCKET_RECIPES);
+                    break;
+                }
+                case CRAFTING_SPECIAL_FIREWORK_STAR: {
+                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.FIREWORK_STAR_RECIPES);
+                    break;
+                }
+                case CRAFTING_SPECIAL_SHULKERBOXCOLORING: {
+                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.SHULKER_BOX_DYEING_RECIPES);
+                    break;
+                }
+                case CRAFTING_SPECIAL_ARMORDYE: {
+                    // This one's even worse since it's not actually on Bedrock, but it still works!
+                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.LEATHER_DYEING_RECIPES);
                     break;
                 }
             }

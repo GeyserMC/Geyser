@@ -59,7 +59,7 @@ public class GeyserSpigotBlockPlaceListener implements Listener {
                 } else {
                     javaBlockId = event.getBlockPlaced().getBlockData().getAsString();
                 }
-                placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaIdBlockMap().get(javaBlockId)));
+                placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaIdBlockMap().getOrDefault(javaBlockId, 0)));
                 placeBlockSoundPacket.setIdentifier(":");
                 session.sendUpstreamPacket(placeBlockSoundPacket);
                 session.setLastBlockPlacePosition(null);

@@ -20,13 +20,13 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.14-R0.1-SNAPSHOT</version>
+            <version>1.15.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>us.myles</groupId>
             <artifactId>viaversion</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -76,8 +76,24 @@
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections.reflections</pattern>
+                                    <pattern>org.reflections</pattern>
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.reflections</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.guava</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.google.guava</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.dom4j</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.dom4j</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.kyori.adventure</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.adventure</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
