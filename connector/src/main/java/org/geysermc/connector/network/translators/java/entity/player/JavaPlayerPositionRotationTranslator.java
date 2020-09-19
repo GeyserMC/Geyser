@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.PositionElement
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.PlayerEntity;
@@ -69,13 +68,10 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             entityDataPacket.getMetadata().putAll(entity.getMetadata());
             session.sendUpstreamPacket(entityDataPacket);
 
-            MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-            movePlayerPacket.setPosition(entity.getPosition());
-            movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
-            movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
-
-            session.sendUpstreamPacket(movePlayerPacket);
+            // Subtracting the offset prevents the player from 'floating' for a brief duration
+            // Moving this way allows rotation to successfully be applied as well
+            entity.moveAbsolute(session, entity.getPosition().sub(0, entity.getEntityType().getOffset(), 0),
+                    entity.getRotation(), true, true);
             session.setSpawned(true);
 
             ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
