@@ -186,7 +186,7 @@ public class GeyserConnector {
 
         if (authType == AuthType.FLOODGATE) {
             try {
-                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyFile());
+                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
                 cipher.init(key);
                 logger.info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
