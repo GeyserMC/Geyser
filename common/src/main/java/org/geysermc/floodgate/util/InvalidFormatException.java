@@ -26,16 +26,26 @@
 
 package org.geysermc.floodgate.util;
 
-public class InvalidHeaderException extends Exception {
-    public InvalidHeaderException() {
+import lombok.Getter;
+
+@Getter
+public class InvalidFormatException extends Exception {
+    private boolean header = false;
+
+    public InvalidFormatException() {
         super();
     }
 
-    public InvalidHeaderException(String message) {
+    public InvalidFormatException(String message) {
         super(message);
     }
 
-    public InvalidHeaderException(String message, Throwable cause) {
+    public InvalidFormatException(String message, boolean header) {
+        super(message);
+        this.header = header;
+    }
+
+    public InvalidFormatException(String message, Throwable cause) {
         super(message, cause);
     }
 }

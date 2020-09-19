@@ -77,15 +77,8 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 
 import java.net.InetSocketAddress;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.util.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -359,8 +352,7 @@ public class GeyserSession implements CommandSender {
                                         clientData.getLanguageCode(),
                                         clientData.getUiProfile().ordinal(),
                                         clientData.getCurrentInputMode().ordinal(),
-                                        upstream.getSession().getAddress().getAddress().getHostAddress(),
-                                        clientData.getImage("Skin")
+                                        upstream.getSession().getAddress().getAddress().getHostAddress()
                                 ).toString());
                             } catch (Exception e) {
                                 connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
@@ -368,15 +360,18 @@ public class GeyserSession implements CommandSender {
                                 return;
                             }
 
-                            String encrypted = new String(
-                                    Base64.getEncoder().encode(encryptedData),
-                                    StandardCharsets.UTF_8
-                            );
+                            byte[] rawSkin = clientData.getAndTransformImage("Skin").encode();
+                            byte[] finalData = new byte[encryptedData.length + rawSkin.length + 1];
+                            System.arraycopy(encryptedData, 0, finalData, 0, encryptedData.length);
+                            finalData[encryptedData.length] = 0x21; // splitter
+                            System.arraycopy(rawSkin, 0, finalData, encryptedData.length + 1, rawSkin.length);
+
+                            String finalDataString = new String(finalData, StandardCharsets.UTF_8);
 
                             HandshakePacket handshakePacket = event.getPacket();
                             event.setPacket(new HandshakePacket(
                                     handshakePacket.getProtocolVersion(),
-                                    handshakePacket.getHostname() + '\0' + encrypted,
+                                    handshakePacket.getHostname() + '\0' + finalDataString,
                                     handshakePacket.getPort(),
                                     handshakePacket.getIntent()
                             ));
@@ -626,7 +621,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Send a packet immediately to the player.
-     * 
+     *
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {

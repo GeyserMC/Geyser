@@ -28,7 +28,7 @@ package org.geysermc.floodgate.crypto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.geysermc.floodgate.util.InvalidHeaderException;
+import org.geysermc.floodgate.util.InvalidFormatException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -38,9 +38,7 @@ import java.security.Key;
  */
 public interface FloodgateCipher {
     byte[] IDENTIFIER = "Floodgate".getBytes(StandardCharsets.UTF_8);
-    byte VERSION = 2;
-
-    int HEADER_LENGTH = IDENTIFIER.length + 1; // one byte for version
+    int HEADER_LENGTH = IDENTIFIER.length;
 
     /**
      * Initializes the instance by giving it the key it needs to encrypt or decrypt data
@@ -110,19 +108,20 @@ public interface FloodgateCipher {
     }
 
     /**
-     * Checks if the header is valid and return a IntPair containing the header version
-     * and the index to start reading the actual encrypted data from.
+     * Checks if the header is valid.
+     * This method will throw an InvalidFormatException when the header is invalid.
      *
      * @param data the data to check
-     * @return IntPair. x = version number, y = the index to start reading from.
-     * @throws InvalidHeaderException when the header is invalid
+     * @throws InvalidFormatException when the header is invalid
      */
-    default HeaderResult checkHeader(byte[] data) throws InvalidHeaderException {
+    default void checkHeader(byte[] data) throws InvalidFormatException {
         final int identifierLength = IDENTIFIER.length;
 
         if (data.length <= HEADER_LENGTH) {
-            throw new InvalidHeaderException("Data length is smaller then header." +
-                    "Needed " + HEADER_LENGTH + ", got " + data.length);
+            throw new InvalidFormatException("Data length is smaller then header." +
+                    "Needed " + HEADER_LENGTH + ", got " + data.length,
+                    true
+            );
         }
 
         for (int i = 0; i < identifierLength; i++) {
@@ -132,15 +131,15 @@ public interface FloodgateCipher {
                     receivedIdentifier.append(b);
                 }
 
-                throw new InvalidHeaderException(String.format(
-                        "Expected identifier %s, got %s",
-                        new String(IDENTIFIER, StandardCharsets.UTF_8),
-                        receivedIdentifier.toString()
-                ));
+                throw new InvalidFormatException(
+                        String.format("Expected identifier %s, got %s",
+                                new String(IDENTIFIER, StandardCharsets.UTF_8),
+                                receivedIdentifier.toString()
+                        ),
+                        true
+                );
             }
         }
-
-        return new HeaderResult(data[identifierLength], HEADER_LENGTH);
     }
 
     static boolean hasHeader(String data) {

@@ -57,6 +57,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
+import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 
 import javax.naming.directory.Attribute;
@@ -180,7 +181,7 @@ public class GeyserConnector {
         if (authType == AuthType.FLOODGATE) {
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyFile());
-                cipher = new AesCipher();
+                cipher = new AesCipher(new Base64Topping());
                 cipher.init(key);
                 logger.info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
             } catch (Exception exception) {

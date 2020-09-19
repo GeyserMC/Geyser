@@ -26,31 +26,62 @@
 package org.geysermc.floodgate.util;
 
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
+import java.util.Base64;
 
 @AllArgsConstructor
-public class RawSkin {
+@ToString
+public final class RawSkin {
     public int width;
     public int height;
     public byte[] data;
 
     private RawSkin() {}
 
-    public static RawSkin parse(String data) {
-        if (data == null) return null;
-        String[] split = data.split(":");
-        if (split.length != 3) return null;
+    public static RawSkin decode(byte[] data) throws InvalidFormatException {
+        if (data == null) {
+            return null;
+        }
+
+        int maxEncodedLength = 4 * (((64 * 64 * 4 + 8) + 2) / 3);
+        // if the RawSkin is longer then the max Java Edition skin length
+        if (data.length > maxEncodedLength) {
+            throw new InvalidFormatException(
+                    "Encoded data cannot be longer then " + maxEncodedLength + " bytes!"
+            );
+        }
+
+        // if the encoded data doesn't even contain the width and height (8 bytes, 2 ints)
+        if (data.length < 4 * ((8 + 2) / 3)) {
+            throw new InvalidFormatException("Encoded data must be at least 12 bytes long!");
+        }
+
+        data = Base64.getDecoder().decode(data);
+
+        ByteBuffer buffer = ByteBuffer.wrap(data);
 
         RawSkin skin = new RawSkin();
-        skin.width = Integer.parseInt(split[0]);
-        skin.height = Integer.parseInt(split[1]);
-        skin.data = split[2].getBytes(StandardCharsets.UTF_8);
+        skin.width = buffer.getInt();
+        skin.height = buffer.getInt();
+        if (buffer.remaining() != (skin.width * skin.height * 4)) {
+            throw new InvalidFormatException(String.format(
+                    "Expected skin length to be %s, got %s",
+                    (skin.width * skin.height * 4), buffer.remaining()
+            ));
+        }
+        skin.data = new byte[buffer.remaining()];
+        buffer.get(skin.data);
         return skin;
     }
 
-    @Override
-    public String toString() {
-        return Integer.toString(width) + ':' + height + ':' + new String(data);
+    public byte[] encode() {
+        // 2 x int = 8 bytes
+        ByteBuffer buffer = ByteBuffer.allocate(8 + data.length);
+        buffer.putInt(width);
+        buffer.putInt(height);
+        buffer.put(data);
+        return Base64.getEncoder().encode(buffer.array());
     }
 }

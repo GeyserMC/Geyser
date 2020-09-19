@@ -28,13 +28,15 @@ package org.geysermc.connector.network.session.auth;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
-import net.minidev.json.JSONObject;
+import org.geysermc.connector.utils.SkinProvider;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
 import org.geysermc.floodgate.util.RawSkin;
 import org.geysermc.floodgate.util.UiProfile;
 
+import java.awt.image.BufferedImage;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -42,7 +44,7 @@ import java.util.UUID;
 @Getter
 public final class BedrockClientData {
     @JsonIgnore
-    private JSONObject jsonData;
+    private JsonNode jsonData;
 
     @JsonProperty(value = "GameVersion")
     private String gameVersion;
@@ -112,31 +114,17 @@ public final class BedrockClientData {
     @JsonProperty(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
 
-    public void setJsonData(JSONObject data) {
-        if (this.jsonData != null && data != null) {
+    public void setJsonData(JsonNode data) {
+        if (this.jsonData == null && data != null) {
             this.jsonData = data;
         }
     }
 
-    /**
-     * Taken from https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/network/protocol/LoginPacket.java<br>
-     * Internally only used for Skins, but can be used for Capes too
-     */
-    public RawSkin getImage(String name) {
-        if (jsonData == null || !jsonData.containsKey(name + "Data")) return null;
-        byte[] image = Base64.getDecoder().decode(jsonData.getAsString(name + "Data"));
-        if (jsonData.containsKey(name + "ImageWidth") && jsonData.containsKey(name + "ImageHeight")) {
-            return new RawSkin(
-                    (int) jsonData.getAsNumber(name + "ImageWidth"),
-                    (int) jsonData.get(name + "ImageHeight"),
-                    image
-            );
-        }
-        return getLegacyImage(image);
-    }
-
     private static RawSkin getLegacyImage(byte[] imageData) {
-        if (imageData == null) return null;
+        if (imageData == null) {
+            return null;
+        }
+
         // width * height * 4 (rgba)
         switch (imageData.length) {
             case 8192:
@@ -150,5 +138,45 @@ public final class BedrockClientData {
             default:
                 throw new IllegalArgumentException("Unknown legacy skin size");
         }
+    }
+
+    /**
+     * Taken from https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/network/protocol/LoginPacket.java<br>
+     * Internally only used for Skins, but can be used for Capes too
+     */
+    public RawSkin getImage(String name) {
+        System.out.println(jsonData.toString());
+        if (jsonData == null || !jsonData.has(name + "Data")) {
+            return null;
+        }
+
+        byte[] image = Base64.getDecoder().decode(jsonData.get(name + "Data").asText());
+        if (jsonData.has(name + "ImageWidth") && jsonData.has(name + "ImageHeight")) {
+            return new RawSkin(
+                    jsonData.get(name + "ImageWidth").asInt(),
+                    jsonData.get(name + "ImageHeight").asInt(),
+                    image
+            );
+        }
+        return getLegacyImage(image);
+    }
+
+    public RawSkin getAndTransformImage(String name) {
+        RawSkin skin = getImage(name);
+        if (skin != null && (skin.width > 64 || skin.height > 64)) {
+            BufferedImage scaledImage = SkinProvider.imageDataToBufferedImage(skin.data, skin.width, skin.height);
+
+            int max = Math.max(skin.width, skin.height);
+            while (max > 64) {
+                max /= 2;
+                scaledImage = SkinProvider.scale(scaledImage);
+            }
+
+            byte[] skinData = SkinProvider.bufferedImageToImageData(scaledImage);
+            skin.width = scaledImage.getWidth();
+            skin.height = scaledImage.getHeight();
+            skin.data = skinData;
+        }
+        return skin;
     }
 }

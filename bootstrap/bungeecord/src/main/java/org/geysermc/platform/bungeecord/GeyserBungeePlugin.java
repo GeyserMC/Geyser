@@ -94,7 +94,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && getProxy().getPluginManager().getPlugin("floodgate-bungee") == null) {
+        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && getProxy().getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
         }

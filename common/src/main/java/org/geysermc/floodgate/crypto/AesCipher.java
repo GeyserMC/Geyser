@@ -26,7 +26,7 @@
 
 package org.geysermc.floodgate.crypto;
 
-import org.geysermc.floodgate.util.InvalidHeaderException;
+import lombok.RequiredArgsConstructor;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -35,12 +35,14 @@ import java.nio.ByteBuffer;
 import java.security.Key;
 import java.security.SecureRandom;
 
+@RequiredArgsConstructor
 public final class AesCipher implements FloodgateCipher {
-    private static final int IV_LENGTH = 12;
+    public static final int IV_LENGTH = 12;
     private static final int TAG_BIT_LENGTH = 128;
     private static final String CIPHER_NAME = "AES/GCM/NoPadding";
 
     private final SecureRandom secureRandom = new SecureRandom();
+    private final Topping topping;
     private SecretKey secretKey;
 
     public void init(Key key) {
@@ -62,31 +64,56 @@ public final class AesCipher implements FloodgateCipher {
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, spec);
         byte[] cipherText = cipher.doFinal(data);
 
-        return ByteBuffer.allocate(iv.length + cipherText.length + HEADER_LENGTH)
-                .put(IDENTIFIER).put(VERSION) // header
+        if (topping != null) {
+            iv = topping.encode(iv);
+            cipherText = topping.encode(cipherText);
+        }
+
+        return ByteBuffer.allocate(iv.length + cipherText.length + HEADER_LENGTH + 1)
+                .put(IDENTIFIER) // header
                 .put(iv)
+                .put((byte) 0x21)
                 .put(cipherText)
                 .array();
     }
 
     public byte[] decrypt(byte[] cipherTextWithIv) throws Exception {
-        HeaderResult pair = checkHeader(cipherTextWithIv);
-        if (pair.getVersion() != VERSION) {
-            throw new InvalidHeaderException(
-                    "Expected version " + VERSION + ", got " + pair.getVersion()
-            );
-        }
+        checkHeader(cipherTextWithIv);
 
         Cipher cipher = Cipher.getInstance(CIPHER_NAME);
 
         int bufferLength = cipherTextWithIv.length - HEADER_LENGTH;
         ByteBuffer buffer = ByteBuffer.wrap(cipherTextWithIv, HEADER_LENGTH, bufferLength);
 
-        byte[] iv = new byte[IV_LENGTH];
+        int ivLength = IV_LENGTH;
+
+        if (topping != null) {
+            int mark = buffer.position();
+
+            // we need the first index, the second is for the optional RawSkin
+            boolean found = false;
+            while (buffer.hasRemaining() && !found) {
+                if (buffer.get() == 0x21) {
+                    found = true;
+                }
+            }
+
+            ivLength = buffer.position() - mark - 1; // don't include the splitter itself
+            buffer.position(mark); // reset to the pre-while index
+        }
+
+        byte[] iv = new byte[ivLength];
         buffer.get(iv);
+
+        buffer.position(buffer.position() + 1); // skip splitter
 
         byte[] cipherText = new byte[buffer.remaining()];
         buffer.get(cipherText);
+
+        if (topping != null) {
+            iv = topping.decode(iv);
+            cipherText = topping.decode(cipherText);
+        }
 
         GCMParameterSpec spec = new GCMParameterSpec(TAG_BIT_LENGTH, iv);
         cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);
