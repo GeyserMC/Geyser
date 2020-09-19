@@ -133,7 +133,7 @@ public class LocaleUtils {
      * @param locale Locale to download
      */
     private static void downloadLocale(String locale) {
-        File localeFile = Paths.get(GeyserConnector.getInstance().getBootstrap().getConfigFolder().toString(),"locales",locale + ".json").toFile();
+        File localeFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/" + locale + ".json").toFile();
 
         // Check if we have already downloaded the locale file
         if (localeFile.exists()) {

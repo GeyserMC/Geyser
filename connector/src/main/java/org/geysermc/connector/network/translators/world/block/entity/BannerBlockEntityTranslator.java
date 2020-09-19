@@ -27,12 +27,9 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtType;
 import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,17 +62,4 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
         return tags;
     }
 
-    @Override
-    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        CompoundTag tag = getConstantJavaTag(javaId, x, y, z);
-        tag.put(new ListTag("Patterns"));
-        return tag;
-    }
-
-    @Override
-    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
-                .putList("Patterns", NbtType.COMPOUND, new ArrayList<>())
-                .build();
-    }
 }

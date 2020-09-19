@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
 # Edit at https://www.gitignore.io/gitignore?templates=git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
 
@@ -241,8 +240,5 @@ config.yml
 logs/
 public-key.pem
 locales/
-
-### VS Code ###
-.vscode
-# Note: Manually edited to change cache/ to /cache/
 /cache/
+/packs/

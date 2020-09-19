@@ -25,8 +25,12 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.world.block.UpdatedTileType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTileEntityPacket;
-
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -53,6 +57,16 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
             ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition(), blockState);
         } else {
             BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), 0), packet.getPosition());
+        }
+        // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty
+        if (packet.getType() == UpdatedTileType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&
+                session.getGameMode() == GameMode.CREATIVE && packet.getNbt().size() > 5) {
+            ContainerOpenPacket openPacket = new ContainerOpenPacket();
+            openPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
+            openPacket.setId((byte) 1);
+            openPacket.setType(ContainerType.COMMAND_BLOCK);
+            openPacket.setUniqueEntityId(-1);
+            session.sendUpstreamPacket(openPacket);
         }
     }
 }

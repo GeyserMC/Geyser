@@ -34,7 +34,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -102,13 +101,7 @@ public class ItemFrameEntity extends Entity {
             ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
             NbtMapBuilder builder = NbtMap.builder();
 
-            String blockName = "";
-            for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
-                if (startGamePacketItemEntry.getId() == (short) itemEntry.getBedrockId()) {
-                    blockName = startGamePacketItemEntry.getIdentifier();
-                    break;
-                }
-            }
+            String blockName = ItemRegistry.getBedrockIdentifer(itemEntry);
 
             builder.putByte("Count", (byte) itemData.getCount());
             if (itemData.getTag() != null) {
