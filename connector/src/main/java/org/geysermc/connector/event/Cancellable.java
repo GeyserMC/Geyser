@@ -27,7 +27,7 @@
 package org.geysermc.connector.event;
 
 /**
- * An event is able to be cancelled
+ * An event that is able to be cancelled
  */
 public interface Cancellable {
     /**
