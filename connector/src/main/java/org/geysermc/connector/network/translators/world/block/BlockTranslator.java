@@ -108,10 +108,11 @@ public class BlockTranslator {
 
         for (int i = 0; i < blocksTag.size(); i++) {
             NbtMap tag = blocksTag.get(i);
-            if (blockStateMap.putIfAbsent(tag.getCompound("block"), tag) != null) {
+            NbtMap blockTag = tag.getCompound("block");
+            if (blockStateMap.putIfAbsent(blockTag, tag) != null) {
                 throw new AssertionError("Duplicate block states in Bedrock palette");
             }
-            blockStateOrderedMap.put(tag.getCompound("block"), i);
+            blockStateOrderedMap.put(blockTag, i);
         }
 
         stream = FileUtils.getResource("mappings/blocks.json");
@@ -221,6 +222,7 @@ public class BlockTranslator {
 
             if (bedrockIdentifier.equals("minecraft:air")) {
                 airRuntimeId = bedrockRuntimeId;
+
             } else if (javaId.contains("wool")) {
                 JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
 
