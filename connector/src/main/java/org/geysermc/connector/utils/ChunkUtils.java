@@ -54,8 +54,7 @@ import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.AIR;
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
 
 public class ChunkUtils {
 
@@ -136,6 +135,8 @@ public class ChunkUtils {
 
                         if (BlockTranslator.isWaterlogged(blockState)) {
                             section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);
+                        } else {
+                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_AIR_ID);
                         }
                     }
                 }
@@ -197,14 +198,28 @@ public class ChunkUtils {
         }
     }
 
+    /**
+     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
+     * adds that block to the cache.
+     * @param session the Bedrock session to send/register the block to
+     * @param blockState the Java block state of the block
+     * @param position the position of the block
+     */
     public static void updateBlock(GeyserSession session, int blockState, Position position) {
         Vector3i pos = Vector3i.from(position.getX(), position.getY(), position.getZ());
         updateBlock(session, blockState, pos);
     }
 
+    /**
+     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
+     * adds that block to the cache.
+     * @param session the Bedrock session to send/register the block to
+     * @param blockState the Java block state of the block
+     * @param position the position of the block
+     */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
-        if (ItemFrameEntity.positionContainsItemFrame(session, position) && blockState == AIR) {
+        if (ItemFrameEntity.positionContainsItemFrame(session, position) && blockState == JAVA_AIR_ID) {
             ((ItemFrameEntity) session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, position))).updateBlock(session);
             return;
         } else if (ItemFrameEntity.positionContainsItemFrame(session, position)) {
@@ -232,7 +247,7 @@ public class ChunkUtils {
         if (BlockTranslator.isWaterlogged(blockState)) {
             waterPacket.setRuntimeId(BEDROCK_WATER_ID);
         } else {
-            waterPacket.setRuntimeId(0);
+            waterPacket.setRuntimeId(BEDROCK_AIR_ID);
         }
         session.sendUpstreamPacket(waterPacket);
 

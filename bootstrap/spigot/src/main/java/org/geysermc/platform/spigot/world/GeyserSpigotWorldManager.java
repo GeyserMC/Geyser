@@ -94,10 +94,10 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         if (session.getPlayerEntity() == null) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
         if (Bukkit.getPlayer(session.getPlayerEntity().getUsername()) == null) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
         if (isLegacy) {
             return getLegacyBlock(session, x, y, z, isViaVersion);
@@ -120,7 +120,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             int sixteenBlockId = us.myles.ViaVersion.protocols.protocol1_16to1_15_2.data.MappingData.blockStateMappings.getNewId(fifteenBlockId);
             return MappingData.blockStateMappings.getNewId(sixteenBlockId);
         } else {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
     }
 

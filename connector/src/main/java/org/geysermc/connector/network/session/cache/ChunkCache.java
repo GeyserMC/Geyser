@@ -87,11 +87,11 @@ public class ChunkCache {
 
     public int getBlockAt(Position position) {
         if (!cache) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
         ChunkPosition chunkPosition = new ChunkPosition(position.getX() >> 4, position.getZ() >> 4);
         if (!chunks.containsKey(chunkPosition))
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
 
         Column column = chunks.get(chunkPosition);
         Chunk chunk = column.getChunks()[position.getY() >> 4];
@@ -100,7 +100,7 @@ public class ChunkCache {
             return chunk.get(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
         }
 
-        return BlockTranslator.AIR;
+        return BlockTranslator.JAVA_AIR_ID;
     }
 
     public void removeChunk(ChunkPosition position) {
