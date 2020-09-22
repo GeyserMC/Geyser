@@ -57,7 +57,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     @Override
-    public Map<String, Object> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, int blockState) {
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
         Map<String, Object> tags = new HashMap<>();
         byte skullVariant = BlockStateValues.getSkullVariant(blockState);
         float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;
@@ -68,23 +68,10 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return tags;
     }
 
-    @Override
-    public CompoundTag getConstantJavaTag(String javaId, int x, int y, int z) {
-        return null;
-    }
-
-    @Override
-    public NbtMap getConstantBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
-                .putFloat("Rotation", 0f)
-                .putByte("SkullType", (byte) 0)
-                .build();
-    }
-
-    public static GameProfile getProfile(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, GeyserSession session) {
+    public static GameProfile getProfile(CompoundTag tag, GeyserSession session) {
         if (tag.contains("SkullOwner")) {
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag owner = tag.get("SkullOwner");
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag Properties = owner.get("Properties");
+            CompoundTag owner = tag.get("SkullOwner");
+            CompoundTag Properties = owner.get("Properties");
 
             ListTag textures = Properties.get("textures");
             LinkedHashMap<?,?> tag1 = (LinkedHashMap<?,?>) textures.get(0).getValue();
@@ -100,7 +87,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return null;
     }
 
-    public static void spawnPlayer(GeyserSession session, com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, int blockState) {
+    public static void spawnPlayer(GeyserSession session, CompoundTag tag, int blockState) {
         float x = (int) tag.get("x").getValue() + .5f;
         float y = (int) tag.get("y").getValue() - .01f;
         float z = (int) tag.get("z").getValue() + .5f;
