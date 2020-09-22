@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3f;
@@ -68,12 +69,12 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     @Override
-    public com.github.steveice10.opennbt.tag.builtin.CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
+    public CompoundTag getConstantJavaTag(String javaId, int x, int y, int z) {
         return null;
     }
 
     @Override
-    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
+    public NbtMap getConstantBedrockTag(String bedrockId, int x, int y, int z) {
         return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
                 .putFloat("Rotation", 0f)
                 .putByte("SkullType", (byte) 0)
