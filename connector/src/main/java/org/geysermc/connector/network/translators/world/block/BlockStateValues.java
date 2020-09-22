@@ -39,6 +39,7 @@ public class BlockStateValues {
 
     private static final Int2IntMap BANNER_COLORS = new Int2IntOpenHashMap();
     private static final Int2ByteMap BED_COLORS = new Int2ByteOpenHashMap();
+    private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Map<Integer, String> WALL_SKULL_DIRECTION = new HashMap<>();
@@ -65,6 +66,11 @@ public class BlockStateValues {
         JsonNode bedColor = entry.getValue().get("bed_color");
         if (bedColor != null) {
             BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
+            return;
+        }
+
+        if (entry.getKey().contains("command_block")) {
+            COMMAND_BLOCK_VALUES.put(javaBlockState, entry.getKey().contains("conditional=true") ? (byte) 1 : (byte) 0);
             return;
         }
 
@@ -137,6 +143,16 @@ public class BlockStateValues {
             return BED_COLORS.get(state);
         }
         return -1;
+    }
+
+    /**
+     * The block state in Java and Bedrock both contain the conditional bit, however command block block entity tags
+     * in Bedrock need the conditional information.
+     *
+     * @return the list of all command blocks and if they are conditional (1 or 0)
+     */
+    public static Int2ByteMap getCommandBlockValues() {
+        return COMMAND_BLOCK_VALUES;
     }
 
     /**

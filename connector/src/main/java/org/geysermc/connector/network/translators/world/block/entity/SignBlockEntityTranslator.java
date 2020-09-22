@@ -27,7 +27,6 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.SignUtils;
 
@@ -71,23 +70,6 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
         tags.put("Text", MessageUtils.getBedrockMessage(MessageSerializer.fromString(signText.toString())));
         return tags;
-    }
-
-    @Override
-    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        CompoundTag tag = getConstantJavaTag(javaId, x, y, z);
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text1", "{\"text\":\"\"}"));
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text2", "{\"text\":\"\"}"));
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text3", "{\"text\":\"\"}"));
-        tag.put(new com.github.steveice10.opennbt.tag.builtin.StringTag("Text4", "{\"text\":\"\"}"));
-        return tag;
-    }
-
-    @Override
-    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
-                .putString("Text", "")
-                .build();
     }
 
     /**

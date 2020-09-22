@@ -60,6 +60,7 @@ import org.geysermc.connector.event.events.geyser.GeyserStopEvent;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.ResourcePack;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -78,7 +79,7 @@ import java.util.concurrent.TimeUnit;
 public class GeyserConnector {
 
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
-            .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
+            .enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
 
     public static final String NAME = "Geyser";
@@ -149,6 +150,8 @@ public class GeyserConnector {
         RecipeRegistry.init();
         SoundRegistry.init();
         SoundHandlerRegistry.init();
+
+        ResourcePack.loadPacks();
 
         if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
             // Set the remote address to localhost since that is where we are always connecting

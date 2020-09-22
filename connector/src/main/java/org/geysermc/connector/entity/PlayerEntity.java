@@ -94,12 +94,6 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    public boolean despawnEntity(GeyserSession session) {
-        super.despawnEntity(session);
-        return !playerList; // don't remove from cache when still on playerlist
-    }
-
-    @Override
     public void spawnEntity(GeyserSession session) {
         if (geyserId == 1) return;
         if (!session.getUpstream().isInitialized())
@@ -153,7 +147,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     public void sendPlayer(GeyserSession session) {
-        if(session.getEntityCache().getPlayerEntity(uuid) == null)
+        if (session.getEntityCache().getPlayerEntity(uuid) == null)
             return;
 
         if (session.getEntityCache().getEntityByGeyserId(geyserId) == null) {

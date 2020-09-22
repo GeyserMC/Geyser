@@ -39,8 +39,11 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
@@ -98,9 +101,29 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(blockPacket);
 
                         // Otherwise boats will not be able to be placed in survival and buckets wont work on mobile
-                        if (packet.getItemInHand() != null && (packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId() || packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId())) {
+                        // Check actions, otherwise buckets may be activated when block inventories are accessed
+                        if (packet.getItemInHand() != null && (packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId() ||
+                                packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) && !packet.getActions().isEmpty()) {
                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                            session.sendDownstreamPacket(itemPacket);
+                        }
+
+                        if (packet.getActions().isEmpty()) {
+                            if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
+                                // Otherwise insufficient permissions
+                                int blockState = BlockTranslator.getJavaBlockState(packet.getBlockRuntimeId());
+                                String blockName = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(blockState, "");
+                                // In the future this can be used for structure blocks too, however not all elements
+                                // are available in each GUI
+                                if (blockName.contains("jigsaw")) {
+                                    ContainerOpenPacket openPacket = new ContainerOpenPacket();
+                                    openPacket.setBlockPosition(packet.getBlockPosition());
+                                    openPacket.setId((byte) 1);
+                                    openPacket.setType(ContainerType.JIGSAW_EDITOR);
+                                    openPacket.setUniqueEntityId(-1);
+                                    session.sendUpstreamPacket(openPacket);
+                                }
+                            }
                         }
 
                         Vector3i blockPos = packet.getBlockPosition();
@@ -195,6 +218,18 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 //https://wiki.vg/Protocol#Interact_Entity
                 switch (packet.getActionType()) {
                     case 0: //Interact
+                        if (entity instanceof CommandBlockMinecartEntity) {
+                            // The UI is handled client-side on Java Edition
+                            // Ensure OP permission level and gamemode is appropriate
+                            if (session.getOpPermissionLevel() < 2 || session.getGameMode() != GameMode.CREATIVE) return;
+                            ContainerOpenPacket openPacket = new ContainerOpenPacket();
+                            openPacket.setBlockPosition(Vector3i.ZERO);
+                            openPacket.setId((byte) 1);
+                            openPacket.setType(ContainerType.COMMAND_BLOCK);
+                            openPacket.setUniqueEntityId(entity.getGeyserId());
+                            session.sendUpstreamPacket(openPacket);
+                            break;
+                        }
                         Vector3f vector = packet.getClickPosition();
                         ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                                 InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
