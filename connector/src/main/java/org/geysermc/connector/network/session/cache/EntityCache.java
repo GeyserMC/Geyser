@@ -76,9 +76,6 @@ public class EntityCache {
         if (entity != null && entity.isValid() && (force || entity.despawnEntity(session))) {
             long geyserId = entityIdTranslations.remove(entity.getEntityId());
             entities.remove(geyserId);
-            if (entity.is(PlayerEntity.class)) {
-                playerEntities.remove(entity.as(PlayerEntity.class).getUuid());
-            }
             return true;
         }
         return false;

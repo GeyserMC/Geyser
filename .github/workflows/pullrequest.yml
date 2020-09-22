@@ -22,7 +22,7 @@ jobs:
       - name: submodules-init
         uses: snickerbockers/submodules-init@v4
       - name: Build with Maven
-        run: mvn -B package
+        run: mvn -B package -T 2C
       - name: Archive artifacts (Geyser Standalone)
         uses: actions/upload-artifact@v2
         if: success()
