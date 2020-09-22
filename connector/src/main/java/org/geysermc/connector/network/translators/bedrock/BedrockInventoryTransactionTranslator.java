@@ -78,6 +78,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_USE:
                 switch (packet.getActionType()) {
                     case 0:
+                        // Check to make sure the client isn't spamming interaction
+                        // Based on Nukkit 1.0, with changes to ensure holding down still works
+                        boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
+                                packet.getBlockPosition().distanceSquared(session.getLastInteractionPosition()) < 0.00001;
+                        session.setLastInteractionPosition(packet.getBlockPosition());
+                        if (hasAlreadyClicked) {
+                            break;
+                        } else {
+                            // Only update the interaction time if it's valid - that way holding down still works.
+                            session.setLastInteractionTime(System.currentTimeMillis());
+                        }
 
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
                         if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId()) &&
@@ -153,7 +164,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.setLastBlockPlacePosition(blockPos);
                             session.setLastBlockPlacedId(handItem.getJavaIdentifier());
                         }
-                        session.setLastInteractionPosition(packet.getBlockPosition());
                         session.setInteracting(true);
                         break;
                     case 1:
