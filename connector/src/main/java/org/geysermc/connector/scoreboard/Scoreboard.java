@@ -152,6 +152,8 @@ public class Scoreboard {
             boolean globalAdd = objective.getUpdateType() == ADD;
             boolean globalRemove = objective.getUpdateType() == REMOVE;
 
+            // Track if any scores changed
+            // Used to delete and resend scoreboard objectives; otherwise they won't update on Bedrock
             boolean scoreChanged = false;
 
             for (Score score : objective.getScores().values()) {
