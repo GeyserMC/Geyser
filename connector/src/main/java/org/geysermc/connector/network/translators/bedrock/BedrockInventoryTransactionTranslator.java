@@ -63,6 +63,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     @Override
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
+        System.out.println(packet.toString());
         switch (packet.getTransactionType()) {
             case NORMAL:
                 Inventory inventory = session.getInventoryCache().getOpenInventory();
@@ -180,8 +181,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                         session.sendDownstreamPacket(useItemPacket);
-                        // Used for sleeping in beds
-                        session.setLastInteractionPosition(packet.getBlockPosition());
                         break;
                     case 2:
                         int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
