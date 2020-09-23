@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 @ItemRemapper
 public class BannerTranslator extends ItemTranslator {
 
-    private List<ItemEntry> appliedItems;
+    private final List<ItemEntry> appliedItems;
 
     public BannerTranslator() {
         appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("banner")).collect(Collectors.toList());
