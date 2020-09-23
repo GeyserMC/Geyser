@@ -64,10 +64,10 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
                     sender.sendMessage(TextComponent.fromLegacyText(ChatColor.RED + message));
                     return;
                 }
-                getCommand(args[0]).execute(new BungeeCommandSender(sender), Arrays.copyOfRange(args, 1, args.length-1));
+                getCommand(args[0]).execute(new BungeeCommandSender(sender), args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }
         } else {
-            getCommand("help").execute(new BungeeCommandSender(sender), Arrays.copyOfRange(args, 1, args.length-1));
+            getCommand("help").execute(new BungeeCommandSender(sender), new String[0]);
         }
     }
 

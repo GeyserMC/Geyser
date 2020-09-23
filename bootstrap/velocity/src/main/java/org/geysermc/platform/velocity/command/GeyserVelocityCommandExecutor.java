@@ -53,10 +53,10 @@ public class GeyserVelocityCommandExecutor implements Command {
                     source.sendMessage(TextComponent.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return;
                 }
-                getCommand(args[0]).execute(new VelocityCommandSender(source), Arrays.copyOfRange(args, 1, args.length-1));
+                getCommand(args[0]).execute(new VelocityCommandSender(source), args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }
         } else {
-            getCommand("help").execute(new VelocityCommandSender(source), Arrays.copyOfRange(args, 1, args.length-1));
+            getCommand("help").execute(new VelocityCommandSender(source), new String[0]);
         }
     }
 
