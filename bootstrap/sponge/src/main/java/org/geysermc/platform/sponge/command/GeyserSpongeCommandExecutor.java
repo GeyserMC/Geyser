@@ -59,10 +59,10 @@ public class GeyserSpongeCommandExecutor implements CommandCallable {
                     source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return CommandResult.success();
                 }
-                getCommand(args[0]).execute(new SpongeCommandSender(source), args);
+                getCommand(args[0]).execute(new SpongeCommandSender(source), Arrays.copyOfRange(args, 1, args.length-1));
             }
         } else {
-            getCommand("help").execute(new SpongeCommandSender(source), args);
+            getCommand("help").execute(new SpongeCommandSender(source), Arrays.copyOfRange(args, 1, args.length-1));
         }
         return CommandResult.success();
     }
