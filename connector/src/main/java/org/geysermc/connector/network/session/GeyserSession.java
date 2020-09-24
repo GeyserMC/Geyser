@@ -76,6 +76,8 @@ import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.collision.CollisionTranslator;
+import org.geysermc.connector.network.translators.world.collision.translators.BlockCollision;
 import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -145,6 +147,9 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private boolean jumping;
+
+    @Getter
+    private BoundingBox playerBoundingBox;
 
     @Setter
     private int breakingBlock;
@@ -272,6 +277,8 @@ public class GeyserSession implements CommandSender {
         this.loggedIn = false;
 
         this.inventoryCache.getInventories().put(0, inventory);
+
+        this.playerBoundingBox = new BoundingBox(0, 0, 0, 0.6, 1.8, 0.6);
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
@@ -779,5 +786,91 @@ public class GeyserSession implements CommandSender {
 
         adventureSettingsPacket.getSettings().addAll(flags);
         sendUpstreamPacket(adventureSettingsPacket);
+    }
+
+    /**
+     * Updates the stored bounding box
+     * @param position The new position of the player
+     */
+    public void updatePlayerBoundingBox(Vector3f position) {
+        updatePlayerBoundingBox(Vector3d.from(position.getX(), position.getY(), position.getZ()));
+    }
+
+    /**
+     * Updates the stored bounding box
+     * @param position The new position of the player
+     */
+    public void updatePlayerBoundingBox(Vector3d position) {
+        if (playerBoundingBox == null) {
+            System.out.println("BBnull");
+            playerBoundingBox = new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.6, 1.8, 0.6);
+        } else {
+            // TODO: Make bounding box smaller when sneaking
+            playerBoundingBox.setMiddleX(position.getX());
+            playerBoundingBox.setMiddleY(position.getY() + 0.9); // (EntityType.PLAYER.getOffset() / 2));
+            // System.out.println("Offset: " + (EntityType.PLAYER.getOffset() / 2));
+            playerBoundingBox.setMiddleZ(position.getZ());
+        }
+    }
+
+    public static final double COLLISION_TOLERANCE = 0.000001; // TODO: Move?
+
+    public List<Vector3i> getPlayerCollidableBlocks() {
+        List<Vector3i> blocks = new ArrayList<>();
+
+        Vector3d position = Vector3d.from(playerBoundingBox.getMiddleX(),
+                playerBoundingBox.getMiddleY() - 0.9,
+                playerBoundingBox.getMiddleZ());
+
+        // Loop through all blocks that could collide with the player
+        int minCollisionX = (int) Math.floor(position.getX() - ((playerBoundingBox.getSizeX() / 2) + COLLISION_TOLERANCE));
+        int maxCollisionX = (int) Math.floor(position.getX() + (playerBoundingBox.getSizeX() / 2) + COLLISION_TOLERANCE);
+
+        // Y extends 0.5 blocks down because of fence hitboxes
+        int minCollisionY = (int) Math.floor(position.getY() - 0.5);
+
+        // TODO: change comment
+        // Hitbox height is currently set to 0.5 to improve performance, as only blocks below the player need checking
+        // Any lower seems to cause issues
+        int maxCollisionY = (int) Math.floor(position.getY() + playerBoundingBox.getSizeY());
+
+        int minCollisionZ = (int) Math.floor(position.getZ() - ((playerBoundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE));
+        int maxCollisionZ = (int) Math.floor(position.getZ() + (playerBoundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE);
+
+        // BlockCollision blockCollision;
+
+        for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
+            for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
+                for (int z = minCollisionZ; z < maxCollisionZ + 1; z++) {
+                    blocks.add(Vector3i.from(x, y, z));
+                }
+            }
+        }
+
+        return blocks;
+    }
+
+    public void correctPlayerPosition() {
+        List<Vector3i> collidableBlocks = getPlayerCollidableBlocks();
+
+        // Used when correction code needs to be run before the main correction
+        for (Vector3i blockPos : collidableBlocks) {
+            BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
+                    blockPos.getX(), blockPos.getY(), blockPos.getZ(), this
+            );
+            if (blockCollision != null) {
+                blockCollision.beforeCorrectPosition(playerBoundingBox);
+            }
+        }
+
+        // Main correction code
+        for (Vector3i blockPos : collidableBlocks) {
+            BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
+                    blockPos.getX(), blockPos.getY(), blockPos.getZ(), this
+            );
+            if (blockCollision != null) {
+                blockCollision.correctPosition(playerBoundingBox);
+            }
+        }
     }
 }

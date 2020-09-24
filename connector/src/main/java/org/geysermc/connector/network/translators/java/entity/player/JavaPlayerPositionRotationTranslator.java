@@ -97,7 +97,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             double xDis = Math.abs(entity.getPosition().getX() - packet.getX());
             double yDis = entity.getPosition().getY() - packet.getY();
             double zDis = Math.abs(entity.getPosition().getZ() - packet.getZ());
-            if (!(xDis > 1.5 || (yDis < 1.45 || yDis > (entity.isJumping() ? 4.3 : (entity.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5)) {
+            if (!(xDis > 1.5 || (yDis < 1.45 || yDis > (session.isJumping() ? 4.3 : (session.isSprinting() ? 2.5 : 1.9))) || zDis > 1.5)) {
                 // Fake confirm the teleport but don't send it to the client
                 ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
                 session.sendDownstreamPacket(teleportConfirmPacket);

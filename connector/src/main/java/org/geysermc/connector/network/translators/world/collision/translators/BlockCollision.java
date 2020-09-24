@@ -29,6 +29,7 @@ package org.geysermc.connector.network.translators.world.collision.translators;
 import com.nukkitx.math.vector.Vector3d;
 import lombok.EqualsAndHashCode;
 import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.BoundingBox;
 import org.geysermc.connector.utils.MathUtils;
 
@@ -70,8 +71,8 @@ public class BlockCollision {
                 }
            }
 
-            playerCollision.setSizeX(playerCollision.getSizeX() + PlayerEntity.COLLISION_TOLERANCE * 2);
-            playerCollision.setSizeZ(playerCollision.getSizeZ() + PlayerEntity.COLLISION_TOLERANCE * 2);
+            playerCollision.setSizeX(playerCollision.getSizeX() + GeyserSession.COLLISION_TOLERANCE * 2);
+            playerCollision.setSizeZ(playerCollision.getSizeZ() + GeyserSession.COLLISION_TOLERANCE * 2);
             // playerCollision.translate(0, 0.1, 0); // Hack to not check y
             // If the player still intersects the block, then push them out
             if (/*false &&*/ b.checkIntersection(x, y, z, playerCollision)) {
@@ -152,25 +153,25 @@ public class BlockCollision {
                     ttom");
                 } else*/
                 double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(0, 0, translateDistance);
                     // System.out.println("Snapped to north");
                 }
                 
                 translateDistance = southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(0, 0, translateDistance);
                     // System.out.println("Snapped to south");
                 }
 
                 translateDistance = eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(translateDistance, 0, 0);
                     // System.out.println("Snapped to east");
                 }
 
                 translateDistance = westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) <  PlayerEntity.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(translateDistance, 0, 0);
                     // System.out.println("Snapped to west");
                 }
@@ -181,7 +182,7 @@ public class BlockCollision {
 
                 // System.out.println("Diff: " + MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition));
 
-                if (MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition) > PlayerEntity.COLLISION_TOLERANCE + 0.1) {
+                if (MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition) > GeyserSession.COLLISION_TOLERANCE + 0.1) {
                     playerCollision.setMiddleX(oldPlayerPosition.getX());
                     playerCollision.setMiddleY(oldPlayerPosition.getY());
                     playerCollision.setMiddleZ(oldPlayerPosition.getZ());

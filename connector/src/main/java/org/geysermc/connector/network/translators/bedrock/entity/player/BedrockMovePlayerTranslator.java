@@ -39,11 +39,8 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.world.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.world.collision.translators.BlockCollision;
-import org.geysermc.connector.utils.BoundingBox;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -113,9 +110,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (session.getConnector().getConfig().isCacheChunks()) {
             // With chunk caching, we can do some proper collision checks
 
-            entity.updateBoundingBox(position);
+            session.updatePlayerBoundingBox(position);
             // System.out.println("First Y: " + (entity.getBoundingBox().getMiddleY() - 0.9));
-            List<BlockCollision> possibleCollision = entity.getPossibleCollision(position, session);
+            /* List<BlockCollision> possibleCollision = entity.getPossibleCollision(position, session);
 
             Iterator<BlockCollision> i = possibleCollision.iterator();
             while (i.hasNext()) {
@@ -137,11 +134,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                     if (blockCollision.checkIntersection(entity.getBoundingBox())) {
                         System.out.println("Collision with " + blockCollision);
                     }
-                    entity.getBoundingBox().translate(0, -0.1, 0); // Hack to not check y */
+                    entity.getBoundingBox().translate(0, -0.1, 0); // Hack to not check y *//*
                 }
-            }
+            } */
 
-            BoundingBox playerCollision = entity.getBoundingBox();// new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.6, 1.8, 0.6);
+            /* BoundingBox playerCollision = entity.getBoundingBox();// new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.6, 1.8, 0.6);
 
             // Loop through all blocks that could collide with the player
             int minCollisionX = (int) Math.floor(position.getX() - 0.3);
@@ -173,13 +170,14 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         }
                     }
                 }
-            }
+            } */
             /* position = Vector3d.from(playerCollision.getMiddleX(), playerCollision.getMiddleY() - 0.9,
                     playerCollision.getMiddleZ()); */
+            session.correctPlayerPosition();
 
             // System.out.println("Final Y: " + (entity.getBoundingBox().getMiddleY() - 0.9));
-            position = Vector3d.from(entity.getBoundingBox().getMiddleX(), entity.getBoundingBox().getMiddleY() - 0.9,
-                    entity.getBoundingBox().getMiddleZ());
+            position = Vector3d.from(session.getPlayerBoundingBox().getMiddleX(), session.getPlayerBoundingBox().getMiddleY() - 0.9,
+                    session.getPlayerBoundingBox().getMiddleZ());
         } else {
             // When chunk caching is off, we have to rely on this
             // It rounds the Y position up to the nearest 0.5
