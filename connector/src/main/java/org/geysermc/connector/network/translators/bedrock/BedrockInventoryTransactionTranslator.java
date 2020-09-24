@@ -114,8 +114,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             session.sendDownstreamPacket(itemPacket);
 
-                            // Java in creative keeps the same bucket item, whereas Bedrock uses it like survival
-                            // Do it everywhere though in case the transaction fails
+                            // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
                             InventorySlotPacket slotPacket = new InventorySlotPacket();
                             slotPacket.setContainerId(ContainerId.INVENTORY);
                             slotPacket.setSlot(packet.getHotbarSlot());
