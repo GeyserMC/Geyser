@@ -26,20 +26,23 @@
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerActionAckPacket;
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.utils.BlockUtils;
-import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerPlayerActionAckPacket.class)
@@ -47,9 +50,17 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
 
     @Override
     public void translate(ServerPlayerActionAckPacket packet, GeyserSession session) {
+        System.out.println(packet.toString());
         LevelEventPacket levelEvent = new LevelEventPacket();
         switch (packet.getAction()) {
             case FINISH_DIGGING:
+                if (!packet.isSuccessful() && session.getGameMode() != GameMode.CREATIVE) {
+                    if (session.getConnector().getConfig().isCacheChunks()) {
+                        // Likely that our reach went too far; revert the changes we made.
+                        resetBlock(session, packet.getPosition());
+                    }
+                }
+                if (!packet.isSuccessful()) break;
                 double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(session.getBreakingBlock());
                 if (session.getGameMode() != GameMode.CREATIVE && blockHardness != 0) {
                     levelEvent.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
@@ -62,8 +73,13 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 break;
             case START_DIGGING:
                 if (session.getGameMode() == GameMode.CREATIVE) {
+                    if (!packet.isSuccessful() && session.getConnector().getConfig().isCacheChunks()) {
+                        // Likely that our reach went too far; revert the changes we made.
+                        resetBlock(session, packet.getPosition());
+                    }
                     break;
                 }
+                if (!packet.isSuccessful()) break;
                 blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(packet.getNewState());
                 levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
                 levelEvent.setPosition(Vector3f.from(
@@ -85,6 +101,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 session.sendUpstreamPacket(levelEvent);
                 break;
             case CANCEL_DIGGING:
+                if (!packet.isSuccessful()) break;
                 levelEvent.setType(LevelEventType.BLOCK_STOP_BREAK);
                 levelEvent.setPosition(Vector3f.from(
                         packet.getPosition().getX(),
@@ -96,5 +113,19 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 session.sendUpstreamPacket(levelEvent);
                 break;
         }
+    }
+
+    /**
+     * Reset the block to the correct serverside state; do not add to the chunk cache.
+     * @param session the Bedrock client session
+     * @param position the position of the block to restore
+     */
+    private void resetBlock(GeyserSession session, Position position) {
+        int correctBlockState = session.getConnector().getWorldManager().getBlockAt(session, position);
+        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+        updateBlockPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
+        updateBlockPacket.setDataLayer(0);
+        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(correctBlockState));
+        session.sendUpstreamPacket(updateBlockPacket);
     }
 }

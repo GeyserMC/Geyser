@@ -58,6 +58,10 @@ import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHa
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
+/**
+ * BedrockInventoryTransactionTranslator handles most interactions between the client and the world,
+ * or the client and their inventory.
+ */
 @Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
 
