@@ -39,8 +39,10 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
@@ -111,6 +113,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         (packet.getItemInHand().getDamage() == 0 || !packet.getActions().isEmpty())) {
                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             session.sendDownstreamPacket(itemPacket);
+
+                            // Java in creative keeps the same bucket item, whereas Bedrock uses it like survival
+                            // Do it everywhere though in case the transaction fails
+                            InventorySlotPacket slotPacket = new InventorySlotPacket();
+                            slotPacket.setContainerId(ContainerId.INVENTORY);
+                            slotPacket.setSlot(packet.getHotbarSlot());
+                            slotPacket.setItem(packet.getItemInHand());
+                            session.sendUpstreamPacket(slotPacket);
                         }
 
                         if (packet.getActions().isEmpty()) {
@@ -169,7 +179,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Handled in ITEM_USE
-                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) {
+                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
+                                // Normal bucket, water bucket, lava bucket
+                                (packet.getItemInHand().getDamage() == 0 || packet.getItemInHand().getDamage() == 8 || packet.getItemInHand().getDamage() == 10)) {
                             break;
                         }
 
