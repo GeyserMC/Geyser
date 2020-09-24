@@ -110,7 +110,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         // Check actions, otherwise buckets may be activated when block inventories are accessed
                         // But don't check actions if the item damage is 0
                         else if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
-                        (packet.getItemInHand().getDamage() == 0 || !packet.getActions().isEmpty())) {
+                                (packet.getItemInHand().getDamage() == 0 || !packet.getActions().isEmpty())) {
                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             session.sendDownstreamPacket(itemPacket);
 
