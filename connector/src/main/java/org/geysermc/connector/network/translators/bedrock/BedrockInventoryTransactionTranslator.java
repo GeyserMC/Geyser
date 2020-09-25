@@ -39,8 +39,13 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
@@ -75,6 +80,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_USE:
                 switch (packet.getActionType()) {
                     case 0:
+                        // Check to make sure the client isn't spamming interaction
+                        // Based on Nukkit 1.0, with changes to ensure holding down still works
+                        boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
+                                packet.getBlockPosition().distanceSquared(session.getLastInteractionPosition()) < 0.00001;
+                        session.setLastInteractionPosition(packet.getBlockPosition());
+                        if (hasAlreadyClicked) {
+                            break;
+                        } else {
+                            // Only update the interaction time if it's valid - that way holding down still works.
+                            session.setLastInteractionTime(System.currentTimeMillis());
+                        }
 
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
                         if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId()) &&
@@ -98,9 +114,41 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(blockPacket);
 
                         // Otherwise boats will not be able to be placed in survival and buckets wont work on mobile
-                        if (packet.getItemInHand() != null && (packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId() || packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId())) {
-                           ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                           session.sendDownstreamPacket(itemPacket);
+                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId()) {
+                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                            session.sendDownstreamPacket(itemPacket);
+                        }
+                        // Check actions, otherwise buckets may be activated when block inventories are accessed
+                        // But don't check actions if the item damage is 0
+                        else if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
+                                (packet.getItemInHand().getDamage() == 0 || !packet.getActions().isEmpty())) {
+                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                            session.sendDownstreamPacket(itemPacket);
+
+                            // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
+                            InventorySlotPacket slotPacket = new InventorySlotPacket();
+                            slotPacket.setContainerId(ContainerId.INVENTORY);
+                            slotPacket.setSlot(packet.getHotbarSlot());
+                            slotPacket.setItem(packet.getItemInHand());
+                            session.sendUpstreamPacket(slotPacket);
+                        }
+
+                        if (packet.getActions().isEmpty()) {
+                            if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
+                                // Otherwise insufficient permissions
+                                int blockState = BlockTranslator.getJavaBlockState(packet.getBlockRuntimeId());
+                                String blockName = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(blockState, "");
+                                // In the future this can be used for structure blocks too, however not all elements
+                                // are available in each GUI
+                                if (blockName.contains("jigsaw")) {
+                                    ContainerOpenPacket openPacket = new ContainerOpenPacket();
+                                    openPacket.setBlockPosition(packet.getBlockPosition());
+                                    openPacket.setId((byte) 1);
+                                    openPacket.setType(ContainerType.JIGSAW_EDITOR);
+                                    openPacket.setUniqueEntityId(-1);
+                                    session.sendUpstreamPacket(openPacket);
+                                }
+                            }
                         }
 
                         Vector3i blockPos = packet.getBlockPosition();
@@ -130,7 +178,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.setLastBlockPlacePosition(blockPos);
                             session.setLastBlockPlacedId(handItem.getJavaIdentifier());
                         }
-                        session.setLastInteractionPosition(packet.getBlockPosition());
                         session.setInteracting(true);
                         break;
                     case 1:
@@ -141,14 +188,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Handled in ITEM_USE
-                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) {
+                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
+                                // Normal bucket, water bucket, lava bucket
+                                (packet.getItemInHand().getDamage() == 0 || packet.getItemInHand().getDamage() == 8 || packet.getItemInHand().getDamage() == 10)) {
                             break;
                         }
 
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                         session.sendDownstreamPacket(useItemPacket);
-                        // Used for sleeping in beds
-                        session.setLastInteractionPosition(packet.getBlockPosition());
                         break;
                     case 2:
                         int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
@@ -195,6 +242,18 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 //https://wiki.vg/Protocol#Interact_Entity
                 switch (packet.getActionType()) {
                     case 0: //Interact
+                        if (entity instanceof CommandBlockMinecartEntity) {
+                            // The UI is handled client-side on Java Edition
+                            // Ensure OP permission level and gamemode is appropriate
+                            if (session.getOpPermissionLevel() < 2 || session.getGameMode() != GameMode.CREATIVE) return;
+                            ContainerOpenPacket openPacket = new ContainerOpenPacket();
+                            openPacket.setBlockPosition(Vector3i.ZERO);
+                            openPacket.setId((byte) 1);
+                            openPacket.setType(ContainerType.COMMAND_BLOCK);
+                            openPacket.setUniqueEntityId(entity.getGeyserId());
+                            session.sendUpstreamPacket(openPacket);
+                            break;
+                        }
                         Vector3f vector = packet.getClickPosition();
                         ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                                 InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());

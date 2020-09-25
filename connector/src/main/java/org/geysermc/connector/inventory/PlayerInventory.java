@@ -31,6 +31,10 @@ import lombok.Setter;
 
 public class PlayerInventory extends Inventory {
 
+    /**
+     * Stores the held item slot, starting at index 0.
+     * Add 36 in order to get the network item slot.
+     */
     @Getter
     @Setter
     private int heldItemSlot;
