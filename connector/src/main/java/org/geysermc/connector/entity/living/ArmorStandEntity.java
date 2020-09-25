@@ -276,7 +276,6 @@ public class ArmorStandEntity extends LivingEntity {
      * Updates position without calling movement code and includes the offset.
      */
     private void updatePositionWithOffset() {
-        System.out.println(secondEntity);
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
         moveEntityPacket.setPosition(primaryEntity && lastPositionIncludedOffset ?
