@@ -156,8 +156,13 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean interacting;
 
+    /**
+     * Stores the last position of the block the player interacted with. This can either be a block that the client
+     * placed or an existing block the player interacted with (for example, a chest). <br>
+     * Initialized as (0, 0, 0) so it is always not-null.
+     */
     @Setter
-    private Vector3i lastInteractionPosition;
+    private Vector3i lastInteractionPosition = Vector3i.ZERO;
 
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
@@ -192,6 +197,13 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private long lastHitTime;
+
+    /**
+     * Store the last time the player interacted. Used to fix a right-click spam bug.
+     * See https://github.com/GeyserMC/Geyser/issues/503 for context.
+     */
+    @Setter
+    private long lastInteractionTime;
 
     private boolean reducedDebugInfo = false;
 
