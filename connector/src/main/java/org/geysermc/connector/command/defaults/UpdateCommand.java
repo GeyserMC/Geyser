@@ -32,6 +32,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -54,9 +55,8 @@ public class UpdateCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        //Currently only Spigot works
-        String platform = GeyserConnector.getInstance().getPlatformType().getPlatformName();
-        if (!platform.equals("Spigot")) {
+        // Currently only Spigot works
+        if (!GeyserConnector.getInstance().getPlatformType().equals(PlatformType.SPIGOT)) {
             sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.update.unsupported"));
             return;
         }
@@ -75,16 +75,16 @@ public class UpdateCommand extends GeyserCommand {
                     if (buildXML.startsWith("<buildNumber>")) {
                         int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
                         int buildNum = Integer.parseInt(gitProp.getProperty("git.build.number"));
-                        //Compare build numbers.
+                        // Compare build numbers.
                         if (latestBuildNum == buildNum) {
                             sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.version.no_updates"));
                         } else {
                             sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.update.outdated", (latestBuildNum - buildNum)));
 
-                            String downloadUrl = "https://ci.nukkitx.com/job/GeyserMC/job/Geyser/job/" + URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/artifact/bootstrap/" + platform.toLowerCase() + "/target/Geyser" + (platform.equals("Standalone") ? ".jar" : "-" + platform + ".jar");
+                            String downloadUrl = "https://ci.nukkitx.com/job/GeyserMC/job/Geyser/job/" + URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/artifact/bootstrap/Spigot/target/Geyser-Spigot.jar";
                             String checksumData = WebUtils.getBody(downloadUrl + "/*fingerprint*/");
 
-                            //TODO: Replace with regex. Gotta figure that one out though XD
+                            // TODO: Replace with regex. Gotta figure that one out though XD
                             int divIndex = checksumData.indexOf("<div class=\"md5sum\"");
                             divIndex = checksumData.indexOf(">", divIndex);
                             int endDivIndex = checksumData.indexOf("</div>", divIndex);
@@ -93,17 +93,17 @@ public class UpdateCommand extends GeyserCommand {
                             File updateFolder = GeyserConnector.getInstance().getBootstrap().getConfigFolder().getParent().resolve("update").toFile();
                             updateFolder.mkdir();
 
-                            File downloadedFile = new File(updateFolder, platform.equals("Standalone") ? "Geyser.jar" : "Geyser-" + platform + ".jar");
+                            File downloadedFile = new File(updateFolder, "Geyser-Spigot.jar");
 
                             sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.update.downloading"));
                             WebUtils.downloadFile(downloadUrl, downloadedFile.getAbsolutePath());
                             sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.update.downloaded"));
 
-                            //Verify file integrity.
+                            // Verify file integrity.
                             if (Files.hash(downloadedFile, Hashing.md5()).toString().equals(remoteChecksum)) {
                                 sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.update.success"));
                             } else {
-                                //Delete the file if the local checksum does not match remote.
+                                // Delete the file if the local checksum does not match remote.
                                 downloadedFile.delete();
                                 throw new AssertionError("checksums dont match");
                             }
