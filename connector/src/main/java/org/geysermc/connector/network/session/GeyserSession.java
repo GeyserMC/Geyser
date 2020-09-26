@@ -117,8 +117,6 @@ public class GeyserSession implements CommandSender {
      */
     private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
 
-    private DataCache<Packet> javaPacketCache;
-
     @Setter
     private Vector2i lastChunkPosition = null;
     private int renderDistance;
@@ -175,6 +173,12 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private long lastWindowCloseTime = 0;
+
+    /**
+     * Saves the timestamp of the last keep alive packet
+     */
+    @Setter
+    private long lastKeepAliveTimestamp = 0;
 
     @Setter
     private VillagerTrade[] villagerTrades;
@@ -276,8 +280,6 @@ public class GeyserSession implements CommandSender {
         this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
         this.inventory = new PlayerInventory();
 
-        this.javaPacketCache = new DataCache<>();
-
         this.spawned = false;
         this.loggedIn = false;
 
@@ -362,6 +364,9 @@ public class GeyserSession implements CommandSender {
                 } else {
                     protocol = new MinecraftProtocol(username);
                 }
+
+                // Let Geyser handle sending the keep alive
+                protocol.setAutomaticallySendKeepAlive(false);
 
                 boolean floodgate = connector.getAuthType() == AuthType.FLOODGATE;
                 final PublicKey publicKey;

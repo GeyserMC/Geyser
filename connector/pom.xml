@@ -111,7 +111,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>e4a3aa636a</version>
+            <version>85c0811acf</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
