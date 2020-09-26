@@ -246,7 +246,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     case 0: //Interact
                         if (session.getGameMode() == GameMode.SPECTATOR) {
                             if (entity.getJavaUuid() == null) {
-                                GeyserConnector.getInstance().getLogger().warning("DEBUG: Tried to spectate entity with no Java UUID");
+                                GeyserConnector.getInstance().getLogger().debug("Tried to spectate entity with no Java UUID");
                                 return;
                             }
                             session.sendDownstreamPacket(new ClientSpectatePacket(entity.getJavaUuid()));

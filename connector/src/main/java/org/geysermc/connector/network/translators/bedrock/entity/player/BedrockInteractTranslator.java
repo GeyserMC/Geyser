@@ -77,10 +77,6 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 ClientPlayerStatePacket sneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
                 session.setRidingVehicleEntity(null);
-
-                if (session.getGameMode() == GameMode.SPECTATOR && session.getSpectatingEntity() != null) {
-                    //session.stopSpectatingEntity();
-                }
                 break;
             case MOUSEOVER:
                 // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
