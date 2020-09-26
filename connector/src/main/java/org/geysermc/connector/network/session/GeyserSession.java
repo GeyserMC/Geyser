@@ -841,15 +841,10 @@ public class GeyserSession implements CommandSender {
         // Y extends 0.5 blocks down because of fence hitboxes
         int minCollisionY = (int) Math.floor(position.getY() - 0.5);
 
-        // TODO: change comment
-        // Hitbox height is currently set to 0.5 to improve performance, as only blocks below the player need checking
-        // Any lower seems to cause issues
         int maxCollisionY = (int) Math.floor(position.getY() + playerBoundingBox.getSizeY());
 
         int minCollisionZ = (int) Math.floor(position.getZ() - ((playerBoundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE));
         int maxCollisionZ = (int) Math.floor(position.getZ() + (playerBoundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE);
-
-        // BlockCollision blockCollision;
 
         for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
             for (int x = minCollisionX; x < maxCollisionX + 1; x++) {

@@ -74,22 +74,9 @@ public class BlockCollision {
 
             playerCollision.setSizeX(playerCollision.getSizeX() + GeyserSession.COLLISION_TOLERANCE * 2);
             playerCollision.setSizeZ(playerCollision.getSizeZ() + GeyserSession.COLLISION_TOLERANCE * 2);
-            // playerCollision.translate(0, 0.1, 0); // Hack to not check y
+
             // If the player still intersects the block, then push them out
-            if (/*false &&*/ b.checkIntersection(x, y, z, playerCollision)) {
-                /* double relativeX = playerCollision.getMiddleX() - (x + 0.5);
-                double relativeY = playerCollision.getMiddleY() - (y + 0.5);
-                double relativeZ = playerCollision.getMiddleZ() - (z + 0.5);
-                if (relativeZ > 0 ? relativeX > relativeZ : relativeZ > (- relativeX)) {
-                    // Collision with facing west - push the player east
-                    System.out.println("Collision facing towards negative X");
-                    // System.out.println("Moved by " + (playerCollision.getMiddleX() - (b.getMiddleX() + (b.getSizeX() / 2) + x))); TODO
-                    playerCollision.translate(playerCollision.getMiddleX() - (b.getMiddleX() + (b.getSizeX() / 2) + x), 0, 0);
-                } */
-                /* while (b.checkIntersection(x, y, z, playerCollision)) {
-                    playerCollision.translate(0, 0.01, 0);
-                    System.out.println("Up");
-                } */
+            if (b.checkIntersection(x, y, z, playerCollision)) {
 
                 Vector3d oldPlayerPosition = Vector3d.from(playerCollision.getMiddleX(),
                         playerCollision.getMiddleY(),
@@ -129,59 +116,29 @@ public class BlockCollision {
                         b.getMiddleZ());
                 double westFaceDistance = MathUtils.taxicabDistance(westFacePos, relativePlayerPosition);
 
-                // System.out.println(topFacePos.getY() - relativePlayerPosition.getY());
-                // Unless the player is very close to the top, don't snap them there
-                /* if // (!((topFacePos.getY() - relativePlayerPosition.getY() > 0) && // Positive number (player is below top)
-                ((!   (topFacePos.getY() - relativePlayerPosition.getY() < 0.00001))) { // Player is close to top
-                    // This should never be the lowest number
-                    topFaceDistance = 9999;
-                } */
-
-                /* double closestDistance = // Math.min(topFaceDistance,
-                                         // Math.min(bottomFaceDistance,
-                                         Math.min(northFaceDistance,
-                                         Math.min(southFaceDistance,
-                                         Math.min(eastFaceDistance,
-                                                  westFaceDistance))); // ); // ); */
-
-                // System.out.println("Distance: " + closestDistance);
-                /* if (closestDistance == topFaceDistance) {
-                    playerCollision.translate(0, (topFacePos.getY() - relativePlayerPosition.getY()), 0);
-                    System.out.println("Snapped to top");
-                } else if (closestDistance == bottomFaceDistance) {
-                    playerCollision.translate(0, (bottomFacePos.getY() - relativePlayerPosition.getY()) + 0.9, 0);
-                    System.out.println("Snapped to bo
-                    ttom");
-                } else*/
                 double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
                 if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(0, 0, translateDistance);
-                    // System.out.println("Snapped to north");
                 }
                 
                 translateDistance = southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
                 if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(0, 0, translateDistance);
-                    // System.out.println("Snapped to south");
                 }
 
                 translateDistance = eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
                 if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(translateDistance, 0, 0);
-                    // System.out.println("Snapped to east");
                 }
 
                 translateDistance = westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
                 if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(translateDistance, 0, 0);
-                    // System.out.println("Snapped to west");
                 }
 
                 Vector3d newPlayerPosition = Vector3d.from(playerCollision.getMiddleX(), // TODO: Use next possible double?
                         playerCollision.getMiddleY(),
                         playerCollision.getMiddleZ());
-
-                // System.out.println("Diff: " + MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition));
 
                 if (MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition) > GeyserSession.COLLISION_TOLERANCE + 0.1) {
                     playerCollision.setMiddleX(oldPlayerPosition.getX());
@@ -189,42 +146,12 @@ public class BlockCollision {
                     playerCollision.setMiddleZ(oldPlayerPosition.getZ());
                     System.out.println("Cancelled");
                 }
-
-                // System.out.println(playerCollision.getMiddleX());
-                // playerCollision.setMiddleX(oldPlayerPosition.getX());
             }
-            // playerCollision.translate(0, -0.1, 0); // Hack to not check y
+
             playerCollision.setSizeX(0.6);
             playerCollision.setSizeZ(0.6);
-            /* while (b.checkIntersection(x, y, z, playerCollision)) {
-              playerCollision.translate(0, 0.001, 0);
-              System.out.println("Up");
-            } */
         }
 
-        // Solid checking for NoCheatPlus etc.
-        // TODO: Better checking
-        /* playerCollision.translate(0, 0.1, 0); // Hack to not check y
-        if (checkIntersection(playerCollision)) {
-            if (playerCollision.getMiddleX() > (x + 0.5)) {
-                playerCollision.translate(0.1, 0, 0);
-            } else {
-                playerCollision.translate(-0.1, 0, 0);
-            }
-
-            if (playerCollision.getMiddleZ() > (z + 0.5)) {
-                playerCollision.translate(0, 0, 0.1);
-            } else {
-                playerCollision.translate(0, 0, -0.1);
-            }
-
-            /* if (playerCollision.getMiddleY() > (y + 0.5)) {
-                playerCollision.translate(0, 0.1, 0);
-            } else {
-                playerCollision.translate(0, -0.1, 0);
-            } *//*
-        }
-        playerCollision.translate(0, -0.1, 0); // Hack to not check y */
     }
 
     public boolean checkIntersection(BoundingBox playerCollision) {

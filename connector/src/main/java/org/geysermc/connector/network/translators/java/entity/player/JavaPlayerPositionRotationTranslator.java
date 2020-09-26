@@ -118,14 +118,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         double newYaw = packet.getYaw() +
                 (packet.getRelative().contains(PositionElement.YAW) ? entity.getBedrockRotation().getY() : 0);
 
-        // TODO: Remove this part
-        System.out.println("Old pos: " + entity.getPosition().getX() + ", " + entity.getPosition().getY() + ", " + entity.getPosition().getZ());
-
-        // TODO: Add back session.addTeleport(new TeleportCache(newX, newY, newZ, newPitch, newYaw, packet.getTeleportId()));
+        session.addTeleport(new TeleportCache(newX, newY, newZ, newPitch, newYaw, packet.getTeleportId()));
         entity.moveAbsolute(session, Vector3f.from(newX, newY, newZ), (float) newYaw, (float) newPitch, true, true);
-        // TODO: Remove this part
-        System.out.println("New pos: " + newX + ", " + newY + ", " + newZ);
-        ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
-        session.sendDownstreamPacket(teleportConfirmPacket);
     }
 }

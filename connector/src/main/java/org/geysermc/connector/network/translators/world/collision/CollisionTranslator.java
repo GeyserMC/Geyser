@@ -57,18 +57,12 @@ public class CollisionTranslator {
         List<Class<?>> collisionTypes = new ArrayList<>();
 
         Map<Class<?>, CollisionRemapper> annotationMap = new HashMap<>();
-        // Map<Class, Pattern> paramRegexMap = new HashMap<>();
 
         Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.collision.translators");
         for (Class<?> clazz : ref.getTypesAnnotatedWith(CollisionRemapper.class)) {
-            // String regex = clazz.getAnnotation(CollisionRemapper.class).regex();
-            // String paramRegex = clazz.getAnnotation(CollisionRemapper.class).paramRegex();
-
             GeyserConnector.getInstance().getLogger().debug("Found annotated collision translator: " + clazz.getCanonicalName());
 
             collisionTypes.add(clazz);
-            // regexMap.put(clazz, Pattern.compile(regex));
-            // paramRegexMap.put(clazz, Pattern.compile(paramRegex));
             annotationMap.put(clazz, clazz.getAnnotation(CollisionRemapper.class));
         }
 
@@ -83,9 +77,10 @@ public class CollisionTranslator {
         }
 
         BiMap<String, Integer> javaIdBlockMap = BlockTranslator.getJavaIdBlockMap();
+
         // Map of classes that don't change based on parameters that have already been created
-        // BiMap<Class, BlockCollision> instantiatedCollision = HashBiMap.create();
         Map<Class<?>, BlockCollision> instantiatedCollision = new HashMap<>();
+
         for (Map.Entry<String, Integer> entry : javaIdBlockMap.entrySet()) {
             BlockCollision newCollision = instantiateCollision(entry.getKey(), entry.getValue(), collisionTypes, annotationMap, instantiatedCollision, collisionList);
             if (newCollision != null) {
@@ -114,28 +109,17 @@ public class CollisionTranslator {
 
             if (pattern.matcher(blockName).find() && paramsPattern.matcher(params).find()) {
                 try {
-                    // System.out.println("************** TYPE: " + collisionType + " BLOCK: " + blockID + " **************");
-
-                    /* if (instantiatedCollision.keySet().size() > 1) {
-                        System.out.println("Two!");
-                        System.out.println(instantiatedCollision.keySet().toArray()[1]);
-                        System.out.println(collisionType);
-                        System.out.println(!annotation.usesParams());
-                        System.out.println(instantiatedCollision.containsKey(collisionType));
-                    } */
                     if (!annotation.usesParams() && instantiatedCollision.containsKey(type)) {
-                        // System.out.println("Early return (found): " + collisionType);
                         return instantiatedCollision.get(type);
                     }
+
                     // Return null when empty to save unnecessary checks
                     if (type == EmptyCollision.class) {
-                        // System.out.println("null!!!");
                         return null;
                     }
                     BlockCollision collision = (BlockCollision) type.getDeclaredConstructor(String.class).newInstance(params);
+
                     // If there's an existing instance equal to this one, use that instead
-                    // if (instantiatedCollision.containsValue(collision)) {
-                    // System.out.println("Can delete " + collision);
                     for (Map.Entry<Class<?>, BlockCollision> entry : instantiatedCollision.entrySet()) {
                         if (entry.getValue().equals(collision)) {
                             // System.out.println("Deleting " + collision);
@@ -143,7 +127,6 @@ public class CollisionTranslator {
                             break;
                         }
                     }
-                    // }
                     return collision;
                 } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
                     e.printStackTrace();
@@ -184,6 +167,8 @@ public class CollisionTranslator {
         return collision;
     }
 
+    // Note: these reuse classes, so don't try to store more than once instance or coordinayes will get overwritten
+
     public static BlockCollision getCollision(Integer blockID, int x, int y, int z) {
         BlockCollision collision = collisionMap.get(blockID);
         if (collision != null) {
@@ -191,6 +176,8 @@ public class CollisionTranslator {
         }
         return collision;
     }
+
+
     public static BlockCollision getCollisionAt(int x, int y, int z, GeyserSession session) {
         try {
             return getCollision(
