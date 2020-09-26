@@ -50,6 +50,7 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         }
 
         entity.setEntityId(packet.getEntityId());
+        entity.setJavaUuid(packet.getUuid());
         entity.setPosition(position);
         entity.setRotation(rotation);
         session.getEntityCache().cacheEntity(entity);

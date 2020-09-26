@@ -36,6 +36,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientSpectatePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -45,6 +46,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
@@ -242,6 +244,15 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 //https://wiki.vg/Protocol#Interact_Entity
                 switch (packet.getActionType()) {
                     case 0: //Interact
+                        if (session.getGameMode() == GameMode.SPECTATOR) {
+                            if (entity.getJavaUuid() == null) {
+                                GeyserConnector.getInstance().getLogger().warning("DEBUG: Tried to spectate entity with no Java UUID");
+                                return;
+                            }
+                            session.sendDownstreamPacket(new ClientSpectatePacket(entity.getJavaUuid()));
+                            return;
+                        }
+
                         if (entity instanceof CommandBlockMinecartEntity) {
                             // The UI is handled client-side on Java Edition
                             // Ensure OP permission level and gamemode is appropriate

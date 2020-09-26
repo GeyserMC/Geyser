@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -76,6 +77,10 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 ClientPlayerStatePacket sneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
                 session.setRidingVehicleEntity(null);
+
+                if (session.getGameMode() == GameMode.SPECTATOR && session.getSpectatingEntity() != null) {
+                    //session.stopSpectatingEntity();
+                }
                 break;
             case MOUSEOVER:
                 // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc

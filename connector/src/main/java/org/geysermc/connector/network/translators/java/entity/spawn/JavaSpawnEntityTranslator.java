@@ -83,6 +83,7 @@ public class JavaSpawnEntityTranslator extends PacketTranslator<ServerSpawnEntit
                         type, position, motion, rotation
                 );
             }
+            entity.setJavaUuid(packet.getUuid());
             session.getEntityCache().spawnEntity(entity);
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
             ex.printStackTrace();
