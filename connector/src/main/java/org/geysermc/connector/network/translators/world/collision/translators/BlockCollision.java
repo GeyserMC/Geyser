@@ -33,6 +33,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.BoundingBox;
 import org.geysermc.connector.utils.MathUtils;
 
+import javax.xml.transform.sax.SAXSource;
+
 @EqualsAndHashCode
 public class BlockCollision {
 
@@ -65,7 +67,6 @@ public class BlockCollision {
                 // Max steppable distance in Minecraft as far as we know is 0.5625 blocks (for beds)
                 if (boxMaxY - playerMinY <= 0.5625) {
                     playerCollision.translate(0, boxMaxY - playerMinY, 0);
-                    // System.out.println("2: Moved by " + (boxMaxY - playerMinY));
                     // Update player Y for next collision box
                     playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
                 }
@@ -226,7 +227,6 @@ public class BlockCollision {
         playerCollision.translate(0, -0.1, 0); // Hack to not check y */
     }
 
-    // USED NOW! CHANGE THIS COMMENT Or not! Currently never used, but will probably be useful in the future
     public boolean checkIntersection(BoundingBox playerCollision) {
         for (BoundingBox b: boundingBoxes) {
             if (b.checkIntersection(x, y, z, playerCollision)) {

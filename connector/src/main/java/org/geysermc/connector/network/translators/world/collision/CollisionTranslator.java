@@ -26,6 +26,7 @@
 
 package org.geysermc.connector.network.translators.world.collision;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.BiMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -34,15 +35,18 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.collision.translators.EmptyCollision;
+import org.geysermc.connector.network.translators.world.collision.translators.OtherCollision;
 import org.geysermc.connector.network.translators.world.collision.translators.SolidCollision;
+import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.regex.Pattern;
 
 public class CollisionTranslator {
-    private static Int2ObjectMap<BlockCollision> collisionMap = new Int2ObjectOpenHashMap<>();
+    private static final Int2ObjectMap<BlockCollision> collisionMap = new Int2ObjectOpenHashMap<>();
 
     public static void init() {
         // If chunk caching is off then don't initialize
@@ -68,22 +72,33 @@ public class CollisionTranslator {
             annotationMap.put(clazz, clazz.getAnnotation(CollisionRemapper.class));
         }
 
-        System.out.println(collisionTypes);
+        // Load collision mappings file
+        InputStream stream = FileUtils.getResource("mappings/collision.json");
+
+        ArrayNode collisionList;
+        try {
+            collisionList = (ArrayNode) GeyserConnector.JSON_MAPPER.readTree(stream);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load collision data", e);
+        }
 
         BiMap<String, Integer> javaIdBlockMap = BlockTranslator.getJavaIdBlockMap();
         // Map of classes that don't change based on parameters that have already been created
         // BiMap<Class, BlockCollision> instantiatedCollision = HashBiMap.create();
         Map<Class<?>, BlockCollision> instantiatedCollision = new HashMap<>();
         for (Map.Entry<String, Integer> entry : javaIdBlockMap.entrySet()) {
-            BlockCollision newCollision = instantiateCollision(entry.getKey(), collisionTypes, annotationMap, instantiatedCollision);
+            BlockCollision newCollision = instantiateCollision(entry.getKey(), entry.getValue(), collisionTypes, annotationMap, instantiatedCollision, collisionList);
             if (newCollision != null) {
                 instantiatedCollision.put(newCollision.getClass(), newCollision);
+            }
+            if (entry.getKey().equals("minecraft:red_bed[facing=west,occupied=false,part=foot]")) {
+                System.out.println("Bed foot collision: " + newCollision);
             }
             collisionMap.put(entry.getValue(), newCollision);
         }
     }
 
-    private static BlockCollision instantiateCollision(String blockID, List<Class<?>> collisionTypes, Map<Class<?>, CollisionRemapper> annotationMap, Map<Class<?>, BlockCollision> instantiatedCollision) {
+    private static BlockCollision instantiateCollision(String blockID, int numericBlockID, List<Class<?>> collisionTypes, Map<Class<?>, CollisionRemapper> annotationMap, Map<Class<?>, BlockCollision> instantiatedCollision, ArrayNode collisionList) {
 
         String blockName = blockID.split("\\[")[0].replace("minecraft:", "");
         String params = "";
@@ -137,11 +152,36 @@ public class CollisionTranslator {
             }
         }
 
-        if (instantiatedCollision.containsKey(SolidCollision.class)) {
-            return instantiatedCollision.get(SolidCollision.class);
-        } else {
-            return new SolidCollision(params);
+        int collisionIndex = BlockTranslator.JAVA_RUNTIME_ID_TO_COLLISION_INDEX.get(numericBlockID);
+
+        // Unless some of the low IDs are changed, which is unlikely, the first item should always be empty collision
+        if (collisionIndex == 0) {
+            if (instantiatedCollision.containsKey(EmptyCollision.class)) {
+                return instantiatedCollision.get(EmptyCollision.class);
+            } else {
+                return new EmptyCollision(params);
+            }
         }
+
+        // Unless some of the low IDs are changed, which is unlikely, the second item should always be full collision
+        if (collisionIndex == 1) {
+            if (instantiatedCollision.containsKey(SolidCollision.class)) {
+                return instantiatedCollision.get(SolidCollision.class);
+            } else {
+                return new SolidCollision(params);
+            }
+        }
+
+        BlockCollision collision = new OtherCollision((ArrayNode) collisionList.get(collisionIndex), blockID);
+        // If there's an existing instance equal to this one, use that instead
+        for (Map.Entry<Class<?>, BlockCollision> entry : instantiatedCollision.entrySet()) {
+            if (entry.getValue().equals(collision)) {
+                collision = entry.getValue();
+                break;
+            }
+        }
+
+        return collision;
     }
 
     public static BlockCollision getCollision(Integer blockID, int x, int y, int z) {

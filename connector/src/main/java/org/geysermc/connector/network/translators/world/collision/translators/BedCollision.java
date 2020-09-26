@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.world.collision.translators;
 import org.geysermc.connector.network.translators.world.collision.CollisionRemapper;
 import org.geysermc.connector.utils.BoundingBox;
 
+// TODO: Work out why beds don't work when walked into the middle of without this class
 @CollisionRemapper(regex = "_bed$")
 public class BedCollision extends BlockCollision {
     public BedCollision(String params) {
