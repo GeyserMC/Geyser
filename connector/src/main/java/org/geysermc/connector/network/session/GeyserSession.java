@@ -28,6 +28,7 @@ package org.geysermc.connector.network.session;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -365,9 +366,6 @@ public class GeyserSession implements CommandSender {
                     protocol = new MinecraftProtocol(username);
                 }
 
-                // Let Geyser handle sending the keep alive
-                protocol.setAutomaticallySendKeepAlive(false);
-
                 boolean floodgate = connector.getAuthType() == AuthType.FLOODGATE;
                 final PublicKey publicKey;
 
@@ -389,6 +387,8 @@ public class GeyserSession implements CommandSender {
                 }
 
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
+                // Let Geyser handle sending the keep alive
+                downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
                 downstream.getSession().addListener(new SessionAdapter() {
                     @Override
                     public void packetSending(PacketSendingEvent event) {
