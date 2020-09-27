@@ -40,7 +40,9 @@ public class BlockCollision {
 
     protected BoundingBox[] boundingBoxes;
 
-    protected int x, y, z;
+    protected int x;
+    protected int y;
+    protected int z;
 
     // This is used for the step up logic.
     // Usually, the player can only step up a block if they are on the same Y level as its bottom face or higher
