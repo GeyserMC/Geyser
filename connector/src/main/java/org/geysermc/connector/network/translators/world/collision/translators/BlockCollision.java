@@ -82,11 +82,6 @@ public class BlockCollision {
             // This fixes NoCheatPlus's Passable check
             // This check doesn't allow players right up against the block, so they must be pushed slightly away
             if (b.checkIntersection(x, y, z, playerCollision)) {
-
-                Vector3d oldPlayerPosition = Vector3d.from(playerCollision.getMiddleX(),
-                        playerCollision.getMiddleY(),
-                        playerCollision.getMiddleZ());
-
                 Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x,
                         playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2) - y,
                         playerCollision.getMiddleZ() - z);
@@ -94,32 +89,26 @@ public class BlockCollision {
                 Vector3d topFacePos = Vector3d.from(b.getMiddleX(),
                         b.getMiddleY() + (b.getSizeY() / 2),
                         b.getMiddleZ());
-                double topFaceDistance = MathUtils.taxicabDistance(topFacePos,  relativePlayerPosition);
 
                 Vector3d bottomFacePos = Vector3d.from(b.getMiddleX(),
                         b.getMiddleY() - (b.getSizeY() / 2),
                         b.getMiddleZ());
-                double bottomFaceDistance = MathUtils.taxicabDistance(bottomFacePos,  relativePlayerPosition);
 
                 Vector3d northFacePos = Vector3d.from(b.getMiddleX(),
                         b.getMiddleY(),
                         b.getMiddleZ() - (b.getSizeZ() / 2));
-                double northFaceDistance = MathUtils.taxicabDistance(northFacePos, relativePlayerPosition);
 
                 Vector3d southFacePos = Vector3d.from(b.getMiddleX(),
                         b.getMiddleY(),
                         b.getMiddleZ() + (b.getSizeZ() / 2));
-                double southFaceDistance = MathUtils.taxicabDistance(southFacePos, relativePlayerPosition);
 
                 Vector3d eastFacePos = Vector3d.from(b.getMiddleX()  + (b.getSizeX() / 2),
                         b.getMiddleY(),
                         b.getMiddleZ());
-                double eastFaceDistance = MathUtils.taxicabDistance(eastFacePos, relativePlayerPosition);
 
                 Vector3d westFacePos = Vector3d.from(b.getMiddleX()  - (b.getSizeX() / 2),
                         b.getMiddleY(),
                         b.getMiddleZ());
-                double westFaceDistance = MathUtils.taxicabDistance(westFacePos, relativePlayerPosition);
 
                 double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
                 if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
