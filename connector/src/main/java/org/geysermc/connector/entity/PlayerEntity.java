@@ -87,8 +87,11 @@ public class PlayerEntity extends LivingEntity {
         effectCache = new EntityEffectCache();
         if (geyserId == 1) valid = true;
 
-        this.session = session;
-        session.updatePlayerBoundingBox(position);
+        if (geyserId == 1) {
+            // We only need this for the logged in player
+            this.session = session;
+            session.updatePlayerBoundingBox(position);
+        }
     }
 
     @Override

@@ -105,7 +105,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             session.updatePlayerBoundingBox(position);
             session.correctPlayerPosition();
 
-            position = Vector3d.from(session.getPlayerBoundingBox().getMiddleX(), session.getPlayerBoundingBox().getMiddleY() - 0.9,
+            position = Vector3d.from(session.getPlayerBoundingBox().getMiddleX(), session.getPlayerBoundingBox().getMiddleY() - (session.getPlayerBoundingBox().getSizeY() / 2),
                     session.getPlayerBoundingBox().getMiddleZ());
         } else {
             // When chunk caching is off, we have to rely on this

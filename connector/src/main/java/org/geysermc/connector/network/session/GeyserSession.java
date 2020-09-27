@@ -139,8 +139,12 @@ public class GeyserSession implements CommandSender {
 
     private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
 
-    @Setter
     private boolean sneaking;
+
+    public void setSneaking(boolean sneaking) {
+        this.sneaking = sneaking;
+        updatePlayerBoundingBox();
+    }
 
     @Setter
     private boolean sprinting;
@@ -813,15 +817,35 @@ public class GeyserSession implements CommandSender {
      * @param position The new position of the player
      */
     public void updatePlayerBoundingBox(Vector3d position) {
+        updatePlayerBoundingBox();
+
+        playerBoundingBox.setMiddleX(position.getX());
+        playerBoundingBox.setMiddleY(position.getY() + (playerBoundingBox.getSizeY() / 2));
+        playerBoundingBox.setMiddleZ(position.getZ());
+    }
+
+    /**
+     * Updates the stored bounding box without passing a position, which currently just changes the height depending on if the player is sneaking.
+     */
+    public void updatePlayerBoundingBox() {
         if (playerBoundingBox == null) {
-            System.out.println("BBnull");
-            playerBoundingBox = new BoundingBox(position.getX(), position.getY() + 0.9, position.getZ(), 0.6, 1.8, 0.6);
+            Vector3f playerPosition;
+            if (playerEntity == null) {
+                // Temporary position to prevent NullPointerException
+                playerPosition = Vector3f.ZERO;
+            } else {
+                playerPosition = playerEntity.getPosition();
+            }
+            playerBoundingBox = new BoundingBox(playerPosition.getX(), playerPosition.getY() + 0.9, playerPosition.getZ(), 0.6, 1.8, 0.6);
         } else {
-            // TODO: Make bounding box smaller when sneaking
-            playerBoundingBox.setMiddleX(position.getX());
-            playerBoundingBox.setMiddleY(position.getY() + 0.9); // (EntityType.PLAYER.getOffset() / 2));
-            // System.out.println("Offset: " + (EntityType.PLAYER.getOffset() / 2));
-            playerBoundingBox.setMiddleZ(position.getZ());
+            // According to the Minecraft Wiki, when sneaking:
+            // - In Bedrock Edition, the height becomes 1.65 blocks, allowing movement through spaces as small as 1.75 (2 - 1⁄4) blocks high.
+            // - In Java Edition, the height becomes 1.5 blocks.
+            if (sneaking) {
+                playerBoundingBox.setSizeY(1.5);
+            } else {
+                playerBoundingBox.setSizeY(1.8);
+            }
         }
     }
 
@@ -835,7 +859,7 @@ public class GeyserSession implements CommandSender {
         List<Vector3i> blocks = new ArrayList<>();
 
         Vector3d position = Vector3d.from(playerBoundingBox.getMiddleX(),
-                playerBoundingBox.getMiddleY() - 0.9,
+                playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2),
                 playerBoundingBox.getMiddleZ());
 
         // Loop through all blocks that could collide with the player
