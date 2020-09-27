@@ -45,9 +45,11 @@ public class BlockCollision {
     // This is used for the step up logic.
     // Usually, the player can only step up a block if they are on the same Y level as its bottom face or higher
     // For snow layers, due to its beforeCorrectPosition method the player can be slightly below (0.125 blocks) and still need to step up
-    // Currently only used for snow layers
+    // This used to be 0 but for now this has been set to 1 as it fixes bed collision
+    // I didn't just set it for beds because other collision may also be slightly raised off the ground.
+    // If this causes any problems, change this back to 0 and add an exception for beds.
     @EqualsAndHashCode.Exclude
-    protected double pushUpTolerance = 0;
+    protected double pushUpTolerance = 1;
 
     public void setPosition(int x, int y, int z) {
         this.x = x;
