@@ -26,8 +26,6 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.nukkitx.math.vector.Vector3d;
-import com.nukkitx.math.vector.Vector3f;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
