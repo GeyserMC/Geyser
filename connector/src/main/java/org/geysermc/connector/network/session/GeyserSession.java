@@ -274,6 +274,12 @@ public class GeyserSession implements CommandSender {
 
     private MinecraftProtocol protocol;
 
+    /**
+     * Additional space where blocks are checked, which is helpful for fixing NoCheatPlus's Passable check.
+     * This check doesn't allow players right up against the block, so they must be pushed slightly away.
+     */
+    public static final double COLLISION_TOLERANCE = 0.00001;
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -848,12 +854,6 @@ public class GeyserSession implements CommandSender {
             }
         }
     }
-
-    /**
-     * Additional space where blocks are checked, which is helpful for fixing NoCheatPlus's Passable check.
-     * This check doesn't allow players right up against the block, so they must be pushed slightly away.
-     */
-    public static final double COLLISION_TOLERANCE = 0.00001; // TODO: Move?
 
     public List<Vector3i> getPlayerCollidableBlocks() {
         List<Vector3i> blocks = new ArrayList<>();
