@@ -280,7 +280,7 @@ public class GeyserSession implements CommandSender {
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
-        this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
+        this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO, this);
         this.inventory = new PlayerInventory();
 
         this.javaPacketCache = new DataCache<>();
@@ -825,7 +825,11 @@ public class GeyserSession implements CommandSender {
         }
     }
 
-    public static final double COLLISION_TOLERANCE = 0.000001; // TODO: Move?
+    /**
+     * Additional space where blocks are checked, which is helpful for fixing NoCheatPlus's Passable check.
+     * This check doesn't allow players right up against the block, so they must be pushed slightly away.
+     */
+    public static final double COLLISION_TOLERANCE = 0.00001; // TODO: Move?
 
     public List<Vector3i> getPlayerCollidableBlocks() {
         List<Vector3i> blocks = new ArrayList<>();

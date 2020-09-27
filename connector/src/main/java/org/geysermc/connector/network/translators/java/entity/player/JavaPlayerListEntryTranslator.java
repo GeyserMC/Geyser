@@ -72,7 +72,8 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                                 session.getEntityCache().getNextEntityId().incrementAndGet(),
                                 Vector3f.ZERO,
                                 Vector3f.ZERO,
-                                Vector3f.ZERO
+                                Vector3f.ZERO,
+                                session
                         );
                     }
 

@@ -74,10 +74,13 @@ public class BlockCollision {
                 }
            }
 
+            // Make player collision slightly bigger to pick up on blocks that could cause problems with Passable
             playerCollision.setSizeX(playerCollision.getSizeX() + GeyserSession.COLLISION_TOLERANCE * 2);
             playerCollision.setSizeZ(playerCollision.getSizeZ() + GeyserSession.COLLISION_TOLERANCE * 2);
 
             // If the player still intersects the block, then push them out
+            // This fixes NoCheatPlus's Passable check
+            // This check doesn't allow players right up against the block, so they must be pushed slightly away
             if (b.checkIntersection(x, y, z, playerCollision)) {
 
                 Vector3d oldPlayerPosition = Vector3d.from(playerCollision.getMiddleX(),
@@ -137,19 +140,9 @@ public class BlockCollision {
                 if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
-
-                Vector3d newPlayerPosition = Vector3d.from(playerCollision.getMiddleX(), // TODO: Use next possible double?
-                        playerCollision.getMiddleY(),
-                        playerCollision.getMiddleZ());
-
-                if (MathUtils.taxicabDistance(oldPlayerPosition, newPlayerPosition) > GeyserSession.COLLISION_TOLERANCE + 0.1) {
-                    playerCollision.setMiddleX(oldPlayerPosition.getX());
-                    playerCollision.setMiddleY(oldPlayerPosition.getY());
-                    playerCollision.setMiddleZ(oldPlayerPosition.getZ());
-                    System.out.println("Cancelled");
-                }
             }
 
+            // Set the collision size back to normal
             playerCollision.setSizeX(0.6);
             playerCollision.setSizeZ(0.6);
         }

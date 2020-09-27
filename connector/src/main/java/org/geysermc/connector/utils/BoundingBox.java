@@ -58,8 +58,4 @@ public class BoundingBox {
                 (Math.abs((middleY + offsetY) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY())) &&
                 (Math.abs((middleZ + offsetZ) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ()));
     }
-
-    /* public String toString() {
-        return "toString test";
-    } */
 }

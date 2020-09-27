@@ -33,11 +33,9 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class OtherCollision extends BlockCollision {
-    // ArrayNode collisionList;
 
     public OtherCollision(ArrayNode collisionList, String ID) { // TODO: remove id
         super();
-        // this.collisionList = collisionList;
         boundingBoxes = new BoundingBox[collisionList.size()];
 
         for (int i = 0; i < collisionList.size(); i++)
