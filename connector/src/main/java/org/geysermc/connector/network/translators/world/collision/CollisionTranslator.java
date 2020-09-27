@@ -119,7 +119,6 @@ public class CollisionTranslator {
                     // If there's an existing instance equal to this one, use that instead
                     for (Map.Entry<Class<?>, BlockCollision> entry : instantiatedCollision.entrySet()) {
                         if (entry.getValue().equals(collision)) {
-                            // System.out.println("Deleting " + collision);
                             collision = entry.getValue();
                             break;
                         }

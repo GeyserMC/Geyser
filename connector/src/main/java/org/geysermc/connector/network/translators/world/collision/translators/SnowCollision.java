@@ -70,7 +70,6 @@ public class SnowCollision extends BlockCollision {
             if (playerMinY > boxMaxY &&
                     playerMinY <= (boxMaxY + 0.125)) {
                 playerCollision.translate(0, boxMaxY - playerMinY, 0);
-                // System.out.println("1: Moved by " + (boxMaxY - playerMinY));
             }
         }
     }

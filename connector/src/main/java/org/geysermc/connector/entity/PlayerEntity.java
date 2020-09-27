@@ -85,9 +85,9 @@ public class PlayerEntity extends LivingEntity {
         uuid = gameProfile.getId();
         username = gameProfile.getName();
         effectCache = new EntityEffectCache();
-        if (geyserId == 1) valid = true;
 
         if (geyserId == 1) {
+            valid = true;
             // We only need this for the logged in player
             this.session = session;
             session.updatePlayerBoundingBox(position);

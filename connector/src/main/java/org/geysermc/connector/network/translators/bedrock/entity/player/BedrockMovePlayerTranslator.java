@@ -70,7 +70,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         // This isn't needed, but it makes the packets closer to vanilla
         // It also means you can't "lag back" while only looking, in theory
         if (entity.getPosition().equals(packet.getPosition())) {
-            // System.out.println("Look only!");
             ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(
                     packet.isOnGround(), packet.getRotation().getY(), packet.getRotation().getX()
             );
@@ -89,11 +88,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         // lose precision and thus, causes players to get stuck when walking near walls
         double javaY = Double.parseDouble(Float.toString(packet.getPosition().getY())) - EntityType.PLAYER.getOffset();
 
-        // System.out.println("Y pos: " + javaY);
-
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
                 Double.parseDouble(Float.toString(packet.getPosition().getZ())));
-        // System.out.println("Pre-pos!!!: " + position);
 
         if (!session.confirmTeleport(position)){
             return;
@@ -122,7 +118,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        // System.out.println("Post-pos: " + position);
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
                 packet.isOnGround(), position.getX(),
                 Math.round(position.getY() * 10000.0D) / 10000.0d,
