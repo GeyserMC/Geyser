@@ -91,7 +91,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
                 Double.parseDouble(Float.toString(packet.getPosition().getZ())));
 
-        if (!session.confirmTeleport(position)){
+        if (!session.confirmTeleport(position)) {
             return;
         }
 
