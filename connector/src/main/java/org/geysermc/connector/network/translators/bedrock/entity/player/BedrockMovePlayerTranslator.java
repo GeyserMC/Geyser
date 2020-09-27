@@ -119,11 +119,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
 
         ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
-                packet.isOnGround(), position.getX(),
-                Math.round(position.getY() * 10000.0D) / 10000.0d,
-                position.getZ(),
-                packet.getRotation().getY(),
-                packet.getRotation().getX()
+                packet.isOnGround(), position.getX(), position.getY(), position.getZ(), packet.getRotation().getY(), packet.getRotation().getX()
         );
 
         // head yaw, pitch, head yaw
