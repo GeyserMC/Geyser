@@ -86,9 +86,6 @@ public class CollisionTranslator {
             if (newCollision != null) {
                 instantiatedCollision.put(newCollision.getClass(), newCollision);
             }
-            if (entry.getKey().equals("minecraft:red_bed[facing=west,occupied=false,part=foot]")) {
-                System.out.println("Bed foot collision: " + newCollision);
-            }
             collisionMap.put(entry.getValue(), newCollision);
         }
     }
