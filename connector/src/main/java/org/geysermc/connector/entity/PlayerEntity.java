@@ -90,7 +90,7 @@ public class PlayerEntity extends LivingEntity {
             valid = true;
             // We only need this for the logged in player
             this.session = session;
-            session.updatePlayerBoundingBox(position);
+            session.getCollisionManager().updatePlayerBoundingBox(position);
         }
     }
 
@@ -140,7 +140,7 @@ public class PlayerEntity extends LivingEntity {
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         // If this is the player logged in through this Geyser session
         if (geyserId == 1) {
-            session.updatePlayerBoundingBox(position);
+            session.getCollisionManager().updatePlayerBoundingBox(position);
         }
 
         setPosition(position);
@@ -175,7 +175,7 @@ public class PlayerEntity extends LivingEntity {
 
         // If this is the player logged in through this Geyser session
         if (geyserId == 1) {
-            session.updatePlayerBoundingBox(position);
+            session.getCollisionManager().updatePlayerBoundingBox(position);
         }
         setOnGround(isOnGround);
 
@@ -240,7 +240,7 @@ public class PlayerEntity extends LivingEntity {
         this.position = position.add(0, entityType.getOffset(), 0);
         // If this is the player logged in through this Geyser session
         if (geyserId == 1 && session != null) {
-            session.updatePlayerBoundingBox(position);
+            session.getCollisionManager().updatePlayerBoundingBox(position);
         }
     }
 

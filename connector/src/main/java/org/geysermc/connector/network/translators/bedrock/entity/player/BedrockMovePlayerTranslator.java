@@ -98,11 +98,13 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (session.getConnector().getConfig().isCacheChunks()) {
             // With chunk caching, we can do some proper collision checks
 
-            session.updatePlayerBoundingBox(position);
-            session.correctPlayerPosition();
+            session.getCollisionManager().updatePlayerBoundingBox(position);
+            session.getCollisionManager().correctPlayerPosition();
 
-            position = Vector3d.from(session.getPlayerBoundingBox().getMiddleX(), session.getPlayerBoundingBox().getMiddleY() - (session.getPlayerBoundingBox().getSizeY() / 2),
-                    session.getPlayerBoundingBox().getMiddleZ());
+            position = Vector3d.from(session.getCollisionManager().getPlayerBoundingBox().getMiddleX(),
+                    session.getCollisionManager().getPlayerBoundingBox().getMiddleY() -
+                            (session.getCollisionManager().getPlayerBoundingBox().getSizeY() / 2),
+                    session.getCollisionManager().getPlayerBoundingBox().getMiddleZ());
         } else {
             // When chunk caching is off, we have to rely on this
             // It rounds the Y position up to the nearest 0.5

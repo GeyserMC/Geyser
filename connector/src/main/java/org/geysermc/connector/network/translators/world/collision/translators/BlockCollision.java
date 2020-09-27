@@ -29,6 +29,7 @@ package org.geysermc.connector.network.translators.world.collision.translators;
 import com.nukkitx.math.vector.Vector3d;
 import lombok.EqualsAndHashCode;
 import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.network.session.CollisionManager;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.BoundingBox;
 import org.geysermc.connector.utils.MathUtils;
@@ -81,8 +82,8 @@ public class BlockCollision {
            }
 
             // Make player collision slightly bigger to pick up on blocks that could cause problems with Passable
-            playerCollision.setSizeX(playerCollision.getSizeX() + GeyserSession.COLLISION_TOLERANCE * 2);
-            playerCollision.setSizeZ(playerCollision.getSizeZ() + GeyserSession.COLLISION_TOLERANCE * 2);
+            playerCollision.setSizeX(playerCollision.getSizeX() + CollisionManager.COLLISION_TOLERANCE * 2);
+            playerCollision.setSizeZ(playerCollision.getSizeZ() + CollisionManager.COLLISION_TOLERANCE * 2);
 
             // If the player still intersects the block, then push them out
             // This fixes NoCheatPlus's Passable check
@@ -117,22 +118,22 @@ public class BlockCollision {
                         b.getMiddleZ());
 
                 double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
                 
                 translateDistance = southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
                 translateDistance = eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
                 translateDistance = westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) <  GeyserSession.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
             }
