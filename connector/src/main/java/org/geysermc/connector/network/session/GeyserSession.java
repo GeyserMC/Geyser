@@ -729,6 +729,10 @@ public class GeyserSession implements CommandSender {
         // Required to make command blocks destroyable
         adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
 
+        // Update the noClip and worldImmutable values based on the current gamemode
+        noClip = gameMode == GameMode.SPECTATOR;
+        worldImmutable = gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR;
+
         Set<AdventureSetting> flags = new HashSet<>();
         if (canFly) {
             flags.add(AdventureSetting.MAY_FLY);

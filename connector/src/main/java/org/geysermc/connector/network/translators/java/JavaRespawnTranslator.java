@@ -52,6 +52,11 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
 
         session.getInventoryCache().setOpenInventory(null);
 
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
+        session.sendUpstreamPacket(playerGameTypePacket);
+        session.setGameMode(packet.getGamemode());
+
         if (session.isRaining()) {
             LevelEventPacket stopRainPacket = new LevelEventPacket();
             stopRainPacket.setType(LevelEventType.STOP_RAINING);
@@ -74,10 +79,5 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
                 session.setSpawned(false);
             }
         }
-
-        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
-        session.sendUpstreamPacket(playerGameTypePacket);
-        session.setGameMode(packet.getGamemode());
     }
 }
