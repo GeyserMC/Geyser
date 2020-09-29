@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientClose
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -37,6 +36,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.utils.LocaleUtils;
 
 @Translator(packet = ServerOpenWindowPacket.class)
 public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
@@ -70,6 +70,8 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
         } catch (Exception e) {
             GeyserConnector.getInstance().getLogger().debug("JavaOpenWindowTranslator: " + e.toString());
         }
+
+        name = LocaleUtils.getLocaleString(name, session.getClientData().getLanguageCode());
 
         Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);
         session.getInventoryCache().cacheInventory(newInventory);
