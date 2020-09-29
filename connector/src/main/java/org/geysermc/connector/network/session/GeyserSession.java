@@ -28,6 +28,7 @@ package org.geysermc.connector.network.session;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -117,8 +118,6 @@ public class GeyserSession implements CommandSender {
      */
     private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
 
-    private DataCache<Packet> javaPacketCache;
-
     @Setter
     private Vector2i lastChunkPosition = null;
     private int renderDistance;
@@ -175,6 +174,12 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private long lastWindowCloseTime = 0;
+
+    /**
+     * Saves the timestamp of the last keep alive packet
+     */
+    @Setter
+    private long lastKeepAliveTimestamp = 0;
 
     @Setter
     private VillagerTrade[] villagerTrades;
@@ -275,8 +280,6 @@ public class GeyserSession implements CommandSender {
 
         this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
         this.inventory = new PlayerInventory();
-
-        this.javaPacketCache = new DataCache<>();
 
         this.spawned = false;
         this.loggedIn = false;
@@ -384,6 +387,8 @@ public class GeyserSession implements CommandSender {
                 }
 
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
+                // Let Geyser handle sending the keep alive
+                downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
                 downstream.getSession().addListener(new SessionAdapter() {
                     @Override
                     public void packetSending(PacketSendingEvent event) {
