@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 import java.util.HashMap;
@@ -50,15 +49,4 @@ public class BedBlockEntityTranslator extends BlockEntityTranslator implements R
         return tags;
     }
 
-    @Override
-    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        return null;
-    }
-
-    @Override
-    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
-                .putByte("color", (byte) 0)
-                .build();
-    }
 }

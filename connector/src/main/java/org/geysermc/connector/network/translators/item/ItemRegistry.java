@@ -1,27 +1,26 @@
 /*
  * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
- *  @author GeyserMC
- *  @link https://github.com/GeyserMC/Geyser
- *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
  */
 
 package org.geysermc.connector.network.translators.item;
@@ -56,12 +55,22 @@ public class ItemRegistry {
     public static final List<StartGamePacket.ItemEntry> ITEMS = new ArrayList<>();
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
-    // Shield ID, used in Entity.java
-    public static ItemEntry SHIELD;
-    // Boat ID, used in BedrockInventoryTransactionTranslator.java
+    /**
+     * Boat item entry, used in BedrockInventoryTransactionTranslator.java
+     */
     public static ItemEntry BOAT;
-    // Gold ID, used in PiglinEntity.java
+    /**
+     * Bucket item entry, used in BedrockInventoryTransactionTranslator.java
+     */
+    public static ItemEntry BUCKET;
+    /**
+     * Gold item entry, used in PiglinEntity.java
+     */
     public static ItemEntry GOLD;
+    /**
+     * Shield item entry, used in Entity.java and LivingEntity.java
+     */
+    public static ItemEntry SHIELD;
 
     public static int BARRIER_INDEX = 0;
 
@@ -138,6 +147,9 @@ public class ItemRegistry {
                 case "minecraft:shield":
                     SHIELD = ITEM_ENTRIES.get(itemIndex);
                     break;
+                case "minecraft:bucket":
+                    BUCKET = ITEM_ENTRIES.get(itemIndex);
+                    break;
                 default:
                     break;
             }
@@ -158,24 +170,11 @@ public class ItemRegistry {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
         }
 
+        int netId = 1;
         List<ItemData> creativeItems = new ArrayList<>();
         for (JsonNode itemNode : creativeItemEntries) {
-            short damage = 0;
-            if (itemNode.has("damage")) {
-                damage = itemNode.get("damage").numberValue().shortValue();
-            }
-            if (itemNode.has("nbt_b64")) {
-                byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
-                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-                try {
-                    NbtMap tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
-                    creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1, tag));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                creativeItems.add(ItemData.of(itemNode.get("id").asInt(), damage, 1));
-            }
+            ItemData item = getBedrockItemFromJson(itemNode);
+            creativeItems.add(ItemData.fromNet(netId++, item.getId(), item.getDamage(), item.getCount(), item.getTag()));
         }
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
     }
@@ -202,13 +201,6 @@ public class ItemRegistry {
                 return itemEntry;
             }
         }
-        // If item find was unsuccessful first time, we try again while ignoring damage
-        // Fixes piston, sticky pistons, dispensers and droppers turning into air from creative inventory
-        for (ItemEntry itemEntry : ITEM_ENTRIES.values()) {
-            if (itemEntry.getBedrockId() == data.getId()) {
-                return itemEntry;
-            }
-        }
 
         // This will hide the message when the player clicks with an empty hand
         if (data.getId() != 0 && data.getDamage() != 0) {
@@ -227,5 +219,49 @@ public class ItemRegistry {
     public static ItemEntry getItemEntry(String javaIdentifier) {
         return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> ITEM_ENTRIES.values()
                 .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
+    }
+
+    /**
+     * Finds the Bedrock string identifier of an ItemEntry
+     *
+     * @param entry the ItemEntry to search for
+     * @return the Bedrock identifier
+     */
+    public static String getBedrockIdentifer(ItemEntry entry) {
+        String blockName = "";
+        for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
+            if (startGamePacketItemEntry.getId() == (short) entry.getBedrockId()) {
+                blockName = startGamePacketItemEntry.getIdentifier(); // Find the Bedrock string name
+                break;
+            }
+        }
+        return blockName;
+    }
+
+    /**
+     * Gets a Bedrock {@link ItemData} from a {@link JsonNode}
+     * @param itemNode the JSON node that contains ProxyPass-compatible Bedrock item data
+     * @return
+     */
+    public static ItemData getBedrockItemFromJson(JsonNode itemNode) {
+        int count = 1;
+        short damage = 0;
+        NbtMap tag = null;
+        if (itemNode.has("damage")) {
+            damage = itemNode.get("damage").numberValue().shortValue();
+        }
+        if (itemNode.has("count")) {
+            count = itemNode.get("count").asInt();
+        }
+        if (itemNode.has("nbt_b64")) {
+            byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
+            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            try {
+                tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return ItemData.of(itemNode.get("id").asInt(), damage, count, tag);
     }
 }

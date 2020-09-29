@@ -1,27 +1,26 @@
 /*
  * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
- *  @author GeyserMC
- *  @link https://github.com/GeyserMC/Geyser
- *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
  */
 
 package org.geysermc.connector.network.translators.item;
@@ -36,12 +35,14 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
@@ -63,7 +64,7 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
+        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
         for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
@@ -139,10 +140,12 @@ public abstract class ItemTranslator {
         if (nbt != null) {
             for (NbtItemStackTranslator translator : NBT_TRANSLATORS) {
                 if (translator.acceptItem(bedrockItem)) {
-                    translator.translateToBedrock(nbt, bedrockItem);
+                    translator.translateToBedrock(session, nbt, bedrockItem);
                 }
             }
         }
+
+        translateDisplayProperties(session, nbt);
 
         ItemData itemData;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
@@ -152,40 +155,41 @@ public abstract class ItemTranslator {
             itemData = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
         }
 
-
-        // Get the display name of the item
-        NbtMap tag = itemData.getTag();
-        if (tag != null) {
-            NbtMap display = tag.getCompound("display");
-            if (display != null && !display.isEmpty()) {
-                String name = display.getString("Name");
-
-                // If its not a message convert it
-                if (!MessageUtils.isMessage(name)) {
-                    TextComponent component = LegacyComponentSerializer.legacy().deserialize(name);
-                    name = GsonComponentSerializer.gson().serialize(component);
-                }
-
-                // Check if its a message to translate
-                if (MessageUtils.isMessage(name)) {
-                    // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
-
-                    // Build the new display tag
-                    NbtMapBuilder displayBuilder = display.toBuilder();
-                    displayBuilder.putString("Name", name);
-
-                    // Build the new root tag
-                    NbtMapBuilder builder = tag.toBuilder();
-                    builder.put("display", displayBuilder.build());
-
-                    // Create a new item with the original data + updated name
-                    itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.build());
-                }
-            }
+        if (nbt != null) {
+            // Translate the canDestroy and canPlaceOn Java NBT
+            ListTag canDestroy = nbt.get("CanDestroy");
+            String[] canBreak = new String[0];
+            ListTag canPlaceOn = nbt.get("CanPlaceOn");
+            String[] canPlace = new String[0];
+            canBreak = getCanModify(canDestroy, canBreak);
+            canPlace = getCanModify(canPlaceOn, canPlace);
+            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), itemData.getTag(), canPlace, canBreak);
         }
 
         return itemData;
+    }
+
+    /**
+     * Translates the Java NBT of canDestroy and canPlaceOn to its Bedrock counterparts.
+     * In Java, this is treated as normal NBT, but in Bedrock, these arguments are extra parts of the item data itself.
+     * @param canModifyJava the list of items in Java
+     * @param canModifyBedrock the empty list of items in Bedrock
+     * @return the new list of items in Bedrock
+     */
+    private static String[] getCanModify(ListTag canModifyJava, String[] canModifyBedrock) {
+        if (canModifyJava != null && canModifyJava.size() > 0) {
+            canModifyBedrock = new String[canModifyJava.size()];
+            for (int i = 0; i < canModifyBedrock.length; i++) {
+                // Get the Java identifier of the block that can be placed
+                String block = ((StringTag) canModifyJava.get(i)).getValue();
+                // Sometimes this is done but it's still valid
+                if (!block.startsWith("minecraft:")) block = "minecraft:" + block;
+                // Get the Bedrock identifier of the item and replace it.
+                // This will unfortunately be limited - for example, beds and banners will be translated weirdly
+                canModifyBedrock[i] = BlockTranslator.getBedrockBlockIdentifier(block).replace("minecraft:", "");
+            }
+        }
+        return canModifyBedrock;
     }
 
     private static final ItemTranslator DEFAULT_TRANSLATOR = new ItemTranslator() {
@@ -304,7 +308,7 @@ public abstract class ItemTranslator {
         if (tag != null && !tag.isEmpty()) {
             for (String str : tag.keySet()) {
                 Object bedrockTag = tag.get(str);
-                com.github.steveice10.opennbt.tag.builtin.Tag translatedTag = translateToJavaNBT(name, bedrockTag);
+                com.github.steveice10.opennbt.tag.builtin.Tag translatedTag = translateToJavaNBT(str, bedrockTag);
                 if (translatedTag == null)
                     continue;
 
@@ -370,14 +374,42 @@ public abstract class ItemTranslator {
 
         if (object instanceof NbtMap) {
             NbtMap map = (NbtMap) object;
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if (entry.getValue().equals(map.get(name))) {
-                    return translateToJavaNBT(entry.getKey(), map.getCompound(name));
-                }
-            }
+            return translateToJavaNBT(name, map);
         }
 
         return null;
+    }
+
+    /**
+     * Translates the display name of the item
+     * @param session the Bedrock client's session
+     * @param tag the tag to translate
+     */
+    public static void translateDisplayProperties(GeyserSession session, CompoundTag tag) {
+        if (tag != null) {
+            CompoundTag display = tag.get("display");
+            if (display != null && !display.isEmpty() && display.contains("Name")) {
+                String name = ((StringTag) display.get("Name")).getValue();
+
+                // If its not a message convert it
+                if (!MessageUtils.isMessage(name)) {
+                    Component component = LegacyComponentSerializer.legacySection().deserialize(name);
+                    name = GsonComponentSerializer.gson().serialize(component);
+                }
+
+                // Check if its a message to translate
+                if (MessageUtils.isMessage(name)) {
+                    // Get the translated name
+                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
+
+                    // Add the new name tag
+                    display.put(new StringTag("Name", name));
+
+                    // Add to the new root tag
+                    tag.put(display);
+                }
+            }
+        }
     }
 
     /**
