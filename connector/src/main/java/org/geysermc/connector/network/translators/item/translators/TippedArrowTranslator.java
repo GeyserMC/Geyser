@@ -84,5 +84,4 @@ public class TippedArrowTranslator extends ItemTranslator {
     public List<ItemEntry> getAppliedItems() {
         return appliedItems;
     }
-
 }
