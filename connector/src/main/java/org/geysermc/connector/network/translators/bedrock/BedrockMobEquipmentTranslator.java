@@ -40,7 +40,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
     @Override
     public void translate(MobEquipmentPacket packet, GeyserSession session) {
         if (!session.isSpawned() || packet.getHotbarSlot() > 8 ||
-                packet.getContainerId() != ContainerId.INVENTORY) {
+                packet.getContainerId() != ContainerId.INVENTORY || session.getInventory().getHeldItemSlot() == packet.getHotbarSlot()) { // Don't update the slot if the slot is the same
             return;
         }
 
