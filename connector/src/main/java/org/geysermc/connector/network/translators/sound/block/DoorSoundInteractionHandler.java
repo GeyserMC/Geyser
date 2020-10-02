@@ -37,6 +37,7 @@ public class DoorSoundInteractionHandler implements BlockSoundInteractionHandler
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
+        if (identifier.contains("iron")) return;
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setType(LevelEventType.SOUND_DOOR_OPEN);
         levelEventPacket.setPosition(position);

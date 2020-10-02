@@ -25,6 +25,7 @@
 
 package org.geysermc.connector;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.raknet.RakNetConstants;
@@ -47,6 +48,7 @@ import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.item.PotionMixRegistry;
+import org.geysermc.connector.network.translators.item.RecipeRegistry;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
@@ -55,6 +57,7 @@ import org.geysermc.connector.network.translators.world.block.entity.BlockEntity
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.ResourcePack;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -72,7 +75,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector {
 
-    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
@@ -131,8 +134,11 @@ public class GeyserConnector {
         ItemTranslator.init();
         LocaleUtils.init();
         PotionMixRegistry.init();
+        RecipeRegistry.init();
         SoundRegistry.init();
         SoundHandlerRegistry.init();
+
+        ResourcePack.loadPacks();
 
         if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
             // Set the remote address to localhost since that is where we are always connecting
@@ -161,7 +167,7 @@ public class GeyserConnector {
                     config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
                     logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
-            } catch (Exception ex) {
+            } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
                 logger.debug("Exception while trying to find an SRV record for the remote host.");
                 if (config.isDebugMode())
                     ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
@@ -303,6 +309,18 @@ public class GeyserConnector {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    /**
+     * Get the production status of the current runtime.
+     * Will return true if the version number is not 'DEV'.
+     * Should only happen in compiled jars.
+     *
+     * @return If we are in a production build/environment
+     */
+    public boolean isProduction() {
+        //noinspection ConstantConditions
+        return !"DEV".equals(GeyserConnector.VERSION);
     }
 
     public static GeyserConnector getInstance() {

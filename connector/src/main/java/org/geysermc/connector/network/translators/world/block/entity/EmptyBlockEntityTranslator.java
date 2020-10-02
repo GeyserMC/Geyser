@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.NbtMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,13 +38,4 @@ public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
         return new HashMap<>();
     }
 
-    @Override
-    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        return getConstantJavaTag(javaId, x, y, z);
-    }
-
-    @Override
-    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z);
-    }
 }

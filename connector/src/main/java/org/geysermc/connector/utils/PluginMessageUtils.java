@@ -23,39 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.utils;
 
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 
 import java.nio.charset.StandardCharsets;
 
-@Translator(packet = ServerPluginMessagePacket.class)
-public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMessagePacket> {
+public class PluginMessageUtils {
 
-    private static byte[] brandData;
+    private static final byte[] BRAND_DATA;
 
     static {
         byte[] data = GeyserConnector.NAME.getBytes(StandardCharsets.UTF_8);
         byte[] varInt = writeVarInt(data.length);
-        brandData = new byte[varInt.length + data.length];
-        System.arraycopy(varInt, 0, brandData, 0, varInt.length);
-        System.arraycopy(data, 0, brandData, varInt.length, data.length);
+        BRAND_DATA = new byte[varInt.length + data.length];
+        System.arraycopy(varInt, 0, BRAND_DATA, 0, varInt.length);
+        System.arraycopy(data, 0, BRAND_DATA, varInt.length, data.length);
     }
 
-
-    @Override
-    public void translate(ServerPluginMessagePacket packet, GeyserSession session) {
-        if (packet.getChannel().equals("minecraft:brand")) {
-            session.sendDownstreamPacket(
-                    new ClientPluginMessagePacket(packet.getChannel(), brandData)
-            );
-        }
+    /**
+     * Get the prebuilt brand as a byte array
+     * @return the brand information of the Geyser client
+     */
+    public static byte[] getGeyserBrandData() {
+        return BRAND_DATA;
     }
 
     private static byte[] writeVarInt(int value) {

@@ -28,6 +28,7 @@ package org.geysermc.connector.network.session;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -117,8 +118,6 @@ public class GeyserSession implements CommandSender {
      */
     private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
 
-    private DataCache<Packet> javaPacketCache;
-
     @Setter
     private Vector2i lastChunkPosition = null;
     private int renderDistance;
@@ -156,8 +155,13 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean interacting;
 
+    /**
+     * Stores the last position of the block the player interacted with. This can either be a block that the client
+     * placed or an existing block the player interacted with (for example, a chest). <br>
+     * Initialized as (0, 0, 0) so it is always not-null.
+     */
     @Setter
-    private Vector3i lastInteractionPosition;
+    private Vector3i lastInteractionPosition = Vector3i.ZERO;
 
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
@@ -170,6 +174,12 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private long lastWindowCloseTime = 0;
+
+    /**
+     * Saves the timestamp of the last keep alive packet
+     */
+    @Setter
+    private long lastKeepAliveTimestamp = 0;
 
     @Setter
     private VillagerTrade[] villagerTrades;
@@ -192,6 +202,13 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private long lastHitTime;
+
+    /**
+     * Store the last time the player interacted. Used to fix a right-click spam bug.
+     * See https://github.com/GeyserMC/Geyser/issues/503 for context.
+     */
+    @Setter
+    private long lastInteractionTime;
 
     private boolean reducedDebugInfo = false;
 
@@ -240,6 +257,15 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean thunder = false;
 
+    /**
+     * Stores the last text inputted into a sign.
+     *
+     * Bedrock sends packets every time you update the sign, Java only wants the final packet.
+     * Until we determine that the user has finished editing, we save the sign's current status.
+     */
+    @Setter
+    private String lastSignMessage;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -254,8 +280,6 @@ public class GeyserSession implements CommandSender {
 
         this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
         this.inventory = new PlayerInventory();
-
-        this.javaPacketCache = new DataCache<>();
 
         this.spawned = false;
         this.loggedIn = false;
@@ -301,10 +325,13 @@ public class GeyserSession implements CommandSender {
         attributesPacket.setAttributes(attributes);
         upstream.sendPacket(attributesPacket);
 
+        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         // Only allow the server to send health information
         // Setting this to false allows natural regeneration to work false but doesn't break it being true
-        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
+        // Don't let the client modify the inventory on death
+        // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
+        gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -346,7 +373,7 @@ public class GeyserSession implements CommandSender {
                     PublicKey key = null;
                     try {
                         key = EncryptionUtil.getKeyFromFile(
-                                connector.getConfig().getFloodgateKeyFile(),
+                                connector.getConfig().getFloodgateKeyPath(),
                                 PublicKey.class
                         );
                     } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
@@ -360,6 +387,8 @@ public class GeyserSession implements CommandSender {
                 }
 
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
+                // Let Geyser handle sending the keep alive
+                downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
                 downstream.getSession().addListener(new SessionAdapter() {
                     @Override
                     public void packetSending(PacketSendingEvent event) {
@@ -590,8 +619,10 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setFromWorldTemplate(false);
         startGamePacket.setWorldTemplateOptionLocked(false);
 
-        startGamePacket.setLevelId("world");
-        startGamePacket.setLevelName("world");
+        String serverName = connector.getConfig().getBedrock().getServerName();
+        startGamePacket.setLevelId(serverName);
+        startGamePacket.setLevelName(serverName);
+
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
         // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
@@ -599,7 +630,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setBlockPalette(BlockTranslator.BLOCKS);
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
-        // startGamePacket.setMovementServerAuthoritative(true);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         upstream.sendPacket(startGamePacket);
     }
 
@@ -624,7 +655,7 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
-        if (upstream != null && !upstream.isClosed()) {
+        if (upstream != null) {
             upstream.sendPacket(packet);
         } else {
             connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
@@ -637,7 +668,7 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
-        if (upstream != null && !upstream.isClosed()) {
+        if (upstream != null) {
             upstream.sendPacketImmediately(packet);
         } else {
             connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
@@ -696,8 +727,16 @@ public class GeyserSession implements CommandSender {
     public void sendAdventureSettings() {
         AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
         adventureSettingsPacket.setUniqueEntityId(playerEntity.getGeyserId());
-        adventureSettingsPacket.setCommandPermission(CommandPermission.NORMAL);
-        adventureSettingsPacket.setPlayerPermission(PlayerPermission.MEMBER);
+        // Set command permission if OP permission level is high enough
+        // This allows mobile players access to a GUI for doing commands. The commands there do not change above OPERATOR
+        // and all commands there are accessible with OP permission level 2
+        adventureSettingsPacket.setCommandPermission(opPermissionLevel >= 2 ? CommandPermission.OPERATOR : CommandPermission.NORMAL);
+        // Required to make command blocks destroyable
+        adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
+
+        // Update the noClip and worldImmutable values based on the current gamemode
+        noClip = gameMode == GameMode.SPECTATOR;
+        worldImmutable = gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR;
 
         Set<AdventureSetting> flags = new HashSet<>();
         if (canFly) {

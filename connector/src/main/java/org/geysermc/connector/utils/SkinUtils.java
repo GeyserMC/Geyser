@@ -150,14 +150,14 @@ public class SkinUtils {
                 JsonNode textures = skinObject.get("textures");
 
                 JsonNode skinTexture = textures.get("SKIN");
-                String skinUrl = skinTexture.get("url").asText();
+                String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
 
                 isAlex = skinTexture.has("metadata");
 
                 String capeUrl = null;
                 if (textures.has("CAPE")) {
                     JsonNode capeTexture = textures.get("CAPE");
-                    capeUrl = capeTexture.get("url").asText();
+                    capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
                 }
 
                 return new GameProfileData(skinUrl, capeUrl, isAlex);
