@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.nukkitx.math.vector.Vector3d;
 import org.geysermc.connector.common.ChatColor;
@@ -86,6 +86,13 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
         entity.setRotation(rotation);
         entity.setOnGround(packet.isOnGround());
+        // Move parrots to match if applicable
+        if (entity.getLeftParrot() != null) {
+            entity.getLeftParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
+        }
+        if (entity.getRightParrot() != null) {
+            entity.getRightParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
+        }
 
         /*
         boolean colliding = false;

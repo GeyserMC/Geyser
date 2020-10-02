@@ -25,17 +25,17 @@
 
 package org.geysermc.connector;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.protocol.bedrock.BedrockServer;
-import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
@@ -48,17 +48,22 @@ import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.item.PotionMixRegistry;
+import org.geysermc.connector.network.translators.item.RecipeRegistry;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.DockerCheck;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.ResourcePack;
 
+import javax.naming.directory.Attribute;
+import javax.naming.directory.InitialDirContext;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,12 +75,12 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector {
 
-    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
-
-    public static final BedrockPacketCodec BEDROCK_PACKET_CODEC = Bedrock_v407.V407_CODEC;
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
+
+    private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
     private final List<GeyserSession> players = new ArrayList<>();
 
@@ -129,18 +134,55 @@ public class GeyserConnector {
         ItemTranslator.init();
         LocaleUtils.init();
         PotionMixRegistry.init();
+        RecipeRegistry.init();
         SoundRegistry.init();
         SoundHandlerRegistry.init();
 
-        if (platformType != PlatformType.STANDALONE) {
-            DockerCheck.check(bootstrap);
+        ResourcePack.loadPacks();
+
+        if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
+            // Set the remote address to localhost since that is where we are always connecting
+            try {
+                config.getRemote().setAddress(InetAddress.getLocalHost().getHostAddress());
+            } catch (UnknownHostException ex) {
+                logger.debug("Unknown host when trying to find localhost.");
+                if (config.isDebugMode()) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        String remoteAddress = config.getRemote().getAddress();
+        int remotePort = config.getRemote().getPort();
+        // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
+        if ((config.isLegacyPingPassthrough() || platformType == PlatformType.STANDALONE) && !remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+            try {
+                // Searches for a server address and a port from a SRV record of the specified host name
+                InitialDirContext ctx = new InitialDirContext();
+                Attribute attr = ctx.getAttributes("dns:///_minecraft._tcp." + remoteAddress, new String[]{"SRV"}).get("SRV");
+                // size > 0 = SRV entry found
+                if (attr != null && attr.size() > 0) {
+                    String[] record = ((String) attr.get(0)).split(" ");
+                    // Overwrites the existing address and port with that from the SRV record.
+                    config.getRemote().setAddress(remoteAddress = record[3]);
+                    config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
+                    logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
+                }
+            } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
+                logger.debug("Exception while trying to find an SRV record for the remote host.");
+                if (config.isDebugMode())
+                    ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
+            }
         }
 
-        remoteServer = new RemoteServer(config.getRemote().getAddress(), config.getRemote().getPort());
+        remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
         if (config.isAboveBedrockNetherBuilding())
             DimensionUtils.changeBedrockNetherId(); // Apply End dimension ID workaround to Nether
+
+        // https://github.com/GeyserMC/Geyser/issues/957
+        RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
+        logger.debug("Setting MTU to " + config.getMtu());
 
         bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
@@ -148,7 +190,7 @@ public class GeyserConnector {
             if (throwable == null) {
                 logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
             } else {
-                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), config.getBedrock().getPort()));
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
                 throwable.printStackTrace();
             }
         }).join();
@@ -180,6 +222,10 @@ public class GeyserConnector {
             message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
         }
         logger.info(message);
+        
+        if (platformType == PlatformType.STANDALONE) {
+            logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
+        }
     }
 
     public void shutdown() {
@@ -189,7 +235,9 @@ public class GeyserConnector {
         if (players.size() >= 1) {
             bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));
 
-            for (GeyserSession playerSession : players) {
+            // Make a copy to prevent ConcurrentModificationException
+            final List<GeyserSession> tmpPlayers = new ArrayList<>(players);
+            for (GeyserSession playerSession : tmpPlayers) {
                 playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getClientData().getLanguageCode()));
             }
 
@@ -261,6 +309,18 @@ public class GeyserConnector {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    /**
+     * Get the production status of the current runtime.
+     * Will return true if the version number is not 'DEV'.
+     * Should only happen in compiled jars.
+     *
+     * @return If we are in a production build/environment
+     */
+    public boolean isProduction() {
+        //noinspection ConstantConditions
+        return !"DEV".equals(GeyserConnector.VERSION);
     }
 
     public static GeyserConnector getInstance() {

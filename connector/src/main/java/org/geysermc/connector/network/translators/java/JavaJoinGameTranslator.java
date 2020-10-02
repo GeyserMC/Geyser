@@ -28,18 +28,18 @@ package org.geysermc.connector.network.translators.java;
 import com.github.steveice10.mc.protocol.data.game.entity.player.HandPreference;
 import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
 import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientSettingsPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
+import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.DimensionUtils;
+import org.geysermc.connector.utils.PluginMessageUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,12 +53,13 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         entity.setEntityId(packet.getEntityId());
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
+        String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (session.isSpawned()) {
             String fakeDim = entity.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
             DimensionUtils.switchDimension(session, fakeDim);
-            DimensionUtils.switchDimension(session, packet.getDimension());
+            DimensionUtils.switchDimension(session, newDimension);
 
-            session.getScoreboardCache().removeScoreboard();
+            session.getWorldCache().removeScoreboard();
         }
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
@@ -80,6 +81,11 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         entityDataPacket.getMetadata().putAll(entity.getMetadata());
         session.sendUpstreamPacket(entityDataPacket);
 
+        // Send if client should show respawn screen
+        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
+        gamerulePacket.getGameRules().add(new GameRuleData<>("doimmediaterespawn", !packet.isEnableRespawnScreen()));
+        session.sendUpstreamPacket(gamerulePacket);
+
         session.setRenderDistance(packet.getViewDistance());
 
         // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
@@ -88,8 +94,10 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, HandPreference.RIGHT_HAND);
         session.sendDownstreamPacket(clientSettingsPacket);
 
-        if (!packet.getDimension().equals(entity.getDimension())) {
-            DimensionUtils.switchDimension(session, packet.getDimension());
+        session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
+
+        if (!newDimension.equals(entity.getDimension())) {
+            DimensionUtils.switchDimension(session, newDimension);
         }
     }
 }

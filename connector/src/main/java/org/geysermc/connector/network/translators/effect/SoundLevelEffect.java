@@ -24,25 +24,33 @@
  *
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.effect;
 
-import com.nukkitx.protocol.bedrock.packet.EmotePacket;
-import org.geysermc.connector.GeyserConnector;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayEffectPacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import lombok.Value;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = EmotePacket.class)
-public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
+@Value
+public class SoundLevelEffect implements Effect {
+    /**
+     * Bedrock level event type
+     */
+    LevelEventType levelEventType;
+
+    /**
+     * Event data. Usually 0
+     */
+    int data;
 
     @Override
-    public void translate(EmotePacket packet, GeyserSession session) {
-        long javaId = session.getPlayerEntity().getEntityId();
-        for (GeyserSession otherSession : GeyserConnector.getInstance().getPlayers()) {
-            if (otherSession != session) {
-                packet.setRuntimeEntityId(otherSession.getEntityCache().getEntityByJavaId(javaId).getGeyserId());
-                otherSession.sendUpstreamPacket(packet);
-            }
-        }
+    public void handleEffectPacket(GeyserSession session, ServerPlayEffectPacket packet) {
+        LevelEventPacket eventPacket = new LevelEventPacket();
+        eventPacket.setType(levelEventType);
+        eventPacket.setData(data);
+        eventPacket.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f));
+        session.sendUpstreamPacket(eventPacket);
     }
 }

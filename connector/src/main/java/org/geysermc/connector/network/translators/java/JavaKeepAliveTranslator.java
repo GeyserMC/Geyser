@@ -23,28 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.java;
 
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.CooldownUtils;
 
-@Translator(packet = LevelSoundEventPacket.class)
-public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoundEventPacket> {
+/**
+ * Used to forward the keep alive packet to the client in order to get back a reliable ping.
+ */
+@Translator(packet = ServerKeepAlivePacket.class)
+public class JavaKeepAliveTranslator extends PacketTranslator<ServerKeepAlivePacket> {
 
     @Override
-    public void translate(LevelSoundEventPacket packet, GeyserSession session) {
-        // lol what even :thinking:
-        session.sendUpstreamPacket(packet);
-
-        // Yes, what even, but thankfully we can hijack this packet to send the cooldown
-        if (packet.getSound() == SoundEvent.ATTACK_NODAMAGE || packet.getSound() == SoundEvent.ATTACK || packet.getSound() == SoundEvent.ATTACK_STRONG) {
-            // Send a faux cooldown since Bedrock has no cooldown support
-            // Sent here because Java still sends a cooldown if the player doesn't hit anything but Bedrock always sends a sound
-            CooldownUtils.sendCooldown(session);
-        }
+    public void translate(ServerKeepAlivePacket packet, GeyserSession session) {
+        session.setLastKeepAliveTimestamp(packet.getPingId());
+        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+        latencyPacket.setFromServer(true);
+        latencyPacket.setTimestamp(packet.getPingId());
+        session.sendUpstreamPacket(latencyPacket);
     }
 }

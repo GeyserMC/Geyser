@@ -40,6 +40,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FireworkColor;
 import org.geysermc.connector.utils.MathUtils;
+import org.geysermc.floodgate.util.DeviceOS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,13 +56,26 @@ public class FireworkEntity extends Entity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 7) {
             ItemStack item = (ItemStack) entityMetadata.getValue();
+            if (item == null) {
+                return;
+            }
             CompoundTag tag = item.getNbt();
 
             if (tag == null) {
                 return;
             }
 
+            // TODO: Remove once Mojang fixes bugs with fireworks crashing clients on these specific devices.
+            // https://bugs.mojang.com/browse/MCPE-89115
+            if (session.getClientData().getDeviceOS() == DeviceOS.XBOX_ONE || session.getClientData().getDeviceOS() == DeviceOS.ORBIS) {
+                return;
+            }
+
             CompoundTag fireworks = tag.get("Fireworks");
+            if (fireworks == null) {
+                // Thank you Mineplex very cool
+                return;
+            }
 
             NbtMapBuilder fireworksBuilder = NbtMap.builder();
             if (fireworks.get("Flight") != null) {
@@ -116,7 +130,9 @@ public class FireworkEntity extends Entity {
 
             fireworksBuilder.putList("Explosions", NbtType.COMPOUND, explosions);
 
-            metadata.put(EntityData.DISPLAY_ITEM, NbtMap.builder().put("Fireworks", fireworksBuilder.build()));
+            NbtMapBuilder builder = NbtMap.builder();
+            builder.put("Fireworks", fireworksBuilder.build());
+            metadata.put(EntityData.DISPLAY_ITEM, builder.build());
         } else if (entityMetadata.getId() == 8 && !entityMetadata.getValue().equals(OptionalInt.empty()) && ((OptionalInt) entityMetadata.getValue()).getAsInt() == session.getPlayerEntity().getEntityId()) {
             //Checks if the firework has an entity ID (used when a player is gliding) and checks to make sure the player that is gliding is the one getting sent the packet or else every player near the gliding player will boost too.
             PlayerEntity entity = session.getPlayerEntity();

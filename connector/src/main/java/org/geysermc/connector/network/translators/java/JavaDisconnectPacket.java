@@ -23,15 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.java;
 
-import lombok.Getter;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDisconnectPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+@Translator(packet = ServerDisconnectPacket.class)
+public class JavaDisconnectPacket extends PacketTranslator<ServerDisconnectPacket> {
 
-public class DataCache<T> {
-
-    @Getter
-    private Map<String, T> cachedValues = new HashMap<String, T>();
+    @Override
+    public void translate(ServerDisconnectPacket packet, GeyserSession session) {
+        session.disconnect(MessageUtils.getTranslatedBedrockMessage(packet.getReason(), session.getClientData().getLanguageCode(), true));
+    }
 }

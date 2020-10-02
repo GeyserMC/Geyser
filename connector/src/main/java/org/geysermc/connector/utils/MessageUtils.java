@@ -95,7 +95,7 @@ public class MessageUtils {
      * @param messages A {@link List} of {@link Message} to parse
      * @param locale A locale loaded to get the message for
      * @param parent A {@link Message} to use as the parent (can be null)
-     * @return
+     * @return the translation parameters
      */
     public static List<String> getTranslationParams(List<Message> messages, String locale, Message parent) {
         List<String> strings = new ArrayList<>();
@@ -108,14 +108,6 @@ public class MessageUtils {
                 if (locale == null) {
                     String builder = "%" + translation.getKey();
                     strings.add(builder);
-                }
-
-                if (translation.getKey().equals("commands.gamemode.success.other")) {
-                    strings.add("");
-                }
-
-                if (translation.getKey().equals("command.context.here")) {
-                    strings.add(" - no permission or invalid command!");
                 }
 
                 // Collect all params and add format corrections to the end of them
@@ -133,9 +125,16 @@ public class MessageUtils {
                 }
 
                 if (locale != null) {
-                    strings.add(insertParams(LocaleUtils.getLocaleString(translation.getKey(), locale), furtherParams));
+                    String builder = getFormat(message.getStyle().getFormats()) +
+                            getColor(message.getStyle().getColor());
+                    builder += insertParams(LocaleUtils.getLocaleString(translation.getKey(), locale), furtherParams);
+                    strings.add(builder);
                 } else {
-                    strings.addAll(furtherParams);
+                    String format = getFormat(message.getStyle().getFormats()) +
+                            getColor(message.getStyle().getColor());
+                    for (String param : furtherParams) {
+                        strings.add(format + param);
+                    }
                 }
             } else {
                 String builder = getFormat(message.getStyle().getFormats()) +
@@ -160,10 +159,10 @@ public class MessageUtils {
      * Translate a given {@link TranslationMessage} to the given locale
      *
      * @param message The {@link Message} to send
-     * @param locale
-     * @param shouldTranslate
-     * @param parent
-     * @return
+     * @param locale the locale
+     * @param shouldTranslate if the message should be translated
+     * @param parent the parent message
+     * @return the given translation message translated from the given locale
      */
     public static String getTranslatedBedrockMessage(Message message, String locale, boolean shouldTranslate, Message parent) {
         JsonParser parser = new JsonParser();
@@ -259,7 +258,7 @@ public class MessageUtils {
 
     public static String getBedrockMessage(String message) {
         Component component = phraseJavaMessage(message);
-        return LegacyComponentSerializer.legacy().serialize(component);
+        return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
     public static Component phraseJavaMessage(String message) {
@@ -267,7 +266,7 @@ public class MessageUtils {
     }
 
     public static String getJavaMessage(String message) {
-        Component component = LegacyComponentSerializer.legacy().deserialize(message);
+        Component component = LegacyComponentSerializer.legacySection().deserialize(message);
         return GsonComponentSerializer.gson().serialize(component);
     }
 
@@ -400,13 +399,16 @@ public class MessageUtils {
             int testB = testColor.getValue() & 0xFF;
 
             // Check by the greatest diff of the 3 values
-            int rDiff = Math.abs(testR - r);
-            int gDiff = Math.abs(testG - g);
-            int bDiff = Math.abs(testB - b);
-            int maxDiff = Math.max(Math.max(rDiff, gDiff), bDiff);
-            if (closest == null || maxDiff < smallestDiff) {
+            int rAverage = (testR + r) / 2;
+            int rDiff = testR - r;
+            int gDiff = testG - g;
+            int bDiff = testB - b;
+            int diff = ((2 + (rAverage >> 8)) * rDiff * rDiff)
+                    + (4 * gDiff * gDiff)
+                    + ((2 + ((255 - rAverage) >> 8)) * bDiff * bDiff);
+            if (closest == null || diff < smallestDiff) {
                 closest = testColor.getKey();
-                smallestDiff = maxDiff;
+                smallestDiff = diff;
             }
         }
 

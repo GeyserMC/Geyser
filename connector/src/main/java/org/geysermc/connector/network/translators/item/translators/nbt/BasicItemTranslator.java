@@ -33,6 +33,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
@@ -45,7 +46,7 @@ import java.util.List;
 public class BasicItemTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
         if (!itemTag.contains("display")) {
             return;
         }
@@ -108,8 +109,8 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
         String message = tag.getValue();
         if (message == null) return null;
         TextComponent component = (TextComponent) MessageUtils.phraseJavaMessage(message);
-        String legacy = LegacyComponentSerializer.legacy().serialize(component);
-        if (hasFormatting(LegacyComponentSerializer.legacy().deserialize(legacy))) {
+        String legacy = LegacyComponentSerializer.legacySection().serialize(component);
+        if (hasFormatting(LegacyComponentSerializer.legacySection().deserialize(legacy))) {
             return "§r" + legacy;
         }
         return legacy;
