@@ -34,6 +34,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -56,13 +58,17 @@ public class ItemRegistry {
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     /**
-     * Boat item entry, used in BedrockInventoryTransactionTranslator.java
+     * Boat item entries, used in BedrockInventoryTransactionTranslator.java
      */
-    public static ItemEntry BOAT;
+    public static IntList BOATS = new IntArrayList();
     /**
-     * Bucket item entry, used in BedrockInventoryTransactionTranslator.java
+     * Bucket item entries (excluding the milk bucket), used in BedrockInventoryTransactionTranslator.java
      */
-    public static ItemEntry BUCKET;
+    public static IntList BUCKETS = new IntArrayList();
+    /**
+     * Empty item bucket, used in BedrockInventoryTransactionTranslator.java
+     */
+    public static ItemEntry EMPTY_BUCKET;
     /**
      * Gold item entry, used in PiglinEntity.java
      */
@@ -92,8 +98,13 @@ public class ItemRegistry {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_bedrock"), e);
         }
 
+        int lodestoneCompassId = 0;
+
         for (JsonNode entry : itemEntries) {
             ITEMS.add(new StartGamePacket.ItemEntry(entry.get("name").textValue(), (short) entry.get("id").intValue()));
+            if (entry.get("name").textValue().equals("minecraft:lodestone_compass")) {
+                lodestoneCompassId = entry.get("id").intValue();
+            }
         }
 
         stream = FileUtils.getResource("mappings/items.json");
@@ -138,9 +149,6 @@ public class ItemRegistry {
                 case "minecraft:barrier":
                     BARRIER_INDEX = itemIndex;
                     break;
-                case "minecraft:oak_boat":
-                    BOAT = ITEM_ENTRIES.get(itemIndex);
-                    break;
                 case "minecraft:gold_ingot":
                     GOLD = ITEM_ENTRIES.get(itemIndex);
                     break;
@@ -148,17 +156,28 @@ public class ItemRegistry {
                     SHIELD = ITEM_ENTRIES.get(itemIndex);
                     break;
                 case "minecraft:bucket":
-                    BUCKET = ITEM_ENTRIES.get(itemIndex);
+                    EMPTY_BUCKET = ITEM_ENTRIES.get(itemIndex);
                     break;
                 default:
                     break;
             }
 
+            if (entry.getKey().contains("boat")) {
+                BOATS.add(entry.getValue().get("bedrock_id").intValue());
+            } else if (entry.getKey().contains("bucket") && !entry.getKey().contains("milk")) {
+                BUCKETS.add(entry.getValue().get("bedrock_id").intValue());
+            }
+
             itemIndex++;
         }
 
-        // Add the loadstonecompass since it doesn't exist on java but we need it for item conversion
-        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestonecompass", itemIndex, 741, 0, false));
+        if (lodestoneCompassId == 0) {
+            throw new RuntimeException("Lodestone compass not found in item palette!");
+        }
+
+        // Add the loadstone compass since it doesn't exist on java but we need it for item conversion
+        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestone_compass", itemIndex,
+                lodestoneCompassId, 0, false));
 
         /* Load creative items */
         stream = FileUtils.getResource("bedrock/creative_items.json");

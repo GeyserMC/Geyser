@@ -113,15 +113,15 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 false);
                         session.sendDownstreamPacket(blockPacket);
 
-                        // Otherwise boats will not be able to be placed in survival and buckets wont work on mobile
-                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId()) {
+                        // Otherwise boats will not be able to be placed in survival and buckets won't work on mobile
+                        if (packet.getItemInHand() != null && ItemRegistry.BOATS.contains(packet.getItemInHand().getId())) {
                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             session.sendDownstreamPacket(itemPacket);
                         }
                         // Check actions, otherwise buckets may be activated when block inventories are accessed
-                        // But don't check actions if the item damage is 0
-                        else if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
-                                (packet.getItemInHand().getDamage() == 0 || !packet.getActions().isEmpty())) {
+                        // But don't check actions if the bucket is empty
+                        else if (packet.getItemInHand() != null && ItemRegistry.BUCKETS.contains(packet.getItemInHand().getId()) &&
+                                (packet.getItemInHand().getId() == ItemRegistry.EMPTY_BUCKET.getBedrockId() || !packet.getActions().isEmpty())) {
                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             session.sendDownstreamPacket(itemPacket);
 
@@ -188,9 +188,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Handled in ITEM_USE
-                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
-                                // Normal bucket, water bucket, lava bucket
-                                (packet.getItemInHand().getDamage() == 0 || packet.getItemInHand().getDamage() == 8 || packet.getItemInHand().getDamage() == 10)) {
+                        if (packet.getItemInHand() != null && ItemRegistry.BUCKETS.contains(packet.getItemInHand().getId())) {
                             break;
                         }
 
