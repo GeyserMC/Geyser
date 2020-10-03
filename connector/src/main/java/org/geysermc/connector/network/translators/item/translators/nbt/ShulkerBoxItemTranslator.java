@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
@@ -51,13 +50,7 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
             boxItemTag.put(new ByteTag("WasPickedUp", (byte) 0)); // ???
 
             ItemEntry boxItemEntry = ItemRegistry.getItemEntry(((StringTag) itemData.get("id")).getValue());
-            String blockName = "";
-            for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
-                if (startGamePacketItemEntry.getId() == (short) boxItemEntry.getBedrockId()) {
-                    blockName = startGamePacketItemEntry.getIdentifier(); // Find the Bedrock string name
-                    break;
-                }
-            }
+            String blockName = ItemRegistry.getBedrockIdentifer(boxItemEntry);
 
             boxItemTag.put(new StringTag("Name", blockName));
             boxItemTag.put(new ShortTag("Damage", (short) boxItemEntry.getBedrockData()));

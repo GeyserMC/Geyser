@@ -242,3 +242,4 @@ logs/
 public-key.pem
 locales/
 /cache/
+/packs/

@@ -79,6 +79,8 @@ public interface GeyserConfiguration {
 
     boolean isCacheChunks();
 
+    boolean isForceResourcePacks();
+
     int getCacheImages();
 
     IMetricsInfo getMetrics();

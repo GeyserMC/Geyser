@@ -197,7 +197,9 @@ public class ItemRegistry {
      */
     public static ItemEntry getItem(ItemData data) {
         for (ItemEntry itemEntry : ITEM_ENTRIES.values()) {
-            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() || itemEntry.getJavaIdentifier().endsWith("potion"))) {
+            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() ||
+                    // Make exceptions for potions and tipped arrows, whose damage values can vary
+                    (itemEntry.getJavaIdentifier().endsWith("potion") || itemEntry.getJavaIdentifier().equals("minecraft:arrow")))) {
                 return itemEntry;
             }
         }
@@ -219,6 +221,23 @@ public class ItemRegistry {
     public static ItemEntry getItemEntry(String javaIdentifier) {
         return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> ITEM_ENTRIES.values()
                 .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
+    }
+
+    /**
+     * Finds the Bedrock string identifier of an ItemEntry
+     *
+     * @param entry the ItemEntry to search for
+     * @return the Bedrock identifier
+     */
+    public static String getBedrockIdentifer(ItemEntry entry) {
+        String blockName = "";
+        for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
+            if (startGamePacketItemEntry.getId() == (short) entry.getBedrockId()) {
+                blockName = startGamePacketItemEntry.getIdentifier(); // Find the Bedrock string name
+                break;
+            }
+        }
+        return blockName;
     }
 
     /**

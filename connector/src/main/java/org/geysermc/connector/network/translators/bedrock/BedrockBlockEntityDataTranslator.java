@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientUpdateJigsawBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientUpdateSignPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
@@ -109,6 +110,18 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
 
             // We set the sign text cached in the session to null to indicate there is no work-in-progress sign
             session.setLastSignMessage(null);
+
+        } else if (tag.getString("id").equals("JigsawBlock")) {
+            // Client has just sent a jigsaw block update
+            Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
+            String name = tag.getString("name");
+            String target = tag.getString("target");
+            String pool = tag.getString("target_pool");
+            String finalState = tag.getString("final_state");
+            String joint = tag.getString("joint");
+            ClientUpdateJigsawBlockPacket jigsawPacket = new ClientUpdateJigsawBlockPacket(pos, name, target, pool,
+                    finalState, joint);
+            session.sendDownstreamPacket(jigsawPacket);
         }
 
     }

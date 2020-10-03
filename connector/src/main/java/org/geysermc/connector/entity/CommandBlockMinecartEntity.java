@@ -26,38 +26,42 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.message.Message;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.TippedArrowPotion;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.MessageUtils;
 
-/**
- * Internally this is known as TippedArrowEntity but is used with tipped arrows and normal arrows
- */
-public class TippedArrowEntity extends AbstractArrowEntity {
+public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
 
-    public TippedArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public CommandBlockMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+        // Required, or else the GUI will not open
+        metadata.put(EntityData.CONTAINER_TYPE, (byte) 16);
+        metadata.put(EntityData.CONTAINER_BASE_SIZE, 1);
+        // Required, or else the client does not bother to send a packet back with the new information
+        metadata.put(EntityData.COMMAND_BLOCK_ENABLED, (byte) 1);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // Arrow potion effect color
-        if (entityMetadata.getId() == 9) {
-            int potionColor = (int) entityMetadata.getValue();
-            // -1 means no color
-            if (potionColor == -1) {
-                metadata.remove(EntityData.CUSTOM_DISPLAY);
-            } else {
-                TippedArrowPotion potion = TippedArrowPotion.getByJavaColor(potionColor);
-                if (potion != null && potion.getJavaColor() != -1) {
-                    metadata.put(EntityData.CUSTOM_DISPLAY, (byte) potion.getBedrockId());
-                } else {
-                    metadata.remove(EntityData.CUSTOM_DISPLAY);
-                }
-            }
+        if (entityMetadata.getId() == 13) {
+            metadata.put(EntityData.COMMAND_BLOCK_COMMAND, entityMetadata.getValue());
+        }
+        if (entityMetadata.getId() == 14) {
+            metadata.put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageUtils.getBedrockMessage((Message) entityMetadata.getValue()));
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    /**
+     * By default, the command block shown is purple on Bedrock, which does not match Java Edition's orange.
+     */
+    @Override
+    public void updateDefaultBlockMetadata() {
+        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.BEDROCK_RUNTIME_COMMAND_BLOCK_ID);
+        metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

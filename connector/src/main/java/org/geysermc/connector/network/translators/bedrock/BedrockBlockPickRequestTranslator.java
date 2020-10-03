@@ -25,20 +25,16 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientMoveItemToHotbarPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
-import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = BlockPickRequestPacket.class)
-public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<BlockPickRequestPacket> {
+public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPickRequestPacket> {
 
     @Override
     public void translate(BlockPickRequestPacket packet, GeyserSession session) {
@@ -50,50 +46,7 @@ public class BedrockBlockPickRequestPacketTranslator extends PacketTranslator<Bl
             return;
         }
 
-        // Get the inventory to choose a slot to pick
-        Inventory inventory = session.getInventoryCache().getOpenInventory();
-        if (inventory == null) {
-            inventory = session.getInventory();
-        }
-
         String targetIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockToPick).split("\\[")[0];
-
-        // Check hotbar for item
-        for (int i = 36; i < 45; i++) {
-            if (inventory.getItem(i) == null) {
-                continue;
-            }
-            ItemEntry item = ItemRegistry.getItem(inventory.getItem(i));
-            // If this isn't the item we're looking for
-            if (!item.getJavaIdentifier().equals(targetIdentifier)) {
-                continue;
-            }
-            
-            PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
-            hotbarPacket.setContainerId(0);
-            // Java inventory slot to hotbar slot ID
-            hotbarPacket.setSelectedHotbarSlot(i - 36);
-            hotbarPacket.setSelectHotbarSlot(true);
-            session.sendUpstreamPacket(hotbarPacket);
-            session.getInventory().setHeldItemSlot(i - 36);
-            // Don't check inventory if item was in hotbar
-            return;
-        }
-
-        // Check inventory for item
-        for (int i = 9; i < 36; i++) {
-            if (inventory.getItem(i) == null) {
-                continue;
-            }
-            ItemEntry item = ItemRegistry.getItem(inventory.getItem(i));
-            // If this isn't the item we're looking for
-            if (!item.getJavaIdentifier().equals(targetIdentifier)) {
-                continue;
-            }
-            
-            ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
-            session.sendDownstreamPacket(packetToSend);
-            return;
-        }
+        InventoryUtils.findOrCreatePickedBlock(session, targetIdentifier);
     }
 }

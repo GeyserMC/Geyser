@@ -26,7 +26,6 @@
 package org.geysermc.connector.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.ScoreInfo;
 import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
@@ -153,6 +152,10 @@ public class Scoreboard {
             boolean globalAdd = objective.getUpdateType() == ADD;
             boolean globalRemove = objective.getUpdateType() == REMOVE;
 
+            // Track if any scores changed
+            // Used to delete and resend scoreboard objectives; otherwise they won't update on Bedrock
+            boolean scoreChanged = false;
+
             for (Score score : objective.getScores().values()) {
                 Team team = score.getTeam();
 
@@ -187,6 +190,10 @@ public class Scoreboard {
                 if (remove) {
                     removeScores.add(score.getCachedInfo());
                 }
+
+                if (add || remove) {
+                    scoreChanged = true;
+                }
                 // score is pending to be updated, so we use the current score as the old score
                 score.setOldScore(score.getScore());
 
@@ -198,7 +205,7 @@ public class Scoreboard {
                 score.setUpdateType(NOTHING);
             }
 
-            if (globalRemove || globalUpdate) {
+            if (globalRemove || globalUpdate || scoreChanged) {
                 RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
                 removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
                 session.sendUpstreamPacket(removeObjectivePacket);
@@ -208,7 +215,7 @@ public class Scoreboard {
                 }
             }
 
-            if (globalAdd || globalUpdate) {
+            if (globalAdd || globalUpdate || scoreChanged) {
                 SetDisplayObjectivePacket displayObjectivePacket = new SetDisplayObjectivePacket();
                 displayObjectivePacket.setObjectiveId(objective.getObjectiveName());
                 displayObjectivePacket.setDisplayName(objective.getDisplayName());
