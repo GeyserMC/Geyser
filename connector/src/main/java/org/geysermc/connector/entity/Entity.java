@@ -268,8 +268,9 @@ public class Entity {
         double distanceZ = session.getPlayerEntity().getPosition().getZ() - this.position.getZ();
         double largestDistance = Math.max(Math.abs(distanceX), Math.abs(distanceZ));
         if (largestDistance <= 0.65) {
-            double velocityX = (distanceX / 20) / Math.sqrt(largestDistance);
-            double velocityZ = (distanceZ / 20) / Math.sqrt(largestDistance);
+            double largestDistanceSquareRoot = Math.sqrt(largestDistance);
+            double velocityX = (distanceX / 20) / largestDistanceSquareRoot;
+            double velocityZ = (distanceZ / 20) / largestDistanceSquareRoot;
 
             SetEntityMotionPacket packet = new SetEntityMotionPacket();
             packet.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
