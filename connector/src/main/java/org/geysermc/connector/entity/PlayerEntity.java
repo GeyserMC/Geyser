@@ -130,6 +130,7 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        boolean positionChanged = !position.add(0, entityType.getOffset(), 0).equals(this.position);
         setPosition(position);
         setRotation(rotation);
 
@@ -153,6 +154,10 @@ public class PlayerEntity extends LivingEntity {
         if (rightParrot != null) {
             rightParrot.moveAbsolute(session, position, rotation, true, teleported);
         }
+
+        if (session.getPlayerEntity() != this && positionChanged) {
+            checkPlayerCollision(session);
+        }
     }
 
     @Override
@@ -174,6 +179,10 @@ public class PlayerEntity extends LivingEntity {
         }
         if (rightParrot != null) {
             rightParrot.moveRelative(session, relX, relY, relZ, rotation, true);
+        }
+
+        if (session.getPlayerEntity() != this && (relX != 0 || relY != 0 || relZ != 0)) {
+            checkPlayerCollision(session);
         }
     }
 
