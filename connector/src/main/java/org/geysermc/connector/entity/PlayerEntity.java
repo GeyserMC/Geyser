@@ -228,6 +228,22 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
+    public boolean canCollideWithPlayer(GeyserSession session) {
+        Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
+        if (team == null) return true;
+        switch (team.getCollisionRule()) {
+            case NEVER:
+                return false;
+            case PUSH_OWN_TEAM:
+                return team.getEntities().contains(session.getPlayerEntity().getUsername());
+            case PUSH_OTHER_TEAMS:
+                return !team.getEntities().contains(session.getPlayerEntity().getUsername());
+            default:
+                return true;
+        }
+    }
+
+    @Override
     public void setPosition(Vector3f position) {
         this.position = position.add(0, entityType.getOffset(), 0);
     }

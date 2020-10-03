@@ -267,7 +267,7 @@ public class Entity {
         double distanceX = session.getPlayerEntity().getPosition().getX() - this.position.getX();
         double distanceZ = session.getPlayerEntity().getPosition().getZ() - this.position.getZ();
         double largestDistance = Math.max(Math.abs(distanceX), Math.abs(distanceZ));
-        if (largestDistance <= 0.65) {
+        if (largestDistance <= 0.65 && canCollideWithPlayer(session)) {
             double largestDistanceSquareRoot = Math.sqrt(largestDistance);
             double velocityX = (distanceX / 20) / largestDistanceSquareRoot;
             double velocityZ = (distanceZ / 20) / largestDistanceSquareRoot;
@@ -277,6 +277,16 @@ public class Entity {
             packet.setMotion(Vector3f.from(velocityX, 0, velocityZ));
             session.sendUpstreamPacket(packet);
         }
+    }
+
+    /**
+     * Ensure that collision is possible if this entity is a player. Should be overridden for players as their team
+     * might change the status of this.
+     * @param session the Bedrock client session
+     * @return if this entity can collide with the session's player
+     */
+    public boolean canCollideWithPlayer(GeyserSession session) {
+        return true;
     }
 
     public void updateBedrockAttributes(GeyserSession session) {
