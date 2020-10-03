@@ -23,25 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.sound.block;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
-import org.geysermc.connector.network.translators.sound.SoundHandler;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@SoundHandler(blocks = {"door", "fence_gate"})
-public class DoorSoundInteractionHandler implements BlockSoundInteractionHandler {
+/**
+ * In vanilla Bedrock, if you have operator status, this sets the player's gamemode without confirmation from the server.
+ * Since we have a custom server option to request the gamemode, we just reset the gamemode and ignore this.
+ */
+@Translator(packet = SetPlayerGameTypePacket.class)
+public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlayerGameTypePacket> {
 
     @Override
-    public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
-        if (identifier.contains("iron")) return;
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(LevelEventType.SOUND_DOOR_OPEN);
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setData(0);
-        session.sendUpstreamPacket(levelEventPacket);
+    public void translate(SetPlayerGameTypePacket packet, GeyserSession session) {
+        // no
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(session.getGameMode().ordinal());
+        session.sendUpstreamPacket(playerGameTypePacket);
     }
 }

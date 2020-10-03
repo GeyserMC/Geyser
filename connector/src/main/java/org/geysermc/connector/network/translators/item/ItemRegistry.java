@@ -197,7 +197,9 @@ public class ItemRegistry {
      */
     public static ItemEntry getItem(ItemData data) {
         for (ItemEntry itemEntry : ITEM_ENTRIES.values()) {
-            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() || itemEntry.getJavaIdentifier().endsWith("potion"))) {
+            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() ||
+                    // Make exceptions for potions and tipped arrows, whose damage values can vary
+                    (itemEntry.getJavaIdentifier().endsWith("potion") || itemEntry.getJavaIdentifier().equals("minecraft:arrow")))) {
                 return itemEntry;
             }
         }

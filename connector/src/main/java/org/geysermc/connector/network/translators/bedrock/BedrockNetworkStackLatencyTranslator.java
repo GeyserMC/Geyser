@@ -23,25 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.sound.block;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
-import org.geysermc.connector.network.translators.sound.SoundHandler;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@SoundHandler(blocks = {"door", "fence_gate"})
-public class DoorSoundInteractionHandler implements BlockSoundInteractionHandler {
+/**
+ * Used to send the keep alive packet back to the server
+ */
+@Translator(packet = NetworkStackLatencyPacket.class)
+public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<NetworkStackLatencyPacket> {
 
     @Override
-    public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
-        if (identifier.contains("iron")) return;
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(LevelEventType.SOUND_DOOR_OPEN);
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setData(0);
-        session.sendUpstreamPacket(levelEventPacket);
+    public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
+        // The client sends a timestamp back but it's rounded and therefore unreliable when we need the exact number
+        ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(session.getLastKeepAliveTimestamp());
+        session.sendDownstreamPacket(keepAlivePacket);
     }
 }
