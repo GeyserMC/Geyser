@@ -48,8 +48,8 @@ import java.util.function.Consumer;
 
 public class SkinUtils {
 
-    public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, GameProfile profile, long geyserId) {
-        GameProfileData data = GameProfileData.from(profile);
+    public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, PlayerEntity playerEntity) {
+        GameProfileData data = GameProfileData.from(playerEntity.getProfile());
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
 
         SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
@@ -61,9 +61,9 @@ public class SkinUtils {
 
         return buildEntryManually(
                 session,
-                profile.getId(),
-                profile.getName(),
-                geyserId,
+                playerEntity.getProfile().getId(),
+                playerEntity.getName(),
+                playerEntity.getGeyserId(),
                 skin.getTextureUrl(),
                 skin.getSkinData(),
                 cape.getCapeId(),
@@ -115,7 +115,7 @@ public class SkinUtils {
         } else {
             entry = new PlayerListPacket.Entry(uuid);
         }
-      
+
         entry.setName(username);
         entry.setEntityId(geyserId);
         entry.setSkin(serializedSkin);
@@ -233,7 +233,7 @@ public class SkinUtils {
                                 PlayerListPacket.Entry updatedEntry = buildEntryManually(
                                         session,
                                         entity.getUuid(),
-                                        entity.getUsername(),
+                                        entity.getName(),
                                         entity.getGeyserId(),
                                         skin.getTextureUrl(),
                                         skin.getSkinData(),
