@@ -28,7 +28,13 @@ package org.geysermc.connector.network.translators.inventory;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
 
@@ -45,12 +51,14 @@ public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
                     return 0;
                 case 17:
                     return 1;
-                case 50:
-                    return 2;
                 default:
                     return slot;
             }
-        } return slot;
+        }
+        if (action.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL) {
+            return 2;
+        }
+        return slot;
     }
 
     @Override
@@ -64,6 +72,36 @@ public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
                 return 50;
         }
         return super.javaSlotToBedrock(slot);
+    }
+
+    @Override
+    public SlotType getSlotType(int javaSlot) {
+        if (javaSlot == 2)
+            return SlotType.OUTPUT;
+        return SlotType.NORMAL;
+    }
+
+    @Override
+    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
+        InventoryActionData anvilResult = null;
+        for (InventoryActionData action : actions) {
+            System.out.println(action.getSource().getContainerId());
+            if (action.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL) {
+                anvilResult = action;
+            }
+        }
+        if (anvilResult != null) {
+            //Strip unnecessary actions
+            List<InventoryActionData> strippedActions = actions.stream()
+                    .filter(action -> action.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL
+                            || (action.getSource().getType() == InventorySource.Type.CONTAINER
+                            && !(action.getSource().getContainerId() == ContainerId.UI && action.getSlot() != 0)))
+                    .collect(Collectors.toList());
+            super.translateActions(session, inventory, strippedActions);
+            return;
+        }
+
+        super.translateActions(session, inventory, actions);
     }
 
 }

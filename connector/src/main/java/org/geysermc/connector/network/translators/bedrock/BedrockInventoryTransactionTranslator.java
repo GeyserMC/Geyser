@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
@@ -54,6 +55,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.SmithingInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
@@ -74,6 +76,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case INVENTORY_MISMATCH:
                 Inventory inv = session.getInventoryCache().getOpenInventory();
                 if (inv == null) inv = session.getInventory();
+                if (inv.getWindowType() != null && inv.getWindowType() == WindowType.SMITHING) {
+                    if (inv.getItem(0).getId() != 0 && inv.getItem(1).getId() != 0 && inv.getItem(2).getId() != 0) {
+                        // Hack in legacy support for getting items from the smithing table
+                        // For some reason inventory mismatch is called when using client authoritative inventories
+                        SmithingInventoryTranslator.receiveItem(session, inv);
+                        break;
+                    }
+                }
                 InventoryTranslator.INVENTORY_TRANSLATORS.get(inv.getWindowType()).updateInventory(session, inv);
                 InventoryUtils.updateCursor(session);
                 break;
