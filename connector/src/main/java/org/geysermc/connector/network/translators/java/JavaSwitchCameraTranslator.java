@@ -23,36 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.spawn;
+package org.geysermc.connector.network.translators.java;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.entity.PaintingEntity;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerSwitchCameraPacket;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.PaintingType;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPaintingPacket;
-import com.nukkitx.math.vector.Vector3f;
-
-@Translator(packet = ServerSpawnPaintingPacket.class)
-public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPaintingPacket> {
+@Translator(packet = ServerSwitchCameraPacket.class)
+public class JavaSwitchCameraTranslator extends PacketTranslator<ServerSwitchCameraPacket> {
 
     @Override
-    public void translate(ServerSpawnPaintingPacket packet, GeyserSession session) {
-        Vector3f position = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
+    public void translate(ServerSwitchCameraPacket packet, GeyserSession session) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getCameraEntityId());
+        if (session.getPlayerEntity().getEntityId() == packet.getCameraEntityId()) {
+            entity = session.getPlayerEntity();
+        }
 
-        GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> { // #slowdownbrother, just don't execute it directly
-            PaintingEntity entity = new PaintingEntity(
-                    packet.getEntityId(),
-                    session.getEntityCache().getNextEntityId().incrementAndGet(),
-                    position
-            )
-                    .setPaintingName(PaintingType.getByPaintingType(packet.getPaintingType()))
-                    .setDirection(packet.getDirection().ordinal());
+        if (entity == null)
+            return;
 
-            entity.setJavaUuid(packet.getUuid());
-            session.getEntityCache().spawnEntity(entity);
-        });
+        if (session.getSpectatingEntity() != null && session.getPlayerEntity().getGeyserId() == entity.getGeyserId()) {
+            session.stopSpectatingEntity();
+            return;
+        }
+
+        session.setSpectatingEntity(entity);
     }
 }

@@ -61,6 +61,7 @@ public class JavaSpawnLivingEntityTranslator extends PacketTranslator<ServerSpaw
             Entity entity = entityConstructor.newInstance(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                     type, position, motion, rotation
             );
+            entity.setJavaUuid(packet.getUuid());
             session.getEntityCache().spawnEntity(entity);
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
             ex.printStackTrace();

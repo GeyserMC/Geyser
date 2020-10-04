@@ -56,16 +56,15 @@ import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.MessageUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 @Setter
 public class Entity {
     protected long entityId;
     protected long geyserId;
+
+    protected UUID javaUuid;
 
     protected String dimension;
 

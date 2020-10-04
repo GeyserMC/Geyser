@@ -48,6 +48,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
@@ -265,6 +266,11 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private String lastSignMessage;
+
+    private Entity spectatingEntity = null;
+    private Vector3f originalPosition = null;
+    private Vector3f originalRotation = null;
+    private boolean originalOnGround = false;
 
     private MinecraftProtocol protocol;
 
@@ -759,5 +765,45 @@ public class GeyserSession implements CommandSender {
 
         adventureSettingsPacket.getSettings().addAll(flags);
         sendUpstreamPacket(adventureSettingsPacket);
+    }
+
+    public void stopSpectatingEntity() {
+        playerEntity.updatePositionAndRotation(this, originalPosition.getX(), originalPosition.getY(), originalPosition.getZ(),
+                originalRotation.getZ(), originalRotation.getY(), originalOnGround);
+
+        SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
+        linkPacket.setEntityLink(new EntityLinkData(spectatingEntity.getGeyserId(), playerEntity.getGeyserId(), EntityLinkData.Type.REMOVE, false));
+        this.sendUpstreamPacket(linkPacket);
+
+        spectatingEntity.getPassengers().remove(playerEntity.getEntityId());
+
+        spectatingEntity = null;
+
+        this.sendMessage("Stopping spectating entity");
+    }
+
+    public void setSpectatingEntity(Entity entity) {
+        this.sendMessage("Starting spectating entity");
+
+        originalPosition = playerEntity.getPosition();
+        originalRotation = playerEntity.getRotation();
+        originalOnGround = playerEntity.isOnGround();
+
+        SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
+        linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), playerEntity.getGeyserId(),
+                EntityLinkData.Type.RIDER, false));
+
+        this.sendUpstreamPacket(linkPacket);
+
+        entity.getPassengers().add(playerEntity.getEntityId());
+
+        spectatingEntity = entity;
+    }
+
+    public void sendSpectateLocation() {
+        Vector3f pos = spectatingEntity.getPosition();
+        Vector3f rot = spectatingEntity.getRotation();
+
+        playerEntity.updatePositionAndRotation(this, pos.getX(), pos.getY(), pos.getZ(), rot.getZ(), rot.getY(), spectatingEntity.isOnGround());
     }
 }

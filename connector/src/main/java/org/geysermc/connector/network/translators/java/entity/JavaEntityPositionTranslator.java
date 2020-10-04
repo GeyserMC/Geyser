@@ -44,5 +44,9 @@ public class JavaEntityPositionTranslator extends PacketTranslator<ServerEntityP
         if (entity == null) return;
 
         entity.moveRelative(session, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), entity.getRotation(), packet.isOnGround());
+
+        if (session.getSpectatingEntity() != null && session.getSpectatingEntity().getGeyserId() == entity.getGeyserId()) {
+            session.sendSpectateLocation();
+        }
     }
 }
