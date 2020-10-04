@@ -85,7 +85,6 @@ public class GrindstoneInventoryTranslator extends BlockInventoryTranslator {
     public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
         InventoryActionData anvilResult = null;
         for (InventoryActionData action : actions) {
-            System.out.println(action.getSource().getContainerId());
             if (action.getSource().getContainerId() == ContainerId.ANVIL_MATERIAL) {
                 anvilResult = action;
             }
