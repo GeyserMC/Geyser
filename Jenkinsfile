@@ -43,8 +43,7 @@ pipeline {
                             def entry = entries[j]
                             def commitId = entry.commitId.substring(0, 6)
                             def authorName = entry.author//sh(script: "git show ${entry.commitId} -s --pretty=format:'%an'", returnStdout: true).trim()
-                            echo entry.getClass().getName()
-                            echo entry.author.getClass().getName()
+                            echo sh(script: "echo git show ${entry.commitId} -s --pretty=format:'%an'", returnStdout: true).trim()
                             message += "\n   - [`${commitId}`](${repositoryUrl}/commit/${entry.commitId}) ${entry.msg} - ${authorName}"
                         }
                     }
