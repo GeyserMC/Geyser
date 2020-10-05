@@ -264,6 +264,7 @@ public class Entity {
      * @param session the session of the Bedrock player
      */
     protected void checkPlayerCollision(GeyserSession session) {
+        if (session.getRidingVehicleEntity() == this) return;
         if (doesYCoordinateIntersect(session)) {
             double distanceX = session.getPlayerEntity().getPosition().getX() - this.position.getX();
             double distanceZ = session.getPlayerEntity().getPosition().getZ() - this.position.getZ();
