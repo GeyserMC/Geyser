@@ -160,7 +160,7 @@ public class SkinProvider {
             long time = System.currentTimeMillis();
             String newSkinUrl = skinUrl;
 
-            if (skinUrl == "steve" || skinUrl == "alex") {
+            if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
                 for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
                     if (session.getPlayerEntity().getUuid().equals(playerId)) {
                         newSkinUrl = session.getClientData().getSkinId();
