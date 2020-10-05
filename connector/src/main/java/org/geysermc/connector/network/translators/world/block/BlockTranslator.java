@@ -30,10 +30,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.nbt.*;
 import it.unimi.dsi.fastutil.ints.*;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.utils.FileUtils;
@@ -124,7 +121,6 @@ public class BlockTranslator {
         }
         Object2IntMap<NbtMap> addedStatesMap = new Object2IntOpenHashMap<>();
         addedStatesMap.defaultReturnValue(-1);
-        List<NbtMap> paletteList = new ArrayList<>();
 
         Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
         ref.getTypesAnnotatedWith(BlockEntity.class);
@@ -208,7 +204,6 @@ public class BlockTranslator {
             NbtMap runtimeTag = blockStateMap.remove(blockTag);
             if (runtimeTag != null) {
                 addedStatesMap.put(blockTag, bedrockRuntimeId);
-                paletteList.add(runtimeTag);
             } else {
                 int duplicateRuntimeId = addedStatesMap.getOrDefault(blockTag, -1);
                 if (duplicateRuntimeId == -1) {
@@ -279,16 +274,11 @@ public class BlockTranslator {
         }
         BEDROCK_AIR_ID = airRuntimeId;
 
-        paletteList.addAll(blockStateMap.values()); // Add any missing mappings that could crash the client
-
         // Loop around again to find all item frame runtime IDs
-        int frameRuntimeId = 0;
-        for (NbtMap tag : paletteList) {
-            NbtMap blockTag = tag.getCompound("block");
-            if (blockTag.getString("name").equals("minecraft:frame")) {
-                ITEM_FRAMES.put(tag, frameRuntimeId);
+        for (Object2IntMap.Entry<NbtMap> entry : blockStateOrderedMap.object2IntEntrySet()) {
+            if (entry.getKey().getString("name").equals("minecraft:frame")) {
+                ITEM_FRAMES.put(entry.getKey(), entry.getIntValue());
             }
-            frameRuntimeId++;
         }
     }
 
