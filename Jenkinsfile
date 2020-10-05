@@ -43,7 +43,8 @@ pipeline {
                         for (int j = 0; j < entries.length; j++) {
                             def entry = entries[j]
                             def commitId = entry.commitId.substring(0, 6)
-                            message += "\n   - [`${commitId}`](${repositoryUrl}/commit/${entry.commitId}) ${entry.msg} - ${entry.author.fullName}"
+                            def authorName = sh(script: "git show f5c6f1 -s --pretty=%an", returnStdout: true).trim()
+                            message += "\n   - [`${commitId}`](${repositoryUrl}/commit/${entry.commitId}) ${entry.msg} - ${authorName}"
                         }
                     }
                 }
