@@ -228,7 +228,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    public boolean canCollideWithPlayer(GeyserSession session) {
+    protected boolean canCollideWithPlayer(GeyserSession session) {
         Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
         if (team == null) return true;
         switch (team.getCollisionRule()) {
@@ -241,6 +241,16 @@ public class PlayerEntity extends LivingEntity {
             default:
                 return true;
         }
+    }
+
+    @Override
+    protected boolean doesYCoordinateIntersect(GeyserSession session) {
+        float playerYMin = session.getPlayerEntity().getPosition().getY() - session.getPlayerEntity().getEntityType().getOffset();
+        float playerYMax = playerYMin + session.getPlayerEntity().getEntityType().getHeight();
+        float thisYMin = this.position.getY() - this.entityType.getOffset();
+        float thisYMax = thisYMin + this.entityType.getHeight();
+        if (thisYMin > playerYMax) return false; // Entity is higher than the player
+        return !(playerYMin > thisYMax); // Player is higher than the entity
     }
 
     @Override

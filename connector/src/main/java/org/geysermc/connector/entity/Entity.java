@@ -263,19 +263,21 @@ public class Entity {
      * This should be called any time an entity moves position.
      * @param session the session of the Bedrock player
      */
-    public void checkPlayerCollision(GeyserSession session) {
-        double distanceX = session.getPlayerEntity().getPosition().getX() - this.position.getX();
-        double distanceZ = session.getPlayerEntity().getPosition().getZ() - this.position.getZ();
-        double largestDistance = Math.max(Math.abs(distanceX), Math.abs(distanceZ));
-        if (largestDistance <= 0.65 && canCollideWithPlayer(session)) {
-            double largestDistanceSquareRoot = Math.sqrt(largestDistance);
-            double velocityX = (distanceX / 20) / largestDistanceSquareRoot;
-            double velocityZ = (distanceZ / 20) / largestDistanceSquareRoot;
+    protected void checkPlayerCollision(GeyserSession session) {
+        if (doesYCoordinateIntersect(session)) {
+            double distanceX = session.getPlayerEntity().getPosition().getX() - this.position.getX();
+            double distanceZ = session.getPlayerEntity().getPosition().getZ() - this.position.getZ();
+            double largestDistance = Math.max(Math.abs(distanceX), Math.abs(distanceZ));
+            if (largestDistance <= 0.65 && canCollideWithPlayer(session)) {
+                double largestDistanceSquareRoot = Math.sqrt(largestDistance);
+                double velocityX = (distanceX / 20) / largestDistanceSquareRoot;
+                double velocityZ = (distanceZ / 20) / largestDistanceSquareRoot;
 
-            SetEntityMotionPacket packet = new SetEntityMotionPacket();
-            packet.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-            packet.setMotion(Vector3f.from(velocityX, 0, velocityZ));
-            session.sendUpstreamPacket(packet);
+                SetEntityMotionPacket packet = new SetEntityMotionPacket();
+                packet.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                packet.setMotion(Vector3f.from(velocityX, 0, velocityZ));
+                session.sendUpstreamPacket(packet);
+            }
         }
     }
 
@@ -285,8 +287,21 @@ public class Entity {
      * @param session the Bedrock client session
      * @return if this entity can collide with the session's player
      */
-    public boolean canCollideWithPlayer(GeyserSession session) {
+    protected boolean canCollideWithPlayer(GeyserSession session) {
         return true;
+    }
+
+    /**
+     * @param session the Bedrock client session
+     * @return true if the Y level of this entity intersect with player entity
+     */
+    protected boolean doesYCoordinateIntersect(GeyserSession session) {
+        float playerYMin = session.getPlayerEntity().getPosition().getY() - session.getPlayerEntity().getEntityType().getOffset();
+        float playerYMax = playerYMin + session.getPlayerEntity().getEntityType().getHeight();
+        float entityYMax = this.position.getY() + this.entityType.getHeight();
+        float entityYMin = this.position.getY();
+        if (entityYMin > playerYMax) return false; // Entity is higher than the player
+        return !(playerYMin > entityYMax); // Player is higher than the entity
     }
 
     public void updateBedrockAttributes(GeyserSession session) {
