@@ -294,7 +294,7 @@ public class Entity {
 
     /**
      * @param session the Bedrock client session
-     * @return true if the Y level of this entity intersect with player entity
+     * @return true if the Y level of this entity intersects with player entity
      */
     protected boolean doesYCoordinateIntersect(GeyserSession session) {
         float playerYMin = session.getPlayerEntity().getPosition().getY() - session.getPlayerEntity().getEntityType().getOffset();
