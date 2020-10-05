@@ -37,13 +37,24 @@ pipeline {
                     message += "\n*No changes.*"
                 } else {
                     def repositoryUrl = scm.userRemoteConfigs[0].url.replace(".git", "")
+                    def count = 0;
+                    def extra = 0;
                     for (int i = 0; i < changeLogSets.size(); i++) {
                         def entries = changeLogSets[i].items
                         for (int j = 0; j < entries.length; j++) {
-                            def entry = entries[j]
-                            def commitId = entry.commitId.substring(0, 6)
-                            message += "\n   - [`${commitId}`](${repositoryUrl}/commit/${entry.commitId}) ${entry.msg}"
+                            if (count <= 10) {
+                                def entry = entries[j]
+                                def commitId = entry.commitId.substring(0, 6)
+                                message += "\n   - [`${commitId}`](${repositoryUrl}/commit/${entry.commitId}) ${entry.msg}"
+                                count++
+                            } else {
+                                extra++;
+                            }
                         }
+                    }
+                    
+                    if (extra != 0) {
+                        message += "\n   - ${extra} more commits"
                     }
                 }
 
