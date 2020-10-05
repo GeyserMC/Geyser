@@ -37,13 +37,13 @@ pipeline {
                 if (changeLogSets.size() == 0) {
                     message += "\n*No changes.*"
                 } else {
-                    def repositoryUrl = scm.userRemoteConfigs[0].url  
+                    def repositoryUrl = scm.userRemoteConfigs[0].url.replace(".git", "")
                     for (int i = 0; i < changeLogSets.size(); i++) {
                         def entries = changeLogSets[i].items
                         for (int j = 0; j < entries.length; j++) {
                             def entry = entries[j]
                             def commitId = entry.commitId.substring(0, 6)
-                            message += "\n   - [`${commitId}`](${repositoryUrl}${entry.commitId}) ${entry.msg} - ${entry.author}"
+                            message += "\n   - [`${commitId}`](${repositoryUrl}/commit/${entry.commitId}) ${entry.msg} - ${entry.author.fullName}"
                         }
                     }
                 }
