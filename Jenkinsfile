@@ -42,7 +42,7 @@ pipeline {
                         for (int j = 0; j < entries.length; j++) {
                             def entry = entries[j]
                             def commitId = entry.commitId.substring(0, 6)
-                            def authorName = new ProcessBuilder("sh", "-c", " git show ${entry.commitId} -s --pretty=format:'%an'").redirectErrorStream(true).start().text.trim()
+                            def authorName = entry.authorName//new ProcessBuilder("sh", "-c", " git show ${entry.commitId} -s --pretty=format:'%an'").redirectErrorStream(true).start().text.trim() // Get the author name from the commit
                             message += "\n   - [`${commitId}`](${repositoryUrl}/commit/${entry.commitId}) ${entry.msg} - ${authorName}"
                         }
                     }
