@@ -42,13 +42,14 @@ pipeline {
                         for (int j = 0; j < entries.length; j++) {
                             def entry = entries[j]
                             def commitId = entry.commitId.substring(0, 6)
-                            def authorName = sh(script: "git show ${entry.commitId} -s --pretty=format:'%an'", returnStdout: true).trim()
+                            def authorName = entry.author//sh(script: "git show ${entry.commitId} -s --pretty=format:'%an'", returnStdout: true).trim()
+                            echo entry.author.getClass()
                             message += "\n   - [`${commitId}`](${repositoryUrl}/commit/${entry.commitId}) ${entry.msg} - ${authorName}"
                         }
                     }
                 }
 
-                echo message
+                //echo message
                 env.changes = message
             }
             deleteDir()
