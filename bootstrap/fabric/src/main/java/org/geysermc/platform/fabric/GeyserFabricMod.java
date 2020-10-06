@@ -30,6 +30,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.Block;
+import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserLogger;
@@ -38,6 +40,7 @@ import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
@@ -85,30 +88,31 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
 
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
-            this.geyserConfig.setAutoconfiguredRemote(true);
-            ServerLifecycleEvents.SERVER_STARTING.register((server) -> {
+        ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
+            // Required to do this so we can get the proper IP and port if needed
+            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+                this.geyserConfig.setAutoconfiguredRemote(true);
                 String ip = server.getServerIp();
                 int port = server.getServerPort();
                 if (ip != null && !ip.isEmpty() && !ip.equals("0.0.0.0")) {
                     this.geyserConfig.getRemote().setAddress(ip);
                 }
                 this.geyserConfig.getRemote().setPort(port);
-            });
-        }
+            }
 
-        if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
-        }
+            if (geyserConfig.getBedrock().isCloneRemotePort()) {
+                geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
+            }
 
-        this.connector = GeyserConnector.start(PlatformType.ANDROID, this);
+            this.connector = GeyserConnector.start(PlatformType.ANDROID, this);
+
+            this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+
+            this.geyserCommandManager = new GeyserFabricCommandManager(connector);
+        });
 
         // Register onDisable so players are properly kicked
         ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
-
-        this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
-
-        this.geyserCommandManager = new GeyserFabricCommandManager(connector);
     }
 
     @Override
