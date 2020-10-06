@@ -4,6 +4,9 @@ pipeline {
         maven 'Maven 3'
         jdk 'Java 8'
     }
+    options {
+        buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
+    }
     stages {
         stage ('Build') {
             steps {
