@@ -58,6 +58,7 @@ import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = InventoryTransactionPacket.class)
@@ -151,28 +152,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        Vector3i blockPos = packet.getBlockPosition();
-                        // TODO: Find a better way to do this?
-                        switch (packet.getBlockFace()) {
-                            case 0:
-                                blockPos = blockPos.sub(0, 1, 0);
-                                break;
-                            case 1:
-                                blockPos = blockPos.add(0, 1, 0);
-                                break;
-                            case 2:
-                                blockPos = blockPos.sub(0, 0, 1);
-                                break;
-                            case 3:
-                                blockPos = blockPos.add(0, 0, 1);
-                                break;
-                            case 4:
-                                blockPos = blockPos.sub(1, 0, 0);
-                                break;
-                            case 5:
-                                blockPos = blockPos.add(1, 0, 0);
-                                break;
-                        }
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
                         ItemEntry handItem = ItemRegistry.getItem(packet.getItemInHand());
                         if (handItem.isBlock()) {
                             session.setLastBlockPlacePosition(blockPos);
