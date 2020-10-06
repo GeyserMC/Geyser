@@ -28,8 +28,9 @@ package org.geysermc.platform.fabric;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.dedicated.DedicatedServer;
+import org.apache.logging.log4j.LogManager;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -76,7 +77,7 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserFabricConfiguration.class);
         } catch (IOException ex) {
-            System.out.println(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
+            LogManager.getLogger("geyser-fabric").error(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
         }
 
@@ -86,6 +87,14 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
 
         if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
             this.geyserConfig.setAutoconfiguredRemote(true);
+            ServerLifecycleEvents.SERVER_STARTING.register((server) -> {
+                String ip = server.getServerIp();
+                int port = server.getServerPort();
+                if (ip != null && !ip.isEmpty() && !ip.equals("0.0.0.0")) {
+                    this.geyserConfig.getRemote().setAddress(ip);
+                }
+                this.geyserConfig.getRemote().setPort(port);
+            });
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
@@ -93,6 +102,9 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
         }
 
         this.connector = GeyserConnector.start(PlatformType.ANDROID, this);
+
+        // Register onDisable so players are properly kicked
+        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 

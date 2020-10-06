@@ -25,9 +25,13 @@
 
 package org.geysermc.platform.fabric;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.geysermc.connector.GeyserLogger;
 
 public class GeyserFabricLogger implements GeyserLogger {
+
+    private final Logger logger = LogManager.getLogger("geyser-fabric");
 
     private boolean debug;
 
@@ -37,38 +41,38 @@ public class GeyserFabricLogger implements GeyserLogger {
 
     @Override
     public void severe(String message) {
-        System.out.println(message);
+        logger.fatal(message);
     }
 
     @Override
     public void severe(String message, Throwable error) {
-        System.out.println(message);
+        logger.fatal(message, error);
     }
 
     @Override
     public void error(String message) {
-        System.out.println(message);
+        logger.error(message);
     }
 
     @Override
     public void error(String message, Throwable error) {
-        System.out.println(message);
+        logger.error(message, error);
     }
 
     @Override
     public void warning(String message) {
-        System.out.println(message);
+        logger.warn(message);
     }
 
     @Override
     public void info(String message) {
-        System.out.println(message);
+        logger.info(message);
     }
 
     @Override
     public void debug(String message) {
         if (debug) {
-            info(message);
+            logger.info(message);
         }
     }
 
