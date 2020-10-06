@@ -23,6 +23,9 @@ dependencies {
     // You may need to force-disable transitiveness on them.
 
     implementation 'org.geysermc:connector:1.1.0'
+
+    compileOnly 'org.projectlombok:lombok:1.18.4'
+    annotationProcessor 'org.projectlombok:lombok:1.18.4'
 }
 
 repositories {

@@ -23,39 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric;
+package org.geysermc.platform.fabric.command;
 
 import lombok.Getter;
-import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.server.MinecraftServer;
-import org.geysermc.connector.common.serializer.AsteriskSerializer;
-import org.geysermc.connector.dump.BootstrapDumpInfo;
-import org.geysermc.platform.fabric.command.ModInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A wrapper for Fabric mod information to be presented in a Geyser dump
+ */
 @Getter
-public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
+public class ModInfo {
 
-    private String serverIP;
-    private int serverPort;
-    private List<ModInfo> mods;
+    private String name;
+    private String id;
+    private String version;
+    private List<String> authors;
 
-    public GeyserFabricDumpInfo(MinecraftServer server) {
-        super();
-        if (AsteriskSerializer.showSensitive || (server.getServerIp() == null || server.getServerIp().equals("") || server.getServerIp().equals("0.0.0.0"))) {
-            this.serverIP = server.getServerIp();
-        } else {
-            this.serverIP = "***";
-        }
-        this.serverPort = server.getServerPort();
-        this.mods = new ArrayList<>();
-
-        for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
-            this.mods.add(new ModInfo(mod));
-        }
+    public ModInfo(ModContainer mod) {
+        this.name = mod.getMetadata().getName();
+        this.id = mod.getMetadata().getId();
+        this.authors = new ArrayList<>();
+        mod.getMetadata().getAuthors().forEach((person) -> this.authors.add(person.getName()));
+        this.version = mod.getMetadata().getVersion().getFriendlyString();
     }
 
 }

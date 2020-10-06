@@ -23,39 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric;
+package org.geysermc.platform.fabric.command;
 
-import lombok.Getter;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.server.MinecraftServer;
-import org.geysermc.connector.common.serializer.AsteriskSerializer;
-import org.geysermc.connector.dump.BootstrapDumpInfo;
-import org.geysermc.platform.fabric.command.ModInfo;
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.server.command.ServerCommandSource;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.GeyserCommand;
 
-import java.util.ArrayList;
-import java.util.List;
+public class GeyserFabricCommandExecutor implements Command<ServerCommandSource> {
 
-@Getter
-public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
+    private final String commandName;
+    private final GeyserConnector connector;
 
-    private String serverIP;
-    private int serverPort;
-    private List<ModInfo> mods;
-
-    public GeyserFabricDumpInfo(MinecraftServer server) {
-        super();
-        if (AsteriskSerializer.showSensitive || (server.getServerIp() == null || server.getServerIp().equals("") || server.getServerIp().equals("0.0.0.0"))) {
-            this.serverIP = server.getServerIp();
-        } else {
-            this.serverIP = "***";
-        }
-        this.serverPort = server.getServerPort();
-        this.mods = new ArrayList<>();
-
-        for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
-            this.mods.add(new ModInfo(mod));
-        }
+    public GeyserFabricCommandExecutor(GeyserConnector connector, String commandName) {
+        this.commandName = commandName;
+        this.connector = connector;
     }
 
+    @Override
+    public int run(CommandContext context) {
+        ServerCommandSource source = (ServerCommandSource) context.getSource();
+        getCommand(commandName).execute(new FabricCommandSender(source), new String[0]);
+        return 0;
+    }
+
+    private GeyserCommand getCommand(String label) {
+        return connector.getCommandManager().getCommands().get(label);
+    }
 }

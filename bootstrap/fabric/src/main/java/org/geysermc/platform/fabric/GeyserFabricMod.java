@@ -25,16 +25,20 @@
 
 package org.geysermc.platform.fabric;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import org.apache.logging.log4j.LogManager;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
@@ -42,11 +46,13 @@ import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.UUID;
 
 @Environment(EnvType.SERVER)
@@ -54,6 +60,7 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
 
     private GeyserConnector connector;
     private Path dataFolder;
+    private MinecraftServer server;
 
     private GeyserFabricCommandManager geyserCommandManager;
     private GeyserFabricConfiguration geyserConfig;
@@ -87,6 +94,7 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
 
         ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
             // Required to do this so we can get the proper IP and port if needed
+            this.server = server;
             if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
                 this.geyserConfig.setAutoconfiguredRemote(true);
                 String ip = server.getServerIp();
@@ -106,6 +114,17 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
             this.geyserCommandManager = new GeyserFabricCommandManager(connector);
+
+            // Start command building
+            // Set just "geyser" as the help command
+            LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser")
+                    .executes(new GeyserFabricCommandExecutor(connector, "help"));
+            for (Map.Entry<String, GeyserCommand> command : connector.getCommandManager().getCommands().entrySet()) {
+                // Register all subcommands as valid
+                builder.then(net.minecraft.server.command.CommandManager.literal(
+                        command.getKey()).executes(new GeyserFabricCommandExecutor(connector, command.getKey())));
+            }
+            server.getCommandManager().getDispatcher().register(builder);
         });
 
         // Register onDisable so players are properly kicked
@@ -146,6 +165,6 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
 
     @Override
     public BootstrapDumpInfo getDumpInfo() {
-        return new GeyserFabricDumpInfo();
+        return new GeyserFabricDumpInfo(server);
     }
 }

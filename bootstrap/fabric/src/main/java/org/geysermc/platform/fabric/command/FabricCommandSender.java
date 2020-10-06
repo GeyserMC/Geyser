@@ -23,39 +23,43 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric;
+package org.geysermc.platform.fabric.command;
 
-import lombok.Getter;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.server.MinecraftServer;
-import org.geysermc.connector.common.serializer.AsteriskSerializer;
-import org.geysermc.connector.dump.BootstrapDumpInfo;
-import org.geysermc.platform.fabric.command.ModInfo;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.LiteralText;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandSender;
 
-import java.util.ArrayList;
-import java.util.List;
+public class FabricCommandSender implements CommandSender {
 
-@Getter
-public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
+    private final ServerCommandSource source;
 
-    private String serverIP;
-    private int serverPort;
-    private List<ModInfo> mods;
+    public FabricCommandSender(ServerCommandSource source) {
+        this.source = source;
+    }
 
-    public GeyserFabricDumpInfo(MinecraftServer server) {
-        super();
-        if (AsteriskSerializer.showSensitive || (server.getServerIp() == null || server.getServerIp().equals("") || server.getServerIp().equals("0.0.0.0"))) {
-            this.serverIP = server.getServerIp();
-        } else {
-            this.serverIP = "***";
-        }
-        this.serverPort = server.getServerPort();
-        this.mods = new ArrayList<>();
+    @Override
+    public String getName() {
+        return source.getName();
+    }
 
-        for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
-            this.mods.add(new ModInfo(mod));
+    @Override
+    public void sendMessage(String message) {
+        try {
+            source.getPlayer().sendMessage(new LiteralText(message), false);
+        } catch (CommandSyntaxException e) { // why
+            GeyserConnector.getInstance().getLogger().info(message);
         }
     }
 
+    @Override
+    public boolean isConsole() {
+        try {
+            source.getPlayer();
+            return false;
+        } catch (CommandSyntaxException e) {
+            return true;
+        }
+    }
 }
