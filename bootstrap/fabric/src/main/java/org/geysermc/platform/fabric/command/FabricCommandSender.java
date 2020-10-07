@@ -30,6 +30,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.common.ChatColor;
 
 public class FabricCommandSender implements CommandSender {
 
@@ -49,7 +50,7 @@ public class FabricCommandSender implements CommandSender {
         try {
             source.getPlayer().sendMessage(new LiteralText(message), false);
         } catch (CommandSyntaxException e) { // why
-            GeyserConnector.getInstance().getLogger().info(message);
+            GeyserConnector.getInstance().getLogger().info(ChatColor.toANSI(message + ChatColor.RESET));
         }
     }
 
