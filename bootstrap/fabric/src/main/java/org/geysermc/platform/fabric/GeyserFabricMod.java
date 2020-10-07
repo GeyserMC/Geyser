@@ -109,7 +109,7 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
                 geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
             }
 
-            this.connector = GeyserConnector.start(PlatformType.ANDROID, this);
+            this.connector = GeyserConnector.start(PlatformType.FABRIC, this);
 
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
