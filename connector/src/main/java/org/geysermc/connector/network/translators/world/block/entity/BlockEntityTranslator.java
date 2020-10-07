@@ -68,7 +68,7 @@ public abstract class BlockEntityTranslator {
     }
 
     static {
-        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
         for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
             GeyserConnector.getInstance().getLogger().debug("Found annotated block entity: " + clazz.getCanonicalName());
 
