@@ -84,10 +84,6 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 shadowJar {
     configurations = [project.configurations.shadow]
-    relocate 'org.reflections', 'geyser.org.reflections'
-    relocate 'org.dom4j', 'geyser.org.dom4j'
-    relocate 'javax.xml', 'geyser.javaxxml'
-    relocate 'org.xml', 'geyser.xml'
 }
 
 jar {
