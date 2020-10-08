@@ -54,12 +54,8 @@ public class AreaEffectCloudEntity extends Entity {
             metadata.put(EntityData.POTION_AUX_VALUE, entityMetadata.getValue());
         } else if (entityMetadata.getId() == 10) {
             Particle particle = (Particle) entityMetadata.getValue();
-            Integer particleId = EffectRegistry.getParticleId(particle.getType());
-            if (EffectRegistry.getParticleId(particle.getType()) != null) {
-                metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
-            } else {
-                session.getConnector().getLogger().error("Couldn't set area effect particle ID because of a missing particle id for particle " + particle.getType().toString());
-            }
+            int particleId = EffectRegistry.getParticleId(particle.getType());
+            metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
