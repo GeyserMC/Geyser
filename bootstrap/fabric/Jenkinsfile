@@ -13,7 +13,7 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'build/libs/*.jar', excludes: 'build/libs/Geyser-Fabric-*-.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'build/libs/*.jar', excludes: 'build/libs/Geyser-Fabric-*-sources*.jar,build/libs/Geyser-Fabric-*-all*.jar', fingerprint: true
                 }
             }
         }
