@@ -1,7 +1,6 @@
 pipeline {
     agent any
     tools {
-        gradle 'Gradle'
         jdk 'Java 8'
     }
     options {
@@ -10,7 +9,7 @@ pipeline {
     stages {
         stage ('Build') {
             steps {
-                sh 'gradle clean build'
+                sh './gradlew clean build'
             }
             post {
                 success {
