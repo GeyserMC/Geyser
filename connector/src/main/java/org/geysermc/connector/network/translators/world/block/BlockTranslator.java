@@ -122,7 +122,7 @@ public class BlockTranslator {
         Object2IntMap<NbtMap> addedStatesMap = new Object2IntOpenHashMap<>();
         addedStatesMap.defaultReturnValue(-1);
 
-        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
         ref.getTypesAnnotatedWith(BlockEntity.class);
 
         int waterRuntimeId = -1;
