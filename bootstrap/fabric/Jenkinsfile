@@ -13,7 +13,6 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'bootstrap/**/target/*.jar', excludes: 'bootstrap/**/target/original-*.jar', fingerprint: true
                     archiveArtifacts artifacts: 'build/libs/*.jar', excludes: 'build/libs/*-dev.jar' 'build/libs/*-sources*jar' 'build/libs/*-all.jar', fingerprint: true
                 }
             }
