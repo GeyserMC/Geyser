@@ -23,22 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.common;
+package org.geysermc.connector.network.translators.bedrock;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@Getter
-@AllArgsConstructor
-public enum PlatformType {
+/**
+ * Used to send the keep alive packet back to the server
+ */
+@Translator(packet = NetworkStackLatencyPacket.class)
+public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<NetworkStackLatencyPacket> {
 
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
-
-    private final String platformName;
+    @Override
+    public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
+        // The client sends a timestamp back but it's rounded and therefore unreliable when we need the exact number
+        ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(session.getLastKeepAliveTimestamp());
+        session.sendDownstreamPacket(keepAlivePacket);
+    }
 }

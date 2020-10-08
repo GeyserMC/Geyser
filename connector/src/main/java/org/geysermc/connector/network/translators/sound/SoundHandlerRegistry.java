@@ -47,7 +47,7 @@ public class SoundHandlerRegistry {
     public static final Map<SoundHandler, SoundInteractionHandler<?>> INTERACTION_HANDLERS = new HashMap<>();
 
     static {
-        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.sound") : new Reflections("org.geysermc.connector.network.translators.sound");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.sound") : new Reflections("org.geysermc.connector.network.translators.sound");
 
         Set<Class<?>> soundHandlerClasses = EventManager.getInstance().triggerEvent(new SoundHandlerRegistryEvent(
                 new Reflections("org.geysermc.connector.network.translators.sound").getTypesAnnotatedWith(SoundHandler.class))

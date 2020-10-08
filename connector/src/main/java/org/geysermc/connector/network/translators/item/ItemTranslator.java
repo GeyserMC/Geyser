@@ -67,7 +67,7 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
         Set<Class<?>> itemRemapperClasses = EventManager.getInstance().triggerEvent(new ItemRemapperRegistryEvent(
                 ref.getTypesAnnotatedWith(ItemRemapper.class)
         )).getEvent().getRegisteredTranslators();

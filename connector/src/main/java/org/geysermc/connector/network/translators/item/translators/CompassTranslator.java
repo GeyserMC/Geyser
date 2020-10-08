@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @ItemRemapper
 public class CompassTranslator extends ItemTranslator {
 
-    private List<ItemEntry> appliedItems;
+    private final List<ItemEntry> appliedItems;
 
     public CompassTranslator() {
         appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("compass")).collect(Collectors.toList());

@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListDataPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateLightPacket;
 import com.github.steveice10.packetlib.packet.Packet;
@@ -53,7 +52,7 @@ public class PacketTranslatorRegistry<T> {
     public static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
 
     static {
-        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators") : new Reflections("org.geysermc.connector.network.translators");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators") : new Reflections("org.geysermc.connector.network.translators");
         PacketTranslatorRegistryEvent event = EventManager.getInstance().triggerEvent(new PacketTranslatorRegistryEvent(
                 ref.getTypesAnnotatedWith(Translator.class))
         ).getEvent();
@@ -82,7 +81,6 @@ public class PacketTranslatorRegistry<T> {
             }
         }
 
-        IGNORED_PACKETS.add(ServerKeepAlivePacket.class); // Handled by MCProtocolLib
         IGNORED_PACKETS.add(ServerUpdateLightPacket.class); // Light is handled on Bedrock for us
         IGNORED_PACKETS.add(ServerPlayerListDataPacket.class); // Cant be implemented in bedrock
     }
