@@ -254,7 +254,7 @@ public class Scoreboard {
                     0, ""
             ));
         }
-
+        
         objective.removed();
 
         if (!toRemove.isEmpty()) {
