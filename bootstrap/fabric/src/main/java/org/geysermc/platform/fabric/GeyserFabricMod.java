@@ -50,16 +50,19 @@ import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandManager;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
 
 @Environment(EnvType.SERVER)
 public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBootstrap {
 
     private GeyserConnector connector;
     private Path dataFolder;
+    private List<String> playerCommands;
     private MinecraftServer server;
 
     private GeyserFabricCommandManager geyserCommandManager;
@@ -83,6 +86,8 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
             File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserFabricConfiguration.class);
+            File permissionsFile = fileOrCopiedFromResource(dataFolder.resolve("permissions.yml").toFile(), "permissions.yml");
+            this.playerCommands = Arrays.asList(FileUtils.loadConfig(permissionsFile, GeyserFabricPermissions.class).getCommands());
         } catch (IOException ex) {
             LogManager.getLogger("geyser-fabric").error(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
@@ -118,11 +123,12 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
             // Start command building
             // Set just "geyser" as the help command
             LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser")
-                    .executes(new GeyserFabricCommandExecutor(connector, "help"));
+                    .executes(new GeyserFabricCommandExecutor(connector, "help", !playerCommands.contains("help")));
             for (Map.Entry<String, GeyserCommand> command : connector.getCommandManager().getCommands().entrySet()) {
                 // Register all subcommands as valid
                 builder.then(net.minecraft.server.command.CommandManager.literal(
-                        command.getKey()).executes(new GeyserFabricCommandExecutor(connector, command.getKey())));
+                        command.getKey()).executes(new GeyserFabricCommandExecutor(connector, command.getKey(),
+                        !playerCommands.contains(command.getKey()))));
             }
             server.getCommandManager().getDispatcher().register(builder);
         });
@@ -166,5 +172,29 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserFabricDumpInfo(server);
+    }
+
+    private File fileOrCopiedFromResource(File file, String name) throws IOException {
+        if (!file.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            file.createNewFile();
+            FileOutputStream fos = new FileOutputStream(file);
+            InputStream input = GeyserFabricMod.class.getResourceAsStream("/" + name); // resources need leading "/" prefix
+
+            byte[] bytes = new byte[input.available()];
+
+            //noinspection ResultOfMethodCallIgnored
+            input.read(bytes);
+
+            for(char c : new String(bytes).toCharArray()) {
+                fos.write(c);
+            }
+
+            fos.flush();
+            input.close();
+            fos.close();
+        }
+
+        return file;
     }
 }

@@ -25,36 +25,18 @@
 
 package org.geysermc.platform.fabric;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.server.MinecraftServer;
-import org.geysermc.connector.common.serializer.AsteriskSerializer;
-import org.geysermc.connector.dump.BootstrapDumpInfo;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * A class outline of the permissions.yml file
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GeyserFabricPermissions {
 
-@Getter
-public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
-
-    private String serverIP;
-    private int serverPort;
-    private List<ModInfo> mods;
-
-    public GeyserFabricDumpInfo(MinecraftServer server) {
-        super();
-        if (AsteriskSerializer.showSensitive || (server.getServerIp() == null || server.getServerIp().equals("") || server.getServerIp().equals("0.0.0.0"))) {
-            this.serverIP = server.getServerIp();
-        } else {
-            this.serverIP = "***";
-        }
-        this.serverPort = server.getServerPort();
-        this.mods = new ArrayList<>();
-
-        for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
-            this.mods.add(new ModInfo(mod));
-        }
-    }
+    @Getter
+    @JsonProperty("commands")
+    private String[] commands;
 
 }

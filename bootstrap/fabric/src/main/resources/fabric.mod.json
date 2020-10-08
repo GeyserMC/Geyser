@@ -19,9 +19,6 @@
       "org.geysermc.platform.fabric.GeyserFabricMod"
     ]
   },
-  "mixins": [
-    "fabric.mixins.json"
-  ],
   "depends": {
     "fabricloader": ">=0.10.1+build.209",
     "fabric": "*",

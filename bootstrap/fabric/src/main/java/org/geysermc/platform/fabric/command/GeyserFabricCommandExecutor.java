@@ -30,21 +30,32 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.utils.LanguageUtils;
 
 public class GeyserFabricCommandExecutor implements Command<ServerCommandSource> {
 
     private final String commandName;
     private final GeyserConnector connector;
+    /**
+     * Whether the command requires an OP permission level of 2 or greater
+     */
+    private final boolean requiresPermission;
 
-    public GeyserFabricCommandExecutor(GeyserConnector connector, String commandName) {
+    public GeyserFabricCommandExecutor(GeyserConnector connector, String commandName, boolean requiresPermission) {
         this.commandName = commandName;
         this.connector = connector;
+        this.requiresPermission = requiresPermission;
     }
 
     @Override
     public int run(CommandContext context) {
         ServerCommandSource source = (ServerCommandSource) context.getSource();
-        getCommand(commandName).execute(new FabricCommandSender(source), new String[0]);
+        FabricCommandSender sender = new FabricCommandSender(source);
+        if (requiresPermission && !source.hasPermissionLevel(2)) {
+            sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail"));
+            return 0;
+        }
+        getCommand(commandName).execute(sender, new String[0]);
         return 0;
     }
 

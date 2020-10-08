@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric.command;
+package org.geysermc.platform.fabric;
 
 import lombok.Getter;
 import net.fabricmc.loader.api.ModContainer;

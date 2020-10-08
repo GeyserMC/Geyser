@@ -1,0 +1,10 @@
+# Uncomment any commands that you wish to be run by clients
+# Commented commands require an OP permission of 2 or greater
+commands:
+#  - dump
+  - help
+  - offhand
+#  - list
+#  - reload
+#  - shutdown
+#  - version
