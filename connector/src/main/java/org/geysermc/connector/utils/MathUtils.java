@@ -25,8 +25,6 @@
 
 package org.geysermc.connector.utils;
 
-import com.nukkitx.math.vector.Vector3d;
-
 public class MathUtils {
 
     public static final double SQRT_OF_TWO = Math.sqrt(2);
@@ -55,20 +53,5 @@ public class MathUtils {
             return ((Integer) value).byteValue();
         }
         return (Byte) value;
-    }
-
-    /**
-     * Taxicab distance is given by adding the difference in each direction.
-     * https://en.wikipedia.org/wiki/Taxicab_geometry
-     *
-     * @param firstPos First position
-     * @param secondPos Second position
-     * @return Distance
-     */
-    public static double taxicabDistance(Vector3d firstPos, Vector3d secondPos) {
-        double distance = Math.abs(firstPos.getX() - secondPos.getX());
-        distance += Math.abs(firstPos.getY() - secondPos.getY());
-        distance += Math.abs(firstPos.getZ() - secondPos.getZ());
-        return distance;
     }
 }
