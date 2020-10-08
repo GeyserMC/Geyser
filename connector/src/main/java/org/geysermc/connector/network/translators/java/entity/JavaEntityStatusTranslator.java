@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -51,6 +52,33 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
         switch (packet.getStatus()) {
+            case PLAYER_ENABLE_REDUCED_DEBUG:
+                session.setReducedDebugInfo(true);
+                return;
+            case PLAYER_DISABLE_REDUCED_DEBUG:
+                session.setReducedDebugInfo(false);
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_0:
+                session.setOpPermissionLevel(0);
+                session.sendAdventureSettings();
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_1:
+                session.setOpPermissionLevel(1);
+                session.sendAdventureSettings();
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_2:
+                session.setOpPermissionLevel(2);
+                session.sendAdventureSettings();
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_3:
+                session.setOpPermissionLevel(3);
+                session.sendAdventureSettings();
+                return;
+            case PLAYER_OP_PERMISSION_LEVEL_4:
+                session.setOpPermissionLevel(4);
+                session.sendAdventureSettings();
+                return;
+
             // EntityEventType.HURT sends extra data depending on the type of damage. However this appears to have no visual changes
             case LIVING_BURN:
             case LIVING_DROWN:
@@ -68,8 +96,20 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 entityEventPacket.setType(EntityEventType.USE_ITEM);
                 break;
             case FISHING_HOOK_PULL_PLAYER:
-                entityEventPacket.setType(EntityEventType.FISH_HOOK_TEASE); //TODO: CHECK
-                break;
+                // Player is pulled from a fishing rod
+                // The physics of this are clientside on Java
+                long pulledById = entity.getMetadata().getLong(EntityData.TARGET_EID);
+                if (session.getPlayerEntity().getGeyserId() == pulledById) {
+                    Entity hookOwner = session.getEntityCache().getEntityByGeyserId(entity.getMetadata().getLong(EntityData.OWNER_EID));
+                    if (hookOwner != null) {
+                        // https://minecraft.gamepedia.com/Fishing_Rod#Hooking_mobs_and_other_entities
+                        SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+                        motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        motionPacket.setMotion(hookOwner.getPosition().sub(session.getPlayerEntity().getPosition()).mul(0.1f));
+                        session.sendUpstreamPacket(motionPacket);
+                    }
+                }
+                return;
             case TAMEABLE_TAMING_FAILED:
                 entityEventPacket.setType(EntityEventType.TAME_FAILED);
                 break;

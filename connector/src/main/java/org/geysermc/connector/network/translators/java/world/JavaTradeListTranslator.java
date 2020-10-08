@@ -36,6 +36,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.UpdateTradePacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -60,14 +62,20 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
 
         UpdateTradePacket updateTradePacket = new UpdateTradePacket();
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
-        updateTradePacket.setContainerId((short) packet.getWindowId()); //TODO: CHECK THIS AND THE ONE BELOW
+        updateTradePacket.setContainerId((short) packet.getWindowId());
         updateTradePacket.setContainerType(ContainerType.TRADE);
+        Inventory openInv = session.getInventoryCache().getOpenInventory();
         String displayName;
-        Entity realVillager = session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
-        if (realVillager != null && realVillager.getMetadata().containsKey(EntityData.NAMETAG) && realVillager.getMetadata().getString(EntityData.NAMETAG) != null) {
-            displayName = realVillager.getMetadata().getString(EntityData.NAMETAG);
+        if (openInv != null && openInv.getId() == packet.getWindowId()) {
+            displayName = openInv.getTitle();
         } else {
-            displayName = packet.isRegularVillager() ? "Villager" : "Wandering Trader";
+            Entity realVillager = session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
+            if (realVillager != null && realVillager.getMetadata().containsKey(EntityData.NAMETAG) && realVillager.getMetadata().getString(EntityData.NAMETAG) != null) {
+                displayName = realVillager.getMetadata().getString(EntityData.NAMETAG);
+            } else {
+                displayName = realVillager != null &&
+                        realVillager.getEntityType() == EntityType.WANDERING_TRADER ? "Wandering Trader" : "Villager";
+            }
         }
         updateTradePacket.setDisplayName(displayName);
         updateTradePacket.setSize(0);
@@ -87,7 +95,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
             recipe.putInt("buyCountB", trade.getSecondInput() != null ? trade.getSecondInput().getAmount() : 0);
             recipe.putInt("buyCountA", trade.getFirstInput().getAmount());
             recipe.putInt("demand", trade.getDemand());
-            recipe.putInt("tier", packet.getVillagerLevel() - 1);
+            recipe.putInt("tier", packet.getVillagerLevel() > 0 ? packet.getVillagerLevel() - 1 : 0); // -1 crashes client
             recipe.put("buyA", getItemTag(session, trade.getFirstInput(), trade.getSpecialPrice()));
             if (trade.getSecondInput() != null) {
                 recipe.put("buyB", getItemTag(session, trade.getSecondInput(), 0));

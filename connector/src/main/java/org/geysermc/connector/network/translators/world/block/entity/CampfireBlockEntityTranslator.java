@@ -50,18 +50,6 @@ public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
         return tags;
     }
 
-    @Override
-    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        CompoundTag tag = getConstantJavaTag(javaId, x, y, z);
-        tag.put(new ListTag("Items"));
-        return tag;
-    }
-
-    @Override
-    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z);
-    }
-
     protected NbtMap getItem(CompoundTag tag) {
         ItemEntry entry = ItemRegistry.getItemEntry((String) tag.get("id").getValue());
         NbtMapBuilder tagBuilder = NbtMap.builder()

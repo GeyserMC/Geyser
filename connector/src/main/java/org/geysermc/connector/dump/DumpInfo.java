@@ -31,7 +31,9 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
@@ -111,16 +113,21 @@ public class DumpInfo {
         private final boolean dockerCheck;
 
         NetworkInfo() {
-            try {
-                // This is the most reliable for getting the main local IP
-                Socket socket = new Socket();
-                socket.connect(new InetSocketAddress("geysermc.org", 80));
-                this.internalIP = socket.getLocalAddress().getHostAddress();
-            } catch (IOException e1) {
+            if (AsteriskSerializer.showSensitive) {
                 try {
-                    // Fallback to the normal way of getting the local IP
-                    this.internalIP = InetAddress.getLocalHost().getHostAddress();
-                } catch (UnknownHostException ignored) { }
+                    // This is the most reliable for getting the main local IP
+                    Socket socket = new Socket();
+                    socket.connect(new InetSocketAddress("geysermc.org", 80));
+                    this.internalIP = socket.getLocalAddress().getHostAddress();
+                } catch (IOException e1) {
+                    try {
+                        // Fallback to the normal way of getting the local IP
+                        this.internalIP = InetAddress.getLocalHost().getHostAddress();
+                    } catch (UnknownHostException ignored) { }
+                }
+            } else {
+                // Sometimes the internal IP is the external IP...
+                this.internalIP = "***";
             }
 
             this.dockerCheck = DockerCheck.checkBasic();
@@ -136,8 +143,8 @@ public class DumpInfo {
         private final int javaProtocol;
 
         MCInfo() {
-            this.bedrockVersion = GeyserConnector.BEDROCK_PACKET_CODEC.getMinecraftVersion();
-            this.bedrockProtocol = GeyserConnector.BEDROCK_PACKET_CODEC.getProtocolVersion();
+            this.bedrockVersion = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
+            this.bedrockProtocol = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
             this.javaVersion = MinecraftConstants.GAME_VERSION;
             this.javaProtocol = MinecraftConstants.PROTOCOL_VERSION;
         }

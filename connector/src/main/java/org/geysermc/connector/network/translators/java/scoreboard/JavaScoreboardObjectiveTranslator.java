@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.java.scoreboard;
 
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.ScoreboardCache;
+import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Objective;
@@ -41,13 +41,11 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
 
     @Override
     public void translate(ServerScoreboardObjectivePacket packet, GeyserSession session) {
-        ScoreboardCache cache = session.getScoreboardCache();
-        Scoreboard scoreboard = cache.getScoreboard();
-
+        Scoreboard scoreboard = session.getWorldCache().getScoreboard();
         Objective objective = scoreboard.getObjective(packet.getName());
 
         if (objective == null && packet.getAction() != ObjectiveAction.REMOVE) {
-            objective = scoreboard.registerNewObjective(packet.getName(), true);
+            objective = scoreboard.registerNewObjective(packet.getName(), false);
         }
 
         switch (packet.getAction()) {
@@ -61,6 +59,8 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
                 break;
         }
 
-        if (objective != null && !objective.isTemp()) scoreboard.onUpdate();
+        if (objective != null && objective.isActive()) {
+            scoreboard.onUpdate();
+        }
     }
 }
