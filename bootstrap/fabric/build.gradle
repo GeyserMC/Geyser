@@ -38,6 +38,10 @@ repositories {
     mavenLocal()
 
     maven {
+        url = uri('https://maven.fabricmc.net/')
+    }
+
+    maven {
         url = uri('https://repo.nukkitx.com/maven-releases/')
     }
 
