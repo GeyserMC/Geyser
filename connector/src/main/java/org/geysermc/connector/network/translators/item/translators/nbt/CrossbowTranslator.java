@@ -25,14 +25,15 @@
 
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.opennbt.tag.builtin.*;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 
 @ItemRemapper
 public class CrossbowTranslator extends NbtItemStackTranslator {
@@ -44,12 +45,17 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
             if (!chargedProjectiles.getValue().isEmpty()) {
                 CompoundTag projectile = (CompoundTag) chargedProjectiles.getValue().get(0);
 
-                CompoundTag newProjectile = new CompoundTag("chargedItem");
-                newProjectile.put(new ByteTag("Count", (byte) projectile.get("Count").getValue()));
-                newProjectile.put(new StringTag("Name", (String) projectile.get("id").getValue()));
+                ItemEntry entry = ItemRegistry.getItemEntry((String) projectile.get("id").getValue());
+                if (entry == null) return;
+                CompoundTag tag = projectile.get("tag");
+                ItemStack itemStack = new ItemStack(itemEntry.getJavaId(), (byte) projectile.get("Count").getValue(), tag);
+                ItemData itemData = ItemTranslator.translateToBedrock(session, itemStack);
 
-                // Not sure what this is for
-                newProjectile.put(new ByteTag("Damage", (byte) 0));
+                CompoundTag newProjectile = new CompoundTag("chargedItem");
+                newProjectile.put(new ByteTag("Count", (byte) itemData.getCount()));
+                newProjectile.put(new StringTag("Name", ItemRegistry.getBedrockIdentifer(entry)));
+
+                newProjectile.put(new ShortTag("Damage", itemData.getDamage()));
 
                 itemTag.put(newProjectile);
             }
