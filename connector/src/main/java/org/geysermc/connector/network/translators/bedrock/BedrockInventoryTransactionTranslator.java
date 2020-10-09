@@ -178,9 +178,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(useItemPacket);
                         break;
                     case 2:
-                        int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
+                        int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                         double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(blockState);
-                        if (session.getGameMode() == GameMode.CREATIVE || (session.getConnector().getConfig().isCacheChunks() && blockHardness == 0)) {
+                        // We should send the block breaking particles in these instances:
+                        // - Gamemode is creative (ServerPlayerActionAckPacket sends a packet back but the new state is 0)
+                        // - Block hardness is 0 (same deal)
+                        // - Server isn't controlling breaking (therefore the PlayerActionAckPacket isn't coming)
+                        if (session.getGameMode() == GameMode.CREATIVE || (session.getConnector().getConfig().isCacheChunks() && (blockHardness == 0 || !session.isServerControllingBreaking()))) {
+                            if (blockHardness == 0 && !session.isServerControllingBreaking()) {
+                                // Otherwise glitchiness happens
+                                session.setBreakingBlock(blockState);
+                            }
                             session.setLastBlockPlacedId(null);
                             session.setLastBlockPlacePosition(null);
 
