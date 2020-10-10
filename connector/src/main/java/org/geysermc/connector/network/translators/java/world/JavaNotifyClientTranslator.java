@@ -103,8 +103,6 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case CHANGE_GAMEMODE:
                 GameMode gameMode = (GameMode) packet.getValue();
 
-                session.setNoClip(gameMode == GameMode.SPECTATOR);
-                session.setWorldImmutable(gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR);
                 session.sendAdventureSettings();
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();

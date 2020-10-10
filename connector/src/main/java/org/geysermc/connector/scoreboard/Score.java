@@ -49,7 +49,6 @@ public class Score {
         this.id = objective.getScoreboard().getNextId().getAndIncrement();
         this.objective = objective;
         this.name = name;
-        update();
     }
 
     public String getDisplayName() {

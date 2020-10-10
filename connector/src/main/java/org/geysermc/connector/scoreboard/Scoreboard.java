@@ -26,7 +26,6 @@
 package org.geysermc.connector.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.ScoreInfo;
 import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
@@ -123,7 +122,7 @@ public class Scoreboard {
 
         for (Objective objective : objectives.values()) {
             if (!objective.isActive()) {
-                logger.debug("Ignoring non-active Scoreboard Objective '"+ objective.getObjectiveName() +'\'');
+                logger.debug("Ignoring non-active Scoreboard Objective '" + objective.getObjectiveName() + '\'');
                 continue;
             }
 
@@ -168,16 +167,21 @@ public class Scoreboard {
                     teamChanged |= team.getUpdateType() == UPDATE;
 
                     add |= team.getUpdateType() == ADD || team.getUpdateType() == UPDATE;
-                    remove |= team.getUpdateType() == REMOVE;
+                    remove |= team.getUpdateType() != NOTHING;
                 }
 
                 add |= score.getUpdateType() == ADD || score.getUpdateType() == UPDATE;
-                remove |= score.getUpdateType() == REMOVE;
-                if (score.getUpdateType() == REMOVE) {
+                remove |= score.getUpdateType() == REMOVE || score.getUpdateType() == UPDATE;
+
+                if (score.getUpdateType() == REMOVE || globalRemove) {
                     add = false;
                 }
 
-                if (score.getUpdateType() == UPDATE || teamChanged) {
+                if (score.getUpdateType() == ADD) {
+                    remove = false;
+                }
+
+                if (score.getUpdateType() == ADD || score.getUpdateType() == UPDATE || teamChanged) {
                     score.update();
                 }
 
@@ -187,8 +191,6 @@ public class Scoreboard {
                 if (remove) {
                     removeScores.add(score.getCachedInfo());
                 }
-                // score is pending to be updated, so we use the current score as the old score
-                score.setOldScore(score.getScore());
 
                 // score is pending to be removed, so we can remove it from the objective
                 if (score.getUpdateType() == REMOVE) {
@@ -202,13 +204,13 @@ public class Scoreboard {
                 RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
                 removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
                 session.sendUpstreamPacket(removeObjectivePacket);
-                if (objective.getUpdateType() == REMOVE) {
+                if (globalRemove) {
                     objectives.remove(objective.getObjectiveName()); // now we can deregister
                     objective.removed();
                 }
             }
 
-            if (globalAdd || globalUpdate) {
+            if ((globalAdd || globalUpdate) && !globalRemove) {
                 SetDisplayObjectivePacket displayObjectivePacket = new SetDisplayObjectivePacket();
                 displayObjectivePacket.setObjectiveId(objective.getObjectiveName());
                 displayObjectivePacket.setDisplayName(objective.getDisplayName());

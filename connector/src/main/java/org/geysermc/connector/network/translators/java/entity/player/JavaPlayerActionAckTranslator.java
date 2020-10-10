@@ -61,7 +61,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                     levelEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
                     levelEvent.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock()));
                     session.sendUpstreamPacket(levelEvent);
-                    session.setBreakingBlock(0);
+                    session.setBreakingBlock(BlockTranslator.AIR);
                 }
                 ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
                 break;
@@ -92,6 +92,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                 double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState(), itemEntry, nbtData, session) * 20);
                 levelEvent.setData((int) (65535 / breakTime));
                 session.setBreakingBlock(packet.getNewState());
+                session.setServerControllingBreaking(true);
                 session.sendUpstreamPacket(levelEvent);
                 break;
             case CANCEL_DIGGING:
@@ -103,8 +104,10 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                         packet.getPosition().getZ()
                 ));
                 levelEvent.setData(0);
-                session.setBreakingBlock(0);
+                session.setBreakingBlock(BlockTranslator.AIR);
                 session.sendUpstreamPacket(levelEvent);
+                // Block breaking has stopped
+                session.setServerControllingBreaking(false);
                 break;
         }
     }

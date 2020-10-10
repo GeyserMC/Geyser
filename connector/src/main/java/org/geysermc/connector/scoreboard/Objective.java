@@ -76,14 +76,15 @@ public class Objective {
         if (!scores.containsKey(id)) {
             Score score1 = new Score(this, id)
                     .setScore(score)
-                    .setTeam(scoreboard.getTeamFor(id));
+                    .setTeam(scoreboard.getTeamFor(id))
+                    .setUpdateType(UpdateType.ADD);
             scores.put(id, score1);
         }
     }
 
     public void setScore(String id, int score) {
         if (scores.containsKey(id)) {
-            scores.get(id).setScore(score).setUpdateType(UpdateType.ADD);
+            scores.get(id).setScore(score);
             return;
         }
         registerScore(id, score);
@@ -94,15 +95,6 @@ public class Objective {
             return scores.get(id).getScore();
         }
         return 0;
-    }
-
-    public Score getScore(int line) {
-        for (Score score : scores.values()) {
-            if (score.getScore() == line) {
-                return score;
-            }
-        }
-        return null;
     }
 
     public void removeScore(String id) {

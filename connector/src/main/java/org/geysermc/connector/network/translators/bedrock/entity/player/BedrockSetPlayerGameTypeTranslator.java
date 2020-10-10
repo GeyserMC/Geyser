@@ -23,22 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.common;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@Getter
-@AllArgsConstructor
-public enum PlatformType {
+/**
+ * In vanilla Bedrock, if you have operator status, this sets the player's gamemode without confirmation from the server.
+ * Since we have a custom server option to request the gamemode, we just reset the gamemode and ignore this.
+ */
+@Translator(packet = SetPlayerGameTypePacket.class)
+public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlayerGameTypePacket> {
 
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
-
-    private final String platformName;
+    @Override
+    public void translate(SetPlayerGameTypePacket packet, GeyserSession session) {
+        // no
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(session.getGameMode().ordinal());
+        session.sendUpstreamPacket(playerGameTypePacket);
+    }
 }
