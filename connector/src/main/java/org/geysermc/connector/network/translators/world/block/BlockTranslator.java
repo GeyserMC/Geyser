@@ -99,14 +99,14 @@ public class BlockTranslator {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
 
-        Map<NbtMap, NbtMap> blockStateMap = new HashMap<>(blocksTag.size());
-        // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette
+        // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
+        // as we no longer send a block palette
         Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blocksTag.size());
 
         for (int i = 0; i < blocksTag.size(); i++) {
             NbtMap tag = blocksTag.get(i);
             NbtMap blockTag = tag.getCompound("block");
-            if (blockStateMap.putIfAbsent(blockTag, tag) != null) {
+            if (blockStateOrderedMap.containsKey(blockTag)) {
                 throw new AssertionError("Duplicate block states in Bedrock palette");
             }
             blockStateOrderedMap.put(blockTag, i);
@@ -119,11 +119,9 @@ public class BlockTranslator {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
-        Object2IntMap<NbtMap> addedStatesMap = new Object2IntOpenHashMap<>();
-        addedStatesMap.defaultReturnValue(-1);
 
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
-        ref.getTypesAnnotatedWith(BlockEntity.class);
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity")
+                : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
 
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;
@@ -201,18 +199,6 @@ public class BlockTranslator {
                 BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
             }
 
-            NbtMap runtimeTag = blockStateMap.remove(blockTag);
-            if (runtimeTag != null) {
-                addedStatesMap.put(blockTag, bedrockRuntimeId);
-            } else {
-                int duplicateRuntimeId = addedStatesMap.getOrDefault(blockTag, -1);
-                if (duplicateRuntimeId == -1) {
-                    GeyserConnector.getInstance().getLogger().debug("Mapping " + javaId + " was not found for bedrock edition!");
-                } else {
-                    JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, duplicateRuntimeId);
-                }
-                continue;
-            }
             JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
 
             if (bedrockIdentifier.equals("minecraft:air")) {
