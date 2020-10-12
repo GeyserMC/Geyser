@@ -192,7 +192,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             case WITCH:
                 return -0.45f;
             case PLAYER:
-                return 0.9f; // Java Bedrock difference
+                return -0.35f;
         }
         return 0f;
     }
@@ -222,6 +222,26 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 case LLAMA:
                     zOffset = -0.3f;
                     break;
+            }
+            /*
+             * Bedrock Differences
+             * Zoglin & Hoglin seem to be taller in Bedrock edition
+             * Horses are tinier
+             * Players, Minecarts, and Boats have different origins
+             */
+            if (passenger.getEntityType() == EntityType.PLAYER) {
+                yOffset += 1.6f;
+            }
+            switch (mount.getEntityType()) {
+                case MINECART:
+                case MINECART_HOPPER:
+                case MINECART_TNT:
+                case MINECART_CHEST:
+                case MINECART_FURNACE:
+                case MINECART_SPAWNER:
+                case MINECART_COMMAND_BLOCK:
+                case BOAT:
+                    yOffset -= mount.getEntityType().getHeight() * 0.5f;
             }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
             passenger.getMetadata().put(EntityData.RIDER_SEAT_POSITION, offset);
