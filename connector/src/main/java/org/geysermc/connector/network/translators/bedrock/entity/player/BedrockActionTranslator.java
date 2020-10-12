@@ -153,7 +153,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                         ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(fireBlockPos.getX(),
                                 fireBlockPos.getY(), fireBlockPos.getZ()), BlockFace.values()[packet.getFace()]);
                         session.sendDownstreamPacket(startBreakingPacket);
-                        break;
+                        if (session.getGameMode() == GameMode.CREATIVE) {
+                            break;
+                        }
                     }
                 }
                 ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, position, BlockFace.values()[packet.getFace()]);
