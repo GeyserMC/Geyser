@@ -41,10 +41,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
@@ -182,6 +179,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(useItemPacket);
                         break;
                     case 2:
+                        // Reset the block the player just placed
+                        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition())));
+                        updateBlockPacket.setBlockPosition(packet.getBlockPosition());
+                        updateBlockPacket.setDataLayer(0);
+                        updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                        session.sendUpstreamPacket(updateBlockPacket);
+
                         int blockState = session.getGameMode() == GameMode.CREATIVE ?
                                 session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition()) : session.getBreakingBlock();
 
