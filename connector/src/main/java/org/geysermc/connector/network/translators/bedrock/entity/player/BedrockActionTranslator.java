@@ -123,8 +123,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
-                // Sent when a client starts a 'breaking session' - after the first block is broken and the swing keeps going,
-                // that is just a continue break
                 if (session.getConnector().getConfig().isCacheChunks()) {
                     // Start the block breaking animation
                     if (session.getGameMode() != GameMode.CREATIVE) {

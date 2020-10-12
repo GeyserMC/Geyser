@@ -44,7 +44,8 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
     @Override
     public void translate(ServerBlockChangePacket packet, GeyserSession session) {
         Position pos = packet.getRecord().getPosition();
-        boolean updatePlacement = !(session.getConnector().getPlatformType() == PlatformType.SPIGOT && session.getConnector().getConfig().isCacheChunks() && // Spigot simply listens for the block place event
+        boolean updatePlacement = session.getConnector().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
+                !(session.getConnector().getConfig().isCacheChunks() &&
                 session.getConnector().getWorldManager().getBlockAt(session, pos) == packet.getRecord().getBlock());
         ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), pos);
         if (updatePlacement) {
