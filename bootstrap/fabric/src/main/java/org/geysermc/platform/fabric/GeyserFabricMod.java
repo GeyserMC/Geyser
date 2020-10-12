@@ -97,50 +97,65 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
 
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
-            // Required to do this so we can get the proper IP and port if needed
-            this.server = server;
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
-                this.geyserConfig.setAutoconfiguredRemote(true);
-                String ip = server.getServerIp();
-                int port = server.getServerPort();
-                if (ip != null && !ip.isEmpty() && !ip.equals("0.0.0.0")) {
-                    this.geyserConfig.getRemote().setAddress(ip);
-                }
-                this.geyserConfig.getRemote().setPort(port);
+        if (server == null) {
+            // Server has yet to start
+            // Set as an event so we can get the proper IP and port if needed
+            ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
+                this.server = server;
+                startGeyser();
+            });
+
+            // Register onDisable so players are properly kicked
+            ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
+        } else {
+            // Server has started and this is a reload
+            startGeyser();
+        }
+    }
+
+    /**
+     * Initialize core Geyser.
+     * A function, as it needs to be called in different places depending on if Geyser is being reloaded or not.
+     */
+    public void startGeyser() {
+        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            this.geyserConfig.setAutoconfiguredRemote(true);
+            String ip = server.getServerIp();
+            int port = server.getServerPort();
+            if (ip != null && !ip.isEmpty() && !ip.equals("0.0.0.0")) {
+                this.geyserConfig.getRemote().setAddress(ip);
             }
+            this.geyserConfig.getRemote().setPort(port);
+        }
 
-            if (geyserConfig.getBedrock().isCloneRemotePort()) {
-                geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
-            }
+        if (geyserConfig.getBedrock().isCloneRemotePort()) {
+            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
+        }
 
-            this.connector = GeyserConnector.start(PlatformType.FABRIC, this);
+        this.connector = GeyserConnector.start(PlatformType.FABRIC, this);
 
-            this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
-            this.geyserCommandManager = new GeyserFabricCommandManager(connector);
+        this.geyserCommandManager = new GeyserFabricCommandManager(connector);
 
-            // Start command building
-            // Set just "geyser" as the help command
-            LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser")
-                    .executes(new GeyserFabricCommandExecutor(connector, "help", !playerCommands.contains("help")));
-            for (Map.Entry<String, GeyserCommand> command : connector.getCommandManager().getCommands().entrySet()) {
-                // Register all subcommands as valid
-                builder.then(net.minecraft.server.command.CommandManager.literal(
-                        command.getKey()).executes(new GeyserFabricCommandExecutor(connector, command.getKey(),
-                        !playerCommands.contains(command.getKey()))));
-            }
-            server.getCommandManager().getDispatcher().register(builder);
-        });
-
-        // Register onDisable so players are properly kicked
-        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
+        // Start command building
+        // Set just "geyser" as the help command
+        LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser")
+                .executes(new GeyserFabricCommandExecutor(connector, "help", !playerCommands.contains("help")));
+        for (Map.Entry<String, GeyserCommand> command : connector.getCommandManager().getCommands().entrySet()) {
+            // Register all subcommands as valid
+            builder.then(net.minecraft.server.command.CommandManager.literal(
+                    command.getKey()).executes(new GeyserFabricCommandExecutor(connector, command.getKey(),
+                    !playerCommands.contains(command.getKey()))));
+        }
+        server.getCommandManager().getDispatcher().register(builder);
     }
 
     @Override
     public void onDisable() {
         if (connector != null) {
             connector.shutdown();
+            connector = null;
         }
     }
 
