@@ -163,13 +163,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private Vector3i lastInteractionPosition = Vector3i.ZERO;
 
-    /**
-     * Whether the Java server is controlling the current block breaking instance.
-     * Otherwise, we need to send the packets ourselves.
-     */
-    @Setter
-    private boolean serverControllingBreaking = false;
-
     private boolean manyDimPackets = false;
     private ServerRespawnPacket lastDimPacket = null;
 
