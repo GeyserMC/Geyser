@@ -58,6 +58,7 @@ import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.utils.ResourcePack;
+import org.geysermc.floodgate.util.DeviceOS;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -66,7 +67,9 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -201,6 +204,19 @@ public class GeyserConnector {
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
             metrics.addCustomChart(new Metrics.SimplePie("authMode", authType.name()::toLowerCase));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
+            metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
+                Map<String, Integer> valueMap = new HashMap<>();
+                for (DeviceOS os : DeviceOS.values()) {
+                    int i = 0;
+                    for(GeyserSession session : players) {
+                        if(session.getClientData().getDeviceOS() == os) {
+                            i++;
+                        }
+                    }
+                    valueMap.put(os.name(), i);
+                }
+                return valueMap;
+            }));
         }
 
         boolean isGui = false;
