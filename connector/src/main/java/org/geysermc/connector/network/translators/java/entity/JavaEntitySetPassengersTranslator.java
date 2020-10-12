@@ -230,7 +230,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
              * Players, Minecarts, and Boats have different origins
              */
             if (passenger.getEntityType() == EntityType.PLAYER) {
-                yOffset += 1.6f;
+                yOffset += EntityType.PLAYER.getOffset();
             }
             switch (mount.getEntityType()) {
                 case MINECART:
