@@ -82,7 +82,6 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             }
 
             passenger.updateBedrockMetadata(session);
-            this.updateOffset(passenger, entity, session, rider, true, (passengers.size() > 1));
             rider = false;
         }
 
@@ -102,18 +101,13 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 session.sendUpstreamPacket(linkPacket);
                 passengers.remove(passenger.getEntityId());
 
-                this.updateOffset(passenger, entity, session, false, false, (passengers.size() > 1));
+                this.updateOffset(passenger, entity, session, false, false, (packet.getPassengerIds().length > 1));
+            } else {
+                this.updateOffset(passenger, entity, session, (packet.getPassengerIds()[0] == passengerId), true, (packet.getPassengerIds().length > 1));
             }
 
             // Force an update to the passenger metadata
             passenger.updateBedrockMetadata(session);
-        }
-
-        if (entity.getEntityType() == EntityType.HORSE) {
-            entity.getMetadata().put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(0.0f, 2.3200102f, -0.2f));
-            entity.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
-
-            entity.updateBedrockMetadata(session);
         }
     }
 
@@ -153,7 +147,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 mountedHeightOffset = mountType.getHeight() * 0.92f;
                 break;
             case RAVAGER:
-                mountedHeightOffset = mountType.getHeight() * 2.1f;
+                mountedHeightOffset = 2.1f;
                 break;
             case SKELETON_HORSE:
                 mountedHeightOffset -= 0.1875f;
