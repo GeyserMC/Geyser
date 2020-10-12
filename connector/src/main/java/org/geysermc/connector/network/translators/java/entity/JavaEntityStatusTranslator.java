@@ -26,9 +26,11 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.Entity;
@@ -155,6 +157,19 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                     return;
                 }
                 break;
+            case LIVING_EQUIPMENT_BREAK_HEAD:
+            case LIVING_EQUIPMENT_BREAK_CHEST:
+            case LIVING_EQUIPMENT_BREAK_LEGS:
+            case LIVING_EQUIPMENT_BREAK_FEET:
+            case LIVING_EQUIPMENT_BREAK_MAIN_HAND:
+            case LIVING_EQUIPMENT_BREAK_OFF_HAND:
+                LevelSoundEvent2Packet soundPacket = new LevelSoundEvent2Packet();
+                soundPacket.setSound(SoundEvent.BREAK);
+                soundPacket.setPosition(entity.getPosition());
+                soundPacket.setExtraData(-1);
+                soundPacket.setIdentifier("");
+                session.sendUpstreamPacket(soundPacket);
+                return;
         }
 
         session.sendUpstreamPacket(entityEventPacket);

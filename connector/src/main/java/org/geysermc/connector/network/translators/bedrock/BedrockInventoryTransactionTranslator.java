@@ -182,26 +182,18 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(useItemPacket);
                         break;
                     case 2:
-                        int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition());
-                        double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(blockState);
-                        // We should send the block breaking particles in these instances:
-                        // - Gamemode is creative (ServerPlayerActionAckPacket sends a packet back but the new state is 0)
-                        // - Block hardness is 0 (same deal)
-                        // - Server isn't controlling breaking (therefore the PlayerActionAckPacket isn't coming)
-                        if (session.getGameMode() == GameMode.CREATIVE || (session.getConnector().getConfig().isCacheChunks() && (blockHardness == 0 || !session.isServerControllingBreaking()))) {
-                            if (blockHardness == 0 && !session.isServerControllingBreaking()) {
-                                // Otherwise glitchiness happens
-                                session.setBreakingBlock(blockState);
-                            }
-                            session.setLastBlockPlacedId(null);
-                            session.setLastBlockPlacePosition(null);
+                        int blockState = session.getGameMode() == GameMode.CREATIVE ?
+                                session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition()) : session.getBreakingBlock();
 
-                            LevelEventPacket blockBreakPacket = new LevelEventPacket();
-                            blockBreakPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
-                            blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
-                            blockBreakPacket.setData(BlockTranslator.getBedrockBlockId(blockState));
-                            session.sendUpstreamPacket(blockBreakPacket);
-                        }
+                        session.setLastBlockPlacedId(null);
+                        session.setLastBlockPlacePosition(null);
+
+                        LevelEventPacket blockBreakPacket = new LevelEventPacket();
+                        blockBreakPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
+                        blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
+                        blockBreakPacket.setData(BlockTranslator.getBedrockBlockId(blockState));
+                        session.sendUpstreamPacket(blockBreakPacket);
+                        session.setBreakingBlock(BlockTranslator.AIR);
 
                         if (ItemFrameEntity.positionContainsItemFrame(session, packet.getBlockPosition()) &&
                                 session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {

@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.java.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockChangePacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
@@ -37,18 +38,16 @@ import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHan
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockChangePacket;
-
 @Translator(packet = ServerBlockChangePacket.class)
 public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChangePacket> {
 
     @Override
     public void translate(ServerBlockChangePacket packet, GeyserSession session) {
         Position pos = packet.getRecord().getPosition();
-        boolean updatePlacement = !(session.getConnector().getConfig().isCacheChunks() &&
+        boolean updatePlacement = !(session.getConnector().getPlatformType() == PlatformType.SPIGOT && session.getConnector().getConfig().isCacheChunks() && // Spigot simply listens for the block place event
                 session.getConnector().getWorldManager().getBlockAt(session, pos) == packet.getRecord().getBlock());
-        ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), packet.getRecord().getPosition());
-        if (updatePlacement && session.getConnector().getPlatformType() != PlatformType.SPIGOT) { // Spigot simply listens for the block place event
+        ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), pos);
+        if (updatePlacement) {
             this.checkPlace(session, packet);
         }
         this.checkInteract(session, packet);

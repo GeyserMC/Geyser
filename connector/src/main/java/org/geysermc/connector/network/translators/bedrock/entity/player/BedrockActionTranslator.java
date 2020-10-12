@@ -126,6 +126,27 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Sent when a client starts a 'breaking session' - after the first block is broken and the swing keeps going,
                 // that is just a continue break
                 if (session.getConnector().getConfig().isCacheChunks()) {
+                    // Start the block breaking animation
+                    if (session.getGameMode() != GameMode.CREATIVE) {
+                        int blockState = session.getConnector().getWorldManager().getBlockAt(session, vector);
+                        double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(blockState);
+                        LevelEventPacket startBreak = new LevelEventPacket();
+                        startBreak.setType(LevelEventType.BLOCK_START_BREAK);
+                        startBreak.setPosition(vector.toFloat());
+                        PlayerInventory inventory = session.getInventory();
+                        ItemStack item = inventory.getItemInHand();
+                        ItemEntry itemEntry = null;
+                        CompoundTag nbtData = new CompoundTag("");
+                        if (item != null) {
+                            itemEntry = ItemRegistry.getItem(item);
+                            nbtData = item.getNbt();
+                        }
+                        double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, blockState, itemEntry, nbtData, session) * 20);
+                        startBreak.setData((int) (65535 / breakTime));
+                        session.setBreakingBlock(blockState);
+                        session.sendUpstreamPacket(startBreak);
+                    }
+
                     // Account for fire - the client likes to hit the block behind.
                     Vector3i fireBlockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getFace());
                     int blockUp = session.getConnector().getWorldManager().getBlockAt(session, fireBlockPos);
@@ -144,29 +165,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 if (session.getGameMode() == GameMode.CREATIVE) {
                     break;
                 }
-                if (!session.isServerControllingBreaking() && session.getBreakingBlock() == BlockTranslator.AIR && session.getConnector().getConfig().isCacheChunks()) {
-                    // Do block breaking animations clientside for servers that don't give us these animations automatically
-                    // through the ServerPlayerActionAckPacket
-                    // This includes Tuinity, which probably doesn't send these for performance,
-                    // And older servers that don't have the packet
-                    int blockState = session.getConnector().getWorldManager().getBlockAt(session, vector);
-                    double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(blockState);
-                    LevelEventPacket startBreak = new LevelEventPacket();
-                    startBreak.setType(LevelEventType.BLOCK_START_BREAK);
-                    startBreak.setPosition(vector.toFloat());
-                    PlayerInventory inventory = session.getInventory();
-                    ItemStack item = inventory.getItemInHand();
-                    ItemEntry itemEntry = null;
-                    CompoundTag nbtData = new CompoundTag("");
-                    if (item != null) {
-                        itemEntry = ItemRegistry.getItem(item);
-                        nbtData = item.getNbt();
-                    }
-                    double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, blockState, itemEntry, nbtData, session) * 20);
-                    startBreak.setData((int) (65535 / breakTime));
-                    session.setBreakingBlock(blockState);
-                    session.sendUpstreamPacket(startBreak);
-                }
                 LevelEventPacket continueBreakPacket = new LevelEventPacket();
                 continueBreakPacket.setType(LevelEventType.PARTICLE_CRACK_BLOCK);
                 continueBreakPacket.setData(BlockTranslator.getBedrockBlockId(session.getBreakingBlock()));
@@ -176,14 +174,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case ABORT_BREAK:
                 ClientPlayerActionPacket abortBreakingPacket = new ClientPlayerActionPacket(PlayerAction.CANCEL_DIGGING, position, BlockFace.DOWN);
                 session.sendDownstreamPacket(abortBreakingPacket);
-                if (!session.isServerControllingBreaking()) {
-                    LevelEventPacket stopBreak = new LevelEventPacket();
-                    stopBreak.setType(LevelEventType.BLOCK_STOP_BREAK);
-                    stopBreak.setPosition(vector.toFloat());
-                    stopBreak.setData(0);
-                    session.setBreakingBlock(BlockTranslator.AIR);
-                    session.sendUpstreamPacket(stopBreak);
-                }
+                LevelEventPacket stopBreak = new LevelEventPacket();
+                stopBreak.setType(LevelEventType.BLOCK_STOP_BREAK);
+                stopBreak.setPosition(vector.toFloat());
+                stopBreak.setData(0);
+                session.setBreakingBlock(BlockTranslator.AIR);
+                session.sendUpstreamPacket(stopBreak);
                 break;
             case STOP_BREAK:
                 // Handled in BedrockInventoryTransactionTranslator
