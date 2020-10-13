@@ -27,22 +27,18 @@ package org.geysermc.connector.network.session.cache;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import lombok.Getter;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ChunkCache {
 
     private final boolean cache;
 
-    @Getter
-    private final Map<ChunkPosition, Column> chunks = new HashMap<>();
+    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
 
     public ChunkCache(GeyserSession session) {
         if (session.getConnector().getWorldManager().getClass() == GeyserBootstrap.DEFAULT_CHUNK_MANAGER.getClass()) {
@@ -56,57 +52,66 @@ public class ChunkCache {
         if (!cache) {
             return;
         }
-        ChunkPosition position = new ChunkPosition(chunk.getX(), chunk.getZ());
-        if (chunk.getBiomeData() == null && chunks.containsKey(position)) {
-            Column newColumn = chunk;
-            chunk = chunks.get(position);
-            for (int i = 0; i < newColumn.getChunks().length; i++) {
-                if (newColumn.getChunks()[i] != null) {
-                    chunk.getChunks()[i] = newColumn.getChunks()[i];
+
+        long chunkPosition = ChunkPosition.toLong(chunk.getX(), chunk.getZ());
+        Column existingChunk;
+        if (chunk.getBiomeData() != null // Only consider merging columns if the new chunk isn't a full chunk
+            && (existingChunk = chunks.getOrDefault(chunkPosition, null)) != null) { // Column is already present in cache, we can merge with existing
+            for (int i = 0; i < chunk.getChunks().length; i++) { // The chunks member is final, so chunk.getChunks() will probably be inlined and then completely optimized away
+                if (chunk.getChunks()[i] != null) {
+                    existingChunk.getChunks()[i] = chunk.getChunks()[i];
                 }
             }
-        }
-        chunks.put(position, chunk);
-    }
-
-    public void updateBlock(Position position, int block) {
-        if (!cache) {
-            return;
-        }
-        ChunkPosition chunkPosition = new ChunkPosition(position.getX() >> 4, position.getZ() >> 4);
-        if (!chunks.containsKey(chunkPosition))
-            return;
-
-        Column column = chunks.get(chunkPosition);
-        Chunk chunk = column.getChunks()[position.getY() >> 4];
-        Position blockPosition = chunkPosition.getChunkBlock(position.getX(), position.getY(), position.getZ());
-        if (chunk != null) {
-            chunk.set(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), block);
+        } else {
+            chunks.put(chunkPosition, chunk);
         }
     }
 
-    public int getBlockAt(Position position) {
+    public Column getChunk(int chunkX, int chunkZ)  {
+        long chunkPosition = ChunkPosition.toLong(chunkX, chunkZ);
+        return chunks.getOrDefault(chunkPosition, null);
+    }
+
+    public void updateBlock(int x, int y, int z, int block) {
+        if (!cache) {
+            return;
+        }
+
+        Column column = this.getChunk(x >> 4, z >> 4);
+        if (column == null) {
+            return;
+        }
+
+        Chunk chunk = column.getChunks()[y >> 4];
+        if (chunk != null) {
+            chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
+        }
+    }
+
+    public int getBlockAt(int x, int y, int z) {
         if (!cache) {
             return BlockTranslator.AIR;
         }
-        ChunkPosition chunkPosition = new ChunkPosition(position.getX() >> 4, position.getZ() >> 4);
-        if (!chunks.containsKey(chunkPosition))
-            return BlockTranslator.AIR;
 
-        Column column = chunks.get(chunkPosition);
-        Chunk chunk = column.getChunks()[position.getY() >> 4];
-        Position blockPosition = chunkPosition.getChunkBlock(position.getX(), position.getY(), position.getZ());
+        Column column = this.getChunk(x >> 4, z >> 4);
+        if (column == null) {
+            return BlockTranslator.AIR;
+        }
+
+        Chunk chunk = column.getChunks()[y >> 4];
         if (chunk != null) {
-            return chunk.get(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
+            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
 
         return BlockTranslator.AIR;
     }
 
-    public void removeChunk(ChunkPosition position) {
+    public void removeChunk(int chunkX, int chunkZ) {
         if (!cache) {
             return;
         }
-        chunks.remove(position);
+
+        long chunkPosition = ChunkPosition.toLong(chunkX, chunkZ);
+        chunks.remove(chunkPosition);
     }
 }

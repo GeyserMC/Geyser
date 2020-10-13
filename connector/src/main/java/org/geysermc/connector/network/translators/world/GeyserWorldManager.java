@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.world;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
@@ -34,7 +33,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.ChunkCache;
-import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
 import org.geysermc.connector.utils.GameRule;
 
 public class GeyserWorldManager extends WorldManager {
@@ -45,7 +43,7 @@ public class GeyserWorldManager extends WorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         ChunkCache chunkCache = session.getChunkCache();
         if (chunkCache != null) { // Chunk cache can be null if the session is closed asynchronously
-            return chunkCache.getBlockAt(new Position(x, y, z));
+            return chunkCache.getBlockAt(x, y, z);
         }
         return 0;
     }
@@ -55,7 +53,7 @@ public class GeyserWorldManager extends WorldManager {
         if (session.getConnector().getConfig().isCacheChunks()) {
             ChunkCache chunkCache = session.getChunkCache();
             if (chunkCache != null) { // Chunk cache can be null if the session is closed asynchronously
-                Column column = chunkCache.getChunks().get(new ChunkPosition(x, z));
+                Column column = chunkCache.getChunk(x, z);
                 if (column != null) { // Column can be null if the server sent a partial chunk update before the first ground-up-continuous one
                     return column.getBiomeData();
                 }

@@ -27,15 +27,24 @@ package org.geysermc.connector.network.translators.world.chunk;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
-@EqualsAndHashCode
 public class ChunkPosition {
+
+    /**
+     * Packs a chunk's X and Z coordinates into a single {@code long}.
+     *
+     * @param x the X coordinate
+     * @param z the Z coordinate
+     * @return the packed coordinates
+     */
+    public static long toLong(int x, int z) {
+        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
+    }
 
     private int x;
     private int z;
@@ -49,5 +58,22 @@ public class ChunkPosition {
         int chunkY = y & 15;
         int chunkZ = z & 15;
         return new Position(chunkX, chunkY, chunkZ);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)    {
+            return true;
+        } else if (obj instanceof ChunkPosition) {
+            ChunkPosition chunkPosition = (ChunkPosition) obj;
+            return this.x == chunkPosition.x && this.z == chunkPosition.z;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.x * 2061811133 + this.z * 1424368303;
     }
 }
