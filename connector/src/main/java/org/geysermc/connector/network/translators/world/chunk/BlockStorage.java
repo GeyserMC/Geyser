@@ -86,6 +86,16 @@ public class BlockStorage {
         palette.forEach((IntConsumer) id -> VarInts.writeInt(buffer, id));
     }
 
+    public int estimateNetworkSize() {
+        int size = 1; // Palette header
+        size += this.bitArray.getWords().length * 4;
+
+        // We assume that none of the VarInts will be larger than 3 bytes
+        size += 3; // Palette size
+        size += this.palette.size() * 3;
+        return size;
+    }
+
     private void onResize(BitArrayVersion version) {
         BitArray newBitArray = version.createPalette(SIZE);
 

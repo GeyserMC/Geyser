@@ -27,7 +27,6 @@ package org.geysermc.connector.network.translators.world.chunk;
 
 import com.nukkitx.network.util.Preconditions;
 import io.netty.buffer.ByteBuf;
-import lombok.Synchronized;
 
 public class ChunkSection {
 
@@ -62,6 +61,14 @@ public class ChunkSection {
         for (BlockStorage blockStorage : this.storage) {
             blockStorage.writeToNetwork(buffer);
         }
+    }
+
+    public int estimateNetworkSize() {
+        int size = 2; // Version + storage count
+        for (BlockStorage blockStorage : this.storage) {
+            size += blockStorage.estimateNetworkSize();
+        }
+        return size;
     }
 
     public BlockStorage[] getBlockStorageArray() {

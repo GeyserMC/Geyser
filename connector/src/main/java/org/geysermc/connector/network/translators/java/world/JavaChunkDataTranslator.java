@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
 import com.nukkitx.nbt.NBTOutputStream;
@@ -34,6 +33,7 @@ import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import org.geysermc.connector.GeyserConnector;
@@ -70,46 +70,60 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
         // Merge received column with cache on network thread
         Column mergedColumn = session.getChunkCache().addToCache(packet.getColumn());
-        if (mergedColumn == null)   { // There were no changes?!?
+        if (mergedColumn == null) { // There were no changes?!?
             return;
         }
 
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
                 ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn);
-                ByteBuf byteBuf = Unpooled.buffer(32);
                 ChunkSection[] sections = chunkData.sections;
 
+                // Find highest section
                 int sectionCount = sections.length - 1;
                 while (sectionCount >= 0 && sections[sectionCount] == null) {
                     sectionCount--;
                 }
                 sectionCount++;
 
+                // Estimate chunk size
+                int size = 0;
                 for (int i = 0; i < sectionCount; i++) {
                     ChunkSection section = chunkData.sections[i];
-                    if (section == null)    {
-                        section = ChunkUtils.EMPTY_SECTION;
+                    size += (section != null ? section : ChunkUtils.EMPTY_SECTION).estimateNetworkSize();
+                }
+                size += 256; // Biomes
+                size += 1; // Border blocks
+                size += 1; // Extra data length (always 0)
+                size += chunkData.getBlockEntities().length * 64; // Conservative estimate of 64 bytes per tile entity
+
+                // Allocate output buffer
+                ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(size);
+                byte[] payload;
+                try {
+                    for (int i = 0; i < sectionCount; i++) {
+                        ChunkSection section = chunkData.sections[i];
+                        (section != null ? section : ChunkUtils.EMPTY_SECTION).writeToNetwork(byteBuf);
                     }
-                    section.writeToNetwork(byteBuf);
+
+                    byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(mergedColumn.getBiomeData());
+
+                    byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
+                    byteBuf.writeByte(0); // Border blocks - Edu edition only
+                    VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
+
+                    // Encode tile entities into buffer
+                    NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(new ByteBufOutputStream(byteBuf));
+                    for (NbtMap blockEntity : chunkData.getBlockEntities()) {
+                        nbtStream.writeTag(blockEntity);
+                    }
+
+                    // Copy data into byte[], because the protocol lib really likes things that are s l o w
+                    payload = new byte[byteBuf.readableBytes()];
+                    byteBuf.readBytes(payload);
+                } finally {
+                    byteBuf.release(); // Release buffer to allow buffer pooling to be useful
                 }
-
-                byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(mergedColumn.getBiomeData());
-
-                byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
-                byteBuf.writeByte(0); // Border blocks - Edu edition only
-                VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
-
-                ByteBufOutputStream stream = new ByteBufOutputStream(Unpooled.buffer());
-                NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(stream);
-                for (NbtMap blockEntity : chunkData.getBlockEntities()) {
-                    nbtStream.writeTag(blockEntity);
-                }
-
-                byteBuf.writeBytes(stream.buffer());
-
-                byte[] payload = new byte[byteBuf.writerIndex()];
-                byteBuf.readBytes(payload);
 
                 LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
                 levelChunkPacket.setSubChunksLength(sectionCount);
