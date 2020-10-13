@@ -95,12 +95,6 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 }
 
                 byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(mergedColumn.getBiomeData());
-                /*byte[] bedrockBiome;
-                if (packet.getColumn().getBiomeData() == null) {
-                    bedrockBiome = BiomeTranslator.toBedrockBiome(session.getConnector().getWorldManager().getBiomeDataAt(session, packet.getColumn().getX(), packet.getColumn().getZ()));
-                } else {
-                    bedrockBiome = BiomeTranslator.toBedrockBiome(packet.getColumn().getBiomeData());
-                }*/
 
                 byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
                 byteBuf.writeByte(0); // Border blocks - Edu edition only

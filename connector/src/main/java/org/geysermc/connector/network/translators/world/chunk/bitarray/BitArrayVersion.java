@@ -60,15 +60,6 @@ public enum BitArrayVersion {
         throw new IllegalArgumentException("Invalid palette version: " + version);
     }
 
-    public static BitArrayVersion forBitsExact(int bits) {
-        for (BitArrayVersion version : VALUES)  {
-            if (version.bits == bits)   {
-                return version;
-            }
-        }
-        return null;
-    }
-
     public static BitArrayVersion forBitsCeil(int bits) {
         for (int i = VALUES.length - 1; i >= 0; i--)  {
             BitArrayVersion version = VALUES[i];

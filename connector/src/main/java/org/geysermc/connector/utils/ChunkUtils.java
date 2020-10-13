@@ -44,13 +44,13 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
@@ -62,7 +62,8 @@ import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArrayV
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
@@ -79,7 +80,7 @@ public class ChunkUtils {
     public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
 
     public static final BlockStorage EMPTY_STORAGE = new BlockStorage();
-    public static final ChunkSection EMPTY_SECTION = new ChunkSection(new BlockStorage[]{EMPTY_STORAGE, EMPTY_STORAGE});
+    public static final ChunkSection EMPTY_SECTION = new ChunkSection(new BlockStorage[]{ EMPTY_STORAGE });
 
     static {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -95,7 +96,7 @@ public class ChunkUtils {
         }
     }
 
-    private static int indexYZXtoXZY(int yzx)   {
+    private static int indexYZXtoXZY(int yzx) {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
     }
 
@@ -104,12 +105,11 @@ public class ChunkUtils {
         Chunk[] javaChunks = column.getChunks();
         chunkData.sections = new ChunkSection[javaChunks.length];
 
-        CompoundTag[] blockEntities = column.getTileEntities();
-        // Temporarily stores positions of BlockState values per chunk load
-        Object2IntMap<Position> blockEntityPositions = new Object2IntOpenHashMap<>();
-
         // Temporarily stores compound tags of Bedrock-only block entities
-        ObjectArrayList<NbtMap> bedrockOnlyBlockEntities = new ObjectArrayList<>();
+        List<NbtMap> bedrockOnlyBlockEntities = new ArrayList<>();
+
+        BitSet waterloggedPaletteIds = new BitSet();
+        BitSet pistonOrFlowerPaletteIds = new BitSet();
 
         for (int chunkY = 0; chunkY < javaChunks.length; chunkY++) {
             Chunk javaChunk = javaChunks[chunkY];
@@ -123,72 +123,78 @@ public class ChunkUtils {
 
             List<Integer> javaPalette = javaChunk.getPalette();
             IntList bedrockPalette = new IntArrayList(javaPalette.size());
-            boolean areAnyBlocksWaterlogged = false;
+            waterloggedPaletteIds.clear();
+            pistonOrFlowerPaletteIds.clear();
             for (int i = 0; i < javaPalette.size(); i++) {
                 int javaId = javaPalette.get(i);
                 bedrockPalette.add(BlockTranslator.getBedrockBlockId(javaId));
 
-                if (!areAnyBlocksWaterlogged && BlockTranslator.isWaterlogged(javaId))  {
-                    areAnyBlocksWaterlogged = true;
+                if (BlockTranslator.isWaterlogged(javaId)) {
+                    waterloggedPaletteIds.set(i);
                 }
-            }
 
-            if (areAnyBlocksWaterlogged)    {
-                throw new UnsupportedOperationException(); //TODO: implement this
+                // Check if block is piston or flower - only block entities in Bedrock
+                if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
+                    pistonOrFlowerPaletteIds.set(i);
+                }
             }
 
             FlexibleStorage javaArray = javaChunk.getStorage();
-            BitArrayVersion bedrockVersion = BitArrayVersion.forBitsExact(javaArray.getBitsPerEntry());
-            if (bedrockVersion == null) { // No exact match...
-                //TODO: copy below implementation into this if once i optimize said implementation
-                bedrockVersion = BitArrayVersion.forBitsCeil(javaArray.getBitsPerEntry());
-            }
 
-            // Convert palettized array from YZX to XZY coordinate order
-            // This could probably be optimized further...
-            BitArray bedrockArray = bedrockVersion.createPalette(BlockStorage.SIZE);
-            for (int i = 0; i < BlockStorage.SIZE; i++) {
-                bedrockArray.set(indexYZXtoXZY(i), javaArray.get(i));
-            }
-
-            chunkData.sections[chunkY] = new ChunkSection(new BlockStorage[]{new BlockStorage(bedrockArray, bedrockPalette)});
-
-            /*ChunkSection section = chunkData.sections[chunkY] = new ChunkSection();
-            for (int x = 0; x < 16; x++) {
-                for (int y = 0; y < 16; y++) {
-                    for (int z = 0; z < 16; z++) {
-                        int blockState;
-                        // If a non-full chunk, then grab the block that should be here to create a 'full' chunk
-                        if (javaChunk == null) {
-                            blockState = session.getConnector().getWorldManager().getBlockAt(session, (column.getX() << 4) + x, (chunkY << 4) + y, (column.getZ() << 4) + z);
-                        } else {
-                            blockState = javaChunk.get(x, y, z);
-                        }
-                        int id = BlockTranslator.getBedrockBlockId(blockState);
-
-                        // Check to see if the name is in BlockTranslator.getBlockEntityString, and therefore must be handled differently
-                        if (BlockTranslator.getBlockEntityString(blockState) != null) {
-                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            blockEntityPositions.put(pos, blockState);
-                        }
-
-                        section.getBlockStorageArray()[0].setFullBlock(ChunkSection.blockPosition(x, y, z), id);
-
-                        // Check if block is piston or flower - only block entities in Bedrock
-                        if (BlockStateValues.getFlowerPotValues().containsKey(blockState) ||
-                            BlockStateValues.getPistonValues().containsKey(blockState)) {
-                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(Vector3i.from(pos.getX(), pos.getY(), pos.getZ()), blockState));
-                        }
-
-                        if (BlockTranslator.isWaterlogged(blockState)) {
-                            section.getBlockStorageArray()[1].setFullBlock(ChunkSection.blockPosition(x, y, z), BEDROCK_WATER_ID);
-                        }
+            // Add Bedrock-exclusive block entities
+            if (!pistonOrFlowerPaletteIds.isEmpty()) {
+                for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
+                    int paletteId = javaArray.get(yzx);
+                    if (pistonOrFlowerPaletteIds.get(paletteId)) {
+                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (chunkY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                javaPalette.get(paletteId)
+                        ));
                     }
                 }
-            }*/
+            }
+
+            BitArrayVersion bedrockVersion = BitArrayVersion.forBitsCeil(javaArray.getBitsPerEntry());
+            BitArray bedrockArray = bedrockVersion.createPalette(BlockStorage.SIZE);
+
+            BlockStorage layer0 = new BlockStorage(bedrockArray, bedrockPalette);
+            ChunkSection section;
+
+            // Convert palettized array from YZX to XZY coordinate order
+            if (waterloggedPaletteIds.isEmpty()) {
+                // This could probably be optimized further...
+                for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
+                    bedrockArray.set(indexYZXtoXZY(yzx), javaArray.get(yzx));
+                }
+
+                section = new ChunkSection(new BlockStorage[]{ layer0 });
+            } else {
+                // Generate V1 blocks storage for layer 1 with palette ID 1 indicating water
+                int[] layer1Data = new int[BlockStorage.SIZE >> 5];
+                for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
+                    int paletteId = javaArray.get(yzx);
+                    int xzy = indexYZXtoXZY(yzx);
+                    bedrockArray.set(xzy, paletteId);
+
+                    if (waterloggedPaletteIds.get(paletteId)) {
+                        layer1Data[xzy >> 5] |= 1 << (xzy & 0x1F);
+                    }
+                }
+
+                IntList layer1Ids = new IntArrayList(2);
+                layer1Ids.add(0); // Air
+                layer1Ids.add(BEDROCK_WATER_ID);
+
+                section = new ChunkSection(new BlockStorage[]{
+                        layer0,
+                        new BlockStorage(BitArrayVersion.V1.createPalette(BlockStorage.SIZE, layer1Data), layer1Ids)
+                });
+            }
+
+            chunkData.sections[chunkY] = section;
         }
 
+        CompoundTag[] blockEntities = column.getTileEntities();
         NbtMap[] bedrockBlockEntities = new NbtMap[blockEntities.length + bedrockOnlyBlockEntities.size()];
         int i = 0;
         while (i < blockEntities.length) {
@@ -202,7 +208,7 @@ public class ChunkUtils {
                 for (Tag subTag : tag) {
                     if (subTag instanceof StringTag) {
                         StringTag stringTag = (StringTag) subTag;
-                        if (stringTag.getValue().equals("")) {
+                        if (stringTag.getValue().isEmpty()) {
                             tagName = stringTag.getName();
                             break;
                         }
@@ -216,7 +222,14 @@ public class ChunkUtils {
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
             BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
             Position pos = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
-            int blockState = blockEntityPositions.getOrDefault(pos, 0);
+
+            // Get Java blockstate ID from block entity position
+            int blockState = 0;
+            Chunk chunk = column.getChunks()[pos.getY() >> 4];
+            if (chunk != null) {
+                blockState = chunk.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
+            }
+
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
             i++;
         }
