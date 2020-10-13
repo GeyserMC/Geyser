@@ -35,6 +35,17 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ChunkPosition {
 
+    /**
+     * Packs a chunk's X and Z coordinates into a single {@code long}.
+     *
+     * @param x the X coordinate
+     * @param z the Z coordinate
+     * @return the packed coordinates
+     */
+    public static long toLong(int x, int z) {
+        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
+    }
+
     private int x;
     private int z;
 
