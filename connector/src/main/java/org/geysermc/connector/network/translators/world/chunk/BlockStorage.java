@@ -64,16 +64,16 @@ public class BlockStorage {
         return BitArrayVersion.get(header >> 1, true);
     }
 
-    public synchronized int getFullBlock(int index) {
+    public int getFullBlock(int index) {
         return this.palette.getInt(this.bitArray.get(index));
     }
 
-    public synchronized void setFullBlock(int index, int runtimeId) {
+    public void setFullBlock(int index, int runtimeId) {
         int idx = this.idFor(runtimeId);
         this.bitArray.set(index, idx);
     }
 
-    public synchronized void writeToNetwork(ByteBuf buffer) {
+    public void writeToNetwork(ByteBuf buffer) {
         buffer.writeByte(getPaletteHeader(bitArray.getVersion(), true));
 
         for (int word : bitArray.getWords()) {
