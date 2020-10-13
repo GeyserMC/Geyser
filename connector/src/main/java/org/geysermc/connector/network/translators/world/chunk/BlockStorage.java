@@ -29,14 +29,16 @@ import com.nukkitx.network.VarInts;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.Getter;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArray;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArrayVersion;
 
 import java.util.function.IntConsumer;
 
+@Getter
 public class BlockStorage {
 
-    private static final int SIZE = 4096;
+    public static final int SIZE = 4096;
 
     private final IntList palette;
     private BitArray bitArray;
@@ -51,7 +53,7 @@ public class BlockStorage {
         this.palette.add(0); // Air is at the start of every palette.
     }
 
-    private BlockStorage(BitArray bitArray, IntArrayList palette) {
+    public BlockStorage(BitArray bitArray, IntList palette) {
         this.palette = palette;
         this.bitArray = bitArray;
     }

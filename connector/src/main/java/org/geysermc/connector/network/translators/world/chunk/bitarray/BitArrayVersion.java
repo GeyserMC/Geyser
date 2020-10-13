@@ -37,6 +37,8 @@ public enum BitArrayVersion {
     V2(2, 16, V3),
     V1(1, 32, V2);
 
+    private static final BitArrayVersion[] VALUES = values();
+
     final byte bits;
     final byte entriesPerWord;
     final int maxEntryValue;
@@ -56,6 +58,25 @@ public enum BitArrayVersion {
             }
         }
         throw new IllegalArgumentException("Invalid palette version: " + version);
+    }
+
+    public static BitArrayVersion forBitsExact(int bits) {
+        for (BitArrayVersion version : VALUES)  {
+            if (version.bits == bits)   {
+                return version;
+            }
+        }
+        return null;
+    }
+
+    public static BitArrayVersion forBitsCeil(int bits) {
+        for (int i = VALUES.length - 1; i >= 0; i--)  {
+            BitArrayVersion version = VALUES[i];
+            if (version.bits >= bits)   {
+                return version;
+            }
+        }
+        return null;
     }
 
     public BitArray createPalette(int size) {
