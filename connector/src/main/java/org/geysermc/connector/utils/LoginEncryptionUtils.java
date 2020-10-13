@@ -156,8 +156,8 @@ public class LoginEncryptionUtils {
         session.sendUpstreamPacketImmediately(packet);
     }
 
-    private static int AUTH_FORM_ID = 1336;
-    private static int AUTH_DETAILS_FORM_ID = 1337;
+    private static final int AUTH_FORM_ID = 1336;
+    private static final int AUTH_DETAILS_FORM_ID = 1337;
 
     public static void showLoginWindow(GeyserSession session) {
         String userLanguage = session.getClientData().getLanguageCode();

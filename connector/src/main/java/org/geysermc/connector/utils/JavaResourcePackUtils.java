@@ -33,7 +33,7 @@ import org.geysermc.common.window.response.SimpleFormResponse;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.packconverter.api.PackConverter;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.file.Path;
 
 public class JavaResourcePackUtils {
@@ -41,9 +41,9 @@ public class JavaResourcePackUtils {
     public static final int WINDOW_ID = 5533;
 
     public static boolean handleBedrockResponse(GeyserSession session, String formData) {
-        SimpleFormWindow window = session.getResourcePackForm();
+        SimpleFormWindow window = session.getResourcePackCache().getForm();
         if (window == null) return true;
-        session.setResourcePackForm(null);
+        session.getResourcePackCache().setForm(null);
         window.setResponse(formData);
         SimpleFormResponse response = (SimpleFormResponse) window.getResponse();
         if (response == null || response.getClickedButtonId() == 1) {
@@ -53,19 +53,56 @@ public class JavaResourcePackUtils {
             ClientResourcePackStatusPacket packet = new ClientResourcePackStatusPacket(ResourcePackStatus.ACCEPTED);
             session.sendDownstreamPacket(packet);
 
-            Path javaPacks = session.getConnector().getBootstrap().getConfigFolder().resolve("javaPacks");
+            Path cache = session.getConnector().getBootstrap().getConfigFolder().resolve("cache");
+            if (!cache.toFile().exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                cache.toFile().mkdir();
+            }
+            Path javaPacks = cache.resolve("javaPacks");
             if (!javaPacks.toFile().exists()) {
                 //noinspection ResultOfMethodCallIgnored
                 javaPacks.toFile().mkdir();
             }
+            Path translatedPacks = cache.resolve("translatedPacks");
+            if (!translatedPacks.toFile().exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                translatedPacks.toFile().mkdir();
+            }
             session.getConnector().getGeneralThreadPool().execute(() -> {
                 try {
-                    WebUtils.downloadFile(session.getResourcePackUrl(), javaPacks.resolve("resourcepack.zip").toString());
-                    PackConverter converter = new PackConverter(javaPacks.resolve("resourcepack.zip"),
-                            session.getConnector().getBootstrap().getConfigFolder().resolve("packs").resolve("javaresourcepack.zip"));
-                    converter.convert();
-                    converter.pack();
-                    ResourcePack.loadPack(session.getConnector().getBootstrap().getConfigFolder().resolve("packs").resolve("javaresourcepack.zip").toFile());
+                    ResourcePack pack = null;
+                    if (!session.getResourcePackCache().getResourcePackHash().isEmpty()) {
+                        // Search through our translated packs to see if we've already converted this pack
+                        for (File file : translatedPacks.toFile().listFiles()) {
+                            if (file.getName().equals(session.getResourcePackCache().getResourcePackHash() + ".zip")) {
+                                pack = ResourcePack.loadPack(file);
+                                break;
+                            }
+                        }
+                    }
+                    if (pack == null) {
+                        System.out.println("Downloading resource pack requested by " + session.getName());
+                        session.sendMessage(LocaleUtils.getLocaleString("resourcepack.downloading", session.getClientData().getLanguageCode()));
+                        String packName;
+                        if (session.getResourcePackCache().getResourcePackHash().isEmpty()) {
+                            packName = session.getName() + "-" + System.currentTimeMillis() + ".zip";
+                        } else {
+                            packName = session.getResourcePackCache().getResourcePackHash() + ".zip";
+                        }
+                        WebUtils.downloadFile(session.getResourcePackCache().getResourcePackUrl(), javaPacks.resolve(packName).toString());
+                        System.out.println("Downloaded");
+                        PackConverter converter = new PackConverter(javaPacks.resolve(packName),
+                                translatedPacks.resolve(packName));
+                        System.out.println("Constructor called");
+                        converter.convert();
+                        System.out.println("Converted");
+                        converter.pack();
+                        System.out.println("yee");
+                        //noinspection ResultOfMethodCallIgnored
+                        javaPacks.resolve(packName).toFile().delete();
+                        pack = ResourcePack.loadPack(translatedPacks.resolve(packName).toFile());
+                    }
+                    session.getResourcePackCache().setBedrockResourcePack(pack);
                 } catch (Exception e) {
                     e.printStackTrace();
                     ClientResourcePackStatusPacket failPacket = new ClientResourcePackStatusPacket(ResourcePackStatus.FAILED_DOWNLOAD);

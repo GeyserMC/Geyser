@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.data.game.ResourcePackStatus;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientResourcePackStatusPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerResourcePackSendPacket;
 import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.common.window.button.FormButton;
@@ -39,6 +41,12 @@ public class JavaResourcePackSendTranslator extends PacketTranslator<ServerResou
 
     @Override
     public void translate(ServerResourcePackSendPacket packet, GeyserSession session) {
+        if (packet.getHash().equals(session.getResourcePackCache().getResourcePackHash())) {
+            // TODO: Do we need to also send ACCEPTED?
+            ClientResourcePackStatusPacket statusPacket = new ClientResourcePackStatusPacket(ResourcePackStatus.SUCCESSFULLY_LOADED);
+            session.sendDownstreamPacket(statusPacket);
+            return;
+        }
         String language = session.getClientData().getLanguageCode();
 
         SimpleFormWindow window = new SimpleFormWindow(LocaleUtils.getLocaleString("addServer.resourcePack", language),
@@ -48,8 +56,9 @@ public class JavaResourcePackSendTranslator extends PacketTranslator<ServerResou
         window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("gui.yes", language)));
         window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("gui.no", language)));
 
-        session.setResourcePackUrl(packet.getUrl());
-        session.setResourcePackForm(window);
+        session.getResourcePackCache().setResourcePackUrl(packet.getUrl());
+        session.getResourcePackCache().setResourcePackHash(packet.getHash());
+        session.getResourcePackCache().setForm(window);
 
         session.sendForm(window, JavaResourcePackUtils.WINDOW_ID);
     }

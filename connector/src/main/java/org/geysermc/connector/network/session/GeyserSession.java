@@ -59,13 +59,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
-import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
+import org.geysermc.connector.network.UpstreamPacketHandler;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
@@ -107,6 +107,8 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private InventoryCache inventoryCache;
+    @Setter
+    private ResourcePackCache resourcePackCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
     @Setter
@@ -228,14 +230,6 @@ public class GeyserSession implements CommandSender {
     private boolean reducedDebugInfo = false;
 
     @Setter
-    private SimpleFormWindow resourcePackForm;
-
-    @Setter
-    private String resourcePackUrl;
-    @Setter
-    private String resourcePackHash;
-
-    @Setter
     private CustomFormWindow settingsForm;
 
     /**
@@ -298,6 +292,7 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
+        this.resourcePackCache = new ResourcePackCache(this);
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
@@ -530,7 +525,9 @@ public class GeyserSession implements CommandSender {
     }
 
     public void disconnect(String reason) {
-        //if (transferring) return;
+        if (transferring) {
+            UpstreamPacketHandler.RECONNECTING_CLIENTS.put(authData.getXboxUUID(), resourcePackCache);
+        }
         if (!closed) {
             loggedIn = false;
             if (downstream != null && downstream.getSession() != null) {

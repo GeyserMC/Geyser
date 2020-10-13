@@ -26,20 +26,25 @@
 package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.ResourcePackCache;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Map;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
+
+    public static final Map<String, ResourcePackCache> RECONNECTING_CLIENTS = new Object2ObjectOpenHashMap<>();
 
     public UpstreamPacketHandler(GeyserConnector connector, GeyserSession session) {
         super(connector, session);
@@ -72,11 +77,19 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacket(playStatus);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
-        for(ResourcePack resourcePack : ResourcePack.PACKS.values()) {
+        for (ResourcePack resourcePack : ResourcePack.PACKS.values()) {
             ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(), "", "", "", false));
         }
-        resourcePacksInfo.setForcedToAccept(GeyserConnector.getInstance().getConfig().isForceResourcePacks());
+        ResourcePackCache cache = RECONNECTING_CLIENTS.getOrDefault(session.getAuthData().getXboxUUID(), null);
+        if (cache != null) {
+            session.setResourcePackCache(cache);
+            RECONNECTING_CLIENTS.remove(session.getAuthData().getXboxUUID(), cache);
+            ResourcePack resourcePack = session.getResourcePackCache().getBedrockResourcePack();
+            ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
+            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(), "", "", "", false));
+        }
+        resourcePacksInfo.setForcedToAccept(GeyserConnector.getInstance().getConfig().isForceResourcePacks() || cache != null);
         session.sendUpstreamPacket(resourcePacksInfo);
         return true;
     }
@@ -93,7 +106,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 for(String id : packet.getPackIds()) {
                     ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
                     String[] packID = id.split("_");
-                    ResourcePack pack = ResourcePack.PACKS.get(packID[0]);
+                    ResourcePack pack;
+                    if (session.getResourcePackCache().getBedrockResourcePack() != null &&
+                            packID[0].equals(session.getResourcePackCache().getBedrockResourcePack().getManifest().getHeader().getUuid().toString())) {
+                        pack = session.getResourcePackCache().getBedrockResourcePack();
+                    } else {
+                        pack = ResourcePack.PACKS.get(packID[0]);
+                    }
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();
 
                     data.setPackId(header.getUuid());
@@ -193,7 +212,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(ResourcePackChunkRequestPacket packet) {
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
-        ResourcePack pack = ResourcePack.PACKS.get(packet.getPackId().toString());
+        ResourcePack pack;
+        if (session.getResourcePackCache().getBedrockResourcePack() != null &&
+                packet.getPackId().equals(session.getResourcePackCache().getBedrockResourcePack().getManifest().getHeader().getUuid())) {
+            pack = session.getResourcePackCache().getBedrockResourcePack();
+        } else {
+            pack = ResourcePack.PACKS.get(packet.getPackId().toString());
+        }
 
         data.setChunkIndex(packet.getChunkIndex());
         data.setProgress(packet.getChunkIndex() * ResourcePack.CHUNK_SIZE);
