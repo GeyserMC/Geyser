@@ -54,10 +54,12 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
+import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
@@ -125,6 +127,11 @@ public class GeyserSession implements CommandSender {
 
     private boolean loggedIn;
     private boolean loggingIn;
+
+    @Setter
+    private boolean transferring;
+
+    private List<Packet> cachedPackets = new ObjectArrayList<>();
 
     @Setter
     private boolean spawned;
@@ -219,6 +226,14 @@ public class GeyserSession implements CommandSender {
     private ScheduledFuture<?> bucketScheduledFuture;
 
     private boolean reducedDebugInfo = false;
+
+    @Setter
+    private SimpleFormWindow resourcePackForm;
+
+    @Setter
+    private String resourcePackUrl;
+    @Setter
+    private String resourcePackHash;
 
     @Setter
     private CustomFormWindow settingsForm;
@@ -515,6 +530,7 @@ public class GeyserSession implements CommandSender {
     }
 
     public void disconnect(String reason) {
+        //if (transferring) return;
         if (!closed) {
             loggedIn = false;
             if (downstream != null && downstream.getSession() != null) {

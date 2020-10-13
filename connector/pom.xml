@@ -154,6 +154,12 @@
             <version>557865caef</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.rtm516</groupId>
+            <artifactId>PackConverter</artifactId>
+            <version>master</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

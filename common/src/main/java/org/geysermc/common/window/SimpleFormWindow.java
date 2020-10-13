@@ -79,7 +79,7 @@ public class SimpleFormWindow extends FormWindow {
 
         int buttonID;
         try {
-            buttonID = Integer.parseInt(data);
+            buttonID = Integer.parseInt(data.trim());
         } catch (Exception ex) {
             return;
         }
