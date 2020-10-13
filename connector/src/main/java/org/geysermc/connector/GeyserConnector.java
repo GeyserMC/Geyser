@@ -58,7 +58,6 @@ import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.geysermc.connector.utils.ResourcePack;
-import org.geysermc.floodgate.util.DeviceOS;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -202,18 +201,36 @@ public class GeyserConnector {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", authType.name()::toLowerCase));
+            // Prevent unwanted words best we can
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> AuthType.getByName(config.getRemote().getAuthType()).toString()));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
+            metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", LanguageUtils::getDefaultLocale));
+            metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserConnector.VERSION));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
-                for (DeviceOS os : DeviceOS.values()) {
-                    int i = 0;
-                    for(GeyserSession session : players) {
-                        if(session.getClientData().getDeviceOS() == os) {
-                            i++;
-                        }
+                for (GeyserSession session : players) {
+                    if (session == null) continue;
+                    if (session.getClientData() == null) continue;
+                    String os = session.getClientData().getDeviceOS().toString();
+                    if (!valueMap.containsKey(os)) {
+                        valueMap.put(os, 1);
+                    } else {
+                        valueMap.put(os, valueMap.get(os) + 1);
                     }
-                    valueMap.put(os.name(), i);
+                }
+                return valueMap;
+            }));
+            metrics.addCustomChart(new Metrics.AdvancedPie("playerVersion", () -> {
+                Map<String, Integer> valueMap = new HashMap<>();
+                for (GeyserSession session : players) {
+                    if (session == null) continue;
+                    if (session.getClientData() == null) continue;
+                    String version = session.getClientData().getGameVersion();
+                    if (!valueMap.containsKey(version)) {
+                        valueMap.put(version, 1);
+                    } else {
+                        valueMap.put(version, valueMap.get(version) + 1);
+                    }
                 }
                 return valueMap;
             }));
