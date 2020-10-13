@@ -64,7 +64,7 @@ public class ChunkPosition {
     public boolean equals(Object obj) {
         if (obj == this)    {
             return true;
-        } else if (obj instanceof ChunkPosition)    {
+        } else if (obj instanceof ChunkPosition) {
             ChunkPosition chunkPosition = (ChunkPosition) obj;
             return this.x == chunkPosition.x && this.z == chunkPosition.z;
         } else {
