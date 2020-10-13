@@ -66,11 +66,11 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             return;
         }
 
-        // Non-full chunks don't have all the chunk data, and Bedrock won't accept that
-        final boolean isNonFullChunk = (packet.getColumn().getBiomeData() == null);
-
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
+                // Non-full chunks don't have all the chunk data, and Bedrock won't accept that
+                final boolean isNonFullChunk = (packet.getColumn().getBiomeData() == null);
+
                 ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, packet.getColumn(), isNonFullChunk);
                 ByteBuf byteBuf = Unpooled.buffer(32);
                 ChunkSection[] sections = chunkData.sections;

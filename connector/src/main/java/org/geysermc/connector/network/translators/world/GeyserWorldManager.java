@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.world;
 
+import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
@@ -32,6 +33,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.ChunkCache;
 import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
 import org.geysermc.connector.utils.GameRule;
 
@@ -41,14 +43,25 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        return session.getChunkCache().getBlockAt(new Position(x, y, z));
+        ChunkCache chunkCache = session.getChunkCache();
+        if (chunkCache != null) { //chunk cache can be null if the session is closed asynchronously
+            return chunkCache.getBlockAt(new Position(x, y, z));
+        }
+        return 0;
     }
 
     @Override
     public int[] getBiomeDataAt(GeyserSession session, int x, int z) {
-        if (!session.getConnector().getConfig().isCacheChunks())
-            return new int[1024];
-        return session.getChunkCache().getChunks().get(new ChunkPosition(x, z)).getBiomeData();
+        if (session.getConnector().getConfig().isCacheChunks()) {
+            ChunkCache chunkCache = session.getChunkCache();
+            if (chunkCache != null) { //chunk cache can be null if the session is closed asynchronously
+                Column column = chunkCache.getChunks().get(new ChunkPosition(x, z));
+                if (column != null) { //column can be null if the server sent a partial chunk update before the first ground-up-continuous one
+                    return column.getBiomeData();
+                }
+            }
+        }
+        return new int[1024];
     }
 
     @Override
