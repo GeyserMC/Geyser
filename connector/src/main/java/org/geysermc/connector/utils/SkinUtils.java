@@ -110,51 +110,6 @@ public class SkinUtils {
         return entry;
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class GameProfileData {
-        private final String skinUrl;
-        private final String capeUrl;
-        private final boolean alex;
-
-        /**
-         * Generate the GameProfileData from the given GameProfile
-         *
-         * @param profile GameProfile to build the GameProfileData from
-         * @return The built GameProfileData
-         */
-        public static GameProfileData from(GameProfile profile) {
-            // Fallback to the offline mode of working it out
-            boolean isAlex = (Math.abs(profile.getId().hashCode() % 2) == 1);
-
-            try {
-                GameProfile.Property skinProperty = profile.getProperty("textures");
-
-                JsonNode skinObject = new ObjectMapper().readTree(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8));
-                JsonNode textures = skinObject.get("textures");
-
-                JsonNode skinTexture = textures.get("SKIN");
-                String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
-
-                isAlex = skinTexture.has("metadata");
-
-                String capeUrl = null;
-                if (textures.has("CAPE")) {
-                    JsonNode capeTexture = textures.get("CAPE");
-                    capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
-                }
-
-                return new GameProfileData(skinUrl, capeUrl, isAlex);
-            } catch (Exception exception) {
-                if (GeyserConnector.getInstance().getAuthType() != AuthType.OFFLINE) {
-                    GeyserConnector.getInstance().getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
-                }
-                // return default skin with default cape when texture data is invalid
-                return new GameProfileData((isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl()), SkinProvider.EMPTY_CAPE.getTextureUrl(), isAlex);
-            }
-        }
-    }
-
     public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
         GameProfileData data = GameProfileData.from(entity.getProfile());
@@ -273,6 +228,51 @@ public class SkinUtils {
             }
         } catch (Exception e) {
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
+        }
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class GameProfileData {
+        private final String skinUrl;
+        private final String capeUrl;
+        private final boolean alex;
+
+        /**
+         * Generate the GameProfileData from the given GameProfile
+         *
+         * @param profile GameProfile to build the GameProfileData from
+         * @return The built GameProfileData
+         */
+        public static GameProfileData from(GameProfile profile) {
+            // Fallback to the offline mode of working it out
+            boolean isAlex = (Math.abs(profile.getId().hashCode() % 2) == 1);
+
+            try {
+                GameProfile.Property skinProperty = profile.getProperty("textures");
+
+                JsonNode skinObject = new ObjectMapper().readTree(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8));
+                JsonNode textures = skinObject.get("textures");
+
+                JsonNode skinTexture = textures.get("SKIN");
+                String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
+
+                isAlex = skinTexture.has("metadata");
+
+                String capeUrl = null;
+                if (textures.has("CAPE")) {
+                    JsonNode capeTexture = textures.get("CAPE");
+                    capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
+                }
+
+                return new GameProfileData(skinUrl, capeUrl, isAlex);
+            } catch (Exception exception) {
+                if (GeyserConnector.getInstance().getAuthType() != AuthType.OFFLINE) {
+                    GeyserConnector.getInstance().getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
+                }
+                // return default skin with default cape when texture data is invalid
+                return new GameProfileData((isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl()), SkinProvider.EMPTY_CAPE.getTextureUrl(), isAlex);
+            }
         }
     }
 }
