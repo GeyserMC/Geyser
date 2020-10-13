@@ -27,14 +27,12 @@ package org.geysermc.connector.network.translators.world.chunk;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
-@EqualsAndHashCode
 public class ChunkPosition {
 
     private int x;
@@ -49,5 +47,22 @@ public class ChunkPosition {
         int chunkY = y & 15;
         int chunkZ = z & 15;
         return new Position(chunkX, chunkY, chunkZ);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)    {
+            return true;
+        } else if (obj instanceof ChunkPosition)    {
+            ChunkPosition chunkPosition = (ChunkPosition) obj;
+            return this.x == chunkPosition.x && this.z == chunkPosition.z;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.x * 2061811133 + this.z * 1424368303;
     }
 }
