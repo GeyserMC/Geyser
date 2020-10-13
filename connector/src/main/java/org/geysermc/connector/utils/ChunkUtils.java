@@ -112,8 +112,7 @@ public class ChunkUtils {
                         int blockState;
                         // If a non-full chunk, then grab the block that should be here to create a 'full' chunk
                         if (chunk == null) {
-                            Position pos = new ChunkPosition(column.getX(), column.getZ()).getBlock(x, (chunkY << 4) + y, z);
-                            blockState = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
+                            blockState = session.getConnector().getWorldManager().getBlockAt(session, (column.getX() << 4) + x, (chunkY << 4) + y, (column.getZ() << 4) + z);
                         } else {
                             blockState = chunk.get(x, y, z);
                         }
@@ -250,7 +249,7 @@ public class ChunkUtils {
                 break; //No block will be a part of two classes
             }
         }
-        session.getChunkCache().updateBlock(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+        session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
     }
 
     public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {
