@@ -44,6 +44,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
@@ -64,6 +65,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.List;
 
 import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
@@ -101,12 +103,11 @@ public class ChunkUtils {
     }
 
     public static ChunkData translateToBedrock(GeyserSession session, Column column, boolean isNonFullChunk) {
-        ChunkData chunkData = new ChunkData();
-        Chunk[] javaChunks = column.getChunks();
-        chunkData.sections = new ChunkSection[javaChunks.length];
+        Chunk[] javaSections = column.getChunks();
+        ChunkSection[] sections = new ChunkSection[javaSections.length];
 
         // Temporarily stores compound tags of Bedrock-only block entities
-        List<NbtMap> bedrockOnlyBlockEntities = new ArrayList<>();
+        List<NbtMap> bedrockOnlyBlockEntities = Collections.emptyList();
 
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
@@ -115,33 +116,33 @@ public class ChunkUtils {
 
         // If the received packet was a full chunk update, null sections in the chunk are guaranteed to also be null in the world manager
         boolean shouldCheckWorldManagerOnMissingSections = isNonFullChunk && worldManagerHasMoreBlockDataThanCache;
-        Chunk temporaryChunk = null;
+        Chunk temporarySection = null;
 
-        for (int chunkY = 0; chunkY < javaChunks.length; chunkY++) {
-            Chunk javaChunk = javaChunks[chunkY];
+        for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
+            Chunk javaSection = javaSections[sectionY];
 
-            // Chunk is null, the cache will not contain anything of use
-            if (javaChunk == null) {
+            // Section is null, the cache will not contain anything of use
+            if (javaSection == null) {
                 // The column parameter contains all data currently available from the cache. If the chunk is null and the world manager
                 // reports the ability to access more data than the cache, attempt to fetch from the world manager instead.
                 if (shouldCheckWorldManagerOnMissingSections) {
                     // Ensure that temporary chunk is set
-                    if (temporaryChunk == null) {
-                        temporaryChunk = new Chunk();
+                    if (temporarySection == null) {
+                        temporarySection = new Chunk();
                     }
 
                     // Read block data in section
-                    session.getConnector().getWorldManager().getBlocksInSection(session, column.getX(), chunkY, column.getZ(), temporaryChunk);
+                    session.getConnector().getWorldManager().getBlocksInSection(session, column.getX(), sectionY, column.getZ(), temporarySection);
 
-                    if (temporaryChunk.isEmpty()) {
+                    if (temporarySection.isEmpty()) {
                         // The world manager only contains air for the given section
-                        // We can leave temporaryChunk as-is to allow it to potentially be re-used for later sections
+                        // We can leave temporarySection as-is to allow it to potentially be re-used for later sections
                         continue;
                     } else {
-                        javaChunk = temporaryChunk;
+                        javaSection = temporarySection;
 
                         // Section contents have been modified, we can't re-use it
-                        temporaryChunk = null;
+                        temporarySection = null;
                     }
                 } else {
                     continue;
@@ -149,11 +150,11 @@ public class ChunkUtils {
             }
 
             // No need to encode an empty section...
-            if (javaChunk.isEmpty()) {
+            if (javaSection.isEmpty()) {
                 continue;
             }
 
-            List<Integer> javaPalette = javaChunk.getPalette();
+            List<Integer> javaPalette = javaSection.getPalette();
             IntList bedrockPalette = new IntArrayList(javaPalette.size());
             waterloggedPaletteIds.clear();
             pistonOrFlowerPaletteIds.clear();
@@ -167,65 +168,66 @@ public class ChunkUtils {
                     waterloggedPaletteIds.set(i);
                 }
 
-                // Check if block is piston or flower - only block entities in Bedrock
+                // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
                 if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
                     pistonOrFlowerPaletteIds.set(i);
                 }
             }
 
-            FlexibleStorage javaArray = javaChunk.getStorage();
+            FlexibleStorage javaData = javaSection.getStorage();
 
             // Add Bedrock-exclusive block entities
+            // We only if the palette contained any blocks that are Bedrock-exclusive block entities to avoid iterating through the whole block data
+            // for no reason, as most sections will not contain any pistons or flower pots
             if (!pistonOrFlowerPaletteIds.isEmpty()) {
+                bedrockOnlyBlockEntities = new ArrayList<>();
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
-                    int paletteId = javaArray.get(yzx);
+                    int paletteId = javaData.get(yzx);
                     if (pistonOrFlowerPaletteIds.get(paletteId)) {
                         bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(
-                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (chunkY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaPalette.get(paletteId)
                         ));
                     }
                 }
             }
 
-            BitArrayVersion bedrockVersion = BitArrayVersion.forBitsCeil(javaArray.getBitsPerEntry());
-            BitArray bedrockArray = bedrockVersion.createPalette(BlockStorage.SIZE);
+            BitArray bedrockData = BitArrayVersion.forBitsCeil(javaData.getBitsPerEntry()).createArray(BlockStorage.SIZE);
+            BlockStorage layer0 = new BlockStorage(bedrockData, bedrockPalette);
+            BlockStorage[] layers;
 
-            BlockStorage layer0 = new BlockStorage(bedrockArray, bedrockPalette);
-            ChunkSection section;
-
-            // Convert palettized array from YZX to XZY coordinate order
+            // Convert data array from YZX to XZY coordinate order
             if (waterloggedPaletteIds.isEmpty()) {
+                // No blocks are waterlogged, simply convert coordinate order
                 // This could probably be optimized further...
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
-                    bedrockArray.set(indexYZXtoXZY(yzx), javaArray.get(yzx));
+                    bedrockData.set(indexYZXtoXZY(yzx), javaData.get(yzx));
                 }
 
-                section = new ChunkSection(new BlockStorage[]{ layer0 });
+                layers = new BlockStorage[]{ layer0 };
             } else {
-                // Generate V1 blocks storage for layer 1 with palette ID 1 indicating water
+                // The section contains waterlogged blocks, we need to convert coordinate order AND generate a V1 block storage for
+                // layer 1 with palette ID 1 indicating water
                 int[] layer1Data = new int[BlockStorage.SIZE >> 5];
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
-                    int paletteId = javaArray.get(yzx);
+                    int paletteId = javaData.get(yzx);
                     int xzy = indexYZXtoXZY(yzx);
-                    bedrockArray.set(xzy, paletteId);
+                    bedrockData.set(xzy, paletteId);
 
                     if (waterloggedPaletteIds.get(paletteId)) {
                         layer1Data[xzy >> 5] |= 1 << (xzy & 0x1F);
                     }
                 }
 
-                IntList layer1Ids = new IntArrayList(2);
-                layer1Ids.add(0); // Air
-                layer1Ids.add(BEDROCK_WATER_ID);
+                // V1 palette
+                IntList layer1Palette = new IntArrayList(2);
+                layer1Palette.add(0); // Air
+                layer1Palette.add(BEDROCK_WATER_ID);
 
-                section = new ChunkSection(new BlockStorage[]{
-                        layer0,
-                        new BlockStorage(BitArrayVersion.V1.createPalette(BlockStorage.SIZE, layer1Data), layer1Ids)
-                });
+                layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
             }
 
-            chunkData.sections[chunkY] = section;
+            sections[sectionY] = new ChunkSection(layers);
         }
 
         CompoundTag[] blockEntities = column.getTileEntities();
@@ -259,21 +261,22 @@ public class ChunkUtils {
 
             // Get Java blockstate ID from block entity position
             int blockState = 0;
-            Chunk chunk = column.getChunks()[pos.getY() >> 4];
-            if (chunk != null) {
-                blockState = chunk.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
+            Chunk section = column.getChunks()[pos.getY() >> 4];
+            if (section != null) {
+                blockState = section.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
             }
 
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
             i++;
         }
+
+        // Append Bedrock-exclusive block entities to output array
         for (NbtMap tag : bedrockOnlyBlockEntities) {
             bedrockBlockEntities[i] = tag;
             i++;
         }
 
-        chunkData.blockEntities = bedrockBlockEntities;
-        return chunkData;
+        return new ChunkData(sections, bedrockBlockEntities);
     }
 
     public static void updateChunkPosition(GeyserSession session, Vector3i position) {
@@ -371,10 +374,10 @@ public class ChunkUtils {
         }
     }
 
+    @Data
     public static final class ChunkData {
-        public ChunkSection[] sections;
+        private final ChunkSection[] sections;
 
-        @Getter
-        private NbtMap[] blockEntities = new NbtMap[0];
+        private final NbtMap[] blockEntities;
     }
 }

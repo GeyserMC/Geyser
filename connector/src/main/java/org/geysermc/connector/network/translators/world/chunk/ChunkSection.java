@@ -31,7 +31,6 @@ import io.netty.buffer.ByteBuf;
 public class ChunkSection {
 
     private static final int CHUNK_SECTION_VERSION = 8;
-    public static final int SIZE = 4096;
 
     private final BlockStorage[] storage;
 

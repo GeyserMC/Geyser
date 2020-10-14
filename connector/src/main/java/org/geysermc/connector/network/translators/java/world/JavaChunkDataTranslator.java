@@ -73,10 +73,12 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             return;
         }
 
+        boolean isNonFullChunk = packet.getColumn().getBiomeData() == null;
+
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn);
-                ChunkSection[] sections = chunkData.sections;
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn, isNonFullChunk);
+                ChunkSection[] sections = chunkData.getSections();
 
                 // Find highest section
                 int sectionCount = sections.length - 1;
@@ -88,7 +90,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 // Estimate chunk size
                 int size = 0;
                 for (int i = 0; i < sectionCount; i++) {
-                    ChunkSection section = chunkData.sections[i];
+                    ChunkSection section = sections[i];
                     size += (section != null ? section : ChunkUtils.EMPTY_SECTION).estimateNetworkSize();
                 }
                 size += 256; // Biomes
@@ -101,7 +103,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 byte[] payload;
                 try {
                     for (int i = 0; i < sectionCount; i++) {
-                        ChunkSection section = chunkData.sections[i];
+                        ChunkSection section = sections[i];
                         (section != null ? section : ChunkUtils.EMPTY_SECTION).writeToNetwork(byteBuf);
                     }
 
@@ -124,8 +126,8 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
                 levelChunkPacket.setSubChunksLength(sectionCount);
                 levelChunkPacket.setCachingEnabled(false);
-                levelChunkPacket.setChunkX(packet.getColumn().getX());
-                levelChunkPacket.setChunkZ(packet.getColumn().getZ());
+                levelChunkPacket.setChunkX(mergedColumn.getX());
+                levelChunkPacket.setChunkZ(mergedColumn.getZ());
                 levelChunkPacket.setData(payload);
                 session.sendUpstreamPacket(levelChunkPacket);
             } catch (Exception ex) {

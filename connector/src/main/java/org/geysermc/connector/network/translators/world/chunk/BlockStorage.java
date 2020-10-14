@@ -48,7 +48,7 @@ public class BlockStorage {
     }
 
     public BlockStorage(BitArrayVersion version) {
-        this.bitArray = version.createPalette(SIZE);
+        this.bitArray = version.createArray(SIZE);
         this.palette = new IntArrayList(16);
         this.palette.add(0); // Air is at the start of every palette.
     }
@@ -97,7 +97,7 @@ public class BlockStorage {
     }
 
     private void onResize(BitArrayVersion version) {
-        BitArray newBitArray = version.createPalette(SIZE);
+        BitArray newBitArray = version.createArray(SIZE);
 
         for (int i = 0; i < SIZE; i++) {
             newBitArray.set(i, this.bitArray.get(i));
