@@ -35,7 +35,6 @@ import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
-import io.netty.buffer.Unpooled;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
@@ -106,9 +105,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                         (section != null ? section : ChunkUtils.EMPTY_SECTION).writeToNetwork(byteBuf);
                     }
 
-                    byte[] bedrockBiome = BiomeTranslator.toBedrockBiome(mergedColumn.getBiomeData());
-
-                    byteBuf.writeBytes(bedrockBiome); // Biomes - 256 bytes
+                    byteBuf.writeBytes(BiomeTranslator.toBedrockBiome(mergedColumn.getBiomeData())); // Biomes - 256 bytes
                     byteBuf.writeByte(0); // Border blocks - Edu edition only
                     VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
 
@@ -119,8 +116,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     }
 
                     // Copy data into byte[], because the protocol lib really likes things that are s l o w
-                    payload = new byte[byteBuf.readableBytes()];
-                    byteBuf.readBytes(payload);
+                    byteBuf.readBytes(payload = new byte[byteBuf.readableBytes()]);
                 } finally {
                     byteBuf.release(); // Release buffer to allow buffer pooling to be useful
                 }

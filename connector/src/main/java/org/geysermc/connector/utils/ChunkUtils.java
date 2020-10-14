@@ -100,7 +100,7 @@ public class ChunkUtils {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
     }
 
-    public static ChunkData translateToBedrock(GeyserSession session, Column column) {
+    public static ChunkData translateToBedrock(GeyserSession session, Column column, boolean isNonFullChunk) {
         ChunkData chunkData = new ChunkData();
         Chunk[] javaChunks = column.getChunks();
         chunkData.sections = new ChunkSection[javaChunks.length];
@@ -111,13 +111,45 @@ public class ChunkUtils {
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
+        boolean worldManagerHasMoreBlockDataThanCache = session.getConnector().getWorldManager().hasMoreBlockDataThanChunkCache();
+
+        // If the received packet was a full chunk update, null sections in the chunk are guaranteed to also be null in the world manager
+        boolean shouldCheckWorldManagerOnMissingSections = isNonFullChunk && worldManagerHasMoreBlockDataThanCache;
+        Chunk temporaryChunk = null;
+
         for (int chunkY = 0; chunkY < javaChunks.length; chunkY++) {
             Chunk javaChunk = javaChunks[chunkY];
 
             // Chunk is null, the cache will not contain anything of use
-            //TODO: on spigot, it's possible that caching will be disabled but the block data will be accessible from the world manager anyway
-            // maybe fall back to slow implementation?
-            if (javaChunk == null || javaChunk.isEmpty()) {
+            if (javaChunk == null) {
+                // The column parameter contains all data currently available from the cache. If the chunk is null and the world manager
+                // reports the ability to access more data than the cache, attempt to fetch from the world manager instead.
+                if (shouldCheckWorldManagerOnMissingSections) {
+                    // Ensure that temporary chunk is set
+                    if (temporaryChunk == null) {
+                        temporaryChunk = new Chunk();
+                    }
+
+                    // Read block data in section
+                    session.getConnector().getWorldManager().getBlocksInSection(session, column.getX(), chunkY, column.getZ(), temporaryChunk);
+
+                    if (temporaryChunk.isEmpty()) {
+                        // The world manager only contains air for the given section
+                        // We can leave temporaryChunk as-is to allow it to potentially be re-used for later sections
+                        continue;
+                    } else {
+                        javaChunk = temporaryChunk;
+
+                        // Section contents have been modified, we can't re-use it
+                        temporaryChunk = null;
+                    }
+                } else {
+                    continue;
+                }
+            }
+
+            // No need to encode an empty section...
+            if (javaChunk.isEmpty()) {
                 continue;
             }
 
@@ -125,6 +157,8 @@ public class ChunkUtils {
             IntList bedrockPalette = new IntArrayList(javaPalette.size());
             waterloggedPaletteIds.clear();
             pistonOrFlowerPaletteIds.clear();
+
+            // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
             for (int i = 0; i < javaPalette.size(); i++) {
                 int javaId = javaPalette.get(i);
                 bedrockPalette.add(BlockTranslator.getBedrockBlockId(javaId));
