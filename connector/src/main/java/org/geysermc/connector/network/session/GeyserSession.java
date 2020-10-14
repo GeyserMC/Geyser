@@ -292,7 +292,7 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
-        this.resourcePackCache = new ResourcePackCache(this);
+        this.resourcePackCache = new ResourcePackCache();
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
@@ -649,7 +649,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setBlockPalette(BlockTranslator.BLOCKS);
-        startGamePacket.setItemEntries(ItemRegistry.ITEMS);
+        startGamePacket.setItemEntries(resourcePackCache.getBedrockCustomItems().isEmpty() ? ItemRegistry.ITEMS : resourcePackCache.getAllItems());
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         upstream.sendPacket(startGamePacket);

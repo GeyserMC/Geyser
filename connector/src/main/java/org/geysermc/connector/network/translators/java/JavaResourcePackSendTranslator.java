@@ -43,6 +43,7 @@ public class JavaResourcePackSendTranslator extends PacketTranslator<ServerResou
     public void translate(ServerResourcePackSendPacket packet, GeyserSession session) {
         if (packet.getHash().equals(session.getResourcePackCache().getResourcePackHash())) {
             // TODO: Do we need to also send ACCEPTED?
+            // TODO: Compare the pack name as well? How does vanilla handle it?
             ClientResourcePackStatusPacket statusPacket = new ClientResourcePackStatusPacket(ResourcePackStatus.SUCCESSFULLY_LOADED);
             session.sendDownstreamPacket(statusPacket);
             return;

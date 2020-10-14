@@ -27,14 +27,20 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.ResourcePackStatus;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientResourcePackStatusPacket;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TransferPacket;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.common.window.response.SimpleFormResponse;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.packconverter.api.PackConverter;
 
-import java.io.File;
 import java.nio.file.Path;
+import java.util.Map;
 
 public class JavaResourcePackUtils {
 
@@ -70,16 +76,20 @@ public class JavaResourcePackUtils {
             }
             session.getConnector().getGeneralThreadPool().execute(() -> {
                 try {
+                    session.getResourcePackCache().getBedrockCustomItems().clear();
+                    session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().clear();
+                    session.getResourcePackCache().getBedrockCustomIdToProperBedrockId().clear();
+                    session.getResourcePackCache().setCustomModelDataActive(false);
                     ResourcePack pack = null;
-                    if (!session.getResourcePackCache().getResourcePackHash().isEmpty()) {
-                        // Search through our translated packs to see if we've already converted this pack
-                        for (File file : translatedPacks.toFile().listFiles()) {
-                            if (file.getName().equals(session.getResourcePackCache().getResourcePackHash() + ".zip")) {
-                                pack = ResourcePack.loadPack(file);
-                                break;
-                            }
-                        }
-                    }
+//                    if (!session.getResourcePackCache().getResourcePackHash().isEmpty()) {
+//                        // Search through our translated packs to see if we've already converted this pack
+//                        for (File file : translatedPacks.toFile().listFiles()) {
+//                            if (file.getName().equals(session.getResourcePackCache().getResourcePackHash() + ".zip")) {
+//                                pack = ResourcePack.loadPack(file);
+//                                break;
+//                            }
+//                        }
+//                    }
                     if (pack == null) {
                         System.out.println("Downloading resource pack requested by " + session.getName());
                         session.sendMessage(LocaleUtils.getLocaleString("resourcepack.downloading", session.getClientData().getLanguageCode()));
@@ -90,14 +100,31 @@ public class JavaResourcePackUtils {
                             packName = session.getResourcePackCache().getResourcePackHash() + ".zip";
                         }
                         WebUtils.downloadFile(session.getResourcePackCache().getResourcePackUrl(), javaPacks.resolve(packName).toString());
-                        System.out.println("Downloaded");
                         PackConverter converter = new PackConverter(javaPacks.resolve(packName),
                                 translatedPacks.resolve(packName));
-                        System.out.println("Constructor called");
                         converter.convert();
-                        System.out.println("Converted");
                         converter.pack();
-                        System.out.println("yee");
+                        // Custom items
+                        if (!converter.getCustomModelData().isEmpty()) {
+                            // Get the last registered Bedrock index
+                            int index = ItemRegistry.ITEMS.size();
+                            for (Map.Entry<String, Int2ObjectMap<String>> map : converter.getCustomModelData().entrySet()) {
+                                ItemEntry itemEntry = ItemRegistry.getItemEntry("minecraft:" + map.getKey());
+                                // Start the registry of Java custom model data ID to Bedrock registered ID
+                                Int2IntMap customModelDataToBedrockId = new Int2IntOpenHashMap(map.getValue().size());
+                                for (Int2ObjectMap.Entry<String> customModelData : map.getValue().int2ObjectEntrySet()) {
+                                    index++;
+                                    // Put in our custom Bedrock identifier and the given Bedrock index
+                                    session.getResourcePackCache().getBedrockCustomItems().add(new StartGamePacket.ItemEntry(customModelData.getValue(), (short) index));
+                                    // Put in the Java custom model data key and the Bedrock index (for item searching)
+                                    customModelDataToBedrockId.put(customModelData.getIntKey(), index);
+                                    session.getResourcePackCache().getBedrockCustomIdToProperBedrockId().put(index, itemEntry.getBedrockId());
+                                }
+                                // Put in the final lookup of Java ID to custom model data indexes to Bedrock ID
+                                session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().put(
+                                        itemEntry.getJavaId(), customModelDataToBedrockId);
+                            }
+                        }
                         //noinspection ResultOfMethodCallIgnored
                         javaPacks.resolve(packName).toFile().delete();
                         pack = ResourcePack.loadPack(translatedPacks.resolve(packName).toFile());

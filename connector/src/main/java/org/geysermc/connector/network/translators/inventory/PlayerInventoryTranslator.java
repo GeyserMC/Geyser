@@ -201,7 +201,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         if (action.getToItem().getId() == 0) {
                             javaItem = new ItemStack(-1, 0, null);
                         } else {
-                            javaItem = ItemTranslator.translateToJava(action.getToItem());
+                            javaItem = ItemTranslator.translateToJava(session, action.getToItem());
                         }
                         ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(javaSlot, javaItem);
                         session.sendDownstreamPacket(creativePacket);
@@ -209,13 +209,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         break;
                     case ContainerId.UI:
                         if (action.getSlot() == 0) {
-                            session.getInventory().setCursor(ItemTranslator.translateToJava(action.getToItem()));
+                            session.getInventory().setCursor(ItemTranslator.translateToJava(session, action.getToItem()));
                         }
                         break;
                     case ContainerId.NONE:
                         if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                                 && action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                            javaItem = ItemTranslator.translateToJava(action.getToItem());
+                            javaItem = ItemTranslator.translateToJava(session, action.getToItem());
                             ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, javaItem);
                             session.sendDownstreamPacket(creativeDropPacket);
                         }

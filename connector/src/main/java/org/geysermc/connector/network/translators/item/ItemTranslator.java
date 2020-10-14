@@ -33,6 +33,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
@@ -96,9 +97,16 @@ public abstract class ItemTranslator {
         NBT_TRANSLATORS = loadedNbtItemTranslators.keySet().stream().sorted(Comparator.comparingInt(loadedNbtItemTranslators::get)).collect(Collectors.toList());
     }
 
-    public static ItemStack translateToJava(ItemData data) {
+    public static ItemStack translateToJava(GeyserSession session, ItemData data) {
         if (data == null) {
             return new ItemStack(0);
+        }
+        // Restore the item back to its original state if we replaced the item with custom model data
+        if (session.getResourcePackCache().isCustomModelDataActive()) {
+            int id = session.getResourcePackCache().getBedrockCustomIdToProperBedrockId().getOrDefault(data.getId(), -1);
+            if (id != -1) {
+                data = ItemData.of(id, data.getDamage(), data.getCount(), data.getTag(), data.getCanPlace(), data.getCanBreak());
+            }
         }
         ItemEntry javaItem = ItemRegistry.getItem(data);
 
@@ -127,11 +135,11 @@ public abstract class ItemTranslator {
 
         ItemEntry bedrockItem = ItemRegistry.getItem(stack);
 
-        com.github.steveice10.opennbt.tag.builtin.CompoundTag nbt = stack.getNbt() != null ? stack.getNbt().clone() : null;
+        CompoundTag nbt = stack.getNbt() != null ? stack.getNbt().clone() : null;
 
         // This is a fallback for maps with no nbt
         if (nbt == null && bedrockItem.getJavaIdentifier().equals("minecraft:filled_map")) {
-            nbt = new com.github.steveice10.opennbt.tag.builtin.CompoundTag("");
+            nbt = new CompoundTag("");
             nbt.put(new IntTag("map", 0));
         }
 
@@ -164,6 +172,16 @@ public abstract class ItemTranslator {
             canBreak = getCanModify(canDestroy, canBreak);
             canPlace = getCanModify(canPlaceOn, canPlace);
             itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), itemData.getTag(), canPlace, canBreak);
+
+            // Check to see if the item has CustomModelData
+            IntTag customModelData = nbt.get("CustomModelData");
+            if (session.getResourcePackCache().isCustomModelDataActive() && customModelData != null) {
+                // If we're expecting custom model data and it's present, look for the Bedrock "replacement" we set up.
+                Int2IntMap map = session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().getOrDefault(stack.getId(), null);
+                if (map != null) {
+                    itemData = ItemData.of(map.get(customModelData.getValue().intValue()), (short) 0, itemData.getCount(), itemData.getTag(), canPlace, canBreak);
+                }
+            }
         }
 
         return itemData;

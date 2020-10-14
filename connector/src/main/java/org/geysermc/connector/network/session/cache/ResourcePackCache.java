@@ -25,16 +25,23 @@
 
 package org.geysermc.connector.network.session.cache;
 
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.window.SimpleFormWindow;
-import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.ResourcePack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter @Setter
 public class ResourcePackCache {
-
-    private GeyserSession session;
 
     private SimpleFormWindow form;
 
@@ -42,9 +49,25 @@ public class ResourcePackCache {
     private String resourcePackHash;
 
     private ResourcePack bedrockResourcePack;
+    private final List<StartGamePacket.ItemEntry> bedrockCustomItems = new ObjectArrayList<>();
+    private final Int2ObjectMap<Int2IntMap> javaToCustomModelDataToBedrockId = new Int2ObjectOpenHashMap<>();
+    /**
+     * Used to reverse search for the item when translating to Java in ItemTranslator
+     */
+    private final Int2IntMap bedrockCustomIdToProperBedrockId = new Int2IntOpenHashMap();
+    /**
+     * Used to prevent concurrency issues in case javaToCustomModelDataToBedrockId is inputting items and the client is pre-resource-pack
+     */
+    private boolean customModelDataActive = false;
 
-    public ResourcePackCache(GeyserSession session) {
-        this.session = session;
+    public ResourcePackCache() {
+
+    }
+
+    public List<StartGamePacket.ItemEntry> getAllItems() {
+        List<StartGamePacket.ItemEntry> items = new ArrayList<>(ItemRegistry.ITEMS);
+        items.addAll(bedrockCustomItems);
+        return items;
     }
 
 }

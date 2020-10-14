@@ -88,6 +88,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             ResourcePack resourcePack = session.getResourcePackCache().getBedrockResourcePack();
             ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(), "", "", "", false));
+            if (!session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().isEmpty()) {
+                session.getResourcePackCache().setCustomModelDataActive(true);
+            }
         }
         resourcePacksInfo.setForcedToAccept(GeyserConnector.getInstance().getConfig().isForceResourcePacks() || cache != null);
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -103,7 +106,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 break;
 
             case SEND_PACKS:
-                for(String id : packet.getPackIds()) {
+                for (String id : packet.getPackIds()) {
                     ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
                     String[] packID = id.split("_");
                     ResourcePack pack;
@@ -137,6 +140,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
                 for (ResourcePack pack : ResourcePack.PACKS.values()) {
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();
+                    stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
+                }
+                if (session.getResourcePackCache().getBedrockResourcePack() != null) {
+                    ResourcePackManifest.Header header = session.getResourcePackCache().getBedrockResourcePack().getManifest().getHeader();
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
                 }
 
