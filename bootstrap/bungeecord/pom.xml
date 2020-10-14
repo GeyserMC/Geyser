@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>bootstrap-bungeecord</artifactId>
@@ -14,7 +14,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -62,12 +62,32 @@
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.jni</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>io.netty</pattern>
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections.reflections</pattern>
+                                    <pattern>org.reflections</pattern>
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.reflections</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.guava</pattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.guava</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.dom4j</pattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.dom4j</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.kyori.adventure</pattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.adventure</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

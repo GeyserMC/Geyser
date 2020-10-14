@@ -28,12 +28,13 @@ package org.geysermc.connector.network.translators.world.block.entity;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;
 
@@ -52,6 +53,7 @@ public abstract class BlockEntityTranslator {
         {
             // Bedrock/Java differences
             put("minecraft:enchanting_table", "EnchantTable");
+            put("minecraft:jigsaw", "JigsawBlock");
             put("minecraft:piston_head", "PistonArm");
             put("minecraft:trapped_chest", "Chest");
             // There are some legacy IDs sent but as far as I can tell they are not needed for things to work properly
@@ -66,7 +68,7 @@ public abstract class BlockEntityTranslator {
     }
 
     static {
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.block.entity");
+        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
         for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
             GeyserConnector.getInstance().getLogger().debug("Found annotated block entity: " + clazz.getCanonicalName());
 
@@ -88,10 +90,6 @@ public abstract class BlockEntityTranslator {
     }
 
     public abstract Map<String, Object> translateTag(CompoundTag tag, int blockState);
-
-    public abstract CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z);
-
-    public abstract NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z);
 
     public NbtMap getBlockEntityTag(String id, CompoundTag tag, int blockState) {
         int x = Integer.parseInt(String.valueOf(tag.getValue().get("x").getValue()));
@@ -123,7 +121,7 @@ public abstract class BlockEntityTranslator {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> T getOrDefault(com.github.steveice10.opennbt.tag.builtin.Tag tag, T defaultValue) {
+    protected <T> T getOrDefault(Tag tag, T defaultValue) {
         return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
     }
 }

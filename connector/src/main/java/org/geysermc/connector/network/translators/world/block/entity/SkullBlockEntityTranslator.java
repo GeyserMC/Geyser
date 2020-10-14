@@ -67,19 +67,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return tags;
     }
 
-    @Override
-    public com.github.steveice10.opennbt.tag.builtin.CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        return null;
-    }
-
-    @Override
-    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
-                .putFloat("Rotation", 0f)
-                .putByte("SkullType", (byte) 0)
-                .build();
-    }
-
     public static GameProfile getProfile(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, GeyserSession session) {
         if (tag.contains("SkullOwner")) {
             com.github.steveice10.opennbt.tag.builtin.CompoundTag owner = tag.get("SkullOwner");

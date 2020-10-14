@@ -26,14 +26,12 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.LongTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -56,25 +54,11 @@ public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
         return tags;
     }
 
-    @Override
-    public CompoundTag getDefaultJavaTag(String javaId, int x, int y, int z) {
-        CompoundTag tag = getConstantJavaTag(javaId, x, y, z);
-        tag.put(new LongTag("Age"));
-        return tag;
-    }
-
-    @Override
-    public NbtMap getDefaultBedrockTag(String bedrockId, int x, int y, int z) {
-        return getConstantBedrockTag(bedrockId, x, y, z).toBuilder()
-                .putList("ExitPortal", NbtType.INT, Arrays.asList(0, 0, 0))
-                .build();
-    }
-
     private int getExitPortalCoordinate(CompoundTag tag, String axis) {
         // Return 0 if it doesn't exist, otherwise give proper value
         if (tag.get("ExitPortal") != null) {
             LinkedHashMap<?, ?> compoundTag = (LinkedHashMap<?, ?>) tag.get("ExitPortal").getValue();
-            com.github.steveice10.opennbt.tag.builtin.IntTag intTag = (com.github.steveice10.opennbt.tag.builtin.IntTag) compoundTag.get(axis);
+            IntTag intTag = (IntTag) compoundTag.get(axis);
             return intTag.getValue();
         } return 0;
     }

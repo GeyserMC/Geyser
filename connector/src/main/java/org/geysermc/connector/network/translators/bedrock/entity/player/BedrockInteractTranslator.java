@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
@@ -135,12 +135,15 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 }
                 break;
             case OPEN_INVENTORY:
-                ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-                containerOpenPacket.setId((byte) 0);
-                containerOpenPacket.setType(ContainerType.INVENTORY);
-                containerOpenPacket.setUniqueEntityId(-1);
-                containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
-                session.sendUpstreamPacket(containerOpenPacket);
+                if (!session.getInventory().isOpen()) {
+                    ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
+                    containerOpenPacket.setId((byte) 0);
+                    containerOpenPacket.setType(ContainerType.INVENTORY);
+                    containerOpenPacket.setUniqueEntityId(-1);
+                    containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
+                    session.sendUpstreamPacket(containerOpenPacket);
+                    session.getInventory().setOpen(true);
+                }
                 break;
         }
     }

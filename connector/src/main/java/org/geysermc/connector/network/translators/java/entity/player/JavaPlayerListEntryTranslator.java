@@ -82,36 +82,25 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     playerEntity.setPlayerList(true);
                     playerEntity.setValid(true);
 
-                    PlayerListPacket.Entry playerListEntry = SkinUtils.buildCachedEntry(playerEntity);
-                    if (self) {
-                        // Copy the entry with our identity instead.
-                        PlayerListPacket.Entry copy = new PlayerListPacket.Entry(session.getAuthData().getUUID());
-                        copy.setName(playerListEntry.getName());
-                        copy.setEntityId(playerListEntry.getEntityId());
-                        copy.setSkin(playerListEntry.getSkin());
-                        copy.setXuid(playerListEntry.getXuid());
-                        copy.setPlatformChatId(playerListEntry.getPlatformChatId());
-                        copy.setTeacher(playerListEntry.isTeacher());
-                        playerListEntry = copy;
-                    }
+                    PlayerListPacket.Entry playerListEntry = SkinUtils.buildCachedEntry(session, playerEntity);
 
                     translate.getEntries().add(playerListEntry);
                     break;
                 case REMOVE_PLAYER:
                     PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
-                    if (entity != null && entity.isValid()) {
-                        // remove from tablist but player entity is still there
+                    if (entity != null) {
+                        // Just remove the entity's player list status
+                        // Don't despawn the entity - the Java server will also take care of that.
                         entity.setPlayerList(false);
-                    } else {
-                        // just remove it from caching
-                        if (entity == null) {
-                            session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
-                        } else {
-                            entity.setPlayerList(false);
-                            session.getEntityCache().removeEntity(entity, false);
-                        }
                     }
-                    translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
+                    // As the player entity is no longer present, we can remove the entry
+                    session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
+                    if (entity == session.getPlayerEntity()) {
+                        // If removing ourself we use our AuthData UUID
+                        translate.getEntries().add(new PlayerListPacket.Entry(session.getAuthData().getUUID()));
+                    } else {
+                        translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
+                    }
                     break;
             }
         }

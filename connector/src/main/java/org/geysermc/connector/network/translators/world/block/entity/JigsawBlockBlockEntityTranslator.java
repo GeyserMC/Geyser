@@ -23,33 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.world.block.entity;
 
-import lombok.Getter;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Objective;
-import org.geysermc.connector.scoreboard.Scoreboard;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 
-import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
-@Getter
-public class ScoreboardCache {
-    private GeyserSession session;
-    private Scoreboard scoreboard;
+@BlockEntity(name = "JigsawBlock", regex = "jigsaw")
+public class JigsawBlockBlockEntityTranslator extends BlockEntityTranslator {
 
-    public ScoreboardCache(GeyserSession session) {
-        this.session = session;
-        this.scoreboard = new Scoreboard(session);
-    }
-
-    public void removeScoreboard() {
-        if (scoreboard != null) {
-            Collection<Objective> objectives = scoreboard.getObjectives().values();
-            scoreboard = new Scoreboard(session);
-
-            for (Objective objective : objectives) {
-                scoreboard.despawnObjective(objective);
-            }
-        }
+    @Override
+    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("joint", ((StringTag) tag.get("joint")).getValue());
+        map.put("name", ((StringTag) tag.get("name")).getValue());
+        map.put("target_pool", ((StringTag) tag.get("pool")).getValue());
+        map.put("final_state", ((StringTag) tag.get("final_state")).getValue());
+        map.put("target", ((StringTag) tag.get("target")).getValue());
+        return map;
     }
 }

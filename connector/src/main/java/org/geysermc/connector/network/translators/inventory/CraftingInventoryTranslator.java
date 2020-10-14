@@ -30,11 +30,9 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
-import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.List;
@@ -46,6 +44,11 @@ public class CraftingInventoryTranslator extends BlockInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(InventoryActionData action) {
+        if (action.getSlot() == 50) {
+            // Slot 50 is used for crafting with a controller.
+            return 0;
+        }
+
         if (action.getSource().getContainerId() == ContainerId.UI) {
             int slotnum = action.getSlot();
             if (slotnum >= 32 && 42 >= slotnum) {
