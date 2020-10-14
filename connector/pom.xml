@@ -109,9 +109,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.damatrix</groupId>
+            <groupId>com.github.steveice10</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>a05abf0403</version>
+            <version>3a69a0614c</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
