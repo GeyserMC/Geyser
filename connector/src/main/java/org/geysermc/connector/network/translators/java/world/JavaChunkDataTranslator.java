@@ -75,6 +75,17 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
         boolean isNonFullChunk = packet.getColumn().getBiomeData() == null;
 
+        /*System.out.print("received: ");
+        for (int i = 0; i < 16;i++) {
+            System.out.print(packet.getColumn().getChunks()[i] == null ? '.' : '#');
+        }
+        System.out.println(" " + isNonFullChunk);
+        System.out.print("merged: ");
+        for (int i = 0; i < 16;i++) {
+            System.out.print(mergedColumn.getChunks()[i] == null ? '.' : '#');
+        }
+        System.out.println(" " + mergedColumn.getBiomeData() == null);*/
+
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
                 ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn, isNonFullChunk);

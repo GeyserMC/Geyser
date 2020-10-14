@@ -25,9 +25,11 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.chunk.BitStorage;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
-import com.github.steveice10.mc.protocol.data.game.chunk.FlexibleStorage;
+import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
+import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -45,7 +47,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
@@ -63,10 +64,15 @@ import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArrayV
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
 
@@ -102,6 +108,35 @@ public class ChunkUtils {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
     }
 
+    private static void printObj(Object o, StringBuilder out) throws Exception {
+        if (o instanceof Number) {
+            out.append(o);
+            return;
+        }
+        out.append(o.getClass().getSimpleName());
+        if (o instanceof List || o instanceof Map) {
+            out.append(o);
+        } else if (o.getClass().isArray()) {
+            out.append("{length=").append(Array.getLength(o)).append('}');
+        } else {
+            out.append('{');
+            int i = 0;
+            for (Field field : o.getClass().getDeclaredFields())    {
+                if ((field.getModifiers() & Modifier.STATIC) == 0) {
+                    field.setAccessible(true);
+                    out.append(field.getName()).append('=');
+                    printObj(field.get(o), out);
+                    out.append(", ");
+                    i++;
+                }
+            }
+            if (i != 0) {
+                out.setLength(out.length() - 2);
+            }
+            out.append('}');
+        }
+    }
+
     public static ChunkData translateToBedrock(GeyserSession session, Column column, boolean isNonFullChunk) {
         Chunk[] javaSections = column.getChunks();
         ChunkSection[] sections = new ChunkSection[javaSections.length];
@@ -118,6 +153,8 @@ public class ChunkUtils {
         boolean shouldCheckWorldManagerOnMissingSections = isNonFullChunk && worldManagerHasMoreBlockDataThanCache;
         Chunk temporarySection = null;
 
+        char[] c = new char[16];
+        Arrays.fill(c, '.');
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
             Chunk javaSection = javaSections[sectionY];
 
@@ -154,14 +191,32 @@ public class ChunkUtils {
                 continue;
             }
 
-            List<Integer> javaPalette = javaSection.getPalette();
+            Palette javaPalette = javaSection.getPalette();
+            if (javaPalette instanceof GlobalPalette)   {
+                System.out.println("global palette at " + column.getX() + "," + sectionY + "," + column.getZ());
+            } else if (javaPalette.size() == 0)   {
+                System.out.println("empty palette at " + column.getX() + "," + sectionY + "," + column.getZ());
+            } else if (javaPalette.size() == 1)   {
+                System.out.println("single-entry palette at " + column.getX() + "," + sectionY + "," + column.getZ());
+            } else if (javaPalette.stateToId(0) < 0)   {
+                System.out.println("palette at " + column.getX() + "," + sectionY + "," + column.getZ() + " doesn't contain air?!?");
+            }
+            if ((column.getX() == -3 || column.getX() == -2) && column.getZ() == 3 && (sectionY == 3))  {
+                StringBuilder builder = new StringBuilder();
+                try {
+                    printObj(javaSection, builder);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                int i = 0;
+            }
             IntList bedrockPalette = new IntArrayList(javaPalette.size());
             waterloggedPaletteIds.clear();
             pistonOrFlowerPaletteIds.clear();
 
             // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
             for (int i = 0; i < javaPalette.size(); i++) {
-                int javaId = javaPalette.get(i);
+                int javaId = javaPalette.idToState(i);
                 bedrockPalette.add(BlockTranslator.getBedrockBlockId(javaId));
 
                 if (BlockTranslator.isWaterlogged(javaId)) {
@@ -174,7 +229,7 @@ public class ChunkUtils {
                 }
             }
 
-            FlexibleStorage javaData = javaSection.getStorage();
+            BitStorage javaData = javaSection.getStorage();
 
             // Add Bedrock-exclusive block entities
             // We only if the palette contained any blocks that are Bedrock-exclusive block entities to avoid iterating through the whole block data
@@ -186,7 +241,7 @@ public class ChunkUtils {
                     if (pistonOrFlowerPaletteIds.get(paletteId)) {
                         bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(
                                 Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
-                                javaPalette.get(paletteId)
+                                javaPalette.idToState(paletteId)
                         ));
                     }
                 }
@@ -228,6 +283,11 @@ public class ChunkUtils {
             }
 
             sections[sectionY] = new ChunkSection(layers);
+            c[sectionY] = '#';
+        }
+
+        if (column.getX() == -3 && column.getZ() == 3)  {
+            int i = 0;
         }
 
         CompoundTag[] blockEntities = column.getTileEntities();
