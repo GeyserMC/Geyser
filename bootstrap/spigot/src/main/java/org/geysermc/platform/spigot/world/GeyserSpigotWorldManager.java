@@ -26,12 +26,14 @@
 package org.geysermc.platform.spigot.world;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
@@ -93,23 +95,32 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        if (session.getPlayerEntity() == null) {
+        Player bukkitPlayer;
+        if ((this.isLegacy && !this.isViaVersion)
+            || session.getPlayerEntity() == null
+            || (bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
             return BlockTranslator.AIR;
         }
-        if (Bukkit.getPlayer(session.getPlayerEntity().getUsername()) == null) {
-            return BlockTranslator.AIR;
-        }
+        World world = bukkitPlayer.getWorld();
         if (isLegacy) {
-            return getLegacyBlock(session, x, y, z, isViaVersion);
+            return getLegacyBlock(session, x, y, z, true);
         }
         //TODO possibly: detect server version for all versions and use ViaVersion for block state mappings like below
-        return BlockTranslator.getJavaIdBlockMap().getOrDefault(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString(), 0);
+        return BlockTranslator.getJavaIdBlockMap().getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), 0);
+    }
+
+    public static int getLegacyBlock(GeyserSession session, int x, int y, int z, boolean isViaVersion) {
+        if (isViaVersion) {
+            return getLegacyBlock(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld(), x, y, z, true);
+        } else {
+            return BlockTranslator.AIR;
+        }
     }
 
     @SuppressWarnings("deprecation")
-    public static int getLegacyBlock(GeyserSession session, int x, int y, int z, boolean isViaVersion) {
+    public static int getLegacyBlock(World world, int x, int y, int z, boolean isViaVersion) {
         if (isViaVersion) {
-            Block block = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z);
+            Block block = world.getBlockAt(x, y, z);
             // Black magic that gets the old block state ID
             int oldBlockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
             // Convert block state from old version -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
@@ -122,6 +133,42 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         } else {
             return BlockTranslator.AIR;
         }
+    }
+
+    @Override
+    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
+        Player bukkitPlayer;
+        if ((this.isLegacy && !this.isViaVersion)
+            || session.getPlayerEntity() == null
+            || (bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+            return;
+        }
+        World world = bukkitPlayer.getWorld();
+        if (this.isLegacy)  {
+            for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
+                for (int blockZ = 0; blockZ < 16; blockZ++) {
+                    for (int blockX = 0; blockX < 16; blockX++) {
+                        chunk.set(blockX, blockY, blockZ, getLegacyBlock(world, (x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ, true));
+                    }
+                }
+            }
+        } else {
+            //TODO: see above TODO in getBlockAt
+            for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
+                for (int blockZ = 0; blockZ < 16; blockZ++) {
+                    for (int blockX = 0; blockX < 16; blockX++) {
+                        Block block = world.getBlockAt((x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ);
+                        int id = BlockTranslator.getJavaIdBlockMap().getOrDefault(block.getBlockData().getAsString(), 0);
+                        chunk.set(blockX, blockY, blockZ, id);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean hasMoreBlockDataThanChunkCache() {
+        return true;
     }
 
     @Override

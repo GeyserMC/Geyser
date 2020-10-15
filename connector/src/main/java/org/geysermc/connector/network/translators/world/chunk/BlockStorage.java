@@ -29,14 +29,16 @@ import com.nukkitx.network.VarInts;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.Getter;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArray;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArrayVersion;
 
 import java.util.function.IntConsumer;
 
+@Getter
 public class BlockStorage {
 
-    private static final int SIZE = 4096;
+    public static final int SIZE = 4096;
 
     private final IntList palette;
     private BitArray bitArray;
@@ -46,12 +48,12 @@ public class BlockStorage {
     }
 
     public BlockStorage(BitArrayVersion version) {
-        this.bitArray = version.createPalette(SIZE);
+        this.bitArray = version.createArray(SIZE);
         this.palette = new IntArrayList(16);
         this.palette.add(0); // Air is at the start of every palette.
     }
 
-    private BlockStorage(BitArray bitArray, IntArrayList palette) {
+    public BlockStorage(BitArray bitArray, IntList palette) {
         this.palette = palette;
         this.bitArray = bitArray;
     }
@@ -64,16 +66,16 @@ public class BlockStorage {
         return BitArrayVersion.get(header >> 1, true);
     }
 
-    public synchronized int getFullBlock(int index) {
+    public int getFullBlock(int index) {
         return this.palette.getInt(this.bitArray.get(index));
     }
 
-    public synchronized void setFullBlock(int index, int runtimeId) {
+    public void setFullBlock(int index, int runtimeId) {
         int idx = this.idFor(runtimeId);
         this.bitArray.set(index, idx);
     }
 
-    public synchronized void writeToNetwork(ByteBuf buffer) {
+    public void writeToNetwork(ByteBuf buffer) {
         buffer.writeByte(getPaletteHeader(bitArray.getVersion(), true));
 
         for (int word : bitArray.getWords()) {
@@ -84,8 +86,18 @@ public class BlockStorage {
         palette.forEach((IntConsumer) id -> VarInts.writeInt(buffer, id));
     }
 
+    public int estimateNetworkSize() {
+        int size = 1; // Palette header
+        size += this.bitArray.getWords().length * 4;
+
+        // We assume that none of the VarInts will be larger than 3 bytes
+        size += 3; // Palette size
+        size += this.palette.size() * 3;
+        return size;
+    }
+
     private void onResize(BitArrayVersion version) {
-        BitArray newBitArray = version.createPalette(SIZE);
+        BitArray newBitArray = version.createArray(SIZE);
 
         for (int i = 0; i < SIZE; i++) {
             newBitArray.set(i, this.bitArray.get(i));
