@@ -107,9 +107,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
          */
         session.sendDownstreamPacket(playerPositionRotationPacket);
 
-        if (position.getFloorY() <= -38) {
+        if (position.getFloorY() <= -38 && position.getFloorY() >= -40) {
             // Work around there being a floor at Y -40 and teleport the player below it
-            entity.setPosition(entity.getPosition().sub(0, 2f, 0));
+            entity.setPosition(entity.getPosition().sub(0, 3f, 0));
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
             movePlayerPacket.setPosition(entity.getPosition());
