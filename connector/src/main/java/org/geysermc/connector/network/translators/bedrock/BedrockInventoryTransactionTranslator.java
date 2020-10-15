@@ -58,7 +58,10 @@ import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
@@ -119,18 +122,19 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.sendDownstreamPacket(itemPacket);
                         }
                         // Check actions, otherwise buckets may be activated when block inventories are accessed
-                        // But don't check actions if the item damage is 0
-                        else if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
-                                (packet.getItemInHand().getDamage() == 0 || !packet.getActions().isEmpty())) {
-                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                            session.sendDownstreamPacket(itemPacket);
-
+                        else if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) {
                             // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
                             InventorySlotPacket slotPacket = new InventorySlotPacket();
                             slotPacket.setContainerId(ContainerId.INVENTORY);
                             slotPacket.setSlot(packet.getHotbarSlot());
                             slotPacket.setItem(packet.getItemInHand());
                             session.sendUpstreamPacket(slotPacket);
+                            // Delay the interaction in case the client doesn't intend to actually use the bucket
+                            // See BedrockActionTranslator.java
+                            session.setBucketScheduledFuture(session.getConnector().getGeneralThreadPool().schedule(() -> {
+                                ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                                session.sendDownstreamPacket(itemPacket);
+                            }, 5, TimeUnit.MILLISECONDS));
                         }
 
                         if (packet.getActions().isEmpty()) {
@@ -151,28 +155,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        Vector3i blockPos = packet.getBlockPosition();
-                        // TODO: Find a better way to do this?
-                        switch (packet.getBlockFace()) {
-                            case 0:
-                                blockPos = blockPos.sub(0, 1, 0);
-                                break;
-                            case 1:
-                                blockPos = blockPos.add(0, 1, 0);
-                                break;
-                            case 2:
-                                blockPos = blockPos.sub(0, 0, 1);
-                                break;
-                            case 3:
-                                blockPos = blockPos.add(0, 0, 1);
-                                break;
-                            case 4:
-                                blockPos = blockPos.sub(1, 0, 0);
-                                break;
-                            case 5:
-                                blockPos = blockPos.add(1, 0, 0);
-                                break;
-                        }
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
                         ItemEntry handItem = ItemRegistry.getItem(packet.getItemInHand());
                         if (handItem.isBlock()) {
                             session.setLastBlockPlacePosition(blockPos);
@@ -187,10 +170,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             break;
                         }
 
-                        // Handled in ITEM_USE
+                        // Handled in ITEM_USE if the item is not milk
                         if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
-                                // Normal bucket, water bucket, lava bucket
-                                (packet.getItemInHand().getDamage() == 0 || packet.getItemInHand().getDamage() == 8 || packet.getItemInHand().getDamage() == 10)) {
+                                packet.getItemInHand().getDamage() != 1) {
                             break;
                         }
 

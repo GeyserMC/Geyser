@@ -23,43 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity;
+package org.geysermc.connector.entity.living.monster.raid;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.world.particle.Particle;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
 
-public class AreaEffectCloudEntity extends Entity {
+public class PillagerEntity extends AbstractIllagerEntity {
 
-    public AreaEffectCloudEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public PillagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-
-        // Without this the cloud doesn't appear,
-        metadata.put(EntityData.AREA_EFFECT_CLOUD_DURATION, 600);
-
-        // This disabled client side shrink of the cloud
-        metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
-        metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_RATE, -0.005f);
-        metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, -0.5f);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) {
-            metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, entityMetadata.getValue());
-            metadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * (float) entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 8) {
-            metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 10) {
-            Particle particle = (Particle) entityMetadata.getValue();
-            int particleId = EffectRegistry.getParticleId(particle.getType());
-            if (particleId != -1) {
-                metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
-            }
+        if (entityMetadata.getId() == 16) {
+            // Java Edition always has the Pillager entity as positioning the crossbow
+            metadata.getFlags().setFlag(EntityFlag.USING_ITEM, true);
+            metadata.getFlags().setFlag(EntityFlag.CHARGED, true);
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
