@@ -26,7 +26,7 @@
 package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v418.Bedrock_v418;
+import com.nukkitx.protocol.bedrock.v419.Bedrock_v419;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ public class BedrockProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v418.V418_CODEC;
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v419.V419_CODEC;
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
