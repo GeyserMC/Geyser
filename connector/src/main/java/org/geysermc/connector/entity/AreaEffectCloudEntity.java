@@ -43,6 +43,8 @@ public class AreaEffectCloudEntity extends Entity {
 
         // This disabled client side shrink of the cloud
         metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
+        metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_RATE, -0.005f);
+        metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, -0.5f);
     }
 
     @Override
@@ -51,11 +53,13 @@ public class AreaEffectCloudEntity extends Entity {
             metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, entityMetadata.getValue());
             metadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * (float) entityMetadata.getValue());
         } else if (entityMetadata.getId() == 8) {
-            metadata.put(EntityData.POTION_AUX_VALUE, entityMetadata.getValue());
+            metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
         } else if (entityMetadata.getId() == 10) {
             Particle particle = (Particle) entityMetadata.getValue();
             int particleId = EffectRegistry.getParticleId(particle.getType());
-            metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
+            if (particleId != -1) {
+                metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
+            }
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

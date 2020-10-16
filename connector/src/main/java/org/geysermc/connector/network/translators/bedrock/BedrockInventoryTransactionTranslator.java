@@ -61,6 +61,8 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.InventoryUtils;
 
+import java.util.concurrent.TimeUnit;
+
 @Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
 
@@ -120,18 +122,19 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.sendDownstreamPacket(itemPacket);
                         }
                         // Check actions, otherwise buckets may be activated when block inventories are accessed
-                        // But don't check actions if the bucket is empty
-                        else if (packet.getItemInHand() != null && ItemRegistry.BUCKETS.contains(packet.getItemInHand().getId()) &&
-                                (packet.getItemInHand().getId() == ItemRegistry.EMPTY_BUCKET.getBedrockId() || !packet.getActions().isEmpty())) {
-                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                            session.sendDownstreamPacket(itemPacket);
-
+                        else if (packet.getItemInHand() != null && ItemRegistry.BUCKETS.contains(packet.getItemInHand().getId())) {
                             // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
                             InventorySlotPacket slotPacket = new InventorySlotPacket();
                             slotPacket.setContainerId(ContainerId.INVENTORY);
                             slotPacket.setSlot(packet.getHotbarSlot());
                             slotPacket.setItem(packet.getItemInHand());
                             session.sendUpstreamPacket(slotPacket);
+                            // Delay the interaction in case the client doesn't intend to actually use the bucket
+                            // See BedrockActionTranslator.java
+                            session.setBucketScheduledFuture(session.getConnector().getGeneralThreadPool().schedule(() -> {
+                                ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                                session.sendDownstreamPacket(itemPacket);
+                            }, 5, TimeUnit.MILLISECONDS));
                         }
 
                         if (packet.getActions().isEmpty()) {
@@ -167,8 +170,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             break;
                         }
 
-                        // Handled in ITEM_USE
-                        if (packet.getItemInHand() != null && ItemRegistry.BUCKETS.contains(packet.getItemInHand().getId())) {
+                        // Handled in ITEM_USE if the item is not milk
+                        if (packet.getItemInHand() != null && ItemRegistry.BUCKETS.contains(packet.getItemInHand().getId()) &&
+                                packet.getItemInHand().getId() != ItemRegistry.MILK_BUCKET.getBedrockId()) {
                             break;
                         }
 

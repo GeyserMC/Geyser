@@ -68,7 +68,7 @@ public class ItemRegistry {
     /**
      * Empty item bucket, used in BedrockInventoryTransactionTranslator.java
      */
-    public static ItemEntry EMPTY_BUCKET;
+    public static ItemEntry MILK_BUCKET;
     /**
      * Gold item entry, used in PiglinEntity.java
      */
@@ -155,8 +155,8 @@ public class ItemRegistry {
                 case "minecraft:shield":
                     SHIELD = ITEM_ENTRIES.get(itemIndex);
                     break;
-                case "minecraft:bucket":
-                    EMPTY_BUCKET = ITEM_ENTRIES.get(itemIndex);
+                case "minecraft:milk_bucket":
+                    MILK_BUCKET = ITEM_ENTRIES.get(itemIndex);
                     break;
                 default:
                     break;

@@ -28,7 +28,6 @@ package org.geysermc.connector.network.translators.java.world;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUnloadChunkPacket;
 
@@ -37,6 +36,6 @@ public class JavaUnloadChunkTranslator extends PacketTranslator<ServerUnloadChun
 
     @Override
     public void translate(ServerUnloadChunkPacket packet, GeyserSession session) {
-        session.getChunkCache().removeChunk(new ChunkPosition(packet.getX(), packet.getZ()));
+        session.getChunkCache().removeChunk(packet.getX(), packet.getZ());
     }
 }
