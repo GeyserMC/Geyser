@@ -43,46 +43,47 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
 
     @Override
     public void translate(ServerOpenWindowPacket packet, GeyserSession session) {
-        if (packet.getWindowId() == 0) {
-            return;
-        }
-        InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(packet.getType());
-        Inventory openInventory = session.getInventoryCache().getOpenInventory();
-        if (newTranslator == null) {
+        session.addInventoryTask(() -> {
+            if (packet.getWindowId() == 0) {
+                return;
+            }
+
+            InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(packet.getType());
+            Inventory openInventory = session.getOpenInventory();
+            //No translator exists for this window type. Close all windows and return.
+            if (newTranslator == null) {
+                if (openInventory != null) {
+                    InventoryUtils.closeInventory(session, openInventory.getId());
+                }
+                ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
+                session.sendDownstreamPacket(closeWindowPacket);
+                return;
+            }
+
+            String name = packet.getName();
+            try {
+                JsonParser parser = new JsonParser();
+                JsonObject jsonObject = parser.parse(packet.getName()).getAsJsonObject();
+                if (jsonObject.has("text")) {
+                    name = jsonObject.get("text").getAsString();
+                } else if (jsonObject.has("translate")) {
+                    name = jsonObject.get("translate").getAsString();
+                }
+            } catch (Exception e) {
+                GeyserConnector.getInstance().getLogger().debug("JavaOpenWindowTranslator: " + e.toString());
+            }
+
+            name = LocaleUtils.getLocaleString(name, session.getClientData().getLanguageCode());
+
+            Inventory newInventory = newTranslator.createInventory(name, packet.getWindowId(), packet.getType(), session.getPlayerInventory());
             if (openInventory != null) {
-                InventoryUtils.closeWindow(session, openInventory.getId());
-                InventoryUtils.closeInventory(session, openInventory.getId());
+                InventoryTranslator openTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(openInventory.getWindowType());
+                if (!openTranslator.getClass().equals(newTranslator.getClass())) {
+                    InventoryUtils.closeInventory(session, openInventory.getId());
+                }
             }
-            ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
-            session.sendDownstreamPacket(closeWindowPacket);
-            return;
-        }
 
-        String name = packet.getName();
-        try {
-            JsonParser parser = new JsonParser();
-            JsonObject jsonObject = parser.parse(packet.getName()).getAsJsonObject();
-            if (jsonObject.has("text")) {
-                name = jsonObject.get("text").getAsString();
-            } else if (jsonObject.has("translate")) {
-                name = jsonObject.get("translate").getAsString();
-            }
-        } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().debug("JavaOpenWindowTranslator: " + e.toString());
-        }
-
-        name = LocaleUtils.getLocaleString(name, session.getClientData().getLanguageCode());
-
-        Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);
-        session.getInventoryCache().cacheInventory(newInventory);
-        if (openInventory != null) {
-            InventoryTranslator openTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(openInventory.getWindowType());
-            if (!openTranslator.getClass().equals(newTranslator.getClass())) {
-                InventoryUtils.closeWindow(session, openInventory.getId());
-                InventoryUtils.closeInventory(session, openInventory.getId());
-            }
-        }
-
-        InventoryUtils.openInventory(session, newInventory);
+            InventoryUtils.openInventory(session, newInventory);
+        });
     }
 }

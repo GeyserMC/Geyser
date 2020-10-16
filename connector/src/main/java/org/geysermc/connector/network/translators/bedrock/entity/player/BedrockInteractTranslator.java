@@ -60,7 +60,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
         switch (packet.getAction()) {
             case INTERACT:
-                if (session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36).getId() == ItemRegistry.SHIELD.getJavaId()) {
+                if (session.getPlayerInventory().getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) {
                     break;
                 }
                 ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
@@ -135,14 +135,15 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 }
                 break;
             case OPEN_INVENTORY:
-                if (!session.getInventory().isOpen()) {
+                if (session.getOpenInventory() == null) {
+                    session.setOpenInventory(session.getPlayerInventory());
+
                     ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
                     containerOpenPacket.setId((byte) 0);
                     containerOpenPacket.setType(ContainerType.INVENTORY);
                     containerOpenPacket.setUniqueEntityId(-1);
                     containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
                     session.sendUpstreamPacket(containerOpenPacket);
-                    session.getInventory().setOpen(true);
                 }
                 break;
         }

@@ -25,18 +25,15 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import com.nukkitx.protocol.bedrock.packet.ItemStackRequestPacket;
 import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -59,11 +56,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         ItemData[] contents = new ItemData[36];
         // Inventory
         for (int i = 9; i < 36; i++) {
-            contents[i] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
+            contents[i] = inventory.getItem(i).getItemData(session);
         }
         // Hotbar
         for (int i = 36; i < 45; i++) {
-            contents[i - 36] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
+            contents[i - 36] = inventory.getItem(i).getItemData(session);
         }
         inventoryContentPacket.setContents(contents);
         session.sendUpstreamPacket(inventoryContentPacket);
@@ -73,7 +70,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         armorContentPacket.setContainerId(ContainerId.ARMOR);
         contents = new ItemData[4];
         for (int i = 5; i < 9; i++) {
-            contents[i - 5] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
+            contents[i - 5] = inventory.getItem(i).getItemData(session);
         }
         armorContentPacket.setContents(contents);
         session.sendUpstreamPacket(armorContentPacket);
@@ -81,7 +78,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         // Offhand
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
-        offhandPacket.setContents(new ItemData[]{ItemTranslator.translateToBedrock(session, inventory.getItem(45))});
+        offhandPacket.setContents(new ItemData[]{inventory.getItem(45).getItemData(session)});
         session.sendUpstreamPacket(offhandPacket);
     }
 
@@ -100,7 +97,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             if (session.getGameMode() == GameMode.CREATIVE) {
                 slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK);
             }else{
-                slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i)));
+                slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i).getItemStack()));
             }
 
             session.sendUpstreamPacket(slotPacket);
@@ -125,21 +122,23 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setContainerId(ContainerId.UI);
                 slotPacket.setSlot(slot + 27);
             }
-            slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(slot)));
+            slotPacket.setItem(inventory.getItem(slot).getItemData(session));
             session.sendUpstreamPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
-            offhandPacket.setContents(new ItemData[]{ItemTranslator.translateToBedrock(session, inventory.getItem(slot))});
+            offhandPacket.setContents(new ItemData[]{inventory.getItem(slot).getItemData(session)});
             session.sendUpstreamPacket(offhandPacket);
         }
     }
 
     @Override
-    public int bedrockSlotToJava(InventoryActionData action) {
-        int slotnum = action.getSlot();
-        switch (action.getSource().getContainerId()) {
-            case ContainerId.INVENTORY:
+    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+        int slotnum = slotInfoData.getSlot();
+        switch (slotInfoData.getContainer()) {
+            case HOTBAR_AND_INVENTORY:
+            case HOTBAR:
+            case INVENTORY:
                 // Inventory
                 if (slotnum >= 9 && slotnum <= 35) {
                     return slotnum;
@@ -149,19 +148,19 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     return slotnum + 36;
                 }
                 break;
-            case ContainerId.ARMOR:
+            case ARMOR:
                 if (slotnum >= 0 && slotnum <= 3) {
                     return slotnum + 5;
                 }
                 break;
-            case ContainerId.OFFHAND:
+            case OFFHAND:
                 return 45;
-            case ContainerId.UI:
+            case CRAFTING_INPUT:
                 if (slotnum >= 28 && 31 >= slotnum) {
                     return slotnum - 27;
                 }
                 break;
-            case ContainerId.CRAFTING_RESULT:
+            case CREATIVE_OUTPUT:
                 return 0;
         }
         return slotnum;
@@ -169,7 +168,26 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
     @Override
     public int javaSlotToBedrock(int slot) {
-        return slot;
+        return -1;
+    }
+
+    @Override
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+        if (slot >= 36 && slot <= 44) {
+            return new BedrockContainerSlot(ContainerSlotType.HOTBAR, slot - 36);
+        } else if (slot >= 9 && slot <= 35) {
+            return new BedrockContainerSlot(ContainerSlotType.INVENTORY, slot);
+        } else if (slot >= 5 && slot <= 8) {
+            return new BedrockContainerSlot(ContainerSlotType.ARMOR, slot - 5);
+        } else if (slot == 45) {
+            return new BedrockContainerSlot(ContainerSlotType.OFFHAND, 1);
+        } else if (slot >= 1 && slot <= 4) {
+            return new BedrockContainerSlot(ContainerSlotType.CRAFTING_INPUT, slot + 27);
+        } else if (slot == 0) {
+            return new BedrockContainerSlot(ContainerSlotType.CRAFTING_OUTPUT, 0);
+        } else {
+            throw new IllegalArgumentException("Unknown bedrock slot");
+        }
     }
 
     @Override
@@ -180,52 +198,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        if (session.getGameMode() == GameMode.CREATIVE) {
-            //crafting grid is not visible in creative mode in java edition
-            for (InventoryActionData action : actions) {
-                if (action.getSource().getContainerId() == ContainerId.UI && (action.getSlot() >= 28 && 31 >= action.getSlot())) {
-                    updateInventory(session, inventory);
-                    InventoryUtils.updateCursor(session);
-                    return;
-                }
-            }
+    public void translateRequests(GeyserSession session, Inventory inventory, List<ItemStackRequestPacket.Request> requests) {
+        super.translateRequests(session, inventory, requests);
+    }
 
-            ItemStack javaItem;
-            for (InventoryActionData action : actions) {
-                switch (action.getSource().getContainerId()) {
-                    case ContainerId.INVENTORY:
-                    case ContainerId.ARMOR:
-                    case ContainerId.OFFHAND:
-                        int javaSlot = bedrockSlotToJava(action);
-                        if (action.getToItem().getId() == 0) {
-                            javaItem = new ItemStack(-1, 0, null);
-                        } else {
-                            javaItem = ItemTranslator.translateToJava(action.getToItem());
-                        }
-                        ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(javaSlot, javaItem);
-                        session.sendDownstreamPacket(creativePacket);
-                        inventory.setItem(javaSlot, javaItem);
-                        break;
-                    case ContainerId.UI:
-                        if (action.getSlot() == 0) {
-                            session.getInventory().setCursor(ItemTranslator.translateToJava(action.getToItem()));
-                        }
-                        break;
-                    case ContainerId.NONE:
-                        if (action.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
-                                && action.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                            javaItem = ItemTranslator.translateToJava(action.getToItem());
-                            ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, javaItem);
-                            session.sendDownstreamPacket(creativeDropPacket);
-                        }
-                        break;
-                }
-            }
-            return;
-        }
-
-        InventoryActionDataTranslator.translate(this, session, inventory, actions);
+    @Override
+    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

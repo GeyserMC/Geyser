@@ -25,15 +25,15 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.geysermc.connector.inventory.Container;
 import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.action.InventoryActionDataTranslator;
 
-import java.util.List;
-
-public abstract class BaseInventoryTranslator extends InventoryTranslator{
+public abstract class BaseInventoryTranslator extends InventoryTranslator {
     BaseInventoryTranslator(int size) {
         super(size);
     }
@@ -44,15 +44,18 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
     }
 
     @Override
-    public int bedrockSlotToJava(InventoryActionData action) {
-        int slotnum = action.getSlot();
-        if (action.getSource().getContainerId() == ContainerId.INVENTORY) {
-            //hotbar
-            if (slotnum >= 9) {
-                return slotnum + this.size - 9;
-            } else {
-                return slotnum + this.size + 27;
-            }
+    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+        int slotnum = slotInfoData.getSlot();
+        switch (slotInfoData.getContainer()) {
+            case HOTBAR_AND_INVENTORY:
+            case HOTBAR:
+            case INVENTORY:
+                //hotbar
+                if (slotnum >= 9) {
+                    return slotnum + this.size - 9;
+                } else {
+                    return slotnum + this.size + 27;
+                }
         }
         return slotnum;
     }
@@ -71,12 +74,25 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator{
     }
 
     @Override
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+        if (slot >= this.size) {
+            final int tmp = slot - this.size;
+            if (tmp < 27) {
+                return new BedrockContainerSlot(ContainerSlotType.INVENTORY, tmp + 9);
+            } else {
+                return new BedrockContainerSlot(ContainerSlotType.HOTBAR, tmp - 27);
+            }
+        }
+        throw new IllegalArgumentException("Unknown bedrock slot");
+    }
+
+    @Override
     public SlotType getSlotType(int javaSlot) {
         return SlotType.NORMAL;
     }
 
     @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        InventoryActionDataTranslator.translate(this, session, inventory, actions);
+    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
+        return new Container(name, windowId, windowType, this.size, playerInventory);
     }
 }

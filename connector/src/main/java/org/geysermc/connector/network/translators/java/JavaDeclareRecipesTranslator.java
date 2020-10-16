@@ -34,6 +34,8 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.AllArgsConstructor;
@@ -51,8 +53,10 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
 
     @Override
     public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
+        Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
+        int netId = 1;
         for (Recipe recipe : packet.getRecipes()) {
             switch (recipe.getType()) {
                 case CRAFTING_SHAPELESS: {
@@ -63,7 +67,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                                inputs, new ItemData[]{output}, uuid, "crafting_table", 0));
+                                inputs, new ItemData[]{output}, uuid, "crafting_table", 0, netId));
+                        recipeMap.put(netId++, recipe);
                     }
                     break;
                 }
@@ -76,7 +81,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), inputs,
-                                new ItemData[]{output}, uuid, "crafting_table", 0));
+                                new ItemData[]{output}, uuid, "crafting_table", 0, netId));
+                        recipeMap.put(netId++, recipe);
                     }
                     break;
                 }
@@ -102,6 +108,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
         }
         craftingDataPacket.getPotionMixData().addAll(PotionMixRegistry.POTION_MIXES);
         session.sendUpstreamPacket(craftingDataPacket);
+        session.setCraftingRecipes(recipeMap);
     }
 
     //TODO: rewrite

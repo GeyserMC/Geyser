@@ -23,30 +23,47 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowPropertyPacket;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import lombok.Getter;
+import lombok.NonNull;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.utils.InventoryUtils;
 
-@Translator(packet = ServerWindowPropertyPacket.class)
-public class JavaWindowPropertyTranslator extends PacketTranslator<ServerWindowPropertyPacket> {
+/**
+ * Combination of {@link Inventory} and {@link PlayerInventory}
+ */
+@Getter
+public class Container extends Inventory {
+    private final PlayerInventory playerInventory;
+    private final int containerSize;
+
+    public Container(String title, int id, WindowType windowType, int size, PlayerInventory playerInventory) {
+        super(title, id, windowType, size);
+        this.playerInventory = playerInventory;
+        this.containerSize = this.size + InventoryTranslator.PLAYER_INVENTORY_SIZE;
+    }
 
     @Override
-    public void translate(ServerWindowPropertyPacket packet, GeyserSession session) {
-        session.addInventoryTask(() -> {
-            Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
-            if (inventory == null)
-                return;
+    public GeyserItemStack getItem(int slot) {
+        if (slot < this.size) {
+            return super.getItem(slot);
+        } else {
+            return playerInventory.getItem(slot - this.size + InventoryTranslator.PLAYER_INVENTORY_OFFSET);
+        }
+    }
 
-            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
-            if (translator != null) {
-                translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
-            }
-        });
+    @Override
+    public void setItem(int slot, @NonNull GeyserItemStack item) {
+        if (slot < this.size) {
+            super.setItem(slot, item);
+        } else {
+            playerInventory.setItem(slot - this.size + InventoryTranslator.PLAYER_INVENTORY_OFFSET, item);
+        }
+    }
+
+    @Override
+    public int getSize() {
+        return this.containerSize;
     }
 }

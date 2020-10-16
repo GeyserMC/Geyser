@@ -32,6 +32,7 @@ import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -71,15 +72,9 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
                         packet.getPosition().getY(),
                         packet.getPosition().getZ()
                 ));
-                PlayerInventory inventory = session.getInventory();
-                ItemStack item = inventory.getItemInHand();
-                ItemEntry itemEntry = null;
-                CompoundTag nbtData = new CompoundTag("");
-                if (item != null) {
-                    itemEntry = ItemRegistry.getItem(item);
-                    nbtData = item.getNbt();
-                }
-                double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState(), itemEntry, nbtData, session) * 20);
+                PlayerInventory inventory = session.getPlayerInventory();
+                GeyserItemStack item = inventory.getItemInHand();
+                double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, packet.getNewState(), item.getItemEntry(), item.getNbt(), session) * 20);
                 levelEvent.setData((int) (65535 / breakTime));
                 session.setBreakingBlock(packet.getNewState());
                 session.sendUpstreamPacket(levelEvent);

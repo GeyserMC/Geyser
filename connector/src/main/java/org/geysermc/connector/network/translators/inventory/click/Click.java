@@ -23,39 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.inventory.click;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.Getter;
-import lombok.Setter;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
+import com.github.steveice10.mc.protocol.data.game.window.ClickItemParam;
+import com.github.steveice10.mc.protocol.data.game.window.DropItemParam;
+import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
+import com.github.steveice10.mc.protocol.data.game.window.WindowActionParam;
+import lombok.AllArgsConstructor;
 
-public class InventoryCache {
+@AllArgsConstructor
+public enum Click {
+    LEFT(WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK),
+    RIGHT(WindowAction.CLICK_ITEM, ClickItemParam.RIGHT_CLICK),
+    DROP_ONE(WindowAction.DROP_ITEM, DropItemParam.DROP_FROM_SELECTED),
+    DROP_ALL(WindowAction.DROP_ITEM, DropItemParam.DROP_SELECTED_STACK),
+    LEFT_OUTSIDE(WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK),
+    RIGHT_OUTSIDE(WindowAction.CLICK_ITEM, ClickItemParam.RIGHT_CLICK);
 
-    private GeyserSession session;
+    public static final int OUTSIDE_SLOT = -999;
 
-    @Getter
-    @Setter
-    private Inventory openInventory;
-
-    @Getter
-    private Int2ObjectMap<Inventory> inventories = new Int2ObjectOpenHashMap<>();
-
-    public InventoryCache(GeyserSession session) {
-        this.session = session;
-    }
-
-    public Inventory getPlayerInventory() {
-        return inventories.get(0);
-    }
-
-    public void cacheInventory(Inventory inventory) {
-        inventories.put(inventory.getId(), inventory);
-    }
-
-    public void uncacheInventory(int id) {
-        inventories.remove(id);
-    }
+    public final WindowAction windowAction;
+    public final WindowActionParam actionParam;
 }

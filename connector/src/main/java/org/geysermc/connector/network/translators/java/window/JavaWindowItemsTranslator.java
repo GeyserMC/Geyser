@@ -26,32 +26,40 @@
 package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-
-import java.util.Arrays;
+import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = ServerWindowItemsPacket.class)
 public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItemsPacket> {
 
     @Override
     public void translate(ServerWindowItemsPacket packet, GeyserSession session) {
-        Inventory inventory = session.getInventoryCache().getInventories().get(packet.getWindowId());
-        if (inventory == null || (packet.getWindowId() != 0 && inventory.getWindowType() == null))
-            return;
+        session.addInventoryTask(() -> {
+            Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
+            if (inventory == null)
+                return;
 
-        if (packet.getItems().length < inventory.getSize()) {
-            inventory.setItems(Arrays.copyOf(packet.getItems(), inventory.getSize()));
-        } else {
-            inventory.setItems(packet.getItems());
-        }
+            for (int i = 0; i < packet.getItems().length; i++) {
+                GeyserItemStack newItem = GeyserItemStack.from(packet.getItems()[i]);
+                GeyserItemStack oldItem = inventory.getItem(i);
+                if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
+                    newItem.setNetId(oldItem.getNetId());
+                } else {
+                    newItem.setNetId(session.getItemNetId().getAndIncrement());
+                }
+                inventory.setItem(i, newItem);
+            }
 
-        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
-        if (translator != null) {
-            translator.updateInventory(session, inventory);
-        }
+            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+            if (translator != null) {
+                translator.updateInventory(session, inventory);
+            }
+        });
     }
 }

@@ -25,15 +25,21 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
+import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
+import com.nukkitx.protocol.bedrock.data.inventory.*;
+import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.MerchantContainer;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
-
-import java.util.List;
+import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
 
 public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
@@ -41,7 +47,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     public MerchantInventoryTranslator() {
         super(3);
-        this.updater = new CursorInventoryUpdater();
+        this.updater = new UIInventoryUpdater();
     }
 
     @Override
@@ -58,26 +64,30 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public int bedrockSlotToJava(InventoryActionData action) {
-        switch (action.getSource().getContainerId()) {
-            case ContainerId.UI:
-                switch (action.getSlot()) {
-                    case 4:
-                        return 0;
-                    case 5:
-                        return 1;
-                    case 50:
-                        return 2;
-                }
-                break;
-            case -28: // Trading 1?
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+        switch (slot) {
+            case 0:
+                return new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT1, 4);
+            case 1:
+                return new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT2, 5);
+            case 2:
+                return new BedrockContainerSlot(ContainerSlotType.TRADE2_RESULT, 50);
+        }
+        return super.javaSlotToBedrockContainer(slot);
+    }
+
+    @Override
+    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+        switch (slotInfoData.getContainer()) {
+            case TRADE2_INGREDIENT1:
                 return 0;
-            case -29: // Trading 2?
+            case TRADE2_INGREDIENT2:
                 return 1;
-            case -30: // Trading Output?
+            case TRADE2_RESULT:
+            case CREATIVE_OUTPUT:
                 return 2;
         }
-        return super.bedrockSlotToJava(action);
+        return super.bedrockSlotToJava(slotInfoData);
     }
 
     @Override
@@ -90,18 +100,40 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
+        MerchantContainer merchantInventory = (MerchantContainer) inventory;
+        if (merchantInventory.getVillager() == null) {
+            long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
+            Vector3f pos = session.getPlayerEntity().getPosition().sub(0, 3, 0);
 
+            EntityDataMap metadata = new EntityDataMap();
+            metadata.put(EntityData.SCALE, 0f);
+            metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0f);
+            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0f);
+
+            Entity villager = new Entity(0, geyserId, EntityType.VILLAGER, pos, Vector3f.ZERO, Vector3f.ZERO);
+            villager.setMetadata(metadata);
+            villager.spawnEntity(session);
+
+            SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
+            EntityLinkData.Type type = EntityLinkData.Type.PASSENGER;
+            linkPacket.setEntityLink(new EntityLinkData(session.getPlayerEntity().getGeyserId(), geyserId, type, true, false));
+            session.sendUpstreamPacket(linkPacket);
+
+            merchantInventory.setVillager(villager);
+        }
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-
+        //Handled in JavaTradeListTranslator
     }
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-        session.setLastInteractedVillagerEid(-1);
-        session.setVillagerTrades(null);
+        MerchantContainer merchantInventory = (MerchantContainer) inventory;
+        if (merchantInventory.getVillager() != null) {
+            merchantInventory.getVillager().despawnEntity(session);
+        }
     }
 
     @Override
@@ -115,11 +147,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        if (actions.stream().anyMatch(a -> a.getSource().getContainerId() == -31)) {
-            return;
-        }
-
-        super.translateActions(session, inventory, actions);
+    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
+        return new MerchantContainer(name, windowId, windowType, this.size, playerInventory);
     }
 }

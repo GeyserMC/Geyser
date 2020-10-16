@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientConfirmTransactionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerConfirmTransactionPacket;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -36,9 +37,11 @@ public class JavaConfirmTransactionTranslator extends PacketTranslator<ServerCon
 
     @Override
     public void translate(ServerConfirmTransactionPacket packet, GeyserSession session) {
-        if (!packet.isAccepted()) {
-            ClientConfirmTransactionPacket confirmPacket = new ClientConfirmTransactionPacket(packet.getWindowId(), packet.getActionId(), true);
-            session.sendDownstreamPacket(confirmPacket);
-        }
+        session.addInventoryTask(() -> {
+            if (!packet.isAccepted()) {
+                ClientConfirmTransactionPacket confirmPacket = new ClientConfirmTransactionPacket(packet.getWindowId(), packet.getActionId(), true);
+                session.sendDownstreamPacket(confirmPacket);
+            }
+        });
     }
 }
