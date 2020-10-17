@@ -109,6 +109,17 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             // Force an update to the passenger metadata
             passenger.updateBedrockMetadata(session);
         }
+
+        switch (entity.getEntityType()) {
+            case HORSE:
+            case SKELETON_HORSE:
+            case DONKEY:
+            case MULE:
+            case RAVAGER:
+                entity.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
+                entity.updateBedrockMetadata(session);
+                break;
+        }
     }
 
     private float getMountedHeightOffset(Entity mount) {
