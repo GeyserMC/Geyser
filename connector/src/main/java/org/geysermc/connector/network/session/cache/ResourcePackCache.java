@@ -48,7 +48,11 @@ public class ResourcePackCache {
     private String resourcePackUrl;
     private String resourcePackHash;
 
-    private ResourcePack bedrockResourcePack;
+    /**
+     * Index 0 - resource pack
+     * Index 1 - behavior pack, if any
+     */
+    private ResourcePack[] bedrockResourcePacks = new ResourcePack[] {null, null};
     private final List<StartGamePacket.ItemEntry> bedrockCustomItems = new ObjectArrayList<>();
     private final Int2ObjectMap<Int2IntMap> javaToCustomModelDataToBedrockId = new Int2ObjectOpenHashMap<>();
     /**
@@ -62,6 +66,22 @@ public class ResourcePackCache {
 
     public ResourcePackCache() {
 
+    }
+
+    public ResourcePack getBedrockResourcePack() {
+        return this.bedrockResourcePacks[0];
+    }
+
+    public ResourcePack getBedrockBehaviorPack() {
+        return this.bedrockResourcePacks[1];
+    }
+
+    public void setBedrockResourcePack(ResourcePack pack) {
+        this.bedrockResourcePacks[0] = pack;
+    }
+
+    public void setBedrockBehaviorPack(ResourcePack pack) {
+        this.bedrockResourcePacks[1] = pack;
     }
 
     public List<StartGamePacket.ItemEntry> getAllItems() {

@@ -85,14 +85,24 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (cache != null) {
             session.setResourcePackCache(cache);
             RECONNECTING_CLIENTS.remove(session.getAuthData().getXboxUUID(), cache);
-            ResourcePack resourcePack = session.getResourcePackCache().getBedrockResourcePack();
-            ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
-            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(), "", "", "", false));
+            ResourcePack translatedResourcePack = session.getResourcePackCache().getBedrockResourcePack();
+            ResourcePackManifest.Header header = translatedResourcePack.getManifest().getHeader();
+            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(),
+                    header.getVersionString(), translatedResourcePack.getFile().length(), "", "", header.getUuid().toString(), false));
+            if (session.getResourcePackCache().getBedrockBehaviorPack() != null) {
+                // Behavior pack is not null, add it
+                ResourcePack translatedBehaviorPack = session.getResourcePackCache().getBedrockResourcePacks()[1];
+                ResourcePackManifest.Header behaviorHeader = translatedBehaviorPack.getManifest().getHeader();
+                // Add to the behavior packs
+                resourcePacksInfo.getBehaviorPackInfos().add(new ResourcePacksInfoPacket.Entry(behaviorHeader.getUuid().toString(),
+                        behaviorHeader.getVersionString(), translatedBehaviorPack.getFile().length(), "", "", behaviorHeader.getUuid().toString(), false));
+            }
             if (!session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().isEmpty()) {
                 session.getResourcePackCache().setCustomModelDataActive(true);
             }
         }
         resourcePacksInfo.setForcedToAccept(GeyserConnector.getInstance().getConfig().isForceResourcePacks() || cache != null);
+        System.out.println(resourcePacksInfo);
         session.sendUpstreamPacket(resourcePacksInfo);
         return true;
     }
@@ -107,13 +117,22 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             case SEND_PACKS:
                 for (String id : packet.getPackIds()) {
+                    boolean isResourcePack = true;
                     ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
                     String[] packID = id.split("_");
-                    ResourcePack pack;
-                    if (session.getResourcePackCache().getBedrockResourcePack() != null &&
-                            packID[0].equals(session.getResourcePackCache().getBedrockResourcePack().getManifest().getHeader().getUuid().toString())) {
-                        pack = session.getResourcePackCache().getBedrockResourcePack();
-                    } else {
+                    ResourcePack pack = null;
+                    for (int i = 0; i < session.getResourcePackCache().getBedrockResourcePacks().length; i++) {
+                        ResourcePack translatedResourcePack = session.getResourcePackCache().getBedrockResourcePacks()[i];
+                        if (packID[0].equals(translatedResourcePack.getManifest().getHeader().getUuid().toString())) {
+                            pack = translatedResourcePack;
+                            // Index 0 - resource pack
+                            if (i > 0) {
+                                isResourcePack = false;
+                            }
+                            break;
+                        }
+                    }
+                    if (pack == null) {
                         pack = ResourcePack.PACKS.get(packID[0]);
                     }
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();
@@ -126,9 +145,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     data.setHash(pack.getSha256());
                     data.setPackVersion(packID[1]);
                     data.setPremium(false);
-                    data.setType(ResourcePackType.RESOURCE);
+                    data.setType(isResourcePack ? ResourcePackType.RESOURCE : ResourcePackType.BEHAVIOR);
 
                     session.sendUpstreamPacket(data);
+                    System.out.println(data);
                 }
                 break;
 
@@ -143,10 +163,18 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
                 }
                 if (session.getResourcePackCache().getBedrockResourcePack() != null) {
-                    ResourcePackManifest.Header header = session.getResourcePackCache().getBedrockResourcePack().getManifest().getHeader();
+                    ResourcePack translatedResourcePack = session.getResourcePackCache().getBedrockResourcePacks()[0];
+                    ResourcePackManifest.Header header = translatedResourcePack.getManifest().getHeader();
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
+                    if (session.getResourcePackCache().getBedrockBehaviorPack() != null) {
+                        ResourcePack translatedBehaviorPack = session.getResourcePackCache().getBedrockResourcePacks()[1];
+                        ResourcePackManifest.Header behaviorHeader = translatedBehaviorPack.getManifest().getHeader();
+                        // Add to the behavior packs
+                        stackPacket.getBehaviorPacks().add(new ResourcePackStackPacket.Entry(behaviorHeader.getUuid().toString(), behaviorHeader.getVersionString(), ""));
+                    }
                 }
 
+                System.out.println(stackPacket);
                 session.sendUpstreamPacket(stackPacket);
                 break;
 
@@ -218,12 +246,16 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ResourcePackChunkRequestPacket packet) {
+        System.out.println(packet);
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
-        ResourcePack pack;
-        if (session.getResourcePackCache().getBedrockResourcePack() != null &&
-                packet.getPackId().equals(session.getResourcePackCache().getBedrockResourcePack().getManifest().getHeader().getUuid())) {
-            pack = session.getResourcePackCache().getBedrockResourcePack();
-        } else {
+        ResourcePack pack = null;
+        for (ResourcePack translatedResourcePack : session.getResourcePackCache().getBedrockResourcePacks()) {
+            if (translatedResourcePack == null) continue;
+            if (packet.getPackId().equals(translatedResourcePack.getManifest().getHeader().getUuid())) {
+                pack = translatedResourcePack;
+            }
+        }
+        if (pack == null) {
             pack = ResourcePack.PACKS.get(packet.getPackId().toString());
         }
 
@@ -236,7 +268,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         byte[] packData = new byte[(int) MathUtils.constrain(pack.getFile().length() - offset, 0, ResourcePack.CHUNK_SIZE)];
 
         try (InputStream inputStream = new FileInputStream(pack.getFile())) {
+            //noinspection ResultOfMethodCallIgnored
             inputStream.skip(offset);
+            //noinspection ResultOfMethodCallIgnored
             inputStream.read(packData, 0, packData.length);
         } catch (Exception e) {
             e.printStackTrace();

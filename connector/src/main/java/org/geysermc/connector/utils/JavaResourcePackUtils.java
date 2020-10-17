@@ -40,6 +40,7 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.packconverter.api.PackConverter;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 
 public class JavaResourcePackUtils {
@@ -76,6 +77,7 @@ public class JavaResourcePackUtils {
             }
             session.getConnector().getGeneralThreadPool().execute(() -> {
                 try {
+                    Arrays.fill(session.getResourcePackCache().getBedrockResourcePacks(), null);
                     session.getResourcePackCache().getBedrockCustomItems().clear();
                     session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().clear();
                     session.getResourcePackCache().getBedrockCustomIdToProperBedrockId().clear();
@@ -124,6 +126,7 @@ public class JavaResourcePackUtils {
                                 session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().put(
                                         itemEntry.getJavaId(), customModelDataToBedrockId);
                             }
+                            session.getResourcePackCache().setBedrockBehaviorPack(ResourcePack.loadPack(translatedPacks.resolve("bp_" + packName).toFile()));
                         }
                         //noinspection ResultOfMethodCallIgnored
                         javaPacks.resolve(packName).toFile().delete();
