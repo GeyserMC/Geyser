@@ -72,14 +72,14 @@ public class SimpleFormWindow extends FormWindow {
     }
 
     public void setResponse(String data) {
-        if (data == null || data.equalsIgnoreCase("null")) {
+        if (data == null || data.trim().equalsIgnoreCase("null")) {
             closed = true;
             return;
         }
 
         int buttonID;
         try {
-            buttonID = Integer.parseInt(data);
+            buttonID = Integer.parseInt(data.trim());
         } catch (Exception ex) {
             return;
         }
