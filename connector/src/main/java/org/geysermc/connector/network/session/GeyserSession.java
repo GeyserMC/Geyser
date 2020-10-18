@@ -280,6 +280,9 @@ public class GeyserSession implements CommandSender {
 
     private Map<Statistic, Integer> statistics = new HashMap<>();
 
+    @Setter
+    private boolean waitingForStatistics = false;
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);

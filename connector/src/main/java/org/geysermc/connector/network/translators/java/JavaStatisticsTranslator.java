@@ -39,6 +39,10 @@ public class JavaStatisticsTranslator extends PacketTranslator<ServerStatisticsP
     public void translate(ServerStatisticsPacket packet, GeyserSession session) {
         GeyserConnector.getInstance().getLogger().debug(packet.toString());
         session.updateStatistics(packet.getStatistics());
-        session.sendForm(StatisticsUtils.buildMenuForm(session), StatisticsUtils.STATISTICS_MENU_FORM_ID);
+
+        if (session.isWaitingForStatistics()) {
+            session.setWaitingForStatistics(false);
+            session.sendForm(StatisticsUtils.buildMenuForm(session), StatisticsUtils.STATISTICS_MENU_FORM_ID);
+        }
     }
 }

@@ -51,6 +51,7 @@ public class StatisticsCommand extends GeyserCommand {
         // Make sure the sender is a Bedrock edition client
         if (sender instanceof GeyserSession) {
             GeyserSession session = (GeyserSession) sender;
+            session.setWaitingForStatistics(true);
             ClientRequestPacket clientRequestPacket = new ClientRequestPacket(ClientRequest.STATS);
             session.sendDownstreamPacket(clientRequestPacket);
             return;
@@ -58,6 +59,7 @@ public class StatisticsCommand extends GeyserCommand {
         // Needed for Bukkit - sender is not an instance of GeyserSession
         for (GeyserSession session : connector.getPlayers()) {
             if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
+                session.setWaitingForStatistics(true);
                 ClientRequestPacket clientRequestPacket = new ClientRequestPacket(ClientRequest.STATS);
                 session.sendDownstreamPacket(clientRequestPacket);
                 break;
