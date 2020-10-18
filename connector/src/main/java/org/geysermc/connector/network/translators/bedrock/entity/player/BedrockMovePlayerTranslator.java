@@ -25,7 +25,13 @@
 
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.nukkitx.math.vector.Vector3d;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
@@ -34,11 +40,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
@@ -57,6 +59,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             moveEntityBack.setOnGround(true);
             session.sendUpstreamPacketImmediately(moveEntityBack);
             return;
+        }
+
+        if (session.getMovementSendIfIdle() != null) {
+            session.getMovementSendIfIdle().cancel(true);
         }
 
         // We need to parse the float as a string since casting a float to a double causes us to
@@ -106,6 +112,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (!colliding)
          */
         session.sendDownstreamPacket(playerPositionRotationPacket);
+
+        // Schedule a position send loop if the player is idle
+        session.setMovementSendIfIdle(session.getConnector().getGeneralThreadPool().schedule(() -> sendPositionIfIdle(session),
+                3, TimeUnit.SECONDS));
     }
 
     public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
@@ -146,5 +156,21 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
         session.sendUpstreamPacket(movePlayerPacket);
+    }
+
+    private void sendPositionIfIdle(GeyserSession session) {
+        if (session.isClosed()) return;
+        PlayerEntity entity = session.getPlayerEntity();
+        // Recalculate in case something else changed position
+        double javaY = entity.getPosition().getY() - EntityType.PLAYER.getOffset();
+        if (entity.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
+
+        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(entity.getPosition().getX())), javaY,
+                Double.parseDouble(Float.toString(entity.getPosition().getZ())));
+        ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(session.getPlayerEntity().isOnGround(),
+                position.getX(), position.getY(), position.getZ());
+        session.sendDownstreamPacket(packet);
+        session.setMovementSendIfIdle(session.getConnector().getGeneralThreadPool().schedule(() -> sendPositionIfIdle(session),
+                3, TimeUnit.SECONDS));
     }
 }
