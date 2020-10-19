@@ -49,7 +49,7 @@ public class ReloadCommand extends GeyserCommand {
 
         String message = "";
         if (sender instanceof GeyserSession) {
-            message = LanguageUtils.getPlayerLocaleString("geyser.commands.reload.message", ((GeyserSession) sender).getClientData().getLanguageCode());
+            message = LanguageUtils.getPlayerLocaleString("geyser.commands.reload.message", ((GeyserSession) sender).getLocale());
         } else {
             message = LanguageUtils.getLocaleStringLog("geyser.commands.reload.message");
         }
@@ -57,7 +57,7 @@ public class ReloadCommand extends GeyserCommand {
         sender.sendMessage(message);
 
         for (GeyserSession session : connector.getPlayers()) {
-            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getClientData().getLanguageCode()));
+            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getLocale()));
         }
         connector.reload();
     }

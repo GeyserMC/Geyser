@@ -37,6 +37,6 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<LoginDisconn
     @Override
     public void translate(LoginDisconnectPacket packet, GeyserSession session) {
         // The client doesn't manually get disconnected so we have to do it ourselves
-        session.disconnect(MessageUtils.getTranslatedBedrockMessage(packet.getReason(), session.getClientData().getLanguageCode()));
+        session.disconnect(MessageUtils.getTranslatedBedrockMessage(packet.getReason(), session.getLocale()));
     }
 }
