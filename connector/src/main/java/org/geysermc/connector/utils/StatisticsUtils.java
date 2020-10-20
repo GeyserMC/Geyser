@@ -116,9 +116,7 @@ public class StatisticsUtils {
                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                         if (entry.getKey() instanceof BreakItemStatistic) {
                             String item = ItemRegistry.ITEM_ENTRIES.get(((BreakItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                            item = item.replace("minecraft:", "item.minecraft.");
-                            item = LocaleUtils.getLocaleString(item, language);
-                            content.append(item + ": " + entry.getValue() + "\n");
+                            content.append(getItemTranslateKey(item, language) + ": " + entry.getValue() + "\n");
                         }
                     }
                     break;
@@ -128,9 +126,7 @@ public class StatisticsUtils {
                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                         if (entry.getKey() instanceof CraftItemStatistic) {
                             String item = ItemRegistry.ITEM_ENTRIES.get(((CraftItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                            item = item.replace("minecraft:", "item.minecraft.");
-                            item = LocaleUtils.getLocaleString(item, language);
-                            content.append(item + ": " + entry.getValue() + "\n");
+                            content.append(getItemTranslateKey(item, language) + ": " + entry.getValue() + "\n");
                         }
                     }
                     break;
@@ -140,9 +136,7 @@ public class StatisticsUtils {
                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                         if (entry.getKey() instanceof UseItemStatistic) {
                             String item = ItemRegistry.ITEM_ENTRIES.get(((UseItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                            item = item.replace("minecraft:", "item.minecraft.");
-                            item = LocaleUtils.getLocaleString(item, language);
-                            content.append(item + ": " + entry.getValue() + "\n");
+                            content.append(getItemTranslateKey(item, language) + ": " + entry.getValue() + "\n");
                         }
                     }
                     break;
@@ -152,9 +146,7 @@ public class StatisticsUtils {
                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                         if (entry.getKey() instanceof PickupItemStatistic) {
                             String item = ItemRegistry.ITEM_ENTRIES.get(((PickupItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                            item = item.replace("minecraft:", "item.minecraft.");
-                            item = LocaleUtils.getLocaleString(item, language);
-                            content.append(item + ": " + entry.getValue() + "\n");
+                            content.append(getItemTranslateKey(item, language) + ": " + entry.getValue() + "\n");
                         }
                     }
                     break;
@@ -164,9 +156,7 @@ public class StatisticsUtils {
                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                         if (entry.getKey() instanceof DropItemStatistic) {
                             String item = ItemRegistry.ITEM_ENTRIES.get(((DropItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                            item = item.replace("minecraft:", "item.minecraft.");
-                            item = LocaleUtils.getLocaleString(item, language);
-                            content.append(item + ": " + entry.getValue() + "\n");
+                            content.append(getItemTranslateKey(item, language) + ": " + entry.getValue() + "\n");
                         }
                     }
                     break;
@@ -199,7 +189,7 @@ public class StatisticsUtils {
             }
 
             SimpleFormWindow window = new SimpleFormWindow(title, content.toString());
-            window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.statistics.back", language)));
+            window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("gui.back", language)));
             session.sendForm(window, STATISTICS_LIST_FORM_ID);
         }
 
@@ -222,5 +212,21 @@ public class StatisticsUtils {
         }
 
         return true;
+    }
+
+    /**
+     * Finds the item translation key from the Java locale.
+     * @param item the namespaced item to search for.
+     * @param language the language to search in
+     * @return the full name of the item
+     */
+    private static String getItemTranslateKey(String item, String language) {
+        item = item.replace("minecraft:", "item.minecraft.");
+        String translatedItem = LocaleUtils.getLocaleString(item, language);
+        if (translatedItem.equals(item)) {
+            // Didn't translate; must be a block
+            translatedItem = LocaleUtils.getLocaleString(item.replace("item.", "block."), language);
+        }
+        return translatedItem;
     }
 }

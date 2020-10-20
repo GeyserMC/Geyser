@@ -276,12 +276,19 @@ public class GeyserSession implements CommandSender {
     @Setter
     private String lastSignMessage;
 
-    private MinecraftProtocol protocol;
+    /**
+     * Stores a map of all statistics sent from the server.
+     * The server only sends new statistics back to us, so in order to show all statistics we need to cache existing ones.
+     */
+    private final Map<Statistic, Integer> statistics = new HashMap<>();
 
-    private Map<Statistic, Integer> statistics = new HashMap<>();
-
+    /**
+     * Whether we're expecting statistics to be sent back from us.
+     */
     @Setter
     private boolean waitingForStatistics = false;
+
+    private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;

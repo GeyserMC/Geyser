@@ -34,7 +34,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class StatisticsCommand extends GeyserCommand {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public StatisticsCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
@@ -56,7 +56,7 @@ public class StatisticsCommand extends GeyserCommand {
             session.sendDownstreamPacket(clientRequestPacket);
             return;
         }
-        // Needed for Bukkit - sender is not an instance of GeyserSession
+        // Needed for Spigot - sender is not an instance of GeyserSession
         for (GeyserSession session : connector.getPlayers()) {
             if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
                 session.setWaitingForStatistics(true);
