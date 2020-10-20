@@ -221,7 +221,7 @@ public class ChunkUtils {
 
                 // V1 palette
                 IntList layer1Palette = new IntArrayList(2);
-                layer1Palette.add(0); // Air
+                layer1Palette.add(BEDROCK_AIR_ID); // Air - see BlockStorage's constructor for more information
                 layer1Palette.add(BEDROCK_WATER_ID);
 
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
