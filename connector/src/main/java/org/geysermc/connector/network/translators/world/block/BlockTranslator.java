@@ -366,8 +366,4 @@ public class BlockTranslator {
     public static int getJavaWaterloggedState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(1 << 31 | bedrockId);
     }
-
-    public static String getJavaIdentifier(int javaId) {
-        return (String) JAVA_TO_BEDROCK_IDENTIFIERS.keySet().toArray()[javaId];
-    }
 }
