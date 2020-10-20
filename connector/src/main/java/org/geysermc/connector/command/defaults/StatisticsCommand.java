@@ -49,21 +49,21 @@ public class StatisticsCommand extends GeyserCommand {
         }
 
         // Make sure the sender is a Bedrock edition client
+        GeyserSession session = null;
         if (sender instanceof GeyserSession) {
-            GeyserSession session = (GeyserSession) sender;
-            session.setWaitingForStatistics(true);
-            ClientRequestPacket clientRequestPacket = new ClientRequestPacket(ClientRequest.STATS);
-            session.sendDownstreamPacket(clientRequestPacket);
-            return;
-        }
-        // Needed for Spigot - sender is not an instance of GeyserSession
-        for (GeyserSession session : connector.getPlayers()) {
-            if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
-                session.setWaitingForStatistics(true);
-                ClientRequestPacket clientRequestPacket = new ClientRequestPacket(ClientRequest.STATS);
-                session.sendDownstreamPacket(clientRequestPacket);
-                break;
+            session = (GeyserSession) sender;
+        } else {
+            // Needed for Spigot - sender is not an instance of GeyserSession
+            for (GeyserSession otherSession : connector.getPlayers()) {
+                if (sender.getName().equals(otherSession.getPlayerEntity().getUsername())) {
+                    session = otherSession;
+                    break;
+                }
             }
         }
+        if (session == null) return;
+        session.setWaitingForStatistics(true);
+        ClientRequestPacket clientRequestPacket = new ClientRequestPacket(ClientRequest.STATS);
+        session.sendDownstreamPacket(clientRequestPacket);
     }
 }
