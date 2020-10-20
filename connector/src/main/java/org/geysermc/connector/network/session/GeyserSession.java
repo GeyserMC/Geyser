@@ -194,9 +194,10 @@ public class GeyserSession implements CommandSender {
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
+     * Setting a default fixes cooldowns not showing up on a fresh world.
      */
     @Setter
-    private double attackSpeed;
+    private double attackSpeed = 4.0d;
     /**
      * The time of the last hit. Used to gauge how long the cooldown is taking.
      * This is a session variable in order to prevent more scheduled threads than necessary.
