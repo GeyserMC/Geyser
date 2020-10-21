@@ -37,6 +37,8 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import java.util.Arrays;
+
 @AllArgsConstructor
 public class GeyserVelocityCommandExecutor implements Command {
 
@@ -51,10 +53,10 @@ public class GeyserVelocityCommandExecutor implements Command {
                     source.sendMessage(TextComponent.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return;
                 }
-                getCommand(args[0]).execute(new VelocityCommandSender(source), args);
+                getCommand(args[0]).execute(new VelocityCommandSender(source), args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }
         } else {
-            getCommand("help").execute(new VelocityCommandSender(source), args);
+            getCommand("help").execute(new VelocityCommandSender(source), new String[0]);
         }
     }
 

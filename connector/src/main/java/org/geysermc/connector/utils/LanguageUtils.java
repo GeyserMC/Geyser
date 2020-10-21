@@ -122,7 +122,7 @@ public class LanguageUtils {
             formatString = key;
         }
 
-        return MessageFormat.format(formatString.replace("&", "\u00a7"), values);
+        return MessageFormat.format(formatString.replace("'", "''").replace("&", "\u00a7"), values);
     }
 
     /**

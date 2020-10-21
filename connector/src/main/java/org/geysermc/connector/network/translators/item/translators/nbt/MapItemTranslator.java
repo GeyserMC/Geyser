@@ -29,6 +29,7 @@ import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.LongTag;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
@@ -37,7 +38,7 @@ import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 public class MapItemTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
         IntTag mapId = itemTag.get("map");
 
         if (mapId != null) {

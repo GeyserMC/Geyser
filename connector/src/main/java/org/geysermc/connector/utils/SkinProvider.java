@@ -45,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -58,6 +59,10 @@ public class SkinProvider {
     public static final Skin EMPTY_SKIN = new Skin(-1, "steve", STEVE_SKIN);
     public static final byte[] ALEX_SKIN = new ProvidedSkin("bedrock/skin/skin_alex.png").getSkin();
     public static final Skin EMPTY_SKIN_ALEX = new Skin(-1, "alex", ALEX_SKIN);
+    private static final Map<String, Skin> permanentSkins = new HashMap<String, Skin>() {{
+        put("steve", EMPTY_SKIN);
+        put("alex", EMPTY_SKIN_ALEX);
+    }};
     private static final Cache<String, Skin> cachedSkins = CacheBuilder.newBuilder()
             .expireAfterAccess(1, TimeUnit.HOURS)
             .build();
@@ -114,7 +119,7 @@ public class SkinProvider {
         // Schedule Daily Image Expiry if we are caching them
         if (GeyserConnector.getInstance().getConfig().getCacheImages() > 0) {
             GeyserConnector.getInstance().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-                File cacheFolder = Paths.get("cache", "images").toFile();
+                File cacheFolder = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").toFile();
                 if (!cacheFolder.exists()) {
                     return;
                 }
@@ -141,8 +146,7 @@ public class SkinProvider {
     }
 
     public static Skin getCachedSkin(String skinUrl) {
-        Skin skin = cachedSkins.getIfPresent(skinUrl);
-        return skin != null ? skin : EMPTY_SKIN;
+        return permanentSkins.getOrDefault(skinUrl, cachedSkins.getIfPresent(skinUrl));
     }
 
     public static Cape getCachedCape(String capeUrl) {
@@ -169,7 +173,7 @@ public class SkinProvider {
         if (textureUrl == null || textureUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_SKIN);
         if (requestedSkins.containsKey(textureUrl)) return requestedSkins.get(textureUrl); // already requested
 
-        Skin cachedSkin = cachedSkins.getIfPresent(textureUrl);
+        Skin cachedSkin = getCachedSkin(textureUrl);
         if (cachedSkin != null) {
             return CompletableFuture.completedFuture(cachedSkin);
         }
@@ -391,7 +395,7 @@ public class SkinProvider {
         BufferedImage image = null;
 
         // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
-        File imageFile = Paths.get("cache", "images", UUID.nameUUIDFromBytes(imageUrl.getBytes()).toString() + ".png").toFile();
+        File imageFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").resolve(UUID.nameUUIDFromBytes(imageUrl.getBytes()).toString() + ".png").toFile();
         if (imageFile.exists()) {
             try {
                 GeyserConnector.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
@@ -596,7 +600,7 @@ public class SkinProvider {
     @Getter
     public enum CapeProvider {
         MINECRAFT,
-        OPTIFINE("http://s.optifine.net/capes/%s.png", CapeUrlType.USERNAME),
+        OPTIFINE("https://optifine.net/capes/%s.png", CapeUrlType.USERNAME),
         LABYMOD("https://www.labymod.net/page/php/getCapeTexture.php?uuid=%s", CapeUrlType.UUID_DASHED),
         FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
         MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);

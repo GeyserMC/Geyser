@@ -34,6 +34,7 @@ import org.geysermc.connector.entity.living.animal.tameable.*;
 import org.geysermc.connector.entity.living.merchant.*;
 import org.geysermc.connector.entity.living.monster.*;
 import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
+import org.geysermc.connector.entity.living.monster.raid.PillagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
 import org.geysermc.connector.entity.living.monster.raid.SpellcasterIllagerEntity;
 
@@ -90,7 +91,7 @@ public enum EntityType {
     ENDERMITE(MonsterEntity.class, 55, 0.3f, 0.4f),
     AGENT(Entity.class, 56, 0f),
     VINDICATOR(AbstractIllagerEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f),
-    PILLAGER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f),
+    PILLAGER(PillagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f),
     WANDERING_TRADER(AbstractMerchantEntity.class, 118, 1.8f, 0.6f, 0.6f, 1.62f),
     PHANTOM(FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
     RAVAGER(RaidParticipantEntity.class, 59, 1.9f, 1.2f),
@@ -135,7 +136,7 @@ public enum EntityType {
     MINECART_CHEST(MinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:chest_minecart"),
     MINECART_FURNACE(FurnaceMinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:minecart"),
     MINECART_SPAWNER(SpawnerMinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:minecart"),
-    MINECART_COMMAND_BLOCK(MinecartEntity.class, 100, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:command_block_minecart"),
+    MINECART_COMMAND_BLOCK(CommandBlockMinecartEntity.class, 100, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:command_block_minecart"),
     LINGERING_POTION(ThrowableEntity.class, 101, 0f),
     LLAMA_SPIT(Entity.class, 102, 0.25f),
     EVOKER_FANGS(Entity.class, 103, 0.8f, 0.5f, 0.5f, 0f, "minecraft:evocation_fang"),
@@ -155,6 +156,7 @@ public enum EntityType {
     HOGLIN(AnimalEntity.class, 124, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:hoglin"),
     ZOGLIN(ZoglinEntity.class, 126, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:zoglin"),
     PIGLIN(PiglinEntity.class, 123, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin"),
+    PIGLIN_BRUTE(BasePiglinEntity.class, 127, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin_brute"),
 
     /**
      * Item frames are handled differently since they are a block in Bedrock.

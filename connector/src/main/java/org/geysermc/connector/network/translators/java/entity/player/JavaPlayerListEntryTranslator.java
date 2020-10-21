@@ -57,9 +57,8 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     if (self) {
                         // Entity is ourself
                         playerEntity = session.getPlayerEntity();
-                        SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape -> {
-                            GeyserConnector.getInstance().getLogger().debug("Loading Local Bedrock Java Skin Data");
-                        });
+                        SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
+                                GeyserConnector.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data"));
                     } else {
                         playerEntity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
                     }
@@ -88,18 +87,13 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     break;
                 case REMOVE_PLAYER:
                     PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
-                    if (entity != null && entity.isValid()) {
-                        // remove from tablist but player entity is still there
+                    if (entity != null) {
+                        // Just remove the entity's player list status
+                        // Don't despawn the entity - the Java server will also take care of that.
                         entity.setPlayerList(false);
-                    } else {
-                        if (entity == null) {
-                            // just remove it from caching
-                            session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
-                        } else {
-                            entity.setPlayerList(false);
-                            session.getEntityCache().removeEntity(entity, false);
-                        }
                     }
+                    // As the player entity is no longer present, we can remove the entry
+                    session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
                     if (entity == session.getPlayerEntity()) {
                         // If removing ourself we use our AuthData UUID
                         translate.getEntries().add(new PlayerListPacket.Entry(session.getAuthData().getUUID()));

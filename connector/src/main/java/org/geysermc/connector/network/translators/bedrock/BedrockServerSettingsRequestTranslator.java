@@ -25,23 +25,23 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.nukkitx.protocol.bedrock.packet.EmotePacket;
-import org.geysermc.connector.GeyserConnector;
+import com.nukkitx.protocol.bedrock.packet.ServerSettingsRequestPacket;
+import com.nukkitx.protocol.bedrock.packet.ServerSettingsResponsePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.SettingsUtils;
 
-@Translator(packet = EmotePacket.class)
-public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
+@Translator(packet = ServerSettingsRequestPacket.class)
+public class BedrockServerSettingsRequestTranslator extends PacketTranslator<ServerSettingsRequestPacket> {
 
     @Override
-    public void translate(EmotePacket packet, GeyserSession session) {
-        long javaId = session.getPlayerEntity().getEntityId();
-        for (GeyserSession otherSession : GeyserConnector.getInstance().getPlayers()) {
-            if (otherSession != session) {
-                packet.setRuntimeEntityId(otherSession.getEntityCache().getEntityByJavaId(javaId).getGeyserId());
-                otherSession.sendUpstreamPacket(packet);
-            }
-        }
+    public void translate(ServerSettingsRequestPacket packet, GeyserSession session) {
+        SettingsUtils.buildForm(session);
+
+        ServerSettingsResponsePacket serverSettingsResponsePacket = new ServerSettingsResponsePacket();
+        serverSettingsResponsePacket.setFormData(session.getSettingsForm().getJSONData());
+        serverSettingsResponsePacket.setFormId(SettingsUtils.SETTINGS_FORM_ID);
+        session.sendUpstreamPacket(serverSettingsResponsePacket);
     }
 }

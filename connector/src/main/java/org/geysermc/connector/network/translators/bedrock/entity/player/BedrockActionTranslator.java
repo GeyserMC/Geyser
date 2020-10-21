@@ -23,10 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
@@ -45,6 +44,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.BlockUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -79,9 +79,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case START_GLIDE:
                 // Otherwise gliding will not work in creative
-                ClientPlayerAbilitiesPacket playerAbilitiesPacket = new ClientPlayerAbilitiesPacket(
-                        false, false, false, session.getGameMode() == GameMode.CREATIVE
-                );
+                ClientPlayerAbilitiesPacket playerAbilitiesPacket = new ClientPlayerAbilitiesPacket(false);
                 session.sendDownstreamPacket(playerAbilitiesPacket);
             case STOP_GLIDE:
                 ClientPlayerStatePacket glidePacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
@@ -116,9 +114,26 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamPacket(stopSleepingPacket);
                 break;
             case BLOCK_INTERACT:
-                // Handled in BedrockInventoryTransactionTranslator
+                // Client means to interact with a block; cancel bucket interaction, if any
+                if (session.getBucketScheduledFuture() != null) {
+                    session.getBucketScheduledFuture().cancel(true);
+                    session.setBucketScheduledFuture(null);
+                }
+                // Otherwise handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
+                if (session.getConnector().getConfig().isCacheChunks()) {
+                    // Account for fire - the client likes to hit the block behind.
+                    Vector3i fireBlockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getFace());
+                    int blockUp = session.getConnector().getWorldManager().getBlockAt(session, fireBlockPos);
+                    String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockUp);
+                    if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
+                        ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(fireBlockPos.getX(),
+                                fireBlockPos.getY(), fireBlockPos.getZ()), BlockFace.values()[packet.getFace()]);
+                        session.sendDownstreamPacket(startBreakingPacket);
+                        break;
+                    }
+                }
                 ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
                         packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
                 session.sendDownstreamPacket(startBreakingPacket);

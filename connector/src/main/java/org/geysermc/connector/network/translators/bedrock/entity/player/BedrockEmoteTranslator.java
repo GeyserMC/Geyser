@@ -23,31 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.chunk;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import com.nukkitx.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@EqualsAndHashCode
-public class ChunkPosition {
+@Translator(packet = EmotePacket.class)
+public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
 
-    private int x;
-    private int z;
-
-    public Position getBlock(int x, int y, int z) {
-        return new Position((this.x << 4) + x, y, (this.z << 4) + z);
-    }
-
-    public Position getChunkBlock(int x, int y, int z) {
-        int chunkX = x & 15;
-        int chunkY = y & 15;
-        int chunkZ = z & 15;
-        return new Position(chunkX, chunkY, chunkZ);
+    @Override
+    public void translate(EmotePacket packet, GeyserSession session) {
+        long javaId = session.getPlayerEntity().getEntityId();
+        for (GeyserSession otherSession : session.getConnector().getPlayers()) {
+            if (otherSession != session) {
+                if (otherSession.isClosed()) continue;
+                Entity otherEntity = otherSession.getEntityCache().getEntityByJavaId(javaId);
+                if (otherEntity == null) continue;
+                packet.setRuntimeEntityId(otherEntity.getGeyserId());
+                otherSession.sendUpstreamPacket(packet);
+            }
+        }
     }
 }
