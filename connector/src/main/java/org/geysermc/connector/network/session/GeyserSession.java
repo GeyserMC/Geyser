@@ -783,9 +783,9 @@ public class GeyserSession implements CommandSender {
             List<UUID> pieces = new ArrayList<>();
             for (UUID piece : emotes) {
                 if (!player.getEmotes().contains(piece)) {
-                    this.emotes.add(piece);
+                    pieces.add(piece);
                 }
-                pieces.add(piece);
+                player.getEmotes().add(piece);
             }
             EmoteListPacket emoteList = new EmoteListPacket();
             emoteList.setRuntimeEntityId(player.getPlayerEntity().getGeyserId());
