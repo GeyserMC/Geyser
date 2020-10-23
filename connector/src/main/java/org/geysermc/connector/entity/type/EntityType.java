@@ -34,6 +34,7 @@ import org.geysermc.connector.entity.living.animal.tameable.*;
 import org.geysermc.connector.entity.living.merchant.*;
 import org.geysermc.connector.entity.living.monster.*;
 import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
+import org.geysermc.connector.entity.living.monster.raid.PillagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
 import org.geysermc.connector.entity.living.monster.raid.SpellcasterIllagerEntity;
 
@@ -90,7 +91,7 @@ public enum EntityType {
     ENDERMITE(MonsterEntity.class, 55, 0.3f, 0.4f),
     AGENT(Entity.class, 56, 0f),
     VINDICATOR(AbstractIllagerEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f),
-    PILLAGER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f),
+    PILLAGER(PillagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f),
     WANDERING_TRADER(AbstractMerchantEntity.class, 118, 1.8f, 0.6f, 0.6f, 1.62f),
     PHANTOM(FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
     RAVAGER(RaidParticipantEntity.class, 59, 1.9f, 1.2f),

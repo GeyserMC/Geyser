@@ -84,6 +84,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -193,9 +194,10 @@ public class GeyserSession implements CommandSender {
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
+     * Setting a default fixes cooldowns not showing up on a fresh world.
      */
     @Setter
-    private double attackSpeed;
+    private double attackSpeed = 4.0d;
     /**
      * The time of the last hit. Used to gauge how long the cooldown is taking.
      * This is a session variable in order to prevent more scheduled threads than necessary.
@@ -209,6 +211,13 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private long lastInteractionTime;
+
+    /**
+     * Stores a future interaction to place a bucket. Will be cancelled if the client instead intended to
+     * interact with a block.
+     */
+    @Setter
+    private ScheduledFuture<?> bucketScheduledFuture;
 
     private boolean reducedDebugInfo = false;
 

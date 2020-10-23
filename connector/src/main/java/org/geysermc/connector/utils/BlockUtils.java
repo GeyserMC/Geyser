@@ -28,6 +28,7 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
@@ -136,6 +137,30 @@ public class BlockUtils {
         boolean outOfWaterButNotOnGround = (!isInWater) && (!session.getPlayerEntity().isOnGround());
         boolean insideWaterNotOnGround = isInWater && !session.getPlayerEntity().isOnGround();
         return calculateBreakTime(blockHardness, toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock, isCobweb, toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround, insideWaterNotOnGround);
+    }
+
+    /**
+     * Given a position, return the position if a block were located on the specified block face.
+     * @param blockPos the block position
+     * @param face the face of the block - see {@link com.github.steveice10.mc.protocol.data.game.world.block.BlockFace}
+     * @return the block position with the block face accounted for
+     */
+    public static Vector3i getBlockPosition(Vector3i blockPos, int face) {
+        switch (face) {
+            case 0:
+                return blockPos.sub(0, 1, 0);
+            case 1:
+                return blockPos.add(0, 1, 0);
+            case 2:
+                return blockPos.sub(0, 0, 1);
+            case 3:
+                return blockPos.add(0, 0, 1);
+            case 4:
+                return blockPos.sub(1, 0, 0);
+            case 5:
+                return blockPos.add(1, 0, 0);
+        }
+        return blockPos;
     }
 
 }
