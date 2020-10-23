@@ -43,13 +43,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class SkinProvider {
@@ -161,6 +155,7 @@ public class SkinProvider {
             String newSkinUrl = skinUrl;
 
             if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
+                // TODO: Don't have a for loop for this? Have a proper map?
                 for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
                     if (session.getPlayerEntity().getUuid().equals(playerId)) {
                         newSkinUrl = session.getClientData().getSkinId();
