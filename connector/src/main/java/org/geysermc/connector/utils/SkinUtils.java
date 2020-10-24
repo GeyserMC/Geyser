@@ -251,6 +251,7 @@ public class SkinUtils {
             try {
                 GameProfile.Property skinProperty = profile.getProperty("textures");
 
+                // TODO: Remove try/catch here
                 JsonNode skinObject = new ObjectMapper().readTree(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8));
                 JsonNode textures = skinObject.get("textures");
 
@@ -271,7 +272,16 @@ public class SkinUtils {
                     GeyserConnector.getInstance().getLogger().debug("Got invalid texture data for " + profile.getName() + " " + exception.getMessage());
                 }
                 // return default skin with default cape when texture data is invalid
-                return new GameProfileData((isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl()), SkinProvider.EMPTY_CAPE.getTextureUrl(), isAlex);
+                String skinUrl = isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl();
+                if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
+                    for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
+                        if (session.getPlayerEntity().getUuid().equals(profile.getId())) {
+                            skinUrl = session.getClientData().getSkinId();
+                            break;
+                        }
+                    }
+                }
+                return new GameProfileData(skinUrl, SkinProvider.EMPTY_CAPE.getTextureUrl(), isAlex);
             }
         }
     }
