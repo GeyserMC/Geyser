@@ -26,9 +26,11 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.Entity;
@@ -88,6 +90,22 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
             case LIVING_DEATH:
                 entityEventPacket.setType(EntityEventType.DEATH);
+                if (entity.getEntityType() == EntityType.THROWN_EGG) {
+                    for (int i = 0; i < 6; i++) {
+                        LevelEventPacket particlePacket = new LevelEventPacket();
+                        particlePacket.setType(LevelEventType.PARTICLE_GENERIC_SPAWN);
+                        particlePacket.setData(22544397);
+                        particlePacket.setPosition(entity.getPosition());
+                        session.sendUpstreamPacket(particlePacket);
+                    }
+                } else if (entity.getEntityType() == EntityType.SNOWBALL) {
+                    for (int i = 0; i < 8; i++) {
+                        LevelEventPacket particlePacket = new LevelEventPacket();
+                        particlePacket.setType(LevelEventType.PARTICLE_SNOWBALL_POOF);
+                        particlePacket.setPosition(entity.getPosition());
+                        session.sendUpstreamPacket(particlePacket);
+                    }
+                }
                 break;
             case WOLF_SHAKE_WATER:
                 entityEventPacket.setType(EntityEventType.SHAKE_WETNESS);
