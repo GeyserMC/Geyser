@@ -77,7 +77,7 @@ public enum EntityType {
     GHAST(FlyingEntity.class, 41, 4.0f),
     MAGMA_CUBE(MagmaCubeEntity.class, 42, 0.51f),
     BLAZE(BlazeEntity.class, 43, 1.8f, 0.6f),
-    ZOMBIE_VILLAGER(ZombieEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f),
+    ZOMBIE_VILLAGER(ZombieVillagerEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:zombie_villager_v2"),
     WITCH(RaidParticipantEntity.class, 45, 1.8f, 0.6f, 0.6f, 1.62f),
     STRAY(AbstractSkeletonEntity.class, 46, 1.8f, 0.6f, 0.6f, 1.62f),
     HUSK(ZombieEntity.class, 47, 1.8f, 0.6f, 0.6f, 1.62f),

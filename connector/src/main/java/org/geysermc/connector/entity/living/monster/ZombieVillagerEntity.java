@@ -23,48 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal.tameable;
+package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.living.animal.AnimalEntity;
+import org.geysermc.connector.entity.living.merchant.VillagerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.UUID;
+public class ZombieVillagerEntity extends ZombieEntity {
 
-public class TameableEntity extends AnimalEntity {
-
-    public TameableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public ZombieVillagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            byte xd = (byte) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
-            metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
-            metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x04) == 0x04);
+        if (entityMetadata.getId() == 18) {
+            metadata.getFlags().setFlag(EntityFlag.IS_TRANSFORMING, (boolean) entityMetadata.getValue());
+            metadata.getFlags().setFlag(EntityFlag.SHAKING, (boolean) entityMetadata.getValue());
         }
-
-        // Note: Must be set for wolf collar color to work
-        if (entityMetadata.getId() == 17) {
-            if (entityMetadata.getValue() != null) {
-                // Owner UUID of entity
-                Entity entity = session.getEntityCache().getPlayerEntity((UUID) entityMetadata.getValue());
-                // Used as both a check since the player isn't in the entity cache and a normal fallback
-                if (entity == null) {
-                    entity = session.getPlayerEntity();
-                }
-                // Translate to entity ID
-                metadata.put(EntityData.OWNER_EID, entity.getGeyserId());
-            } else {
-                metadata.remove(EntityData.OWNER_EID);
-            }
+        if (entityMetadata.getId() == 19) {
+            VillagerData villagerData = (VillagerData) entityMetadata.getValue();
+            // Region - only one used on Bedrock
+            metadata.put(EntityData.MARK_VARIANT, VillagerEntity.VILLAGER_REGIONS.get(villagerData.getType()));
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

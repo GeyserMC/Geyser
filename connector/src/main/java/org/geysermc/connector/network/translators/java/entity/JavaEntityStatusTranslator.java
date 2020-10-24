@@ -26,9 +26,11 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.Entity;
@@ -116,9 +118,15 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
             case TAMEABLE_TAMING_SUCCEEDED:
                 entityEventPacket.setType(EntityEventType.TAME_SUCCEEDED);
                 break;
-            case ZOMBIE_VILLAGER_CURE:
-                entityEventPacket.setType(EntityEventType.ZOMBIE_VILLAGER_CURE);
-                break;
+            case ZOMBIE_VILLAGER_CURE: // Played when a zombie bites the golden apple
+                LevelSoundEvent2Packet soundPacket = new LevelSoundEvent2Packet();
+                soundPacket.setSound(SoundEvent.REMEDY);
+                soundPacket.setPosition(entity.getPosition());
+                soundPacket.setExtraData(-1);
+                soundPacket.setIdentifier("");
+                soundPacket.setRelativeVolumeDisabled(false);
+                session.sendUpstreamPacket(soundPacket);
+                return;
             case ANIMAL_EMIT_HEARTS:
                 entityEventPacket.setType(EntityEventType.LOVE_PARTICLES);
                 break;
