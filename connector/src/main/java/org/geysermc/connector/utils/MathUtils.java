@@ -79,6 +79,7 @@ public class MathUtils {
 
     /**
      * Taxicab distance is given by adding the difference in each direction.
+     * Currently unused
      * https://en.wikipedia.org/wiki/Taxicab_geometry
      *
      * @param firstPos First position
@@ -90,5 +91,16 @@ public class MathUtils {
         distance += Math.abs(firstPos.getY() - secondPos.getY());
         distance += Math.abs(firstPos.getZ() - secondPos.getZ());
         return distance;
+    }
+
+     /*
+     * Packs a chunk's X and Z coordinates into a single {@code long}.
+     *
+     * @param x the X coordinate
+     * @param z the Z coordinate
+     * @return the packed coordinates
+     */
+    public static long chunkPositionToLong(int x, int z) {
+        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
 }

@@ -28,6 +28,7 @@ package org.geysermc.connector.network.session;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -88,6 +89,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -120,8 +122,6 @@ public class GeyserSession implements CommandSender {
      * Used for translating Bedrock block actions to Java entity actions.
      */
     private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
-
-    private DataCache<Packet> javaPacketCache;
 
     @Setter
     private Vector2i lastChunkPosition = null;
@@ -188,6 +188,12 @@ public class GeyserSession implements CommandSender {
     @Setter
     private long lastWindowCloseTime = 0;
 
+    /**
+     * Saves the timestamp of the last keep alive packet
+     */
+    @Setter
+    private long lastKeepAliveTimestamp = 0;
+
     @Setter
     private VillagerTrade[] villagerTrades;
     @Setter
@@ -200,9 +206,10 @@ public class GeyserSession implements CommandSender {
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
+     * Setting a default fixes cooldowns not showing up on a fresh world.
      */
     @Setter
-    private double attackSpeed;
+    private double attackSpeed = 4.0d;
     /**
      * The time of the last hit. Used to gauge how long the cooldown is taking.
      * This is a session variable in order to prevent more scheduled threads than necessary.
@@ -216,6 +223,13 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private long lastInteractionTime;
+
+    /**
+     * Stores a future interaction to place a bucket. Will be cancelled if the client instead intended to
+     * interact with a block.
+     */
+    @Setter
+    private ScheduledFuture<?> bucketScheduledFuture;
 
     private boolean reducedDebugInfo = false;
 
@@ -294,8 +308,6 @@ public class GeyserSession implements CommandSender {
 
         this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO, this);
         this.inventory = new PlayerInventory();
-
-        this.javaPacketCache = new DataCache<>();
 
         this.spawned = false;
         this.loggedIn = false;
@@ -403,6 +415,8 @@ public class GeyserSession implements CommandSender {
                 }
 
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
+                // Let Geyser handle sending the keep alive
+                downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
                 downstream.getSession().addListener(new SessionAdapter() {
                     @Override
                     public void packetSending(PacketSendingEvent event) {
@@ -786,6 +800,10 @@ public class GeyserSession implements CommandSender {
         adventureSettingsPacket.setCommandPermission(opPermissionLevel >= 2 ? CommandPermission.OPERATOR : CommandPermission.NORMAL);
         // Required to make command blocks destroyable
         adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
+
+        // Update the noClip and worldImmutable values based on the current gamemode
+        noClip = gameMode == GameMode.SPECTATOR;
+        worldImmutable = gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR;
 
         Set<AdventureSetting> flags = new HashSet<>();
         if (canFly) {

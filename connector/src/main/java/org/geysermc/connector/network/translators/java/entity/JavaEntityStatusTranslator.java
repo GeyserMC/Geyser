@@ -30,8 +30,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -96,8 +96,20 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 entityEventPacket.setType(EntityEventType.USE_ITEM);
                 break;
             case FISHING_HOOK_PULL_PLAYER:
-                entityEventPacket.setType(EntityEventType.FISH_HOOK_TEASE); //TODO: CHECK
-                break;
+                // Player is pulled from a fishing rod
+                // The physics of this are clientside on Java
+                long pulledById = entity.getMetadata().getLong(EntityData.TARGET_EID);
+                if (session.getPlayerEntity().getGeyserId() == pulledById) {
+                    Entity hookOwner = session.getEntityCache().getEntityByGeyserId(entity.getMetadata().getLong(EntityData.OWNER_EID));
+                    if (hookOwner != null) {
+                        // https://minecraft.gamepedia.com/Fishing_Rod#Hooking_mobs_and_other_entities
+                        SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+                        motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        motionPacket.setMotion(hookOwner.getPosition().sub(session.getPlayerEntity().getPosition()).mul(0.1f));
+                        session.sendUpstreamPacket(motionPacket);
+                    }
+                }
+                return;
             case TAMEABLE_TAMING_FAILED:
                 entityEventPacket.setType(EntityEventType.TAME_FAILED);
                 break;

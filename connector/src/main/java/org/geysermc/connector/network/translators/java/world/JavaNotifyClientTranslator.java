@@ -103,8 +103,6 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case CHANGE_GAMEMODE:
                 GameMode gameMode = (GameMode) packet.getValue();
 
-                session.setNoClip(gameMode == GameMode.SPECTATOR);
-                session.setWorldImmutable(gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR);
                 session.sendAdventureSettings();
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
@@ -146,6 +144,14 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 // Not sent as a proper message? Odd.
                 session.sendMessage(LocaleUtils.getLocaleString("block.minecraft.spawn.not_valid",
                         session.getClientData().getLanguageCode()));
+                break;
+            case ARROW_HIT_PLAYER:
+                PlaySoundPacket arrowSoundPacket = new PlaySoundPacket();
+                arrowSoundPacket.setSound("random.orb");
+                arrowSoundPacket.setPitch(0.5f);
+                arrowSoundPacket.setVolume(0.5f);
+                arrowSoundPacket.setPosition(entity.getPosition());
+                session.sendUpstreamPacket(arrowSoundPacket);
                 break;
             default:
                 break;

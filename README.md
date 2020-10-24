@@ -31,7 +31,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Download: http://ci.geysermc.org
 - Discord: http://discord.geysermc.org/
 - ~~Donate: https://patreon.com/GeyserMC~~ Currently disabled.
-- Test Server: test.geysermc.org port 25565 for Java and 19132 for Bedrock
+- Test Server: `test.geysermc.org` port `25565` for Java and `19132` for Bedrock
 
 ## What's Left to be Added/Fixed
 - The Following Inventories 

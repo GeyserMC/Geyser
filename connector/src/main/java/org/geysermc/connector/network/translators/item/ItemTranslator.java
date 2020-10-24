@@ -64,7 +64,7 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
         for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
