@@ -81,4 +81,10 @@ public class ThrowableEntity extends Entity {
         super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
         lastPosition = getPosition();
     }
+
+    @Override
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+        lastPosition = getPosition();
+    }
 }
