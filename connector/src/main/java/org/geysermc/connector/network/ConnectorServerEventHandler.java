@@ -31,13 +31,13 @@ import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
-import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
-import org.geysermc.connector.utils.MessageUtils;
 import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.utils.MessageUtils;
 
 import java.net.InetSocketAddress;
 
@@ -93,6 +93,17 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         } else {
             pong.setPlayerCount(connector.getPlayers().size());
             pong.setMaximumPlayerCount(config.getMaxPlayers());
+        }
+
+        // The ping will not appear if the MOTD + sub-MOTD is of a certain length.
+        if (pong.getMotd().length() + pong.getSubMotd().length() > 339) {
+            // Split the difference
+            if (pong.getMotd().length() > 170) {
+                pong.setMotd(pong.getMotd().substring(0, 170));
+            }
+            if (pong.getSubMotd().length() > 170) {
+                pong.setSubMotd(pong.getSubMotd().substring(0, 170));
+            }
         }
 
         //Bedrock will not even attempt a connection if the client thinks the server is full
