@@ -40,7 +40,7 @@ public abstract class CommandManager {
     @Getter
     private final Map<String, GeyserCommand> commands = Collections.synchronizedMap(new HashMap<>());
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public CommandManager(GeyserConnector connector) {
         this.connector = connector;
