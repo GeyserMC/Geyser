@@ -76,6 +76,7 @@ public class SpigotCommandSender implements CommandSender {
     /**
      * Set if we are on pre-1.12, and therefore {@code player.getLocale()} doesn't exist and we have to get
      * {@code player.spigot().getLocale()}.
+     *
      * @param useLegacyMethod if we are running pre-1.12 and therefore need to use reflection to get the player locale
      */
     public static void setUseLegacyLocaleMethod(boolean useLegacyMethod) {
@@ -92,6 +93,7 @@ public class SpigotCommandSender implements CommandSender {
 
     /**
      * So we only have to do nasty reflection stuff once per command
+     *
      * @return the locale of the Spigot player
      */
     private String getSpigotLocale() {
