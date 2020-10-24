@@ -77,22 +77,6 @@ public class MathUtils {
         return (Byte) value;
     }
 
-    /**
-     * Taxicab distance is given by adding the difference in each direction.
-     * Currently unused
-     * https://en.wikipedia.org/wiki/Taxicab_geometry
-     *
-     * @param firstPos First position
-     * @param secondPos Second position
-     * @return Distance
-     */
-    public static double taxicabDistance(Vector3d firstPos, Vector3d secondPos) {
-        double distance = Math.abs(firstPos.getX() - secondPos.getX());
-        distance += Math.abs(firstPos.getY() - secondPos.getY());
-        distance += Math.abs(firstPos.getZ() - secondPos.getZ());
-        return distance;
-    }
-
      /*
      * Packs a chunk's X and Z coordinates into a single {@code long}.
      *
