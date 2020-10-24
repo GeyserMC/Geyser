@@ -284,7 +284,7 @@ public class GeyserSession implements CommandSender {
     private final Map<Statistic, Integer> statistics = new HashMap<>();
 
     /**
-     * Whether we're expecting statistics to be sent back from us.
+     * Whether we're expecting statistics to be sent back to us.
      */
     @Setter
     private boolean waitingForStatistics = false;
