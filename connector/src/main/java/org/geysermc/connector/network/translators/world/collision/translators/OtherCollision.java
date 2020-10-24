@@ -41,12 +41,12 @@ public class OtherCollision extends BlockCollision {
         for (int i = 0; i < collisionList.size(); i++)
         {
             ArrayNode collisionBoxArray = (ArrayNode) collisionList.get(i);
-            boundingBoxes[i] = new BoundingBox(collisionBoxArray.get(0).asDouble() + ((collisionBoxArray.get(3).asDouble() - collisionBoxArray.get(0).asDouble()) / 2),
-                    collisionBoxArray.get(1).asDouble() + ((collisionBoxArray.get(4).asDouble() - collisionBoxArray.get(1).asDouble()) / 2),
-                    collisionBoxArray.get(2).asDouble() + ((collisionBoxArray.get(5).asDouble() - collisionBoxArray.get(2).asDouble()) / 2),
-                    collisionBoxArray.get(3).asDouble() - collisionBoxArray.get(0).asDouble(),
-                    collisionBoxArray.get(4).asDouble() - collisionBoxArray.get(1).asDouble(),
-                    collisionBoxArray.get(5).asDouble() - collisionBoxArray.get(2).asDouble());
+            boundingBoxes[i] = new BoundingBox(collisionBoxArray.get(0).asDouble(),
+                    collisionBoxArray.get(1).asDouble(),
+                    collisionBoxArray.get(2).asDouble(),
+                    collisionBoxArray.get(3).asDouble(),
+                    collisionBoxArray.get(4).asDouble(),
+                    collisionBoxArray.get(5).asDouble());
         }
 
         // Sorting by lowest Y first fixes some bugs
