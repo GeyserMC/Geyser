@@ -196,9 +196,10 @@ public class GeyserSession implements CommandSender {
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
+     * Setting a default fixes cooldowns not showing up on a fresh world.
      */
     @Setter
-    private double attackSpeed;
+    private double attackSpeed = 4.0d;
     /**
      * The time of the last hit. Used to gauge how long the cooldown is taking.
      * This is a session variable in order to prevent more scheduled threads than necessary.
@@ -288,6 +289,10 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
+    @Setter
+    private List<UUID> selectedEmotes = new ArrayList<>();
+    private final Set<UUID> emotes = new HashSet<>();
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -307,6 +312,8 @@ public class GeyserSession implements CommandSender {
         this.loggedIn = false;
 
         this.inventoryCache.getInventories().put(0, inventory);
+
+        connector.getPlayers().forEach(player -> this.emotes.addAll(player.getEmotes()));
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
@@ -790,5 +797,23 @@ public class GeyserSession implements CommandSender {
      */
     public void updateStatistics(@NonNull Map<Statistic, Integer> statistics) {
         this.statistics.putAll(statistics);
+    }
+
+    public void refreshEmotes(List<UUID> emotes) {
+        this.selectedEmotes = emotes;
+        this.emotes.addAll(emotes);
+        for (GeyserSession player : connector.getPlayers()) {
+            List<UUID> pieces = new ArrayList<>();
+            for (UUID piece : emotes) {
+                if (!player.getEmotes().contains(piece)) {
+                    pieces.add(piece);
+                }
+                player.getEmotes().add(piece);
+            }
+            EmoteListPacket emoteList = new EmoteListPacket();
+            emoteList.setRuntimeEntityId(player.getPlayerEntity().getGeyserId());
+            emoteList.getPieceIds().addAll(pieces);
+            player.sendUpstreamPacket(emoteList);
+        }
     }
 }
