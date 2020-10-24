@@ -52,8 +52,8 @@ public class ThrowableEntity extends Entity {
             super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), getRotation(), isOnGround());
 
             if (getMetadata().getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
-                float gravity = 0.03f;
-                if (getEntityType() == EntityType.THROWN_POTION) {
+                float gravity = 0.03f; // Snowball, Egg, and Ender Pearl,
+                if (getEntityType() == EntityType.THROWN_POTION || getEntityType() == EntityType.LINGERING_POTION) {
                     gravity = 0.05f;
                 } else if (getEntityType() == EntityType.THROWN_EXP_BOTTLE) {
                     gravity = 0.07f;
