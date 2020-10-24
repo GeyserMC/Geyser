@@ -474,7 +474,6 @@ public class GeyserSession implements CommandSender {
 
                     @Override
                     public void packetReceived(PacketReceivedEvent event) {
-                        //System.out.println("I: " + event.getPacket().toString());
                         if (!closed) {
                             //handle consecutive respawn packets
                             if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
@@ -697,7 +696,6 @@ public class GeyserSession implements CommandSender {
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamPacket(Packet packet) {
-        //System.out.println("O: " + packet.toString());
         if (downstream != null && downstream.getSession() != null && protocol.getSubProtocol().equals(SubProtocol.GAME)) {
             downstream.getSession().send(packet);
         } else {
