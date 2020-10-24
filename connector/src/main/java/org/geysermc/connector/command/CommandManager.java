@@ -52,6 +52,7 @@ public abstract class CommandManager {
         registerCommand(new OffhandCommand(connector, "offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
         registerCommand(new DumpCommand(connector, "dump", "geyser.commands.dump.desc", "geyser.command.dump"));
         registerCommand(new VersionCommand(connector, "version", "geyser.commands.version.desc", "geyser.command.version"));
+        registerCommand(new StatisticsCommand(connector, "statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
     }
 
     public void registerCommand(GeyserCommand command) {

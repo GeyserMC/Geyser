@@ -101,7 +101,7 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
         if (message.startsWith("§r")) {
             message = message.replaceFirst("§r", "");
         }
-        Component component = TextComponent.of(message);
+        Component component = Component.text(message);
         return GsonComponentSerializer.gson().serialize(component);
     }
 
