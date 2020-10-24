@@ -89,7 +89,7 @@ public class Scoreboard {
             return team;
         }
 
-        team = new Team(this, teamName).setEntities(players);
+        team = new Team(this, teamName).addEntities(players);
         teams.put(teamName, team);
         return team;
     }
@@ -161,10 +161,9 @@ public class Scoreboard {
                 if (team != null) {
                     if (team.getUpdateType() == REMOVE || !team.hasEntity(score.getName())) {
                         score.setTeam(null);
-                        teamChanged = true;
                     }
 
-                    teamChanged |= team.getUpdateType() == UPDATE;
+                    teamChanged = team.getUpdateType() != NOTHING;
 
                     add |= team.getUpdateType() == ADD || team.getUpdateType() == UPDATE;
                     remove |= team.getUpdateType() != NOTHING;

@@ -56,12 +56,9 @@ public class Team {
         this.id = id;
     }
 
-    public void addEntities(String... names) {
-        List<String> added = new ArrayList<>();
-        for (String name : names) {
-            if (entities.add(name)) {
-                added.add(name);
-            }
+    private void checkAddedEntities(List<String> added) {
+        if (added.size() == 0) {
+            return;
         }
         setUpdateType(UpdateType.UPDATE);
         for (Objective objective : scoreboard.getObjectives().values()) {
@@ -71,6 +68,28 @@ public class Team {
                 }
             }
         }
+    }
+
+    public Team addEntities(String... names) {
+        List<String> added = new ArrayList<>();
+        for (String name : names) {
+            if (entities.add(name)) {
+                added.add(name);
+            }
+        }
+        checkAddedEntities(added);
+        return this;
+    }
+
+    public Team addEntities(Set<String> names) {
+        List<String> added = new ArrayList<>();
+        for (String name : names) {
+            if (entities.add(name)) {
+                added.add(name);
+            }
+        }
+        checkAddedEntities(added);
+        return this;
     }
 
     public void removeEntities(String... names) {
