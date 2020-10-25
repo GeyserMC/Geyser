@@ -26,7 +26,7 @@
 package org.geysermc.platform.fabric;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.fabricmc.api.DedicatedServerModInitializer;
+import lombok.Setter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -55,11 +55,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Function;
 
 public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
     private static GeyserFabricMod instance;
+
+    @Setter
+    private boolean reloading;
 
     private GeyserConnector connector;
     private Path dataFolder;
@@ -111,6 +113,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         } else {
             // Server has started and this is a reload
             startGeyser(this.server);
+            reloading = false;
         }
     }
 
@@ -162,7 +165,9 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             connector.shutdown();
             connector = null;
         }
-        this.server = null;
+        if (!reloading) {
+            this.server = null;
+        }
     }
 
     @Override

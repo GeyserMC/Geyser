@@ -27,11 +27,16 @@ package org.geysermc.platform.fabric.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.integrated.IntegratedServer;
+import net.minecraft.text.LiteralText;
 import net.minecraft.world.GameMode;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.fabric.GeyserFabricMod;
 import org.geysermc.platform.fabric.GeyserServerPortGetter;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -44,11 +49,18 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
     @Shadow
     private int lanPort;
 
+    @Shadow @Final private MinecraftClient client;
+
     @Inject(method = "openToLan", at = @At("RETURN"))
     private void onOpenToLan(GameMode gameMode, boolean cheatsAllowed, int port, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
             // If the LAN is opened, starts Geyser.
             GeyserFabricMod.getInstance().startGeyser((MinecraftServer) (Object) this);
+            // Ensure player locale has been loaded, in case it's different from Java system language
+            LanguageUtils.loadGeyserLocale(this.client.options.language);
+            // Give indication that Geyser is loaded
+            this.client.player.sendMessage(new LiteralText(LanguageUtils.getPlayerLocaleString("geyser.core.start",
+                    this.client.options.language, "localhost", String.valueOf(this.lanPort))), false);
         }
     }
 
