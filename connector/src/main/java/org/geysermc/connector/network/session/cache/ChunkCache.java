@@ -32,7 +32,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.world.chunk.ChunkPosition;
+import org.geysermc.connector.utils.MathUtils;
 
 public class ChunkCache {
 
@@ -48,27 +48,31 @@ public class ChunkCache {
         }
     }
 
-    public void addToCache(Column chunk) {
+    public Column addToCache(Column chunk) {
         if (!cache) {
-            return;
+            return chunk;
         }
 
-        long chunkPosition = ChunkPosition.toLong(chunk.getX(), chunk.getZ());
+        long chunkPosition = MathUtils.chunkPositionToLong(chunk.getX(), chunk.getZ());
         Column existingChunk;
-        if (chunk.getBiomeData() != null // Only consider merging columns if the new chunk isn't a full chunk
+        if (chunk.getBiomeData() == null // Only consider merging columns if the new chunk isn't a full chunk
             && (existingChunk = chunks.getOrDefault(chunkPosition, null)) != null) { // Column is already present in cache, we can merge with existing
+            boolean changed = false;
             for (int i = 0; i < chunk.getChunks().length; i++) { // The chunks member is final, so chunk.getChunks() will probably be inlined and then completely optimized away
                 if (chunk.getChunks()[i] != null) {
                     existingChunk.getChunks()[i] = chunk.getChunks()[i];
+                    changed = true;
                 }
             }
+            return changed ? existingChunk : null;
         } else {
             chunks.put(chunkPosition, chunk);
+            return chunk;
         }
     }
 
     public Column getChunk(int chunkX, int chunkZ)  {
-        long chunkPosition = ChunkPosition.toLong(chunkX, chunkZ);
+        long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
 
@@ -111,7 +115,7 @@ public class ChunkCache {
             return;
         }
 
-        long chunkPosition = ChunkPosition.toLong(chunkX, chunkZ);
+        long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
     }
 }

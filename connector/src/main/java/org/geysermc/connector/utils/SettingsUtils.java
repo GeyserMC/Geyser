@@ -58,7 +58,7 @@ public class SettingsUtils {
         builder.setIcon(new FormImage(FormImage.FormImageType.PATH, "textures/ui/settings_glyph_color_2x.png"));
 
         builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.client", language)));
-        builder.addComponent(new ToggleComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.option.coordinates", language, session.getWorldCache().isShowCoordinates())));
+        builder.addComponent(new ToggleComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.option.coordinates", language), session.getWorldCache().isShowCoordinates()));
 
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {

@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.world;
 
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
@@ -46,6 +47,31 @@ public class GeyserWorldManager extends WorldManager {
             return chunkCache.getBlockAt(x, y, z);
         }
         return 0;
+    }
+
+    @Override
+    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
+        ChunkCache chunkCache = session.getChunkCache();
+        Column cachedColumn;
+        Chunk cachedChunk;
+        if (chunkCache == null || (cachedColumn = chunkCache.getChunk(x, z)) == null || (cachedChunk = cachedColumn.getChunks()[y]) == null) {
+            return;
+        }
+
+        // Copy state IDs from cached chunk to output chunk
+        for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
+            for (int blockZ = 0; blockZ < 16; blockZ++) {
+                for (int blockX = 0; blockX < 16; blockX++) {
+                    chunk.set(blockX, blockY, blockZ, cachedChunk.get(blockX, blockY, blockZ));
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean hasMoreBlockDataThanChunkCache() {
+        // This implementation can only fetch data from the session chunk cache
+        return false;
     }
 
     @Override
