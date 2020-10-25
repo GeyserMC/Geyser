@@ -52,6 +52,13 @@ import java.util.List;
 public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> {
 
     /**
+     * A list of all foods a horse/donkey can eat on Java Edition.
+     * Used to display interactive tag if needed.
+     */
+    private static final List<String> DONKEY_AND_HORSE_FOODS = Arrays.asList("golden_apple", "enchanted_golden_apple",
+            "golden_carrot", "sugar", "apple", "wheat", "hay_block");
+
+    /**
      * All entity types that can be leashed on Java Edition
      */
     private static final List<EntityType> LEASHABLE_MOB_TYPES = Arrays.asList(EntityType.BEE, EntityType.CAT, EntityType.CHICKEN,
@@ -112,6 +119,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     String javaIdentifierStripped = itemEntry.getJavaIdentifier().replace("minecraft:", "");
 
                     // TODO - in the future, update these in the metadata? So the client doesn't have to wiggle their cursor around for it to happen
+                    // TODO - also, might be good to abstract out the eating thing. I know there will need to be food tracked for https://github.com/GeyserMC/Geyser/issues/1005 but not all food is breeding food
                     InteractiveTag interactiveTag = InteractiveTag.NONE;
                     if (entityMetadata.getLong(EntityData.LEASH_HOLDER_EID) == session.getPlayerEntity().getGeyserId()) {
                         // Unleash the entity
@@ -134,6 +142,16 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         switch (interactEntity.getEntityType()) {
                             case BOAT:
                                 interactiveTag = InteractiveTag.BOARD_BOAT;
+                                break;
+                            case CAT:
+                                if (javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon")) {
+                                    interactiveTag = InteractiveTag.FEED;
+                                } else if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED) &&
+                                        entityMetadata.getLong(EntityData.OWNER_EID) == session.getPlayerEntity().getGeyserId()) {
+                                    // Tamed and owned by player - can sit/stand
+                                    interactiveTag = entityMetadata.getFlags().getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
+                                    break;
+                                }
                                 break;
                             case CHICKEN:
                                 if (javaIdentifierStripped.contains("seeds")) {
@@ -180,6 +198,22 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                             case SKELETON_HORSE:
                             case TRADER_LLAMA:
                             case ZOMBIE_HORSE:
+                                // have another switch statement as, while these share mount attributes they don't share food
+                                switch (interactEntity.getEntityType()) {
+                                    case LLAMA:
+                                    case TRADER_LLAMA:
+                                        if (javaIdentifierStripped.equals("wheat") || javaIdentifierStripped.equals("hay_block")) {
+                                            interactiveTag = InteractiveTag.FEED;
+                                            break;
+                                        }
+                                    case DONKEY:
+                                    case HORSE:
+                                        // Undead can't eat
+                                        if (DONKEY_AND_HORSE_FOODS.contains(javaIdentifierStripped)) {
+                                            interactiveTag = InteractiveTag.FEED;
+                                            break;
+                                        }
+                                }
                                 if (!entityMetadata.getFlags().getFlag(EntityFlag.BABY)) {
                                     // Can't ride a baby
                                     if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED)) {
@@ -190,6 +224,11 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                                     }
                                 }
                                 break;
+                            case HOGLIN:
+                                if (javaIdentifierStripped.equals("crimson_fungus")) {
+                                    interactiveTag = InteractiveTag.FEED;
+                                }
+                                break;
                             case MINECART:
                                 interactiveTag = InteractiveTag.RIDE_MINECART;
                                 break;
@@ -198,13 +237,23 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                             case MINECART_HOPPER:
                                 interactiveTag = InteractiveTag.OPEN_CONTAINER;
                                 break;
+                            case OCELOT:
+                                if (javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon")) {
+                                    interactiveTag = InteractiveTag.FEED;
+                                }
+                                break;
+                            case PANDA:
+                                if (javaIdentifierStripped.equals("bamboo")) {
+                                    interactiveTag = InteractiveTag.FEED;
+                                }
+                                break;
                             case PARROT:
                                 if (javaIdentifierStripped.contains("seeds") || javaIdentifierStripped.equals("cookie")) {
                                     interactiveTag = InteractiveTag.FEED;
                                 }
                                 break;
                             case PIG:
-                                if (javaIdentifierStripped.equals("carrot")) {
+                                if (javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("potato") || javaIdentifierStripped.equals("beetroot")) {
                                     interactiveTag = InteractiveTag.FEED;
                                 } else if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
                                     interactiveTag = InteractiveTag.MOUNT;
@@ -229,7 +278,9 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                                 }
                                 break;
                             case STRIDER:
-                                if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
+                                if (javaIdentifierStripped.equals("warped_fungus")) {
+                                    interactiveTag = InteractiveTag.FEED;
+                                } else if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
                                     interactiveTag = InteractiveTag.RIDE_STRIDER;
                                 }
                                 break;
