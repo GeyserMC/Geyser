@@ -670,6 +670,17 @@ public class GeyserSession implements CommandSender {
 
     public void addTeleport(TeleportCache teleportCache) {
         teleportMap.put(teleportCache.getTeleportConfirmId(), teleportCache);
+
+        ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
+
+        // Remove any teleports with a higher number - maybe this is a world change that reset the ID to 0?
+        while (it.hasNext()) {
+            Int2ObjectMap.Entry<TeleportCache> entry = it.next();
+            int nextID = entry.getValue().getTeleportConfirmId();
+            if (nextID > teleportCache.getTeleportConfirmId()) {
+                it.remove();
+            }
+        }
     }
 
     public boolean confirmTeleport(Vector3d position) {
