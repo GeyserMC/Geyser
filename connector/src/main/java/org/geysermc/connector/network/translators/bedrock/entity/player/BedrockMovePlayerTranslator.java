@@ -66,6 +66,17 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
+        // We need to parse the float as a string since casting a float to a double causes us to
+        // lose precision and thus, causes players to get stuck when walking near walls
+        double javaY = Double.parseDouble(Float.toString(packet.getPosition().getY())) - EntityType.PLAYER.getOffset();
+
+        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
+                Double.parseDouble(Float.toString(packet.getPosition().getZ())));
+
+        if (!session.confirmTeleport(position)) {
+            return;
+        }
+
         // If only the pitch and yaw changed
         // This isn't needed, but it makes the packets closer to vanilla
         // It also means you can't "lag back" while only looking, in theory
@@ -81,17 +92,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             entity.setOnGround(packet.isOnGround());
 
             session.sendDownstreamPacket(playerRotationPacket);
-            return;
-        }
-
-        // We need to parse the float as a string since casting a float to a double causes us to
-        // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = Double.parseDouble(Float.toString(packet.getPosition().getY())) - EntityType.PLAYER.getOffset();
-
-        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
-                Double.parseDouble(Float.toString(packet.getPosition().getZ())));
-
-        if (!session.confirmTeleport(position)) {
             return;
         }
 
