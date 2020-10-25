@@ -28,7 +28,7 @@ package org.geysermc.platform.fabric;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
@@ -57,8 +57,9 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 
-@Environment(EnvType.SERVER)
-public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBootstrap {
+public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
+
+    private static GeyserFabricMod instance;
 
     private GeyserConnector connector;
     private Path dataFolder;
@@ -71,8 +72,14 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
     private IGeyserPingPassthrough geyserPingPassthrough;
 
     @Override
-    public void onInitializeServer() {
+    public void onInitialize() {
+        instance = this;
+
         this.onEnable();
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+            // Set as an event so we can get the proper IP and port if needed
+            ServerLifecycleEvents.SERVER_STARTED.register(this::startGeyser);
+        }
     }
 
     @Override
@@ -99,29 +106,27 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
 
         if (server == null) {
             // Server has yet to start
-            // Set as an event so we can get the proper IP and port if needed
-            ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
-                this.server = server;
-                startGeyser();
-            });
-
             // Register onDisable so players are properly kicked
             ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
         } else {
             // Server has started and this is a reload
-            startGeyser();
+            startGeyser(this.server);
         }
     }
 
     /**
      * Initialize core Geyser.
      * A function, as it needs to be called in different places depending on if Geyser is being reloaded or not.
+     *
+     * @param server The minecraft server.
      */
-    public void startGeyser() {
+    public void startGeyser(MinecraftServer server) {
+        this.server = server;
+
         if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
             this.geyserConfig.setAutoconfiguredRemote(true);
             String ip = server.getServerIp();
-            int port = server.getServerPort();
+            int port = ((GeyserServerPortGetter) server).geyser$getServerPort();
             if (ip != null && !ip.isEmpty() && !ip.equals("0.0.0.0")) {
                 this.geyserConfig.getRemote().setAddress(ip);
             }
@@ -157,6 +162,7 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
             connector.shutdown();
             connector = null;
         }
+        this.server = null;
     }
 
     @Override
@@ -211,5 +217,9 @@ public class GeyserFabricMod implements DedicatedServerModInitializer, GeyserBoo
         }
 
         return file;
+    }
+
+    public static GeyserFabricMod getInstance() {
+        return instance;
     }
 }
