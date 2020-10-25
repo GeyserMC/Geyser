@@ -48,7 +48,8 @@ public class BlockCollision {
     /**
      * This is used for the step up logic.
      * Usually, the player can only step up a block if they are on the same Y level as its bottom face or higher
-     * For snow layers, due to its beforeCorrectPosition method the player can be slightly below (0.125 blocks) and still need to step up
+     * For snow layers, due to its beforeCorrectPosition method the player can be slightly below (0.125 blocks) and
+     * still need to step up
      * This used to be 0 but for now this has been set to 1 as it fixes bed collision
      * I didn't just set it for beds because other collision may also be slightly raised off the ground.
      * If this causes any problems, change this back to 0 and add an exception for beds.
@@ -67,7 +68,13 @@ public class BlockCollision {
      */
     public void beforeCorrectPosition(BoundingBox playerCollision) {}
 
-    public void correctPosition(BoundingBox playerCollision) {
+    /**
+     * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
+     * cancelled
+     * While the Java server should do this, it could result in false flags by anticheat
+     * This functionality is currently only used in 6 or 7 layer snow
+     */
+    public boolean correctPosition(BoundingBox playerCollision) {
         double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
         for (BoundingBox b: this.boundingBoxes) {
             double boxMinY = (b.getMiddleY() + y) - (b.getSizeY() / 2);
@@ -143,14 +150,16 @@ public class BlockCollision {
             playerCollision.setSizeZ(0.6);
         }
 
+        return true;
     }
 
-    public boolean checkIntersection(BoundingBox playerCollision) {
+    // May be needed in the future
+    /* public boolean checkIntersection(BoundingBox playerCollision) {
         for (BoundingBox b: boundingBoxes) {
             if (b.checkIntersection(x, y, z, playerCollision)) {
                 return true;
             }
         }
         return false;
-    }
+    } */
 }

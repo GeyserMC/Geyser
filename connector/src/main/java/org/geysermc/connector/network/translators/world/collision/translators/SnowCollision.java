@@ -47,7 +47,8 @@ public class SnowCollision extends BlockCollision {
         if (layers > 1) {
             boundingBoxes = new BoundingBox[]{
                     // Take away 1 because you can go 1 layer into snow layers
-                    new BoundingBox(0.5, ((layers - 1) * 0.125) / 2, 0.5, 1, (layers - 1) * 0.125, 1)
+                    new BoundingBox(0.5, ((layers - 1) * 0.125) / 2, 0.5,
+                            1, (layers - 1) * 0.125, 1)
             };
         } else {
             // Single layers have no collision
@@ -62,7 +63,8 @@ public class SnowCollision extends BlockCollision {
     @Override
     public void beforeCorrectPosition(BoundingBox playerCollision) {
         // In Bedrock, snow layers round down to half blocks but you can't sink into them at all
-        // This means the collision each half block reaches above where it should be on Java so the player has to be pushed down
+        // This means the collision each half block reaches above where it should be on Java so the player has to be
+        // pushed down
         if (layers == 4 || layers == 8) {
             double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
             double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
@@ -72,5 +74,20 @@ public class SnowCollision extends BlockCollision {
                 playerCollision.translate(0, boxMaxY - playerMinY, 0);
             }
         }
+    }
+
+    @Override
+    public boolean correctPosition(BoundingBox playerCollision) {
+        // This can be stepped onto in Bedrock but not Java
+        if (layers == 6 || layers == 7) {
+            double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
+            double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
+            // If the player actually can't step onto it (they can step onto it from other snow layers)
+            if ((boxMaxY - playerMinY) > 0.5) {
+                // Cancel the movement
+                return false;
+            }
+        }
+        return super.correctPosition(playerCollision);
     }
 }

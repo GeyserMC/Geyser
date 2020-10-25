@@ -129,7 +129,12 @@ public class CollisionManager {
         return blocks;
     }
 
-    public void correctPlayerPosition() {
+    /**
+     * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
+     * cancelled
+     * See {@link BlockCollision#correctPosition(BoundingBox)} for more info
+     */
+    public boolean correctPlayerPosition() {
         List<Vector3i> collidableBlocks = getPlayerCollidableBlocks();
 
         // Used when correction code needs to be run before the main correction
@@ -148,8 +153,12 @@ public class CollisionManager {
                     blockPos.getX(), blockPos.getY(), blockPos.getZ(), session
             );
             if (blockCollision != null) {
-                blockCollision.correctPosition(playerBoundingBox);
+                if (!blockCollision.correctPosition(playerBoundingBox)) {
+                    return false;
+                }
             }
         }
+
+        return true;
     }
 }
