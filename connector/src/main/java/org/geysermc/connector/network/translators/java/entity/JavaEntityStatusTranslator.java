@@ -98,12 +98,9 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
             case LIVING_DEATH:
                 entityEventPacket.setType(EntityEventType.DEATH);
                 if (entity.getEntityType() == EntityType.THROWN_EGG) {
-                    ItemEntry eggItemJava = ItemRegistry.getItemEntry("minecraft:egg");
-                    int eggBedrockId = eggItemJava.getBedrockId();
-
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(LevelEventType.PARTICLE_ITEM_BREAK);
-                    particlePacket.setData(eggBedrockId << 16);
+                    particlePacket.setData(ItemRegistry.EGG.getBedrockId() << 16);
                     particlePacket.setPosition(entity.getPosition());
                     for (int i = 0; i < 6; i++) {
                         session.sendUpstreamPacket(particlePacket);
