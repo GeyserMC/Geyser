@@ -33,8 +33,11 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class PandaEntity extends AnimalEntity {
+
+    private static final int BAMBOO_ID = ItemRegistry.getItemEntry("minecraft:bamboo").getBedrockId() << 16;
 
     private int mainGene;
     private int hiddenGene;
@@ -53,7 +56,7 @@ public class PandaEntity extends AnimalEntity {
                 EntityEventPacket packet = new EntityEventPacket();
                 packet.setRuntimeEntityId(geyserId);
                 packet.setType(EntityEventType.EATING_ITEM);
-                packet.setData(-10682368);
+                packet.setData(BAMBOO_ID);
                 session.sendUpstreamPacket(packet);
             }
         }
