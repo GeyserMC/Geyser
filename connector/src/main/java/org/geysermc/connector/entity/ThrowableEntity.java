@@ -49,16 +49,16 @@ public class ThrowableEntity extends Entity {
     public void spawnEntity(GeyserSession session) {
         super.spawnEntity(session);
         positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-            super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), getRotation(), isOnGround());
+            super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
 
-            if (getMetadata().getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
-                float gravity = 0.03f; // Snowball, Egg, and Ender Pearl,
-                if (getEntityType() == EntityType.THROWN_POTION || getEntityType() == EntityType.LINGERING_POTION) {
+            if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
+                float gravity = 0.03f; // Snowball, Egg, and Ender Pearl
+                if (entityType == EntityType.THROWN_POTION || entityType == EntityType.LINGERING_POTION) {
                     gravity = 0.05f;
-                } else if (getEntityType() == EntityType.THROWN_EXP_BOTTLE) {
+                } else if (entityType == EntityType.THROWN_EXP_BOTTLE) {
                     gravity = 0.07f;
                 }
-                setMotion(getMotion().down(gravity));
+                motion = motion.down(gravity);
             }
         }, 0, 50, TimeUnit.MILLISECONDS);
     }
@@ -66,10 +66,10 @@ public class ThrowableEntity extends Entity {
     @Override
     public boolean despawnEntity(GeyserSession session) {
         positionUpdater.cancel(true);
-        if (getEntityType() == EntityType.THROWN_ENDERPEARL) {
+        if (entityType == EntityType.THROWN_ENDERPEARL) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEventType.PARTICLE_TELEPORT);
-            particlePacket.setPosition(getPosition());
+            particlePacket.setPosition(position);
             session.sendUpstreamPacket(particlePacket);
         }
         return super.despawnEntity(session);
@@ -77,14 +77,14 @@ public class ThrowableEntity extends Entity {
 
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        setPosition(lastPosition);
+        position = lastPosition;
         super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
-        lastPosition = getPosition();
+        lastPosition = position;
     }
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         super.moveAbsolute(session, position, rotation, isOnGround, teleported);
-        lastPosition = getPosition();
+        lastPosition = position;
     }
 }

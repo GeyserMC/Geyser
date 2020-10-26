@@ -25,10 +25,14 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.world.particle.ItemParticleData;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
@@ -38,6 +42,9 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 @Translator(packet = ServerEntityStatusPacket.class)
 public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntityStatusPacket> {
@@ -91,18 +98,21 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
             case LIVING_DEATH:
                 entityEventPacket.setType(EntityEventType.DEATH);
                 if (entity.getEntityType() == EntityType.THROWN_EGG) {
+                    ItemEntry eggItemJava = ItemRegistry.getItemEntry("minecraft:egg");
+                    int eggBedrockId = eggItemJava.getBedrockId();
+
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_ITEM_BREAK);
+                    particlePacket.setData(eggBedrockId << 16);
+                    particlePacket.setPosition(entity.getPosition());
                     for (int i = 0; i < 6; i++) {
-                        LevelEventPacket particlePacket = new LevelEventPacket();
-                        particlePacket.setType(LevelEventType.PARTICLE_GENERIC_SPAWN);
-                        particlePacket.setData(22544397);
-                        particlePacket.setPosition(entity.getPosition());
                         session.sendUpstreamPacket(particlePacket);
                     }
                 } else if (entity.getEntityType() == EntityType.SNOWBALL) {
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_SNOWBALL_POOF);
+                    particlePacket.setPosition(entity.getPosition());
                     for (int i = 0; i < 8; i++) {
-                        LevelEventPacket particlePacket = new LevelEventPacket();
-                        particlePacket.setType(LevelEventType.PARTICLE_SNOWBALL_POOF);
-                        particlePacket.setPosition(entity.getPosition());
                         session.sendUpstreamPacket(particlePacket);
                     }
                 }
