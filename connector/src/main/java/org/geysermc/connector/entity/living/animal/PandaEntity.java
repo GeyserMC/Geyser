@@ -37,8 +37,6 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class PandaEntity extends AnimalEntity {
 
-    private static final int BAMBOO_ID = ItemRegistry.getItemEntry("minecraft:bamboo").getBedrockId() << 16;
-
     private int mainGene;
     private int hiddenGene;
 
@@ -56,7 +54,7 @@ public class PandaEntity extends AnimalEntity {
                 EntityEventPacket packet = new EntityEventPacket();
                 packet.setRuntimeEntityId(geyserId);
                 packet.setType(EntityEventType.EATING_ITEM);
-                packet.setData(BAMBOO_ID);
+                packet.setData(ItemRegistry.BAMBOO.getBedrockId() << 16);
                 session.sendUpstreamPacket(packet);
             }
         }

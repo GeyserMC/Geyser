@@ -56,6 +56,10 @@ public class ItemRegistry {
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     /**
+     * Bamboo item entry, used in PandaEntity.java
+     */
+    public static ItemEntry BAMBOO;
+    /**
      * Boat item entry, used in BedrockInventoryTransactionTranslator.java
      */
     public static ItemEntry BOAT;
@@ -138,6 +142,8 @@ public class ItemRegistry {
                 case "minecraft:barrier":
                     BARRIER_INDEX = itemIndex;
                     break;
+                case "minecraft:bamboo":
+                    BAMBOO = ITEM_ENTRIES.get(itemIndex);
                 case "minecraft:oak_boat":
                     BOAT = ITEM_ENTRIES.get(itemIndex);
                     break;
