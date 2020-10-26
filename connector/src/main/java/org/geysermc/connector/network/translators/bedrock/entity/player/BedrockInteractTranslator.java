@@ -59,6 +59,13 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
             "golden_carrot", "sugar", "apple", "wheat", "hay_block");
 
     /**
+     * A list of all flowers. Used for feeding bees.
+     */
+    private static final List<String> FLOWERS = Arrays.asList("dandelion", "poppy", "blue_orchid", "allium", "azure_bluet",
+            "red_tulip", "pink_tulip", "white_tulip", "orange_tulip", "cornflower", "lily_of_the_valley", "wither_rose",
+            "sunflower", "lilac", "rose_bush", "peony");
+
+    /**
      * All entity types that can be leashed on Java Edition
      */
     private static final List<EntityType> LEASHABLE_MOB_TYPES = Arrays.asList(EntityType.BEE, EntityType.CAT, EntityType.CHICKEN,
@@ -140,6 +147,11 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         interactiveTag = InteractiveTag.LEASH;
                     } else {
                         switch (interactEntity.getEntityType()) {
+                            case BEE:
+                                if (FLOWERS.contains(javaIdentifierStripped)) {
+                                    interactiveTag = InteractiveTag.FEED;
+                                }
+                                break;
                             case BOAT:
                                 interactiveTag = InteractiveTag.BOARD_BOAT;
                                 break;
@@ -224,6 +236,11 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                                     }
                                 }
                                 break;
+                            case FOX:
+                                if (javaIdentifierStripped.equals("sweet_berries")) {
+                                    interactiveTag = InteractiveTag.FEED;
+                                }
+                                break;
                             case HOGLIN:
                                 if (javaIdentifierStripped.equals("crimson_fungus")) {
                                     interactiveTag = InteractiveTag.FEED;
@@ -264,6 +281,11 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                                     interactiveTag = InteractiveTag.BARTER;
                                 }
                                 break;
+                            case RABBIT:
+                                if (javaIdentifierStripped.equals("dandelion") || javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("golden_carrot")) {
+                                    interactiveTag = InteractiveTag.FEED;
+                                }
+                                break;
                             case SHEEP:
                                 if (javaIdentifierStripped.equals("wheat")) {
                                     interactiveTag = InteractiveTag.FEED;
@@ -284,6 +306,11 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                                     interactiveTag = InteractiveTag.RIDE_STRIDER;
                                 }
                                 break;
+                            case TURTLE:
+                                if (javaIdentifierStripped.equals("seagrass")) {
+                                    interactiveTag = InteractiveTag.FEED;
+                                }
+                                break;
                             case VILLAGER:
                                 if (entityMetadata.getInt(EntityData.VARIANT) != 14 && entityMetadata.getInt(EntityData.VARIANT) != 0
                                         && entityMetadata.getFloat(EntityData.SCALE) >= 0.75f) { // Not a nitwit, has a profession and is not a baby
@@ -294,22 +321,17 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                                 interactiveTag = InteractiveTag.TRADE; // Since you can always trade with a wandering villager, presumably.
                                 break;
                             case WOLF:
-                                // Bone and untamed - can tame
                                 if (javaIdentifierStripped.equals("bone") && !entityMetadata.getFlags().getFlag(EntityFlag.TAMED)) {
+                                    // Bone and untamed - can tame
                                     interactiveTag = InteractiveTag.TAME;
-                                    break;
-                                }
-                                // Compatible food in hand - feed
-                                if (WOLF_FOODS.contains(javaIdentifierStripped)) {
+                                } else if (WOLF_FOODS.contains(javaIdentifierStripped)) {
+                                    // Compatible food in hand - feed
                                     // Sometimes just sits/stands when the wolf isn't hungry - there doesn't appear to be a way to fix this
                                     interactiveTag = InteractiveTag.FEED;
-                                    break;
-                                }
-                                // Tamed and owned by player - can sit/stand
-                                if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED) &&
+                                } else if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED) &&
                                         entityMetadata.getLong(EntityData.OWNER_EID) == session.getPlayerEntity().getGeyserId()) {
+                                    // Tamed and owned by player - can sit/stand
                                     interactiveTag = entityMetadata.getFlags().getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
-                                    break;
                                 }
                                 break;
                             case ZOMBIE_VILLAGER:

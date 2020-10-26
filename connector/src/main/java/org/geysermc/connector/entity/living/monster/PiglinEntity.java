@@ -41,7 +41,7 @@ public class PiglinEntity extends BasePiglinEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             boolean isBaby = (boolean) entityMetadata.getValue();
             if (isBaby) {
                 metadata.put(EntityData.SCALE, .55f);

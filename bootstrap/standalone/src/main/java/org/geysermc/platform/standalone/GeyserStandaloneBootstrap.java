@@ -91,11 +91,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 case "--config":
                 case "-c":
                     if (i >= args.length - 1) {
-                        System.err.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.confignotspecified"), "-c"));
+                        System.err.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config_not_specified"), "-c"));
                         return;
                     }
                     configFilenameOpt = args[i+1]; i++;
-                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.configspecified"), configFilenameOpt));
+                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config_specified"), configFilenameOpt));
                     break;
                 case "--help":
                 case "-h":

@@ -47,10 +47,8 @@ public class PandaEntity extends AnimalEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 18) {
             metadata.getFlags().setFlag(EntityFlag.EATING, (int) entityMetadata.getValue() > 0);
-            if ((int) entityMetadata.getValue() == 0) {
-                metadata.remove(EntityData.EATING_COUNTER);
-            } else {
-                metadata.put(EntityData.EATING_COUNTER, entityMetadata.getValue());
+            metadata.put(EntityData.EATING_COUNTER, entityMetadata.getValue());
+            if ((int) entityMetadata.getValue() != 0) {
                 // Particles and sound
                 EntityEventPacket packet = new EntityEventPacket();
                 packet.setRuntimeEntityId(geyserId);
