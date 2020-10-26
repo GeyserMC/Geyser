@@ -76,7 +76,6 @@ public class PandaEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.LAYING_DOWN, (xd & 0x10) == 0x10);
         }
         super.updateBedrockMetadata(entityMetadata, session);
-        System.out.println(metadata);
     }
 
     /**
