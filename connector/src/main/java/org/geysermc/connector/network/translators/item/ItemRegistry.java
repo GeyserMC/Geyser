@@ -144,6 +144,7 @@ public class ItemRegistry {
                     break;
                 case "minecraft:bamboo":
                     BAMBOO = ITEM_ENTRIES.get(itemIndex);
+                    break;
                 case "minecraft:oak_boat":
                     BOAT = ITEM_ENTRIES.get(itemIndex);
                     break;
