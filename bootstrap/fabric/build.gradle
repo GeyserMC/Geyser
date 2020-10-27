@@ -38,11 +38,11 @@ repositories {
     mavenLocal()
 
     maven {
-        url = uri('https://repo.nukkitx.com/maven-releases/')
+        url = uri('https://repo.opencollab.dev/maven-releases/')
     }
 
     maven {
-        url = uri('https://repo.nukkitx.com/maven-snapshots/')
+        url = uri('https://repo.opencollab.dev/maven-snapshots/')
     }
 
     maven {
