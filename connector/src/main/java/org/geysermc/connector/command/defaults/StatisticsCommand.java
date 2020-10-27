@@ -66,4 +66,9 @@ public class StatisticsCommand extends GeyserCommand {
         ClientRequestPacket clientRequestPacket = new ClientRequestPacket(ClientRequest.STATS);
         session.sendDownstreamPacket(clientRequestPacket);
     }
+
+    @Override
+    public boolean isExecutableOnConsole() {
+        return false;
+    }
 }

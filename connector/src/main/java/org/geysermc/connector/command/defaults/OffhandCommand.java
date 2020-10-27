@@ -68,4 +68,9 @@ public class OffhandCommand extends GeyserCommand {
             }
         }
     }
+
+    @Override
+    public boolean isExecutableOnConsole() {
+        return false;
+    }
 }
