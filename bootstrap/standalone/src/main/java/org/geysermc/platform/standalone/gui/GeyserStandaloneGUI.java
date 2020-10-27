@@ -261,14 +261,30 @@ public class GeyserStandaloneGUI {
 
         for (Map.Entry<String, GeyserCommand> command : geyserCommandManager.getCommands().entrySet()) {
             // Remove the offhand command and any alias commands to prevent duplicates in the list
-            if ("offhand".equals(command.getValue().getName()) || command.getValue().getAliases().contains(command.getKey())) {
+            if (!command.getValue().isExecutableOnConsole() || command.getValue().getAliases().contains(command.getKey())) {
                 continue;
             }
 
             // Create the button that runs the command
-            JMenuItem commandButton = new JMenuItem(command.getValue().getName());
+            boolean hasSubCommands = command.getValue().hasSubCommands();
+            // Add an extra menu if there are more commands that can be run
+            JMenuItem commandButton = hasSubCommands ? new JMenu(command.getValue().getName()) : new JMenuItem(command.getValue().getName());
             commandButton.getAccessibleContext().setAccessibleDescription(command.getValue().getDescription());
-            commandButton.addActionListener(e -> command.getValue().execute(geyserStandaloneLogger, new String[]{ }));
+            if (!hasSubCommands) {
+                commandButton.addActionListener(e -> command.getValue().execute(geyserStandaloneLogger, new String[]{ }));
+            } else {
+                // Add a submenu that's the same name as the menu can't be pressed
+                JMenuItem otherCommandButton = new JMenuItem(command.getValue().getName());
+                otherCommandButton.getAccessibleContext().setAccessibleDescription(command.getValue().getDescription());
+                otherCommandButton.addActionListener(e -> command.getValue().execute(geyserStandaloneLogger, new String[]{ }));
+                commandButton.add(otherCommandButton);
+                // Add a menu option for all possible subcommands
+                for (String subCommandName : command.getValue().getSubCommands()) {
+                    JMenuItem item = new JMenuItem(subCommandName);
+                    item.addActionListener(e -> command.getValue().execute(geyserStandaloneLogger, new String[]{subCommandName}));
+                    commandButton.add(item);
+                }
+            }
             commandsMenu.add(commandButton);
         }
 
@@ -291,7 +307,7 @@ public class GeyserStandaloneGUI {
                 playerTableModel.getDataVector().removeAllElements();
 
                 for (GeyserSession player : GeyserConnector.getInstance().getPlayers()) {
-                    Vector row = new Vector();
+                    Vector<String> row = new Vector<>();
                     row.add(player.getSocketAddress().getHostName());
                     row.add(player.getPlayerEntity().getUsername());
 
