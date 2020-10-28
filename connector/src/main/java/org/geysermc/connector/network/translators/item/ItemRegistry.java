@@ -64,6 +64,10 @@ public class ItemRegistry {
      */
     public static ItemEntry BUCKET;
     /**
+     * Egg item entry, used in JavaEntityStatusTranslator.java
+     */
+    public static ItemEntry EGG;
+    /**
      * Gold item entry, used in PiglinEntity.java
      */
     public static ItemEntry GOLD;
@@ -140,6 +144,9 @@ public class ItemRegistry {
                     break;
                 case "minecraft:oak_boat":
                     BOAT = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:egg":
+                    EGG = ITEM_ENTRIES.get(itemIndex);
                     break;
                 case "minecraft:gold_ingot":
                     GOLD = ITEM_ENTRIES.get(itemIndex);
