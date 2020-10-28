@@ -27,6 +27,7 @@ package org.geysermc.connector.entity.living.monster;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 
@@ -36,6 +37,6 @@ public class EnderDragonPartEntity extends Entity {
 
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
-        metadata.put(EntityData.SCALE, 0.0f); // Make it invisible
+        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
     }
 }
