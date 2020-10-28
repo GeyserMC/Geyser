@@ -70,6 +70,10 @@ public class ItemRegistry {
      */
     public static ItemEntry MILK_BUCKET;
     /**
+     * Egg item entry, used in JavaEntityStatusTranslator.java
+     */
+    public static ItemEntry EGG;
+    /**
      * Gold item entry, used in PiglinEntity.java
      */
     public static ItemEntry GOLD;
@@ -148,6 +152,9 @@ public class ItemRegistry {
             switch (entry.getKey()) {
                 case "minecraft:barrier":
                     BARRIER_INDEX = itemIndex;
+                    break;
+                case "minecraft:egg":
+                    EGG = ITEM_ENTRIES.get(itemIndex);
                     break;
                 case "minecraft:gold_ingot":
                     GOLD = ITEM_ENTRIES.get(itemIndex);
@@ -248,7 +255,7 @@ public class ItemRegistry {
      * @param entry the ItemEntry to search for
      * @return the Bedrock identifier
      */
-    public static String getBedrockIdentifer(ItemEntry entry) {
+    public static String getBedrockIdentifier(ItemEntry entry) {
         String blockName = "";
         for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
             if (startGamePacketItemEntry.getId() == (short) entry.getBedrockId()) {

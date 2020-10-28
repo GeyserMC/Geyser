@@ -98,7 +98,7 @@ public class ItemFrameEntity extends Entity {
             ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
             NbtMapBuilder builder = NbtMap.builder();
 
-            String blockName = ItemRegistry.getBedrockIdentifer(itemEntry);
+            String blockName = ItemRegistry.getBedrockIdentifier(itemEntry);
 
             builder.putByte("Count", (byte) itemData.getCount());
             if (itemData.getTag() != null) {
