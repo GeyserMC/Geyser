@@ -96,6 +96,9 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
 
         session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
 
+        // Send user ip as plugin message
+        session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData() + "-IP:" + session.getSocketAddress()));
+
         if (!newDimension.equals(entity.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
         }
