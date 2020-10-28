@@ -26,19 +26,13 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.connector.entity.living.InsentientEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -47,6 +41,10 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class EnderDragonEntity extends InsentientEntity {
+    /**
+     * The Ender Dragon has multiple hit boxes, which
+     * are each its own invisible entity
+     */
     private EnderDragonPartEntity head;
     private EnderDragonPartEntity neck;
     private EnderDragonPartEntity body;
@@ -56,11 +54,16 @@ public class EnderDragonEntity extends InsentientEntity {
 
     private EnderDragonPartEntity[] allParts;
 
+    /**
+     * A circular buffer that stores a history of
+     * y and yaw values.
+     */
     private final Segment[] segmentHistory = new Segment[19];
     private int latestSegment = -1;
-    private ScheduledFuture<?> segmentUpdater;
 
     private boolean hovering;
+
+    private ScheduledFuture<?> partPositionUpdater;
 
     public EnderDragonEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -131,7 +134,8 @@ public class EnderDragonEntity extends InsentientEntity {
             segmentHistory[i].yaw = rotation.getZ();
             segmentHistory[i].y = position.getY();
         }
-        segmentUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
+
+        partPositionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
             pushSegment();
             updateBoundingBoxes(session);
         }, 0, 50, TimeUnit.MILLISECONDS);
@@ -141,7 +145,7 @@ public class EnderDragonEntity extends InsentientEntity {
 
     @Override
     public boolean despawnEntity(GeyserSession session) {
-        segmentUpdater.cancel(true);
+        partPositionUpdater.cancel(true);
 
         for (EnderDragonPartEntity part : allParts) {
             part.despawnEntity(session);
@@ -152,11 +156,12 @@ public class EnderDragonEntity extends InsentientEntity {
     private void updateBoundingBoxes(GeyserSession session) {
         Vector3f facingDir = Vector3f.createDirectionDeg(0, rotation.getZ());
         Segment baseSegment = getSegment(5);
+        // Used to angle the head, neck, and tail when the dragon flies up/down
+        float pitch = (float) Math.toRadians(10 * (baseSegment.getY() - getSegment(10).getY()));
+        float pitchXZ = (float) Math.cos(pitch);
+        float pitchY = (float) Math.sin(pitch);
 
-        float headBobbingAngle = (float) Math.toRadians(10 * (baseSegment.getY() - getSegment(10).getY()));
-        float sway = (float) Math.cos(headBobbingAngle);
-        float bobbing = (float) Math.sin(headBobbingAngle);
-
+        // Lowers the head when the dragon sits/hovers
         float headDuck;
         if (hovering || metadata.getFlags().getFlag(EntityFlag.SITTING)) {
             headDuck = -1f;
@@ -164,22 +169,24 @@ public class EnderDragonEntity extends InsentientEntity {
             headDuck = baseSegment.y - getSegment(0).y;
         }
 
-        head.setPosition(facingDir.up(bobbing).mul(6.5f, 6.5f, -6.5f).mul(sway, 1, sway).up(headDuck));
-        neck.setPosition(facingDir.up(bobbing).mul(5.5f, 5.5f, -5.5f).mul(sway, 1, sway).up(headDuck));
-
+        head.setPosition(facingDir.up(pitchY).mul(pitchXZ, 1, -pitchXZ).mul(6.5f).up(headDuck));
+        neck.setPosition(facingDir.up(pitchY).mul(pitchXZ, 1, -pitchXZ).mul(5.5f).up(headDuck));
         body.setPosition(facingDir.mul(0.5f, 0f, -0.5f));
+
         rightWing.setPosition(Vector3f.createDirectionDeg(0, 90f - rotation.getZ()).mul(4.5f).up(2f));
-        leftWing.setPosition(rightWing.getPosition().mul(-1, 1, -1));
+        leftWing.setPosition(rightWing.getPosition().mul(-1, 1, -1)); // Mirror horizontally
 
         Vector3f tailBase = facingDir.mul(1.5f);
         for (int i = 0; i < tail.length; i++) {
+            float distance = (i + 1) * 2f;
+            // Curls the tail when the dragon turns
             Segment targetSegment = getSegment(12 + 2 * i);
             float angle = rotation.getZ() + targetSegment.yaw - baseSegment.yaw;
-            float distance = (i + 1) * 2f;
-            float tailYOffset = targetSegment.y - baseSegment.y - (distance + 1.5f) * bobbing + 1.5f;
-            tail[i].setPosition(Vector3f.createDirectionDeg(0, angle).mul(distance).add(tailBase).mul(-sway, 1, sway).up(tailYOffset));
-        }
 
+            float tailYOffset = targetSegment.y - baseSegment.y - (distance + 1.5f) * pitchY + 1.5f;
+            tail[i].setPosition(Vector3f.createDirectionDeg(0, angle).mul(distance).add(tailBase).mul(-pitchXZ, 1, pitchXZ).up(tailYOffset));
+        }
+        // Send updated positions
         for (EnderDragonPartEntity part : allParts) {
              part.moveAbsolute(session, part.getPosition().add(position), Vector3f.ZERO, false, false);
         }

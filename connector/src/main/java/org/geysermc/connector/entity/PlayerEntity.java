@@ -35,7 +35,6 @@ import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -302,16 +301,6 @@ public class PlayerEntity extends LivingEntity {
                     }
                 }
             }
-        }
-    }
-
-    public Vector3f getEyePosition() {
-        if (metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
-            return position.up(1.27f);
-        } else if (metadata.getFlags().getFlag(EntityFlag.SWIMMING) || metadata.getFlags().getFlag(EntityFlag.GLIDING)) { // TODO: Add check for using riptide
-            return position.up(0.4f);
-        } else {
-            return position.up(1.62f);
         }
     }
 
