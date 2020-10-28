@@ -27,12 +27,10 @@ package org.geysermc.connector.command.defaults;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.dump.DumpInfo;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -40,6 +38,8 @@ import org.geysermc.connector.utils.WebUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class DumpCommand extends GeyserCommand {
 
@@ -129,5 +129,10 @@ public class DumpCommand extends GeyserCommand {
         if (!sender.isConsole()) {
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.commands.dump.created", sender.getName(), uploadedDumpUrl));
         }
+    }
+
+    @Override
+    public List<String> getSubCommands() {
+        return Arrays.asList("offline", "full");
     }
 }
