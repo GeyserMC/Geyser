@@ -253,13 +253,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
                         break;
                     case 1: //Attack
-                        if (entity instanceof EnderDragonEntity) {
-                            ((EnderDragonEntity) entity).handleAttack(session);
-                            break;
+                        if (entity.getEntityType() == EntityType.ENDER_DRAGON) {
+                            // Redirects the attack to its body entity, this only happens when
+                            // attacking the underbelly of the ender dragon
+                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId() + 3,
+                                    InteractAction.ATTACK, session.isSneaking());
+                            session.sendDownstreamPacket(attackPacket);
+                        } else {
+                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                                    InteractAction.ATTACK, session.isSneaking());
+                            session.sendDownstreamPacket(attackPacket);
                         }
-                        ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                                InteractAction.ATTACK, session.isSneaking());
-                        session.sendDownstreamPacket(attackPacket);
                         break;
                 }
                 break;

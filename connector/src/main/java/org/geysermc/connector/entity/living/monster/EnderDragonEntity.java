@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
@@ -46,14 +47,14 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class EnderDragonEntity extends InsentientEntity {
-    private final BoundingBox head;
-    private final BoundingBox neck;
-    private final BoundingBox body;
-    private final BoundingBox leftWing;
-    private final BoundingBox rightWing;
-    private final BoundingBox[] tail;
+    private EnderDragonPartEntity head;
+    private EnderDragonPartEntity neck;
+    private EnderDragonPartEntity body;
+    private EnderDragonPartEntity leftWing;
+    private EnderDragonPartEntity rightWing;
+    private EnderDragonPartEntity[] tail;
 
-    private final BoundingBox[] allBoundingBoxes;
+    private EnderDragonPartEntity[] allParts;
 
     private final Segment[] segmentHistory = new Segment[19];
     private int latestSegment = -1;
@@ -63,18 +64,6 @@ public class EnderDragonEntity extends InsentientEntity {
 
     public EnderDragonEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-
-        this.head = new BoundingBox(entityId + 1, Vector3f.from(1f));
-        this.neck = new BoundingBox(entityId + 2, Vector3f.from(3f));
-        this.body = new BoundingBox(entityId + 3, Vector3f.from(5f, 3f, 5f));
-        this.leftWing = new BoundingBox(entityId + 4, Vector3f.from(4f, 2f, 4f));
-        this.rightWing = new BoundingBox(entityId + 5, Vector3f.from(4f, 2f, 4f));
-        this.tail = new BoundingBox[3];
-        for (int i = 0; i < 3; i++) {
-            this.tail[i] = new BoundingBox(entityId + 6 + i, Vector3f.from(2f));
-        }
-
-        this.allBoundingBoxes = new BoundingBox[]{head, neck, body, leftWing, rightWing, tail[0], tail[1], tail[2]};
     }
 
     @Override
@@ -121,12 +110,31 @@ public class EnderDragonEntity extends InsentientEntity {
         valid = true;
         session.sendUpstreamPacket(addEntityPacket);
 
+        head = new EnderDragonPartEntity(entityId + 1, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 1, 1);
+        neck = new EnderDragonPartEntity(entityId + 2, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 3, 3);
+        body = new EnderDragonPartEntity(entityId + 3, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 5, 3);
+        leftWing = new EnderDragonPartEntity(entityId + 4, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 4, 2);
+        rightWing = new EnderDragonPartEntity(entityId + 5, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 4, 2);
+        tail = new EnderDragonPartEntity[3];
+        for (int i = 0; i < 3; i++) {
+            tail[i] = new EnderDragonPartEntity(entityId + 6 + i, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 2, 2);
+        }
+
+        allParts = new EnderDragonPartEntity[]{head, neck, body, leftWing, rightWing, tail[0], tail[1], tail[2]};
+
+        for (EnderDragonPartEntity part : allParts) {
+            session.getEntityCache().spawnEntity(part);
+        }
+
         for (int i = 0; i < segmentHistory.length; i++) {
             segmentHistory[i] = new Segment();
             segmentHistory[i].yaw = rotation.getZ();
             segmentHistory[i].y = position.getY();
         }
-        segmentUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(this::pushSegment, 0, 50, TimeUnit.MILLISECONDS);
+        segmentUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
+            pushSegment();
+            updateBoundingBoxes(session);
+        }, 0, 50, TimeUnit.MILLISECONDS);
 
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
@@ -134,10 +142,14 @@ public class EnderDragonEntity extends InsentientEntity {
     @Override
     public boolean despawnEntity(GeyserSession session) {
         segmentUpdater.cancel(true);
+
+        for (EnderDragonPartEntity part : allParts) {
+            part.despawnEntity(session);
+        }
         return super.despawnEntity(session);
     }
 
-    private void updateBoundingBoxes() {
+    private void updateBoundingBoxes(GeyserSession session) {
         Vector3f facingDir = Vector3f.createDirectionDeg(0, rotation.getZ());
         Segment baseSegment = getSegment(5);
 
@@ -152,12 +164,12 @@ public class EnderDragonEntity extends InsentientEntity {
             headDuck = baseSegment.y - getSegment(0).y;
         }
 
-        head.position = facingDir.up(bobbing).mul(6.5f, 6.5f, -6.5f).mul(sway, 1, sway).up(headDuck);
-        neck.position = facingDir.up(bobbing).mul(5.5f, 5.5f, -5.5f).mul(sway, 1, sway).up(headDuck);
+        head.setPosition(facingDir.up(bobbing).mul(6.5f, 6.5f, -6.5f).mul(sway, 1, sway).up(headDuck));
+        neck.setPosition(facingDir.up(bobbing).mul(5.5f, 5.5f, -5.5f).mul(sway, 1, sway).up(headDuck));
 
-        body.position = facingDir.mul(0.5f, 0f, -0.5f);
-        rightWing.position = Vector3f.createDirectionDeg(0, 90f - rotation.getZ()).mul(4.5f).up(2f);
-        leftWing.position = rightWing.position.mul(-1, 1, -1);
+        body.setPosition(facingDir.mul(0.5f, 0f, -0.5f));
+        rightWing.setPosition(Vector3f.createDirectionDeg(0, 90f - rotation.getZ()).mul(4.5f).up(2f));
+        leftWing.setPosition(rightWing.getPosition().mul(-1, 1, -1));
 
         Vector3f tailBase = facingDir.mul(1.5f);
         for (int i = 0; i < tail.length; i++) {
@@ -165,36 +177,11 @@ public class EnderDragonEntity extends InsentientEntity {
             float angle = rotation.getZ() + targetSegment.yaw - baseSegment.yaw;
             float distance = (i + 1) * 2f;
             float tailYOffset = targetSegment.y - baseSegment.y - (distance + 1.5f) * bobbing + 1.5f;
-            tail[i].position = Vector3f.createDirectionDeg(0, angle).mul(distance).add(tailBase).mul(-sway, 1, sway).up(tailYOffset);
+            tail[i].setPosition(Vector3f.createDirectionDeg(0, angle).mul(distance).add(tailBase).mul(-sway, 1, sway).up(tailYOffset));
         }
 
-        for (int i = 0; i < allBoundingBoxes.length; i++) {
-            allBoundingBoxes[i].position = allBoundingBoxes[i].position.add(position);
-        }
-    }
-
-    public void handleAttack(GeyserSession session) {
-        updateBoundingBoxes();
-
-        Vector3f eyePosition = session.getPlayerEntity().getEyePosition();
-        float reachDistance = session.getGameMode() == GameMode.CREATIVE ? 25.0f : 20.25f;
-
-        // TODO Stop kill aura
-        BoundingBox closest = null;
-        float shortestDistance = Float.MAX_VALUE;
-        for (BoundingBox boundingBox : allBoundingBoxes) {
-            Vector3f center = boundingBox.position.up(boundingBox.size.getY() * 0.5f);
-            float distance = center.distanceSquared(eyePosition);
-            if (distance < shortestDistance) {
-                shortestDistance = distance;
-                closest = boundingBox;
-            }
-        }
-
-        if (closest != null && shortestDistance < reachDistance) {
-            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) (closest.entityId),
-                    InteractAction.ATTACK, session.isSneaking());
-            session.sendDownstreamPacket(attackPacket);
+        for (EnderDragonPartEntity part : allParts) {
+             part.moveAbsolute(session, part.getPosition().add(position), Vector3f.ZERO, false, false);
         }
     }
 
@@ -216,20 +203,5 @@ public class EnderDragonEntity extends InsentientEntity {
     private static class Segment {
         private float yaw;
         private float y;
-    }
-
-    @Getter
-    private static class BoundingBox {
-        private final long entityId;
-        private final Vector3f size;
-
-        // The bottom center of the bounding box
-        @Setter
-        private Vector3f position;
-
-        BoundingBox(long entityId, Vector3f size) {
-            this.entityId = entityId;
-            this.size = size;
-        }
     }
 }
