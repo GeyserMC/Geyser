@@ -44,4 +44,10 @@ public @interface CollisionRemapper {
      * Signals if a new instance needs to created for every block state
      */
     boolean usesParams() default false;
+
+    /*
+     * Signals if the default bounding boxes of this block as defined in collision.json should be passed to the
+     * constructor
+     */
+    boolean passDefaultBoxes() default false;
 }

@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.world.collision.translators;
 
 import com.nukkitx.math.vector.Vector3d;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.CollisionManager;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,6 +40,7 @@ import javax.xml.transform.sax.SAXSource;
 @EqualsAndHashCode
 public class BlockCollision {
 
+    @Getter
     protected BoundingBox[] boundingBoxes;
 
     protected int x;
@@ -153,13 +155,12 @@ public class BlockCollision {
         return true;
     }
 
-    // May be needed in the future
-    /* public boolean checkIntersection(BoundingBox playerCollision) {
+    public boolean checkIntersection(BoundingBox playerCollision) {
         for (BoundingBox b: boundingBoxes) {
             if (b.checkIntersection(x, y, z, playerCollision)) {
                 return true;
             }
         }
         return false;
-    } */
+    }
 }

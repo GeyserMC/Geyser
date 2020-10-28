@@ -78,8 +78,12 @@ public class SnowCollision extends BlockCollision {
 
     @Override
     public boolean correctPosition(BoundingBox playerCollision) {
-        // This can be stepped onto in Bedrock but not Java
-        if (layers == 6 || layers == 7) {
+        // Hack to prevent false positives
+        playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
+        playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
+        playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
+
+        if (this.checkIntersection(playerCollision)) {
             double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
             double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
             // If the player actually can't step onto it (they can step onto it from other snow layers)
@@ -88,6 +92,10 @@ public class SnowCollision extends BlockCollision {
                 return false;
             }
         }
+
+        playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
+        playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
+        playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
         return super.correctPosition(playerCollision);
     }
 }

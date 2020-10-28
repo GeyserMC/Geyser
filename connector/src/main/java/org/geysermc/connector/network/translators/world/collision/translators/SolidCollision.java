@@ -29,7 +29,6 @@ package org.geysermc.connector.network.translators.world.collision.translators;
 import org.geysermc.connector.network.translators.world.collision.CollisionRemapper;
 import org.geysermc.connector.utils.BoundingBox;
 
-// TODO: usesParams?
 @CollisionRemapper(regex = "_slab$", paramRegex = "type=(?:double)", usesParams = true) // Handle double slabs
 public class SolidCollision extends BlockCollision {
     public SolidCollision(String params) {

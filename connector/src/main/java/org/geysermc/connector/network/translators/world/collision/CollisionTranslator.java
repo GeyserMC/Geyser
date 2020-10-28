@@ -37,6 +37,7 @@ import org.geysermc.connector.network.translators.world.collision.translators.Bl
 import org.geysermc.connector.network.translators.world.collision.translators.EmptyCollision;
 import org.geysermc.connector.network.translators.world.collision.translators.OtherCollision;
 import org.geysermc.connector.network.translators.world.collision.translators.SolidCollision;
+import org.geysermc.connector.utils.BoundingBox;
 import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
@@ -97,6 +98,7 @@ public class CollisionTranslator {
         if (blockID.contains("[")) {
             params = "[" + blockID.split("\\[")[1];
         }
+        int collisionIndex = BlockTranslator.JAVA_RUNTIME_ID_TO_COLLISION_INDEX.get(numericBlockID);
 
         for (Class<?> type : collisionTypes) {
             CollisionRemapper annotation = annotationMap.get(type);
@@ -114,7 +116,15 @@ public class CollisionTranslator {
                     if (type == EmptyCollision.class) {
                         return null;
                     }
-                    BlockCollision collision = (BlockCollision) type.getDeclaredConstructor(String.class).newInstance(params);
+
+                    BlockCollision collision;
+                    if (annotation.passDefaultBoxes()) {
+                        // Create an OtherCollision instance and get the bounding boxes
+                        BoundingBox[] defaultBoxes = new OtherCollision((ArrayNode) collisionList.get(collisionIndex), blockID).getBoundingBoxes();
+                        collision = (BlockCollision) type.getDeclaredConstructor(String.class, BoundingBox[].class).newInstance(params, defaultBoxes);
+                    } else {
+                        collision = (BlockCollision) type.getDeclaredConstructor(String.class).newInstance(params);
+                    }
 
                     // If there's an existing instance equal to this one, use that instead
                     for (Map.Entry<Class<?>, BlockCollision> entry : instantiatedCollision.entrySet()) {
@@ -130,8 +140,6 @@ public class CollisionTranslator {
                 }
             }
         }
-
-        int collisionIndex = BlockTranslator.JAVA_RUNTIME_ID_TO_COLLISION_INDEX.get(numericBlockID);
 
         // Unless some of the low IDs are changed, which is unlikely, the first item should always be empty collision
         if (collisionIndex == 0) {
