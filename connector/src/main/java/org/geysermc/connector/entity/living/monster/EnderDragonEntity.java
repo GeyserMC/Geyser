@@ -67,30 +67,25 @@ public class EnderDragonEntity extends InsentientEntity {
 
     public EnderDragonEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Phase
         if (entityMetadata.getId() == 15) {
-            metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
-            hovering = false;
-            switch ((int) entityMetadata.getValue()) {
+            int value = (int) entityMetadata.getValue();
+            if (value == 5) {
                 // Performing breath attack
-                case 5:
-                    EntityEventPacket entityEventPacket = new EntityEventPacket();
-                    entityEventPacket.setType(EntityEventType.DRAGON_FLAMING);
-                    entityEventPacket.setRuntimeEntityId(geyserId);
-                    entityEventPacket.setData(0);
-                    session.sendUpstreamPacket(entityEventPacket);
-                case 6:
-                case 7:
-                    metadata.getFlags().setFlag(EntityFlag.SITTING, true);
-                    break;
-                case 10:
-                    hovering = true;
-                    break;
+                EntityEventPacket entityEventPacket = new EntityEventPacket();
+                entityEventPacket.setType(EntityEventType.DRAGON_FLAMING);
+                entityEventPacket.setRuntimeEntityId(geyserId);
+                entityEventPacket.setData(0);
+                session.sendUpstreamPacket(entityEventPacket);
             }
+            metadata.getFlags().setFlag(EntityFlag.SITTING, value == 5 || value == 6 || value == 7);
+            hovering = value == 10;
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
