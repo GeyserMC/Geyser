@@ -148,6 +148,11 @@ public class EnderDragonEntity extends InsentientEntity {
         return super.despawnEntity(session);
     }
 
+    /**
+     * Updates the positions of the Ender Dragon's multiple bounding boxes
+     *
+     * @param session GeyserSession.
+     */
     private void updateBoundingBoxes(GeyserSession session) {
         Vector3f facingDir = Vector3f.createDirectionDeg(0, rotation.getZ());
         Segment baseSegment = getSegment(5);
@@ -168,8 +173,9 @@ public class EnderDragonEntity extends InsentientEntity {
         neck.setPosition(facingDir.up(pitchY).mul(pitchXZ, 1, -pitchXZ).mul(5.5f).up(headDuck));
         body.setPosition(facingDir.mul(0.5f, 0f, -0.5f));
 
-        rightWing.setPosition(Vector3f.createDirectionDeg(0, 90f - rotation.getZ()).mul(4.5f).up(2f));
-        leftWing.setPosition(rightWing.getPosition().mul(-1, 1, -1)); // Mirror horizontally
+        Vector3f wingPos = Vector3f.createDirectionDeg(0, 90f - rotation.getZ()).mul(4.5f).up(2f);
+        rightWing.setPosition(wingPos);
+        leftWing.setPosition(wingPos.mul(-1, 1, -1)); // Mirror horizontally
 
         Vector3f tailBase = facingDir.mul(1.5f);
         for (int i = 0; i < tail.length; i++) {
@@ -201,7 +207,6 @@ public class EnderDragonEntity extends InsentientEntity {
      * Used to curl the tail and pitch the head and tail up/down
      *
      * @param index Number of ticks in the past
-     *
      * @return Segment with the yaw and y
      */
     private Segment getSegment(int index) {
