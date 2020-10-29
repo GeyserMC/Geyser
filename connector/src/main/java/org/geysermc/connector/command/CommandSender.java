@@ -50,6 +50,7 @@ public interface CommandSender {
 
     /**
      * Returns the locale of the command sender. Defaults to the default locale at {@link LanguageUtils#getDefaultLocale()}.
+     * 
      * @return the locale of the command sender.
      */
     default String getLocale() {

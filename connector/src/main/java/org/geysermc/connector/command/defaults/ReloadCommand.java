@@ -47,12 +47,7 @@ public class ReloadCommand extends GeyserCommand {
             return;
         }
 
-        String message = "";
-        if (sender instanceof GeyserSession) {
-            message = LanguageUtils.getPlayerLocaleString("geyser.commands.reload.message", ((GeyserSession) sender).getLocale());
-        } else {
-            message = LanguageUtils.getLocaleStringLog("geyser.commands.reload.message");
-        }
+        String message = LanguageUtils.getPlayerLocaleString("geyser.commands.reload.message", sender.getLocale());
 
         sender.sendMessage(message);
 
