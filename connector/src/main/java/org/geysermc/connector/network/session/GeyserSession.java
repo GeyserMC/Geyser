@@ -467,7 +467,7 @@ public class GeyserSession implements CommandSender {
                         // as it has to be extracted from a JAR
                         if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
                             // This should probably be left hardcoded as it will only show for en_us clients
-                            sendMessage("Downloading your locale (en_us) this may take some time");
+                            sendMessage("Loading your locale (en_us); if this isn't already downloaded, this may take some time");
                         }
 
                         // Download and load the language for the player
@@ -586,6 +586,11 @@ public class GeyserSession implements CommandSender {
     public boolean isConsole() {
         return false;
     }
+
+     @Override
+     public String getLocale() {
+        return clientData.getLanguageCode();
+     }
 
     public void sendForm(FormWindow window, int id) {
         windowCache.showWindow(window, id);
