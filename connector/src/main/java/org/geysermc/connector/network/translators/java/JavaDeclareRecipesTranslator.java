@@ -80,8 +80,19 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     }
                     break;
                 }
+
+                // These recipes are enabled by sending a special recipe
+                case CRAFTING_SPECIAL_BOOKCLONING: {
+                    craftingDataPacket.getCraftingData().add(RecipeRegistry.BOOK_CLONING_RECIPE_DATA);
+                    break;
+                }
+                case CRAFTING_SPECIAL_REPAIRITEM: {
+                    craftingDataPacket.getCraftingData().add(RecipeRegistry.TOOL_REPAIRING_RECIPE_DATA);
+                    break;
+                }
+
+                // Java doesn't actually tell us the recipes so we need to calculate this ahead of time.
                 case CRAFTING_SPECIAL_FIREWORK_ROCKET: {
-                    // Java doesn't actually tell us the recipes so we need to calculate this ahead of time.
                     craftingDataPacket.getCraftingData().addAll(RecipeRegistry.FIREWORK_ROCKET_RECIPES);
                     break;
                 }
@@ -91,6 +102,14 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 }
                 case CRAFTING_SPECIAL_SHULKERBOXCOLORING: {
                     craftingDataPacket.getCraftingData().addAll(RecipeRegistry.SHULKER_BOX_DYEING_RECIPES);
+                    break;
+                }
+                case CRAFTING_SPECIAL_SUSPICIOUSSTEW: {
+                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.SUSPICIOUS_STEW_RECIPES);
+                    break;
+                }
+                case CRAFTING_SPECIAL_TIPPEDARROW: {
+                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.TIPPED_ARROW_RECIPES);
                     break;
                 }
                 case CRAFTING_SPECIAL_ARMORDYE: {
