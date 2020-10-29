@@ -38,7 +38,12 @@ import java.util.concurrent.TimeUnit;
 public class ThrowableEntity extends Entity {
 
     private Vector3f lastPosition;
-    private ScheduledFuture<?> positionUpdater;
+    /**
+     * Updates the position for the Bedrock client.
+     *
+     * Java clients assume the next positions of moving items. Bedrock needs to be explicitly told positions
+     */
+    protected ScheduledFuture<?> positionUpdater;
 
     public ThrowableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -48,19 +53,22 @@ public class ThrowableEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         super.spawnEntity(session);
-        positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-            super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
+        // Fireballs handle this separately
+        if (!(this instanceof ItemedFireballEntity)) {
+            positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
+                super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
 
-            if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
-                float gravity = 0.03f; // Snowball, Egg, and Ender Pearl
-                if (entityType == EntityType.THROWN_POTION || entityType == EntityType.LINGERING_POTION) {
-                    gravity = 0.05f;
-                } else if (entityType == EntityType.THROWN_EXP_BOTTLE) {
-                    gravity = 0.07f;
+                if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
+                    float gravity = 0.03f; // Snowball, Egg, and Ender Pearl
+                    if (entityType == EntityType.THROWN_POTION || entityType == EntityType.LINGERING_POTION) {
+                        gravity = 0.05f;
+                    } else if (entityType == EntityType.THROWN_EXP_BOTTLE) {
+                        gravity = 0.07f;
+                    }
+                    motion = motion.down(gravity);
                 }
-                motion = motion.down(gravity);
-            }
-        }, 0, 50, TimeUnit.MILLISECONDS);
+            }, 0, 50, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override

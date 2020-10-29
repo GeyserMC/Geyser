@@ -74,7 +74,7 @@ public enum EntityType {
     ENDERMAN(EndermanEntity.class, 38, 2.9f, 0.6f),
     SILVERFISH(MonsterEntity.class, 39, 0.3f, 0.4f),
     CAVE_SPIDER(MonsterEntity.class, 40, 0.5f, 0.7f),
-    GHAST(FlyingEntity.class, 41, 4.0f),
+    GHAST(GhastEntity.class, 41, 4.0f),
     MAGMA_CUBE(MagmaCubeEntity.class, 42, 0.51f),
     BLAZE(BlazeEntity.class, 43, 1.8f, 0.6f),
     ZOMBIE_VILLAGER(ZombieEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f),
