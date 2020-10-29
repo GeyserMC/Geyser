@@ -132,6 +132,7 @@ public class RecipeRegistry {
             for (JsonNode chars : node.get("shape")) {
                 shape.add(chars.asText());
             }
+
             // In recipes.json each recipe is mapped by a letter
             Map<String, ItemData> letterToRecipe = new HashMap<>();
             Iterator<Map.Entry<String, JsonNode>> iterator = node.get("input").fields();
@@ -139,6 +140,7 @@ public class RecipeRegistry {
                 Map.Entry<String, JsonNode> entry = iterator.next();
                 letterToRecipe.put(entry.getKey(), ItemRegistry.getBedrockItemFromJson(entry.getValue()));
             }
+
             ItemData[] inputs = new ItemData[shape.size() * shape.get(0).length()];
             int i = 0;
             // Create a linear array of items from the "cube" of the shape
