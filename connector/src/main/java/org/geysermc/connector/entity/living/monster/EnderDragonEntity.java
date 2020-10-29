@@ -187,12 +187,23 @@ public class EnderDragonEntity extends InsentientEntity {
         }
     }
 
+    /**
+     * Store the current yaw and y into the circular buffer
+     */
     private void pushSegment() {
         latestSegment = (latestSegment + 1) % segmentHistory.length;
         segmentHistory[latestSegment].yaw = rotation.getZ();
         segmentHistory[latestSegment].y = position.getY();
     }
 
+    /**
+     * Gets the previous yaw and y
+     * Used to curl the tail and pitch the head and tail up/down
+     *
+     * @param index Number of ticks in the past
+     *
+     * @return Segment with the yaw and y
+     */
     private Segment getSegment(int index) {
         index = (latestSegment - index) % segmentHistory.length;
         if (index < 0) {
