@@ -23,49 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window;
+package org.geysermc.common.form.component;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
-import org.geysermc.common.window.CustomFormWindow;
-import org.geysermc.common.window.button.FormImage;
-import org.geysermc.common.window.component.FormComponent;
-import org.geysermc.common.window.response.CustomFormResponse;
 
-public class CustomFormBuilder {
+@Getter
+public class ToggleComponent extends Component {
+    @SerializedName("default")
+    private final boolean defaultValue;
 
-    @Getter
-    private CustomFormWindow form;
-
-    public CustomFormBuilder(String title) {
-        form = new CustomFormWindow(title);
+    private ToggleComponent(String text, boolean defaultValue) {
+        super(Type.TOGGLE, text);
+        this.defaultValue = defaultValue;
     }
 
-    public CustomFormBuilder setTitle(String title) {
-        form.setTitle(title);
-        return this;
+    public static ToggleComponent of(String text, boolean defaultValue) {
+        return new ToggleComponent(text, defaultValue);
     }
 
-    public CustomFormBuilder setIcon(FormImage icon) {
-        form.setIcon(icon);
-        return this;
-    }
-
-    public CustomFormBuilder setResponse(String data) {
-        form.setResponse(data);
-        return this;
-    }
-
-    public CustomFormBuilder setResponse(CustomFormResponse response) {
-        form.setResponse(response);
-        return this;
-    }
-
-    public CustomFormBuilder addComponent(FormComponent component) {
-        form.addComponent(component);
-        return this;
-    }
-
-    public CustomFormWindow build() {
-        return form;
+    public static ToggleComponent of(String text) {
+        return of(text, false);
     }
 }

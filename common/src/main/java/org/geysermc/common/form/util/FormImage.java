@@ -23,24 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.response;
+package org.geysermc.common.form.util;
 
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
-import org.geysermc.common.window.response.FormResponse;
-import org.geysermc.common.window.response.FormResponseData;
-
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
-public class CustomFormResponse implements FormResponse {
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class FormImage {
+    private final String type;
+    private final String data;
 
-    private Map<Integer, Object> responses;
-    private Map<Integer, FormResponseData> dropdownResponses;
-    private Map<Integer, String> inputResponses;
-    private Map<Integer, Float> sliderResponses;
-    private Map<Integer, FormResponseData> stepSliderResponses;
-    private Map<Integer, Boolean> toggleResponses;
-    private Map<Integer, String> labelResponses;
+    public static FormImage of(String type, String data) {
+        return new FormImage(type, data);
+    }
+
+    public static FormImage of(Type type, String data) {
+        return of(type.getName(), data);
+    }
+
+    @RequiredArgsConstructor
+    public enum Type {
+        PATH("path"),
+        URL("url");
+
+        @Getter private final String name;
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
 }

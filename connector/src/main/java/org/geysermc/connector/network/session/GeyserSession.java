@@ -55,8 +55,7 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.common.window.CustomFormWindow;
-import org.geysermc.common.window.FormWindow;
+import org.geysermc.common.form.Form;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
@@ -101,7 +100,7 @@ public class GeyserSession implements CommandSender {
     private EntityCache entityCache;
     private InventoryCache inventoryCache;
     private WorldCache worldCache;
-    private WindowCache windowCache;
+    private FormCache formCache;
     @Setter
     private TeleportCache teleportCache;
 
@@ -192,9 +191,6 @@ public class GeyserSession implements CommandSender {
 
     private boolean reducedDebugInfo = false;
 
-    @Setter
-    private CustomFormWindow settingsForm;
-
     /**
      * The op permission level set by the server
      */
@@ -239,7 +235,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Stores the last text inputted into a sign.
-     *
+     * <p>
      * Bedrock sends packets every time you update the sign, Java only wants the final packet.
      * Until we determine that the user has finished editing, we save the sign's current status.
      */
@@ -256,7 +252,7 @@ public class GeyserSession implements CommandSender {
         this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
         this.worldCache = new WorldCache(this);
-        this.windowCache = new WindowCache(this);
+        this.formCache = new FormCache(this);
 
         this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
         this.inventory = new PlayerInventory();
@@ -497,7 +493,7 @@ public class GeyserSession implements CommandSender {
         this.entityCache = null;
         this.worldCache = null;
         this.inventoryCache = null;
-        this.windowCache = null;
+        this.formCache = null;
 
         closed = true;
     }
@@ -533,10 +529,6 @@ public class GeyserSession implements CommandSender {
         return false;
     }
 
-    public void sendForm(FormWindow window, int id) {
-        windowCache.showWindow(window, id);
-    }
-
     public void setRenderDistance(int renderDistance) {
         renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
         if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
@@ -551,8 +543,12 @@ public class GeyserSession implements CommandSender {
         return this.upstream.getAddress();
     }
 
-    public void sendForm(FormWindow window) {
-        windowCache.showWindow(window);
+    public void sendForm(Form form) {
+        formCache.showForm(form);
+    }
+
+    public void sendForm(Form.Builder<?, ?> formBuilder) {
+        formCache.showForm(formBuilder.build());
     }
 
     private void startGame() {
@@ -678,7 +674,7 @@ public class GeyserSession implements CommandSender {
      * Send a gamerule value to the client
      *
      * @param gameRule The gamerule to send
-     * @param value The value of the gamerule
+     * @param value    The value of the gamerule
      */
     public void sendGameRule(String gameRule, Object value) {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();

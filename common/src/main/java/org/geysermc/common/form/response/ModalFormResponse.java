@@ -23,35 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.button;
+package org.geysermc.common.form.response;
 
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 
-public class FormButton {
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ModalFormResponse implements FormResponse {
+    private static final ModalFormResponse CLOSED =
+            new ModalFormResponse(true, false, -1, null);
+    private static final ModalFormResponse INVALID =
+            new ModalFormResponse(false, true, -1, null);
+    private final boolean closed;
+    private final boolean invalid;
 
-    @Getter
-    @Setter
-    private String text;
+    private final int clickedButtonId;
+    private final String clickedButtonText;
 
-    @Getter
-    private FormImage image;
-
-    public FormButton(String text) {
-        this.text = text;
+    public static ModalFormResponse closed() {
+        return CLOSED;
     }
 
-    public FormButton(String text, FormImage image) {
-        this.text = text;
-
-        if (image.getData() != null && !image.getData().isEmpty()) {
-            this.image = image;
-        }
+    public static ModalFormResponse invalid() {
+        return INVALID;
     }
 
-    public void setImage(FormImage image) {
-        if (image.getData() != null && !image.getData().isEmpty()) {
-            this.image = image;
-        }
+    public static ModalFormResponse of(int clickedButtonId, String clickedButtonText) {
+        return new ModalFormResponse(false, false, clickedButtonId, clickedButtonText);
+    }
+
+    public boolean getResult() {
+        return clickedButtonId == 0;
     }
 }

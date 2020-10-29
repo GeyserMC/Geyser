@@ -39,7 +39,6 @@ import org.geysermc.connector.utils.LoginEncryptionUtils;
 import org.geysermc.connector.utils.MathUtils;
 import org.geysermc.connector.utils.ResourcePack;
 import org.geysermc.connector.utils.ResourcePackManifest;
-import org.geysermc.connector.utils.SettingsUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -139,11 +138,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        if (packet.getFormId() == SettingsUtils.SETTINGS_FORM_ID) {
-            return SettingsUtils.handleSettingsForm(session, packet.getFormData());
-        }
-
-        return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+        session.getFormCache().handleResponse(packet);
+        return true;
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
@@ -170,7 +166,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthData().getName())) {
-                LoginEncryptionUtils.showLoginWindow(session);
+                LoginEncryptionUtils.buildAndShowLoginWindow(session);
             }
             // else we were able to log the user in
         }

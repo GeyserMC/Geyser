@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.ServerSettingsRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerSettingsResponsePacket;
+import org.geysermc.common.form.CustomForm;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -37,11 +38,12 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
 
     @Override
     public void translate(ServerSettingsRequestPacket packet, GeyserSession session) {
-        SettingsUtils.buildForm(session);
+        CustomForm window = SettingsUtils.buildForm(session);
+        int windowId = session.getFormCache().addForm(window);
 
         ServerSettingsResponsePacket serverSettingsResponsePacket = new ServerSettingsResponsePacket();
-        serverSettingsResponsePacket.setFormData(session.getSettingsForm().getJSONData());
-        serverSettingsResponsePacket.setFormId(SettingsUtils.SETTINGS_FORM_ID);
+        serverSettingsResponsePacket.setFormData(window.getJsonData());
+        serverSettingsResponsePacket.setFormId(windowId);
         session.sendUpstreamPacket(serverSettingsResponsePacket);
     }
 }

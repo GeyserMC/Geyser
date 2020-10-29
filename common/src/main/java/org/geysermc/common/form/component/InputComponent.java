@@ -23,40 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.button;
+package org.geysermc.common.form.component;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
-import lombok.Setter;
 
-public class FormImage {
+@Getter
+public class InputComponent extends Component {
+    private final String placeholder;
+    @SerializedName("default")
+    private final String defaultText;
 
-    @Getter
-    @Setter
-    private String type;
-
-    @Getter
-    @Setter
-    private String data;
-
-    public FormImage(FormImageType type, String data) {
-        this.type = type.getName();
-        this.data = data;
+    private InputComponent(String text, String placeholder, String defaultText) {
+        super(Type.INPUT, text);
+        this.placeholder = placeholder;
+        this.defaultText = defaultText;
     }
 
-    public enum FormImageType {
-        PATH("path"),
-        URL("url");
+    public static InputComponent of(String text, String placeholder, String defaultText) {
+        return new InputComponent(text, placeholder, defaultText);
+    }
 
-        @Getter
-        private String name;
+    public static InputComponent of(String text, String placeholder) {
+        return new InputComponent(text, placeholder, "");
+    }
 
-        FormImageType(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
+    public static InputComponent of(String text) {
+        return new InputComponent(text, "", "");
     }
 }

@@ -23,47 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.component;
+package org.geysermc.common.form.component;
 
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
+import org.geysermc.common.form.util.FormImage;
 
-import java.util.ArrayList;
-import java.util.List;
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ButtonComponent {
+    private final String text;
+    private final FormImage image;
 
-public class StepSliderComponent extends FormComponent {
-
-    @Getter
-    @Setter
-    private String text;
-
-    @Getter
-    private List<String> steps;
-
-    @Getter
-    @Setter
-    private int defaultStepIndex;
-
-    public StepSliderComponent(String text) {
-        this(text, new ArrayList<String>());
+    public static ButtonComponent of(String text, FormImage image) {
+        return new ButtonComponent(text, image);
     }
 
-    public StepSliderComponent(String text, List<String> steps) {
-        this(text, steps, 0);
+    public static ButtonComponent of(String text, FormImage.Type type, String data) {
+        return of(text, FormImage.of(type, data));
     }
 
-    public StepSliderComponent(String text, List<String> steps, int defaultStepIndex) {
-        super("step_slider");
-
-        this.text = text;
-        this.steps = steps;
-        this.defaultStepIndex = defaultStepIndex;
-    }
-
-    public void addStep(String step, boolean isDefault) {
-        steps.add(step);
-
-        if (isDefault)
-            defaultStepIndex = steps.size() - 1;
+    public static ButtonComponent of(String text) {
+        return of(text, null);
     }
 }

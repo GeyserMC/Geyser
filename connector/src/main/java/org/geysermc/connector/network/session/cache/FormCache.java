@@ -26,56 +26,54 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.nukkitx.protocol.bedrock.packet.ModalFormRequestPacket;
-
+import com.nukkitx.protocol.bedrock.packet.ModalFormResponsePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-
-import lombok.Getter;
-
-import org.geysermc.common.window.FormWindow;
+import lombok.RequiredArgsConstructor;
+import org.geysermc.common.form.Form;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class WindowCache {
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
-    private GeyserSession session;
+@RequiredArgsConstructor
+public class FormCache {
+    private final AtomicInteger formId = new AtomicInteger(0);
+    private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
+    private final GeyserSession session;
 
-    @Getter
-    private Int2ObjectMap<FormWindow> windows = new Int2ObjectOpenHashMap<>();
-
-    public WindowCache(GeyserSession session) {
-        this.session = session;
+    public int addForm(Form form) {
+        int windowId = formId.getAndIncrement();
+        forms.put(windowId, form);
+        return windowId;
     }
 
-    public void addWindow(FormWindow window) {
-        windows.put(windows.size() + 1, window);
+    public int showForm(Form form) {
+        int windowId = addForm(form);
+
+        ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
+        formRequestPacket.setFormId(windowId);
+        formRequestPacket.setFormData(form.getJsonData());
+
+        session.sendUpstreamPacket(formRequestPacket);
+        return windowId;
     }
 
-    public void addWindow(FormWindow window, int id) {
-        windows.put(id, window);
-    }
-
-    public void showWindow(FormWindow window) {
-        showWindow(window, windows.size() + 1);
-    }
-
-    public void showWindow(int id) {
-        if (!windows.containsKey(id))
+    public void handleResponse(ModalFormResponsePacket response) {
+        Form form = forms.get(response.getFormId());
+        if (form == null) {
             return;
+        }
 
-        ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
-        formRequestPacket.setFormId(id);
-        formRequestPacket.setFormData(windows.get(id).getJSONData());
+        Consumer<String> responseConsumer = form.getResponseHandler();
+        if (responseConsumer != null) {
+            responseConsumer.accept(response.getFormData().trim());
+        }
 
-        session.sendUpstreamPacket(formRequestPacket);
+        removeWindow(response.getFormId());
     }
 
-    public void showWindow(FormWindow window, int id) {
-        ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
-        formRequestPacket.setFormId(id);
-        formRequestPacket.setFormData(window.getJSONData());
-
-        session.sendUpstreamPacket(formRequestPacket);
-
-        addWindow(window, id);
+    public boolean removeWindow(int id) {
+        return forms.remove(id) != null;
     }
 }

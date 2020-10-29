@@ -23,34 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.component;
+package org.geysermc.common.form.response;
 
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
+import org.geysermc.common.form.component.ButtonComponent;
 
-import java.util.List;
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class SimpleFormResponse implements FormResponse {
+    private static final SimpleFormResponse CLOSED = new SimpleFormResponse(true, false, -1, null);
+    private static final SimpleFormResponse INVALID = new SimpleFormResponse(false, true, -1, null);
+    private final boolean closed;
+    private final boolean invalid;
 
-public class DropdownComponent extends FormComponent {
+    private final int clickedButtonId;
+    private final ButtonComponent clickedButton;
 
-    @Getter
-    @Setter
-    private String text;
-
-    @Getter
-    @Setter
-    private List<String> options;
-
-    @Getter
-    @Setter
-    private int defaultOptionIndex;
-
-    public DropdownComponent() {
-        super("dropdown");
+    public static SimpleFormResponse closed() {
+        return CLOSED;
     }
 
-    public void addOption(String option, boolean isDefault) {
-        options.add(option);
-        if (isDefault)
-            defaultOptionIndex = options.size() - 1;
+    public static SimpleFormResponse invalid() {
+        return INVALID;
+    }
+
+    public static SimpleFormResponse of(int clickedButtonId, ButtonComponent clickedButton) {
+        return new SimpleFormResponse(false, false, clickedButtonId, clickedButton);
     }
 }

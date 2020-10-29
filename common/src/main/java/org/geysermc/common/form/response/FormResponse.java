@@ -23,16 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.component;
+package org.geysermc.common.form.response;
 
-import lombok.Getter;
+public interface FormResponse {
+    boolean isClosed();
+    boolean isInvalid();
 
-public abstract class FormComponent {
-
-    @Getter
-    private final String type;
-
-    public FormComponent(String type) {
-        this.type = type;
+    default boolean isCorrect() {
+        return !isClosed() && !isInvalid();
     }
 }

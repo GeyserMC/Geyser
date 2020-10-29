@@ -23,7 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.response;
+package org.geysermc.common.form.component;
 
-public interface FormResponse {
+import lombok.Getter;
+
+@Getter
+public class LabelComponent extends Component {
+    private LabelComponent(String text) {
+        super(Type.LABEL, text);
+    }
+
+    public static LabelComponent of(String text) {
+        return new LabelComponent(text);
+    }
 }

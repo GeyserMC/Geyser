@@ -34,20 +34,16 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-import org.geysermc.common.window.CustomFormBuilder;
-import org.geysermc.common.window.CustomFormWindow;
-import org.geysermc.common.window.FormWindow;
-import org.geysermc.common.window.SimpleFormWindow;
-import org.geysermc.common.window.button.FormButton;
-import org.geysermc.common.window.component.InputComponent;
-import org.geysermc.common.window.component.LabelComponent;
-import org.geysermc.common.window.response.CustomFormResponse;
-import org.geysermc.common.window.response.SimpleFormResponse;
+import org.geysermc.common.form.CustomForm;
+import org.geysermc.common.form.ModalForm;
+import org.geysermc.common.form.SimpleForm;
+import org.geysermc.common.form.response.CustomFormResponse;
+import org.geysermc.common.form.response.ModalFormResponse;
+import org.geysermc.common.form.response.SimpleFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
-import org.geysermc.connector.network.session.cache.WindowCache;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -72,7 +68,7 @@ public class LoginEncryptionUtils {
             }
 
             if (lastKey != null) {
-                 if (!EncryptionUtils.verifyJwt(jwt, lastKey)) return false;
+                if (!EncryptionUtils.verifyJwt(jwt, lastKey)) return false;
             }
 
             JsonNode payloadNode = JSON_MAPPER.readTree(jwt.getPayload().toString());
@@ -159,69 +155,49 @@ public class LoginEncryptionUtils {
         session.sendUpstreamPacketImmediately(packet);
     }
 
-    private static int AUTH_FORM_ID = 1336;
-    private static int AUTH_DETAILS_FORM_ID = 1337;
-
-    public static void showLoginWindow(GeyserSession session) {
+    public static void buildAndShowLoginWindow(GeyserSession session) {
         String userLanguage = session.getClientData().getLanguageCode();
-        SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.title", userLanguage), LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.desc", userLanguage));
-        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_login", userLanguage)));
-        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_disconnect", userLanguage)));
 
-        session.sendForm(window, AUTH_FORM_ID);
-    }
+        session.sendForm(
+                SimpleForm.builder()
+                        .translator(LanguageUtils::getPlayerLocaleString, userLanguage)
+                        .title("geyser.auth.login.form.notice.title")
+                        .content("geyser.auth.login.form.notice.desc")
+                        .button("geyser.auth.login.form.notice.btn_login") // id = 0
+                        .button("geyser.auth.login.form.notice.btn_disconnect")
+                        .responseHandler((form, responseData) -> {
+                            SimpleFormResponse response = form.parseResponse(responseData.trim());
+                            if (!response.isCorrect()) {
+                                buildAndShowLoginWindow(session);
+                                return;
+                            }
 
-    public static void showLoginDetailsWindow(GeyserSession session) {
-        String userLanguage = session.getClientData().getLanguageCode();
-        CustomFormWindow window = new CustomFormBuilder(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.title", userLanguage))
-                .addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.desc", userLanguage)))
-                .addComponent(new InputComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.email", userLanguage), "account@geysermc.org", ""))
-                .addComponent(new InputComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.pass", userLanguage), "123456", ""))
-                .build();
+                            if (response.getClickedButtonId() == 0) {
+                                buildAndShowLoginDetailsWindow(session);
+                                return;
+                            }
 
-        session.sendForm(window, AUTH_DETAILS_FORM_ID);
-    }
-
-    public static boolean authenticateFromForm(GeyserSession session, GeyserConnector connector, int formId, String formData) {
-        WindowCache windowCache = session.getWindowCache();
-        if (!windowCache.getWindows().containsKey(formId))
-            return false;
-
-        if(formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID) {
-            FormWindow window = windowCache.getWindows().remove(formId);
-            window.setResponse(formData.trim());
-
-            if (!session.isLoggedIn()) {
-                if (formId == AUTH_DETAILS_FORM_ID && window instanceof CustomFormWindow) {
-                    CustomFormWindow customFormWindow = (CustomFormWindow) window;
-
-                    CustomFormResponse response = (CustomFormResponse) customFormWindow.getResponse();
-                    if (response != null) {
-                        String email = response.getInputResponses().get(1);
-                        String password = response.getInputResponses().get(2);
-
-                        session.authenticate(email, password);
-                    } else {
-                        showLoginDetailsWindow(session);
-                    }
-
-                    // Clear windows so authentication data isn't accidentally cached
-                    windowCache.getWindows().clear();
-                } else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
-                    SimpleFormResponse response = (SimpleFormResponse) window.getResponse();
-                    if (response != null) {
-                        if (response.getClickedButtonId() == 0) {
-                            showLoginDetailsWindow(session);
-                        } else if(response.getClickedButtonId() == 1) {
                             session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getClientData().getLanguageCode()));
-                        }
-                    } else {
-                        showLoginWindow(session);
-                    }
-                }
-            }
-        }
-        return true;
+                }));
     }
 
+    public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
+        String userLanguage = session.getClientData().getLanguageCode();
+        session.sendForm(
+                CustomForm.builder()
+                        .translator(LanguageUtils::getPlayerLocaleString, userLanguage)
+                        .title("geyser.auth.login.form.details.title")
+                        .label("geyser.auth.login.form.details.desc")
+                        .input("geyser.auth.login.form.details.email", "account@geysermc.org", "")
+                        .input("geyser.auth.login.form.details.pass", "123456", "")
+                        .responseHandler((form, responseData) -> {
+                            CustomFormResponse response = form.parseResponse(responseData.trim());
+                            if (!response.isCorrect()) {
+                                buildAndShowLoginDetailsWindow(session);
+                                return;
+                            }
+
+                            session.authenticate(response.next(), response.next());
+                        }));
+    }
 }
