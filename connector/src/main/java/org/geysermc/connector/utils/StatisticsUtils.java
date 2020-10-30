@@ -37,7 +37,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.Map;
 
-public class StatisticsUtils {
+public class StatisticsUtils { //todo make Geyser compilable
 
     // Used in UpstreamPacketHandler.java
     public static final int STATISTICS_MENU_FORM_ID = 1339;

@@ -139,7 +139,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
         session.getFormCache().handleResponse(packet);
-        return true; //todo change the Statistics Form to match the new style
+        return true;
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
