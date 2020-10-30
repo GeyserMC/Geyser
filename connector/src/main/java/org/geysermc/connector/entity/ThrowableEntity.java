@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -53,22 +54,62 @@ public class ThrowableEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         super.spawnEntity(session);
-        // Fireballs handle this separately
-        if (!(this instanceof ItemedFireballEntity)) {
-            positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-                super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
+        positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> updatePosition(session), 0, 50, TimeUnit.MILLISECONDS);
+    }
 
-                if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
-                    float gravity = 0.03f; // Snowball, Egg, and Ender Pearl
-                    if (entityType == EntityType.THROWN_POTION || entityType == EntityType.LINGERING_POTION) {
-                        gravity = 0.05f;
-                    } else if (entityType == EntityType.THROWN_EXP_BOTTLE) {
-                        gravity = 0.07f;
-                    }
-                    motion = motion.down(gravity);
-                }
-            }, 0, 50, TimeUnit.MILLISECONDS);
+    protected void updatePosition(GeyserSession session) {
+        super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
+        float drag = getDrag(session);
+        float gravity = getGravity();
+        motion = motion.mul(drag).down(gravity);
+    }
+
+    public float getGravity() {
+        if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
+            switch (entityType) {
+                case THROWN_POTION:
+                case LINGERING_POTION:
+                    return 0.05f;
+                case THROWN_EXP_BOTTLE:
+                    return 0.07f;
+                case FIREBALL:
+                    return 0;
+                case SNOWBALL:
+                case THROWN_EGG:
+                case THROWN_ENDERPEARL:
+                    return 0.03f;
+            }
         }
+        return 0;
+    }
+
+    public float getDrag(GeyserSession session) {
+        if (isInWater(session)) {
+            return 0.8f;
+        } else {
+            switch (entityType) {
+                case THROWN_POTION:
+                case LINGERING_POTION:
+                case THROWN_EXP_BOTTLE:
+                case SNOWBALL:
+                case THROWN_EGG:
+                case THROWN_ENDERPEARL:
+                    return 0.99f;
+                case FIREBALL:
+                case SMALL_FIREBALL:
+                case DRAGON_FIREBALL:
+                    return 0.95f;
+            }
+        }
+        return 1;
+    }
+
+    public boolean isInWater(GeyserSession session) {
+        if (session.getConnector().getConfig().isCacheChunks()) {
+            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+            return block == BlockTranslator.BEDROCK_WATER_ID;
+        }
+        return false;
     }
 
     @Override

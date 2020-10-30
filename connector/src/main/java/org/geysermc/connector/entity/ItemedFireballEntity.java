@@ -29,20 +29,18 @@ import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.concurrent.TimeUnit;
-
 public class ItemedFireballEntity extends ThrowableEntity {
+    private Vector3f targetDirection;
 
     public ItemedFireballEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+        this.targetDirection = motion;
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
-        super.spawnEntity(session);
-        positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-            // Fireballs have gravity but it doesn't affect their trajectory
-            super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
-        }, 0, 50, TimeUnit.MILLISECONDS);
+    protected void updatePosition(GeyserSession session) {
+        super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
+        float drag = getDrag(session);
+        motion = motion.add(targetDirection).mul(drag);
     }
 }
