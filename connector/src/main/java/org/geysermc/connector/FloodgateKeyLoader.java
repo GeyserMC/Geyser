@@ -37,7 +37,7 @@ public class FloodgateKeyLoader {
 
         if (!Files.exists(floodgateKey) && config.getRemote().getAuthType().equals("floodgate")) {
             if (floodgate != null) {
-                Path autoKey = floodgateDataFolder.resolve("public-key.pem");
+                Path autoKey = floodgateDataFolder.resolve("key.pem");
                 if (Files.exists(autoKey)) {
                     logger.info(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.auto_loaded"));
                     floodgateKey = autoKey;

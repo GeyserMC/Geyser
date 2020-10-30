@@ -23,32 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.ClientRequest;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = RespawnPacket.class)
-public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
+/**
+ * In vanilla Bedrock, if you have operator status, this sets the player's gamemode without confirmation from the server.
+ * Since we have a custom server option to request the gamemode, we just reset the gamemode and ignore this.
+ */
+@Translator(packet = SetPlayerGameTypePacket.class)
+public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlayerGameTypePacket> {
 
     @Override
-    public void translate(RespawnPacket packet, GeyserSession session) {
-        if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
-            if (!session.isSpawned()) { // Otherwise when immediate respawn is on the client never loads
-                RespawnPacket respawnPacket = new RespawnPacket();
-                respawnPacket.setRuntimeEntityId(0);
-                respawnPacket.setPosition(Vector3f.ZERO);
-                respawnPacket.setState(RespawnPacket.State.SERVER_READY);
-                session.sendUpstreamPacket(respawnPacket);
-            }
-
-            ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
-            session.sendDownstreamPacket(javaRespawnPacket);
-        }
+    public void translate(SetPlayerGameTypePacket packet, GeyserSession session) {
+        // no
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(session.getGameMode().ordinal());
+        session.sendUpstreamPacket(playerGameTypePacket);
     }
 }
