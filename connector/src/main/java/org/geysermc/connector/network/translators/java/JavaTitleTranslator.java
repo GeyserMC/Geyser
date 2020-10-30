@@ -39,7 +39,7 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
     @Override
     public void translate(ServerTitlePacket packet, GeyserSession session) {
         SetTitlePacket titlePacket = new SetTitlePacket();
-        String locale = session.getClientData().getLanguageCode();
+        String locale = session.getLocale();
 
         switch (packet.getAction()) {
             case TITLE:

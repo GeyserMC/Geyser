@@ -68,6 +68,8 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 eventPacket.setType(EntityEventType.RESPAWN);
                 eventPacket.setData(0);
                 session.sendUpstreamPacket(eventPacket);
+                // Resend attributes or else in rare cases the user can think they're not dead when they are, upon joining the server
+                entity.updateBedrockAttributes(session);
                 break;
             case START_SWIMMING:
                 ClientPlayerStatePacket startSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
