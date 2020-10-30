@@ -54,17 +54,23 @@ public class ThrowableEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         super.spawnEntity(session);
-        positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> updatePosition(session), 0, 50, TimeUnit.MILLISECONDS);
+        positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
+            if (session.isClosed()) {
+                positionUpdater.cancel(true);
+                return;
+            }
+            super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
+            updateMotion(session);
+        }, 0, 50, TimeUnit.MILLISECONDS);
     }
 
-    protected void updatePosition(GeyserSession session) {
-        super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
+    protected void updateMotion(GeyserSession session) {
         float drag = getDrag(session);
         float gravity = getGravity();
         motion = motion.mul(drag).down(gravity);
     }
 
-    public float getGravity() {
+    protected float getGravity() {
         if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
             switch (entityType) {
                 case THROWN_POTION:
@@ -83,7 +89,7 @@ public class ThrowableEntity extends Entity {
         return 0;
     }
 
-    public float getDrag(GeyserSession session) {
+    protected float getDrag(GeyserSession session) {
         if (isInWater(session)) {
             return 0.8f;
         } else {
@@ -104,7 +110,7 @@ public class ThrowableEntity extends Entity {
         return 1;
     }
 
-    public boolean isInWater(GeyserSession session) {
+    protected boolean isInWater(GeyserSession session) {
         if (session.getConnector().getConfig().isCacheChunks()) {
             int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
             return block == BlockTranslator.BEDROCK_WATER_ID;
