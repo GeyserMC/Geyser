@@ -321,7 +321,7 @@ public class Entity {
                     Message message = (Message) entityMetadata.getValue();
                     if (message != null)
                         // Always translate even if it's a TextMessage since there could be translatable parameters
-                        metadata.put(EntityData.NAMETAG, MessageUtils.getTranslatedBedrockMessage(message, session.getClientData().getLanguageCode(), true));
+                        metadata.put(EntityData.NAMETAG, MessageUtils.getTranslatedBedrockMessage(message, session.getLocale(), true));
                 }
                 break;
             case 3: // is custom name visible

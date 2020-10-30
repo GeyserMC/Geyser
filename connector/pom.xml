@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
             <artifactId>bedrock-v408</artifactId>
-            <version>250beb2a94</version>
+            <version>02f46a8700</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -109,9 +109,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.GeyserMC</groupId>
+            <groupId>com.github.steveice10</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>e4a3aa636a</version>
+            <version>1b01b1ffef</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -137,21 +137,21 @@
             <version>2.1.3</version>
         </dependency>
         <dependency>
-            <groupId>com.github.kyoripowered.adventure</groupId>
+            <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
-            <version>557865caef</version>
+            <version>4.1.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.kyoripowered.adventure</groupId>
+            <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-gson</artifactId>
-            <version>557865caef</version>
+            <version>4.1.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.kyoripowered.adventure</groupId>
+            <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>557865caef</version>
+            <version>4.1.1</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

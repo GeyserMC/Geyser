@@ -23,31 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.chunk;
+package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerStatisticsPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.StatisticsUtils;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@EqualsAndHashCode
-public class ChunkPosition {
+@Translator(packet = ServerStatisticsPacket.class)
+public class JavaStatisticsTranslator extends PacketTranslator<ServerStatisticsPacket> {
 
-    private int x;
-    private int z;
+    @Override
+    public void translate(ServerStatisticsPacket packet, GeyserSession session) {
+        session.updateStatistics(packet.getStatistics());
 
-    public Position getBlock(int x, int y, int z) {
-        return new Position((this.x << 4) + x, y, (this.z << 4) + z);
-    }
-
-    public Position getChunkBlock(int x, int y, int z) {
-        int chunkX = x & 15;
-        int chunkY = y & 15;
-        int chunkZ = z & 15;
-        return new Position(chunkX, chunkY, chunkZ);
+        if (session.isWaitingForStatistics()) {
+            session.setWaitingForStatistics(false);
+            session.sendForm(StatisticsUtils.buildMenuForm(session), StatisticsUtils.STATISTICS_MENU_FORM_ID);
+        }
     }
 }

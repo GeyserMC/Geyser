@@ -28,9 +28,11 @@ package org.geysermc.connector.network.session;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
@@ -54,6 +56,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import org.geysermc.common.form.Form;
 import org.geysermc.connector.GeyserConnector;
@@ -79,6 +82,7 @@ import org.geysermc.floodgate.util.BedrockData;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -112,8 +116,6 @@ public class GeyserSession implements CommandSender {
      * Used for translating Bedrock block actions to Java entity actions.
      */
     private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
-
-    private DataCache<Packet> javaPacketCache;
 
     @Setter
     private Vector2i lastChunkPosition = null;
@@ -172,6 +174,12 @@ public class GeyserSession implements CommandSender {
     @Setter
     private long lastWindowCloseTime = 0;
 
+    /**
+     * Saves the timestamp of the last keep alive packet
+     */
+    @Setter
+    private long lastKeepAliveTimestamp = 0;
+
     @Setter
     private VillagerTrade[] villagerTrades;
     @Setter
@@ -184,9 +192,10 @@ public class GeyserSession implements CommandSender {
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
+     * Setting a default fixes cooldowns not showing up on a fresh world.
      */
     @Setter
-    private double attackSpeed;
+    private double attackSpeed = 4.0d;
     /**
      * The time of the last hit. Used to gauge how long the cooldown is taking.
      * This is a session variable in order to prevent more scheduled threads than necessary.
@@ -200,6 +209,13 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private long lastInteractionTime;
+
+    /**
+     * Stores a future interaction to place a bucket. Will be cancelled if the client instead intended to
+     * interact with a block.
+     */
+    @Setter
+    private ScheduledFuture<?> bucketScheduledFuture;
 
     private boolean reducedDebugInfo = false;
 
@@ -254,6 +270,22 @@ public class GeyserSession implements CommandSender {
     @Setter
     private String lastSignMessage;
 
+    /**
+     * Stores a map of all statistics sent from the server.
+     * The server only sends new statistics back to us, so in order to show all statistics we need to cache existing ones.
+     */
+    private final Map<Statistic, Integer> statistics = new HashMap<>();
+
+    /**
+     * Whether we're expecting statistics to be sent back to us.
+     */
+    @Setter
+    private boolean waitingForStatistics = false;
+
+    @Setter
+    private List<UUID> selectedEmotes = new ArrayList<>();
+    private final Set<UUID> emotes = new HashSet<>();
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
@@ -269,12 +301,12 @@ public class GeyserSession implements CommandSender {
         this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
         this.inventory = new PlayerInventory();
 
-        this.javaPacketCache = new DataCache<>();
-
         this.spawned = false;
         this.loggedIn = false;
 
         this.inventoryCache.getInventories().put(0, inventory);
+
+        connector.getPlayers().forEach(player -> this.emotes.addAll(player.getEmotes()));
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
@@ -359,6 +391,8 @@ public class GeyserSession implements CommandSender {
                 boolean floodgate = connector.getAuthType() == AuthType.FLOODGATE;
 
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
+                // Let Geyser handle sending the keep alive
+                downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
                 downstream.getSession().addListener(new SessionAdapter() {
                     @Override
                     public void packetSending(PacketSendingEvent event) {
@@ -421,7 +455,7 @@ public class GeyserSession implements CommandSender {
                         // as it has to be extracted from a JAR
                         if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
                             // This should probably be left hardcoded as it will only show for en_us clients
-                            sendMessage("Downloading your locale (en_us) this may take some time");
+                            sendMessage("Loading your locale (en_us); if this isn't already downloaded, this may take some time");
                         }
 
                         // Download and load the language for the player
@@ -540,6 +574,11 @@ public class GeyserSession implements CommandSender {
     public boolean isConsole() {
         return false;
     }
+
+     @Override
+     public String getLocale() {
+        return clientData.getLanguageCode();
+     }
 
     public void setRenderDistance(int renderDistance) {
         renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
@@ -717,6 +756,10 @@ public class GeyserSession implements CommandSender {
         // Required to make command blocks destroyable
         adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
 
+        // Update the noClip and worldImmutable values based on the current gamemode
+        noClip = gameMode == GameMode.SPECTATOR;
+        worldImmutable = gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR;
+
         Set<AdventureSetting> flags = new HashSet<>();
         if (canFly) {
             flags.add(AdventureSetting.MAY_FLY);
@@ -738,5 +781,32 @@ public class GeyserSession implements CommandSender {
 
         adventureSettingsPacket.getSettings().addAll(flags);
         sendUpstreamPacket(adventureSettingsPacket);
+    }
+
+    /**
+     * Used for updating statistic values since we only get changes from the server
+     *
+     * @param statistics Updated statistics values
+     */
+    public void updateStatistics(@NonNull Map<Statistic, Integer> statistics) {
+        this.statistics.putAll(statistics);
+    }
+
+    public void refreshEmotes(List<UUID> emotes) {
+        this.selectedEmotes = emotes;
+        this.emotes.addAll(emotes);
+        for (GeyserSession player : connector.getPlayers()) {
+            List<UUID> pieces = new ArrayList<>();
+            for (UUID piece : emotes) {
+                if (!player.getEmotes().contains(piece)) {
+                    pieces.add(piece);
+                }
+                player.getEmotes().add(piece);
+            }
+            EmoteListPacket emoteList = new EmoteListPacket();
+            emoteList.setRuntimeEntityId(player.getPlayerEntity().getGeyserId());
+            emoteList.getPieceIds().addAll(pieces);
+            player.sendUpstreamPacket(emoteList);
+        }
     }
 }

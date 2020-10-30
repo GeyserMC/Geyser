@@ -64,6 +64,10 @@ public class ItemRegistry {
      */
     public static ItemEntry BUCKET;
     /**
+     * Egg item entry, used in JavaEntityStatusTranslator.java
+     */
+    public static ItemEntry EGG;
+    /**
      * Gold item entry, used in PiglinEntity.java
      */
     public static ItemEntry GOLD;
@@ -141,6 +145,9 @@ public class ItemRegistry {
                 case "minecraft:oak_boat":
                     BOAT = ITEM_ENTRIES.get(itemIndex);
                     break;
+                case "minecraft:egg":
+                    EGG = ITEM_ENTRIES.get(itemIndex);
+                    break;
                 case "minecraft:gold_ingot":
                     GOLD = ITEM_ENTRIES.get(itemIndex);
                     break;
@@ -197,7 +204,9 @@ public class ItemRegistry {
      */
     public static ItemEntry getItem(ItemData data) {
         for (ItemEntry itemEntry : ITEM_ENTRIES.values()) {
-            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() || itemEntry.getJavaIdentifier().endsWith("potion"))) {
+            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() ||
+                    // Make exceptions for potions and tipped arrows, whose damage values can vary
+                    (itemEntry.getJavaIdentifier().endsWith("potion") || itemEntry.getJavaIdentifier().equals("minecraft:arrow")))) {
                 return itemEntry;
             }
         }

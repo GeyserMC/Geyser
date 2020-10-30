@@ -182,7 +182,7 @@ public class LoginEncryptionUtils {
     }
 
     public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
-        String userLanguage = session.getClientData().getLanguageCode();
+        String userLanguage = session.getLocale();
         session.sendForm(
                 CustomForm.builder()
                         .translator(LanguageUtils::getPlayerLocaleString, userLanguage)
