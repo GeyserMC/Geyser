@@ -26,12 +26,14 @@
 package org.geysermc.common.form;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.geysermc.common.form.response.FormResponse;
+import org.geysermc.common.form.util.FormAdaptor;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -39,7 +41,11 @@ import java.util.function.Consumer;
 
 @Getter
 public abstract class Form {
-    protected static final Gson GSON = new Gson();
+    protected static final Gson GSON =
+            new GsonBuilder()
+                    .registerTypeAdapter(ModalForm.class, new FormAdaptor())
+                    .create();
+
     private final Type type;
 
     @Getter(AccessLevel.NONE)
@@ -49,6 +55,10 @@ public abstract class Form {
 
     public Form(Type type) {
         this.type = type;
+    }
+
+    public static <T extends Form> T fromJson(String json, Class<T> formClass) {
+        return GSON.fromJson(json, formClass);
     }
 
     public String getJsonData() {
