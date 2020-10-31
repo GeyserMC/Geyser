@@ -101,10 +101,6 @@ public class ThrowableEntity extends Entity {
                 case THROWN_EGG:
                 case THROWN_ENDERPEARL:
                     return 0.99f;
-                case FIREBALL:
-                case SMALL_FIREBALL:
-                case DRAGON_FIREBALL:
-                    return 0.95f;
             }
         }
         return 1;

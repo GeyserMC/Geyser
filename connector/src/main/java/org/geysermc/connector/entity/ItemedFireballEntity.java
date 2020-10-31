@@ -35,13 +35,5 @@ public class ItemedFireballEntity extends ThrowableEntity {
     }
 
     @Override
-    protected void updateMotion(GeyserSession session) {
-        float drag = getDrag(session);
-        Vector3f acceleration = Vector3f.ZERO;
-        float speed = motion.length();
-        if (speed > 0) {
-            acceleration = motion.div(motion.length());
-        }
-        motion = motion.add(acceleration).mul(drag);
-    }
+    protected void updateMotion(GeyserSession session) {}
 }
