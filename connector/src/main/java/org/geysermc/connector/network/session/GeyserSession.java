@@ -365,7 +365,8 @@ public class GeyserSession implements CommandSender {
     }
 
     public void login() {
-        if (connector.getAuthType() != AuthType.ONLINE) {
+        final AuthType authType = GeyserConnector.getInstance().getConfig().isFloodgateLoginEnabled() ? AuthType.FLOODGATE : AuthType.ONLINE;
+        if (connector.getAuthType() != authType) {
             if (connector.getAuthType() == AuthType.OFFLINE) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.offline"));
             } else {
@@ -427,7 +428,7 @@ public class GeyserSession implements CommandSender {
                             try {
                                 encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
                                         clientData.getGameVersion(),
-                                        authData.getName(),
+                                        GeyserConnector.getInstance().getConfig().isFloodgateLoginEnabled() ? protocol.getProfile().getName() : authData.getName(),
                                         authData.getXboxUUID(),
                                         clientData.getDeviceOS().ordinal(),
                                         clientData.getLanguageCode(),

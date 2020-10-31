@@ -92,6 +92,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("allow-third-party-ears")
     private boolean allowThirdPartyEars = false;
 
+    @JsonProperty("floodgate-login")
+    private boolean isFloodgateLoginEnabled;
+
     @JsonProperty("default-locale")
     private String defaultLocale = null; // is null by default so system language takes priority
 

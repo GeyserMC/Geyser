@@ -79,6 +79,8 @@ public interface GeyserConfiguration {
 
     boolean isCacheChunks();
 
+    boolean isFloodgateLoginEnabled();
+
     boolean isForceResourcePacks();
 
     int getCacheImages();
