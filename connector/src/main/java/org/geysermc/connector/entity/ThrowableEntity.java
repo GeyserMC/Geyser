@@ -59,12 +59,16 @@ public class ThrowableEntity extends Entity {
                 positionUpdater.cancel(true);
                 return;
             }
-            super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
-            updateMotion(session);
+            updatePosition(session);
         }, 0, 50, TimeUnit.MILLISECONDS);
     }
 
-    protected void updateMotion(GeyserSession session) {
+    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+    }
+
+    protected void updatePosition(GeyserSession session) {
+        super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
         float drag = getDrag(session);
         float gravity = getGravity();
         motion = motion.mul(drag).down(gravity);
@@ -101,6 +105,10 @@ public class ThrowableEntity extends Entity {
                 case THROWN_EGG:
                 case THROWN_ENDERPEARL:
                     return 0.99f;
+                case FIREBALL:
+                case SMALL_FIREBALL:
+                case DRAGON_FIREBALL:
+                    return 0.95f;
             }
         }
         return 1;

@@ -30,10 +30,18 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class ItemedFireballEntity extends ThrowableEntity {
+    private Vector3f acceleration;
+
     public ItemedFireballEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+        super(entityId, geyserId, entityType, position, Vector3f.ZERO, rotation);
+        acceleration = motion;
     }
 
     @Override
-    protected void updateMotion(GeyserSession session) {}
+    protected void updatePosition(GeyserSession session) {
+        position = position.add(motion);
+        moveAbsoluteImmediate(session, position, rotation, false, true);
+        float drag = getDrag(session);
+        motion = motion.add(acceleration).mul(drag);
+    }
 }
