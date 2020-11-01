@@ -53,6 +53,7 @@ public class AbstractHorseEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
             // Bedrock uses DISPLAY_ITEM to work out if the mouth is open
+            // This number seems to be consistent over all food types for a horse
             metadata.put(EntityData.DISPLAY_ITEM, (xd & 0x40) == 0x40 ? 128 : 0);
 
             // Send the eating particles
