@@ -26,7 +26,6 @@
 package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
@@ -36,6 +35,7 @@ import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 
@@ -51,10 +51,9 @@ public class SkinUtils {
         GameProfileData data = GameProfileData.from(playerEntity.getProfile());
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
 
-        SkinProvider.SkinGeometry geometry = playerEntity.getGeometry();
-        if (geometry == null) {
-            geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
-        }
+        // Geometry is either legacy geometry or skull geometry if this is a skull
+        SkinProvider.SkinGeometry geometry = playerEntity instanceof SkullPlayerEntity ?
+                SkinProvider.SKULL_GEOMETRY : SkinProvider.SkinGeometry.getLegacy(data.isAlex());
 
         SkinProvider.Skin skin = SkinProvider.getCachedSkin(data.getSkinUrl());
         if (skin == null) {
@@ -123,7 +122,9 @@ public class SkinUtils {
                         SkinProvider.Skin skin = skinAndCape.getSkin();
                         SkinProvider.Cape cape = skinAndCape.getCape();
 
-                        if (!entity.getUsername().isEmpty()) {
+                        SkinProvider.SkinGeometry geometry;
+                        if (!(entity instanceof SkullPlayerEntity)) {
+                            // Don't apply cape if entity is skull
                             if (cape.isFailed()) {
                                 cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(
                                         entity.getUuid(), false
@@ -136,11 +137,10 @@ public class SkinUtils {
                                         entity.getUsername(), false
                                 ), SkinProvider.EMPTY_CAPE, SkinProvider.CapeProvider.VALUES.length * 3);
                             }
-                        }
-
-                        SkinProvider.SkinGeometry geometry = entity.getGeometry();
-                        if (geometry == null) {
                             geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
+                        } else {
+                            cape = SkinProvider.EMPTY_CAPE;
+                            geometry = SkinProvider.SKULL_GEOMETRY;
                         }
 
                         geometry = SkinProvider.getOrDefault(SkinProvider.requestBedrockGeometry(

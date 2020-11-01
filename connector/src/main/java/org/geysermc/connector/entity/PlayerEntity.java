@@ -51,9 +51,6 @@ import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.MessageUtils;
-import org.geysermc.connector.network.session.cache.EntityEffectCache;
-import org.geysermc.connector.utils.SkinProvider;
-import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +75,6 @@ public class PlayerEntity extends LivingEntity {
      * Saves the parrot currently on the player's right shoulder; otherwise null
      */
     private ParrotEntity rightParrot;
-    private SkinProvider.SkinGeometry geometry;
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);

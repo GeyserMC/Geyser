@@ -612,15 +612,6 @@ public class SkinProvider {
         public static SkinGeometry getEars(boolean isSlim) {
             return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.ears" + (isSlim ? "Slim" : "") + "\"}}", (isSlim ? EARS_GEOMETRY_SLIM : EARS_GEOMETRY), false);
         }
-
-        /**
-         * Generate basic geometry for custom skulls
-         *
-         * @return The generated geometry for the skull model
-         */
-        public static SkinGeometry getSkull() {
-            return SKULL_GEOMETRY;
-        }
     }
 
     /*

@@ -27,22 +27,17 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.utils.SkinProvider;
 import org.geysermc.connector.utils.SkinUtils;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -67,10 +62,10 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return tags;
     }
 
-    public static GameProfile getProfile(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, GeyserSession session) {
+    public static GameProfile getProfile(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
         if (tag.contains("SkullOwner")) {
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag owner = tag.get("SkullOwner");
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag Properties = owner.get("Properties");
+            CompoundTag owner = tag.get("SkullOwner");
+            CompoundTag Properties = owner.get("Properties");
 
             ListTag textures = Properties.get("textures");
             LinkedHashMap<?,?> tag1 = (LinkedHashMap<?,?>) textures.get(0).getValue();
@@ -92,12 +87,14 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         float z = (int) tag.get("z").getValue() + .5f;
         float rotation = 0f;
 
-        if (BlockStateValues.getSkullRotation(blockState) == -1) {
+        byte floorRotation = BlockStateValues.getSkullRotation(blockState);
+        if (floorRotation == -1) {
+            // Wall skull
             y += 0.25f;
             switch (BlockStateValues.getWallSkullDirection().get(blockState)) {
                 case "north":
                     rotation = 180f;
-                    z += 0.24;
+                    z += 0.24f;
                     break;
                 case "south":
                     rotation = 0;
@@ -113,12 +110,12 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
                     break;
             }
         } else {
-            rotation = (180f + ((BlockStateValues.getSkullRotation(blockState)) * 22.5f)) % 360;
+            rotation = (180f + (floorRotation * 22.5f)) % 360;
         }
 
         long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
 
-        GameProfile gameProfile = getProfile(tag, session);
+        GameProfile gameProfile = getProfile(tag);
 
         if (gameProfile == null) {
             return;
@@ -126,19 +123,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         Vector3f rotationVector = Vector3f.from(rotation, 0, rotation);
 
-        PlayerEntity player = new PlayerEntity(gameProfile, 1, geyserId, Vector3f.from(x, y, z), Vector3f.ZERO, rotationVector );
-        player.setPlayerList(false);
-        player.setGeometry(SkinProvider.SkinGeometry.getSkull());
-
-        //Set bounding box to almost nothing so the skull is able to be broken and not cause entity to cast a shadow
-        EntityDataMap metadata = new EntityDataMap();
-        metadata.put(EntityData.SCALE, 1.08f);
-        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.001f);
-        metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.001f);
-        metadata.getOrCreateFlags().setFlag(EntityFlag.CAN_SHOW_NAME, false);
-        metadata.getOrCreateFlags().setFlag(EntityFlag.INVISIBLE, true);
-
-        player.setMetadata(metadata);
+        SkullPlayerEntity player = new SkullPlayerEntity(gameProfile, 0, geyserId, Vector3f.from(x, y, z), Vector3f.ZERO, rotationVector);
 
         // Cache entity
         session.getSkullCache().put(new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue()), player);
