@@ -36,6 +36,9 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Used as a class for any object-like entity that moves as a projectile
+ */
 public class ThrowableEntity extends Entity {
 
     private Vector3f lastPosition;
@@ -74,6 +77,11 @@ public class ThrowableEntity extends Entity {
         motion = motion.mul(drag).down(gravity);
     }
 
+    /**
+     * Get the gravity of this entity type. Used for applying gravity while the entity is in motion.
+     *
+     * @return the amount of gravity to apply to this entity while in motion.
+     */
     protected float getGravity() {
         if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
             switch (entityType) {
@@ -93,6 +101,10 @@ public class ThrowableEntity extends Entity {
         return 0;
     }
 
+    /**
+     * @param session the session of the Bedrock client.
+     * @return the drag that should be multiplied to the entity's motion
+     */
     protected float getDrag(GeyserSession session) {
         if (isInWater(session)) {
             return 0.8f;
@@ -114,6 +126,10 @@ public class ThrowableEntity extends Entity {
         return 1;
     }
 
+    /**
+     * @param session the session of the Bedrock client.
+     * @return true if this entity is currently in water.
+     */
     protected boolean isInWater(GeyserSession session) {
         if (session.getConnector().getConfig().isCacheChunks()) {
             int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
