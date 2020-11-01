@@ -28,7 +28,10 @@ package org.geysermc.connector.network.translators.bedrock;
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -39,12 +42,30 @@ public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
     @Override
     public void translate(RespawnPacket packet, GeyserSession session) {
         if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
-            if (!session.isSpawned()) { // Otherwise when immediate respawn is on the client never loads
-                RespawnPacket respawnPacket = new RespawnPacket();
-                respawnPacket.setRuntimeEntityId(0);
-                respawnPacket.setPosition(Vector3f.ZERO);
-                respawnPacket.setState(RespawnPacket.State.SERVER_READY);
-                session.sendUpstreamPacket(respawnPacket);
+            // Previously we only sent the respawn packet before the server finished loading
+            // The message included was 'Otherwise when immediate respawn is on the client never loads'
+            // But I assume the new if statement below fixes that problem
+            RespawnPacket respawnPacket = new RespawnPacket();
+            respawnPacket.setRuntimeEntityId(0);
+            respawnPacket.setPosition(Vector3f.ZERO);
+            respawnPacket.setState(RespawnPacket.State.SERVER_READY);
+            session.sendUpstreamPacket(respawnPacket);
+
+            if (session.isSpawned()) {
+                // Client might be stuck; resend spawn information
+                PlayerEntity entity = session.getPlayerEntity();
+                if (entity == null) return;
+                SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+                entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
+                entityDataPacket.getMetadata().putAll(entity.getMetadata());
+                session.sendUpstreamPacket(entityDataPacket);
+
+                MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+                movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                movePlayerPacket.setPosition(entity.getPosition());
+                movePlayerPacket.setRotation(entity.getBedrockRotation());
+                movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
+                session.sendUpstreamPacket(movePlayerPacket);
             }
 
             ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);

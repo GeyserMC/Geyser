@@ -40,6 +40,7 @@ import org.geysermc.connector.utils.MathUtils;
 import org.geysermc.connector.utils.ResourcePack;
 import org.geysermc.connector.utils.ResourcePackManifest;
 import org.geysermc.connector.utils.SettingsUtils;
+import org.geysermc.connector.utils.StatisticsUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -117,7 +118,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             case HAVE_ALL_PACKS:
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
-                stackPacket.setExperimental(false);
+                stackPacket.setExperimentsPreviouslyToggled(false);
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
 
@@ -141,6 +142,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(ModalFormResponsePacket packet) {
         if (packet.getFormId() == SettingsUtils.SETTINGS_FORM_ID) {
             return SettingsUtils.handleSettingsForm(session, packet.getFormData());
+        } else if (packet.getFormId() == StatisticsUtils.STATISTICS_MENU_FORM_ID) {
+            return StatisticsUtils.handleMenuForm(session, packet.getFormData());
+        } else if (packet.getFormId() == StatisticsUtils.STATISTICS_LIST_FORM_ID) {
+            return StatisticsUtils.handleListForm(session, packet.getFormData());
         }
 
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
@@ -165,7 +170,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
-        LanguageUtils.loadGeyserLocale(session.getClientData().getLanguageCode());
+        LanguageUtils.loadGeyserLocale(session.getLocale());
 
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
@@ -180,7 +185,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(MovePlayerPacket packet) {
         if (session.isLoggingIn()) {
-            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getClientData().getLanguageCode()));
+            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
         }
 
         return translateAndDefault(packet);

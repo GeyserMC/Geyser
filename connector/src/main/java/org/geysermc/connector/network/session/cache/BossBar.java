@@ -58,7 +58,7 @@ public class BossBar {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.CREATE);
-        bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getClientData().getLanguageCode()));
+        bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getLocale()));
         bossEventPacket.setHealthPercentage(health);
         bossEventPacket.setColor(color); //ignored by client
         bossEventPacket.setOverlay(overlay);
@@ -72,7 +72,7 @@ public class BossBar {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.UPDATE_NAME);
-        bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getClientData().getLanguageCode()));
+        bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getLocale()));
 
         session.sendUpstreamPacket(bossEventPacket);
     }

@@ -64,7 +64,7 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        Reflections ref = GeyserConnector.getInstance().isProduction() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
         for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
@@ -400,7 +400,7 @@ public abstract class ItemTranslator {
                 // Check if its a message to translate
                 if (MessageUtils.isMessage(name)) {
                     // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
+                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getLocale());
 
                     // Add the new name tag
                     display.put(new StringTag("Name", name));

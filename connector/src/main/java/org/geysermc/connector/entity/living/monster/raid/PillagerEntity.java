@@ -23,33 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.connector.entity.living.monster.raid;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.stream.Collectors;
+public class PillagerEntity extends AbstractIllagerEntity {
 
-public class ListCommand extends GeyserCommand {
-
-    private final GeyserConnector connector;
-
-    public ListCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-
-        this.connector = connector;
+    public PillagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        String message = "";
-        message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
-                connector.getPlayers().size(),
-                connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
-
-        sender.sendMessage(message);
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 16) {
+            // Java Edition always has the Pillager entity as positioning the crossbow
+            metadata.getFlags().setFlag(EntityFlag.USING_ITEM, true);
+            metadata.getFlags().setFlag(EntityFlag.CHARGED, true);
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

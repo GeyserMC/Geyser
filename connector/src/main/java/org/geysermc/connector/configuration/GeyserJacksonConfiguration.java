@@ -34,6 +34,7 @@ import org.geysermc.connector.common.serializer.AsteriskSerializer;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.UUID;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -45,8 +46,8 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Setter
     private boolean autoconfiguredRemote = false;
 
-    private BedrockConfiguration bedrock;
-    private RemoteConfiguration remote;
+    private BedrockConfiguration bedrock = new BedrockConfiguration();
+    private RemoteConfiguration remote = new RemoteConfiguration();
 
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile = "public-key.pem";
@@ -109,7 +110,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
 
-    private MetricsInfo metrics;
+    private MetricsInfo metrics = new MetricsInfo();
 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
@@ -157,7 +158,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         private boolean enabled = true;
 
         @JsonProperty("uuid")
-        private String uniqueId = "generateuuid";
+        private String uniqueId = UUID.randomUUID().toString();
     }
 
     @JsonProperty("scoreboard-packet-threshold")
