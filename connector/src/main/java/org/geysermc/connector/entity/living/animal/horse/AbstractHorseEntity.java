@@ -52,9 +52,18 @@ public class AbstractHorseEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
             metadata.getFlags().setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
-            // Bedrock uses DISPLAY_ITEM to work out if the mouth is open
-            // This number seems to be consistent over all food types for a horse
-            metadata.put(EntityData.DISPLAY_ITEM, (xd & 0x40) == 0x40 ? 128 : 0);
+            // HorseFlags
+            // Bred 0x10
+            // Eating 0x20
+            // Open mouth 0x80
+            int horseFlags = 0x0;
+            horseFlags = (xd & 0x40) == 0x40 ? horseFlags | 0x80 : horseFlags;
+
+            // Only set eating when we don't have mouth open so a player interaction doesn't trigger the eating animation
+            horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
+
+            // Set the flags into the display item
+            metadata.put(EntityData.DISPLAY_ITEM, horseFlags);
 
             // Send the eating particles
             if ((xd & 0x40) == 0x40) {
