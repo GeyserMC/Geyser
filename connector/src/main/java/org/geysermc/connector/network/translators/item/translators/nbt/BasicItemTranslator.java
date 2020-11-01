@@ -33,6 +33,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
@@ -45,7 +46,7 @@ import java.util.List;
 public class BasicItemTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
         if (!itemTag.contains("display")) {
             return;
         }
@@ -100,7 +101,7 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
         if (message.startsWith("§r")) {
             message = message.replaceFirst("§r", "");
         }
-        Component component = TextComponent.of(message);
+        Component component = Component.text(message);
         return GsonComponentSerializer.gson().serialize(component);
     }
 

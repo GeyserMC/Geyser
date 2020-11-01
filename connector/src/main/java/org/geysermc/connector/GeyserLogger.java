@@ -84,4 +84,9 @@ public interface GeyserLogger {
      * @param debug if the logger should print debug messages
      */
     void setDebug(boolean debug);
+
+    /**
+     * If debug is enabled for this logger
+     */
+    boolean isDebug();
 }

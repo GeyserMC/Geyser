@@ -27,13 +27,10 @@ package org.geysermc.platform.bungeecord;
 
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
@@ -64,13 +61,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (!getDataFolder().exists())
             getDataFolder().mkdir();
 
-        Configuration configuration = null;
         try {
             if (!getDataFolder().exists())
                 getDataFolder().mkdir();
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
-            configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
         } catch (IOException ex) {
             getLogger().log(Level.WARNING, LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
@@ -81,17 +76,19 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
             InetSocketAddress javaAddr = listener.getHost();
 
-            // Don't change the ip if its listening on all interfaces
-            // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
+            // By default this should be localhost but may need to be changed in some circumstances
+            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+                this.geyserConfig.setAutoconfiguredRemote(true);
+                // Don't use localhost if not listening on all interfaces
+                if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
+                    this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
+                }
+                this.geyserConfig.getRemote().setPort(javaAddr.getPort());
             }
 
             if (geyserConfig.getBedrock().isCloneRemotePort()) {
                 geyserConfig.getBedrock().setPort(javaAddr.getPort());
             }
-
-            this.geyserConfig.getRemote().setPort(javaAddr.getPort());
         }
 
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
@@ -100,9 +97,13 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyserConfig.getRemote().getAuthType().equals("floodgate") && getProxy().getPluginManager().getPlugin("floodgate-bungee") == null) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
+        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
+            // Floodgate installed means that the user wants Floodgate authentication
+            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+            geyserConfig.getRemote().setAuthType("floodgate");
         }
 
-        geyserConfig.loadFloodgate(this, configuration);
+        geyserConfig.loadFloodgate(this);
 
         this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
 

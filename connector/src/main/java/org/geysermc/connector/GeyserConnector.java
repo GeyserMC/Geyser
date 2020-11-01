@@ -25,6 +25,7 @@
 
 package org.geysermc.connector;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.raknet.RakNetConstants;
@@ -47,22 +48,27 @@ import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.item.PotionMixRegistry;
+import org.geysermc.connector.network.translators.item.RecipeRegistry;
 import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.utils.ResourcePack;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -71,7 +77,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector {
 
-    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
@@ -130,11 +136,22 @@ public class GeyserConnector {
         ItemTranslator.init();
         LocaleUtils.init();
         PotionMixRegistry.init();
+        RecipeRegistry.init();
         SoundRegistry.init();
         SoundHandlerRegistry.init();
 
-        if (platformType != PlatformType.STANDALONE) {
-            DockerCheck.check(bootstrap);
+        ResourcePack.loadPacks();
+
+        if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
+            // Set the remote address to localhost since that is where we are always connecting
+            try {
+                config.getRemote().setAddress(InetAddress.getLocalHost().getHostAddress());
+            } catch (UnknownHostException ex) {
+                logger.debug("Unknown host when trying to find localhost.");
+                if (config.isDebugMode()) {
+                    ex.printStackTrace();
+                }
+            }
         }
         String remoteAddress = config.getRemote().getAddress();
         int remotePort = config.getRemote().getPort();
@@ -152,7 +169,7 @@ public class GeyserConnector {
                     config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
                     logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
-            } catch (Exception ex) {
+            } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
                 logger.debug("Exception while trying to find an SRV record for the remote host.");
                 if (config.isDebugMode())
                     ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
@@ -175,7 +192,7 @@ public class GeyserConnector {
             if (throwable == null) {
                 logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
             } else {
-                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), config.getBedrock().getPort()));
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
                 throwable.printStackTrace();
             }
         }).join();
@@ -184,8 +201,39 @@ public class GeyserConnector {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", authType.name()::toLowerCase));
+            // Prevent unwanted words best we can
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> AuthType.getByName(config.getRemote().getAuthType()).toString().toLowerCase()));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
+            metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", LanguageUtils::getDefaultLocale));
+            metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserConnector.VERSION));
+            metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
+                Map<String, Integer> valueMap = new HashMap<>();
+                for (GeyserSession session : players) {
+                    if (session == null) continue;
+                    if (session.getClientData() == null) continue;
+                    String os = session.getClientData().getDeviceOS().toString();
+                    if (!valueMap.containsKey(os)) {
+                        valueMap.put(os, 1);
+                    } else {
+                        valueMap.put(os, valueMap.get(os) + 1);
+                    }
+                }
+                return valueMap;
+            }));
+            metrics.addCustomChart(new Metrics.AdvancedPie("playerVersion", () -> {
+                Map<String, Integer> valueMap = new HashMap<>();
+                for (GeyserSession session : players) {
+                    if (session == null) continue;
+                    if (session.getClientData() == null) continue;
+                    String version = session.getClientData().getGameVersion();
+                    if (!valueMap.containsKey(version)) {
+                        valueMap.put(version, 1);
+                    } else {
+                        valueMap.put(version, valueMap.get(version) + 1);
+                    }
+                }
+                return valueMap;
+            }));
         }
 
         boolean isGui = false;
@@ -207,6 +255,10 @@ public class GeyserConnector {
             message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
         }
         logger.info(message);
+        
+        if (platformType == PlatformType.STANDALONE) {
+            logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
+        }
     }
 
     public void shutdown() {
@@ -219,7 +271,7 @@ public class GeyserConnector {
             // Make a copy to prevent ConcurrentModificationException
             final List<GeyserSession> tmpPlayers = new ArrayList<>(players);
             for (GeyserSession playerSession : tmpPlayers) {
-                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getClientData().getLanguageCode()));
+                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getLocale()));
             }
 
             CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {
@@ -290,6 +342,19 @@ public class GeyserConnector {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    /**
+     * Whether to use XML reflections in the jar or manually find the reflections.
+     * Will return true if the version number is not 'DEV' and the platform is not Fabric.
+     * On Fabric - it complains about being unable to create a default XMLReader.
+     * On other platforms this should only be true in compiled jars.
+     *
+     * @return whether to use XML reflections
+     */
+    public boolean useXmlReflections() {
+        //noinspection ConstantConditions
+        return !this.getPlatformType().equals(PlatformType.FABRIC) && !"DEV".equals(GeyserConnector.VERSION);
     }
 
     public static GeyserConnector getInstance() {

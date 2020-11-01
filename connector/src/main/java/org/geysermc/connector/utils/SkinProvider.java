@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -42,13 +43,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class SkinProvider {
@@ -119,7 +114,7 @@ public class SkinProvider {
         // Schedule Daily Image Expiry if we are caching them
         if (GeyserConnector.getInstance().getConfig().getCacheImages() > 0) {
             GeyserConnector.getInstance().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-                File cacheFolder = Paths.get("cache", "images").toFile();
+                File cacheFolder = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").toFile();
                 if (!cacheFolder.exists()) {
                     return;
                 }
@@ -157,10 +152,21 @@ public class SkinProvider {
     public static CompletableFuture<SkinAndCape> requestSkinAndCape(UUID playerId, String skinUrl, String capeUrl) {
         return CompletableFuture.supplyAsync(() -> {
             long time = System.currentTimeMillis();
+            String newSkinUrl = skinUrl;
+
+            if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
+                // TODO: Don't have a for loop for this? Have a proper map?
+                for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
+                    if (session.getPlayerEntity().getUuid().equals(playerId)) {
+                        newSkinUrl = session.getClientData().getSkinId();
+                        break;
+                    }
+                }
+            }
 
             CapeProvider provider = capeUrl != null ? CapeProvider.MINECRAFT : null;
             SkinAndCape skinAndCape = new SkinAndCape(
-                    getOrDefault(requestSkin(playerId, skinUrl, false), EMPTY_SKIN, 5),
+                    getOrDefault(requestSkin(playerId, newSkinUrl, false), EMPTY_SKIN, 5),
                     getOrDefault(requestCape(capeUrl, provider, false), EMPTY_CAPE, 5)
             );
 
@@ -395,7 +401,7 @@ public class SkinProvider {
         BufferedImage image = null;
 
         // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
-        File imageFile = Paths.get("cache", "images", UUID.nameUUIDFromBytes(imageUrl.getBytes()).toString() + ".png").toFile();
+        File imageFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").resolve(UUID.nameUUIDFromBytes(imageUrl.getBytes()).toString() + ".png").toFile();
         if (imageFile.exists()) {
             try {
                 GeyserConnector.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
@@ -600,7 +606,7 @@ public class SkinProvider {
     @Getter
     public enum CapeProvider {
         MINECRAFT,
-        OPTIFINE("http://s.optifine.net/capes/%s.png", CapeUrlType.USERNAME),
+        OPTIFINE("https://optifine.net/capes/%s.png", CapeUrlType.USERNAME),
         LABYMOD("https://www.labymod.net/page/php/getCapeTexture.php?uuid=%s", CapeUrlType.UUID_DASHED),
         FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
         MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);

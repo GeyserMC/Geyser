@@ -64,6 +64,10 @@ public class ItemRegistry {
      */
     public static ItemEntry BUCKET;
     /**
+     * Egg item entry, used in JavaEntityStatusTranslator.java
+     */
+    public static ItemEntry EGG;
+    /**
      * Gold item entry, used in PiglinEntity.java
      */
     public static ItemEntry GOLD;
@@ -141,6 +145,9 @@ public class ItemRegistry {
                 case "minecraft:oak_boat":
                     BOAT = ITEM_ENTRIES.get(itemIndex);
                     break;
+                case "minecraft:egg":
+                    EGG = ITEM_ENTRIES.get(itemIndex);
+                    break;
                 case "minecraft:gold_ingot":
                     GOLD = ITEM_ENTRIES.get(itemIndex);
                     break;
@@ -173,21 +180,8 @@ public class ItemRegistry {
         int netId = 1;
         List<ItemData> creativeItems = new ArrayList<>();
         for (JsonNode itemNode : creativeItemEntries) {
-            try {
-                short damage = 0;
-                NbtMap tag = null;
-                if (itemNode.has("damage")) {
-                    damage = itemNode.get("damage").numberValue().shortValue();
-                }
-                if (itemNode.has("nbt_b64")) {
-                    byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
-                    ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-                    tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
-                }
-                creativeItems.add(ItemData.fromNet(netId++, itemNode.get("id").asInt(), damage, 1, tag));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            ItemData item = getBedrockItemFromJson(itemNode);
+            creativeItems.add(ItemData.fromNet(netId++, item.getId(), item.getDamage(), item.getCount(), item.getTag()));
         }
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
     }
@@ -210,7 +204,9 @@ public class ItemRegistry {
      */
     public static ItemEntry getItem(ItemData data) {
         for (ItemEntry itemEntry : ITEM_ENTRIES.values()) {
-            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() || itemEntry.getJavaIdentifier().endsWith("potion"))) {
+            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() ||
+                    // Make exceptions for potions and tipped arrows, whose damage values can vary
+                    (itemEntry.getJavaIdentifier().endsWith("potion") || itemEntry.getJavaIdentifier().equals("minecraft:arrow")))) {
                 return itemEntry;
             }
         }
@@ -232,5 +228,49 @@ public class ItemRegistry {
     public static ItemEntry getItemEntry(String javaIdentifier) {
         return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> ITEM_ENTRIES.values()
                 .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
+    }
+
+    /**
+     * Finds the Bedrock string identifier of an ItemEntry
+     *
+     * @param entry the ItemEntry to search for
+     * @return the Bedrock identifier
+     */
+    public static String getBedrockIdentifer(ItemEntry entry) {
+        String blockName = "";
+        for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
+            if (startGamePacketItemEntry.getId() == (short) entry.getBedrockId()) {
+                blockName = startGamePacketItemEntry.getIdentifier(); // Find the Bedrock string name
+                break;
+            }
+        }
+        return blockName;
+    }
+
+    /**
+     * Gets a Bedrock {@link ItemData} from a {@link JsonNode}
+     * @param itemNode the JSON node that contains ProxyPass-compatible Bedrock item data
+     * @return
+     */
+    public static ItemData getBedrockItemFromJson(JsonNode itemNode) {
+        int count = 1;
+        short damage = 0;
+        NbtMap tag = null;
+        if (itemNode.has("damage")) {
+            damage = itemNode.get("damage").numberValue().shortValue();
+        }
+        if (itemNode.has("count")) {
+            count = itemNode.get("count").asInt();
+        }
+        if (itemNode.has("nbt_b64")) {
+            byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
+            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            try {
+                tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return ItemData.of(itemNode.get("id").asInt(), damage, count, tag);
     }
 }

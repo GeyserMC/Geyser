@@ -25,17 +25,19 @@
 
 package org.geysermc.connector;
 
+import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.configuration.GeyserConfiguration;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class FloodgateKeyLoader {
-    public static Path getKey(GeyserLogger logger, GeyserConfiguration config, Path floodgateKey, Object floodgate, Path floodgateFolder) {
+    public static Path getKeyPath(GeyserJacksonConfiguration config, Object floodgate, Path floodgateDataFolder, Path geyserDataFolder, GeyserLogger logger) {
+        Path floodgateKey = geyserDataFolder.resolve(config.getFloodgateKeyFile());
+
         if (!Files.exists(floodgateKey) && config.getRemote().getAuthType().equals("floodgate")) {
             if (floodgate != null) {
-                Path autoKey = floodgateFolder.resolve("public-key.pem");
+                Path autoKey = floodgateDataFolder.resolve("public-key.pem");
                 if (Files.exists(autoKey)) {
                     logger.info(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.auto_loaded"));
                     floodgateKey = autoKey;

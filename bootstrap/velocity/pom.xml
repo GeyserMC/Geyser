@@ -58,12 +58,32 @@
                         <configuration>
                             <relocations>
                                 <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>it.unimi.dsi.fastutil</pattern>
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections.reflections</pattern>
+                                    <pattern>org.reflections</pattern>
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.reflections</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.guava</pattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.google.guava</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.dom4j</pattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.dom4j</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.kyori.adventure</pattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.adventure</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

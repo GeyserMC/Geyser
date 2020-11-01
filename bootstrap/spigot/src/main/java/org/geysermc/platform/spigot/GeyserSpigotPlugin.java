@@ -27,10 +27,10 @@ package org.geysermc.platform.spigot;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.network.translators.world.WorldManager;
@@ -40,6 +40,7 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
+import org.geysermc.platform.spigot.command.SpigotCommandSender;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotWorldManager;
 
@@ -56,7 +57,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotLogger geyserLogger;
     private IGeyserPingPassthrough geyserSpigotPingPassthrough;
-    private GeyserSpigotBlockPlaceListener blockPlaceListener;
     private GeyserSpigotWorldManager geyserWorldManager;
 
     private GeyserConnector connector;
@@ -81,17 +81,19 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             ex.printStackTrace();
         }
 
-        // Don't change the ip if its listening on all interfaces
-        // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-        if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
-            geyserConfig.getRemote().setAddress(Bukkit.getIp());
+        // By default this should be localhost but may need to be changed in some circumstances
+        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            geyserConfig.setAutoconfiguredRemote(true);
+            // Don't use localhost if not listening on all interfaces
+            if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
+                geyserConfig.getRemote().setAddress(Bukkit.getIp());
+            }
+            geyserConfig.getRemote().setPort(Bukkit.getPort());
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
             geyserConfig.getBedrock().setPort(Bukkit.getPort());
         }
-
-        geyserConfig.getRemote().setPort(Bukkit.getPort());
 
         this.geyserLogger = new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
@@ -100,6 +102,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             this.getPluginLoader().disablePlugin(this);
             return;
+        } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
+            // Floodgate installed means that the user wants Floodgate authentication
+            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+            geyserConfig.getRemote().setAuthType("floodgate");
         }
 
         geyserConfig.loadFloodgate(this);
@@ -118,10 +124,18 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // Used to determine if Block.getBlockData() is present.
         boolean isLegacy = !isCompatible(Bukkit.getServer().getVersion(), "1.13.0");
         if (isLegacy)
-            geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected.");
+            geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected; falling back to ViaVersion for block state retrieval.");
 
-        this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, isViaVersion);
-        this.blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);
+        boolean use3dBiomes = isCompatible(Bukkit.getServer().getVersion(), "1.16.0");
+        if (!use3dBiomes) {
+            geyserLogger.debug("Legacy version of Minecraft (1.15.2 or older) detected; not using 3D biomes.");
+        }
+
+        // Set if we need to use a different method for getting a player's locale
+        SpigotCommandSender.setUseLegacyLocaleMethod(!isCompatible(Bukkit.getServer().getVersion(), "1.12.0"));
+
+        this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, use3dBiomes, isViaVersion);
+        GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);
 
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 

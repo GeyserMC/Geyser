@@ -25,12 +25,39 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.TippedArrowPotion;
 
+/**
+ * Internally this is known as TippedArrowEntity but is used with tipped arrows and normal arrows
+ */
 public class TippedArrowEntity extends AbstractArrowEntity {
 
     public TippedArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        // Arrow potion effect color
+        if (entityMetadata.getId() == 9) {
+            int potionColor = (int) entityMetadata.getValue();
+            // -1 means no color
+            if (potionColor == -1) {
+                metadata.remove(EntityData.CUSTOM_DISPLAY);
+            } else {
+                TippedArrowPotion potion = TippedArrowPotion.getByJavaColor(potionColor);
+                if (potion != null && potion.getJavaColor() != -1) {
+                    metadata.put(EntityData.CUSTOM_DISPLAY, (byte) potion.getBedrockId());
+                } else {
+                    metadata.remove(EntityData.CUSTOM_DISPLAY);
+                }
+            }
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

@@ -25,17 +25,26 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.world.particle.ItemParticleData;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 @Translator(packet = ServerEntityStatusPacket.class)
 public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntityStatusPacket> {
@@ -88,6 +97,22 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
             case LIVING_DEATH:
                 entityEventPacket.setType(EntityEventType.DEATH);
+                if (entity.getEntityType() == EntityType.THROWN_EGG) {
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_ITEM_BREAK);
+                    particlePacket.setData(ItemRegistry.EGG.getBedrockId() << 16);
+                    particlePacket.setPosition(entity.getPosition());
+                    for (int i = 0; i < 6; i++) {
+                        session.sendUpstreamPacket(particlePacket);
+                    }
+                } else if (entity.getEntityType() == EntityType.SNOWBALL) {
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_SNOWBALL_POOF);
+                    particlePacket.setPosition(entity.getPosition());
+                    for (int i = 0; i < 8; i++) {
+                        session.sendUpstreamPacket(particlePacket);
+                    }
+                }
                 break;
             case WOLF_SHAKE_WATER:
                 entityEventPacket.setType(EntityEventType.SHAKE_WETNESS);
@@ -96,8 +121,20 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 entityEventPacket.setType(EntityEventType.USE_ITEM);
                 break;
             case FISHING_HOOK_PULL_PLAYER:
-                entityEventPacket.setType(EntityEventType.FISH_HOOK_TEASE); //TODO: CHECK
-                break;
+                // Player is pulled from a fishing rod
+                // The physics of this are clientside on Java
+                long pulledById = entity.getMetadata().getLong(EntityData.TARGET_EID);
+                if (session.getPlayerEntity().getGeyserId() == pulledById) {
+                    Entity hookOwner = session.getEntityCache().getEntityByGeyserId(entity.getMetadata().getLong(EntityData.OWNER_EID));
+                    if (hookOwner != null) {
+                        // https://minecraft.gamepedia.com/Fishing_Rod#Hooking_mobs_and_other_entities
+                        SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+                        motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        motionPacket.setMotion(hookOwner.getPosition().sub(session.getPlayerEntity().getPosition()).mul(0.1f));
+                        session.sendUpstreamPacket(motionPacket);
+                    }
+                }
+                return;
             case TAMEABLE_TAMING_FAILED:
                 entityEventPacket.setType(EntityEventType.TAME_FAILED);
                 break;

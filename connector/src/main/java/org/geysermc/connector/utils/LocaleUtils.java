@@ -35,7 +35,6 @@ import org.geysermc.connector.GeyserConnector;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -133,7 +132,7 @@ public class LocaleUtils {
      * @param locale Locale to download
      */
     private static void downloadLocale(String locale) {
-        File localeFile = Paths.get(GeyserConnector.getInstance().getBootstrap().getConfigFolder().toString(),"locales",locale + ".json").toFile();
+        File localeFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/" + locale + ".json").toFile();
 
         // Check if we have already downloaded the locale file
         if (localeFile.exists()) {
@@ -150,7 +149,7 @@ public class LocaleUtils {
 
         // Get the hash and download the locale
         String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
-        WebUtils.downloadFile("http://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
+        WebUtils.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
     }
 
     /**
@@ -246,6 +245,11 @@ public class LocaleUtils {
         Map<String, String> localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(locale.toLowerCase());
         if (localeStrings == null)
             localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(LanguageUtils.getDefaultLocale());
+        if (localeStrings == null) {
+            // Don't cause a NPE if the locale is STILL missing
+            GeyserConnector.getInstance().getLogger().debug("MISSING DEFAULT LOCALE: " + LanguageUtils.getDefaultLocale());
+            return messageText;
+        }
 
         return localeStrings.getOrDefault(messageText, messageText);
     }
