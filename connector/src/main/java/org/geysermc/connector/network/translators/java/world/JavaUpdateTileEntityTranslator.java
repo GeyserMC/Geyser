@@ -40,7 +40,6 @@ import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerUpdateTileEntityPacket.class)
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
-
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
@@ -48,16 +47,13 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
             BlockEntityUtils.updateBlockEntity(session, null, packet.getPosition());
             return;
         }
+
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
         // If not null then the BlockState is used in BlockEntityTranslator.translateTag()
-        if (ChunkUtils.CACHED_BLOCK_ENTITIES.containsKey(packet.getPosition())) {
-            int blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.getOrDefault(packet.getPosition(), 0);
-            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(),
-                    blockState), packet.getPosition());
-            ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition(), blockState);
-        } else {
-            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), 0), packet.getPosition());
-        }
+        int blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.getOrDefault(packet.getPosition(), 0);
+        BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), blockState), packet.getPosition());
+        ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition(), blockState);
+
         // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty
         if (packet.getType() == UpdatedTileType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&
                 session.getGameMode() == GameMode.CREATIVE && packet.getNbt().size() > 5) {

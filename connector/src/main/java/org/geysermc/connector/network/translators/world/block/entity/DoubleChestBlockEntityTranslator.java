@@ -33,15 +33,11 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.DoubleChestValue;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Chests have more block entity properties in Bedrock, which is solved by implementing the BedrockOnlyBlockEntity
  */
 @BlockEntity(name = "Chest", regex = "chest")
 public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
-
     @Override
     public boolean isBlock(int blockState) {
         return BlockStateValues.getDoubleChestValues().containsKey(blockState);
@@ -51,13 +47,12 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
     public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         CompoundTag javaTag = getConstantJavaTag("chest", position.getX(), position.getY(), position.getZ());
         NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId("chest"), position.getX(), position.getY(), position.getZ()).toBuilder();
-        translateTag(javaTag, blockState).forEach(tagBuilder::put);
+        translateTag(tagBuilder, javaTag, blockState);
         BlockEntityUtils.updateBlockEntity(session, tagBuilder.build(), position);
     }
 
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         if (BlockStateValues.getDoubleChestValues().containsKey(blockState)) {
             DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().get(blockState);
             if (chestValues != null) {
@@ -81,14 +76,12 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
                         x = x + (chestValues.isLeft ? 1 : -1);
                     }
                 }
-                tags.put("pairx", x);
-                tags.put("pairz", z);
+                builder.put("pairx", x);
+                builder.put("pairz", z);
                 if (!chestValues.isLeft) {
-                    tags.put("pairlead", (byte) 1);
+                    builder.put("pairlead", (byte) 1);
                 }
             }
         }
-        return tags;
     }
-
 }

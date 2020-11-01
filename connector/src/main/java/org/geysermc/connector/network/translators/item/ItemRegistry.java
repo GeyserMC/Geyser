@@ -226,8 +226,14 @@ public class ItemRegistry {
      * @return an item entry from the given java edition identifier
      */
     public static ItemEntry getItemEntry(String javaIdentifier) {
-        return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> ITEM_ENTRIES.values()
-                .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
+        return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> {
+            for (ItemEntry entry : ITEM_ENTRIES.values()) {
+                if (entry.getJavaIdentifier().equals(key)) {
+                    return entry;
+                }
+            }
+            return null;
+        });
     }
 
     /**

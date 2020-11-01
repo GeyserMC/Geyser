@@ -300,11 +300,14 @@ public class ChunkUtils {
 
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
-        if (ItemFrameEntity.positionContainsItemFrame(session, position) && blockState == AIR) {
-            ((ItemFrameEntity) session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, position))).updateBlock(session);
-            return;
-        } else if (ItemFrameEntity.positionContainsItemFrame(session, position)) {
-            Entity entity = session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, position));
+        long frameEntityId = ItemFrameEntity.getItemFrameEntityId(session, position);
+        if (frameEntityId != -1) {
+            if (blockState == AIR) {
+                ((ItemFrameEntity) session.getEntityCache().getEntityByJavaId(frameEntityId)).updateBlock(session);
+                return;
+            }
+
+            Entity entity = session.getEntityCache().getEntityByJavaId(frameEntityId);
             if (entity != null) {
                 session.getEntityCache().removeEntity(entity, false);
             } else {

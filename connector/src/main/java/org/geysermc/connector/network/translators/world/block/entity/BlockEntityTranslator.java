@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class BlockEntityTranslator {
-
     public static final Map<String, BlockEntityTranslator> BLOCK_ENTITY_TRANSLATORS = new HashMap<>();
     public static ObjectArrayList<RequiresBlockState> REQUIRES_BLOCK_STATE_LIST = new ObjectArrayList<>();
 
@@ -89,16 +88,15 @@ public abstract class BlockEntityTranslator {
         }
     }
 
-    public abstract Map<String, Object> translateTag(CompoundTag tag, int blockState);
+    public abstract void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState);
 
     public NbtMap getBlockEntityTag(String id, CompoundTag tag, int blockState) {
-        int x = Integer.parseInt(String.valueOf(tag.getValue().get("x").getValue()));
-        int y = Integer.parseInt(String.valueOf(tag.getValue().get("y").getValue()));
-        int z = Integer.parseInt(String.valueOf(tag.getValue().get("z").getValue()));
+        int x = ((IntTag) tag.getValue().get("x")).getValue();
+        int y = ((IntTag) tag.getValue().get("y")).getValue();
+        int z = ((IntTag) tag.getValue().get("z")).getValue();
 
         NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(id), x, y, z).toBuilder();
-        Map<String, Object> translatedTags = translateTag(tag, blockState);
-        translatedTags.forEach(tagBuilder::put);
+        translateTag(tagBuilder, tag, blockState);
         return tagBuilder.build();
     }
 

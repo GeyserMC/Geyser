@@ -49,7 +49,7 @@ public interface BedrockOnlyBlockEntity {
      * @return Bedrock tag, or null if not a Bedrock-only Block Entity
      */
     static NbtMap getTag(Vector3i position, int blockState) {
-        if (new FlowerPotBlockEntityTranslator().isBlock(blockState)) {
+        if (FlowerPotBlockEntityTranslator.isFlowerBlock(blockState)) {
             return FlowerPotBlockEntityTranslator.getTag(blockState, position);
         } else if (PistonBlockEntityTranslator.isBlock(blockState)) {
             return PistonBlockEntityTranslator.getTag(blockState, position);
