@@ -27,10 +27,14 @@ package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class AbstractHorseEntity extends AnimalEntity {
 
@@ -47,6 +51,18 @@ public class AbstractHorseEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (xd & 0x04) == 0x04);
             metadata.getFlags().setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
             metadata.getFlags().setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
+
+            // Bedrock uses DISPLAY_ITEM to work out if the mouth is open
+            metadata.put(EntityData.DISPLAY_ITEM, (xd & 0x40) == 0x40 ? 128 : 0);
+
+            // Send the eating particles
+            if ((xd & 0x40) == 0x40) {
+                EntityEventPacket entityEventPacket = new EntityEventPacket();
+                entityEventPacket.setRuntimeEntityId(geyserId);
+                entityEventPacket.setType(EntityEventType.EATING_ITEM);
+                entityEventPacket.setData(ItemRegistry.WHEAT.getBedrockId() << 16);
+                session.sendUpstreamPacket(entityEventPacket);
+            }
         }
 
         // Needed to control horses
