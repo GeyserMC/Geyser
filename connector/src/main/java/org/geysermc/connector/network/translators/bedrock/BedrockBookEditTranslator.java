@@ -65,6 +65,10 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             if (session.getGameMode() != GameMode.CREATIVE) {
                 switch (packet.getAction()) {
                     case ADD_PAGE: {
+                        // Add empty pages in between
+                        for (int i = pages.size(); i < page; i++) {
+                            pages.add(i, new StringTag("", ""));
+                        }
                         pages.add(page, new StringTag("", packet.getText()));
                         break;
                     }
@@ -73,6 +77,10 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                         if (page < pages.size()) {
                             pages.set(page, new StringTag("", packet.getText()));
                         } else {
+                            // Add empty pages in between
+                            for (int i = pages.size(); i < page; i++) {
+                                pages.add(i, new StringTag("", ""));
+                            }
                             pages.add(page, new StringTag("", packet.getText()));
                         }
                         break;
