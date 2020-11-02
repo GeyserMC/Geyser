@@ -23,33 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.connector.network.translators.bedrock;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
+import com.nukkitx.protocol.bedrock.packet.EmoteListPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-import java.util.stream.Collectors;
-
-public class ListCommand extends GeyserCommand {
-
-    private final GeyserConnector connector;
-
-    public ListCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-
-        this.connector = connector;
-    }
+@Translator(packet = EmoteListPacket.class)
+public class BedrockEmoteListTranslator extends PacketTranslator<EmoteListPacket> {
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        String message = "";
-        message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
-                connector.getPlayers().size(),
-                connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
-
-        sender.sendMessage(message);
+    public void translate(EmoteListPacket packet, GeyserSession session) {
+        session.refreshEmotes(packet.getPieceIds());
     }
 }

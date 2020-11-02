@@ -23,33 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.connector.network.translators.java;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerStatisticsPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.StatisticsUtils;
 
-import java.util.stream.Collectors;
-
-public class ListCommand extends GeyserCommand {
-
-    private final GeyserConnector connector;
-
-    public ListCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-
-        this.connector = connector;
-    }
+@Translator(packet = ServerStatisticsPacket.class)
+public class JavaStatisticsTranslator extends PacketTranslator<ServerStatisticsPacket> {
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        String message = "";
-        message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
-                connector.getPlayers().size(),
-                connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
+    public void translate(ServerStatisticsPacket packet, GeyserSession session) {
+        session.updateStatistics(packet.getStatistics());
 
-        sender.sendMessage(message);
+        if (session.isWaitingForStatistics()) {
+            session.setWaitingForStatistics(false);
+            session.sendForm(StatisticsUtils.buildMenuForm(session), StatisticsUtils.STATISTICS_MENU_FORM_ID);
+        }
     }
 }

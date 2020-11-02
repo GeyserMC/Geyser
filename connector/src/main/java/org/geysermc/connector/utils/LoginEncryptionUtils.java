@@ -160,7 +160,7 @@ public class LoginEncryptionUtils {
     private static int AUTH_DETAILS_FORM_ID = 1337;
 
     public static void showLoginWindow(GeyserSession session) {
-        String userLanguage = session.getClientData().getLanguageCode();
+        String userLanguage = session.getLocale();
         SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.title", userLanguage), LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.desc", userLanguage));
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_login", userLanguage)));
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_disconnect", userLanguage)));
@@ -169,7 +169,7 @@ public class LoginEncryptionUtils {
     }
 
     public static void showLoginDetailsWindow(GeyserSession session) {
-        String userLanguage = session.getClientData().getLanguageCode();
+        String userLanguage = session.getLocale();
         CustomFormWindow window = new CustomFormBuilder(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.title", userLanguage))
                 .addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.desc", userLanguage)))
                 .addComponent(new InputComponent(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.details.email", userLanguage), "account@geysermc.org", ""))
@@ -210,7 +210,7 @@ public class LoginEncryptionUtils {
                         if (response.getClickedButtonId() == 0) {
                             showLoginDetailsWindow(session);
                         } else if(response.getClickedButtonId() == 1) {
-                            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getClientData().getLanguageCode()));
+                            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
                         }
                     } else {
                         showLoginWindow(session);
