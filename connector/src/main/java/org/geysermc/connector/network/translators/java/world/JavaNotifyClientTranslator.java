@@ -103,12 +103,12 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case CHANGE_GAMEMODE:
                 GameMode gameMode = (GameMode) packet.getValue();
 
-                session.sendAdventureSettings();
-
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
                 session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
+
+                session.sendAdventureSettings();
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());

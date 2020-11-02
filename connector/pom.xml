@@ -109,9 +109,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.steveice10</groupId>
+            <groupId>com.github.GeyserMC</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>1b01b1ffef</version>
+            <version>e4181064d1</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
