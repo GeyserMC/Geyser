@@ -49,6 +49,7 @@ import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -251,9 +252,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
                         break;
                     case 1: //Attack
-                        ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                                InteractAction.ATTACK, session.isSneaking());
-                        session.sendDownstreamPacket(attackPacket);
+                        if (entity.getEntityType() == EntityType.ENDER_DRAGON) {
+                            // Redirects the attack to its body entity, this only happens when
+                            // attacking the underbelly of the ender dragon
+                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId() + 3,
+                                    InteractAction.ATTACK, session.isSneaking());
+                            session.sendDownstreamPacket(attackPacket);
+                        } else {
+                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                                    InteractAction.ATTACK, session.isSneaking());
+                            session.sendDownstreamPacket(attackPacket);
+                        }
                         break;
                 }
                 break;

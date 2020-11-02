@@ -143,7 +143,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case INVALID_BED:
                 // Not sent as a proper message? Odd.
                 session.sendMessage(LocaleUtils.getLocaleString("block.minecraft.spawn.not_valid",
-                        session.getClientData().getLanguageCode()));
+                        session.getLocale()));
                 break;
             case ARROW_HIT_PLAYER:
                 PlaySoundPacket arrowSoundPacket = new PlaySoundPacket();

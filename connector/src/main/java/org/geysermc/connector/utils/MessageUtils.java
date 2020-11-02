@@ -485,7 +485,7 @@ public class MessageUtils {
      */
     public static boolean isTooLong(String message, GeyserSession session) {
         if (message.length() > 256) {
-            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.chat.too_long", session.getClientData().getLanguageCode(), message.length()));
+            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.chat.too_long", session.getLocale(), message.length()));
             return true;
         }
 

@@ -47,17 +47,12 @@ public class ReloadCommand extends GeyserCommand {
             return;
         }
 
-        String message = "";
-        if (sender instanceof GeyserSession) {
-            message = LanguageUtils.getPlayerLocaleString("geyser.commands.reload.message", ((GeyserSession) sender).getClientData().getLanguageCode());
-        } else {
-            message = LanguageUtils.getLocaleStringLog("geyser.commands.reload.message");
-        }
+        String message = LanguageUtils.getPlayerLocaleString("geyser.commands.reload.message", sender.getLocale());
 
         sender.sendMessage(message);
 
         for (GeyserSession session : connector.getPlayers()) {
-            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getClientData().getLanguageCode()));
+            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getLocale()));
         }
         connector.reload();
     }

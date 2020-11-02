@@ -25,15 +25,33 @@
 
 package org.geysermc.platform.spigot.command;
 
-import lombok.AllArgsConstructor;
-
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.utils.LanguageUtils;
 
-@AllArgsConstructor
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 public class SpigotCommandSender implements CommandSender {
 
-    private org.bukkit.command.CommandSender handle;
+    /**
+     * Whether to use {@code Player.getLocale()} or {@code Player.spigot().getLocale()}, depending on version.
+     * 1.12 or greater should not use the legacy method.
+     */
+    private static boolean USE_LEGACY_METHOD = false;
+    private static Method LOCALE_METHOD;
+
+    private final org.bukkit.command.CommandSender handle;
+    private final String locale;
+
+    public SpigotCommandSender(org.bukkit.command.CommandSender handle) {
+        this.handle = handle;
+        this.locale = getSpigotLocale();
+        // Ensure even Java players' languages are loaded
+        LanguageUtils.loadGeyserLocale(locale);
+    }
 
     @Override
     public String getName() {
@@ -48,5 +66,50 @@ public class SpigotCommandSender implements CommandSender {
     @Override
     public boolean isConsole() {
         return handle instanceof ConsoleCommandSender;
+    }
+
+    @Override
+    public String getLocale() {
+        return locale;
+    }
+
+    /**
+     * Set if we are on pre-1.12, and therefore {@code player.getLocale()} doesn't exist and we have to get
+     * {@code player.spigot().getLocale()}.
+     *
+     * @param useLegacyMethod if we are running pre-1.12 and therefore need to use reflection to get the player locale
+     */
+    public static void setUseLegacyLocaleMethod(boolean useLegacyMethod) {
+        USE_LEGACY_METHOD = useLegacyMethod;
+        if (USE_LEGACY_METHOD) {
+            try {
+                //noinspection JavaReflectionMemberAccess - of course it doesn't exist; that's why we're doing it
+                LOCALE_METHOD = Player.Spigot.class.getMethod("getLocale");
+            } catch (NoSuchMethodException e) {
+                GeyserConnector.getInstance().getLogger().debug("Player.Spigot.getLocale() doesn't exist? Not a big deal but if you're seeing this please report it to the developers!");
+            }
+        }
+    }
+
+    /**
+     * So we only have to do nasty reflection stuff once per command
+     *
+     * @return the locale of the Spigot player
+     */
+    private String getSpigotLocale() {
+        if (handle instanceof Player) {
+            Player player = (Player) handle;
+            if (USE_LEGACY_METHOD) {
+                try {
+                    // sigh
+                    // This was the only option on older Spigot instances and now it's gone
+                    return (String) LOCALE_METHOD.invoke(player.spigot());
+                } catch (IllegalAccessException | InvocationTargetException ignored) {
+                }
+            } else {
+                return player.getLocale();
+            }
+        }
+        return LanguageUtils.getDefaultLocale();
     }
 }

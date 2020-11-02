@@ -40,6 +40,7 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
+import org.geysermc.platform.spigot.command.SpigotCommandSender;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotWorldManager;
 import us.myles.ViaVersion.api.Via;
@@ -141,6 +142,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (!use3dBiomes) {
             geyserLogger.debug("Legacy version of Minecraft (1.15.2 or older) detected; not using 3D biomes.");
         }
+
+        // Set if we need to use a different method for getting a player's locale
+        SpigotCommandSender.setUseLegacyLocaleMethod(!isCompatible(Bukkit.getServer().getVersion(), "1.12.0"));
 
         this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, use3dBiomes, isViaVersion);
         GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);

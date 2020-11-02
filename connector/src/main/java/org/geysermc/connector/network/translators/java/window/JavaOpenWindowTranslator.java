@@ -58,9 +58,9 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
         }
 
         String name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(packet.getName()),
-                session.getClientData().getLanguageCode());
+                session.getLocale());
 
-        name = LocaleUtils.getLocaleString(name, session.getClientData().getLanguageCode());
+        name = LocaleUtils.getLocaleString(name, session.getLocale());
 
         Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);
         session.getInventoryCache().cacheInventory(newInventory);

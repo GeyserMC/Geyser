@@ -25,10 +25,7 @@
 
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.LongTag;
+import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
@@ -39,14 +36,22 @@ public class MapItemTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
-        IntTag mapId = itemTag.get("map");
+        // Can be either an IntTag or ShortTag
+        Tag mapId = itemTag.get("map");
+        if (mapId == null) return;
 
-        if (mapId != null) {
-            itemTag.put(new LongTag("map_uuid", mapId.getValue()));
-            itemTag.put(new IntTag("map_name_index", mapId.getValue()));
-            itemTag.put(new ByteTag("map_display_players", (byte) 1));
-            itemTag.remove("map");
+        int mapValue;
+        if (mapId.getValue() instanceof Short) {
+            // Convert to int if necessary
+            mapValue = (int) (short) mapId.getValue();
+        } else {
+            mapValue = (int) mapId.getValue();
         }
+
+        itemTag.put(new LongTag("map_uuid", mapValue));
+        itemTag.put(new IntTag("map_name_index", mapValue));
+        itemTag.put(new ByteTag("map_display_players", (byte) 1));
+        itemTag.remove("map");
     }
 
     @Override
