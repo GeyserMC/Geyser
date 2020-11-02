@@ -65,13 +65,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             session.getMovementSendIfIdle().cancel(true);
         }
 
-        // We need to parse the float as a string since casting a float to a double causes us to
-        // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
-        if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
-
-        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
-                Double.parseDouble(Float.toString(packet.getPosition().getZ())));
+        Vector3d position = adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
 
         if(!session.confirmTeleport(position)){
             return;
@@ -118,6 +112,24 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                 3, TimeUnit.SECONDS));
     }
 
+    /**
+     * Adjust the Bedrock position before sending to the Java server to account for inaccuracies in movement between
+     * the two versions.
+     *
+     * @param position the current Bedrock position of the client
+     * @param onGround whether the Bedrock player is on the ground
+     * @return the position to send to the Java server.
+     */
+    private Vector3d adjustBedrockPosition(Vector3f position, boolean onGround) {
+        // We need to parse the float as a string since casting a float to a double causes us to
+        // lose precision and thus, causes players to get stuck when walking near walls
+        double javaY = position.getY() - EntityType.PLAYER.getOffset();
+        if (onGround) javaY = Math.ceil(javaY * 2) / 2;
+
+        return Vector3d.from(Double.parseDouble(Float.toString(position.getX())), javaY,
+                Double.parseDouble(Float.toString(position.getZ())));
+    }
+
     public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
         if (mode != MovePlayerPacket.Mode.NORMAL)
             return true;
@@ -162,11 +174,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (session.isClosed()) return;
         PlayerEntity entity = session.getPlayerEntity();
         // Recalculate in case something else changed position
-        double javaY = entity.getPosition().getY() - EntityType.PLAYER.getOffset();
-        if (entity.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
-
-        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(entity.getPosition().getX())), javaY,
-                Double.parseDouble(Float.toString(entity.getPosition().getZ())));
+        Vector3d position = adjustBedrockPosition(entity.getPosition(), entity.isOnGround());
         ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(session.getPlayerEntity().isOnGround(),
                 position.getX(), position.getY(), position.getZ());
         session.sendDownstreamPacket(packet);
