@@ -59,6 +59,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
+        // Send book update before the player moves
+        if (session.getBookUpdate() != null) {
+            session.getBookUpdate().send();
+        }
+
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
         double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();

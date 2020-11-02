@@ -73,6 +73,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.bedrock.BedrockBookEditTranslator;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -292,6 +293,11 @@ public class GeyserSession implements CommandSender {
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
     private final Set<UUID> emotes = new HashSet<>();
+
+    @Setter
+    private BedrockBookEditTranslator.BookUpdate bookUpdate;
+    @Setter
+    private long lastBookUpdate;
 
     private MinecraftProtocol protocol;
 
