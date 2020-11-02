@@ -61,8 +61,6 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             // Don't spam edit packets - if text matches the current book contents no need to process changes
             if (page < pages.size() && pages.get(page) != null && ((StringTag) pages.get(page)).getValue() != null && ((StringTag) pages.get(page)).getValue().equals(packet.getText()))
                 return;
-            System.out.println("Book edit: " + packet.getAction());
-            System.out.println(packet.getText());
             // Creative edits the NBT for us
             if (session.getGameMode() != GameMode.CREATIVE) {
                 switch (packet.getAction()) {
@@ -127,7 +125,6 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                 return;
             }
             sent = true;
-            System.out.println("Book Update");
             session.setBookUpdate(null);
             // Don't send the update if the player isn't not holding a book, shouldn't happen if we catch all interactions
             ItemStack itemStack = session.getInventory().getItemInHand();
