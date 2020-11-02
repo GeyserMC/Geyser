@@ -123,13 +123,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         boolean isViaVersion = (Bukkit.getPluginManager().getPlugin("ViaVersion") != null);
         if (isViaVersion) {
-            if (!Via.getAPI().getVersion().equals("3.2.0-SNAPSHOT")) {
-                if (isCompatible(Via.getAPI().getVersion().replace("-SNAPSHOT", ""), "3.2.0")) {
-                    geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.viaversion.too_new"));
-                } else {
-                    geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
-                            "https://ci.viaversion.com/job/ViaVersion/"));
-                }
+            if (!isCompatible(Via.getAPI().getVersion().replace("-SNAPSHOT", ""), "3.2.0")) {
+                geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
+                        "https://ci.viaversion.com/job/ViaVersion/"));
                 isViaVersion = false;
             }
         }

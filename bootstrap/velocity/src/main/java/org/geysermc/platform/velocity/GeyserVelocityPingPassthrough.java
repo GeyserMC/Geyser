@@ -52,7 +52,7 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         ProxyPingEvent event;
         try {
             event = server.getEventManager().fire(new ProxyPingEvent(FAKE_INBOUND_CONNECTION, ServerPing.builder()
-                    .description(server.getConfiguration().getMotd()).onlinePlayers(server.getPlayerCount())
+                    .description(server.getConfiguration().getMotdComponent()).onlinePlayers(server.getPlayerCount())
                     .maximumPlayers(server.getConfiguration().getShowMaxPlayers()).build())).get();
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
