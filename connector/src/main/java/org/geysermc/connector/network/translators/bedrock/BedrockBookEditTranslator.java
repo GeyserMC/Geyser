@@ -27,16 +27,19 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientEditBookPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.packet.BookEditPacket;
+import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -54,15 +57,14 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             List<Tag> pages = tag.contains("pages") ? new LinkedList<>(((ListTag) tag.get("pages")).getValue()) : new LinkedList<>();
 
             int page = packet.getPageNumber();
-
-            // Don't spam edit packets - if text matches the current book contents no need to process changes
-            if (page < pages.size() && pages.get(page) != null && ((StringTag) pages.get(page)).getValue() != null && ((StringTag) pages.get(page)).getValue().equals(packet.getText()))
-                return;
-
             // Creative edits the NBT for us
             if (session.getGameMode() != GameMode.CREATIVE) {
                 switch (packet.getAction()) {
                     case ADD_PAGE: {
+                        // Add empty pages in between
+                        for (int i = pages.size(); i < page; i++) {
+                            pages.add(i, new StringTag("", ""));
+                        }
                         pages.add(page, new StringTag("", packet.getText()));
                         break;
                     }
@@ -71,6 +73,10 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                         if (page < pages.size()) {
                             pages.set(page, new StringTag("", packet.getText()));
                         } else {
+                            // Add empty pages in between
+                            for (int i = pages.size(); i < page; i++) {
+                                pages.add(i, new StringTag("", ""));
+                            }
                             pages.add(page, new StringTag("", packet.getText()));
                         }
                         break;
@@ -97,10 +103,55 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                         return;
                 }
             }
+            // Remove empty pages at the end
+            while (pages.size() > 0) {
+                StringTag currentPage = (StringTag) pages.get(pages.size() - 1);
+                if (currentPage.getValue() == null || currentPage.getValue().isEmpty()) {
+                    pages.remove(pages.size() - 1);
+                } else {
+                    break;
+                }
+            }
             tag.put(new ListTag("pages", pages));
             session.getInventory().setItem(36 + session.getInventory().getHeldItemSlot(), bookItem);
-            ClientEditBookPacket editBookPacket = new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, Hand.MAIN_HAND);
+            InventoryTranslator.INVENTORY_TRANSLATORS.get(null).updateInventory(session, session.getInventory());
+
+            BookUpdate bookUpdate = new BookUpdate();
+            bookUpdate.session = session;
+            bookUpdate.editBookPacket = new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, session.getInventory().getHeldItemSlot());
+            session.setBookUpdate(bookUpdate);
+            // There won't be any more book updates after this, so we can try sending the edit packet immediately
+            if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
+                bookUpdate.send();
+            }
+        }
+    }
+
+    @Getter
+    public static class BookUpdate {
+        @Setter
+        private GeyserSession session;
+        @Setter
+        private ClientEditBookPacket editBookPacket;
+        private boolean sent;
+
+        public void send() {
+            if (sent) {
+                return;
+            }
+            // Prevent kicks due to rate limiting
+            if ((System.currentTimeMillis() - session.getLastBookUpdate()) < 1000) {
+                return;
+            }
+            sent = true;
+            session.setBookUpdate(null);
+            // Don't send the update if the player isn't not holding a book, shouldn't happen if we catch all interactions
+            ItemStack itemStack = session.getInventory().getItemInHand();
+            if (itemStack == null || itemStack.getId() != ItemRegistry.WRITABLE_BOOK.getJavaId()) {
+                return;
+            }
             session.getDownstream().getSession().send(editBookPacket);
+            session.setLastBookUpdate(System.currentTimeMillis());
         }
     }
 }

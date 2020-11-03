@@ -57,6 +57,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
         if (entity == null)
             return;
 
+        // Send book update before any player action
+        if (session.getBookUpdate() != null && packet.getAction() != PlayerActionPacket.Action.RESPAWN) {
+            session.getBookUpdate().send();
+        }
+
         Vector3i vector = packet.getBlockPosition();
         Position position = new Position(vector.getX(), vector.getY(), vector.getZ());
 

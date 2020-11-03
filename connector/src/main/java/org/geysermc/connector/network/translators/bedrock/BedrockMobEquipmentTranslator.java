@@ -45,6 +45,11 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
             return;
         }
 
+        // Send book update before switching hotbar slot
+        if (session.getBookUpdate() != null) {
+            session.getBookUpdate().send();
+        }
+
         session.getInventory().setHeldItemSlot(packet.getHotbarSlot());
 
         ClientPlayerChangeHeldItemPacket changeHeldItemPacket = new ClientPlayerChangeHeldItemPacket(packet.getHotbarSlot());
