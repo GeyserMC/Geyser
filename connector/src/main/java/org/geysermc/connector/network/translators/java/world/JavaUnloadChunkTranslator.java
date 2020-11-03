@@ -25,12 +25,11 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUnloadChunkPacket;
+import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUnloadChunkPacket;
 
 import java.util.Iterator;
 
@@ -42,9 +41,9 @@ public class JavaUnloadChunkTranslator extends PacketTranslator<ServerUnloadChun
         session.getChunkCache().removeChunk(packet.getX(), packet.getZ());
 
         //Checks if a skull is in an unloaded chunk then removes it
-        Iterator<Position> iterator = session.getSkullCache().keySet().iterator();
+        Iterator<Vector3i> iterator = session.getSkullCache().keySet().iterator();
         while (iterator.hasNext()) {
-            Position position = iterator.next();
+            Vector3i position = iterator.next();
             if (Math.floor(position.getX() / 16) == packet.getX() && Math.floor(position.getZ() / 16) == packet.getZ()) {
                 session.getSkullCache().get(position).despawnEntity(session);
                 iterator.remove();
