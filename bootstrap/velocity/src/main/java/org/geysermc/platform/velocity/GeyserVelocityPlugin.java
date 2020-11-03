@@ -121,7 +121,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
-        this.commandManager.register(new GeyserVelocityCommandExecutor(connector), "geyser");
+        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(connector));
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
         } else {

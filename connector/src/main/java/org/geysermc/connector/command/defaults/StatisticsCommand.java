@@ -25,19 +25,18 @@
 
 package org.geysermc.connector.command.defaults;
 
+import com.github.steveice10.mc.protocol.data.game.ClientRequest;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.stream.Collectors;
-
-public class ListCommand extends GeyserCommand {
+public class StatisticsCommand extends GeyserCommand {
 
     private final GeyserConnector connector;
 
-    public ListCommand(GeyserConnector connector, String name, String description, String permission) {
+    public StatisticsCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
 
         this.connector = connector;
@@ -45,11 +44,31 @@ public class ListCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        String message = "";
-        message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
-                connector.getPlayers().size(),
-                connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
+        if (sender.isConsole()) {
+            return;
+        }
 
-        sender.sendMessage(message);
+        // Make sure the sender is a Bedrock edition client
+        GeyserSession session = null;
+        if (sender instanceof GeyserSession) {
+            session = (GeyserSession) sender;
+        } else {
+            // Needed for Spigot - sender is not an instance of GeyserSession
+            for (GeyserSession otherSession : connector.getPlayers()) {
+                if (sender.getName().equals(otherSession.getPlayerEntity().getUsername())) {
+                    session = otherSession;
+                    break;
+                }
+            }
+        }
+        if (session == null) return;
+        session.setWaitingForStatistics(true);
+        ClientRequestPacket clientRequestPacket = new ClientRequestPacket(ClientRequest.STATS);
+        session.sendDownstreamPacket(clientRequestPacket);
+    }
+
+    @Override
+    public boolean isExecutableOnConsole() {
+        return false;
     }
 }

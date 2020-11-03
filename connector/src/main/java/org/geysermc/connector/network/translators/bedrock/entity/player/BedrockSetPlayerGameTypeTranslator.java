@@ -23,33 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
+import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-import java.util.stream.Collectors;
-
-public class ListCommand extends GeyserCommand {
-
-    private final GeyserConnector connector;
-
-    public ListCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-
-        this.connector = connector;
-    }
+/**
+ * In vanilla Bedrock, if you have operator status, this sets the player's gamemode without confirmation from the server.
+ * Since we have a custom server option to request the gamemode, we just reset the gamemode and ignore this.
+ */
+@Translator(packet = SetPlayerGameTypePacket.class)
+public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlayerGameTypePacket> {
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        String message = "";
-        message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
-                connector.getPlayers().size(),
-                connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
-
-        sender.sendMessage(message);
+    public void translate(SetPlayerGameTypePacket packet, GeyserSession session) {
+        // no
+        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+        playerGameTypePacket.setGamemode(session.getGameMode().ordinal());
+        session.sendUpstreamPacket(playerGameTypePacket);
     }
 }

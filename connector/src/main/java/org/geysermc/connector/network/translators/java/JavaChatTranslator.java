@@ -59,7 +59,7 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
                 break;
         }
 
-        String locale = session.getClientData().getLanguageCode();
+        String locale = session.getLocale();
 
         if (packet.getMessage() instanceof TranslationMessage) {
             textPacket.setType(TextPacket.Type.TRANSLATION);

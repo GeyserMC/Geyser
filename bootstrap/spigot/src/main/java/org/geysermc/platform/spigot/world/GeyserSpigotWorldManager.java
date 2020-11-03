@@ -26,12 +26,15 @@
 package org.geysermc.platform.spigot.world;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
@@ -39,14 +42,29 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.GameRule;
 import org.geysermc.connector.utils.LanguageUtils;
-import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
-import us.myles.ViaVersion.protocols.protocol1_16_2to1_16_1.data.MappingData;
+import us.myles.ViaVersion.api.Pair;
+import us.myles.ViaVersion.api.protocol.Protocol;
+import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
+import us.myles.ViaVersion.api.protocol.ProtocolVersion;
+import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.Protocol1_13To1_12_2;
 
 import java.io.InputStream;
+import java.util.List;
 
 public class GeyserSpigotWorldManager extends GeyserWorldManager {
 
+    /**
+     * The current client protocol version for ViaVersion usage.
+     */
+    private static final int CLIENT_PROTOCOL_VERSION = MinecraftConstants.PROTOCOL_VERSION;
+
+    /**
+     * Whether the server is pre-1.13.
+     */
     private final boolean isLegacy;
+    /**
+     * Whether the server is pre-1.16 and therefore does not support 3D biomes on an API level guaranteed.
+     */
     private final boolean use3dBiomes;
     /**
      * You need ViaVersion to connect to an older server with Geyser.
@@ -93,35 +111,82 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        if (session.getPlayerEntity() == null) {
+        Player bukkitPlayer;
+        if ((this.isLegacy && !this.isViaVersion)
+            || session.getPlayerEntity() == null
+            || (bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
             return BlockTranslator.AIR;
         }
-        if (Bukkit.getPlayer(session.getPlayerEntity().getUsername()) == null) {
-            return BlockTranslator.AIR;
-        }
+        World world = bukkitPlayer.getWorld();
         if (isLegacy) {
-            return getLegacyBlock(session, x, y, z, isViaVersion);
+            return getLegacyBlock(session, x, y, z, true);
         }
         //TODO possibly: detect server version for all versions and use ViaVersion for block state mappings like below
-        return BlockTranslator.getJavaIdBlockMap().getOrDefault(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString(), 0);
+        return BlockTranslator.getJavaIdBlockMap().getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), 0);
     }
 
-    @SuppressWarnings("deprecation")
     public static int getLegacyBlock(GeyserSession session, int x, int y, int z, boolean isViaVersion) {
         if (isViaVersion) {
-            Block block = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z);
-            // Black magic that gets the old block state ID
-            int oldBlockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
-            // Convert block state from old version -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
-            int thirteenBlockId = us.myles.ViaVersion.protocols.protocol1_13to1_12_2.data.MappingData.blockMappings.getNewId(oldBlockId);
-            int thirteenPointOneBlockId = Protocol1_13_1To1_13.getNewBlockStateId(thirteenBlockId);
-            int fourteenBlockId = us.myles.ViaVersion.protocols.protocol1_14to1_13_2.data.MappingData.blockStateMappings.getNewId(thirteenPointOneBlockId);
-            int fifteenBlockId = us.myles.ViaVersion.protocols.protocol1_15to1_14_4.data.MappingData.blockStateMappings.getNewId(fourteenBlockId);
-            int sixteenBlockId = us.myles.ViaVersion.protocols.protocol1_16to1_15_2.data.MappingData.blockStateMappings.getNewId(fifteenBlockId);
-            return MappingData.blockStateMappings.getNewId(sixteenBlockId);
+            return getLegacyBlock(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld(), x, y, z, true);
         } else {
             return BlockTranslator.AIR;
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    public static int getLegacyBlock(World world, int x, int y, int z, boolean isViaVersion) {
+        if (isViaVersion) {
+            Block block = world.getBlockAt(x, y, z);
+            // Black magic that gets the old block state ID
+            int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
+            // Convert block state from old version (1.12.2) -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
+            blockId = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData().getNewBlockId(blockId);
+            List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
+                    ProtocolVersion.v1_13.getId());
+            for (int i = protocolList.size() - 1; i >= 0; i--) {
+                if (protocolList.get(i).getValue().getMappingData() == null) continue;
+                blockId = protocolList.get(i).getValue().getMappingData().getNewBlockStateId(blockId);
+            }
+            return blockId;
+        } else {
+            return BlockTranslator.AIR;
+        }
+    }
+
+    @Override
+    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
+        Player bukkitPlayer;
+        if ((this.isLegacy && !this.isViaVersion)
+            || session.getPlayerEntity() == null
+            || (bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+            return;
+        }
+        World world = bukkitPlayer.getWorld();
+        if (this.isLegacy)  {
+            for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
+                for (int blockZ = 0; blockZ < 16; blockZ++) {
+                    for (int blockX = 0; blockX < 16; blockX++) {
+                        chunk.set(blockX, blockY, blockZ, getLegacyBlock(world, (x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ, true));
+                    }
+                }
+            }
+        } else {
+            //TODO: see above TODO in getBlockAt
+            for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
+                for (int blockZ = 0; blockZ < 16; blockZ++) {
+                    for (int blockX = 0; blockX < 16; blockX++) {
+                        Block block = world.getBlockAt((x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ);
+                        int id = BlockTranslator.getJavaIdBlockMap().getOrDefault(block.getBlockData().getAsString(), 0);
+                        chunk.set(blockX, blockY, blockZ, id);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean hasMoreBlockDataThanChunkCache() {
+        return true;
     }
 
     @Override

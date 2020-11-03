@@ -39,14 +39,17 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -56,7 +59,10 @@ import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
@@ -78,6 +84,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_USE:
                 switch (packet.getActionType()) {
                     case 0:
+                        // Check to make sure the client isn't spamming interaction
+                        // Based on Nukkit 1.0, with changes to ensure holding down still works
+                        boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
+                                packet.getBlockPosition().distanceSquared(session.getLastInteractionPosition()) < 0.00001;
+                        session.setLastInteractionPosition(packet.getBlockPosition());
+                        if (hasAlreadyClicked) {
+                            break;
+                        } else {
+                            // Only update the interaction time if it's valid - that way holding down still works.
+                            session.setLastInteractionTime(System.currentTimeMillis());
+                        }
 
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
                         if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId()) &&
@@ -101,11 +118,24 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(blockPacket);
 
                         // Otherwise boats will not be able to be placed in survival and buckets wont work on mobile
+                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId()) {
+                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                            session.sendDownstreamPacket(itemPacket);
+                        }
                         // Check actions, otherwise buckets may be activated when block inventories are accessed
-                        if (packet.getItemInHand() != null && (packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId() ||
-                                packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) && !packet.getActions().isEmpty()) {
-                           ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                           session.sendDownstreamPacket(itemPacket);
+                        else if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) {
+                            // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
+                            InventorySlotPacket slotPacket = new InventorySlotPacket();
+                            slotPacket.setContainerId(ContainerId.INVENTORY);
+                            slotPacket.setSlot(packet.getHotbarSlot());
+                            slotPacket.setItem(packet.getItemInHand());
+                            session.sendUpstreamPacket(slotPacket);
+                            // Delay the interaction in case the client doesn't intend to actually use the bucket
+                            // See BedrockActionTranslator.java
+                            session.setBucketScheduledFuture(session.getConnector().getGeneralThreadPool().schedule(() -> {
+                                ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                                session.sendDownstreamPacket(itemPacket);
+                            }, 5, TimeUnit.MILLISECONDS));
                         }
 
                         if (packet.getActions().isEmpty()) {
@@ -126,34 +156,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        Vector3i blockPos = packet.getBlockPosition();
-                        // TODO: Find a better way to do this?
-                        switch (packet.getBlockFace()) {
-                            case 0:
-                                blockPos = blockPos.sub(0, 1, 0);
-                                break;
-                            case 1:
-                                blockPos = blockPos.add(0, 1, 0);
-                                break;
-                            case 2:
-                                blockPos = blockPos.sub(0, 0, 1);
-                                break;
-                            case 3:
-                                blockPos = blockPos.add(0, 0, 1);
-                                break;
-                            case 4:
-                                blockPos = blockPos.sub(1, 0, 0);
-                                break;
-                            case 5:
-                                blockPos = blockPos.add(1, 0, 0);
-                                break;
-                        }
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
                         ItemEntry handItem = ItemRegistry.getItem(packet.getItemInHand());
                         if (handItem.isBlock()) {
                             session.setLastBlockPlacePosition(blockPos);
                             session.setLastBlockPlacedId(handItem.getJavaIdentifier());
                         }
-                        session.setLastInteractionPosition(packet.getBlockPosition());
                         session.setInteracting(true);
                         break;
                     case 1:
@@ -163,15 +171,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             break;
                         }
 
-                        // Handled in ITEM_USE
-                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) {
+                        // Handled in ITEM_USE if the item is not milk
+                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
+                                packet.getItemInHand().getDamage() != 1) {
                             break;
                         }
 
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                         session.sendDownstreamPacket(useItemPacket);
-                        // Used for sleeping in beds
-                        session.setLastInteractionPosition(packet.getBlockPosition());
                         break;
                     case 2:
                         int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
@@ -245,9 +252,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
                         break;
                     case 1: //Attack
-                        ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
-                                InteractAction.ATTACK, session.isSneaking());
-                        session.sendDownstreamPacket(attackPacket);
+                        if (entity.getEntityType() == EntityType.ENDER_DRAGON) {
+                            // Redirects the attack to its body entity, this only happens when
+                            // attacking the underbelly of the ender dragon
+                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId() + 3,
+                                    InteractAction.ATTACK, session.isSneaking());
+                            session.sendDownstreamPacket(attackPacket);
+                        } else {
+                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                                    InteractAction.ATTACK, session.isSneaking());
+                            session.sendDownstreamPacket(attackPacket);
+                        }
                         break;
                 }
                 break;

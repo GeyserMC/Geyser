@@ -23,33 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.connector.network.translators.bedrock;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-import java.util.stream.Collectors;
-
-public class ListCommand extends GeyserCommand {
-
-    private final GeyserConnector connector;
-
-    public ListCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-
-        this.connector = connector;
-    }
+/**
+ * Used to send the keep alive packet back to the server
+ */
+@Translator(packet = NetworkStackLatencyPacket.class)
+public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<NetworkStackLatencyPacket> {
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        String message = "";
-        message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
-                connector.getPlayers().size(),
-                connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
-
-        sender.sendMessage(message);
+    public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
+        // The client sends a timestamp back but it's rounded and therefore unreliable when we need the exact number
+        ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(session.getLastKeepAliveTimestamp());
+        session.sendDownstreamPacket(keepAlivePacket);
     }
 }
