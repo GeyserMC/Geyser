@@ -29,10 +29,12 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import lombok.Getter;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
+@Getter
 public class ArmorStandEntity extends LivingEntity {
 
     // These are used to store the state of the armour stand for use when handling invisibility
@@ -47,7 +49,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         // Fake the height to be above where it is so the nametag appears in the right location for invisible non-marker armour stands
-        if (!isMarker && isInvisible) {
+        if (!isMarker && isInvisible && passengers.isEmpty()) {
             position = position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
         }
 
