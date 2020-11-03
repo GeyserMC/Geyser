@@ -121,6 +121,10 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             bookUpdate.session = session;
             bookUpdate.editBookPacket = new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, Hand.MAIN_HAND);
             session.setBookUpdate(bookUpdate);
+            // There won't be any more book updates after this, so we can try sending the edit packet immediately
+            if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
+                bookUpdate.send();
+            }
         }
     }
 
