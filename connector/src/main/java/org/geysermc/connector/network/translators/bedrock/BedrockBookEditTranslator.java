@@ -39,6 +39,7 @@ import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 import java.util.Collections;
@@ -57,10 +58,6 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             List<Tag> pages = tag.contains("pages") ? new LinkedList<>(((ListTag) tag.get("pages")).getValue()) : new LinkedList<>();
 
             int page = packet.getPageNumber();
-
-            // Don't spam edit packets - if text matches the current book contents no need to process changes
-            if (page < pages.size() && pages.get(page) != null && ((StringTag) pages.get(page)).getValue() != null && ((StringTag) pages.get(page)).getValue().equals(packet.getText()))
-                return;
             // Creative edits the NBT for us
             if (session.getGameMode() != GameMode.CREATIVE) {
                 switch (packet.getAction()) {
@@ -107,8 +104,19 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                         return;
                 }
             }
+            // Remove empty pages at the end
+            while (pages.size() > 0) {
+                StringTag currentPage = (StringTag) pages.get(pages.size() - 1);
+                if (currentPage.getValue() == null || currentPage.getValue().isEmpty()) {
+                    pages.remove(pages.size() - 1);
+                } else {
+                    break;
+                }
+            }
             tag.put(new ListTag("pages", pages));
             session.getInventory().setItem(36 + session.getInventory().getHeldItemSlot(), bookItem);
+            InventoryTranslator.INVENTORY_TRANSLATORS.get(null).updateInventory(session, session.getInventory());
+
             BookUpdate bookUpdate = new BookUpdate();
             bookUpdate.session = session;
             bookUpdate.editBookPacket = new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, Hand.MAIN_HAND);
