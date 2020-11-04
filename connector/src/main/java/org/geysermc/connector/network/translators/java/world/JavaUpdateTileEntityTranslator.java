@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -40,6 +41,12 @@ import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerUpdateTileEntityPacket.class)
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
+    private final boolean cacheChunks;
+
+    public JavaUpdateTileEntityTranslator() {
+        cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
+    }
+
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
@@ -49,10 +56,14 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
         }
 
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
-        // If not null then the BlockState is used in BlockEntityTranslator.translateTag()
-        int blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.getOrDefault(packet.getPosition(), 0);
+        // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
+        // between Java block states and Bedrock block entity data
+        int blockState = cacheChunks ?
+                // Cache chunks is enabled; use chunk cache
+                session.getConnector().getWorldManager().getBlockAt(session, packet.getPosition()) :
+                // Cache chunks is not enabled; use block entity cache
+                ChunkUtils.CACHED_BLOCK_ENTITIES.removeInt(packet.getPosition());
         BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), blockState), packet.getPosition());
-        ChunkUtils.CACHED_BLOCK_ENTITIES.remove(packet.getPosition(), blockState);
 
         // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty
         if (packet.getType() == UpdatedTileType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&

@@ -74,7 +74,8 @@ import static org.geysermc.connector.network.translators.world.block.BlockTransl
 public class ChunkUtils {
 
     /**
-     * Temporarily stores positions of BlockState values that are needed for certain block entities actively
+     * Temporarily stores positions of BlockState values that are needed for certain block entities actively.
+     * Not used if cache chunks is enabled
      */
     public static final Object2IntMap<Position> CACHED_BLOCK_ENTITIES = new Object2IntOpenHashMap<>();
 
@@ -302,12 +303,14 @@ public class ChunkUtils {
         // Checks for item frames so they aren't tripped up and removed
         long frameEntityId = ItemFrameEntity.getItemFrameEntityId(session, position);
         if (frameEntityId != -1) {
-            if (blockState == AIR) {
-                ((ItemFrameEntity) session.getEntityCache().getEntityByJavaId(frameEntityId)).updateBlock(session);
+            // TODO: Very occasionally the item frame doesn't sync up when destroyed
+            Entity entity = session.getEntityCache().getEntityByJavaId(frameEntityId);
+            if (blockState == AIR && entity != null) { // Item frame is still present and no block overrides that; refresh it
+                ((ItemFrameEntity) entity).updateBlock(session);
                 return;
             }
 
-            Entity entity = session.getEntityCache().getEntityByJavaId(frameEntityId);
+            // Otherwise the item frame is gone
             if (entity != null) {
                 session.getEntityCache().removeEntity(entity, false);
             } else {
@@ -345,7 +348,10 @@ public class ChunkUtils {
                     ((BedrockOnlyBlockEntity) requiresBlockState).updateBlock(session, blockState, position);
                     break;
                 }
-                CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+                if (!session.getConnector().getConfig().isCacheChunks()) {
+                    // Blocks aren't saved to a chunk cache; resort to this smaller cache
+                    CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+                }
                 break; //No block will be a part of two classes
             }
         }
