@@ -48,6 +48,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
+            entity = session.getPlayerEntity();
+        }
+
         if (entity == null) return;
 
         LongOpenHashSet passengers = entity.getPassengers().clone();
@@ -244,7 +248,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            if (passenger.getEntityType() == EntityType.PLAYER) {
+            if (passenger.getEntityType() == EntityType.PLAYER && mount.getEntityType() != EntityType.PLAYER) {
                 yOffset += EntityType.PLAYER.getOffset();
             }
             switch (mount.getEntityType()) {
