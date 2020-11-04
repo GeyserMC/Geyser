@@ -221,6 +221,12 @@ public class GeyserSession implements CommandSender {
     @Setter
     private ScheduledFuture<?> bucketScheduledFuture;
 
+    /**
+     * Sends a movement packet every three seconds if the player hasn't moved. Prevents timeouts when AFK in certain instances.
+     */
+    @Setter
+    private ScheduledFuture<?> movementSendIfIdle;
+
     private boolean reducedDebugInfo = false;
 
     @Setter
