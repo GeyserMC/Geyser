@@ -72,7 +72,6 @@ import static org.geysermc.connector.network.translators.world.block.BlockTransl
 
 @UtilityClass
 public class ChunkUtils {
-
     /**
      * Temporarily stores positions of BlockState values that are needed for certain block entities actively.
      * Not used if cache chunks is enabled

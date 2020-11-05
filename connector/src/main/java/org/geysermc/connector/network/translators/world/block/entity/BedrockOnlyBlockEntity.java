@@ -33,7 +33,6 @@ import org.geysermc.connector.network.session.GeyserSession;
  * Implemented only if a block is a block entity in Bedrock and not Java Edition.
  */
 public interface BedrockOnlyBlockEntity {
-
     /**
      * Update the block on Bedrock Edition.
      * @param session GeyserSession.

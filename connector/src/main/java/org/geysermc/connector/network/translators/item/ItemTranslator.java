@@ -51,7 +51,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
-
     private static final Int2ObjectMap<ItemTranslator> ITEM_STACK_TRANSLATORS = new Int2ObjectOpenHashMap<>();
     private static final List<NbtItemStackTranslator> NBT_TRANSLATORS;
 

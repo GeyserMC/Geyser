@@ -84,13 +84,13 @@ public abstract class BlockEntityTranslator {
                 GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.block_entity.failed", clazz.getCanonicalName()));
             }
         }
-        boolean isCacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
+        boolean cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
         for (Class<?> clazz : ref.getSubTypesOf(RequiresBlockState.class)) {
             GeyserConnector.getInstance().getLogger().debug("Found block entity that requires block state: " + clazz.getCanonicalName());
 
             try {
                 RequiresBlockState requiresBlockState = (RequiresBlockState) clazz.newInstance();
-                if (isCacheChunks && !(requiresBlockState instanceof BedrockOnlyBlockEntity)) {
+                if (cacheChunks && !(requiresBlockState instanceof BedrockOnlyBlockEntity)) {
                     // Not needed to put this one in the map; cache chunks takes care of that for us
                     GeyserConnector.getInstance().getLogger().debug("Not adding because cache chunks is enabled.");
                     continue;

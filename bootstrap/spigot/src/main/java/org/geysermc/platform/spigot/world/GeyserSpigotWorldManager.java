@@ -44,6 +44,7 @@ import org.geysermc.connector.utils.GameRule;
 import org.geysermc.connector.utils.LanguageUtils;
 import us.myles.ViaVersion.api.Pair;
 import us.myles.ViaVersion.api.Via;
+import us.myles.ViaVersion.api.data.MappingData;
 import us.myles.ViaVersion.api.minecraft.Position;
 import us.myles.ViaVersion.api.protocol.Protocol;
 import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
@@ -55,7 +56,6 @@ import java.io.InputStream;
 import java.util.List;
 
 public class GeyserSpigotWorldManager extends GeyserWorldManager {
-
     /**
      * The current client protocol version for ViaVersion usage.
      */
@@ -102,8 +102,9 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         }
         // Only load in the biomes that are present in this version of Minecraft
         for (Biome enumBiome : Biome.values()) {
-            if (biomes.has(enumBiome.toString())) {
-                biomeToIdMap.put(enumBiome.ordinal(), biomes.get(enumBiome.toString()).intValue());
+            JsonNode biome = biomes.get(enumBiome.toString());
+            if (biome != null) {
+                biomeToIdMap.put(enumBiome.ordinal(), biome.intValue());
             } else {
                 GeyserConnector.getInstance().getLogger().debug("No biome mapping found for " + enumBiome.toString() +
                         ", defaulting to 0");
@@ -156,8 +157,10 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             }
         }
         for (int i = protocolList.size() - 1; i >= 0; i--) {
-            if (protocolList.get(i).getValue().getMappingData() == null) continue;
-            blockId = protocolList.get(i).getValue().getMappingData().getNewBlockStateId(blockId);
+            MappingData mappingData = protocolList.get(i).getValue().getMappingData();
+            if (mappingData != null) {
+                blockId = mappingData.getNewBlockStateId(blockId);
+            }
         }
         return blockId;
     }

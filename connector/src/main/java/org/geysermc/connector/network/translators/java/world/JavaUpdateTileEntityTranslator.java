@@ -41,10 +41,10 @@ import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerUpdateTileEntityPacket.class)
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
-    private final boolean isCacheChunks;
+    private final boolean cacheChunks;
 
     public JavaUpdateTileEntityTranslator() {
-        isCacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
+        cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
     }
 
     @Override
@@ -58,7 +58,7 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
         // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
         // between Java block states and Bedrock block entity data
-        int blockState = isCacheChunks ?
+        int blockState = cacheChunks ?
                 // Cache chunks is enabled; use chunk cache
                 session.getConnector().getWorldManager().getBlockAt(session, packet.getPosition()) :
                 // Cache chunks is not enabled; use block entity cache

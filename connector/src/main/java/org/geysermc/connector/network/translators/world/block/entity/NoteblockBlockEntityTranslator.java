@@ -36,7 +36,6 @@ import org.geysermc.connector.utils.ChunkUtils;
  * Does not implement BlockEntityTranslator because it's only a block entity in Bedrock
  */
 public class NoteblockBlockEntityTranslator implements RequiresBlockState {
-
     @Override
     public boolean isBlock(int blockState) {
         return BlockStateValues.getNoteblockPitch(blockState) != -1;
