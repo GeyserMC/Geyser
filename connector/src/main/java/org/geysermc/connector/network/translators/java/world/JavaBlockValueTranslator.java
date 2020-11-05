@@ -81,8 +81,10 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             // Bells - needed to show ring from other players
             GenericBlockValue bellValue = (GenericBlockValue) packet.getValue();
             Position position = packet.getPosition();
+
             BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
             blockEntityPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
+
             NbtMapBuilder builder = NbtMap.builder();
             builder.putInt("x", position.getX());
             builder.putInt("y", position.getY());
@@ -105,6 +107,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             builder.putInt("Direction", bedrockRingDirection);
             builder.putByte("Ringing", (byte) 1);
             builder.putInt("Ticks", 0);
+            
             blockEntityPacket.setData(builder.build());
             session.sendUpstreamPacket(blockEntityPacket);
         }
