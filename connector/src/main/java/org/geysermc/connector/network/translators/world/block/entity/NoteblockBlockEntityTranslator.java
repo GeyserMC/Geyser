@@ -43,14 +43,14 @@ public class NoteblockBlockEntityTranslator implements RequiresBlockState {
     }
 
     public static void translate(GeyserSession session, Position position) {
-        int blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.getOrDefault(position, 0);
+        int blockState = session.getConnector().getConfig().isCacheChunks() ?
+                session.getConnector().getWorldManager().getBlockAt(session, position) :
+                ChunkUtils.CACHED_BLOCK_ENTITIES.removeInt(position);
         BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
         blockEventPacket.setEventType(0);
         blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
         session.sendUpstreamPacket(blockEventPacket);
-
-        ChunkUtils.CACHED_BLOCK_ENTITIES.remove(position);
     }
 
 }
