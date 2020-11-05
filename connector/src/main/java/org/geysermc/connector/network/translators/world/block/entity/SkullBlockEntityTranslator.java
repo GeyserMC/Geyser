@@ -25,29 +25,26 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @BlockEntity(name = "Skull", regex = "skull")
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
     @Override
     public boolean isBlock(int blockState) {
         return BlockStateValues.getSkullVariant(blockState) != -1;
     }
 
     @Override
-    public Map<String, Object> translateTag(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         byte skullVariant = BlockStateValues.getSkullVariant(blockState);
         float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;
         // Just in case...
-        if (skullVariant == -1) skullVariant = 0;
-        tags.put("Rotation", rotation);
-        tags.put("SkullType", skullVariant);
-        return tags;
+        if (skullVariant == -1) {
+            skullVariant = 0;
+        }
+        builder.put("Rotation", rotation);
+        builder.put("SkullType", skullVariant);
     }
-
 }
