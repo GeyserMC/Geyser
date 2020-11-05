@@ -400,7 +400,7 @@ public abstract class ItemTranslator {
                 // Check if its a message to translate
                 if (MessageUtils.isMessage(name)) {
                     // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getLocale());
+                    name = MessageUtils.convertMessage(name, session.getLocale());
 
                     // Add the new name tag
                     display.put(new StringTag("Name", name));

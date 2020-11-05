@@ -57,8 +57,7 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             return;
         }
 
-        String name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(packet.getName()),
-                session.getLocale());
+        String name = MessageUtils.convertMessage(packet.getName(), session.getLocale());
 
         name = LocaleUtils.getLocaleString(name, session.getLocale());
 

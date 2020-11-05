@@ -231,7 +231,7 @@ public class PlayerEntity extends LivingEntity {
             String username = this.username;
             TextMessage name = (TextMessage) entityMetadata.getValue();
             if (name != null) {
-                username = MessageUtils.getBedrockMessage(name);
+                username = MessageUtils.convertMessage(name.toString());
             }
             Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {

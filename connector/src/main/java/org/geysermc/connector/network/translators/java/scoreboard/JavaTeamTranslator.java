@@ -59,11 +59,11 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
         switch (packet.getAction()) {
             case CREATE:
                 scoreboard.registerNewTeam(packet.getTeamName(), toPlayerSet(packet.getPlayers()))
-                        .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                        .setName(MessageUtils.convertMessage(packet.getDisplayName().toString()))
                         .setColor(packet.getColor())
                         .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getLocale()))
-                        .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getLocale()));
+                        .setPrefix(MessageUtils.convertMessage(packet.getPrefix().toString(), session.getLocale()))
+                        .setSuffix(MessageUtils.convertMessage(packet.getSuffix().toString(), session.getLocale()));
                 break;
             case UPDATE:
                 if (team == null) {
@@ -74,11 +74,11 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                     return;
                 }
 
-                team.setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                team.setName(MessageUtils.convertMessage(packet.getDisplayName().toString()))
                         .setColor(packet.getColor())
                         .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getLocale()))
-                        .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getLocale()))
+                        .setPrefix(MessageUtils.convertMessage(packet.getPrefix().toString(), session.getLocale()))
+                        .setSuffix(MessageUtils.convertMessage(packet.getSuffix().toString(), session.getLocale()))
                         .setUpdateType(UpdateType.UPDATE);
                 break;
             case ADD_PLAYER:

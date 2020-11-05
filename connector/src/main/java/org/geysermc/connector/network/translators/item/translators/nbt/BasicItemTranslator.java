@@ -108,7 +108,7 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
     private String toBedrockMessage(StringTag tag) {
         String message = tag.getValue();
         if (message == null) return null;
-        TextComponent component = (TextComponent) MessageUtils.phraseJavaMessage(message);
+        TextComponent component = (TextComponent) GsonComponentSerializer.gson().deserialize(message);
         String legacy = LegacyComponentSerializer.legacySection().serialize(component);
         if (hasFormatting(LegacyComponentSerializer.legacySection().deserialize(legacy))) {
             return "§r" + legacy;

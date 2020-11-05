@@ -44,7 +44,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
         for(int i = 0; i < 4; i++) {
             int currentLine = i+1;
             String signLine = getOrDefault(tag.getValue().get("Text" + currentLine), "");
-            signLine = MessageUtils.getBedrockMessage(MessageSerializer.fromString(signLine));
+            signLine = MessageUtils.convertMessage(signLine);
 
             // Check the character width on the sign to ensure there is no overflow that is usually hidden
             // to Java Edition clients but will appear to Bedrock clients
@@ -68,7 +68,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             signText.append("\n");
         }
 
-        tags.put("Text", MessageUtils.getBedrockMessage(MessageSerializer.fromString(signText.toString())));
+        tags.put("Text", MessageUtils.convertMessage(signText.toString()));
         return tags;
     }
 

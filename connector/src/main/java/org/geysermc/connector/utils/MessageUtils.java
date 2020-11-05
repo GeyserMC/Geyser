@@ -26,47 +26,27 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
-import com.github.steveice10.mc.protocol.data.message.Message;
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
-import com.github.steveice10.mc.protocol.data.message.TextMessage;
-import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.data.message.style.ChatColor;
 import com.github.steveice10.mc.protocol.data.message.style.ChatFormat;
-import com.github.steveice10.mc.protocol.data.message.style.MessageStyle;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.translation.TranslationRegistry;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MessageUtils {
 
-    private static final Map<String, Integer> COLORS = new HashMap<>();
+    // These are used for handling the translations of the messages
+    private static final TranslationRegistry REGISTRY = new MinecraftTranslationRegistry();
+    private static final TranslatableComponentRenderer<Locale> RENDERER = TranslatableComponentRenderer.usingTranslationSource(REGISTRY);
+
+    // Store team colors for player names
     private static final Map<TeamColor, String> TEAM_COLORS = new HashMap<>();
 
     static {
-        COLORS.put(ChatColor.BLACK, 0x000000);
-        COLORS.put(ChatColor.DARK_BLUE, 0x0000aa);
-        COLORS.put(ChatColor.DARK_GREEN, 0x00aa00);
-        COLORS.put(ChatColor.DARK_AQUA, 0x00aaaa);
-        COLORS.put(ChatColor.DARK_RED, 0xaa0000);
-        COLORS.put(ChatColor.DARK_PURPLE, 0xaa00aa);
-        COLORS.put(ChatColor.GOLD, 0xffaa00);
-        COLORS.put(ChatColor.GRAY, 0xaaaaaa);
-        COLORS.put(ChatColor.DARK_GRAY, 0x555555);
-        COLORS.put(ChatColor.BLUE, 0x5555ff);
-        COLORS.put(ChatColor.GREEN, 0x55ff55);
-        COLORS.put(ChatColor.AQUA, 0x55ffff);
-        COLORS.put(ChatColor.RED, 0xff5555);
-        COLORS.put(ChatColor.LIGHT_PURPLE, 0xff55ff);
-        COLORS.put(ChatColor.YELLOW, 0xffff55);
-        COLORS.put(ChatColor.WHITE, 0xffffff);
-
         TEAM_COLORS.put(TeamColor.BLACK, getColor(ChatColor.BLACK));
         TEAM_COLORS.put(TeamColor.DARK_BLUE, getColor(ChatColor.DARK_BLUE));
         TEAM_COLORS.put(TeamColor.DARK_GREEN, getColor(ChatColor.DARK_GREEN));
@@ -83,160 +63,31 @@ public class MessageUtils {
         TEAM_COLORS.put(TeamColor.LIGHT_PURPLE, getColor(ChatColor.LIGHT_PURPLE));
         TEAM_COLORS.put(TeamColor.YELLOW, getColor(ChatColor.YELLOW));
         TEAM_COLORS.put(TeamColor.WHITE, getColor(ChatColor.WHITE));
-        TEAM_COLORS.put(TeamColor.OBFUSCATED, getFormat(Collections.singletonList(ChatFormat.OBFUSCATED)));
-        TEAM_COLORS.put(TeamColor.BOLD, getFormat(Collections.singletonList(ChatFormat.BOLD)));
-        TEAM_COLORS.put(TeamColor.STRIKETHROUGH, getFormat(Collections.singletonList(ChatFormat.STRIKETHROUGH)));
-        TEAM_COLORS.put(TeamColor.ITALIC, getFormat(Collections.singletonList(ChatFormat.ITALIC)));
+        TEAM_COLORS.put(TeamColor.OBFUSCATED, getFormat(ChatFormat.OBFUSCATED));
+        TEAM_COLORS.put(TeamColor.BOLD, getFormat(ChatFormat.BOLD));
+        TEAM_COLORS.put(TeamColor.STRIKETHROUGH, getFormat(ChatFormat.STRIKETHROUGH));
+        TEAM_COLORS.put(TeamColor.ITALIC, getFormat(ChatFormat.ITALIC));
     }
 
     /**
-     * Recursively parse each message from a list for usage in a {@link TranslationMessage}
+     * Convert a Java message to the legacy format ready for bedrock
      *
-     * @param messages A {@link List} of {@link Message} to parse
-     * @param locale A locale loaded to get the message for
-     * @param parent A {@link Message} to use as the parent (can be null)
-     * @return the translation parameters
+     * @param message Java message
+     * @param locale Locale to use for translation strings
+     * @return Parsed and formatted message for bedrock
      */
-    public static List<String> getTranslationParams(List<Message> messages, String locale, Message parent) {
-        List<String> strings = new ArrayList<>();
-        for (Message message : messages) {
-            message = fixMessageStyle(message, parent);
+    public static String convertMessage(String message, String locale) {
+        Component component = GsonComponentSerializer.gson().deserialize(message);
 
-            if (message instanceof TranslationMessage) {
-                TranslationMessage translation = (TranslationMessage) message;
+        // Get a Locale from the given locale string
+        Locale localeCode = Locale.forLanguageTag(locale.replace('_', '-'));
+        component = RENDERER.render(component, localeCode);
 
-                if (locale == null) {
-                    String builder = "%" + translation.getKey();
-                    strings.add(builder);
-                }
-
-                // Collect all params and add format corrections to the end of them
-                List<String> furtherParams = new ArrayList<>();
-                for (String param : getTranslationParams(translation.getWith(), locale, message)) {
-                    String newParam = param;
-                    if (parent.getStyle().getFormats().size() != 0) {
-                        newParam += getFormat(parent.getStyle().getFormats());
-                    }
-                    if (parent.getStyle().getColor() != ChatColor.NONE) {
-                        newParam += getColor(parent.getStyle().getColor());
-                    }
-
-                    furtherParams.add(newParam);
-                }
-
-                if (locale != null) {
-                    String builder = getFormat(message.getStyle().getFormats()) +
-                            getColor(message.getStyle().getColor());
-                    builder += insertParams(LocaleUtils.getLocaleString(translation.getKey(), locale), furtherParams);
-                    strings.add(builder);
-                } else {
-                    String format = getFormat(message.getStyle().getFormats()) +
-                            getColor(message.getStyle().getColor());
-                    for (String param : furtherParams) {
-                        strings.add(format + param);
-                    }
-                }
-            } else {
-                String builder = getFormat(message.getStyle().getFormats()) +
-                        getColor(message.getStyle().getColor());
-                builder += getTranslatedBedrockMessage(message, locale, false, parent);
-                strings.add(builder);
-            }
-        }
-
-        return strings;
+        return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
-    public static String getTranslatedBedrockMessage(Message message, String locale) {
-        return getTranslatedBedrockMessage(message, locale, true);
-    }
-
-    public static String getTranslatedBedrockMessage(Message message, String locale, boolean shouldTranslate) {
-        return getTranslatedBedrockMessage(message, locale, shouldTranslate, null);
-    }
-
-    /**
-     * Translate a given {@link TranslationMessage} to the given locale
-     *
-     * @param message The {@link Message} to send
-     * @param locale the locale
-     * @param shouldTranslate if the message should be translated
-     * @param parent the parent message
-     * @return the given translation message translated from the given locale
-     */
-    public static String getTranslatedBedrockMessage(Message message, String locale, boolean shouldTranslate, Message parent) {
-        JsonParser parser = new JsonParser();
-        if (isMessage(message.toString())) {
-            JsonObject object = parser.parse(message.toString()).getAsJsonObject();
-            message = MessageSerializer.fromJson(object);
-        }
-
-        message = fixMessageStyle(message, parent);
-
-        String messageText = (message instanceof TranslationMessage) ? ((TranslationMessage) message).getKey() : ((TextMessage) message).getText();
-        if (locale != null && shouldTranslate) {
-            messageText = LocaleUtils.getLocaleString(messageText, locale);
-        }
-
-        StringBuilder builder = new StringBuilder();
-        builder.append(getFormat(message.getStyle().getFormats()));
-        builder.append(getColor(message.getStyle().getColor()));
-        builder.append(messageText);
-
-        for (Message msg : message.getExtra()) {
-            builder.append(getFormat(msg.getStyle().getFormats()));
-            builder.append(getColor(msg.getStyle().getColor()));
-            if (!(msg.toString() == null)) {
-                boolean isTranslationMessage = (msg instanceof TranslationMessage);
-                String extraText = "";
-
-                if (isTranslationMessage) {
-                    List<String> paramsTranslated =  getTranslationParams(((TranslationMessage) msg).getWith(), locale, message);
-                    extraText = insertParams(getTranslatedBedrockMessage(msg, locale, isTranslationMessage, message), paramsTranslated);
-                } else {
-                    extraText = getTranslatedBedrockMessage(msg, locale, isTranslationMessage, message);
-                }
-
-                builder.append(extraText);
-                builder.append("\u00a7r");
-            }
-        }
-
-        return builder.toString();
-    }
-
-    /**
-     * If the passed {@link Message} color or format are empty then copy from parent
-     *
-     * @param message {@link Message} to update
-     * @param parent Parent {@link Message} for style
-     * @return The updated {@link Message}
-     */
-    private static Message fixMessageStyle(Message message, Message parent) {
-        if (parent == null) {
-            return message;
-        }
-        MessageStyle.Builder styleBuilder = message.getStyle().toBuilder();
-
-        // Copy color from parent
-        if (message.getStyle().getColor() == ChatColor.NONE) {
-            styleBuilder.color(parent.getStyle().getColor());
-        }
-
-        // Copy formatting from parent
-        if (message.getStyle().getFormats().size() == 0) {
-            styleBuilder.formats(parent.getStyle().getFormats());
-        }
-
-        return message.toBuilder().style(styleBuilder.build()).build();
-    }
-
-    public static String getBedrockMessage(Message message) {
-        if (isMessage(((TextMessage) message).getText())) {
-            return getBedrockMessage(((TextMessage) message).getText());
-        } else {
-            return getBedrockMessage(MessageSerializer.toJsonString(message));
-        }
+    public static String convertMessage(String message) {
+        return convertMessage(message, LanguageUtils.getDefaultLocale());
     }
 
     /**
@@ -246,63 +97,45 @@ public class MessageUtils {
      * @param message Potentially lenient JSON message
      * @return Bedrock formatted message
      */
-    public static String getBedrockMessageLenient(String message) {
+    public static String convertMessageLenient(String message) {
         if (isMessage(message)) {
-            return getBedrockMessage(message);
+            return convertMessage(message);
         } else {
-            final JsonObject obj = new JsonObject();
-            obj.addProperty("text", message);
-            return getBedrockMessage(obj.toString());
+            return convertMessage(convertToJavaMessage(message));
         }
     }
 
-    public static String getBedrockMessage(String message) {
-        Component component = phraseJavaMessage(message);
-        return LegacyComponentSerializer.legacySection().serialize(component);
-    }
-
-    public static Component phraseJavaMessage(String message) {
-        return GsonComponentSerializer.gson().deserialize(message);
-    }
-
-    public static String getJavaMessage(String message) {
+    /**
+     * Convert a Bedrock message string back to a format Java can understand
+     *
+     * @param message Message to convert
+     * @return The formatted JSON string
+     */
+    public static String convertToJavaMessage(String message) {
         Component component = LegacyComponentSerializer.legacySection().deserialize(message);
         return GsonComponentSerializer.gson().serialize(component);
     }
 
     /**
-     * Inserts the given parameters into the given message both in sequence and as requested
+     * Checks if the given text string is a JSON message
      *
-     * @param message Message containing possible parameter replacement strings
-     * @param params  A list of parameter strings
-     * @return Parsed message with all params inserted as needed
+     * @param text String to test
+     * @return True if its a valid message JSON string, false if not
      */
-    public static String insertParams(String message, List<String> params) {
-        String newMessage = message;
-
-        Pattern p = Pattern.compile("%([1-9])\\$s");
-        Matcher m = p.matcher(message);
-        while (m.find()) {
-            try {
-                newMessage = newMessage.replaceFirst("%" + m.group(1) + "\\$s", params.get(Integer.parseInt(m.group(1)) - 1));
-            } catch (Exception e) {
-                // Couldn't find the param to replace
-            }
+    public static boolean isMessage(String text) {
+        try {
+            GsonComponentSerializer.gson().deserialize(text);
+        } catch (Exception ex) {
+            return false;
         }
 
-        for (String text : params) {
-            newMessage = newMessage.replaceFirst("%s", text.replaceAll("%s", "%r"));
-        }
-
-        newMessage = newMessage.replaceAll("%r", "MISSING!");
-
-        return newMessage;
+        return true;
     }
 
     /**
-     * Convert a ChatColor into a string for inserting into messages
+     * Convert a {@link ChatColor} into a string for inserting into messages
      *
-     * @param color ChatColor to convert
+     * @param color {@link ChatColor} to convert
      * @return The converted color string
      */
     private static String getColor(String color) {
@@ -357,121 +190,55 @@ public class MessageUtils {
                 base += "f";
                 break;
             case ChatColor.RESET:
-            //case NONE:
                 base += "r";
                 break;
-            case "": // To stop recursion
-                return "";
             default:
-                return getClosestColor(color);
+                return "";
         }
 
         return base;
     }
 
     /**
-     * Based on https://github.com/ViaVersion/ViaBackwards/blob/master/core/src/main/java/nl/matsv/viabackwards/protocol/protocol1_15_2to1_16/chat/TranslatableRewriter1_16.java
+     * Convert a {@link ChatFormat} into a string for inserting into messages
      *
-     * @param color A color string
-     * @return The closest color to that string
-     */
-    private static String getClosestColor(String color) {
-        if (!color.startsWith("#")) {
-            return "";
-        }
-
-        int rgb = Integer.parseInt(color.substring(1), 16);
-        int r = (rgb >> 16) & 0xFF;
-        int g = (rgb >> 8) & 0xFF;
-        int b = rgb & 0xFF;
-
-        String closest = null;
-        int smallestDiff = 0;
-
-        for (Map.Entry<String, Integer> testColor : COLORS.entrySet()) {
-            if (testColor.getValue() == rgb) {
-                closest = testColor.getKey();
-                break;
-            }
-
-            int testR = (testColor.getValue() >> 16) & 0xFF;
-            int testG = (testColor.getValue() >> 8) & 0xFF;
-            int testB = testColor.getValue() & 0xFF;
-
-            // Check by the greatest diff of the 3 values
-            int rAverage = (testR + r) / 2;
-            int rDiff = testR - r;
-            int gDiff = testG - g;
-            int bDiff = testB - b;
-            int diff = ((2 + (rAverage >> 8)) * rDiff * rDiff)
-                    + (4 * gDiff * gDiff)
-                    + ((2 + ((255 - rAverage) >> 8)) * bDiff * bDiff);
-            if (closest == null || diff < smallestDiff) {
-                closest = testColor.getKey();
-                smallestDiff = diff;
-            }
-        }
-
-        return getColor(closest);
-    }
-
-    /**
-     * Convert a list of ChatFormats into a string for inserting into messages
-     *
-     * @param formats ChatFormats to convert
+     * @param format {@link ChatFormat} to convert
      * @return The converted chat formatting string
      */
-    private static String getFormat(List<ChatFormat> formats) {
+    private static String getFormat(ChatFormat format) {
         StringBuilder str = new StringBuilder();
-        for (ChatFormat cf : formats) {
-            String base = "\u00a7";
-            switch (cf) {
-                case OBFUSCATED:
-                    base += "k";
-                    break;
-                case BOLD:
-                    base += "l";
-                    break;
-                case STRIKETHROUGH:
-                    base += "m";
-                    break;
-                case UNDERLINED:
-                    base += "n";
-                    break;
-                case ITALIC:
-                    base += "o";
-                    break;
-                default:
-                    return "";
-            }
-
-            str.append(base);
+        String base = "\u00a7";
+        switch (format) {
+            case OBFUSCATED:
+                base += "k";
+                break;
+            case BOLD:
+                base += "l";
+                break;
+            case STRIKETHROUGH:
+                base += "m";
+                break;
+            case UNDERLINED:
+                base += "n";
+                break;
+            case ITALIC:
+                base += "o";
+                break;
+            default:
+                return "";
         }
+
+        str.append(base);
 
         return str.toString();
     }
 
     /**
-     * Checks if the given text string is a json message
+     * Convert a team color to a chat color
      *
-     * @param text String to test
-     * @return True if its a valid message json string, false if not
+     * @param teamColor
+     * @return The chat color character
      */
-    public static boolean isMessage(String text) {
-        JsonParser parser = new JsonParser();
-        try {
-            JsonObject object = parser.parse(text).getAsJsonObject();
-            try {
-                MessageSerializer.fromJson(object);
-            } catch (Exception ex) {
-                return false;
-            }
-        } catch (Exception ex) {
-            return false;
-        }
-        return true;
-    }
-
     public static String toChatColor(TeamColor teamColor) {
         return TEAM_COLORS.getOrDefault(teamColor, "");
     }
@@ -480,7 +247,7 @@ public class MessageUtils {
      * Checks if the given message is over 256 characters (Java edition server chat limit) and sends a message to the user if it is
      *
      * @param message Message to check
-     * @param session GeyserSession for the user
+     * @param session {@link GeyserSession} for the user
      * @return True if the message is too long, false if not
      */
     public static boolean isTooLong(String message, GeyserSession session) {

@@ -44,11 +44,11 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
         switch (packet.getAction()) {
             case TITLE:
                 titlePacket.setType(SetTitlePacket.Type.TITLE);
-                titlePacket.setText(MessageUtils.getTranslatedBedrockMessage(packet.getTitle(), locale));
+                titlePacket.setText(MessageUtils.convertMessage(packet.getTitle().toString(), locale));
                 break;
             case SUBTITLE:
                 titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
-                titlePacket.setText(MessageUtils.getTranslatedBedrockMessage(packet.getTitle(), locale));
+                titlePacket.setText(MessageUtils.convertMessage(packet.getTitle().toString(), locale));
                 break;
             case CLEAR:
             case RESET:
@@ -57,7 +57,7 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
                 break;
             case ACTION_BAR:
                 titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-                titlePacket.setText(MessageUtils.getTranslatedBedrockMessage(packet.getTitle(), locale));
+                titlePacket.setText(MessageUtils.convertMessage(packet.getTitle().toString(), locale));
                 break;
             case TIMES:
                 titlePacket.setFadeInTime(packet.getFadeIn());

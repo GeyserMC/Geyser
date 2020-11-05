@@ -51,7 +51,7 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
             metadata.put(EntityData.COMMAND_BLOCK_COMMAND, entityMetadata.getValue());
         }
         if (entityMetadata.getId() == 14) {
-            metadata.put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageUtils.getBedrockMessage((Message) entityMetadata.getValue()));
+            metadata.put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageUtils.convertMessage(entityMetadata.getValue().toString()));
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

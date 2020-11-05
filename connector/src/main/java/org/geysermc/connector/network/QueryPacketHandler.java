@@ -148,7 +148,7 @@ public class QueryPacketHandler {
         }
 
         if (connector.getConfig().isPassthroughMotd() && pingInfo != null) {
-            String[] javaMotd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.getDescription())).split("\n");
+            String[] javaMotd = MessageUtils.convertMessage(pingInfo.getDescription()).split("\n");
             motd = javaMotd[0].trim(); // First line of the motd.
         } else {
             motd = connector.getConfig().getBedrock().getMotd1();

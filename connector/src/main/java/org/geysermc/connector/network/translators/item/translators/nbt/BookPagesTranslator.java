@@ -56,7 +56,7 @@ public class BookPagesTranslator extends NbtItemStackTranslator {
 
             CompoundTag pageTag = new CompoundTag("");
             pageTag.put(new StringTag("photoname", ""));
-            pageTag.put(new StringTag("text", MessageUtils.getBedrockMessageLenient(textTag.getValue())));
+            pageTag.put(new StringTag("text", MessageUtils.convertMessage(textTag.getValue())));
             pages.add(pageTag);
         }
 
@@ -78,7 +78,7 @@ public class BookPagesTranslator extends NbtItemStackTranslator {
             CompoundTag pageTag = (CompoundTag) tag;
 
             StringTag textTag = pageTag.get("text");
-            pages.add(new StringTag(MessageUtils.getJavaMessage(textTag.getValue())));
+            pages.add(new StringTag(MessageUtils.convertToJavaMessage(textTag.getValue())));
         }
 
         itemTag.remove("pages");
