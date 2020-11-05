@@ -54,15 +54,12 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             blockEventPacket.setEventType(1);
             blockEventPacket.setEventData(value.getViewers() > 0 ? 1 : 0);
             session.sendUpstreamPacket(blockEventPacket);
-        }
-        else if (packet.getValue() instanceof EndGatewayValue) {
+        } else if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-        }
-        else if (packet.getValue() instanceof NoteBlockValue) {
+        } else if (packet.getValue() instanceof NoteBlockValue) {
             NoteblockBlockEntityTranslator.translate(session, packet.getPosition());
-        }
-        else if (packet.getValue() instanceof PistonValue) {
+        } else if (packet.getValue() instanceof PistonValue) {
             PistonValueType type = (PistonValueType) packet.getType();
 
             // Unlike everything else, pistons need a block entity packet to convey motion
@@ -73,16 +70,13 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             } else {
                 retractPiston(session, position, 1.0f, 1.0f);
             }
-        }
-        else if (packet.getValue() instanceof MobSpawnerValue) {
+        } else if (packet.getValue() instanceof MobSpawnerValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-        }
-        else if (packet.getValue() instanceof EndGatewayValue) {
+        } else if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-        }
-        else if (packet.getValue() instanceof GenericBlockValue && packet.getBlockId() == 677) {
+        } else if (packet.getValue() instanceof GenericBlockValue && packet.getBlockId() == 677) {
             // TODO: Remove hardcode? Remove hardcodes for all of these? (EndGatewayValue for example still hardcodes the block)
             // Bells - needed to show ring from other players
             GenericBlockValue bellValue = (GenericBlockValue) packet.getValue();
