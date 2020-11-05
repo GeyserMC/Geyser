@@ -50,7 +50,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.chat.MessageTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -231,7 +231,7 @@ public class PlayerEntity extends LivingEntity {
             String username = this.username;
             TextMessage name = (TextMessage) entityMetadata.getValue();
             if (name != null) {
-                username = MessageUtils.convertMessage(name.toString());
+                username = MessageTranslator.convertMessage(name.toString());
             }
             Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
@@ -245,7 +245,7 @@ public class PlayerEntity extends LivingEntity {
                         team.getEntities().contains(session.getPlayerEntity().getUsername())) {
                     metadata.put(EntityData.NAMETAG, "");
                 } else {
-                    metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());
+                    metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageTranslator.toChatColor(team.getColor()) + username + team.getSuffix());
                 }
             }
         }

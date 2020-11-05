@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.chat.MessageTranslator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator imp
         // Java and Bedrock values
         map.put("conditionMet", ((ByteTag) tag.get("conditionMet")).getValue());
         map.put("auto", ((ByteTag) tag.get("auto")).getValue());
-        map.put("CustomName", MessageUtils.convertMessage(((StringTag) tag.get("CustomName")).getValue()));
+        map.put("CustomName", MessageTranslator.convertMessage(((StringTag) tag.get("CustomName")).getValue()));
         map.put("powered", ((ByteTag) tag.get("powered")).getValue());
         map.put("Command", ((StringTag) tag.get("Command")).getValue());
         map.put("SuccessCount", ((IntTag) tag.get("SuccessCount")).getValue());

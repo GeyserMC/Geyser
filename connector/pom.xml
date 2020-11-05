@@ -149,9 +149,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>net.kyori</groupId>
+            <groupId>com.github.kyoripowered.adventure</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>4.1.1</version>
+            <version>0599048</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

@@ -25,9 +25,8 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.chat.MessageTranslator;
 import org.geysermc.connector.utils.SignUtils;
 
 import java.util.HashMap;
@@ -44,7 +43,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
         for(int i = 0; i < 4; i++) {
             int currentLine = i+1;
             String signLine = getOrDefault(tag.getValue().get("Text" + currentLine), "");
-            signLine = MessageUtils.convertMessage(signLine);
+            signLine = MessageTranslator.convertMessage(signLine);
 
             // Check the character width on the sign to ensure there is no overflow that is usually hidden
             // to Java Edition clients but will appear to Bedrock clients
@@ -68,14 +67,14 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             signText.append("\n");
         }
 
-        tags.put("Text", MessageUtils.convertMessage(signText.toString()));
+        tags.put("Text", MessageTranslator.convertMessage(signText.toString()));
         return tags;
     }
 
     /**
      * Maps a color stored in a sign's Color tag to a Bedrock Edition formatting code.
      * <br>
-     * The color names correspond to dye names, because of this we can't use {@link MessageUtils#getColor(String)}.
+     * The color names correspond to dye names, because of this we can't use {@link MessageTranslator#getColor(String)}.
      *
      * @param javaColor The dye color stored in the sign's Color tag.
      * @return A Bedrock Edition formatting code for valid dye colors, otherwise an empty string.

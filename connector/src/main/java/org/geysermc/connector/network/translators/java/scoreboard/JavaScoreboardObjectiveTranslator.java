@@ -26,12 +26,11 @@
 package org.geysermc.connector.network.translators.java.scoreboard;
 
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.chat.MessageTranslator;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ObjectiveAction;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
@@ -51,7 +50,7 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
         switch (packet.getAction()) {
             case ADD:
             case UPDATE:
-                objective.setDisplayName(MessageUtils.convertMessage(packet.getDisplayName().toString()));
+                objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName().toString()));
                 objective.setType(packet.getType().ordinal());
                 break;
             case REMOVE:

@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.connector.network.chat;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.data.message.style.ChatColor;
@@ -34,10 +34,11 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.translation.TranslationRegistry;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.*;
 
-public class MessageUtils {
+public class MessageTranslator {
 
     // These are used for handling the translations of the messages
     private static final TranslationRegistry REGISTRY = new MinecraftTranslationRegistry();

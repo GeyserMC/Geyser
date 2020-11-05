@@ -23,12 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.connector.network.chat;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.TranslationRegistry;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.connector.utils.LocaleUtils;
 
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -37,7 +38,7 @@ import java.util.regex.Pattern;
 
 /**
  * This class is used for mapping a translation key with the already loaded Java locale data
- * Used in MessageUtils.java as part of the KyoriPowered/Adventure library
+ * Used in MessageTranslator.java as part of the KyoriPowered/Adventure library
  */
 public class MinecraftTranslationRegistry implements TranslationRegistry {
     @Override

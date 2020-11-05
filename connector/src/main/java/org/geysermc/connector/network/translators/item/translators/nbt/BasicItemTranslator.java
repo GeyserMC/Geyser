@@ -37,7 +37,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
-import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
 import java.util.List;

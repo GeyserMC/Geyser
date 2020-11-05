@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
@@ -44,7 +43,7 @@ import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.chat.MessageTranslator;
 import org.reflections.Reflections;
 
 import java.util.*;
@@ -392,15 +391,15 @@ public abstract class ItemTranslator {
                 String name = ((StringTag) display.get("Name")).getValue();
 
                 // If its not a message convert it
-                if (!MessageUtils.isMessage(name)) {
+                if (!MessageTranslator.isMessage(name)) {
                     Component component = LegacyComponentSerializer.legacySection().deserialize(name);
                     name = GsonComponentSerializer.gson().serialize(component);
                 }
 
                 // Check if its a message to translate
-                if (MessageUtils.isMessage(name)) {
+                if (MessageTranslator.isMessage(name)) {
                     // Get the translated name
-                    name = MessageUtils.convertMessage(name, session.getLocale());
+                    name = MessageTranslator.convertMessage(name, session.getLocale());
 
                     // Add the new name tag
                     display.put(new StringTag("Name", name));
