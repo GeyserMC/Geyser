@@ -43,7 +43,7 @@ import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.network.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.reflections.Reflections;
 
 import java.util.*;

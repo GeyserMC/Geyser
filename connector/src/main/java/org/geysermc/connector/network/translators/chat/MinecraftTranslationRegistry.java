@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.chat;
+package org.geysermc.connector.network.translators.chat;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.TranslationRegistry;

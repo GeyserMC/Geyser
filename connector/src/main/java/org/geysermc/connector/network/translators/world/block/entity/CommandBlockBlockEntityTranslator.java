@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.network.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import java.util.HashMap;
 import java.util.Map;

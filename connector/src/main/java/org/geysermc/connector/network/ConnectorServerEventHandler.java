@@ -35,7 +35,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
-import org.geysermc.connector.network.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.net.InetSocketAddress;

@@ -37,7 +37,7 @@ import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.scoreboard.UpdateType;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.network.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import java.util.Arrays;
 import java.util.Set;

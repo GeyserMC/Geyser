@@ -33,7 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +56,7 @@ public class BookPagesTranslator extends NbtItemStackTranslator {
 
             CompoundTag pageTag = new CompoundTag("");
             pageTag.put(new StringTag("photoname", ""));
-            pageTag.put(new StringTag("text", MessageTranslator.convertMessage(textTag.getValue())));
+            pageTag.put(new StringTag("text", MessageTranslator.convertMessageLenient(textTag.getValue())));
             pages.add(pageTag);
         }
 

@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.connector.network.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.SignUtils;
 
 import java.util.HashMap;
@@ -67,7 +67,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             signText.append("\n");
         }
 
-        tags.put("Text", MessageTranslator.convertMessage(signText.toString()));
+        tags.put("Text", MessageTranslator.convertMessageLenient(signText.toString()));
         return tags;
     }
 

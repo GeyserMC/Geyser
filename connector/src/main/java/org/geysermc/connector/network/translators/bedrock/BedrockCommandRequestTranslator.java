@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
-import org.geysermc.connector.network.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @Translator(packet = CommandRequestPacket.class)
 public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {

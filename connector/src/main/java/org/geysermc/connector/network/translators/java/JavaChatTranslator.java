@@ -30,7 +30,7 @@ import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @Translator(packet = ServerChatPacket.class)
 public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {

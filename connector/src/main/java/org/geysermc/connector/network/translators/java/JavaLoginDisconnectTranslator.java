@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.packet.login.server.LoginDisconnectPack
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @Translator(packet = LoginDisconnectPacket.class)
 public class JavaLoginDisconnectTranslator extends PacketTranslator<LoginDisconnectPacket> {
