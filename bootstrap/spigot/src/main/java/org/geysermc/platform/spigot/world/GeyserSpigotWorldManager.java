@@ -43,16 +43,19 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.GameRule;
 import org.geysermc.connector.utils.LanguageUtils;
 import us.myles.ViaVersion.api.Pair;
+import us.myles.ViaVersion.api.Via;
+import us.myles.ViaVersion.api.data.MappingData;
+import us.myles.ViaVersion.api.minecraft.Position;
 import us.myles.ViaVersion.api.protocol.Protocol;
 import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
 import us.myles.ViaVersion.api.protocol.ProtocolVersion;
 import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.Protocol1_13To1_12_2;
+import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.storage.BlockStorage;
 
 import java.io.InputStream;
 import java.util.List;
 
 public class GeyserSpigotWorldManager extends GeyserWorldManager {
-
     /**
      * The current client protocol version for ViaVersion usage.
      */
@@ -99,8 +102,9 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         }
         // Only load in the biomes that are present in this version of Minecraft
         for (Biome enumBiome : Biome.values()) {
-            if (biomes.has(enumBiome.toString())) {
-                biomeToIdMap.put(enumBiome.ordinal(), biomes.get(enumBiome.toString()).intValue());
+            JsonNode biome = biomes.get(enumBiome.toString());
+            if (biome != null) {
+                biomeToIdMap.put(enumBiome.ordinal(), biome.intValue());
             } else {
                 GeyserConnector.getInstance().getLogger().debug("No biome mapping found for " + enumBiome.toString() +
                         ", defaulting to 0");
@@ -127,30 +131,38 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
 
     public static int getLegacyBlock(GeyserSession session, int x, int y, int z, boolean isViaVersion) {
         if (isViaVersion) {
-            return getLegacyBlock(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld(), x, y, z, true);
+            Player bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
+            // Get block entity storage
+            BlockStorage storage = Via.getManager().getConnection(bukkitPlayer.getUniqueId()).get(BlockStorage.class);
+            return getLegacyBlock(storage, bukkitPlayer.getWorld(), x, y, z);
         } else {
             return BlockTranslator.AIR;
         }
     }
 
     @SuppressWarnings("deprecation")
-    public static int getLegacyBlock(World world, int x, int y, int z, boolean isViaVersion) {
-        if (isViaVersion) {
-            Block block = world.getBlockAt(x, y, z);
-            // Black magic that gets the old block state ID
-            int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
-            // Convert block state from old version (1.12.2) -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
-            blockId = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData().getNewBlockId(blockId);
-            List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
-                    ProtocolVersion.v1_13.getId());
-            for (int i = protocolList.size() - 1; i >= 0; i--) {
-                if (protocolList.get(i).getValue().getMappingData() == null) continue;
-                blockId = protocolList.get(i).getValue().getMappingData().getNewBlockStateId(blockId);
+    public static int getLegacyBlock(BlockStorage storage, World world, int x, int y, int z) {
+        Block block = world.getBlockAt(x, y, z);
+        // Black magic that gets the old block state ID
+        int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
+        // Convert block state from old version (1.12.2) -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
+        blockId = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData().getNewBlockId(blockId);
+        List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
+                ProtocolVersion.v1_13.getId());
+        // Translate block entity differences - some information was stored in block tags and not block states
+        if (storage.isWelcome(blockId)) { // No getOrDefault method
+            BlockStorage.ReplacementData data = storage.get(new Position(x, (short) y, z));
+            if (data != null && data.getReplacement() != -1) {
+                blockId = data.getReplacement();
             }
-            return blockId;
-        } else {
-            return BlockTranslator.AIR;
         }
+        for (int i = protocolList.size() - 1; i >= 0; i--) {
+            MappingData mappingData = protocolList.get(i).getValue().getMappingData();
+            if (mappingData != null) {
+                blockId = mappingData.getNewBlockStateId(blockId);
+            }
+        }
+        return blockId;
     }
 
     @Override
@@ -162,11 +174,13 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             return;
         }
         World world = bukkitPlayer.getWorld();
-        if (this.isLegacy)  {
+        if (this.isLegacy) {
+            // Get block entity storage
+            BlockStorage storage = Via.getManager().getConnection(bukkitPlayer.getUniqueId()).get(BlockStorage.class);
             for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
                 for (int blockZ = 0; blockZ < 16; blockZ++) {
                     for (int blockX = 0; blockX < 16; blockX++) {
-                        chunk.set(blockX, blockY, blockZ, getLegacyBlock(world, (x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ, true));
+                        chunk.set(blockX, blockY, blockZ, getLegacyBlock(storage, world, (x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ));
                     }
                 }
             }
@@ -176,7 +190,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
                 for (int blockZ = 0; blockZ < 16; blockZ++) {
                     for (int blockX = 0; blockX < 16; blockX++) {
                         Block block = world.getBlockAt((x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ);
-                        int id = BlockTranslator.getJavaIdBlockMap().getOrDefault(block.getBlockData().getAsString(), 0);
+                        int id = BlockTranslator.getJavaIdBlockMap().getOrDefault(block.getBlockData().getAsString(), BlockTranslator.AIR);
                         chunk.set(blockX, blockY, blockZ, id);
                     }
                 }
