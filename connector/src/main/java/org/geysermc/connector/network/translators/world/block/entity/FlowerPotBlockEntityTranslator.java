@@ -35,7 +35,12 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
 public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
+    /**
+     * @param blockState the Java block state of a potential flower pot block
+     * @return true if the block is a flower pot
+     */
     public static boolean isFlowerBlock(int blockState) {
+        System.out.println(blockState);
         return BlockStateValues.getFlowerPotValues().containsKey(blockState);
     }
 
