@@ -40,7 +40,6 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
      * @return true if the block is a flower pot
      */
     public static boolean isFlowerBlock(int blockState) {
-        System.out.println(blockState);
         return BlockStateValues.getFlowerPotValues().containsKey(blockState);
     }
 
