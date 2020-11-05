@@ -34,10 +34,10 @@ import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-@Getter
 public class ArmorStandEntity extends LivingEntity {
 
     // These are used to store the state of the armour stand for use when handling invisibility
+    @Getter
     private boolean isMarker = false;
     private boolean isInvisible = false;
     private boolean isSmall = false;
