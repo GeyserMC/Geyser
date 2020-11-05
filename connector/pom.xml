@@ -143,9 +143,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>net.kyori</groupId>
+            <groupId>com.github.kyoripowered.adventure</groupId>
             <artifactId>adventure-text-serializer-gson</artifactId>
-            <version>4.1.1</version>
+            <version>4d8a67d798</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
