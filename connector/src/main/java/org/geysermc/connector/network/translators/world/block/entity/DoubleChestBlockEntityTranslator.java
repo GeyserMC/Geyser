@@ -53,34 +53,32 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (BlockStateValues.getDoubleChestValues().containsKey(blockState)) {
-            DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().get(blockState);
-            if (chestValues != null) {
-                int x = (int) tag.getValue().get("x").getValue();
-                int z = (int) tag.getValue().get("z").getValue();
-                // Calculate the position of the other chest based on the Java block state
-                if (chestValues.isFacingEast) {
-                    if (chestValues.isDirectionPositive) {
-                        // East
-                        z = z + (chestValues.isLeft ? 1 : -1);
-                    } else {
-                        // West
-                        z = z + (chestValues.isLeft ? -1 : 1);
-                    }
+        DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().getOrDefault(blockState, null);
+        if (chestValues != null) {
+            int x = (int) tag.getValue().get("x").getValue();
+            int z = (int) tag.getValue().get("z").getValue();
+            // Calculate the position of the other chest based on the Java block state
+            if (chestValues.isFacingEast) {
+                if (chestValues.isDirectionPositive) {
+                    // East
+                    z = z + (chestValues.isLeft ? 1 : -1);
                 } else {
-                    if (chestValues.isDirectionPositive) {
-                        // South
-                        x = x + (chestValues.isLeft ? -1 : 1);
-                    } else {
-                        // North
-                        x = x + (chestValues.isLeft ? 1 : -1);
-                    }
+                    // West
+                    z = z + (chestValues.isLeft ? -1 : 1);
                 }
-                builder.put("pairx", x);
-                builder.put("pairz", z);
-                if (!chestValues.isLeft) {
-                    builder.put("pairlead", (byte) 1);
+            } else {
+                if (chestValues.isDirectionPositive) {
+                    // South
+                    x = x + (chestValues.isLeft ? -1 : 1);
+                } else {
+                    // North
+                    x = x + (chestValues.isLeft ? 1 : -1);
                 }
+            }
+            builder.put("pairx", x);
+            builder.put("pairz", z);
+            if (!chestValues.isLeft) {
+                builder.put("pairlead", (byte) 1);
             }
         }
     }
