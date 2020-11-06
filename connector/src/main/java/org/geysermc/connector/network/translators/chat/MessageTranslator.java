@@ -96,14 +96,25 @@ public class MessageTranslator {
      * See https://wiki.vg/Chat for messages sent in lenient mode, and for a description on leniency.
      *
      * @param message Potentially lenient JSON message
+     * @param locale Locale to use for translation strings
      * @return Bedrock formatted message
      */
-    public static String convertMessageLenient(String message) {
+    public static String convertMessageLenient(String message, String locale) {
         if (isMessage(message)) {
-            return convertMessage(message);
+            return convertMessage(message, locale);
         } else {
-            return convertMessage(convertToJavaMessage(message));
+            String convertedMessage = convertMessage(convertToJavaMessage(message), locale);
+
+            if (message.startsWith("\u00a7r")) {
+                convertedMessage = "\u00a7r" + convertedMessage;
+            }
+
+            return convertedMessage;
         }
+    }
+
+    public static String convertMessageLenient(String message) {
+        return convertMessageLenient(message, LanguageUtils.getDefaultLocale());
     }
 
     /**

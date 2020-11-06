@@ -384,26 +384,17 @@ public abstract class ItemTranslator {
     public static void translateDisplayProperties(GeyserSession session, CompoundTag tag) {
         if (tag != null) {
             CompoundTag display = tag.get("display");
-            if (display != null && !display.isEmpty() && display.contains("Name")) {
+            if (display != null && display.contains("Name")) {
                 String name = ((StringTag) display.get("Name")).getValue();
 
-                // If its not a message convert it
-                if (!MessageTranslator.isMessage(name)) {
-                    Component component = LegacyComponentSerializer.legacySection().deserialize(name);
-                    name = GsonComponentSerializer.gson().serialize(component);
-                }
+                // Get the translated name and prefix it with a reset char
+                name = MessageTranslator.convertMessageLenient(name, session.getLocale());
 
-                // Check if its a message to translate
-                if (MessageTranslator.isMessage(name)) {
-                    // Get the translated name
-                    name = MessageTranslator.convertMessage(name, session.getLocale());
+                // Add the new name tag
+                display.put(new StringTag("Name", name));
 
-                    // Add the new name tag
-                    display.put(new StringTag("Name", name));
-
-                    // Add to the new root tag
-                    tag.put(display);
-                }
+                // Add to the new root tag
+                tag.put(display);
             }
         }
     }

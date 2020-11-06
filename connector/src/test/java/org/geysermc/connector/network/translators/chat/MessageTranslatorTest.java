@@ -62,5 +62,6 @@ public class MessageTranslatorTest {
     public void convertMessageLenient() {
         Assert.assertEquals("All newline message is not handled properly", "\n\n\n\n", MessageTranslator.convertMessageLenient("\n\n\n\n"));
         Assert.assertEquals("Empty message is not handled properly", "", MessageTranslator.convertMessageLenient(""));
+        Assert.assertEquals("Reset before message is not handled properly", "§r§eGame Selector", MessageTranslator.convertMessageLenient("§r§eGame Selector"));
     }
 }
