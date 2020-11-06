@@ -124,6 +124,10 @@ public class MessageTranslator {
      * @return True if its a valid message JSON string, false if not
      */
     public static boolean isMessage(String text) {
+        if (text.trim().isEmpty()) {
+            return false;
+        }
+
         try {
             GsonComponentSerializer.gson().deserialize(text);
         } catch (Exception ex) {

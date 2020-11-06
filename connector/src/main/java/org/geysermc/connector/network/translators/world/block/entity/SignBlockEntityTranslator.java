@@ -40,7 +40,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
      * @param javaColor The dye color stored in the sign's Color tag.
      * @return A Bedrock Edition formatting code for valid dye colors, otherwise an empty string.
      */
-    private static String getBedrockSignColor(String javaColor) {
+    private String getBedrockSignColor(String javaColor) {
         String base = "\u00a7";
         switch (javaColor) {
             case "white":
@@ -123,6 +123,6 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             signText.append("\n");
         }
 
-        builder.put("Text", MessageTranslator.convertMessageLenient(signText.toString()));
+        builder.put("Text", signText.toString());
     }
 }

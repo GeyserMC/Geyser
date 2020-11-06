@@ -57,4 +57,10 @@ public class MessageTranslatorTest {
             Assert.assertEquals("Translation of messages is incorrect", bedrockMessage, entry.getValue());
         }
     }
+
+    @Test
+    public void convertMessageLenient() {
+        Assert.assertEquals("All newline message is not handled properly", "\n\n\n\n", MessageTranslator.convertMessageLenient("\n\n\n\n"));
+        Assert.assertEquals("Empty message is not handled properly", "", MessageTranslator.convertMessageLenient(""));
+    }
 }
