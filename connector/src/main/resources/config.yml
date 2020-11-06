@@ -117,8 +117,10 @@ above-bedrock-nether-building: false
 # want to download the resource packs
 force-resource-packs: true
 
-# Enable xbox achievements
-achievements-enabled: true
+# Enable xbox achievements, this disables certain commands due to the bedrock client
+# restricting them as we dont have 'cheats' enabled. So commands such as /gamemode
+# and /give will not work with this enabled
+achievements-enabled: false
 
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
