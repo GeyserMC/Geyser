@@ -25,9 +25,9 @@
 
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerRotationPacket;
-import com.google.common.collect.BiMap;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
@@ -40,12 +40,8 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.world.collision.CollisionTranslator;
-import org.geysermc.connector.network.translators.world.collision.translators.BlockCollision;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
@@ -66,14 +62,12 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        // We need to parse the float as a string since casting a float to a double causes us to
-        // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = Double.parseDouble(Float.toString(packet.getPosition().getY())) - EntityType.PLAYER.getOffset();
+        if (session.getMovementSendIfIdle() != null) {
+            session.getMovementSendIfIdle().cancel(true);
+        }
 
-        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
-                Double.parseDouble(Float.toString(packet.getPosition().getZ())));
-
-        if (!session.confirmTeleport(position)) {
+        if (!session.confirmTeleport(Vector3d.from(packet.getPosition().getX(), packet.getPosition().getY() - EntityType.PLAYER.getOffset(),
+                packet.getPosition().getZ()))) {
             return;
         }
 
@@ -95,30 +89,14 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            // With chunk caching, we can do some proper collision checks
+        Vector3d position = adjustBedrockPosition(packet.getPosition(), packet.isOnGround(), session, entity);
 
-            session.getCollisionManager().updatePlayerBoundingBox(position);
-
-            // Correct player position
-            if (!session.getCollisionManager().correctPlayerPosition()) {
-                // Cancel the movement if it needs to be cancelled
-                recalculatePosition(session, entity, entity.getPosition());
-                return;
-            }
-
-            position = Vector3d.from(session.getCollisionManager().getPlayerBoundingBox().getMiddleX(),
-                    session.getCollisionManager().getPlayerBoundingBox().getMiddleY() -
-                            (session.getCollisionManager().getPlayerBoundingBox().getSizeY() / 2),
-                    session.getCollisionManager().getPlayerBoundingBox().getMiddleZ());
-        } else {
-            // When chunk caching is off, we have to rely on this
-            // It rounds the Y position up to the nearest 0.5
-            // This snaps players to snap to the top of stairs and slabs like on Java Edition
-            // However, it causes issues such as the player floating on carpets
-            if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
-            position = position.up(javaY - position.getY());
+        // A null return value cancels the packet
+        if (position == null) {
+            return;
         }
+        
+        
 
         if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
             session.getConnector().getLogger().debug("Recalculating position...");
@@ -144,6 +122,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
 
         session.sendDownstreamPacket(playerPositionRotationPacket);
+
+        // Schedule a position send loop if the player is idle
+        session.setMovementSendIfIdle(session.getConnector().getGeneralThreadPool().schedule(() -> sendPositionIfIdle(session),
+                3, TimeUnit.SECONDS));
     }
 
     public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
@@ -171,6 +153,52 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         return true;
     }
 
+    /**
+     * Adjust the Bedrock position before sending to the Java server to account for inaccuracies in movement between
+     * the two versions.
+     *
+     * @param oldPosition the current Bedrock position of the client
+     * @param onGround whether the Bedrock player is on the ground
+     * @param session the current GeyserSession
+     * @param entity the PlayerEntity of the connected client
+     * @return the position to send to the Java server, or null to cancel sending the packet
+     */
+    private Vector3d adjustBedrockPosition(Vector3f oldPosition, boolean onGround, GeyserSession session, PlayerEntity entity) {
+        // We need to parse the float as a string since casting a float to a double causes us to
+        // lose precision and thus, causes players to get stuck when walking near walls
+        double javaY = oldPosition.getY() - EntityType.PLAYER.getOffset();
+
+        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(oldPosition.getX())), javaY,
+                Double.parseDouble(Float.toString(oldPosition.getZ())));
+
+        if (session.getConnector().getConfig().isCacheChunks()) {
+            // With chunk caching, we can do some proper collision checks
+
+            session.getCollisionManager().updatePlayerBoundingBox(position);
+
+            // Correct player position
+            if (!session.getCollisionManager().correctPlayerPosition()) {
+                // Cancel the movement if it needs to be cancelled
+                recalculatePosition(session, entity, entity.getPosition());
+                return null;
+            }
+
+            position = Vector3d.from(session.getCollisionManager().getPlayerBoundingBox().getMiddleX(),
+                    session.getCollisionManager().getPlayerBoundingBox().getMiddleY() -
+                            (session.getCollisionManager().getPlayerBoundingBox().getSizeY() / 2),
+                    session.getCollisionManager().getPlayerBoundingBox().getMiddleZ());
+        } else {
+            // When chunk caching is off, we have to rely on this
+            // It rounds the Y position up to the nearest 0.5
+            // This snaps players to snap to the top of stairs and slabs like on Java Edition
+            // However, it causes issues such as the player floating on carpets
+            if (onGround) javaY = Math.ceil(javaY * 2) / 2;
+            position = position.up(javaY - position.getY());
+        }
+
+        return position;
+    }
+
     // TODO: This makes the player look upwards for some reason, rotation values must be wrong
     public void recalculatePosition(GeyserSession session, Entity entity, Vector3f currentPosition) {
         // Gravity might need to be reset...
@@ -186,4 +214,21 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
         session.sendUpstreamPacket(movePlayerPacket);
     }
+
+    private void sendPositionIfIdle(GeyserSession session) {
+        if (session.isClosed()) return;
+        PlayerEntity entity = session.getPlayerEntity();
+        // Recalculate in case something else changed position
+        Vector3d position = adjustBedrockPosition(entity.getPosition(), entity.isOnGround(), session, entity);
+        // A null return value cancels the packet
+        if (position == null) {
+            return;
+        }
+        ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(session.getPlayerEntity().isOnGround(),
+                position.getX(), position.getY(), position.getZ());
+        session.sendDownstreamPacket(packet);
+        session.setMovementSendIfIdle(session.getConnector().getGeneralThreadPool().schedule(() -> sendPositionIfIdle(session),
+                3, TimeUnit.SECONDS));
+    }
 }
+
