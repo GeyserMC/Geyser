@@ -107,8 +107,8 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
 
-    @JsonProperty("achievements-enabled")
-    private boolean achievementsEnabled = false;
+    @JsonProperty("xbox-achievements-enabled")
+    private boolean xboxAchievementsEnabled = false;
 
     private MetricsInfo metrics = new MetricsInfo();
 
