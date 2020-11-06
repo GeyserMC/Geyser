@@ -23,26 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block.entity;
+package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.NbtMapBuilder;
-import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.geysermc.connector.entity.living.FlyingEntity;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 
-@BlockEntity(name = "Bed", regex = "bed")
-public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getBedColor(blockState) != -1;
+public class GhastEntity extends FlyingEntity {
+
+    public GhastEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        byte bedcolor = BlockStateValues.getBedColor(blockState);
-        // Just in case...
-        if (bedcolor == -1) {
-            bedcolor = 0;
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 15) {
+            // If the ghast is attacking
+            metadata.put(EntityData.CHARGE_AMOUNT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
         }
-        builder.put("color", bedcolor);
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

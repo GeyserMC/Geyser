@@ -28,21 +28,18 @@ package org.geysermc.connector.network.translators.world.block.entity;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.nbt.NbtList;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 @BlockEntity(name = "EndGateway", regex = "end_gateway")
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
-
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
-        tags.put("Age", (int) ((long) tag.get("Age").getValue()));
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        builder.put("Age", (int) ((long) tag.get("Age").getValue()));
         // Java sometimes does not provide this tag, but Bedrock crashes if it doesn't exist
         // Linked coordinates
         IntList tagsList = new IntArrayList();
@@ -50,8 +47,7 @@ public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
         tagsList.add(getExitPortalCoordinate(tag, "X"));
         tagsList.add(getExitPortalCoordinate(tag, "Y"));
         tagsList.add(getExitPortalCoordinate(tag, "Z"));
-        tags.put("ExitPortal", new NbtList<>(NbtType.INT, tagsList));
-        return tags;
+        builder.put("ExitPortal", new NbtList<>(NbtType.INT, tagsList));
     }
 
     private int getExitPortalCoordinate(CompoundTag tag, String axis) {
@@ -60,6 +56,7 @@ public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
             LinkedHashMap<?, ?> compoundTag = (LinkedHashMap<?, ?>) tag.get("ExitPortal").getValue();
             IntTag intTag = (IntTag) compoundTag.get(axis);
             return intTag.getValue();
-        } return 0;
+        }
+        return 0;
     }
 }
