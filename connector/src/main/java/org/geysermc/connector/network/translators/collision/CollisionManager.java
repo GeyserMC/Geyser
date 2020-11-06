@@ -23,22 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session;
+package org.geysermc.connector.network.translators.collision;
 
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
-import org.geysermc.connector.network.translators.world.collision.CollisionTranslator;
-import org.geysermc.connector.network.translators.world.collision.translators.BlockCollision;
-import org.geysermc.connector.utils.BoundingBox;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CollisionManager {
 
-    private GeyserSession session;
+    private final GeyserSession session;
 
     @Getter
     private BoundingBox playerBoundingBox;

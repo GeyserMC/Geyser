@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.collision.translators;
+package org.geysermc.connector.network.translators.collision.translators;
 
-import org.geysermc.connector.network.translators.world.collision.CollisionRemapper;
-import org.geysermc.connector.utils.BoundingBox;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
 @CollisionRemapper(regex = "_door$", usesParams = true, passDefaultBoxes = true)
 public class DoorCollision extends BlockCollision {

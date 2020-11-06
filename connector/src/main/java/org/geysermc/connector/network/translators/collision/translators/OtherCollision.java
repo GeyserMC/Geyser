@@ -23,14 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.collision.translators;
+package org.geysermc.connector.network.translators.collision.translators;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.geysermc.connector.utils.BoundingBox;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 
 public class OtherCollision extends BlockCollision {
 
