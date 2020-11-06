@@ -73,7 +73,6 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
-import org.geysermc.connector.network.translators.bedrock.BedrockBookEditTranslator;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -301,9 +300,7 @@ public class GeyserSession implements CommandSender {
     private final Set<UUID> emotes = new HashSet<>();
 
     @Setter
-    private BedrockBookEditTranslator.BookUpdate bookUpdate;
-    @Setter
-    private long lastBookUpdate;
+    private BookEditCache bookEditCache;
 
     private MinecraftProtocol protocol;
 
@@ -311,6 +308,7 @@ public class GeyserSession implements CommandSender {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
 
+        this.bookEditCache = new BookEditCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.inventoryCache = new InventoryCache(this);
@@ -559,6 +557,7 @@ public class GeyserSession implements CommandSender {
             }
         }
 
+        this.bookEditCache = null;
         this.chunkCache = null;
         this.entityCache = null;
         this.worldCache = null;

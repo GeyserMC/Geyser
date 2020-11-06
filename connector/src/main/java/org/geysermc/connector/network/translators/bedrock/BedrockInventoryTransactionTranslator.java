@@ -69,6 +69,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     @Override
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
+        // Send book updates before opening inventories
+        session.getBookEditCache().checkForSend();
+
         switch (packet.getTransactionType()) {
             case NORMAL:
                 Inventory inventory = session.getInventoryCache().getOpenInventory();
@@ -82,10 +85,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 InventoryUtils.updateCursor(session);
                 break;
             case ITEM_USE:
-                // Send book updates before opening inventories
-                if (session.getBookUpdate() != null) {
-                    session.getBookUpdate().send();
-                }
                 switch (packet.getActionType()) {
                     case 0:
                         // Check to make sure the client isn't spamming interaction

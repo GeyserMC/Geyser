@@ -66,9 +66,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
 
         // Send book update before the player moves
-        if (session.getBookUpdate() != null) {
-            session.getBookUpdate().send();
-        }
+        session.getBookEditCache().checkForSend();
 
         Vector3d position = adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
 

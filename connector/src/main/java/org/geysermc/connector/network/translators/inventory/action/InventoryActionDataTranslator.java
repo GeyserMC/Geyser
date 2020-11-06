@@ -50,11 +50,6 @@ public class InventoryActionDataTranslator {
         if (actions.size() != 2)
             return;
 
-        // Send book update before any inventory actions
-        if (session.getBookUpdate() != null) {
-            session.getBookUpdate().send();
-        }
-
         InventoryActionData worldAction = null;
         InventoryActionData cursorAction = null;
         InventoryActionData containerAction = null;

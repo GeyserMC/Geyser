@@ -33,13 +33,10 @@ import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.packet.BookEditPacket;
-import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -116,42 +113,11 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             session.getInventory().setItem(36 + session.getInventory().getHeldItemSlot(), bookItem);
             InventoryTranslator.INVENTORY_TRANSLATORS.get(null).updateInventory(session, session.getInventory());
 
-            BookUpdate bookUpdate = new BookUpdate();
-            bookUpdate.session = session;
-            bookUpdate.editBookPacket = new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, session.getInventory().getHeldItemSlot());
-            session.setBookUpdate(bookUpdate);
+            session.getBookEditCache().setPacket(new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, session.getInventory().getHeldItemSlot()));
             // There won't be any more book updates after this, so we can try sending the edit packet immediately
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
-                bookUpdate.send();
+                session.getBookEditCache().checkForSend();
             }
-        }
-    }
-
-    @Getter
-    public static class BookUpdate {
-        @Setter
-        private GeyserSession session;
-        @Setter
-        private ClientEditBookPacket editBookPacket;
-        private boolean sent;
-
-        public void send() {
-            if (sent) {
-                return;
-            }
-            // Prevent kicks due to rate limiting
-            if ((System.currentTimeMillis() - session.getLastBookUpdate()) < 1000) {
-                return;
-            }
-            sent = true;
-            session.setBookUpdate(null);
-            // Don't send the update if the player isn't not holding a book, shouldn't happen if we catch all interactions
-            ItemStack itemStack = session.getInventory().getItemInHand();
-            if (itemStack == null || itemStack.getId() != ItemRegistry.WRITABLE_BOOK.getJavaId()) {
-                return;
-            }
-            session.getDownstream().getSession().send(editBookPacket);
-            session.setLastBookUpdate(System.currentTimeMillis());
         }
     }
 }
