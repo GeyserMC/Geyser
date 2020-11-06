@@ -81,6 +81,8 @@ public interface GeyserConfiguration {
 
     boolean isForceResourcePacks();
 
+    boolean isAchievementsEnabled();
+
     int getCacheImages();
 
     IMetricsInfo getMetrics();
