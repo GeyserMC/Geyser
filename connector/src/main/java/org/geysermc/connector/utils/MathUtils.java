@@ -77,7 +77,7 @@ public class MathUtils {
         return (Byte) value;
     }
 
-     /*
+    /**
      * Packs a chunk's X and Z coordinates into a single {@code long}.
      *
      * @param x the X coordinate
