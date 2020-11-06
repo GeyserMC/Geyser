@@ -105,8 +105,9 @@ public class MessageTranslator {
         } else {
             String convertedMessage = convertMessage(convertToJavaMessage(message), locale);
 
-            if (message.startsWith("\u00a7r")) {
-                convertedMessage = "\u00a7r" + convertedMessage;
+            // We have to do this since Adventure strips the starting reset character
+            if (message.startsWith(getColor(ChatColor.RESET))) {
+                convertedMessage = getColor(ChatColor.RESET) + convertedMessage;
             }
 
             return convertedMessage;
