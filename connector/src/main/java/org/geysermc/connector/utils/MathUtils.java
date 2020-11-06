@@ -25,8 +25,6 @@
 
 package org.geysermc.connector.utils;
 
-import com.nukkitx.math.vector.Vector3d;
-
 public class MathUtils {
 
     public static final double SQRT_OF_TWO = Math.sqrt(2);
