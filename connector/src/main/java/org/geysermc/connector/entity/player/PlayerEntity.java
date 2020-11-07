@@ -220,17 +220,18 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public void setPosition(Vector3f position) {
-        this.position = position.add(0, entityType.getOffset(), 0);
+        setPosition(position, true);
     }
 
     /**
-     * Set the player position without adding the entity type's offset. Used when the player sends us a move packet
-     * where the offset is already added
+     * Set the player position and specify if the entity type's offset should be added. Set to false when the player
+     * sends us a move packet where the offset is already added
      *
      * @param position the new position of the Bedrock player
+     * @param includeOffset whether to include the offset
      */
-    public void setPositionWithoutOffset(Vector3f position) {
-        this.position = position;
+    public void setPosition(Vector3f position, boolean includeOffset) {
+        this.position = includeOffset ? position.add(0, entityType.getOffset(), 0) : position;
     }
 
     @Override
