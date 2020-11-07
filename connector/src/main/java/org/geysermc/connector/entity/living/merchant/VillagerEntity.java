@@ -100,8 +100,8 @@ public class VillagerEntity extends AbstractMerchantEntity {
         int bedId = 0;
         float bedPositionSubtractorW = 0;
         float bedPositionSubtractorN = 0;
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION);
+        Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION);
+        if (session.getConnector().getConfig().isCacheChunks() && bedPosition != null) {
             bedId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
         }
         String bedRotationZ = BlockTranslator.getJavaIdBlockMap().inverse().get(bedId);
