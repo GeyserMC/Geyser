@@ -92,8 +92,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         // Ignore certain move correction packets for smoother movement
         // These are never relative
         // When chunk caching is enabled this isn't needed as we shouldn't get these
-        if (!session.getConnector().getConfig().isCacheChunks() &&
-                packet.getRelative().isEmpty()) {
+        if (!session.getConnector().getConfig().isCacheChunks() && packet.getRelative().isEmpty()) {
             double xDis = Math.abs(entity.getPosition().getX() - packet.getX());
             double yDis = entity.getPosition().getY() - packet.getY();
             double zDis = Math.abs(entity.getPosition().getZ() - packet.getZ());

@@ -40,6 +40,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.collision.CollisionManager;
 
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +50,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null || !session.isSpawned() || session.getPendingDimSwitches().get() > 0) return;
+        if (!session.isSpawned() || session.getPendingDimSwitches().get() > 0) return;
 
         if (!session.getUpstream().isInitialized()) {
             MoveEntityAbsolutePacket moveEntityBack = new MoveEntityAbsolutePacket();
@@ -170,19 +171,19 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         if (session.getConnector().getConfig().isCacheChunks()) {
             // With chunk caching, we can do some proper collision checks
-            session.getCollisionManager().updatePlayerBoundingBox(position);
+            CollisionManager collisionManager = session.getCollisionManager();
+            collisionManager.updatePlayerBoundingBox(position);
 
             // Correct player position
-            if (!session.getCollisionManager().correctPlayerPosition()) {
+            if (!collisionManager.correctPlayerPosition()) {
                 // Cancel the movement if it needs to be cancelled
                 recalculatePosition(session);
                 return null;
             }
 
-            position = Vector3d.from(session.getCollisionManager().getPlayerBoundingBox().getMiddleX(),
-                    session.getCollisionManager().getPlayerBoundingBox().getMiddleY() -
-                            (session.getCollisionManager().getPlayerBoundingBox().getSizeY() / 2),
-                    session.getCollisionManager().getPlayerBoundingBox().getMiddleZ());
+            position = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(),
+                    collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2),
+                    collisionManager.getPlayerBoundingBox().getMiddleZ());
         } else {
             // When chunk caching is off, we have to rely on this
             // It rounds the Y position up to the nearest 0.5
