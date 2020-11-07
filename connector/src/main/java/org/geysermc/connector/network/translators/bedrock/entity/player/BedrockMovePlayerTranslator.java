@@ -177,6 +177,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             // Correct player position
             if (!collisionManager.correctPlayerPosition()) {
                 // Cancel the movement if it needs to be cancelled
+                System.out.println("Cancel");
                 recalculatePosition(session);
                 return null;
             }

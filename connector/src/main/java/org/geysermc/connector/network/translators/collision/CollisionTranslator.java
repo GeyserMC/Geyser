@@ -57,7 +57,7 @@ public class CollisionTranslator {
 
         Map<Class<?>, CollisionRemapper> annotationMap = new HashMap<>();
 
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.world.collision.translators");
+        Reflections ref = new Reflections("org.geysermc.connector.network.translators.collision.translators");
         for (Class<?> clazz : ref.getTypesAnnotatedWith(CollisionRemapper.class)) {
             GeyserConnector.getInstance().getLogger().debug("Found annotated collision translator: " + clazz.getCanonicalName());
 

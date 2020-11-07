@@ -28,7 +28,9 @@ package org.geysermc.connector.network.translators.collision;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 
@@ -41,6 +43,18 @@ public class CollisionManager {
 
     @Getter
     private BoundingBox playerBoundingBox;
+
+    /**
+     * Whether the player is inside scaffolding
+     */
+    @Setter
+    private boolean touchingScaffolding;
+
+    /**
+     * Whether the player is on top of scaffolding
+     */
+    @Setter
+    private boolean onScaffolding;
 
     /**
      * Additional space where blocks are checked, which is helpful for fixing NoCheatPlus's Passable check.
@@ -131,9 +145,18 @@ public class CollisionManager {
     /**
      * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
      * cancelled
-     * See {@link BlockCollision#correctPosition(BoundingBox)} for more info
+     * See {@link BlockCollision#correctPosition(BoundingBox, GeyserSession)} for more info
      */
     public boolean correctPlayerPosition() {
+        // Store the old values so we know whether to resend
+        boolean oldInScaffolding = session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.IN_SCAFFOLDING);
+        boolean oldFallThroughScaffolding = session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING);
+        boolean oldOverScaffolding = session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.OVER_SCAFFOLDING);
+
+        // These may be set to true by the correctPosition method in ScaffoldingCollision
+        touchingScaffolding = false;
+        onScaffolding = false;
+
         List<Vector3i> collidableBlocks = getPlayerCollidableBlocks();
 
         // Used when correction code needs to be run before the main correction
@@ -152,12 +175,54 @@ public class CollisionManager {
                     blockPos.getX(), blockPos.getY(), blockPos.getZ(), session
             );
             if (blockCollision != null) {
-                if (!blockCollision.correctPosition(playerBoundingBox)) {
+                if (!blockCollision.correctPosition(playerBoundingBox, session)) {
                     return false;
                 }
             }
         }
 
+        updateScaffoldingFlags();
+
+        resendScaffoldFlagsIfChanged(oldInScaffolding, oldFallThroughScaffolding, oldOverScaffolding);
+
         return true;
+    }
+
+    /**
+     * Updates scaffolding entity flags
+     * Scaffolding needs to be checked per-move since it's a flag in Bedrock but Java does it client-side
+     * Does not actually send the updated flags
+     */
+    public void updateScaffoldingFlags() {
+        if (touchingScaffolding || onScaffolding) {
+            if (session.isSneaking()) {
+                session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING, true);
+                session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.OVER_SCAFFOLDING, true);
+            }
+        } else {
+            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.IN_SCAFFOLDING, false);
+            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING, false);
+            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.OVER_SCAFFOLDING, false);
+        }
+
+        if (touchingScaffolding) {
+            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.IN_SCAFFOLDING, true);
+        } else if (onScaffolding) {
+            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.IN_SCAFFOLDING, false);
+        }
+    }
+
+    /**
+     * If the scaffolding entity flags changed, resend them
+     * @param oldInScaffolding
+     * @param oldFallThroughScaffolding
+     */
+    private void resendScaffoldFlagsIfChanged(boolean oldInScaffolding, boolean oldFallThroughScaffolding, boolean oldOverScaffolding) {
+        if (oldInScaffolding != session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.IN_SCAFFOLDING) ||
+                oldFallThroughScaffolding != session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING) ||
+                oldOverScaffolding != session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.OVER_SCAFFOLDING)) {
+            session.getPlayerEntity().updateBedrockMetadata(session);
+        }
+
     }
 }
