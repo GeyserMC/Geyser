@@ -761,7 +761,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Queue a packet to be sent to player.
-     *
+     * 
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
