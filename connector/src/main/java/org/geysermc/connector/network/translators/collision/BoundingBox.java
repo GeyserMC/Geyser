@@ -44,14 +44,6 @@ public class BoundingBox {
         middleZ += z;
     }
 
-    // Check intersection with no offset
-    // Currently never used, but will probably be useful in the future
-    /* public boolean checkIntersection(BoundingBox otherBox) {
-        return (Math.abs(middleX - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX())) &&
-                (Math.abs(middleY - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY())) &&
-                (Math.abs(middleZ - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ()));
-    } */
-
     public boolean checkIntersection(int offsetX, int offsetY, int offsetZ, BoundingBox otherBox) {
         return (Math.abs((middleX + offsetX) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX())) &&
                 (Math.abs((middleY + offsetY) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY())) &&
