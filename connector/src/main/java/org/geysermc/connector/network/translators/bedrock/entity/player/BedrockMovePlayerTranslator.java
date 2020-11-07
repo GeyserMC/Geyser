@@ -35,7 +35,6 @@ import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.common.ChatColor;
-import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -86,7 +85,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
                 session.sendDownstreamPacket(playerRotationPacket);
             } else {
-                Vector3d position = adjustBedrockPosition(packet.getPosition(), packet.isOnGround(), session, entity);
+                Vector3d position = adjustBedrockPosition(session, packet.getPosition(), packet.isOnGround());
                 if (position != null) { // A null return value cancels the packet
                     if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
                         Packet movePacket;
@@ -108,7 +107,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                     } else {
                         // Not a valid move
                         session.getConnector().getLogger().debug("Recalculating position...");
-                        recalculatePosition(session, entity, entity.getPosition());
+                        recalculatePosition(session);
                     }
                 }
             }
@@ -156,29 +155,27 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
      * Adjust the Bedrock position before sending to the Java server to account for inaccuracies in movement between
      * the two versions.
      *
-     * @param oldPosition the current Bedrock position of the client
-     * @param onGround whether the Bedrock player is on the ground
      * @param session the current GeyserSession
-     * @param entity the PlayerEntity of the connected client
+     * @param bedrockPosition the current Bedrock position of the client
+     * @param onGround whether the Bedrock player is on the ground
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
-    private Vector3d adjustBedrockPosition(Vector3f oldPosition, boolean onGround, GeyserSession session, PlayerEntity entity) {
+    private Vector3d adjustBedrockPosition(GeyserSession session, Vector3f bedrockPosition, boolean onGround) {
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = oldPosition.getY() - EntityType.PLAYER.getOffset();
+        double javaY = bedrockPosition.getY() - EntityType.PLAYER.getOffset();
 
-        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(oldPosition.getX())), javaY,
-                Double.parseDouble(Float.toString(oldPosition.getZ())));
+        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
+                Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
         if (session.getConnector().getConfig().isCacheChunks()) {
             // With chunk caching, we can do some proper collision checks
-
             session.getCollisionManager().updatePlayerBoundingBox(position);
 
             // Correct player position
             if (!session.getCollisionManager().correctPlayerPosition()) {
                 // Cancel the movement if it needs to be cancelled
-                recalculatePosition(session, entity, entity.getPosition());
+                recalculatePosition(session);
                 return null;
             }
 
@@ -199,7 +196,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
     }
 
     // TODO: This makes the player look upwards for some reason, rotation values must be wrong
-    public void recalculatePosition(GeyserSession session, Entity entity, Vector3f currentPosition) {
+    public void recalculatePosition(GeyserSession session) {
+        PlayerEntity entity = session.getPlayerEntity();
         // Gravity might need to be reset...
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
@@ -218,7 +216,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (session.isClosed()) return;
         PlayerEntity entity = session.getPlayerEntity();
         // Recalculate in case something else changed position
-        Vector3d position = adjustBedrockPosition(entity.getPosition(), entity.isOnGround(), session, entity);
+        Vector3d position = adjustBedrockPosition(session, entity.getPosition(), entity.isOnGround());
         // A null return value cancels the packet
         if (position != null) {
             ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(session.getPlayerEntity().isOnGround(),
