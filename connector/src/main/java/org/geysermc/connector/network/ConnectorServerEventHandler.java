@@ -75,7 +75,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setIpv4Port(config.getBedrock().getPort());
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
-            String[] motd = MessageTranslator.convertMessage(pingInfo.getDescription()).split("\n");
+            String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
 
