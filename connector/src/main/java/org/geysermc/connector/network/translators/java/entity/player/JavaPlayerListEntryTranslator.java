@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -71,8 +71,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                                 session.getEntityCache().getNextEntityId().incrementAndGet(),
                                 Vector3f.ZERO,
                                 Vector3f.ZERO,
-                                Vector3f.ZERO,
-                                session
+                                Vector3f.ZERO
                         );
                     }
 

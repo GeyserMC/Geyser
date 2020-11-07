@@ -23,32 +23,45 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.entity.player;
 
-import org.geysermc.connector.entity.player.PlayerEntity;
+import com.github.steveice10.mc.auth.data.GameProfile;
+import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.SkinUtils;
 
-import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
+import java.util.UUID;
 
-@Translator(packet = SetLocalPlayerAsInitializedPacket.class)
-public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
+/**
+ * The entity class specifically for a {@link GeyserSession}'s player.
+ */
+public class SessionPlayerEntity extends PlayerEntity {
+
+    private final GeyserSession session;
+
+    public SessionPlayerEntity(GeyserSession session) {
+        super(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
+
+        valid = true;
+        this.session = session;
+        this.session.getCollisionManager().updatePlayerBoundingBox(position);
+    }
+
     @Override
-    public void translate(SetLocalPlayerAsInitializedPacket packet, GeyserSession session) {
-        if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {
-            if (!session.getUpstream().isInitialized()) {
-                session.getUpstream().setInitialized(true);
-                session.login();
+    public void spawnEntity(GeyserSession session) {
+        // Already logged in
+    }
 
-                for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
-                    if (!entity.isValid()) {
-                        SkinUtils.requestAndHandleSkinAndCape(entity, session, null);
-                        entity.sendPlayer(session);
-                    }
-                }
-            }
+    @Override
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        session.getCollisionManager().updatePlayerBoundingBox(position);
+        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+    }
+
+    @Override
+    public void setPosition(Vector3f position) {
+        if (session != null) { // null during entity initialization
+            session.getCollisionManager().updatePlayerBoundingBox(position);
         }
+        super.setPosition(position);
     }
 }
