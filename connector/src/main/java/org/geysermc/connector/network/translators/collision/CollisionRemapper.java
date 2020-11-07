@@ -32,19 +32,24 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface CollisionRemapper {
 
+    /**
+     * Regex of block identifiers to apply this collision to
+     * Matches against just the block ID name, not including the namespace or parameters
+     */
     String regex();
 
-    /*
+    /**
+     * Regex of block state parameters to apply this collision to
      * Defaults to matching any value
      */
     String paramRegex() default ".*";
 
-    /*
+    /**
      * Signals if a new instance needs to created for every block state
      */
     boolean usesParams() default false;
 
-    /*
+    /**
      * Signals if the default bounding boxes of this block as defined in collision.json should be passed to the
      * constructor
      */
