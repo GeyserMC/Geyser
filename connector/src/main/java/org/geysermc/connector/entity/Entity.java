@@ -348,17 +348,6 @@ public class Entity {
                     metadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
                 }
                 break;
-            case 13: // Bed Position
-                Position bedPosition = (Position) entityMetadata.getValue();
-                if (bedPosition != null) {
-                    metadata.put(EntityData.BED_POSITION, Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ()));
-                    if (session.getConnector().getConfig().isCacheChunks()) {
-                        int bed = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
-                        // Bed has to be updated, or else player is floating in the air
-                        ChunkUtils.updateBlock(session, bed, bedPosition);
-                    }
-                }
-                break;
         }
     }
 
