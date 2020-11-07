@@ -29,11 +29,20 @@ import com.nukkitx.math.vector.Vector3d;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Represents a teleport ID and corresponding coordinates that need to be confirmed. <br>
+ *
+ * The vanilla Java client, after getting a
+ * {@link com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket},
+ * adjusts the player's positions and immediately sends a teleport back. However, we want to acknowledge that the
+ * Bedrock player actually moves close to that point, so we store the teleport until we get a movement packet from
+ * Bedrock that the teleport was successful.
+ */
 @RequiredArgsConstructor
 @Data
 public class TeleportCache {
 
-    private static final double ERROR = 0.1;
+    private static final double ERROR_X_AND_Z = 0.1;
     private static final double ERROR_Y = 0.1;
 
     private int unconfirmedFor = 0;
@@ -41,16 +50,16 @@ public class TeleportCache {
     /**
      * How many move packets the teleport can be unconfirmed for before it gets resent to the client
      */
-     private static final int RESEND_THRESHOLD = 5;
+    private static final int RESEND_THRESHOLD = 5;
 
     private final double x, y, z;
-    private final double pitch, yaw;
+    private final float pitch, yaw;
     private final int teleportConfirmId;
 
     public boolean canConfirm(Vector3d position) {
-        return (Math.abs(this.x - position.getX()) < ERROR &&
+        return (Math.abs(this.x - position.getX()) < ERROR_X_AND_Z &&
                 Math.abs(this.y - position.getY()) < ERROR_Y &&
-                Math.abs(this.z - position.getZ()) < ERROR);
+                Math.abs(this.z - position.getZ()) < ERROR_X_AND_Z);
     }
 
     public void incrementUnconfirmedFor() {

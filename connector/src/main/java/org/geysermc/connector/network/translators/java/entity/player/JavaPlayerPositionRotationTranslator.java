@@ -112,15 +112,15 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         double newZ = packet.getZ() +
                 (packet.getRelative().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
 
-        double newPitch = packet.getPitch() +
+        float newPitch = packet.getPitch() +
                 (packet.getRelative().contains(PositionElement.PITCH) ? entity.getBedrockRotation().getX() : 0);
-        double newYaw = packet.getYaw() +
+        float newYaw = packet.getYaw() +
                 (packet.getRelative().contains(PositionElement.YAW) ? entity.getBedrockRotation().getY() : 0);
 
         session.getConnector().getLogger().debug("Teleport from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityType.PLAYER.getOffset()) + " " + entity.getPosition().getZ());
 
         session.addTeleport(new TeleportCache(newX, newY, newZ, newPitch, newYaw, packet.getTeleportId()));
-        entity.moveAbsolute(session, Vector3f.from(newX, newY, newZ), (float) newYaw, (float) newPitch, true, true);
+        entity.moveAbsolute(session, Vector3f.from(newX, newY, newZ), newYaw, newPitch, true, true);
 
         session.getConnector().getLogger().debug("to " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityType.PLAYER.getOffset()) + " " + entity.getPosition().getZ());
     }
