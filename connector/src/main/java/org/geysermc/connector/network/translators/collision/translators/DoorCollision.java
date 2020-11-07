@@ -59,8 +59,8 @@ public class DoorCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(BoundingBox playerCollision, GeyserSession session) {
-        boolean result = super.correctPosition(playerCollision, session);
+    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
+        boolean result = super.correctPosition(session, playerCollision);
         // Hack to prevent false positives
         playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);

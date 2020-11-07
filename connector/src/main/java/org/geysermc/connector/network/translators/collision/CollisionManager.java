@@ -72,7 +72,7 @@ public class CollisionManager {
      * @param position The new position of the player
      */
     public void updatePlayerBoundingBox(Vector3f position) {
-        updatePlayerBoundingBox(Vector3d.from(position.getX(), position.getY(), position.getZ()));
+        updatePlayerBoundingBox(position.toDouble());
     }
 
     /**
@@ -145,7 +145,7 @@ public class CollisionManager {
     /**
      * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
      * cancelled
-     * See {@link BlockCollision#correctPosition(BoundingBox, GeyserSession)} for more info
+     * See {@link BlockCollision#correctPosition(GeyserSession, BoundingBox)} for more info
      */
     public boolean correctPlayerPosition() {
         // Store the old values so we know whether to resend
@@ -175,7 +175,7 @@ public class CollisionManager {
                     blockPos.getX(), blockPos.getY(), blockPos.getZ(), session
             );
             if (blockCollision != null) {
-                if (!blockCollision.correctPosition(playerBoundingBox, session)) {
+                if (!blockCollision.correctPosition(session, playerBoundingBox)) {
                     return false;
                 }
             }

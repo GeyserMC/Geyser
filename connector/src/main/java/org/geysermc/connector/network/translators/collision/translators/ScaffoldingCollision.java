@@ -25,11 +25,13 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
+/**
+ * In order for scaffolding to work on Bedrock, entity flags need to be sent to the player
+ */
 @CollisionRemapper(regex = "^scaffolding$", usesParams = true, passDefaultBoxes = true)
 public class ScaffoldingCollision extends BlockCollision {
     public ScaffoldingCollision(String params, BoundingBox[] defaultBoxes) {
@@ -38,7 +40,7 @@ public class ScaffoldingCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(BoundingBox playerCollision, GeyserSession session) {
+    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
         if (this.checkIntersection(playerCollision)) {
             session.getCollisionManager().setTouchingScaffolding(true);
             session.getCollisionManager().setOnScaffolding(true);

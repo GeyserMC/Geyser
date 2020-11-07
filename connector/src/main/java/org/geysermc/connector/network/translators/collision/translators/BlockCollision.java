@@ -71,7 +71,7 @@ public class BlockCollision {
      * While the Java server should do this, it could result in false flags by anticheat
      * This functionality is currently only used in 6 or 7 layer snow
      */
-    public boolean correctPosition(BoundingBox playerCollision, GeyserSession session) {
+    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
         double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
         for (BoundingBox b: this.boundingBoxes) {
             double boxMinY = (b.getMiddleY() + y) - (b.getSizeY() / 2);
@@ -96,14 +96,6 @@ public class BlockCollision {
                 Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x,
                         playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2) - y,
                         playerCollision.getMiddleZ() - z);
-
-                Vector3d topFacePos = Vector3d.from(b.getMiddleX(),
-                        b.getMiddleY() + (b.getSizeY() / 2),
-                        b.getMiddleZ());
-
-                Vector3d bottomFacePos = Vector3d.from(b.getMiddleX(),
-                        b.getMiddleY() - (b.getSizeY() / 2),
-                        b.getMiddleZ());
 
                 Vector3d northFacePos = Vector3d.from(b.getMiddleX(),
                         b.getMiddleY(),

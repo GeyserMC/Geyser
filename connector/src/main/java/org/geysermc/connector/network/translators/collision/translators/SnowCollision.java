@@ -78,7 +78,7 @@ public class SnowCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(BoundingBox playerCollision, GeyserSession session) {
+    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
         // Hack to prevent false positives
         playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
@@ -97,6 +97,6 @@ public class SnowCollision extends BlockCollision {
         playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
-        return super.correctPosition(playerCollision, session);
+        return super.correctPosition(session, playerCollision);
     }
 }

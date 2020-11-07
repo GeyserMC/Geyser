@@ -45,7 +45,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class CollisionTranslator {
-    private static final Int2ObjectMap<BlockCollision> collisionMap = new Int2ObjectOpenHashMap<>();
+    private static final Int2ObjectMap<BlockCollision> COLLISION_MAP = new Int2ObjectOpenHashMap<>();
 
     public static void init() {
         // If chunk caching is off then don't initialize
@@ -57,7 +57,7 @@ public class CollisionTranslator {
 
         Map<Class<?>, CollisionRemapper> annotationMap = new HashMap<>();
 
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.collision.translators");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.collision.translators") : new Reflections("org.geysermc.connector.network.translators.collision.translators");
         for (Class<?> clazz : ref.getTypesAnnotatedWith(CollisionRemapper.class)) {
             GeyserConnector.getInstance().getLogger().debug("Found annotated collision translator: " + clazz.getCanonicalName());
 
@@ -85,7 +85,7 @@ public class CollisionTranslator {
             if (newCollision != null) {
                 instantiatedCollision.put(newCollision.getClass(), newCollision);
             }
-            collisionMap.put(entry.getValue(), newCollision);
+            COLLISION_MAP.put(entry.getValue().intValue(), newCollision);
         }
     }
 
@@ -169,10 +169,10 @@ public class CollisionTranslator {
         return collision;
     }
 
-    // Note: these reuse classes, so don't try to store more than once instance or coordinayes will get overwritten
+    // Note: these reuse classes, so don't try to store more than once instance or coordinates will get overwritten
 
-    public static BlockCollision getCollision(Integer blockID, int x, int y, int z) {
-        BlockCollision collision = collisionMap.get(blockID);
+    public static BlockCollision getCollision(int blockID, int x, int y, int z) {
+        BlockCollision collision = COLLISION_MAP.get(blockID);
         if (collision != null) {
             collision.setPosition(x, y, z);
         }
@@ -182,10 +182,7 @@ public class CollisionTranslator {
 
     public static BlockCollision getCollisionAt(int x, int y, int z, GeyserSession session) {
         try {
-            return getCollision(
-                    session.getConnector().getWorldManager().getBlockAt(session, x, y, z),
-                    x, y, z
-            );
+            return getCollision(session.getConnector().getWorldManager().getBlockAt(session, x, y, z), x, y, z);
         } catch (ArrayIndexOutOfBoundsException e) {
             // Block out of world
             return null;
