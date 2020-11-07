@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.geysermc.connector.scoreboard.UpdateType.*;
 
 @Getter
-public class Scoreboard {
+public final class Scoreboard {
     private final GeyserSession session;
     private final GeyserLogger logger;
     private final AtomicLong nextId = new AtomicLong(0);

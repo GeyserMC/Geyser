@@ -39,18 +39,17 @@ import java.util.Set;
 
 @Getter
 @Accessors(chain = true)
-public class Team {
+public final class Team {
     private final Scoreboard scoreboard;
     private final String id;
 
-    private final TeamData currentData;
-    private TeamData cachedData;
-
     @Getter(AccessLevel.NONE)
     private final Set<String> entities;
-
     @Setter private NameTagVisibility nameTagVisibility;
     @Setter private TeamColor color;
+
+    private TeamData currentData;
+    private TeamData cachedData;
 
     private boolean updating;
 
@@ -142,14 +141,6 @@ public class Team {
                 currentData.getDisplayName(score);
     }
 
-    public Team setUpdateType(UpdateType updateType) {
-        if (updateType != UpdateType.NOTHING) {
-            currentData.updateTime = System.currentTimeMillis();
-        }
-        currentData.updateType = updateType;
-        return this;
-    }
-
     public void markUpdated() {
         updating = false;
     }
@@ -179,6 +170,14 @@ public class Team {
 
     public UpdateType getUpdateType() {
         return cachedData != null ? cachedData.updateType : currentData.updateType;
+    }
+
+    public Team setUpdateType(UpdateType updateType) {
+        if (updateType != UpdateType.NOTHING) {
+            currentData.updateTime = System.currentTimeMillis();
+        }
+        currentData.updateType = updateType;
+        return this;
     }
 
     public boolean isVisibleFor(String entity) {

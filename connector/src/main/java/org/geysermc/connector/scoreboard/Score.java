@@ -31,12 +31,12 @@ import lombok.experimental.Accessors;
 
 @Getter
 @Accessors(chain = true)
-public class Score {
+public final class Score {
     private final long id;
     private final String name;
     private ScoreInfo cachedInfo;
 
-    private final ScoreData currentData;
+    private ScoreData currentData;
     private ScoreData cachedData;
 
     public Score(long id, String name) {

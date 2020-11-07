@@ -28,13 +28,12 @@ package org.geysermc.connector.scoreboard;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
-public class Objective {
+public final class Objective {
     private final Scoreboard scoreboard;
     private final long id;
     private boolean active = true;
@@ -74,6 +73,28 @@ public class Objective {
         this.displaySlotName = translateDisplaySlot(displaySlot);
         this.displayName = displayName;
         this.type = type;
+    }
+
+    private static String translateDisplaySlot(ScoreboardPosition displaySlot) {
+        switch (displaySlot) {
+            case BELOW_NAME:
+                return "belowname";
+            case PLAYER_LIST:
+                return "list";
+            default:
+                return "sidebar";
+        }
+    }
+
+    private static ScoreboardPosition correctDisplaySlot(ScoreboardPosition displaySlot) {
+        switch (displaySlot) {
+            case BELOW_NAME:
+                return ScoreboardPosition.BELOW_NAME;
+            case PLAYER_LIST:
+                return ScoreboardPosition.PLAYER_LIST;
+            default:
+                return ScoreboardPosition.SIDEBAR;
+        }
     }
 
     public void registerScore(String id, int score) {
@@ -137,27 +158,5 @@ public class Objective {
 
     public void removed() {
         scores = null;
-    }
-
-    private static String translateDisplaySlot(ScoreboardPosition displaySlot) {
-        switch (displaySlot) {
-            case BELOW_NAME:
-                return "belowname";
-            case PLAYER_LIST:
-                return "list";
-            default:
-                return "sidebar";
-        }
-    }
-
-    private static ScoreboardPosition correctDisplaySlot(ScoreboardPosition displaySlot) {
-        switch (displaySlot) {
-            case BELOW_NAME:
-                return ScoreboardPosition.BELOW_NAME;
-            case PLAYER_LIST:
-                return ScoreboardPosition.PLAYER_LIST;
-            default:
-                return ScoreboardPosition.SIDEBAR;
-        }
     }
 }
