@@ -28,6 +28,7 @@ package org.geysermc.connector.scoreboard;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +41,9 @@ public class Objective {
 
     @Setter
     private UpdateType updateType = UpdateType.ADD;
+
     private String objectiveName;
+    private ScoreboardPosition displaySlot;
     private String displaySlotName;
     private String displayName = "unknown";
     private int type = 0; // 0 = integer, 1 = heart
@@ -67,6 +70,7 @@ public class Objective {
     public Objective(Scoreboard scoreboard, String objectiveName, ScoreboardPosition displaySlot, String displayName, int type) {
         this(scoreboard);
         this.objectiveName = objectiveName;
+        this.displaySlot = correctDisplaySlot(displaySlot);
         this.displaySlotName = translateDisplaySlot(displaySlot);
         this.displayName = displayName;
         this.type = type;
@@ -74,32 +78,29 @@ public class Objective {
 
     public void registerScore(String id, int score) {
         if (!scores.containsKey(id)) {
-            Score score1 = new Score(this, id)
+            long scoreId = scoreboard.getNextId().getAndIncrement();
+            Score scoreObject = new Score(scoreId, id)
                     .setScore(score)
                     .setTeam(scoreboard.getTeamFor(id))
                     .setUpdateType(UpdateType.ADD);
-            scores.put(id, score1);
+            scores.put(id, scoreObject);
         }
     }
 
     public void setScore(String id, int score) {
-        if (scores.containsKey(id)) {
-            scores.get(id).setScore(score);
+        Score stored = scores.get(id);
+        if (stored != null) {
+            stored.setScore(score)
+                    .setUpdateType(UpdateType.UPDATE);
             return;
         }
         registerScore(id, score);
     }
 
-    public int getScore(String id) {
-        if (scores.containsKey(id)) {
-            return scores.get(id).getScore();
-        }
-        return 0;
-    }
-
     public void removeScore(String id) {
-        if (scores.containsKey(id)) {
-            scores.get(id).setUpdateType(UpdateType.REMOVE);
+        Score stored = scores.get(id);
+        if (stored != null) {
+            stored.setUpdateType(UpdateType.REMOVE);
         }
     }
 
@@ -129,6 +130,7 @@ public class Objective {
     public void setActive(ScoreboardPosition displaySlot) {
         if (!active) {
             active = true;
+            this.displaySlot = correctDisplaySlot(displaySlot);
             displaySlotName = translateDisplaySlot(displaySlot);
         }
     }
@@ -145,6 +147,17 @@ public class Objective {
                 return "list";
             default:
                 return "sidebar";
+        }
+    }
+
+    private static ScoreboardPosition correctDisplaySlot(ScoreboardPosition displaySlot) {
+        switch (displaySlot) {
+            case BELOW_NAME:
+                return ScoreboardPosition.BELOW_NAME;
+            case PLAYER_LIST:
+                return ScoreboardPosition.PLAYER_LIST;
+            default:
+                return ScoreboardPosition.SIDEBAR;
         }
     }
 }
