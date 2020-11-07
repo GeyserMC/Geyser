@@ -177,7 +177,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             // Correct player position
             if (!collisionManager.correctPlayerPosition()) {
                 // Cancel the movement if it needs to be cancelled
-                System.out.println("Cancel");
                 recalculatePosition(session);
                 return null;
             }
@@ -210,7 +209,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
+        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
         session.sendUpstreamPacket(movePlayerPacket);
     }
 
