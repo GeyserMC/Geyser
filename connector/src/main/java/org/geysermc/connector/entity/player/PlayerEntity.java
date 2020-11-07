@@ -223,6 +223,16 @@ public class PlayerEntity extends LivingEntity {
         this.position = position.add(0, entityType.getOffset(), 0);
     }
 
+    /**
+     * Set the player position without adding the entity type's offset. Used when the player sends us a move packet
+     * where the offset is already added
+     *
+     * @param position the new position of the Bedrock player
+     */
+    public void setPositionWithoutOffset(Vector3f position) {
+        this.position = position;
+    }
+
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);

@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.bedrock.entity.player;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerRotationPacket;
+import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
@@ -66,53 +67,53 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             session.getMovementSendIfIdle().cancel(true);
         }
 
-        if (!session.confirmTeleport(Vector3d.from(packet.getPosition().getX(), packet.getPosition().getY() - EntityType.PLAYER.getOffset(),
-                packet.getPosition().getZ()))) {
-            return;
-        }
-
-        // If only the pitch and yaw changed
-        // This isn't needed, but it makes the packets closer to vanilla
-        // It also means you can't "lag back" while only looking, in theory
-        if (entity.getPosition().equals(packet.getPosition())) {
-            ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(
-                    packet.isOnGround(), packet.getRotation().getY(), packet.getRotation().getX()
-            );
-
+        if (session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0))) {
             // head yaw, pitch, head yaw
             Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
-            entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
-            entity.setRotation(rotation);
-            entity.setOnGround(packet.isOnGround());
 
-            session.sendDownstreamPacket(playerRotationPacket);
-            return;
+            boolean positionChanged = !entity.getPosition().equals(packet.getPosition());
+            boolean rotationChanged = !entity.getRotation().equals(rotation);
+
+            // If only the pitch and yaw changed
+            // This isn't needed, but it makes the packets closer to vanilla
+            // It also means you can't "lag back" while only looking, in theory
+            if (!positionChanged && rotationChanged) {
+                ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(
+                        packet.isOnGround(), packet.getRotation().getY(), packet.getRotation().getX());
+
+                entity.setRotation(rotation);
+                entity.setOnGround(packet.isOnGround());
+
+                session.sendDownstreamPacket(playerRotationPacket);
+            } else {
+                Vector3d position = adjustBedrockPosition(packet.getPosition(), packet.isOnGround(), session, entity);
+                if (position != null) { // A null return value cancels the packet
+                    if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
+                        Packet movePacket;
+                        if (rotationChanged) {
+                            // Send rotation updates as well
+                            movePacket = new ClientPlayerPositionRotationPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ(),
+                                    packet.getRotation().getY(), packet.getRotation().getX());
+                            entity.setRotation(rotation);
+                        } else {
+                            // Rotation did not change; don't send an update with rotation
+                            movePacket = new ClientPlayerPositionPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
+                        }
+
+                        entity.setPositionWithoutOffset(packet.getPosition());
+                        entity.setOnGround(packet.isOnGround());
+
+                        // Send final movement changes
+                        session.sendDownstreamPacket(movePacket);
+                    } else {
+                        // Not a valid move
+                        session.getConnector().getLogger().debug("Recalculating position...");
+                        recalculatePosition(session, entity, entity.getPosition());
+                    }
+                }
+            }
         }
 
-        Vector3d position = adjustBedrockPosition(packet.getPosition(), packet.isOnGround(), session, entity);
-
-        // A null return value cancels the packet
-        if (position == null) {
-            return;
-        }
-        
-        
-
-        if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
-            session.getConnector().getLogger().debug("Recalculating position...");
-            recalculatePosition(session, entity, entity.getPosition());
-            return;
-        }
-
-        ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
-                packet.isOnGround(), position.getX(), position.getY(), position.getZ(), packet.getRotation().getY(), packet.getRotation().getX()
-        );
-
-        // head yaw, pitch, head yaw
-        Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
-        entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
-        entity.setRotation(rotation);
-        entity.setOnGround(packet.isOnGround());
         // Move parrots to match if applicable
         if (entity.getLeftParrot() != null) {
             entity.getLeftParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
@@ -120,8 +121,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (entity.getRightParrot() != null) {
             entity.getRightParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
         }
-
-        session.sendDownstreamPacket(playerPositionRotationPacket);
 
         // Schedule a position send loop if the player is idle
         session.setMovementSendIfIdle(session.getConnector().getGeneralThreadPool().schedule(() -> sendPositionIfIdle(session),
@@ -221,12 +220,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         // Recalculate in case something else changed position
         Vector3d position = adjustBedrockPosition(entity.getPosition(), entity.isOnGround(), session, entity);
         // A null return value cancels the packet
-        if (position == null) {
-            return;
+        if (position != null) {
+            ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(session.getPlayerEntity().isOnGround(),
+                    position.getX(), position.getY(), position.getZ());
+            session.sendDownstreamPacket(packet);
         }
-        ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(session.getPlayerEntity().isOnGround(),
-                position.getX(), position.getY(), position.getZ());
-        session.sendDownstreamPacket(packet);
         session.setMovementSendIfIdle(session.getConnector().getGeneralThreadPool().schedule(() -> sendPositionIfIdle(session),
                 3, TimeUnit.SECONDS));
     }

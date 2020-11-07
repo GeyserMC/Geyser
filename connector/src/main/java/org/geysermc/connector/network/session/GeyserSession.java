@@ -707,6 +707,9 @@ public class GeyserSession implements CommandSender {
     }
 
     public boolean confirmTeleport(Vector3d position) {
+        if (teleportMap.size() == 0) {
+            return true;
+        }
         int teleportID = -1;
 
         for (Int2ObjectMap.Entry<TeleportCache> entry : teleportMap.int2ObjectEntrySet()) {
