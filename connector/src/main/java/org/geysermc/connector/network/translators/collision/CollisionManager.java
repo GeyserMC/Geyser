@@ -159,7 +159,7 @@ public class CollisionManager {
         // Used when correction code needs to be run before the main correction
         for (Vector3i blockPos : collidableBlocks) {
             BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
-                    blockPos.getX(), blockPos.getY(), blockPos.getZ(), session
+                    session, blockPos.getX(), blockPos.getY(), blockPos.getZ()
             );
             if (blockCollision != null) {
                 blockCollision.beforeCorrectPosition(playerBoundingBox);
@@ -169,7 +169,7 @@ public class CollisionManager {
         // Main correction code
         for (Vector3i blockPos : collidableBlocks) {
             BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
-                    blockPos.getX(), blockPos.getY(), blockPos.getZ(), session
+                    session, blockPos.getX(), blockPos.getY(), blockPos.getZ()
             );
             if (blockCollision != null) {
                 if (!blockCollision.correctPosition(session, playerBoundingBox)) {

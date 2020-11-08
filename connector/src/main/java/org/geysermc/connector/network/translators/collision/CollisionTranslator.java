@@ -180,7 +180,7 @@ public class CollisionTranslator {
     }
 
 
-    public static BlockCollision getCollisionAt(int x, int y, int z, GeyserSession session) {
+    public static BlockCollision getCollisionAt(GeyserSession session, int x, int y, int z) {
         try {
             return getCollision(session.getConnector().getWorldManager().getBlockAt(session, x, y, z), x, y, z);
         } catch (ArrayIndexOutOfBoundsException e) {
