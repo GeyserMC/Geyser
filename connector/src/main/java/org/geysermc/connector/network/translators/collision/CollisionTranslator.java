@@ -118,7 +118,7 @@ public class CollisionTranslator {
                     BlockCollision collision;
                     if (annotation.passDefaultBoxes()) {
                         // Create an OtherCollision instance and get the bounding boxes
-                        BoundingBox[] defaultBoxes = new OtherCollision((ArrayNode) collisionList.get(collisionIndex), blockID).getBoundingBoxes();
+                        BoundingBox[] defaultBoxes = new OtherCollision((ArrayNode) collisionList.get(collisionIndex)).getBoundingBoxes();
                         collision = (BlockCollision) type.getDeclaredConstructor(String.class, BoundingBox[].class).newInstance(params, defaultBoxes);
                     } else {
                         collision = (BlockCollision) type.getDeclaredConstructor(String.class).newInstance(params);
@@ -157,7 +157,7 @@ public class CollisionTranslator {
             }
         }
 
-        BlockCollision collision = new OtherCollision((ArrayNode) collisionList.get(collisionIndex), blockID);
+        BlockCollision collision = new OtherCollision((ArrayNode) collisionList.get(collisionIndex));
         // If there's an existing instance equal to this one, use that instead
         for (Map.Entry<Class<?>, BlockCollision> entry : instantiatedCollision.entrySet()) {
             if (entry.getValue().equals(collision)) {

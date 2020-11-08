@@ -45,8 +45,6 @@ public class TeleportCache {
     private static final double ERROR_X_AND_Z = 0.1;
     private static final double ERROR_Y = 0.1;
 
-    private int unconfirmedFor = 0;
-
     /**
      * How many move packets the teleport can be unconfirmed for before it gets resent to the client
      */
@@ -55,6 +53,8 @@ public class TeleportCache {
     private final double x, y, z;
     private final float pitch, yaw;
     private final int teleportConfirmId;
+
+    private int unconfirmedFor = 0;
 
     public boolean canConfirm(Vector3d position) {
         return (Math.abs(this.x - position.getX()) < ERROR_X_AND_Z &&

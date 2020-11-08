@@ -68,14 +68,19 @@ public class DoorCollision extends BlockCollision {
 
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         if (this.checkIntersection(playerCollision)) {
-            if (facing == 1) { // North
-                playerCollision.setMiddleZ((int) playerCollision.getMiddleZ() + 0.5125);
-            } else if (facing == 2) { // East
-                playerCollision.setMiddleX((int) playerCollision.getMiddleX() + 0.5125);
-            } else if (facing == 3) { // South
-                playerCollision.setMiddleZ((int) playerCollision.getMiddleZ() + 0.4875);
-            } else if (facing == 4) { // West
-                playerCollision.setMiddleX((int) playerCollision.getMiddleX() + 0.4875);
+            switch (facing) {
+                case 1: // North
+                    playerCollision.setMiddleZ((int) playerCollision.getMiddleZ() + 0.5125);
+                    break;
+                case 2: // East
+                    playerCollision.setMiddleX((int) playerCollision.getMiddleX() + 0.5125);
+                    break;
+                case 3: // South
+                    playerCollision.setMiddleZ((int) playerCollision.getMiddleZ() + 0.4875);
+                    break;
+                case 4: // West
+                    playerCollision.setMiddleX((int) playerCollision.getMiddleX() + 0.4875);
+                    break;
             }
         }
 

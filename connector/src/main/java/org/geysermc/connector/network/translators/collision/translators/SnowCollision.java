@@ -34,19 +34,20 @@ import java.util.regex.Matcher;
 
 @CollisionRemapper(regex = "^snow$", usesParams = true)
 public class SnowCollision extends BlockCollision {
-    private int layers;
-    private Pattern layersPattern = Pattern.compile("layers=([0-8])");
+    private final int layers;
 
     public SnowCollision(String params) {
         super();
+        Pattern layersPattern = Pattern.compile("layers=([0-8])");
         Matcher matcher = layersPattern.matcher(params);
+        //noinspection ResultOfMethodCallIgnored
         matcher.find();
 
         // Hitbox is 1 layer less (you sink in 1 layer)
         layers = Integer.parseInt(matcher.group(1));
 
         if (layers > 1) {
-            boundingBoxes = new BoundingBox[]{
+            boundingBoxes = new BoundingBox[] {
                     // Take away 1 because you can go 1 layer into snow layers
                     new BoundingBox(0.5, ((layers - 1) * 0.125) / 2, 0.5,
                             1, (layers - 1) * 0.125, 1)

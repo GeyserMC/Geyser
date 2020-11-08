@@ -29,15 +29,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 public class OtherCollision extends BlockCollision {
 
-    public OtherCollision(ArrayNode collisionList, String ID) { // TODO: remove id
+    public OtherCollision(ArrayNode collisionList) {
         super();
         boundingBoxes = new BoundingBox[collisionList.size()];
 
-        for (int i = 0; i < collisionList.size(); i++)
-        {
+        for (int i = 0; i < collisionList.size(); i++) {
             ArrayNode collisionBoxArray = (ArrayNode) collisionList.get(i);
             boundingBoxes[i] = new BoundingBox(collisionBoxArray.get(0).asDouble(),
                     collisionBoxArray.get(1).asDouble(),
@@ -48,12 +48,6 @@ public class OtherCollision extends BlockCollision {
         }
 
         // Sorting by lowest Y first fixes some bugs
-        Arrays.sort(boundingBoxes, (b1, b2) -> {
-            if (b1.getMiddleY() < b2.getMiddleY())
-                return -1;
-            if (b1.getMiddleY() > b2.getMiddleY())
-                return 1;
-            return 0;
-        });
+        Arrays.sort(boundingBoxes, Comparator.comparingDouble(BoundingBox::getMiddleY));
     }
 }

@@ -73,7 +73,7 @@ public class BlockCollision {
      */
     public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
         double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-        for (BoundingBox b: this.boundingBoxes) {
+        for (BoundingBox b : this.boundingBoxes) {
             double boxMinY = (b.getMiddleY() + y) - (b.getSizeY() / 2);
             double boxMaxY = (b.getMiddleY() + y) + (b.getSizeY() / 2);
             if (b.checkIntersection(x, y, z, playerCollision) && (playerMinY + pushUpTolerance) >= boxMinY) {
@@ -143,7 +143,7 @@ public class BlockCollision {
     }
 
     public boolean checkIntersection(BoundingBox playerCollision) {
-        for (BoundingBox b: boundingBoxes) {
+        for (BoundingBox b : boundingBoxes) {
             if (b.checkIntersection(x, y, z, playerCollision)) {
                 return true;
             }
