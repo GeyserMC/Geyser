@@ -35,6 +35,8 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.SkinUtils;
 
+import java.util.UUID;
+
 @Translator(packet = ServerSpawnPlayerPacket.class)
 public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlayerPacket> {
 
@@ -53,10 +55,17 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
                 GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
                 return;
             }
-
-            entity.setEntityId(packet.getEntityId());
-            entity.setPosition(position);
-            entity.setRotation(rotation);
+            if (!entity.isValid() || entity.getEntityId() == -1) {
+                // The player entity in the list isn't currently in use, so reuse it
+                entity.setEntityId(packet.getEntityId());
+                entity.setPosition(position);
+                entity.setRotation(rotation);
+            } else {
+                // Create a new duplicate of the player
+                entity = new PlayerEntity(entity.getProfile(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), position, Vector3f.ZERO, rotation);
+                entity.setPlayerList(false);
+                entity.setSpawningUUID(UUID.randomUUID());
+            }
         }
         session.getEntityCache().cacheEntity(entity);
 
