@@ -29,6 +29,7 @@ import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -148,10 +149,6 @@ public class CollisionManager {
      * See {@link BlockCollision#correctPosition(GeyserSession, BoundingBox)} for more info
      */
     public boolean correctPlayerPosition() {
-        // Store the old values so we know whether to resend
-        boolean oldInScaffolding = session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.IN_SCAFFOLDING);
-        boolean oldFallThroughScaffolding = session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING);
-        boolean oldOverScaffolding = session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.OVER_SCAFFOLDING);
 
         // These may be set to true by the correctPosition method in ScaffoldingCollision
         touchingScaffolding = false;
@@ -183,46 +180,29 @@ public class CollisionManager {
 
         updateScaffoldingFlags();
 
-        resendScaffoldFlagsIfChanged(oldInScaffolding, oldFallThroughScaffolding, oldOverScaffolding);
-
         return true;
     }
 
     /**
      * Updates scaffolding entity flags
      * Scaffolding needs to be checked per-move since it's a flag in Bedrock but Java does it client-side
-     * Does not actually send the updated flags
      */
     public void updateScaffoldingFlags() {
-        if (touchingScaffolding || onScaffolding) {
-            if (session.isSneaking()) {
-                session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING, true);
-                session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.OVER_SCAFFOLDING, true);
-            }
-        } else {
-            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.IN_SCAFFOLDING, false);
-            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING, false);
-            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.OVER_SCAFFOLDING, false);
-        }
+        EntityFlags flags = session.getPlayerEntity().getMetadata().getFlags();
+        boolean flagsChanged;
+        boolean isSneakingWithScaffolding = (touchingScaffolding || onScaffolding) && session.isSneaking();
 
-        if (touchingScaffolding) {
-            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.IN_SCAFFOLDING, true);
-        } else if (onScaffolding) {
-            session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.IN_SCAFFOLDING, false);
-        }
-    }
+        flagsChanged = flags.getFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING) != isSneakingWithScaffolding;
+        flagsChanged |= flags.getFlag(EntityFlag.OVER_SCAFFOLDING) != isSneakingWithScaffolding;
 
-    /**
-     * If the scaffolding entity flags changed, resend them
-     * @param oldInScaffolding
-     * @param oldFallThroughScaffolding
-     */
-    private void resendScaffoldFlagsIfChanged(boolean oldInScaffolding, boolean oldFallThroughScaffolding, boolean oldOverScaffolding) {
-        if (oldInScaffolding != session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.IN_SCAFFOLDING) ||
-                oldFallThroughScaffolding != session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING) ||
-                oldOverScaffolding != session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.OVER_SCAFFOLDING)) {
+        flags.setFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING, isSneakingWithScaffolding);
+        flags.setFlag(EntityFlag.OVER_SCAFFOLDING, isSneakingWithScaffolding);
+
+        flagsChanged |= flags.getFlag(EntityFlag.IN_SCAFFOLDING) != touchingScaffolding;
+        flags.setFlag(EntityFlag.IN_SCAFFOLDING, touchingScaffolding);
+
+        if (flagsChanged) {
             session.getPlayerEntity().updateBedrockMetadata(session);
         }
-
     }
 }
