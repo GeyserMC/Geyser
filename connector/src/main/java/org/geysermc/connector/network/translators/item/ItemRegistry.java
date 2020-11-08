@@ -68,6 +68,10 @@ public class ItemRegistry {
      */
     public static ItemEntry BUCKET;
     /**
+     * Egg item entry, used in JavaEntityStatusTranslator.java
+     */
+    public static ItemEntry EGG;
+    /**
      * Gold item entry, used in PiglinEntity.java
      */
     public static ItemEntry GOLD;
@@ -148,6 +152,9 @@ public class ItemRegistry {
                 case "minecraft:oak_boat":
                     BOAT = ITEM_ENTRIES.get(itemIndex);
                     break;
+                case "minecraft:egg":
+                    EGG = ITEM_ENTRIES.get(itemIndex);
+                    break;
                 case "minecraft:gold_ingot":
                     GOLD = ITEM_ENTRIES.get(itemIndex);
                     break;
@@ -226,8 +233,14 @@ public class ItemRegistry {
      * @return an item entry from the given java edition identifier
      */
     public static ItemEntry getItemEntry(String javaIdentifier) {
-        return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> ITEM_ENTRIES.values()
-                .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
+        return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> {
+            for (ItemEntry entry : ITEM_ENTRIES.values()) {
+                if (entry.getJavaIdentifier().equals(key)) {
+                    return entry;
+                }
+            }
+            return null;
+        });
     }
 
     /**

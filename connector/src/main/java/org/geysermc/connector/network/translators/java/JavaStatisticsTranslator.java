@@ -23,26 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block.entity;
+package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.NbtMapBuilder;
-import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerStatisticsPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.StatisticsUtils;
 
-@BlockEntity(name = "Bed", regex = "bed")
-public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getBedColor(blockState) != -1;
-    }
+@Translator(packet = ServerStatisticsPacket.class)
+public class JavaStatisticsTranslator extends PacketTranslator<ServerStatisticsPacket> {
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        byte bedcolor = BlockStateValues.getBedColor(blockState);
-        // Just in case...
-        if (bedcolor == -1) {
-            bedcolor = 0;
+    public void translate(ServerStatisticsPacket packet, GeyserSession session) {
+        session.updateStatistics(packet.getStatistics());
+
+        if (session.isWaitingForStatistics()) {
+            session.setWaitingForStatistics(false);
+            session.sendForm(StatisticsUtils.buildMenuForm(session), StatisticsUtils.STATISTICS_MENU_FORM_ID);
         }
-        builder.put("color", bedcolor);
     }
 }

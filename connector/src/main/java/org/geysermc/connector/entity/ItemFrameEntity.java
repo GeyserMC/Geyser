@@ -141,6 +141,7 @@ public class ItemFrameEntity extends Entity {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
+        // TODO 1.16.100 set to BEDROCK_AIR
         updateBlockPacket.setRuntimeId(0);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
@@ -194,18 +195,6 @@ public class ItemFrameEntity extends Entity {
      */
     public static long getItemFrameEntityId(GeyserSession session, Vector3i position) {
         return session.getItemFrameCache().getOrDefault(position, -1);
-    }
-
-    /**
-     * Determines if the position contains an item frame.
-     * Does largely the same thing as getItemFrameEntityId, but for speed purposes is implemented separately,
-     * since every block destroy packet has to check for an item frame.
-     * @param position position of block.
-     * @param session GeyserSession.
-     * @return true if position contains item frame, false if not.
-     */
-    public static boolean positionContainsItemFrame(GeyserSession session, Vector3i position) {
-        return session.getItemFrameCache().containsKey(position);
     }
 
     /**

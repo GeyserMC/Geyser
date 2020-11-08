@@ -74,7 +74,7 @@ public enum EntityType {
     ENDERMAN(EndermanEntity.class, 38, 2.9f, 0.6f),
     SILVERFISH(MonsterEntity.class, 39, 0.3f, 0.4f),
     CAVE_SPIDER(MonsterEntity.class, 40, 0.5f, 0.7f),
-    GHAST(FlyingEntity.class, 41, 4.0f),
+    GHAST(GhastEntity.class, 41, 4.0f),
     MAGMA_CUBE(MagmaCubeEntity.class, 42, 0.51f),
     BLAZE(BlazeEntity.class, 43, 1.8f, 0.6f),
     ZOMBIE_VILLAGER(ZombieVillagerEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:zombie_villager_v2"),
@@ -86,7 +86,7 @@ public enum EntityType {
     ELDER_GUARDIAN(ElderGuardianEntity.class, 50, 1.9975f),
     NPC(PlayerEntity.class, 51, 1.8f, 0.6f, 0.6f, 1.62f),
     WITHER(WitherEntity.class, 52, 3.5f, 0.9f),
-    ENDER_DRAGON(EnderDragonEntity.class, 53, 4f, 13f),
+    ENDER_DRAGON(EnderDragonEntity.class, 53, 0f, 0f),
     SHULKER(ShulkerEntity.class, 54, 1f, 1f),
     ENDERMITE(MonsterEntity.class, 55, 0.3f, 0.4f),
     AGENT(Entity.class, 56, 0f),
@@ -125,9 +125,9 @@ public enum EntityType {
     THROWN_POTION(ThrowableEntity.class, 86, 0.25f, 0.25f, 0.25f, 0f, "minecraft:splash_potion"),
     THROWN_ENDERPEARL(ThrowableEntity.class, 87, 0.25f, 0.25f, 0.25f, 0f, "minecraft:ender_pearl"),
     LEASH_KNOT(LeashKnotEntity.class, 88, 0.5f, 0.375f),
-    WITHER_SKULL(Entity.class, 89, 0.3125f),
+    WITHER_SKULL(WitherSkullEntity.class, 89, 0.3125f),
     BOAT(BoatEntity.class, 90, 0.7f, 1.6f, 1.6f, 0.35f),
-    WITHER_SKULL_DANGEROUS(Entity.class, 91, 0f),
+    WITHER_SKULL_DANGEROUS(WitherSkullEntity.class, 91, 0f),
     LIGHTNING_BOLT(Entity.class, 93, 0f),
     SMALL_FIREBALL(ItemedFireballEntity.class, 94, 0.3125f),
     AREA_EFFECT_CLOUD(AreaEffectCloudEntity.class, 95, 0.5f, 1.0f),
@@ -166,7 +166,12 @@ public enum EntityType {
     /**
      * Not an entity in Bedrock, so we replace it with a Pillager
      */
-    ILLUSIONER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager");
+    ILLUSIONER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager"),
+
+    /**
+     * Not an entity in Bedrock, but used for the Ender Dragon's multiple hitboxes
+     */
+    ENDER_DRAGON_PART(EnderDragonPartEntity.class, 32, 0, 0, 0, 0, "minecraft:armor_stand");
 
     private static final EntityType[] VALUES = values();
 

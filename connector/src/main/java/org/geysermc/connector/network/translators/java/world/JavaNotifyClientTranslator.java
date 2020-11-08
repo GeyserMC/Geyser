@@ -103,12 +103,12 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case CHANGE_GAMEMODE:
                 GameMode gameMode = (GameMode) packet.getValue();
 
-                session.sendAdventureSettings();
-
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
                 session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
+
+                session.sendAdventureSettings();
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());
@@ -143,7 +143,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case INVALID_BED:
                 // Not sent as a proper message? Odd.
                 session.sendMessage(LocaleUtils.getLocaleString("block.minecraft.spawn.not_valid",
-                        session.getClientData().getLanguageCode()));
+                        session.getLocale()));
                 break;
             case ARROW_HIT_PLAYER:
                 PlaySoundPacket arrowSoundPacket = new PlaySoundPacket();

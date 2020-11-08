@@ -60,6 +60,10 @@ public class DimensionUtils {
         if (javaDimension.equals(session.getDimension()))
             return;
 
+        if (session.getMovementSendIfIdle() != null) {
+            session.getMovementSendIfIdle().cancel(true);
+        }
+
         session.getEntityCache().removeAllEntities();
         session.getItemFrameCache().clear();
         if (session.getPendingDimSwitches().getAndIncrement() > 0) {

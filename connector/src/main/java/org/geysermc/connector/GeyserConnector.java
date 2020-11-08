@@ -270,7 +270,7 @@ public class GeyserConnector {
             // Make a copy to prevent ConcurrentModificationException
             final List<GeyserSession> tmpPlayers = new ArrayList<>(players);
             for (GeyserSession playerSession : tmpPlayers) {
-                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getClientData().getLanguageCode()));
+                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getLocale()));
             }
 
             CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {

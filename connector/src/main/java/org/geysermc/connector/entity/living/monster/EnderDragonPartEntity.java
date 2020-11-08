@@ -23,26 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block.entity;
+package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.NbtMapBuilder;
-import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.type.EntityType;
 
-@BlockEntity(name = "Bed", regex = "bed")
-public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getBedColor(blockState) != -1;
-    }
+public class EnderDragonPartEntity extends Entity {
+    public EnderDragonPartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, float width, float height) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
 
-    @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        byte bedcolor = BlockStateValues.getBedColor(blockState);
-        // Just in case...
-        if (bedcolor == -1) {
-            bedcolor = 0;
-        }
-        builder.put("color", bedcolor);
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
+        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
     }
 }
