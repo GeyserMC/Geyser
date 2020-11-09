@@ -66,6 +66,8 @@ public class AbstractHorseEntity extends AnimalEntity {
             metadata.put(EntityData.DISPLAY_ITEM, horseFlags);
 
             // Send the eating particles
+            // We use the wheat metadata as static particles since Java
+            // doesn't send over what item was used to feed the horse
             if ((xd & 0x40) == 0x40) {
                 EntityEventPacket entityEventPacket = new EntityEventPacket();
                 entityEventPacket.setRuntimeEntityId(geyserId);
