@@ -29,32 +29,39 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
-@CollisionRemapper(regex = "_door$", usesParams = true, passDefaultBoxes = true)
-public class DoorCollision extends BlockCollision {
+@CollisionRemapper(regex = "_trapdoor$", usesParams = true, passDefaultBoxes = true)
+public class TrapdoorCollision extends BlockCollision {
     /**
      * 1 = north
      * 2 = east
      * 3 = south
      * 4 = west
+     * 5 = up
+     * 6 = down
      */
     private int facing;
 
-    public DoorCollision(String params, BoundingBox[] defaultBoxes) {
+    public TrapdoorCollision(String params, BoundingBox[] defaultBoxes) {
         super();
         boundingBoxes = defaultBoxes;
-        if (params.contains("facing=north")) {
-            facing = 1;
-        } else if (params.contains("facing=east")) {
-            facing = 2;
-        } else if (params.contains("facing=south")) {
-            facing = 3;
-        } else if (params.contains("facing=west")) {
-            facing = 4;
-        }
-
-        // If the door is open it changes direction
         if (params.contains("open=true")) {
-            facing = facing % 2 + 1;
+            if (params.contains("facing=north")) {
+                facing = 1;
+            } else if (params.contains("facing=east")) {
+                facing = 2;
+            } else if (params.contains("facing=south")) {
+                facing = 3;
+            } else if (params.contains("facing=west")) {
+                facing = 4;
+            }
+        } else {
+            if (params.contains("half=bottom")) {
+                // Up
+                facing = 5;
+            } else {
+                // Down
+                facing = 6;
+            }
         }
     }
 
@@ -68,19 +75,24 @@ public class DoorCollision extends BlockCollision {
 
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         if (this.checkIntersection(playerCollision)) {
-            switch (facing) {
-                case 1: // North
-                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.5125);
-                    break;
-                case 2: // East
-                    playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.5125);
-                    break;
-                case 3: // South
-                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.4875);
-                    break;
-                case 4: // West
-                    playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.4875);
-                    break;
+            // Up-facing and east-facing trapdoors work fine
+            if (facing != 2 && facing != 5) {
+                switch (facing) {
+                    case 1: // North
+                        playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.5125);
+                        break;
+                    case 3: // South
+                        playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.4875);
+                        break;
+                    case 4: // West
+                        playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.4875);
+                        break;
+                    case 6: // Down
+                        playerCollision.setMiddleY(Math.floor(
+                                playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2)
+                                ) + 0.0125 + (playerCollision.getSizeY() / 2));
+                        break;
+                }
             }
         }
 
