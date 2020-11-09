@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.collision.translators;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
-@CollisionRemapper(regex = "^shulker_box$") // These have no collision in the mappings as it depends on the NBT data
+@CollisionRemapper(regex = "shulker_box$") // These have no collision in the mappings as it depends on the NBT data
 public class SolidCollision extends BlockCollision {
     public SolidCollision(String params) {
         super();
