@@ -653,7 +653,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
-        startGamePacket.setAchievementsDisabled(true);
+        startGamePacket.setAchievementsDisabled(!connector.getConfig().isXboxAchievementsEnabled());
         startGamePacket.setCurrentTick(-1);
         startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
@@ -664,7 +664,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", true));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
-        startGamePacket.setCommandsEnabled(true);
+        startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());
         startGamePacket.setTexturePacksRequired(false);
         startGamePacket.setBonusChestEnabled(false);
         startGamePacket.setStartingWithMap(false);

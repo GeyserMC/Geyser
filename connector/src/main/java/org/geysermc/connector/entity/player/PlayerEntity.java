@@ -27,7 +27,6 @@ package org.geysermc.connector.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
@@ -246,18 +245,12 @@ public class PlayerEntity extends LivingEntity {
             }
             Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
-                // Cover different visibility settings
-                if (team.getNameTagVisibility() == NameTagVisibility.NEVER) {
-                    metadata.put(EntityData.NAMETAG, "");
-                } else if (team.getNameTagVisibility() == NameTagVisibility.HIDE_FOR_OTHER_TEAMS &&
-                        !team.getEntities().contains(session.getPlayerEntity().getUsername())) {
-                    metadata.put(EntityData.NAMETAG, "");
-                } else if (team.getNameTagVisibility() == NameTagVisibility.HIDE_FOR_OWN_TEAM &&
-                        team.getEntities().contains(session.getPlayerEntity().getUsername())) {
-                    metadata.put(EntityData.NAMETAG, "");
-                } else {
-                    metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageUtils.toChatColor(team.getColor()) + username + team.getSuffix());
+                String displayName = "";
+                if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
+                    displayName = MessageUtils.toChatColor(team.getColor()) + username;
+                    displayName = team.getCurrentData().getDisplayName(displayName);
                 }
+                metadata.put(EntityData.NAMETAG, displayName);
             }
         }
 
