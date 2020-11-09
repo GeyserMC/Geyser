@@ -147,7 +147,7 @@ public class QueryPacketHandler {
         }
 
         if (connector.getConfig().isPassthroughMotd() && pingInfo != null) {
-            String[] javaMotd = MessageTranslator.convertMessage(pingInfo.getDescription()).split("\n");
+            String[] javaMotd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
             motd = javaMotd[0].trim(); // First line of the motd.
         } else {
             motd = connector.getConfig().getBedrock().getMotd1();

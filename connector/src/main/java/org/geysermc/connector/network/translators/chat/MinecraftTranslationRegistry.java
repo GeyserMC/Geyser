@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 public class MinecraftTranslationRegistry implements TranslationRegistry {
     @Override
     public @NonNull Key name() {
-        return null;
+        return Key.key("", "");
     }
 
     @Override

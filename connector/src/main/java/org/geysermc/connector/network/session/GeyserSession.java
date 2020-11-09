@@ -489,7 +489,7 @@ public class GeyserSession implements CommandSender {
                             event.getCause().printStackTrace();
                         }
 
-                        upstream.disconnect(MessageTranslator.convertMessage(event.getReason()));
+                        upstream.disconnect(MessageTranslator.convertMessageLenient(event.getReason()));
                     }
 
                     @Override
