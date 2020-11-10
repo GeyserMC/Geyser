@@ -35,6 +35,8 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.SkinUtils;
 
+import java.util.UUID;
+
 @Translator(packet = ServerSpawnPlayerPacket.class)
 public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlayerPacket> {
 
@@ -43,15 +45,28 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw());
 
-        PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
-        if (entity == null) {
-            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
-            return;
+        PlayerEntity entity;
+        if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
+            // Server is sending a fake version of the current player
+            entity = new PlayerEntity(session.getPlayerEntity().getProfile(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), position, Vector3f.ZERO, rotation);
+        } else {
+            entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
+            if (entity == null) {
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
+                return;
+            }
+            if (!entity.isValid() || entity.getEntityId() == -1) {
+                // The player entity in the list isn't currently in use, so reuse it
+                entity.setEntityId(packet.getEntityId());
+                entity.setPosition(position);
+                entity.setRotation(rotation);
+            } else {
+                // Create a new duplicate of the player
+                entity = new PlayerEntity(entity.getProfile(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), position, Vector3f.ZERO, rotation);
+                entity.setPlayerList(false);
+                entity.setSpawningUUID(UUID.randomUUID());
+            }
         }
-
-        entity.setEntityId(packet.getEntityId());
-        entity.setPosition(position);
-        entity.setRotation(rotation);
         session.getEntityCache().cacheEntity(entity);
 
         if (session.getUpstream().isInitialized()) {
