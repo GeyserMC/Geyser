@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
@@ -99,9 +100,9 @@ public class VillagerEntity extends AbstractMerchantEntity {
         int bedId = 0;
         float bedPositionSubtractorW = 0;
         float bedPositionSubtractorN = 0;
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            Position bedLocation = new Position((int) position.getFloorX(), (int) position.getFloorY(), (int) position.getFloorZ());
-            bedId = session.getConnector().getWorldManager().getBlockAt(session, bedLocation);
+        Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION);
+        if (session.getConnector().getConfig().isCacheChunks() && bedPosition != null) {
+            bedId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
         }
         String bedRotationZ = BlockTranslator.getJavaIdBlockMap().inverse().get(bedId);
         setRotation(rotation);
