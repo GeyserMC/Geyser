@@ -156,10 +156,6 @@ public class ChunkUtils {
             }
 
             Palette javaPalette = javaSection.getPalette();
-            IntList bedrockPalette = new IntArrayList(javaPalette.size());
-            waterloggedPaletteIds.clear();
-            pistonOrFlowerPaletteIds.clear();
-
             BitStorage javaData = javaSection.getStorage();
 
             if (javaPalette instanceof GlobalPalette) {
@@ -186,6 +182,10 @@ public class ChunkUtils {
                 sections[sectionY] = section;
                 continue;
             }
+
+            IntList bedrockPalette = new IntArrayList(javaPalette.size());
+            waterloggedPaletteIds.clear();
+            pistonOrFlowerPaletteIds.clear();
 
             // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
             for (int i = 0; i < javaPalette.size(); i++) {
