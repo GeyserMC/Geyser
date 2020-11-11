@@ -28,6 +28,7 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.chunk.BitStorage;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
+import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -65,10 +66,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.AIR;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
 
 @UtilityClass
 public class ChunkUtils {
@@ -107,7 +108,7 @@ public class ChunkUtils {
         ChunkSection[] sections = new ChunkSection[javaSections.length];
 
         // Temporarily stores compound tags of Bedrock-only block entities
-        List<NbtMap> bedrockOnlyBlockEntities = Collections.emptyList();
+        List<NbtMap> bedrockOnlyBlockEntities = new ArrayList<>();
 
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
@@ -159,6 +160,33 @@ public class ChunkUtils {
             waterloggedPaletteIds.clear();
             pistonOrFlowerPaletteIds.clear();
 
+            BitStorage javaData = javaSection.getStorage();
+
+            if (javaPalette instanceof GlobalPalette) {
+                // As this is the global palette, simply iterate through the whole chunk section once
+                ChunkSection section = new ChunkSection();
+                for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
+                    int javaId = javaData.get(yzx);
+                    int bedrockId = BlockTranslator.getBedrockBlockId(javaId);
+                    int xzy = indexYZXtoXZY(yzx);
+                    section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
+
+                    if (BlockTranslator.isWaterlogged(javaId)) {
+                        section.getBlockStorageArray()[1].setFullBlock(xzy, BEDROCK_WATER_ID);
+                    }
+
+                    // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
+                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
+                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                javaId
+                        ));
+                    }
+                }
+                sections[sectionY] = section;
+                continue;
+            }
+
             // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
             for (int i = 0; i < javaPalette.size(); i++) {
                 int javaId = javaPalette.idToState(i);
@@ -174,13 +202,10 @@ public class ChunkUtils {
                 }
             }
 
-            BitStorage javaData = javaSection.getStorage();
-
             // Add Bedrock-exclusive block entities
             // We only if the palette contained any blocks that are Bedrock-exclusive block entities to avoid iterating through the whole block data
             // for no reason, as most sections will not contain any pistons or flower pots
             if (!pistonOrFlowerPaletteIds.isEmpty()) {
-                bedrockOnlyBlockEntities = new ArrayList<>();
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                     int paletteId = javaData.get(yzx);
                     if (pistonOrFlowerPaletteIds.get(paletteId)) {
