@@ -58,6 +58,7 @@ public class DimensionUtils {
 
         session.getEntityCache().removeAllEntities();
         session.getItemFrameCache().clear();
+        session.getPistonCache().clear();
         if (session.getPendingDimSwitches().getAndIncrement() > 0) {
             ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
         }

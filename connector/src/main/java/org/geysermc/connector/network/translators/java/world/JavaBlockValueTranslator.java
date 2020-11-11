@@ -37,8 +37,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.entity.NoteblockBlockEntityTranslator;
-
-import java.util.concurrent.TimeUnit;
+import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntity;
 
 
 @Translator(packet = ServerBlockValuePacket.class)
@@ -60,16 +59,19 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         } else if (packet.getValue() instanceof NoteBlockValue) {
             NoteblockBlockEntityTranslator.translate(session, packet.getPosition());
         } else if (packet.getValue() instanceof PistonValue) {
-            PistonValueType type = (PistonValueType) packet.getType();
+            PistonValueType action = (PistonValueType) packet.getType();
+            PistonValue direction = fixDirection((PistonValue) packet.getValue());
 
             // Unlike everything else, pistons need a block entity packet to convey motion
             // TODO: Doesn't register on chunk load; needs to be interacted with first
             Vector3i position = Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
-            if (type == PistonValueType.PUSHING) {
-                extendPiston(session, position, 0.0f, 0.0f);
-            } else {
-                retractPiston(session, position, 1.0f, 1.0f);
+            PistonBlockEntity blockEntity = session.getPistonCache().get(position);
+            if (blockEntity == null) {
+                blockEntity = new PistonBlockEntity(session, position, direction);
+                session.getPistonCache().put(position, blockEntity);
             }
+            blockEntity.setAction(action);
+            blockEntity.sendUpdate();
         } else if (packet.getValue() instanceof MobSpawnerValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
@@ -114,63 +116,17 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
     }
 
     /**
-     * Emulating a piston extending
-     * @param session GeyserSession
-     * @param position Block position
-     * @param progress How far the piston is
-     * @param lastProgress How far the piston last was
+     * The enum values in PistonValue is in the wrong order compared to Minecraft
      */
-    private void extendPiston(GeyserSession session, Vector3i position, float progress, float lastProgress) {
-        BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
-        blockEntityDataPacket.setBlockPosition(position);
-        byte state = (byte) ((progress == 1.0f && lastProgress == 1.0f) ? 2 : 1);
-        blockEntityDataPacket.setData(buildPistonTag(position, progress, lastProgress, state));
-        session.sendUpstreamPacket(blockEntityDataPacket);
-        if (lastProgress != 1.0f) {
-            session.getConnector().getGeneralThreadPool().schedule(() ->
-                            extendPiston(session, position, (progress >= 1.0f) ? 1.0f : progress + 0.5f, progress),
-                    20, TimeUnit.MILLISECONDS);
+    private PistonValue fixDirection(PistonValue direction) {
+        switch (direction) {
+            case SOUTH:
+                return PistonValue.NORTH;
+            case WEST:
+                return PistonValue.SOUTH;
+            case NORTH:
+                return PistonValue.WEST;
         }
-    }
-
-    /**
-     * Emulate a piston retracting.
-     * @param session GeyserSession
-     * @param position Block position
-     * @param progress Current progress of piston
-     * @param lastProgress Last progress of piston
-     */
-    private void retractPiston(GeyserSession session, Vector3i position, float progress, float lastProgress) {
-        BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
-        blockEntityDataPacket.setBlockPosition(position);
-        byte state = (byte) ((progress == 0.0f && lastProgress == 0.0f) ? 0 : 3);
-        blockEntityDataPacket.setData(buildPistonTag(position, progress, lastProgress, state));
-        session.sendUpstreamPacket(blockEntityDataPacket);
-        if (lastProgress != 0.0f) {
-            session.getConnector().getGeneralThreadPool().schedule(() ->
-                            retractPiston(session, position, (progress <= 0.0f) ? 0.0f : progress - 0.5f, progress),
-                    20, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    /**
-     * Build a piston tag
-     * @param position Piston position
-     * @param progress Current progress of piston
-     * @param lastProgress Last progress of piston
-     * @param state
-     * @return Bedrock CompoundTag of piston
-     */
-    private NbtMap buildPistonTag(Vector3i position, float progress, float lastProgress, byte state) {
-        NbtMapBuilder builder = NbtMap.builder()
-                .putInt("x", position.getX())
-                .putInt("y", position.getY())
-                .putInt("z", position.getZ())
-                .putFloat("Progress", progress)
-                .putFloat("LastProgress", lastProgress)
-                .putString("id", "PistonArm")
-                .putByte("NewState", state)
-                .putByte("State", state);
-        return builder.build();
+        return direction;
     }
 }
