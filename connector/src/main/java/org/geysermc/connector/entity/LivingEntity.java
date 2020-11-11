@@ -26,7 +26,9 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -42,6 +44,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.AttributeUtils;
+import org.geysermc.connector.utils.ChunkUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +86,17 @@ public class LivingEntity extends Entity {
                 break;
             case 10:
                 metadata.put(EntityData.EFFECT_AMBIENT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+                break;
+            case 13: // Bed Position
+                Position bedPosition = (Position) entityMetadata.getValue();
+                if (bedPosition != null) {
+                    metadata.put(EntityData.BED_POSITION, Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ()));
+                    if (session.getConnector().getConfig().isCacheChunks()) {
+                        int bed = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
+                        // Bed has to be updated, or else player is floating in the air
+                        ChunkUtils.updateBlock(session, bed, bedPosition);
+                    }
+                }
                 break;
         }
 

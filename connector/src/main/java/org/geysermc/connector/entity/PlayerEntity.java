@@ -27,14 +27,15 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
 import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -168,6 +169,17 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
+        // If the player is moved while sleeping, we have to adjust their y, so it appears
+        // correctly on Bedrock. This fixes GSit's lay.
+        if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
+            Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION);
+            if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position.toInt()) > 4)) {
+                // Force the player movement by using a teleport
+                movePlayerPacket.setPosition(Vector3f.from(position.getX(), position.getY() - entityType.getOffset() + 0.2f, position.getZ()));
+                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+                movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
+            }
+        }
         session.sendUpstreamPacket(movePlayerPacket);
         if (leftParrot != null) {
             leftParrot.moveRelative(session, relX, relY, relZ, rotation, true);
@@ -235,18 +247,12 @@ public class PlayerEntity extends LivingEntity {
             }
             Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
-                // Cover different visibility settings
-                if (team.getNameTagVisibility() == NameTagVisibility.NEVER) {
-                    metadata.put(EntityData.NAMETAG, "");
-                } else if (team.getNameTagVisibility() == NameTagVisibility.HIDE_FOR_OTHER_TEAMS &&
-                        !team.getEntities().contains(session.getPlayerEntity().getUsername())) {
-                    metadata.put(EntityData.NAMETAG, "");
-                } else if (team.getNameTagVisibility() == NameTagVisibility.HIDE_FOR_OWN_TEAM &&
-                        team.getEntities().contains(session.getPlayerEntity().getUsername())) {
-                    metadata.put(EntityData.NAMETAG, "");
-                } else {
-                    metadata.put(EntityData.NAMETAG, team.getPrefix() + MessageTranslator.toChatColor(team.getColor()) + username + team.getSuffix());
+                String displayName = "";
+                if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
+                    displayName = MessageTranslator.toChatColor(team.getColor()) + username;
+                    displayName = team.getCurrentData().getDisplayName(displayName);
                 }
+                metadata.put(EntityData.NAMETAG, displayName);
             }
         }
 

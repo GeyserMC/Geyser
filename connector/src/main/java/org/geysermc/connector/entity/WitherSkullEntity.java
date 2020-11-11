@@ -25,26 +25,34 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class ItemedFireballEntity extends ThrowableEntity {
-    private final Vector3f acceleration;
+public class WitherSkullEntity extends ItemedFireballEntity {
+    private boolean isCharged;
 
-    public ItemedFireballEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, Vector3f.ZERO, rotation);
-        acceleration = motion;
+    public WitherSkullEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
-    protected void updatePosition(GeyserSession session) {
-        position = position.add(motion);
-        // TODO: While this reduces latency in position updating (needed for better fireball reflecting),
-        // TODO: movement is incredibly stiff. See if the MoveEntityDeltaPacket in 1.16.100 fixes this, and if not,
-        // TODO: only use this laggy movement for fireballs that be reflected
-        moveAbsoluteImmediate(session, position, rotation, false, true);
-        float drag = getDrag(session);
-        motion = motion.add(acceleration).mul(drag);
+    protected float getDrag(GeyserSession session) {
+        return isCharged ? 0.73f : super.getDrag(session);
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 7) {
+            boolean newIsCharged = (boolean) entityMetadata.getValue();
+            if (newIsCharged != isCharged) {
+                isCharged = newIsCharged;
+                entityType = isCharged ? EntityType.WITHER_SKULL_DANGEROUS : EntityType.WITHER_SKULL;
+                despawnEntity(session);
+                spawnEntity(session);
+            }
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }
