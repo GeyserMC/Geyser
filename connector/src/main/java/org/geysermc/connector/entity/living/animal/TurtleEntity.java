@@ -27,28 +27,22 @@ package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class FoxEntity extends AnimalEntity {
+public class TurtleEntity extends AnimalEntity {
 
-    public FoxEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public TurtleEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
-        }
         if (entityMetadata.getId() == 17) {
-            byte xd = (byte) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
-            metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x04) == 0x04);
-            metadata.getFlags().setFlag(EntityFlag.INTERESTED, (xd & 0x08) == 0x08);
-            metadata.getFlags().setFlag(EntityFlag.SLEEPING, (xd & 0x20) == 0x20);
+            metadata.getFlags().setFlag(EntityFlag.IS_PREGNANT, (boolean) entityMetadata.getValue());
+        } else if (entityMetadata.getId() == 18) {
+            metadata.getFlags().setFlag(EntityFlag.LAYING_EGG, (boolean) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

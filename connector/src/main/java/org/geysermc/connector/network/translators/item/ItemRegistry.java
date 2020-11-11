@@ -75,6 +75,10 @@ public class ItemRegistry {
      * Shield item entry, used in Entity.java and LivingEntity.java
      */
     public static ItemEntry SHIELD;
+    /**
+     * Wheat item entry, used in AbstractHorseEntity.java
+     */
+    public static ItemEntry WHEAT;
 
     public static int BARRIER_INDEX = 0;
 
@@ -156,6 +160,9 @@ public class ItemRegistry {
                     break;
                 case "minecraft:bucket":
                     BUCKET = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:wheat":
+                    WHEAT = ITEM_ENTRIES.get(itemIndex);
                     break;
                 default:
                     break;
