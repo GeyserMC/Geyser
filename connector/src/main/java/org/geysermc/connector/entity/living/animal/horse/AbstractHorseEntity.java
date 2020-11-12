@@ -49,7 +49,7 @@ public class AbstractHorseEntity extends AnimalEntity {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x02) == 0x02);
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (xd & 0x04) == 0x04);
-            metadata.getFlags().setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10); //TODO: this doesn't work on a horse
+            metadata.getFlags().setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
             metadata.getFlags().setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
             // HorseFlags
