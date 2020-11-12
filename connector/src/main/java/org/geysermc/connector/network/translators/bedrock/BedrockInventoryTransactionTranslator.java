@@ -182,14 +182,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(useItemPacket);
                         break;
                     case 2:
-                        // Reset the block the player just placed
-                        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition())));
-                        updateBlockPacket.setBlockPosition(packet.getBlockPosition());
-                        updateBlockPacket.setDataLayer(0);
-                        updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-                        session.sendUpstreamPacket(updateBlockPacket);
-
                         int blockState = session.getGameMode() == GameMode.CREATIVE ?
                                 session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition()) : session.getBreakingBlock();
 
