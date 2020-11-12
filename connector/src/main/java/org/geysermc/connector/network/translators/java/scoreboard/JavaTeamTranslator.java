@@ -62,8 +62,8 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                         .setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
                         .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getClientData().getLanguageCode()))
-                        .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getClientData().getLanguageCode()));
+                        .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getLocale()))
+                        .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getLocale()));
                 break;
             case UPDATE:
                 if (team == null) {
@@ -77,8 +77,8 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                 team.setName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
                         .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getClientData().getLanguageCode()))
-                        .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getClientData().getLanguageCode()))
+                        .setPrefix(MessageUtils.getTranslatedBedrockMessage(packet.getPrefix(), session.getLocale()))
+                        .setSuffix(MessageUtils.getTranslatedBedrockMessage(packet.getSuffix(), session.getLocale()))
                         .setUpdateType(UpdateType.UPDATE);
                 break;
             case ADD_PLAYER:

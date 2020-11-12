@@ -27,9 +27,11 @@ package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
@@ -38,6 +40,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 @Translator(packet = ServerEntityStatusPacket.class)
 public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntityStatusPacket> {
@@ -90,6 +93,22 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
             case LIVING_DEATH:
                 entityEventPacket.setType(EntityEventType.DEATH);
+                if (entity.getEntityType() == EntityType.THROWN_EGG) {
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_ITEM_BREAK);
+                    particlePacket.setData(ItemRegistry.EGG.getBedrockId() << 16);
+                    particlePacket.setPosition(entity.getPosition());
+                    for (int i = 0; i < 6; i++) {
+                        session.sendUpstreamPacket(particlePacket);
+                    }
+                } else if (entity.getEntityType() == EntityType.SNOWBALL) {
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_SNOWBALL_POOF);
+                    particlePacket.setPosition(entity.getPosition());
+                    for (int i = 0; i < 8; i++) {
+                        session.sendUpstreamPacket(particlePacket);
+                    }
+                }
                 break;
             case WOLF_SHAKE_WATER:
                 entityEventPacket.setType(EntityEventType.SHAKE_WETNESS);
@@ -118,9 +137,15 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
             case TAMEABLE_TAMING_SUCCEEDED:
                 entityEventPacket.setType(EntityEventType.TAME_SUCCEEDED);
                 break;
-            case ZOMBIE_VILLAGER_CURE:
-                entityEventPacket.setType(EntityEventType.ZOMBIE_VILLAGER_CURE);
-                break;
+            case ZOMBIE_VILLAGER_CURE: // Played when a zombie bites the golden apple
+                LevelSoundEvent2Packet soundPacket = new LevelSoundEvent2Packet();
+                soundPacket.setSound(SoundEvent.REMEDY);
+                soundPacket.setPosition(entity.getPosition());
+                soundPacket.setExtraData(-1);
+                soundPacket.setIdentifier("");
+                soundPacket.setRelativeVolumeDisabled(false);
+                session.sendUpstreamPacket(soundPacket);
+                return;
             case ANIMAL_EMIT_HEARTS:
                 entityEventPacket.setType(EntityEventType.LOVE_PARTICLES);
                 break;
@@ -163,12 +188,12 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
             case LIVING_EQUIPMENT_BREAK_FEET:
             case LIVING_EQUIPMENT_BREAK_MAIN_HAND:
             case LIVING_EQUIPMENT_BREAK_OFF_HAND:
-                LevelSoundEvent2Packet soundPacket = new LevelSoundEvent2Packet();
-                soundPacket.setSound(SoundEvent.BREAK);
-                soundPacket.setPosition(entity.getPosition());
-                soundPacket.setExtraData(-1);
-                soundPacket.setIdentifier("");
-                session.sendUpstreamPacket(soundPacket);
+                LevelSoundEvent2Packet equipmentBreakPacket = new LevelSoundEvent2Packet();
+                equipmentBreakPacket.setSound(SoundEvent.BREAK);
+                equipmentBreakPacket.setPosition(entity.getPosition());
+                equipmentBreakPacket.setExtraData(-1);
+                equipmentBreakPacket.setIdentifier("");
+                session.sendUpstreamPacket(equipmentBreakPacket);
                 return;
         }
 

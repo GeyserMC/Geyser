@@ -28,17 +28,21 @@ package org.geysermc.platform.velocity.command;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
-
-import lombok.AllArgsConstructor;
-
 import net.kyori.text.TextComponent;
-
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.utils.LanguageUtils;
 
-@AllArgsConstructor
+import java.util.Locale;
+
 public class VelocityCommandSender implements CommandSender {
 
-    private CommandSource handle;
+    private final CommandSource handle;
+
+    public VelocityCommandSender(CommandSource handle) {
+        this.handle = handle;
+        // Ensure even Java players' languages are loaded
+        LanguageUtils.loadGeyserLocale(getLocale());
+    }
 
     @Override
     public String getName() {
@@ -58,5 +62,14 @@ public class VelocityCommandSender implements CommandSender {
     @Override
     public boolean isConsole() {
         return handle instanceof ConsoleCommandSource;
+    }
+
+    @Override
+    public String getLocale() {
+        if (handle instanceof Player) {
+            Locale locale = ((Player) handle).getPlayerSettings().getLocale();
+            return LanguageUtils.formatLocale(locale.getLanguage() + "_" + locale.getCountry());
+        }
+        return LanguageUtils.getDefaultLocale();
     }
 }

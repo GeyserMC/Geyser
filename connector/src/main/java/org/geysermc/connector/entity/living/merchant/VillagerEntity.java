@@ -26,26 +26,32 @@
 package org.geysermc.connector.entity.living.merchant;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VillagerEntity extends AbstractMerchantEntity {
 
+    /**
+     * A map of Java profession IDs to Bedrock IDs
+     */
     private static final Int2IntMap VILLAGER_VARIANTS = new Int2IntOpenHashMap();
-    private static final Int2IntMap VILLAGER_REGIONS = new Int2IntOpenHashMap();
+    /**
+     * A map of all Java region IDs (plains, savanna...) to Bedrock
+     */
+    public static final Int2IntMap VILLAGER_REGIONS = new Int2IntOpenHashMap();
 
     static {
         // Java villager profession IDs -> Bedrock
@@ -99,9 +105,9 @@ public class VillagerEntity extends AbstractMerchantEntity {
         int bedId = 0;
         float bedPositionSubtractorW = 0;
         float bedPositionSubtractorN = 0;
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            Position bedLocation = new Position((int) position.getFloorX(), (int) position.getFloorY(), (int) position.getFloorZ());
-            bedId = session.getConnector().getWorldManager().getBlockAt(session, bedLocation);
+        Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION);
+        if (session.getConnector().getConfig().isCacheChunks() && bedPosition != null) {
+            bedId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
         }
         String bedRotationZ = BlockTranslator.getJavaIdBlockMap().inverse().get(bedId);
         setRotation(rotation);

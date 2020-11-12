@@ -46,7 +46,7 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
         boolean shouldStore = false;
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
-        mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getPlayerEntity().getDimension()));
+        mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
         mapItemDataPacket.setLocked(packet.isLocked());
         mapItemDataPacket.setScale(packet.getScale());
 

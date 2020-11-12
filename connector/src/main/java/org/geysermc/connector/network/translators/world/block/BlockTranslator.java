@@ -68,6 +68,11 @@ public class BlockTranslator {
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
 
     /**
+     * Java numeric ID to java unique identifier, used for block names in the statistics screen
+     */
+    public static final Int2ObjectMap<String> JAVA_ID_TO_JAVA_IDENTIFIER_MAP = new Int2ObjectOpenHashMap<>();
+
+    /**
      * Runtime command block ID, used for fixing command block minecart appearances
      */
     public static final int BEDROCK_RUNTIME_COMMAND_BLOCK_ID;
@@ -126,6 +131,7 @@ public class BlockTranslator {
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
         int spawnerRuntimeId = -1;
+        int uniqueJavaId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
@@ -167,6 +173,11 @@ public class BlockTranslator {
             BlockStateValues.storeBlockStateValues(entry, javaRuntimeId);
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+
+            if (!JAVA_ID_TO_JAVA_IDENTIFIER_MAP.containsValue(cleanJavaIdentifier)) {
+                uniqueJavaId++;
+                JAVA_ID_TO_JAVA_IDENTIFIER_MAP.put(uniqueJavaId, cleanJavaIdentifier);
+            }
 
             if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
                 JAVA_TO_BEDROCK_IDENTIFIERS.put(cleanJavaIdentifier, bedrockIdentifier);

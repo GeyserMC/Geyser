@@ -40,8 +40,10 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
+import org.geysermc.platform.spigot.command.SpigotCommandSender;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotWorldManager;
+import us.myles.ViaVersion.api.Via;
 
 import java.io.File;
 import java.io.IOException;
@@ -120,6 +122,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         this.geyserCommandManager = new GeyserSpigotCommandManager(this, connector);
 
         boolean isViaVersion = (Bukkit.getPluginManager().getPlugin("ViaVersion") != null);
+        if (isViaVersion) {
+            if (!isCompatible(Via.getAPI().getVersion().replace("-SNAPSHOT", ""), "3.2.0")) {
+                geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
+                        "https://ci.viaversion.com/job/ViaVersion/"));
+                isViaVersion = false;
+            }
+        }
         // Used to determine if Block.getBlockData() is present.
         boolean isLegacy = !isCompatible(Bukkit.getServer().getVersion(), "1.13.0");
         if (isLegacy)
@@ -129,6 +138,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (!use3dBiomes) {
             geyserLogger.debug("Legacy version of Minecraft (1.15.2 or older) detected; not using 3D biomes.");
         }
+
+        // Set if we need to use a different method for getting a player's locale
+        SpigotCommandSender.setUseLegacyLocaleMethod(!isCompatible(Bukkit.getServer().getVersion(), "1.12.0"));
 
         this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, use3dBiomes, isViaVersion);
         GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);

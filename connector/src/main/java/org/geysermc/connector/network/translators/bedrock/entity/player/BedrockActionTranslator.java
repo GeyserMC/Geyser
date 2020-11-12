@@ -74,6 +74,8 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 eventPacket.setType(EntityEventType.RESPAWN);
                 eventPacket.setData(0);
                 session.sendUpstreamPacket(eventPacket);
+                // Resend attributes or else in rare cases the user can think they're not dead when they are, upon joining the server
+                entity.updateBedrockAttributes(session);
                 break;
             case START_SWIMMING:
                 ClientPlayerStatePacket startSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
@@ -120,7 +122,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamPacket(stopSleepingPacket);
                 break;
             case BLOCK_INTERACT:
-                // Handled in BedrockInventoryTransactionTranslator
+                // Client means to interact with a block; cancel bucket interaction, if any
+                if (session.getBucketScheduledFuture() != null) {
+                    session.getBucketScheduledFuture().cancel(true);
+                    session.setBucketScheduledFuture(null);
+                }
+                // Otherwise handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
                 if (session.getConnector().getConfig().isCacheChunks()) {

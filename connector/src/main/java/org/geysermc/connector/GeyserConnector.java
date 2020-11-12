@@ -66,7 +66,9 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -177,8 +179,7 @@ public class GeyserConnector {
         remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
-        if (config.isAboveBedrockNetherBuilding())
-            DimensionUtils.changeBedrockNetherId(); // Apply End dimension ID workaround to Nether
+        DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
 
         // https://github.com/GeyserMC/Geyser/issues/957
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
@@ -199,8 +200,39 @@ public class GeyserConnector {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", authType.name()::toLowerCase));
+            // Prevent unwanted words best we can
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> AuthType.getByName(config.getRemote().getAuthType()).toString().toLowerCase()));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
+            metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", LanguageUtils::getDefaultLocale));
+            metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserConnector.VERSION));
+            metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
+                Map<String, Integer> valueMap = new HashMap<>();
+                for (GeyserSession session : players) {
+                    if (session == null) continue;
+                    if (session.getClientData() == null) continue;
+                    String os = session.getClientData().getDeviceOS().toString();
+                    if (!valueMap.containsKey(os)) {
+                        valueMap.put(os, 1);
+                    } else {
+                        valueMap.put(os, valueMap.get(os) + 1);
+                    }
+                }
+                return valueMap;
+            }));
+            metrics.addCustomChart(new Metrics.AdvancedPie("playerVersion", () -> {
+                Map<String, Integer> valueMap = new HashMap<>();
+                for (GeyserSession session : players) {
+                    if (session == null) continue;
+                    if (session.getClientData() == null) continue;
+                    String version = session.getClientData().getGameVersion();
+                    if (!valueMap.containsKey(version)) {
+                        valueMap.put(version, 1);
+                    } else {
+                        valueMap.put(version, valueMap.get(version) + 1);
+                    }
+                }
+                return valueMap;
+            }));
         }
 
         boolean isGui = false;
@@ -238,7 +270,7 @@ public class GeyserConnector {
             // Make a copy to prevent ConcurrentModificationException
             final List<GeyserSession> tmpPlayers = new ArrayList<>(players);
             for (GeyserSession playerSession : tmpPlayers) {
-                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getClientData().getLanguageCode()));
+                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getLocale()));
             }
 
             CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {
