@@ -63,7 +63,7 @@ public class TameableEntity extends AnimalEntity {
                 // Translate to entity ID
                 metadata.put(EntityData.OWNER_EID, entity.getGeyserId());
             } else {
-                metadata.remove(EntityData.OWNER_EID);
+                metadata.put(EntityData.OWNER_EID, 0L); // Reset
             }
         }
         super.updateBedrockMetadata(entityMetadata, session);
