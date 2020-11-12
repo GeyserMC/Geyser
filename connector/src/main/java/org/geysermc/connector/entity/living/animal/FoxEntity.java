@@ -41,7 +41,7 @@ public class FoxEntity extends AnimalEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 16) {
-            metadata.put(EntityData.VARIANT, (int) entityMetadata.getValue());
+            metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         }
         if (entityMetadata.getId() == 17) {
             byte xd = (byte) entityMetadata.getValue();
