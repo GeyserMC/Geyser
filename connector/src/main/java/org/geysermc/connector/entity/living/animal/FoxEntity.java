@@ -47,6 +47,7 @@ public class FoxEntity extends AnimalEntity {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
             metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x04) == 0x04);
+            metadata.getFlags().setFlag(EntityFlag.INTERESTED, (xd & 0x08) == 0x08);
             metadata.getFlags().setFlag(EntityFlag.SLEEPING, (xd & 0x20) == 0x20);
         }
         super.updateBedrockMetadata(entityMetadata, session);
