@@ -45,14 +45,13 @@ import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
-
     /**
      * Determines if we should process non-full chunks
      */
-    private final boolean isCacheChunks;
+    private final boolean cacheChunks;
 
     public JavaChunkDataTranslator() {
-        isCacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
+        cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
     }
 
     @Override
@@ -61,7 +60,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        if (packet.getColumn().getBiomeData() == null && !isCacheChunks) {
+        if (packet.getColumn().getBiomeData() == null && !cacheChunks) {
             // Non-full chunk without chunk caching
             session.getConnector().getLogger().debug("Not sending non-full chunk because chunk caching is off.");
             return;

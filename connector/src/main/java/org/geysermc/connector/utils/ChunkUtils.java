@@ -72,9 +72,9 @@ import static org.geysermc.connector.network.translators.world.block.BlockTransl
 
 @UtilityClass
 public class ChunkUtils {
-
     /**
-     * Temporarily stores positions of BlockState values that are needed for certain block entities actively
+     * Temporarily stores positions of BlockState values that are needed for certain block entities actively.
+     * Not used if cache chunks is enabled
      */
     public static final Object2IntMap<Position> CACHED_BLOCK_ENTITIES = new Object2IntOpenHashMap<>();
 
@@ -314,11 +314,16 @@ public class ChunkUtils {
      */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
-        if (ItemFrameEntity.positionContainsItemFrame(session, position) && blockState == JAVA_AIR_ID) {
-            ((ItemFrameEntity) session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, position))).updateBlock(session);
-            return;
-        } else if (ItemFrameEntity.positionContainsItemFrame(session, position)) {
-            Entity entity = session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, position));
+        long frameEntityId = ItemFrameEntity.getItemFrameEntityId(session, position);
+        if (frameEntityId != -1) {
+            // TODO: Very occasionally the item frame doesn't sync up when destroyed
+            Entity entity = session.getEntityCache().getEntityByJavaId(frameEntityId);
+            if (blockState == JAVA_AIR_ID && entity != null) { // Item frame is still present and no block overrides that; refresh it
+                ((ItemFrameEntity) entity).updateBlock(session);
+                return;
+            }
+
+            // Otherwise the item frame is gone
             if (entity != null) {
                 session.getEntityCache().removeEntity(entity, false);
             } else {
@@ -356,7 +361,10 @@ public class ChunkUtils {
                     ((BedrockOnlyBlockEntity) requiresBlockState).updateBlock(session, blockState, position);
                     break;
                 }
-                CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+                if (!session.getConnector().getConfig().isCacheChunks()) {
+                    // Blocks aren't saved to a chunk cache; resort to this smaller cache
+                    CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+                }
                 break; //No block will be a part of two classes
             }
         }

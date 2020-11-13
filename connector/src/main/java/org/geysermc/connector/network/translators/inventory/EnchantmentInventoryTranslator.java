@@ -198,7 +198,7 @@ public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
 
     private String toRomanNumeral(GeyserSession session, int level) {
         return LocaleUtils.getLocaleString("enchantment.level." + level,
-                session.getClientData().getLanguageCode());
+                session.getLocale());
     }
 
     /**
@@ -260,7 +260,7 @@ public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
 
         public String toString(GeyserSession session) {
             return LocaleUtils.getLocaleString("enchantment.minecraft." + this.toString().toLowerCase(),
-                    session.getClientData().getLanguageCode());
+                    session.getLocale());
         }
     }
 }

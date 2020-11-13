@@ -58,6 +58,10 @@ public class ItemRegistry {
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     /**
+     * Bamboo item entry, used in PandaEntity.java
+     */
+    public static ItemEntry BAMBOO;
+    /**
      * Boat item entries, used in BedrockInventoryTransactionTranslator.java
      */
     public static IntList BOATS = new IntArrayList();
@@ -81,6 +85,10 @@ public class ItemRegistry {
      * Shield item entry, used in Entity.java and LivingEntity.java
      */
     public static ItemEntry SHIELD;
+    /**
+     * Wheat item entry, used in AbstractHorseEntity.java
+     */
+    public static ItemEntry WHEAT;
 
     public static int BARRIER_INDEX = 0;
 
@@ -153,6 +161,9 @@ public class ItemRegistry {
                 case "minecraft:barrier":
                     BARRIER_INDEX = itemIndex;
                     break;
+                case "minecraft:bamboo":
+                    BAMBOO = ITEM_ENTRIES.get(itemIndex);
+                    break;
                 case "minecraft:egg":
                     EGG = ITEM_ENTRIES.get(itemIndex);
                     break;
@@ -164,6 +175,9 @@ public class ItemRegistry {
                     break;
                 case "minecraft:milk_bucket":
                     MILK_BUCKET = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:wheat":
+                    WHEAT = ITEM_ENTRIES.get(itemIndex);
                     break;
                 default:
                     break;
@@ -245,8 +259,14 @@ public class ItemRegistry {
      * @return an item entry from the given java edition identifier
      */
     public static ItemEntry getItemEntry(String javaIdentifier) {
-        return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> ITEM_ENTRIES.values()
-                .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
+        return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> {
+            for (ItemEntry entry : ITEM_ENTRIES.values()) {
+                if (entry.getJavaIdentifier().equals(key)) {
+                    return entry;
+                }
+            }
+            return null;
+        });
     }
 
     /**

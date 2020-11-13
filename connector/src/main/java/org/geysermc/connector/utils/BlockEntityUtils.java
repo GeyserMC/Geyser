@@ -33,17 +33,17 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 
 public class BlockEntityUtils {
-
     private static final BlockEntityTranslator EMPTY_TRANSLATOR = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get("Empty");
 
     public static String getBedrockBlockEntityId(String id) {
         // These are the only exceptions when it comes to block entity ids
-        if (BlockEntityTranslator.BLOCK_ENTITY_TRANSLATIONS.containsKey(id)) {
-            return BlockEntityTranslator.BLOCK_ENTITY_TRANSLATIONS.get(id);
+        String value = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATIONS.get(id);
+        if (value != null) {
+            return value;
         }
 
         id = id.replace("minecraft:", "")
-            .replace("_", " ");
+                .replace("_", " ");
         // Split at every space or capital letter - for the latter, some legacy Java block entity tags are the correct format already
         String[] words;
         if (!id.toUpperCase().equals(id)) { // Otherwise we get [S, K, U, L, L]
@@ -60,11 +60,10 @@ public class BlockEntityUtils {
 
     public static BlockEntityTranslator getBlockEntityTranslator(String name) {
         BlockEntityTranslator blockEntityTranslator = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get(name);
-        if (blockEntityTranslator == null) {
-            return EMPTY_TRANSLATOR;
+        if (blockEntityTranslator != null) {
+            return blockEntityTranslator;
         }
-
-        return blockEntityTranslator;
+        return EMPTY_TRANSLATOR;
     }
 
     public static void updateBlockEntity(GeyserSession session, NbtMap blockEntity, Position position) {

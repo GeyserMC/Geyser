@@ -33,6 +33,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.ArmorStandEntity;
+import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -46,6 +48,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
+            entity = session.getPlayerEntity();
+        }
+
         if (entity == null) return;
 
         LongOpenHashSet passengers = entity.getPassengers().clone();
@@ -123,19 +129,19 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
     }
 
     private float getMountedHeightOffset(Entity mount) {
-        final EntityType mountType = mount.getEntityType();
-        float mountedHeightOffset = mountType.getHeight() * 0.75f;
-        switch (mountType) {
+        float height = mount.getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+        float mountedHeightOffset = height * 0.75f;
+        switch (mount.getEntityType()) {
             case CHICKEN:
             case SPIDER:
-                mountedHeightOffset = mountType.getHeight() * 0.5f;
+                mountedHeightOffset = height * 0.5f;
                 break;
             case DONKEY:
             case MULE:
                 mountedHeightOffset -= 0.25f;
                 break;
             case LLAMA:
-                mountedHeightOffset = mountType.getHeight() * 0.67f;
+                mountedHeightOffset = height * 0.67f;
                 break;
             case MINECART:
             case MINECART_HOPPER:
@@ -152,10 +158,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             case HOGLIN:
             case ZOGLIN:
                 boolean isBaby = mount.getMetadata().getFlags().getFlag(EntityFlag.BABY);
-                mountedHeightOffset = mountType.getHeight() - (isBaby ? 0.2f : 0.15f);
+                mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
                 break;
             case PIGLIN:
-                mountedHeightOffset = mountType.getHeight() * 0.92f;
+                mountedHeightOffset = height * 0.92f;
                 break;
             case RAVAGER:
                 mountedHeightOffset = 2.1f;
@@ -164,7 +170,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 mountedHeightOffset -= 0.1875f;
                 break;
             case STRIDER:
-                mountedHeightOffset = mountType.getHeight() - 0.19f;
+                mountedHeightOffset = height - 0.19f;
                 break;
         }
         return mountedHeightOffset;
@@ -178,11 +184,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             case WITHER_SKELETON:
                 return -0.6f;
             case ARMOR_STAND:
-                // Armor stand isn't a marker
-                if (passenger.getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT) != 0.0f) {
-                    return 0.1f;
-                } else {
+                if (((ArmorStandEntity) passenger).isMarker()) {
                     return 0.0f;
+                } else {
+                    return 0.1f;
                 }
             case ENDERMITE:
             case SILVERFISH:
@@ -204,6 +209,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 return -0.45f;
             case PLAYER:
                 return -0.35f;
+        }
+        if (passenger instanceof AnimalEntity) {
+            return 0.14f;
         }
         return 0f;
     }
@@ -240,7 +248,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            if (passenger.getEntityType() == EntityType.PLAYER) {
+            if (passenger.getEntityType() == EntityType.PLAYER && mount.getEntityType() != EntityType.PLAYER) {
                 yOffset += EntityType.PLAYER.getOffset();
             }
             switch (mount.getEntityType()) {

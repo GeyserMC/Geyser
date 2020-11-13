@@ -27,39 +27,31 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @BlockEntity(name = "Banner", regex = "banner")
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
     @Override
     public boolean isBlock(int blockState) {
         return BlockStateValues.getBannerColor(blockState) != -1;
     }
 
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
-
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         int bannerColor = BlockStateValues.getBannerColor(blockState);
         if (bannerColor != -1) {
-            tags.put("Base", 15 - bannerColor);
+            builder.put("Base", 15 - bannerColor);
         }
 
         if (tag.contains("Patterns")) {
             ListTag patterns = tag.get("Patterns");
-            tags.put("Patterns", BannerTranslator.convertBannerPattern(patterns));
+            builder.put("Patterns", BannerTranslator.convertBannerPattern(patterns));
         }
 
         if (tag.contains("CustomName")) {
-            tags.put("CustomName", tag.get("CustomName").getValue());
+            builder.put("CustomName", tag.get("CustomName").getValue());
         }
-
-        return tags;
     }
-
 }

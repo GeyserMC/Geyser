@@ -32,22 +32,16 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @BlockEntity(name = "Campfire", regex = "campfire")
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
-
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         ListTag items = tag.get("Items");
         int i = 1;
         for (com.github.steveice10.opennbt.tag.builtin.Tag itemTag : items.getValue()) {
-            tags.put("Item" + i, getItem((CompoundTag) itemTag));
+            builder.put("Item" + i, getItem((CompoundTag) itemTag));
             i++;
         }
-        return tags;
     }
 
     protected NbtMap getItem(CompoundTag tag) {

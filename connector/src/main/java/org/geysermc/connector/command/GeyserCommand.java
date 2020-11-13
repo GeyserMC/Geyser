@@ -38,6 +38,9 @@ import java.util.List;
 public abstract class GeyserCommand {
 
     protected final String name;
+    /**
+     * The description of the command - will attempt to be translated.
+     */
     protected final String description;
     protected final String permission;
 
