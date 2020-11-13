@@ -66,6 +66,7 @@ public class BlockTranslator {
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
+    public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR = new Int2ObjectOpenHashMap<>();
 
     /**
      * Java numeric ID to java unique identifier, used for block names in the statistics screen
@@ -76,6 +77,11 @@ public class BlockTranslator {
      * Runtime command block ID, used for fixing command block minecart appearances
      */
     public static final int BEDROCK_RUNTIME_COMMAND_BLOCK_ID;
+
+    /**
+     * Runtime moving Block ID, used for blocks moved by pistons
+     */
+    public static int BEDROCK_RUNTIME_MOVING_BLOCK_ID;
 
     // For block breaking animation math
     public static final IntSet JAVA_RUNTIME_WOOL_IDS = new IntOpenHashSet();
@@ -154,6 +160,15 @@ public class BlockTranslator {
                 JAVA_RUNTIME_ID_TO_TOOL_TYPE.put(javaRuntimeId, toolTypeNode.textValue());
             }
 
+            if (javaId.contains("obsidian") || javaId.contains("respawn_anchor")) {
+                // Override obsidian, crying_obsidian, and respawn_anchor to block piston movement
+                JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.put(javaRuntimeId, "block");
+            } else {
+                JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");
+                if (pistonBehaviorNode != null) {
+                    JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.put(javaRuntimeId, pistonBehaviorNode.textValue());
+                }
+            }
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
 
             // Used for adding all "special" Java block states to block state map
@@ -269,15 +284,23 @@ public class BlockTranslator {
 
         paletteList.addAll(blockStateMap.values()); // Add any missing mappings that could crash the client
 
-        // Loop around again to find all item frame runtime IDs
-        int frameRuntimeId = 0;
+        // Loop around again to find all item frame runtime IDs and the movingBlock runtime ID
+        int runtimeId = 0;
+        int movingBlockId = -1;
         for (NbtMap tag : paletteList) {
             NbtMap blockTag = tag.getCompound("block");
             if (blockTag.getString("name").equals("minecraft:frame")) {
-                ITEM_FRAMES.put(tag, frameRuntimeId);
+                ITEM_FRAMES.put(tag, runtimeId);
+            } else if (blockTag.getString("name").equals("minecraft:movingBlock")) {
+                movingBlockId = runtimeId;
             }
-            frameRuntimeId++;
+            runtimeId++;
         }
+
+        if (movingBlockId == -1) {
+            throw new AssertionError("Unable to find moving block in palette");
+        }
+        BEDROCK_RUNTIME_MOVING_BLOCK_ID = movingBlockId;
 
         BLOCKS = new NbtList<>(NbtType.COMPOUND, paletteList);
     }

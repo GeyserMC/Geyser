@@ -27,22 +27,25 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValue;
 import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValueType;
+import com.google.common.collect.ImmutableList;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
-import lombok.Getter;
+import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-@Getter
 public class PistonBlockEntity {
     private final GeyserSession session;
     private final Vector3i position;
-    private final PistonValue direction;
+    private final PistonValue orientation;
     private final boolean sticky;
 
     private PistonValueType action;
@@ -51,10 +54,6 @@ public class PistonBlockEntity {
      * A flattened array of the positions of attached blocks, stored in XYZ order.
      */
     private int[] attachedBlocks = new int[0];
-    /**
-     * A flattened array of the positions of blocks broken, stored in XYZ order.
-     */
-    private int[] breakBlocks = new int[0];
 
     /**
      * The position of the piston head
@@ -64,10 +63,12 @@ public class PistonBlockEntity {
 
     private ScheduledFuture<?> updater;
 
-    public PistonBlockEntity(GeyserSession session, Vector3i position, PistonValue direction) {
+    private static final NbtMap AIR_TAG = BlockTranslator.BLOCKS.get(BlockTranslator.AIR).getCompound("block");
+
+    public PistonBlockEntity(GeyserSession session, Vector3i position, PistonValue orientation) {
         this.session = session;
         this.position = position;
-        this.direction = direction;
+        this.orientation = orientation;
 
         if (session.getConnector().getConfig().isCacheChunks()) {
             int blockId = session.getConnector().getWorldManager().getBlockAt(session, position);
@@ -91,12 +92,14 @@ public class PistonBlockEntity {
      * @param action Pulling or Pushing
      */
     public void setAction(PistonValueType action) {
-        System.out.println(action);
         this.action = action;
-
         if (action == PistonValueType.CANCELLED_MID_PUSH) {
+            // Immediately fully extend the piston
             progress = 1.0f;
             lastProgress = 1.0f;
+        } else {
+            // Blocks only move when pushing or pulling
+            findAffectedBlocks();
         }
 
         if (updater != null) {
@@ -108,18 +111,225 @@ public class PistonBlockEntity {
      * Send Block Entity Data packets to update the position of the piston head
      */
     public void sendUpdate() {
-        System.out.println("Update" + action + progress + isDone());
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
         blockEntityDataPacket.setBlockPosition(position);
         blockEntityDataPacket.setData(buildPistonTag());
         session.sendUpstreamPacket(blockEntityDataPacket);
         if (!isDone()) {
-            updateProgress();
-            updater = session.getConnector().getGeneralThreadPool().schedule(this::sendUpdate, 50, TimeUnit.MILLISECONDS);
+            updater = session.getConnector().getGeneralThreadPool().schedule(() -> {
+                updateProgress();
+                sendUpdate();
+            }, 50, TimeUnit.MILLISECONDS);
+        } else {
+            session.getPistonCache().remove(position);
+        }
+    }
+
+    /**
+     * Find the blocks pushed, pulled or broken by the piston
+     * and create movingBlock blockEntities for each attached block
+     */
+    private void findAffectedBlocks() {
+        if (!session.getConnector().getConfig().isCacheChunks()) {
+            attachedBlocks = new int[0];
+            return;
+        }
+        List<Vector3i> attachedBlockPositions = new ArrayList<>();
+
+        Set<Vector3i> blocksChecked = new ObjectOpenHashSet<>();
+        Queue<Vector3i> blocksToCheck = new LinkedList<>();
+
+        Vector3i directionOffset = getDirectionOffset();
+        List<Vector3i> adjacentOffsets = getAdjacentOffsets();
+        Vector3i movement = directionOffset;
+        if (action == PistonValueType.PULLING) {
+            adjacentOffsets.add(directionOffset);
+            movement = directionOffset.negate();
+            blocksToCheck.add(position.add(directionOffset.mul(2)));
+        } else if (action == PistonValueType.PUSHING){
+            blocksToCheck.add(position.add(directionOffset));
+        }
+
+        boolean moveBlocks = true;
+        while (!blocksToCheck.isEmpty()) {
+            Vector3i blockPos = blocksToCheck.remove();
+            // Skip blocks we've already checked
+            if (blocksChecked.contains(blockPos)) {
+                continue;
+            }
+            blocksChecked.add(blockPos);
+            // Skip the extended piston head
+            if (action == PistonValueType.PULLING && blockPos.equals(position.add(directionOffset))) {
+                continue;
+            }
+            int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+            if (blockId == BlockTranslator.AIR) {
+                continue;
+            }
+            if (canMoveBlock(blockId, action == PistonValueType.PUSHING)) {
+                attachedBlockPositions.add(blockPos);
+                blocksToCheck.add(blockPos.add(movement));
+                // For honey blocks and slime blocks check the blocks adjacent to it
+                if (isBlockSticky(blockId)) {
+                    for (Vector3i offset : adjacentOffsets) {
+                        Vector3i adjacentPos = blockPos.add(offset);
+                        int adjacentBlockId = session.getConnector().getWorldManager().getBlockAt(session, adjacentPos);
+                        if (adjacentBlockId == BlockTranslator.AIR) {
+                            continue;
+                        }
+                        if (isBlockAttached(blockId, adjacentBlockId) && canMoveBlock(adjacentBlockId, false)) {
+                            // If it is another slime/honey block we need to check it's adjacent blocks
+                            if (isBlockSticky(blockId)) {
+                                blocksToCheck.add(adjacentPos);
+                            } else {
+                                attachedBlockPositions.add(adjacentPos);
+                                blocksToCheck.add(adjacentPos.add(movement));
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (!canDestroyBlock(blockId)) {
+                    moveBlocks = false;
+                    break;
+                }
+            }
+            // Pistons can't move more than 12 blocks
+            if (attachedBlockPositions.size() > 12) {
+                moveBlocks = false;
+                break;
+            }
+        }
+        if (moveBlocks) {
+            createMovingBlocks(attachedBlockPositions, movement);
+            attachedBlocks = flattenPositions(attachedBlockPositions);
         } else {
             attachedBlocks = new int[0];
-            breakBlocks = new int[0];
         }
+    }
+
+    private boolean canMoveBlock(int javaId, boolean isPushing) {
+        if (javaId == BlockTranslator.AIR) {
+            return true;
+        }
+        // Pistons can only be moved if they aren't extended
+        if (PistonBlockEntityTranslator.isBlock(javaId)) {
+            return BlockStateValues.getPistonValues().get(javaId);
+        }
+        if (BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(javaId) == -1.0d) {
+            return false;
+        }
+        String pistonBehavior = BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "");
+        switch (pistonBehavior) {
+            case "block":
+            case "destroy":
+                return false;
+            case "push_only":
+                return isPushing;
+        }
+        // Pistons can't move tile entities
+        return BlockTranslator.getBlockEntityString(javaId) == null;
+    }
+
+    private boolean canDestroyBlock(int javaId)  {
+        return BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "").equals("destroy");
+    }
+
+    /**
+     * Checks if a block sticks to other blocks
+     * @param javaId The block id
+     * @return True if the block sticks to adjacent blocks
+     */
+    private boolean isBlockSticky(int javaId) {
+        String javaIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(javaId, "");
+        return javaIdentifier.equals("minecraft:slime_block") || javaIdentifier.equals("minecraft:honey_block");
+    }
+
+    /**
+     * Check if two blocks are attached to each other
+     * @param javaIdA The block id of block a
+     * @param javaIdB The block id of block b
+     * @return True if the blocks are attached to each other
+     */
+    private boolean isBlockAttached(int javaIdA, int javaIdB) {
+        boolean aSticky = isBlockSticky(javaIdA);
+        boolean bSticky = isBlockSticky(javaIdB);
+        if (aSticky && bSticky) {
+            return javaIdA == javaIdB;
+        }
+        return aSticky || bSticky;
+    }
+
+    /**
+     * Get the direction the piston head points in
+     * @return A Vector3i pointing in the direction of the piston head
+     */
+    private Vector3i getDirectionOffset() {
+        switch (orientation) {
+            case DOWN:
+                return Vector3i.from(0, -1, 0);
+            case UP:
+                return Vector3i.from(0, 1, 0);
+            case SOUTH:
+                return Vector3i.from(0, 0, 1);
+            case WEST:
+                return Vector3i.from(-1, 0, 0);
+            case NORTH:
+                return Vector3i.from(0, 0, -1);
+            case EAST:
+                return Vector3i.from(1, 0, 0);
+        }
+        return Vector3i.ZERO;
+    }
+
+    private List<Vector3i> getAdjacentOffsets() {
+        List<Vector3i> adjacent = new ArrayList<>();
+        Vector3i motionAxis = getDirectionOffset().abs();
+        for (Vector3i axis : ImmutableList.of(Vector3i.UNIT_X, Vector3i.UNIT_Y, Vector3i.UNIT_Z)) {
+            if (!axis.equals(motionAxis)) {
+                adjacent.add(axis);
+                adjacent.add(axis.negate());
+            }
+        }
+        return adjacent;
+    }
+
+    private void createMovingBlocks(List<Vector3i> positions, Vector3i movement) {
+        for (Vector3i blockPos : positions) {
+            Vector3i newPos = blockPos.add(movement);
+            // Get Bedrock block state data
+            int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+            NbtMap blockTag = BlockTranslator.BLOCKS.get(BlockTranslator.getBedrockBlockId(blockId)).getCompound("block");
+            // Place a moving block at the new location of the block
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+            updateBlockPacket.setBlockPosition(newPos);
+            updateBlockPacket.setRuntimeId(BlockTranslator.BEDROCK_RUNTIME_MOVING_BLOCK_ID);
+            updateBlockPacket.setDataLayer(0);
+            session.sendUpstreamPacket(updateBlockPacket);
+            // Update moving block with correct details
+            BlockEntityDataPacket entityDataPacket = new BlockEntityDataPacket();
+            entityDataPacket.setBlockPosition(newPos);
+            entityDataPacket.setData(buildMovingBlockTag(newPos, blockTag, position));
+            session.sendUpstreamPacket(entityDataPacket);
+        }
+    }
+
+    /**
+     * Flatten a list of Vector3i's into a 1D array in XYZ order
+     * @param positions The list of Vector3i's to flatten
+     * @return A 1D array with the positions in XYZ order
+     */
+    private int[] flattenPositions(List<Vector3i> positions) {
+        int[] flattened = new int[3 * positions.size()];
+        for (int i = 0; i < positions.size(); i++) {
+            Vector3i position = positions.get(i);
+            flattened[3 * i] = position.getX();
+            flattened[3 * i + 1] = position.getY();
+            flattened[3 * i + 2] = position.getZ();
+        }
+        return flattened;
     }
 
     /**
@@ -137,6 +347,9 @@ public class PistonBlockEntity {
         }
     }
 
+    /**
+     * Update the progress or position of the piston head
+     */
     private void updateProgress() {
         switch (action) {
             case PUSHING:
@@ -188,11 +401,9 @@ public class PistonBlockEntity {
                 .putInt("y", position.getY())
                 .putInt("z", position.getZ());
         if (isDone()) {
-            builder.putIntArray("AttachedBlocks", new int[0])
-                    .putIntArray("BreakBlocks", new int[0]);
+            builder.putIntArray("AttachedBlocks", new int[0]);
         } else {
-            builder.putIntArray("AttachedBlocks", attachedBlocks)
-                    .putIntArray("BreakBlocks", breakBlocks);
+            builder.putIntArray("AttachedBlocks", attachedBlocks);
         }
         return builder.build();
     }
@@ -219,12 +430,18 @@ public class PistonBlockEntity {
         return builder.build();
     }
 
-    private NbtMap buildMovingBlockTag(Vector3i position, NbtMap movingBlock, NbtMap movingBlockExtra, Vector3i pistonPosition) {
-        //BlockTranslator.BLOCKS.get(BlockTranslator.getBedrockBlockId(blockId));
+    /**
+     * Create a moving block tag of a block, that will be moved by a piston
+     * @param position The ending position of the block
+     * @param movingBlock Block state data of the block that's moving
+     * @param pistonPosition The position of the base of the piston that's moving the blocks
+     * @return A moving block data tag for a block
+     */
+    private NbtMap buildMovingBlockTag(Vector3i position, NbtMap movingBlock, Vector3i pistonPosition) {
         NbtMapBuilder builder = NbtMap.builder()
                 .putString("id", "MovingBlock")
                 .putCompound("movingBlock", movingBlock)
-                .putCompound("movingBlockExtra", movingBlockExtra)
+                .putCompound("movingBlockExtra", AIR_TAG) //TODO figure out if this changes
                 .putByte("isMovable", (byte) 1)
                 .putInt("pistonPosX", pistonPosition.getX())
                 .putInt("pistonPosY", pistonPosition.getY())
