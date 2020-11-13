@@ -155,6 +155,13 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean jumping;
 
+    /**
+     * The dimension of the player.
+     * As all entities are in the same world, this can be safely applied to all other entities.
+     */
+    @Setter
+    private String dimension = DimensionUtils.OVERWORLD;
+
     @Setter
     private int breakingBlock;
 
@@ -648,7 +655,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1);
-        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(playerEntity.getDimension()));
+        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(dimension));
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);

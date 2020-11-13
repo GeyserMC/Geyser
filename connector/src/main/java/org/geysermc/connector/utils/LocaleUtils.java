@@ -243,12 +243,13 @@ public class LocaleUtils {
      */
     public static String getLocaleString(String messageText, String locale) {
         Map<String, String> localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(locale.toLowerCase());
-        if (localeStrings == null)
-            localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(LanguageUtils.getDefaultLocale());
         if (localeStrings == null) {
-            // Don't cause a NPE if the locale is STILL missing
-            GeyserConnector.getInstance().getLogger().debug("MISSING DEFAULT LOCALE: " + LanguageUtils.getDefaultLocale());
-            return messageText;
+            localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(LanguageUtils.getDefaultLocale());
+            if (localeStrings == null) {
+                // Don't cause a NPE if the locale is STILL missing
+                GeyserConnector.getInstance().getLogger().debug("MISSING DEFAULT LOCALE: " + LanguageUtils.getDefaultLocale());
+                return messageText;
+            }
         }
 
         return localeStrings.getOrDefault(messageText, messageText);

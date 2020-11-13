@@ -41,15 +41,23 @@ public class DimensionUtils {
     // Changes if the above-bedrock Nether building workaround is applied
     private static int BEDROCK_NETHER_ID = 1;
 
-    // Static references to all vanilla dimensions
+    /**
+     * String reference to vanilla Java overworld dimension identifier
+     */
     public static final String OVERWORLD = "minecraft:overworld";
+    /**
+     * String reference to vanilla Java nether dimension identifier
+     */
     public static final String NETHER = "minecraft:the_nether";
+    /**
+     * String reference to vanilla Java end dimension identifier
+     */
     public static final String THE_END = "minecraft:the_end";
 
     public static void switchDimension(GeyserSession session, String javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
-        if (javaDimension.equals(player.getDimension()))
+        if (javaDimension.equals(session.getDimension()))
             return;
 
         if (session.getMovementSendIfIdle() != null) {
@@ -69,7 +77,7 @@ public class DimensionUtils {
         changeDimensionPacket.setRespawn(true);
         changeDimensionPacket.setPosition(pos.toFloat());
         session.sendUpstreamPacket(changeDimensionPacket);
-        player.setDimension(javaDimension);
+        session.setDimension(javaDimension);
         player.setPosition(pos.toFloat());
         session.setSpawned(false);
         session.setLastChunkPosition(null);
@@ -115,23 +123,30 @@ public class DimensionUtils {
     /**
      * Determines the new dimension based on the {@link CompoundTag} sent by either the {@link com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket}
      * or {@link com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket}.
+     *
      * @param dimensionTag the packet's dimension tag.
      * @return the dimension identifier.
      */
     public static String getNewDimension(CompoundTag dimensionTag) {
         if (dimensionTag == null || dimensionTag.isEmpty()) {
             GeyserConnector.getInstance().getLogger().debug("Dimension tag was null or empty.");
-            return "minecraft:overworld";
+            return OVERWORLD;
         }
         if (dimensionTag.getValue().get("effects") != null) {
             return ((StringTag) dimensionTag.getValue().get("effects")).getValue();
         }
         GeyserConnector.getInstance().getLogger().debug("Effects portion of the tag was null or empty.");
-        return "minecraft:overworld";
+        return OVERWORLD;
     }
 
-    public static void changeBedrockNetherId() {
+    /**
+     * The Nether dimension in Bedrock does not permit building above Y128 - the Bedrock above the dimension.
+     * This workaround sets the Nether as the End dimension to ignore this limit.
+     *
+     * @param isAboveNetherBedrockBuilding true if we should apply The End workaround
+     */
+    public static void changeBedrockNetherId(boolean isAboveNetherBedrockBuilding) {
         // Change dimension ID to the End to allow for building above Bedrock
-        BEDROCK_NETHER_ID = 2;
+        BEDROCK_NETHER_ID = isAboveNetherBedrockBuilding ? 2 : 1;
     }
 }

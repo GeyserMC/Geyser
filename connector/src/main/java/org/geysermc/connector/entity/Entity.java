@@ -68,8 +68,6 @@ public class Entity {
     protected long entityId;
     protected long geyserId;
 
-    protected String dimension;
-
     protected Vector3f position;
     protected Vector3f motion;
 
@@ -101,7 +99,6 @@ public class Entity {
         this.rotation = rotation;
 
         this.valid = false;
-        this.dimension = "minecraft:overworld";
 
         setPosition(position);
 
@@ -340,18 +337,6 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
                     // Has to be a byte or it does not work
                     metadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
-                    if (entityId == session.getPlayerEntity().getEntityId()) {
-                        Vector3i lastInteractionPos = session.getLastInteractionPosition();
-                        metadata.put(EntityData.BED_POSITION, lastInteractionPos);
-                        if (session.getConnector().getConfig().isCacheChunks()) {
-                            int bed = session.getConnector().getWorldManager().getBlockAt(session, lastInteractionPos.getX(),
-                                    lastInteractionPos.getY(), lastInteractionPos.getZ());
-                            // Bed has to be updated, or else player is floating in the air
-                            ChunkUtils.updateBlock(session, bed, lastInteractionPos);
-                        }
-                    } else {
-                        metadata.put(EntityData.BED_POSITION, Vector3i.from(position.getFloorX(), position.getFloorY() - 2, position.getFloorZ()));
-                    }
                     metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
                     metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
                 } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
