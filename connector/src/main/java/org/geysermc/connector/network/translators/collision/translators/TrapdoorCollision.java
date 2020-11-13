@@ -75,24 +75,25 @@ public class TrapdoorCollision extends BlockCollision {
 
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         if (this.checkIntersection(playerCollision)) {
-            // Up-facing and east-facing trapdoors work fine
-            if (facing != 2 && facing != 5) {
-                switch (facing) {
-                    case 1: // North
-                        playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.5125);
-                        break;
-                    case 3: // South
-                        playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.4875);
-                        break;
-                    case 4: // West
-                        playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.4875);
-                        break;
-                    case 6: // Down
-                        playerCollision.setMiddleY(Math.floor(
-                                playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2)
-                                ) + 0.0125 + (playerCollision.getSizeY() / 2));
-                        break;
-                }
+            switch (facing) {
+                case 1: // North
+                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.5125);
+                    break;
+                case 3: // South
+                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.4875);
+                    break;
+                case 4: // West
+                    playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.4875);
+                    break;
+                case 6: // Down
+                    playerCollision.setMiddleY(Math.floor(
+                            playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2)
+                            ) + 0.0125 + (playerCollision.getSizeY() / 2));
+                    break;
+                case 2:
+                case 5:
+                    // Up-facing and east-facing trapdoors work fine
+                    break;
             }
         }
 
