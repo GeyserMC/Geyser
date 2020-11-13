@@ -23,27 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.entity.living.animal;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnPositionPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.SetSpawnPositionPacket;
-import org.geysermc.connector.utils.DimensionUtils;
+public class TurtleEntity extends AnimalEntity {
 
-@Translator(packet = ServerSpawnPositionPacket.class)
-public class JavaSpawnPositionTranslator extends PacketTranslator<ServerSpawnPositionPacket> {
+    public TurtleEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
+    }
 
     @Override
-    public void translate(ServerSpawnPositionPacket packet, GeyserSession session) {
-        SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
-        spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-        spawnPositionPacket.setSpawnForced(true);
-        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
-        spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
-        session.sendUpstreamPacket(spawnPositionPacket);
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 17) {
+            metadata.getFlags().setFlag(EntityFlag.IS_PREGNANT, (boolean) entityMetadata.getValue());
+        } else if (entityMetadata.getId() == 18) {
+            metadata.getFlags().setFlag(EntityFlag.LAYING_EGG, (boolean) entityMetadata.getValue());
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

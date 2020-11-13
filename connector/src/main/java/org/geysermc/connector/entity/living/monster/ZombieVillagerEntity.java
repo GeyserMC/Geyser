@@ -23,27 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal.horse;
+package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.living.merchant.VillagerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class HorseEntity extends AbstractHorseEntity {
+public class ZombieVillagerEntity extends ZombieEntity {
 
-    public HorseEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public ZombieVillagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 18) {
-            metadata.put(EntityData.VARIANT, entityMetadata.getValue());
-            metadata.put(EntityData.MARK_VARIANT, (((int) entityMetadata.getValue()) >> 8) % 5);
+            metadata.getFlags().setFlag(EntityFlag.IS_TRANSFORMING, (boolean) entityMetadata.getValue());
+            metadata.getFlags().setFlag(EntityFlag.SHAKING, (boolean) entityMetadata.getValue());
+        }
+        if (entityMetadata.getId() == 19) {
+            VillagerData villagerData = (VillagerData) entityMetadata.getValue();
+            // Region - only one used on Bedrock
+            metadata.put(EntityData.MARK_VARIANT, VillagerEntity.VILLAGER_REGIONS.get(villagerData.getType()));
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
-
 }

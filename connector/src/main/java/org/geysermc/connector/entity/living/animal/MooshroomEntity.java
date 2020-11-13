@@ -23,27 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.entity.living.animal;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnPositionPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.SetSpawnPositionPacket;
-import org.geysermc.connector.utils.DimensionUtils;
+public class MooshroomEntity extends AnimalEntity {
 
-@Translator(packet = ServerSpawnPositionPacket.class)
-public class JavaSpawnPositionTranslator extends PacketTranslator<ServerSpawnPositionPacket> {
+    public MooshroomEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
+    }
 
     @Override
-    public void translate(ServerSpawnPositionPacket packet, GeyserSession session) {
-        SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
-        spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-        spawnPositionPacket.setSpawnForced(true);
-        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
-        spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
-        session.sendUpstreamPacket(spawnPositionPacket);
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 16) {
+            metadata.put(EntityData.VARIANT, entityMetadata.getValue().equals("brown") ? 1 : 0);
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }
