@@ -108,7 +108,7 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Send Block Entity Data packets to update the position of the piston head
+     * Send block entity data packets to update the position of the piston head
      */
     public void sendUpdate() {
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
@@ -127,7 +127,7 @@ public class PistonBlockEntity {
 
     /**
      * Find the blocks pushed, pulled or broken by the piston
-     * and create movingBlock blockEntities for each attached block
+     * and create movingBlock block entities for each attached block
      */
     private void findAffectedBlocks() {
         if (!session.getConnector().getConfig().isCacheChunks()) {
@@ -143,13 +143,19 @@ public class PistonBlockEntity {
         List<Vector3i> adjacentOffsets = getAdjacentOffsets();
         Vector3i movement = directionOffset;
         if (action == PistonValueType.PULLING) {
-            adjacentOffsets.add(directionOffset);
             movement = directionOffset.negate();
             blocksToCheck.add(position.add(directionOffset.mul(2)));
         } else if (action == PistonValueType.PUSHING){
             blocksToCheck.add(position.add(directionOffset));
         }
+        // Sticky blocks also pull blocks when pushed and vice versa.
+        adjacentOffsets.add(movement.negate());
 
+        // Skip the extended piston head and the piston itself
+        blocksChecked.add(position);
+        if (action == PistonValueType.PULLING) {
+            blocksChecked.add(position.add(directionOffset));
+        }
         boolean moveBlocks = true;
         while (!blocksToCheck.isEmpty()) {
             Vector3i blockPos = blocksToCheck.remove();
@@ -158,10 +164,6 @@ public class PistonBlockEntity {
                 continue;
             }
             blocksChecked.add(blockPos);
-            // Skip the extended piston head
-            if (action == PistonValueType.PULLING && blockPos.equals(position.add(directionOffset))) {
-                continue;
-            }
             int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
             if (blockId == BlockTranslator.AIR) {
                 continue;
@@ -169,22 +171,29 @@ public class PistonBlockEntity {
             if (canMoveBlock(blockId, action == PistonValueType.PUSHING)) {
                 attachedBlockPositions.add(blockPos);
                 blocksToCheck.add(blockPos.add(movement));
-                // For honey blocks and slime blocks check the blocks adjacent to it
                 if (isBlockSticky(blockId)) {
+                    // For honey blocks and slime blocks check the blocks adjacent to it
                     for (Vector3i offset : adjacentOffsets) {
                         Vector3i adjacentPos = blockPos.add(offset);
+                        // Skip blocks we've already checked
+                        if (blocksChecked.contains(adjacentPos)) {
+                            continue;
+                        }
                         int adjacentBlockId = session.getConnector().getWorldManager().getBlockAt(session, adjacentPos);
                         if (adjacentBlockId == BlockTranslator.AIR) {
                             continue;
                         }
                         if (isBlockAttached(blockId, adjacentBlockId) && canMoveBlock(adjacentBlockId, false)) {
-                            // If it is another slime/honey block we need to check it's adjacent blocks
+                            // If it is another slime/honey block we need to check its adjacent blocks
                             if (isBlockSticky(blockId)) {
                                 blocksToCheck.add(adjacentPos);
                             } else {
                                 attachedBlockPositions.add(adjacentPos);
+                                blocksChecked.add(adjacentPos);
                                 blocksToCheck.add(adjacentPos.add(movement));
                             }
+                        } else {
+                            blocksChecked.add(adjacentPos);
                         }
                     }
                 }
@@ -214,7 +223,7 @@ public class PistonBlockEntity {
         }
         // Pistons can only be moved if they aren't extended
         if (PistonBlockEntityTranslator.isBlock(javaId)) {
-            return BlockStateValues.getPistonValues().get(javaId);
+            return !BlockStateValues.getPistonValues().get(javaId);
         }
         if (BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(javaId) == -1.0d) {
             return false;
@@ -236,7 +245,8 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Checks if a block sticks to other blocks
+     * Checks if a block sticks to other blocks.
+     * Slime and honey blocks.
      * @param javaId The block id
      * @return True if the block sticks to adjacent blocks
      */
@@ -255,6 +265,8 @@ public class PistonBlockEntity {
         boolean aSticky = isBlockSticky(javaIdA);
         boolean bSticky = isBlockSticky(javaIdB);
         if (aSticky && bSticky) {
+            // Only matching sticky blocks are attached together
+            // Honey + Honey & Slime + Slime
             return javaIdA == javaIdB;
         }
         return aSticky || bSticky;
@@ -282,6 +294,12 @@ public class PistonBlockEntity {
         return Vector3i.ZERO;
     }
 
+    /**
+     * Get the direction vectors that aren't on the same axis
+     * as the direction of movement.
+     * Used to get blocks adjacent to to sticky blocks.
+     * @return A list of Vector3i pointing in directions other than the axis of movement
+     */
     private List<Vector3i> getAdjacentOffsets() {
         List<Vector3i> adjacent = new ArrayList<>();
         Vector3i motionAxis = getDirectionOffset().abs();
@@ -311,7 +329,12 @@ public class PistonBlockEntity {
             // Update moving block with correct details
             BlockEntityDataPacket entityDataPacket = new BlockEntityDataPacket();
             entityDataPacket.setBlockPosition(newPos);
-            entityDataPacket.setData(buildMovingBlockTag(newPos, blockTag, position));
+            if (PistonBlockEntityTranslator.isBlock(blockId)) {
+                NbtMap pistonData = PistonBlockEntityTranslator.getTag(blockId, newPos);
+                entityDataPacket.setData(buildMovingBlockTag(newPos, blockTag, pistonData, position));
+            } else {
+                entityDataPacket.setData(buildMovingBlockTag(newPos, blockTag, null, position));
+            }
             session.sendUpstreamPacket(entityDataPacket);
         }
     }
@@ -343,6 +366,9 @@ public class PistonBlockEntity {
             case PULLING:
                 return (byte) (isDone() ? 0 : 3);
             default:
+                if (progress == 1.0f) {
+                    return 2;
+                }
                 return (byte) (isDone() ? 0 : 2);
         }
     }
@@ -385,12 +411,13 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Create a the piston data tag with the data in this block entity
+     * Create a piston data tag with the data in this block entity
      * @return A piston data tag
      */
     private NbtMap buildPistonTag() {
         NbtMapBuilder builder = NbtMap.builder()
                 .putString("id", "PistonArm")
+                .putIntArray("AttachedBlocks", attachedBlocks)
                 .putFloat("Progress", progress)
                 .putFloat("LastProgress", lastProgress)
                 .putByte("NewState", getState())
@@ -400,11 +427,6 @@ public class PistonBlockEntity {
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())
                 .putInt("z", position.getZ());
-        if (isDone()) {
-            builder.putIntArray("AttachedBlocks", new int[0]);
-        } else {
-            builder.putIntArray("AttachedBlocks", attachedBlocks);
-        }
         return builder.build();
     }
 
@@ -431,13 +453,14 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Create a moving block tag of a block, that will be moved by a piston
+     * Create a moving block tag of a block that will be moved by a piston
      * @param position The ending position of the block
      * @param movingBlock Block state data of the block that's moving
-     * @param pistonPosition The position of the base of the piston that's moving the blocks
-     * @return A moving block data tag for a block
+     * @param movingEntity Block entity data of the block if applicable
+     * @param pistonPosition The position for the base of the piston that's moving the block
+     * @return A moving block data tag
      */
-    private NbtMap buildMovingBlockTag(Vector3i position, NbtMap movingBlock, Vector3i pistonPosition) {
+    private NbtMap buildMovingBlockTag(Vector3i position, NbtMap movingBlock, NbtMap movingEntity, Vector3i pistonPosition) {
         NbtMapBuilder builder = NbtMap.builder()
                 .putString("id", "MovingBlock")
                 .putCompound("movingBlock", movingBlock)
@@ -449,6 +472,9 @@ public class PistonBlockEntity {
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())
                 .putInt("z", position.getZ());
+        if (movingEntity != null) {
+            builder.putCompound("movingEntity", movingEntity);
+        }
         return builder.build();
     }
 }
