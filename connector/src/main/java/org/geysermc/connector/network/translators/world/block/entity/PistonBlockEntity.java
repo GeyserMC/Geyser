@@ -64,6 +64,7 @@ public class PistonBlockEntity {
     private ScheduledFuture<?> updater;
 
     private static final NbtMap AIR_TAG = BlockTranslator.BLOCKS.get(BlockTranslator.AIR).getCompound("block");
+    private static final List<Vector3i> ALL_DIRECTIONS = ImmutableList.of(Vector3i.from(1, 0, 0), Vector3i.from(0, 1, 0), Vector3i.from(0, 0, 1), Vector3i.from(-1, 0, 0), Vector3i.from(0, -1, 0), Vector3i.from(0, 0, -1));
 
     public PistonBlockEntity(GeyserSession session, Vector3i position, PistonValue orientation) {
         this.session = session;
@@ -121,7 +122,22 @@ public class PistonBlockEntity {
                 sendUpdate();
             }, 50, TimeUnit.MILLISECONDS);
         } else {
+            if (action == PistonValueType.PULLING) {
+                removePistonHead();
+            }
             session.getPistonCache().remove(position);
+        }
+    }
+
+    /**
+     * Removes lingering piston heads
+     */
+    private void removePistonHead() {
+        Vector3i blockInfront = position.add(getDirectionOffset());
+        int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockInfront);
+        String javaId = BlockTranslator.getJavaIdBlockMap().inverse().get(blockId);
+        if (javaId.contains("piston_head")) {
+            session.getChunkCache().updateBlock(blockInfront.getX(), blockInfront.getY(), blockInfront.getZ(), BlockTranslator.AIR);
         }
     }
 
@@ -140,22 +156,17 @@ public class PistonBlockEntity {
         Queue<Vector3i> blocksToCheck = new LinkedList<>();
 
         Vector3i directionOffset = getDirectionOffset();
-        List<Vector3i> adjacentOffsets = getAdjacentOffsets();
         Vector3i movement = directionOffset;
+        blocksChecked.add(position); // Don't check the piston itself
         if (action == PistonValueType.PULLING) {
-            movement = directionOffset.negate();
+            movement = movement.negate();
+            blocksChecked.add(position.add(directionOffset)); // Don't check the piston head
             blocksToCheck.add(position.add(directionOffset.mul(2)));
-        } else if (action == PistonValueType.PUSHING){
+        } else if (action == PistonValueType.PUSHING) {
+            removePistonHead();
             blocksToCheck.add(position.add(directionOffset));
         }
-        // Sticky blocks also pull blocks when pushed and vice versa.
-        adjacentOffsets.add(movement.negate());
 
-        // Skip the extended piston head and the piston itself
-        blocksChecked.add(position);
-        if (action == PistonValueType.PULLING) {
-            blocksChecked.add(position.add(directionOffset));
-        }
         boolean moveBlocks = true;
         while (!blocksToCheck.isEmpty()) {
             Vector3i blockPos = blocksToCheck.remove();
@@ -168,47 +179,47 @@ public class PistonBlockEntity {
             if (blockId == BlockTranslator.AIR) {
                 continue;
             }
+            blocksChecked.add(blockPos);
             if (canMoveBlock(blockId, action == PistonValueType.PUSHING)) {
                 attachedBlockPositions.add(blockPos);
-                blocksToCheck.add(blockPos.add(movement));
                 if (isBlockSticky(blockId)) {
                     // For honey blocks and slime blocks check the blocks adjacent to it
-                    for (Vector3i offset : adjacentOffsets) {
+                    for (Vector3i offset : ALL_DIRECTIONS) {
+                        // Only check blocks that aren't being pushed by the current block
+                        if (offset.equals(movement)) {
+                            continue;
+                        }
                         Vector3i adjacentPos = blockPos.add(offset);
-                        // Skip blocks we've already checked
-                        if (blocksChecked.contains(adjacentPos)) {
+                        // Ignore the piston block itself
+                        if (adjacentPos.equals(position)) {
+                            continue;
+                        }
+                        // Ignore the piston head
+                        if (action == PistonValueType.PULLING && position.add(directionOffset).equals(adjacentPos)) {
                             continue;
                         }
                         int adjacentBlockId = session.getConnector().getWorldManager().getBlockAt(session, adjacentPos);
-                        if (adjacentBlockId == BlockTranslator.AIR) {
-                            continue;
-                        }
-                        if (isBlockAttached(blockId, adjacentBlockId) && canMoveBlock(adjacentBlockId, false)) {
+                        if (adjacentBlockId != BlockTranslator.AIR && isBlockAttached(blockId, adjacentBlockId) && canMoveBlock(adjacentBlockId, false)) {
                             // If it is another slime/honey block we need to check its adjacent blocks
-                            if (isBlockSticky(blockId)) {
+                            if (isBlockSticky(adjacentBlockId)) {
                                 blocksToCheck.add(adjacentPos);
                             } else {
                                 attachedBlockPositions.add(adjacentPos);
                                 blocksChecked.add(adjacentPos);
                                 blocksToCheck.add(adjacentPos.add(movement));
                             }
-                        } else {
-                            blocksChecked.add(adjacentPos);
                         }
                     }
                 }
-            } else {
-                if (!canDestroyBlock(blockId)) {
-                    moveBlocks = false;
-                    break;
-                }
-            }
-            // Pistons can't move more than 12 blocks
-            if (attachedBlockPositions.size() > 12) {
+            } else if (!canDestroyBlock(blockId)) {
+                // Block can't be moved or destroyed, so it blocks all block movement
                 moveBlocks = false;
                 break;
             }
+            // Check next block in line
+            blocksToCheck.add(blockPos.add(movement));
         }
+
         if (moveBlocks) {
             createMovingBlocks(attachedBlockPositions, movement);
             attachedBlocks = flattenPositions(attachedBlockPositions);
@@ -292,24 +303,6 @@ public class PistonBlockEntity {
                 return Vector3i.from(1, 0, 0);
         }
         return Vector3i.ZERO;
-    }
-
-    /**
-     * Get the direction vectors that aren't on the same axis
-     * as the direction of movement.
-     * Used to get blocks adjacent to to sticky blocks.
-     * @return A list of Vector3i pointing in directions other than the axis of movement
-     */
-    private List<Vector3i> getAdjacentOffsets() {
-        List<Vector3i> adjacent = new ArrayList<>();
-        Vector3i motionAxis = getDirectionOffset().abs();
-        for (Vector3i axis : ImmutableList.of(Vector3i.UNIT_X, Vector3i.UNIT_Y, Vector3i.UNIT_Z)) {
-            if (!axis.equals(motionAxis)) {
-                adjacent.add(axis);
-                adjacent.add(axis.negate());
-            }
-        }
-        return adjacent;
     }
 
     private void createMovingBlocks(List<Vector3i> positions, Vector3i movement) {
