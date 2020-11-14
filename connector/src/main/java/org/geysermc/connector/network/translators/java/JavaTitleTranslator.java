@@ -41,14 +41,21 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
         SetTitlePacket titlePacket = new SetTitlePacket();
         String locale = session.getLocale();
 
+        String text;
+        if (packet.getTitle() == null) {
+            text = " ";
+        } else {
+            text = MessageTranslator.convertMessage(packet.getTitle().toString(), locale);
+        }
+
         switch (packet.getAction()) {
             case TITLE:
                 titlePacket.setType(SetTitlePacket.Type.TITLE);
-                titlePacket.setText(MessageTranslator.convertMessage(packet.getTitle().toString(), locale));
+                titlePacket.setText(text);
                 break;
             case SUBTITLE:
                 titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
-                titlePacket.setText(MessageTranslator.convertMessage(packet.getTitle().toString(), locale));
+                titlePacket.setText(text);
                 break;
             case CLEAR:
             case RESET:
@@ -57,9 +64,10 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
                 break;
             case ACTION_BAR:
                 titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-                titlePacket.setText(MessageTranslator.convertMessage(packet.getTitle().toString(), locale));
+                titlePacket.setText(text);
                 break;
             case TIMES:
+                titlePacket.setType(SetTitlePacket.Type.TIMES);
                 titlePacket.setFadeInTime(packet.getFadeIn());
                 titlePacket.setFadeOutTime(packet.getFadeOut());
                 titlePacket.setStayTime(packet.getStay());
