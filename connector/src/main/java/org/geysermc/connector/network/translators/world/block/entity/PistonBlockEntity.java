@@ -104,8 +104,9 @@ public class PistonBlockEntity {
             // Immediately fully extend the piston
             progress = 1.0f;
             lastProgress = 1.0f;
-        } else {
-            // Blocks only move when pushing or pulling
+        } else if (action == PistonValueType.PUSHING || (action == PistonValueType.PULLING && sticky)) {
+            // Blocks only move when pushing
+            // or pulling with sticky pistons
             findAffectedBlocks();
             removeBlocks();
             createMovingBlocks();
