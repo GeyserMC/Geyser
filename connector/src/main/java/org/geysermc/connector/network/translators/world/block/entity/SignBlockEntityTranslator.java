@@ -101,6 +101,11 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             String signLine = getOrDefault(tag.getValue().get("Text" + currentLine), "");
             signLine = MessageTranslator.convertMessageLenient(signLine);
 
+            // Trim any trailing formatting codes
+            if (signLine.length() > 2 && signLine.toCharArray()[signLine.length() - 2] == '\u00a7') {
+                signLine = signLine.substring(0, signLine.length() - 2);
+            }
+
             // Check the character width on the sign to ensure there is no overflow that is usually hidden
             // to Java Edition clients but will appear to Bedrock clients
             int signWidth = 0;
