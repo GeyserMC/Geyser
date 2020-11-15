@@ -130,7 +130,7 @@ public class BannerTranslator extends ItemTranslator {
         ItemData itemData = super.translateToBedrock(itemStack, itemEntry);
 
         CompoundTag blockEntityTag = itemStack.getNbt().get("BlockEntityTag");
-        if (blockEntityTag.contains("Patterns")) {
+        if (blockEntityTag != null && blockEntityTag.contains("Patterns")) {
             ListTag patterns = blockEntityTag.get("Patterns");
 
             NbtMapBuilder builder = itemData.getTag().toBuilder();
