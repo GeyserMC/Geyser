@@ -136,8 +136,18 @@ public class LocaleUtils {
 
         // Check if we have already downloaded the locale file
         if (localeFile.exists()) {
-            GeyserConnector.getInstance().getLogger().debug("Locale already downloaded: " + locale);
-            return;
+            if (!locale.equals("en_us")) {
+                String curHash = byteArrayToHexString(FileUtils.calculateSHA1(localeFile));
+                if (!curHash.equals(ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash())) {
+                    GeyserConnector.getInstance().getLogger().debug("Locale out of date re-downloading: " + locale);
+                } else {
+                    GeyserConnector.getInstance().getLogger().debug("Locale already downloaded: " + locale);
+                    return;
+                }
+            } else {
+                GeyserConnector.getInstance().getLogger().debug("Locale already downloaded: " + locale);
+                return;
+            }
         }
 
         // Create the en_us locale
@@ -252,6 +262,20 @@ public class LocaleUtils {
         }
 
         return localeStrings.getOrDefault(messageText, messageText);
+    }
+
+    /**
+     * Convert a byte array into a hex string
+     *
+     * @param b Byte array to convert
+     * @return The hex representation of the given byte array
+     */
+    private static String byteArrayToHexString(byte[] b) {
+        StringBuilder result = new StringBuilder();
+        for (byte value : b) {
+            result.append(Integer.toString((value & 0xff) + 0x100, 16).substring(1));
+        }
+        return result.toString();
     }
 
     public static void init() {
