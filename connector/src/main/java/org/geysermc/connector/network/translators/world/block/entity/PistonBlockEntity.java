@@ -248,7 +248,7 @@ public class PistonBlockEntity {
         if (BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(javaId) == -1.0d) {
             return false;
         }
-        String pistonBehavior = BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "");
+        String pistonBehavior = BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "normal");
         switch (pistonBehavior) {
             case "block":
             case "destroy":
@@ -261,7 +261,7 @@ public class PistonBlockEntity {
     }
 
     private boolean canDestroyBlock(int javaId)  {
-        return BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "").equals("destroy");
+        return BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "normal").equals("destroy");
     }
 
     /**
