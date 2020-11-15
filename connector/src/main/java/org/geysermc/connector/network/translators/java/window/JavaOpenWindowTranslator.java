@@ -56,7 +56,7 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             return;
         }
 
-        String name = MessageTranslator.convertMessage(packet.getName(), session.getLocale());
+        String name = MessageTranslator.convertMessageLenient(packet.getName(), session.getLocale());
 
         name = LocaleUtils.getLocaleString(name, session.getLocale());
 

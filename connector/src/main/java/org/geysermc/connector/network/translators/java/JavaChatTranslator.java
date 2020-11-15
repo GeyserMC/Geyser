@@ -56,10 +56,8 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
                 break;
         }
 
-        String locale = session.getLocale();
-
         textPacket.setNeedsTranslation(false);
-        textPacket.setMessage(MessageTranslator.convertMessage(packet.getMessage().toString(), locale));
+        textPacket.setMessage(MessageTranslator.convertMessage(packet.getMessage().toString(), session.getLocale()));
 
         session.sendUpstreamPacket(textPacket);
     }
