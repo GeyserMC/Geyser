@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.world.block.entity;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @BlockEntity(name = "CommandBlock", regex = "command_block")
 public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
@@ -42,7 +42,7 @@ public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator imp
         // Java and Bedrock values
         builder.put("conditionMet", ((ByteTag) tag.get("conditionMet")).getValue());
         builder.put("auto", ((ByteTag) tag.get("auto")).getValue());
-        builder.put("CustomName", MessageUtils.getBedrockMessage(((StringTag) tag.get("CustomName")).getValue()));
+        builder.put("CustomName", MessageTranslator.convertMessage(((StringTag) tag.get("CustomName")).getValue()));
         builder.put("powered", ((ByteTag) tag.get("powered")).getValue());
         builder.put("Command", ((StringTag) tag.get("Command")).getValue());
         builder.put("SuccessCount", ((IntTag) tag.get("SuccessCount")).getValue());
