@@ -136,20 +136,23 @@ public class LocaleUtils {
         // Check if we have already downloaded the locale file
         if (localeFile.exists()) {
             String curHash = "";
-            String tagetHash = "";
+            String targetHash = "";
 
             if (locale.equals("en_us")) {
                 try {
-                    curHash = String.join("", Files.readAllLines(localeFile.getParentFile().toPath().resolve("en_us.hash")));
-                } catch (IOException e) { }
-                tagetHash = clientJarInfo.getSha1();
+                    Path hashFile = localeFile.getParentFile().toPath().resolve("en_us.hash");
+                    if (hashFile.toFile().exists()) {
+                        curHash = String.join("", Files.readAllLines(hashFile));
+                    }
+                } catch (IOException ignored) { }
+                targetHash = clientJarInfo.getSha1();
             } else {
                 curHash = byteArrayToHexString(FileUtils.calculateSHA1(localeFile));
-                tagetHash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
+                targetHash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
             }
 
-            if (!curHash.equals(tagetHash)) {
-                GeyserConnector.getInstance().getLogger().debug("Locale out of date re-downloading: " + locale);
+            if (!curHash.equals(targetHash)) {
+                GeyserConnector.getInstance().getLogger().debug("Locale out of date; re-downloading: " + locale);
             } else {
                 GeyserConnector.getInstance().getLogger().debug("Locale already downloaded and up-to date: " + locale);
                 return;
