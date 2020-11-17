@@ -53,7 +53,7 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
 
                 CompoundTag newProjectile = new CompoundTag("chargedItem");
                 newProjectile.put(new ByteTag("Count", (byte) itemData.getCount()));
-                newProjectile.put(new StringTag("Name", ItemRegistry.getBedrockIdentifer(entry)));
+                newProjectile.put(new StringTag("Name", ItemRegistry.getBedrockIdentifier(entry)));
 
                 newProjectile.put(new ShortTag("Damage", itemData.getDamage()));
 

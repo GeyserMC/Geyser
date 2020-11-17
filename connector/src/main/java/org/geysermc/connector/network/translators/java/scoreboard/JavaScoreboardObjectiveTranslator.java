@@ -32,7 +32,7 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ObjectiveAction;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
@@ -54,7 +54,7 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
         switch (packet.getAction()) {
             case ADD:
             case UPDATE:
-                objective.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()))
+                objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName().toString()))
                         .setType(packet.getType().ordinal());
                 break;
             case REMOVE:

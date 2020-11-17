@@ -69,7 +69,6 @@ public class ItemFrameEntity extends Entity {
 
     public ItemFrameEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, HangingDirection direction) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-        NbtMapBuilder builder = NbtMap.builder();
         NbtMapBuilder blockBuilder = NbtMap.builder()
                 .putString("name", "minecraft:frame")
                 .putInt("version", BlockTranslator.getBlockStateVersion());
@@ -77,9 +76,7 @@ public class ItemFrameEntity extends Entity {
                 .putInt("facing_direction", direction.ordinal())
                 .putByte("item_frame_map_bit", (byte) 0)
                 .build());
-        builder.put("block", blockBuilder.build());
-        builder.putShort("id", (short) 199);
-        bedrockRuntimeId = BlockTranslator.getItemFrame(builder.build());
+        bedrockRuntimeId = BlockTranslator.getItemFrame(blockBuilder.build());
         bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
     }
 
@@ -101,7 +98,7 @@ public class ItemFrameEntity extends Entity {
             ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
             NbtMapBuilder builder = NbtMap.builder();
 
-            String blockName = ItemRegistry.getBedrockIdentifer(itemEntry);
+            String blockName = ItemRegistry.getBedrockIdentifier(itemEntry);
 
             builder.putByte("Count", (byte) itemData.getCount());
             if (itemData.getTag() != null) {
@@ -141,8 +138,7 @@ public class ItemFrameEntity extends Entity {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
-        // TODO 1.16.100 set to BEDROCK_AIR
-        updateBlockPacket.setRuntimeId(0);
+        updateBlockPacket.setRuntimeId(BlockTranslator.BEDROCK_AIR_ID);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
