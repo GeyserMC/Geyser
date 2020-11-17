@@ -70,7 +70,7 @@ public class GeyserSpongeCommandExecutor implements CommandCallable {
     @Override
     public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) throws CommandException {
         if (arguments.split(" ").length == 1) {
-            return Arrays.asList("?", "help", "reload", "shutdown", "stop");
+            return connector.getCommandManager().getCommandNames();
         }
         return new ArrayList<>();
     }
