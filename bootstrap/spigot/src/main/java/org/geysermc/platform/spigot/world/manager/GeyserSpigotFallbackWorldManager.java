@@ -25,8 +25,36 @@
 
 package org.geysermc.platform.spigot.world.manager;
 
-public class GeyserSpigotLegacyWorldManager extends GeyserSpigotWorldManager {
-    public GeyserSpigotLegacyWorldManager(boolean isLegacy, boolean use3dBiomes, boolean isViaVersion) {
-        super(isLegacy, use3dBiomes, isViaVersion);
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+
+/**
+ * Should only be used when we know {@link GeyserSpigotWorldManager#getBlockAt(GeyserSession, int, int, int)}
+ * cannot be accurate. Typically, this is when ViaVersion is not installed but a client still manages to connect.
+ */
+public class GeyserSpigotFallbackWorldManager extends GeyserSpigotWorldManager {
+    public GeyserSpigotFallbackWorldManager() {
+        super(false);
+    }
+
+    @Override
+    public int getBlockAt(GeyserSession session, int x, int y, int z) {
+        return BlockTranslator.AIR;
+    }
+
+    @Override
+    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
+        // Do nothing, since we can't do anything with the chunk
+    }
+
+    @Override
+    public boolean hasMoreBlockDataThanChunkCache() {
+        return false;
+    }
+
+    @Override
+    public boolean isLegacy() {
+        return true;
     }
 }

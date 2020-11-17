@@ -30,17 +30,16 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.geysermc.adapters.GeyserAdapters;
 import org.geysermc.adapters.WorldAdapter;
-import org.geysermc.common.PlatformType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class GeyserSpigotAdapterWrapper extends GeyserSpigotWorldManager {
+public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
 
-    private final WorldAdapter adapter;
+    protected final WorldAdapter adapter;
 
-    public GeyserSpigotAdapterWrapper(boolean isLegacy, boolean use3dBiomes, boolean isViaVersion) {
-        super(isLegacy, use3dBiomes, isViaVersion);
-        adapter = GeyserAdapters.getWorldAdapter(PlatformType.SPIGOT);
+    public GeyserSpigotNativeWorldManager(boolean use3dBiomes) {
+        super(use3dBiomes);
+        adapter = GeyserAdapters.getWorldAdapter();
     }
 
     @Override

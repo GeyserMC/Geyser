@@ -25,6 +25,7 @@
 
 package org.geysermc.platform.spigot;
 
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.adapters.GeyserAdapters;
@@ -43,14 +44,19 @@ import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.command.SpigotCommandSender;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
-import org.geysermc.platform.spigot.world.manager.GeyserSpigotAdapterWrapper;
-import org.geysermc.platform.spigot.world.manager.GeyserSpigotWorldManager;
+import org.geysermc.platform.spigot.world.manager.*;
+import us.myles.ViaVersion.api.Pair;
 import us.myles.ViaVersion.api.Via;
+import us.myles.ViaVersion.api.data.MappingData;
+import us.myles.ViaVersion.api.protocol.Protocol;
+import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
+import us.myles.ViaVersion.api.protocol.ProtocolVersion;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -149,13 +155,30 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
             System.out.println(nmsVersion);
             GeyserAdapters.registerWorldAdapter(PlatformType.SPIGOT, nmsVersion);
-            this.geyserWorldManager = new GeyserSpigotAdapterWrapper(isLegacy, use3dBiomes, isViaVersion);
+            if (isViaVersion && isViaVersionNeeded()) {
+                this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
+            } else {
+                this.geyserWorldManager = new GeyserSpigotNativeWorldManager(use3dBiomes);
+            }
             System.out.println("Using NMS adapter!");
-        } catch (Exception e) {
-            this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, use3dBiomes, isViaVersion);
+        } catch (Exception ignored) {
+            ignored.printStackTrace();
+        }
+        if (this.geyserWorldManager == null) {
+            // No NMS adapter
+            if (isLegacy && isViaVersion) {
+                // Use ViaVersion for converting pre-1.13 block states
+                this.geyserWorldManager = new GeyserSpigot1_12WorldManager();
+            } else if (isLegacy) {
+                // Not sure how this happens - without ViaVersion, we don't know any block states, so just assume everything is air
+                this.geyserWorldManager = new GeyserSpigotFallbackWorldManager();
+            } else {
+                // Post-1.13
+                this.geyserWorldManager = new GeyserSpigotWorldManager(use3dBiomes);
+            }
             System.out.println("Using fallback world manager.");
         }
-        GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);
+        GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, this.geyserWorldManager);
 
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
@@ -198,6 +221,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return getDataFolder().toPath();
     }
 
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new GeyserSpigotDumpInfo();
+    }
+
     public boolean isCompatible(String version, String whichVersion) {
         int[] currentVersion = parseVersion(version);
         int[] otherVersion = parseVersion(whichVersion);
@@ -232,8 +260,36 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return temp;
     }
 
-    @Override
-    public BootstrapDumpInfo getDumpInfo() {
-        return new GeyserSpigotDumpInfo();
+    /**
+     * @return the server version before ViaVersion finishes initializing
+     */
+    public ProtocolVersion getServerProtocolVersion() {
+        String bukkitVersion = Bukkit.getServer().getVersion();
+        // Turn "(MC: 1.16.4)" into 1.16.4.
+        String version = bukkitVersion.split("\\(MC: ")[1].split("\\)")[0];
+        return ProtocolVersion.getClosest(version);
+    }
+
+    /**
+     * This function should not run unless ViaVersion is installed on the server.
+     *
+     * @return true if there is any block mappings difference between the server and client.
+     */
+    private boolean isViaVersionNeeded() {
+        ProtocolVersion serverVersion = getServerProtocolVersion();
+        List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
+                serverVersion.getVersion());
+        if (protocolList == null) {
+            // No translation needed!
+            return false;
+        }
+        for (int i = protocolList.size() - 1; i >= 0; i--) {
+            MappingData mappingData = protocolList.get(i).getValue().getMappingData();
+            if (mappingData != null) {
+                return true;
+            }
+        }
+        // All mapping data is null, which means client and server block states are the same
+        return false;
     }
 }

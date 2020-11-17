@@ -42,8 +42,7 @@ import org.geysermc.platform.spigot.world.manager.GeyserSpigotWorldManager;
 public class GeyserSpigotBlockPlaceListener implements Listener {
 
     private final GeyserConnector connector;
-    private final boolean isLegacy;
-    private final boolean isViaVersion;
+    private final GeyserSpigotWorldManager worldManager;
 
     @EventHandler
     public void place(final BlockPlaceEvent event) {
@@ -54,9 +53,9 @@ public class GeyserSpigotBlockPlaceListener implements Listener {
                 placeBlockSoundPacket.setPosition(Vector3f.from(event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ()));
                 placeBlockSoundPacket.setBabySound(false);
                 String javaBlockId;
-                if (isLegacy) {
-                    javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(GeyserSpigotWorldManager.getLegacyBlock(session,
-                            event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ(), isViaVersion));
+                if (worldManager.isLegacy()) {
+                    javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(worldManager.getBlockAt(session,
+                            event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ()));
                 } else {
                     javaBlockId = event.getBlockPlaced().getBlockData().getAsString();
                 }
