@@ -156,7 +156,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             System.out.println(nmsVersion);
             GeyserAdapters.registerWorldAdapter(PlatformType.SPIGOT, nmsVersion);
             if (isViaVersion && isViaVersionNeeded()) {
-                this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
+                if (isLegacy) {
+                    this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager();
+                } else {
+                    this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
+                }
             } else {
                 this.geyserWorldManager = new GeyserSpigotNativeWorldManager(use3dBiomes);
             }

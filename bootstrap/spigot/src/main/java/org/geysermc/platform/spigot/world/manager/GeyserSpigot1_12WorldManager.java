@@ -31,6 +31,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import us.myles.ViaVersion.api.Pair;
 import us.myles.ViaVersion.api.Via;
 import us.myles.ViaVersion.api.data.MappingData;
@@ -55,17 +56,29 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        Player bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
+        Player bukkitPlayer;
+        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+            return BlockTranslator.AIR;
+        }
         // Get block entity storage
         BlockStorage storage = Via.getManager().getConnection(bukkitPlayer.getUniqueId()).get(BlockStorage.class);
-        return getLegacyBlock(storage, bukkitPlayer.getWorld(), x, y, z);
-    }
-
-    @SuppressWarnings("deprecation")
-    public static int getLegacyBlock(BlockStorage storage, World world, int x, int y, int z) {
-        Block block = world.getBlockAt(x, y, z);
+        Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
         // Black magic that gets the old block state ID
         int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
+        return getLegacyBlock(storage, blockId, x, y, z);
+    }
+
+    /**
+     *
+     * @param storage ViaVersion's block entity storage (used to fix block entity state differences)
+     * @param blockId the pre-1.13 block id
+     * @param x X coordinate of block
+     * @param y Y coordinate of block
+     * @param z Z coordinate of block
+     * @return the block state updated to the latest Minecraft version
+     */
+    @SuppressWarnings("deprecation")
+    public static int getLegacyBlock(BlockStorage storage, int blockId, int x, int y, int z) {
         // Convert block state from old version (1.12.2) -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
         blockId = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData().getNewBlockId(blockId);
         List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
@@ -86,6 +99,7 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
         return blockId;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
         Player bukkitPlayer;
@@ -98,7 +112,10 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
         for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
             for (int blockZ = 0; blockZ < 16; blockZ++) {
                 for (int blockX = 0; blockX < 16; blockX++) {
-                    chunk.set(blockX, blockY, blockZ, getLegacyBlock(storage, world, (x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ));
+                    Block block = world.getBlockAt(x, y, z);
+                    // Black magic that gets the old block state ID
+                    int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
+                    chunk.set(blockX, blockY, blockZ, getLegacyBlock(storage, blockId, (x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ));
                 }
             }
         }
