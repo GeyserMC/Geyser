@@ -30,6 +30,7 @@ import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Getter;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArray;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArrayVersion;
 
@@ -50,7 +51,7 @@ public class BlockStorage {
     public BlockStorage(BitArrayVersion version) {
         this.bitArray = version.createArray(SIZE);
         this.palette = new IntArrayList(16);
-        this.palette.add(0); // Air is at the start of every palette.
+        this.palette.add(BlockTranslator.BEDROCK_AIR_ID); // Air is at the start of every palette and controls what the default block is in second-layer non-air block spaces.
     }
 
     public BlockStorage(BitArray bitArray, IntList palette) {

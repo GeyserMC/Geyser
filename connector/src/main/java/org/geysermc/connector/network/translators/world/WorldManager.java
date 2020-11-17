@@ -43,7 +43,7 @@ import org.geysermc.connector.utils.GameRule;
 public abstract class WorldManager {
 
     /**
-     * Gets the block state at the specified location
+     * Gets the Java block state at the specified location
      *
      * @param session the session
      * @param position the position
@@ -54,7 +54,7 @@ public abstract class WorldManager {
     }
 
     /**
-     * Gets the block state at the specified location
+     * Gets the Java block state at the specified location
      *
      * @param session the session
      * @param vector the position
@@ -65,7 +65,7 @@ public abstract class WorldManager {
     }
 
     /**
-     * Gets the block state at the specified location
+     * Gets the Java block state at the specified location
      *
      * @param session the session
      * @param x the x coordinate to get the block at
@@ -97,7 +97,7 @@ public abstract class WorldManager {
     public abstract boolean hasMoreBlockDataThanChunkCache();
 
     /**
-     * Gets the biome data for the specified chunk.
+     * Gets the Java biome data for the specified chunk.
      *
      * @param session the session of the player
      * @param x the chunk's X coordinate
@@ -116,7 +116,7 @@ public abstract class WorldManager {
     public abstract void setGameRule(GeyserSession session, String name, Object value);
 
     /**
-     * Get a gamerule value as a boolean
+     * Gets a gamerule value as a boolean
      *
      * @param session The session of the user that requested the value
      * @param gameRule The gamerule to fetch the value of

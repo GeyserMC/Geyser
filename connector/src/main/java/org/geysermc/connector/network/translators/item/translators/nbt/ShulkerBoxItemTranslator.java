@@ -50,7 +50,7 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
             boxItemTag.put(new ByteTag("WasPickedUp", (byte) 0)); // ???
 
             ItemEntry boxItemEntry = ItemRegistry.getItemEntry(((StringTag) itemData.get("id")).getValue());
-            String blockName = ItemRegistry.getBedrockIdentifer(boxItemEntry);
+            String blockName = ItemRegistry.getBedrockIdentifier(boxItemEntry);
 
             boxItemTag.put(new StringTag("Name", blockName));
             boxItemTag.put(new ShortTag("Damage", (short) boxItemEntry.getBedrockData()));

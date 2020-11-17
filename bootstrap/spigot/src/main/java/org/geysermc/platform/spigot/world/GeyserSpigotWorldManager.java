@@ -119,7 +119,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         if ((this.isLegacy && !this.isViaVersion)
             || session.getPlayerEntity() == null
             || (bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
         World world = bukkitPlayer.getWorld();
         if (isLegacy) {
@@ -136,7 +136,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             BlockStorage storage = Via.getManager().getConnection(bukkitPlayer.getUniqueId()).get(BlockStorage.class);
             return getLegacyBlock(storage, bukkitPlayer.getWorld(), x, y, z);
         } else {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
     }
 
@@ -190,7 +190,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
                 for (int blockZ = 0; blockZ < 16; blockZ++) {
                     for (int blockX = 0; blockX < 16; blockX++) {
                         Block block = world.getBlockAt((x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ);
-                        int id = BlockTranslator.getJavaIdBlockMap().getOrDefault(block.getBlockData().getAsString(), BlockTranslator.AIR);
+                        int id = BlockTranslator.getJavaIdBlockMap().getOrDefault(block.getBlockData().getAsString(), BlockTranslator.JAVA_AIR_ID);
                         chunk.set(blockX, blockY, blockZ, id);
                     }
                 }
