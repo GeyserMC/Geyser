@@ -52,7 +52,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -254,13 +254,13 @@ public class PlayerEntity extends LivingEntity {
             String username = this.username;
             TextMessage name = (TextMessage) entityMetadata.getValue();
             if (name != null) {
-                username = MessageUtils.getBedrockMessage(name);
+                username = MessageTranslator.convertMessage(name.toString());
             }
             Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
                 String displayName = "";
                 if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
-                    displayName = MessageUtils.toChatColor(team.getColor()) + username;
+                    displayName = MessageTranslator.toChatColor(team.getColor()) + username;
                     displayName = team.getCurrentData().getDisplayName(displayName);
                 }
                 metadata.put(EntityData.NAMETAG, displayName);

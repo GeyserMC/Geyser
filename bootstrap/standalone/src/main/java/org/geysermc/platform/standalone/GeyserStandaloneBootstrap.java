@@ -36,10 +36,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
@@ -103,11 +103,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 case "--config":
                 case "-c":
                     if (i >= args.length - 1) {
-                        System.err.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.confignotspecified"), "-c"));
+                        System.err.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config_not_specified"), "-c"));
                         return;
                     }
                     configFilenameOpt = args[i+1]; i++;
-                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.configspecified"), configFilenameOpt));
+                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config_specified"), configFilenameOpt));
                     break;
                 case "--help":
                 case "-h":
