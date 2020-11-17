@@ -1984,7 +1984,7 @@
         "id" : -138
     },
     {
-        "name" : "minecraft:item.nether_brick",
+        "name" : "minecraft:nether_brick",
         "id" : 112
     },
     {
@@ -2388,7 +2388,7 @@
         "id" : 560
     },
     {
-        "name" : "minecraft:nether_brick",
+        "name" : "minecraft:netherbrick",
         "id" : 513
     },
     {
