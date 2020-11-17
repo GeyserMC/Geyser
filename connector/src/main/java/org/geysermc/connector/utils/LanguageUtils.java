@@ -104,8 +104,13 @@ public class LanguageUtils {
     public static String getPlayerLocaleString(String key, String locale, Object... values) {
         locale = formatLocale(locale);
 
-        Properties properties = LOCALE_MAPPINGS.get(locale);
-        String formatString = properties.getProperty(key);
+        Properties properties;
+        String formatString = null;
+
+        if (LOCALE_MAPPINGS.containsKey(locale)) {
+            properties = LOCALE_MAPPINGS.get(locale);
+            formatString = properties.getProperty(key);
+        }
 
         // Try and get the key from the default locale
         if (formatString == null) {
