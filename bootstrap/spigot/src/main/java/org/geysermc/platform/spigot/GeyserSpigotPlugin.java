@@ -27,6 +27,7 @@ package org.geysermc.platform.spigot;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.geysermc.adapters.GeyserAdapters;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -42,7 +43,8 @@ import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.command.SpigotCommandSender;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
-import org.geysermc.platform.spigot.world.GeyserSpigotWorldManager;
+import org.geysermc.platform.spigot.world.manager.GeyserSpigotAdapterWrapper;
+import org.geysermc.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import us.myles.ViaVersion.api.Via;
 
 import java.io.File;
@@ -142,7 +144,17 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // Set if we need to use a different method for getting a player's locale
         SpigotCommandSender.setUseLegacyLocaleMethod(!isCompatible(Bukkit.getServer().getVersion(), "1.12.0"));
 
-        this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, use3dBiomes, isViaVersion);
+        try {
+            String name = Bukkit.getServer().getClass().getPackage().getName();
+            String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
+            System.out.println(nmsVersion);
+            GeyserAdapters.registerWorldAdapter(PlatformType.SPIGOT, nmsVersion);
+            this.geyserWorldManager = new GeyserSpigotAdapterWrapper(isLegacy, use3dBiomes, isViaVersion);
+            System.out.println("Using NMS adapter!");
+        } catch (Exception e) {
+            this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, use3dBiomes, isViaVersion);
+            System.out.println("Using fallback world manager.");
+        }
         GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);
 
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);

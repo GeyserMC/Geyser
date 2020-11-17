@@ -36,6 +36,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.platform.spigot.world.manager.GeyserSpigotWorldManager;
 
 @AllArgsConstructor
 public class GeyserSpigotBlockPlaceListener implements Listener {

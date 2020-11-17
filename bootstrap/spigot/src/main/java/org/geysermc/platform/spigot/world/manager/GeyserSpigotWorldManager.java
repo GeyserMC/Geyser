@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.spigot.world;
+package org.geysermc.platform.spigot.world.manager;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
@@ -55,6 +55,9 @@ import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.storage.BlockStorage;
 import java.io.InputStream;
 import java.util.List;
 
+/**
+ * The base world manager to use when there is no supported NMS revision
+ */
 public class GeyserSpigotWorldManager extends GeyserWorldManager {
     /**
      * The current client protocol version for ViaVersion usage.
