@@ -68,7 +68,8 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.AIR;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.JAVA_AIR_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_AIR_ID;
 import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
 
 @UtilityClass
