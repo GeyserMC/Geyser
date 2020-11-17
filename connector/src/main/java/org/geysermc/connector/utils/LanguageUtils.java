@@ -104,11 +104,10 @@ public class LanguageUtils {
     public static String getPlayerLocaleString(String key, String locale, Object... values) {
         locale = formatLocale(locale);
 
-        Properties properties;
+        Properties properties = LOCALE_MAPPINGS.get(locale);
         String formatString = null;
 
-        if (LOCALE_MAPPINGS.containsKey(locale)) {
-            properties = LOCALE_MAPPINGS.get(locale);
+        if (properties != null) {
             formatString = properties.getProperty(key);
         }
 
