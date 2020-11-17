@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
@@ -44,7 +43,7 @@ import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.reflections.Reflections;
 
 import java.util.*;
@@ -385,26 +384,17 @@ public abstract class ItemTranslator {
     public static void translateDisplayProperties(GeyserSession session, CompoundTag tag) {
         if (tag != null) {
             CompoundTag display = tag.get("display");
-            if (display != null && !display.isEmpty() && display.contains("Name")) {
+            if (display != null && display.contains("Name")) {
                 String name = ((StringTag) display.get("Name")).getValue();
 
-                // If its not a message convert it
-                if (!MessageUtils.isMessage(name)) {
-                    Component component = LegacyComponentSerializer.legacySection().deserialize(name);
-                    name = GsonComponentSerializer.gson().serialize(component);
-                }
+                // Get the translated name and prefix it with a reset char
+                name = MessageTranslator.convertMessageLenient(name, session.getLocale());
 
-                // Check if its a message to translate
-                if (MessageUtils.isMessage(name)) {
-                    // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getLocale());
+                // Add the new name tag
+                display.put(new StringTag("Name", name));
 
-                    // Add the new name tag
-                    display.put(new StringTag("Name", name));
-
-                    // Add to the new root tag
-                    tag.put(display);
-                }
+                // Add to the new root tag
+                tag.put(display);
             }
         }
     }

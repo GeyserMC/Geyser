@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.common;
+package org.geysermc.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

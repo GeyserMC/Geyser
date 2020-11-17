@@ -25,10 +25,9 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.SignUtils;
 
 @BlockEntity(name = "Sign", regex = "sign")
@@ -36,12 +35,12 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
     /**
      * Maps a color stored in a sign's Color tag to a Bedrock Edition formatting code.
      * <br>
-     * The color names correspond to dye names, because of this we can't use {@link MessageUtils#getColor(String)}.
+     * The color names correspond to dye names, because of this we can't use {@link MessageTranslator#getColor(String)}.
      *
      * @param javaColor The dye color stored in the sign's Color tag.
      * @return A Bedrock Edition formatting code for valid dye colors, otherwise an empty string.
      */
-    private static String getBedrockSignColor(String javaColor) {
+    private String getBedrockSignColor(String javaColor) {
         String base = "\u00a7";
         switch (javaColor) {
             case "white":
@@ -100,7 +99,12 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
         for (int i = 0; i < 4; i++) {
             int currentLine = i + 1;
             String signLine = getOrDefault(tag.getValue().get("Text" + currentLine), "");
-            signLine = MessageUtils.getBedrockMessage(MessageSerializer.fromString(signLine));
+            signLine = MessageTranslator.convertMessageLenient(signLine);
+
+            // Trim any trailing formatting codes
+            if (signLine.length() > 2 && signLine.toCharArray()[signLine.length() - 2] == '\u00a7') {
+                signLine = signLine.substring(0, signLine.length() - 2);
+            }
 
             // Check the character width on the sign to ensure there is no overflow that is usually hidden
             // to Java Edition clients but will appear to Bedrock clients
@@ -124,6 +128,6 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             signText.append("\n");
         }
 
-        builder.put("Text", MessageUtils.getBedrockMessage(MessageSerializer.fromString(signText.toString())));
+        builder.put("Text", signText.toString());
     }
 }

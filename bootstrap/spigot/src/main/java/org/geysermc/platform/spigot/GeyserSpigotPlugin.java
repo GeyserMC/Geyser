@@ -27,10 +27,10 @@ package org.geysermc.platform.spigot;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.network.translators.world.WorldManager;
