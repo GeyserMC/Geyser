@@ -258,9 +258,6 @@ public class GeyserConnector {
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
         }
-
-        logger.warning("This is a beta build of Geyser! You should only be running this if you are running a beta version of Bedrock.");
-        logger.warning("For downloads for Bedrock 1.16 - 1.16.40, please download at https://ci.nukkitx.com/job/GeyserMC/job/Geyser/job/master/");
     }
 
     public void shutdown() {
