@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.util.*;
 
 public class BlockTranslator {
+    public static final NbtList<NbtMap> BLOCKS;
     /**
      * The Java block runtime ID of air
      */
@@ -106,6 +107,7 @@ public class BlockTranslator {
         try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(stream))) {
             NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
             blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
+            BLOCKS = blocksTag;
         } catch (Exception e) {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }

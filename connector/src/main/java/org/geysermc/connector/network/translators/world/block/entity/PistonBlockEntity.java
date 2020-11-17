@@ -69,7 +69,7 @@ public class PistonBlockEntity {
 
     private ScheduledFuture<?> updater;
 
-    private static final NbtMap AIR_TAG = BlockTranslator.BLOCKS.get(BlockTranslator.AIR).getCompound("block");
+    private static final NbtMap AIR_TAG = BlockTranslator.BLOCKS.get(BlockTranslator.BEDROCK_AIR_ID).getCompound("block");
     private static final List<Vector3i> ALL_DIRECTIONS = ImmutableList.of(Vector3i.from(1, 0, 0), Vector3i.from(0, 1, 0), Vector3i.from(0, 0, 1), Vector3i.from(-1, 0, 0), Vector3i.from(0, -1, 0), Vector3i.from(0, 0, -1));
 
     public PistonBlockEntity(GeyserSession session, Vector3i position, PistonValue orientation) {
@@ -152,7 +152,7 @@ public class PistonBlockEntity {
         int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockInfront);
         String javaId = BlockTranslator.getJavaIdBlockMap().inverse().get(blockId);
         if (javaId.contains("piston_head")) {
-            session.getChunkCache().updateBlock(blockInfront.getX(), blockInfront.getY(), blockInfront.getZ(), BlockTranslator.AIR);
+            session.getChunkCache().updateBlock(blockInfront.getX(), blockInfront.getY(), blockInfront.getZ(), BlockTranslator.JAVA_AIR_ID);
         }
     }
 
@@ -188,7 +188,7 @@ public class PistonBlockEntity {
             }
             blocksChecked.add(blockPos);
             int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-            if (blockId == BlockTranslator.AIR) {
+            if (blockId == BlockTranslator.JAVA_AIR_ID) {
                 continue;
             }
             blocksChecked.add(blockPos);
@@ -211,7 +211,7 @@ public class PistonBlockEntity {
                             continue;
                         }
                         int adjacentBlockId = session.getConnector().getWorldManager().getBlockAt(session, adjacentPos);
-                        if (adjacentBlockId != BlockTranslator.AIR && isBlockAttached(blockId, adjacentBlockId) && canMoveBlock(adjacentBlockId, false)) {
+                        if (adjacentBlockId != BlockTranslator.JAVA_AIR_ID && isBlockAttached(blockId, adjacentBlockId) && canMoveBlock(adjacentBlockId, false)) {
                             // If it is another slime/honey block we need to check its adjacent blocks
                             if (isBlockSticky(adjacentBlockId)) {
                                 blocksToCheck.add(adjacentPos);
@@ -238,7 +238,7 @@ public class PistonBlockEntity {
     }
 
     private boolean canMoveBlock(int javaId, boolean isPushing) {
-        if (javaId == BlockTranslator.AIR) {
+        if (javaId == BlockTranslator.JAVA_AIR_ID) {
             return true;
         }
         // Pistons can only be moved if they aren't extended
@@ -335,7 +335,7 @@ public class PistonBlockEntity {
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             updateBlockPacket.setBlockPosition(blockPos);
-            updateBlockPacket.setRuntimeId(BlockTranslator.AIR);
+            updateBlockPacket.setRuntimeId(BlockTranslator.BEDROCK_AIR_ID);
             updateBlockPacket.setDataLayer(0);
             session.sendUpstreamPacket(updateBlockPacket);
         }
