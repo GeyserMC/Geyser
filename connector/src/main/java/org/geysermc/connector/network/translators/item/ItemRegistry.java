@@ -202,7 +202,7 @@ public class ItemRegistry {
         }
 
         // Add the loadstone compass since it doesn't exist on java but we need it for item conversion
-        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:compass", "minecraft:lodestone_compass", itemIndex,
+        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestone_compass", "minecraft:lodestone_compass", itemIndex,
                 lodestoneCompassId, 0, false));
 
         /* Load creative items */
