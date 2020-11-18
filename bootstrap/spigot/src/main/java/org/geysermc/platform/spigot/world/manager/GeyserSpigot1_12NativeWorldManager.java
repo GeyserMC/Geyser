@@ -55,9 +55,4 @@ public class GeyserSpigot1_12NativeWorldManager extends GeyserSpigot1_12WorldMan
         int blockId = adapter.getBlockAt(bukkitPlayer.getWorld().getName(), x, y, z);
         return getLegacyBlock(storage, blockId, x, y, z);
     }
-
-    @Override
-    public int getLegacyBlock(BlockStorage storage, int blockId, int x, int y, int z) {
-        return super.getLegacyBlock(storage, blockId, x, y, z);
-    }
 }
