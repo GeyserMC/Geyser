@@ -52,6 +52,11 @@ public class MessageTranslatorTest {
         // Color code format resetting
         messages.put("{\"text\":\"\",\"extra\":[{\"text\":\"\",\"extra\":[{\"text\":\"[\",\"color\":\"gray\"},{\"text\":\"H\",\"color\":\"yellow\"},{\"text\":\"]\",\"color\":\"gray\"},{\"text\":\" \",\"color\":\"white\"},{\"text\":\"GUEST\",\"color\":\"#b7b7b7\",\"bold\":true}]},{\"text\":\"\",\"extra\":[{\"text\":\" \",\"bold\":true},{\"text\":\"»\",\"color\":\"blue\"},{\"text\":\" \",\"color\":\"gray\"}]},{\"text\":\"\",\"extra\":[{\"text\":\"rtm516\",\"color\":\"white\"},{\"text\":\": \",\"color\":\"gray\"},{\"text\":\"\",\"color\":\"white\"}]},{\"text\":\"\",\"extra\":[{\"text\":\"This is an amazing bedrock test message\",\"color\":\"white\"}]}]}\n",
                 "§r§7[§r§eH§r§7]§r§f §r§7§lGUEST§r§l §r§9»§r§7 §r§frtm516§r§7: §r§fThis is an amazing bedrock test message");
+
+        // Test translation and positional arguments
+        // Disabled due to not having an GeyserConnector instance, hence it fails
+        //messages.put("{\"translate\":\"death.attack.player\",\"with\":[{\"text\":\"rtm516\",\"insertion\":\"rtm516\"},{\"text\":\"*invincible_rt\",\"insertion\":\"*invincible_rt\"}]}",
+        //        "rtm516 was slain by *invincible_rt");
     }
 
     @Test

@@ -138,19 +138,19 @@
         <dependency>
             <groupId>com.github.kyoripowered.adventure</groupId>
             <artifactId>adventure-api</artifactId>
-            <version>0599048</version>
+            <version>7acd956</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.kyoripowered.adventure</groupId>
             <artifactId>adventure-text-serializer-gson</artifactId>
-            <version>0599048</version>
+            <version>7acd956</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.kyoripowered.adventure</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>0599048</version>
+            <version>7acd956</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
