@@ -34,9 +34,10 @@ import lombok.ToString;
 @ToString
 public class ItemEntry {
 
-    public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0, false);
+    public static ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0, false);
 
     private final String javaIdentifier;
+    private final String bedrockIdentifier;
     private final int javaId;
     private final int bedrockId;
     private final int bedrockData;
