@@ -90,6 +90,9 @@ public abstract class CommandManager {
         cmd.execute(sender, args);
     }
 
+    /**
+    * @return a list of all subcommands under {@code /geyser}.
+    */
     public List<String> getCommandNames() {
         return Arrays.asList(connector.getCommandManager().getCommands().keySet().toArray(new String[0]));
     }
