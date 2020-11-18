@@ -92,6 +92,7 @@ public class MessageTranslator {
         // Make color codes reset formatting like Java
         // See https://minecraft.gamepedia.com/Formatting_codes#Usage
         legacy = legacy.replaceAll("\u00a7([0-9a-f])", "\u00a7r\u00a7$1");
+        legacy = legacy.replaceAll("\u00a7r\u00a7r", "\u00a7r");
 
         return legacy;
     }
@@ -115,7 +116,7 @@ public class MessageTranslator {
             String convertedMessage = convertMessage(convertToJavaMessage(message), locale);
 
             // We have to do this since Adventure strips the starting reset character
-            if (message.startsWith(getColor(ChatColor.RESET))) {
+            if (message.startsWith(getColor(ChatColor.RESET)) && !convertedMessage.startsWith(getColor(ChatColor.RESET))) {
                 convertedMessage = getColor(ChatColor.RESET) + convertedMessage;
             }
 
