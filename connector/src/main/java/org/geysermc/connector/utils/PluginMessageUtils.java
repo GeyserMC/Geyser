@@ -25,27 +25,47 @@
 
 package org.geysermc.connector.utils;
 
+import com.google.common.base.Charsets;
 import org.geysermc.connector.GeyserConnector;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
 
 public class PluginMessageUtils {
-    private static final byte[] BRAND_DATA;
+    private static final byte[] GEYSER_BRAND_DATA;
+    private static final byte[] FLOODGATE_REGISTER_DATA;
 
     static {
-        byte[] data = GeyserConnector.NAME.getBytes(StandardCharsets.UTF_8);
-        byte[] varInt = writeVarInt(data.length);
-        BRAND_DATA = new byte[varInt.length + data.length];
-        System.arraycopy(varInt, 0, BRAND_DATA, 0, varInt.length);
-        System.arraycopy(data, 0, BRAND_DATA, varInt.length, data.length);
+        byte[] data = GeyserConnector.NAME.getBytes(Charsets.UTF_8);
+        GEYSER_BRAND_DATA =
+                ByteBuffer.allocate(data.length + getVarIntLength(data.length))
+                        .put(writeVarInt(data.length))
+                        .put(data)
+                        .array();
+
+        data = "floodgate:skin\0floodgate:form".getBytes(Charsets.UTF_8);
+        FLOODGATE_REGISTER_DATA =
+                ByteBuffer.allocate(data.length + getVarIntLength(data.length))
+                        .put(writeVarInt(data.length))
+                        .put(data)
+                        .array();
     }
 
     /**
      * Get the prebuilt brand as a byte array
+     *
      * @return the brand information of the Geyser client
      */
     public static byte[] getGeyserBrandData() {
-        return BRAND_DATA;
+        return GEYSER_BRAND_DATA;
+    }
+
+    /**
+     * Get the prebuilt register data as a byte array
+     *
+     * @return the register data of the Floodgate channels
+     */
+    public static byte[] getFloodgateRegisterData() {
+        return FLOODGATE_REGISTER_DATA;
     }
 
     private static byte[] writeVarInt(int value) {

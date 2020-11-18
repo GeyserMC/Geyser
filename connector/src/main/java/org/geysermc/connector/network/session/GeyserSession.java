@@ -402,11 +402,11 @@ public class GeyserSession implements CommandSender {
 
                             try {
                                 FloodgateCipher cipher = connector.getCipher();
-                                encryptedData = cipher.encryptFromString(new BedrockData(
+                                encryptedData = cipher.encryptFromString(BedrockData.of(
                                         clientData.getGameVersion(),
                                         authData.getName(),
                                         authData.getXboxUUID(),
-                                        clientData.getDeviceOS().ordinal(),
+                                        clientData.getDeviceOs().ordinal(),
                                         clientData.getLanguageCode(),
                                         clientData.getUiProfile().ordinal(),
                                         clientData.getCurrentInputMode().ordinal(),

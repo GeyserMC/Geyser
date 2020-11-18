@@ -80,7 +80,7 @@ public final class SimpleForm extends Form {
 
     public static final class Builder extends Form.Builder<Builder, SimpleForm> {
         private final List<ButtonComponent> buttons = new ArrayList<>();
-        private String content;
+        private String content = "";
 
         public Builder content(String content) {
             this.content = translate(content);

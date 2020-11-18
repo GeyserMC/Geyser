@@ -33,14 +33,13 @@ import org.geysermc.connector.utils.StatisticsUtils;
 
 @Translator(packet = ServerStatisticsPacket.class)
 public class JavaStatisticsTranslator extends PacketTranslator<ServerStatisticsPacket> {
-
     @Override
     public void translate(ServerStatisticsPacket packet, GeyserSession session) {
         session.updateStatistics(packet.getStatistics());
 
         if (session.isWaitingForStatistics()) {
             session.setWaitingForStatistics(false);
-            session.sendForm(StatisticsUtils.buildMenuForm(session), StatisticsUtils.STATISTICS_MENU_FORM_ID);
+            StatisticsUtils.buildAndSendStatisticsMenu(session);
         }
     }
 }

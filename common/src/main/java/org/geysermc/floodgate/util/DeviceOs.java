@@ -25,7 +25,6 @@
 
 package org.geysermc.floodgate.util;
 
-import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +33,6 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum DeviceOs {
-    @JsonEnumDefaultValue
     UNKNOWN("Unknown"),
     ANDROID("Android"),
     IOS("iOS"),
@@ -57,6 +55,7 @@ public enum DeviceOs {
 
     /**
      * Get the DeviceOs instance from the identifier.
+     *
      * @param id the DeviceOs identifier
      * @return The DeviceOs or {@link #UNKNOWN} if the DeviceOs wasn't found
      */

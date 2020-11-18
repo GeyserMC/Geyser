@@ -77,7 +77,7 @@ public class SkinProvider {
     public static String EARS_GEOMETRY;
     public static String EARS_GEOMETRY_SLIM;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {
         /* Load in the normal ears geometry */
@@ -525,7 +525,6 @@ public class SkinProvider {
                 outputStream.write((rgba >> 24) & 0xFF);
             }
         }
-
         return outputStream.toByteArray();
     }
 

@@ -73,7 +73,7 @@ public class DumpInfo {
 
         this.userPlatforms = new Object2IntOpenHashMap();
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
-            DeviceOs device = session.getClientData().getDeviceOS();
+            DeviceOs device = session.getClientData().getDeviceOs();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
 

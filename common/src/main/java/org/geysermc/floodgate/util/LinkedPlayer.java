@@ -26,11 +26,14 @@
 
 package org.geysermc.floodgate.util;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
 
 @Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class LinkedPlayer {
     /**
      * The Java username of the linked player
@@ -45,19 +48,17 @@ public final class LinkedPlayer {
      */
     private final UUID bedrockId;
     /**
-     * If the LinkedPlayer is send from a different platform.
-     * For example the LinkedPlayer is from Bungee but the data has been sent to the Bukkit server.
+     * If the LinkedPlayer is send from a different platform. For example the LinkedPlayer is from
+     * Bungee but the data has been sent to the Bukkit server.
      */
     private boolean fromDifferentPlatform = false;
 
-    public LinkedPlayer(String javaUsername, UUID javaUniqueId, UUID bedrockId) {
-        this.javaUsername = javaUsername;
-        this.javaUniqueId = javaUniqueId;
-        this.bedrockId = bedrockId;
+    public static LinkedPlayer of(String javaUsername, UUID javaUniqueId, UUID bedrockId) {
+        return new LinkedPlayer(javaUsername, javaUniqueId, bedrockId);
     }
 
     static LinkedPlayer fromString(String data) {
-        if (data.length() != 3) {
+        if (data.length() == 4) {
             return null;
         }
 

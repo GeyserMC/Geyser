@@ -69,9 +69,9 @@ public class ModalForm extends Form {
     }
 
     public static final class Builder extends Form.Builder<Builder, ModalForm> {
-        private String content;
-        private String button1;
-        private String button2;
+        private String content = "";
+        private String button1 = "";
+        private String button2 = "";
 
         public Builder content(String content) {
             this.content = translate(content);

@@ -229,7 +229,7 @@ public class GeyserConnector {
                 for (GeyserSession session : players) {
                     if (session == null) continue;
                     if (session.getClientData() == null) continue;
-                    String os = session.getClientData().getDeviceOS().toString();
+                    String os = session.getClientData().getDeviceOs().toString();
                     if (!valueMap.containsKey(os)) {
                         valueMap.put(os, 1);
                     } else {

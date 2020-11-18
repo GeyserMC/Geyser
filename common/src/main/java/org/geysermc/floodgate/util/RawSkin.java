@@ -31,31 +31,36 @@ import lombok.ToString;
 import java.nio.ByteBuffer;
 import java.util.Base64;
 
+import static java.lang.String.format;
+
 @AllArgsConstructor
 @ToString
 public final class RawSkin {
     public int width;
     public int height;
     public byte[] data;
+    public boolean alex;
 
-    private RawSkin() {}
+    private RawSkin() {
+    }
 
     public static RawSkin decode(byte[] data) throws InvalidFormatException {
         if (data == null) {
             return null;
         }
 
-        int maxEncodedLength = 4 * (((64 * 64 * 4 + 8) + 2) / 3);
+        int maxEncodedLength = 4 * (((64 * 64 * 4 + 9) + 2) / 3);
         // if the RawSkin is longer then the max Java Edition skin length
         if (data.length > maxEncodedLength) {
-            throw new InvalidFormatException(
-                    "Encoded data cannot be longer then " + maxEncodedLength + " bytes!"
-            );
+            throw new InvalidFormatException(format(
+                    "Encoded data cannot be longer then %s bytes! Got %s",
+                    maxEncodedLength, data.length
+            ));
         }
 
-        // if the encoded data doesn't even contain the width and height (8 bytes, 2 ints)
-        if (data.length < 4 * ((8 + 2) / 3)) {
-            throw new InvalidFormatException("Encoded data must be at least 12 bytes long!");
+        // if the encoded data doesn't even contain the width, height (8 bytes, 2 ints) and isAlex
+        if (data.length < 4 * ((9 + 2) / 3)) {
+            throw new InvalidFormatException("Encoded data must be at least 16 bytes long!");
         }
 
         data = Base64.getDecoder().decode(data);
@@ -65,23 +70,25 @@ public final class RawSkin {
         RawSkin skin = new RawSkin();
         skin.width = buffer.getInt();
         skin.height = buffer.getInt();
-        if (buffer.remaining() != (skin.width * skin.height * 4)) {
-            throw new InvalidFormatException(String.format(
+        if (buffer.remaining() - 1 != (skin.width * skin.height * 4)) {
+            throw new InvalidFormatException(format(
                     "Expected skin length to be %s, got %s",
                     (skin.width * skin.height * 4), buffer.remaining()
             ));
         }
-        skin.data = new byte[buffer.remaining()];
+        skin.data = new byte[buffer.remaining() - 1];
         buffer.get(skin.data);
+        skin.alex = buffer.get() == 1;
         return skin;
     }
 
     public byte[] encode() {
-        // 2 x int = 8 bytes
-        ByteBuffer buffer = ByteBuffer.allocate(8 + data.length);
+        // 2 x int + 1 = 9 bytes
+        ByteBuffer buffer = ByteBuffer.allocate(9 + data.length);
         buffer.putInt(width);
         buffer.putInt(height);
         buffer.put(data);
+        buffer.put((byte) (alex ? 1 : 0));
         return Base64.getEncoder().encode(buffer.array());
     }
 }

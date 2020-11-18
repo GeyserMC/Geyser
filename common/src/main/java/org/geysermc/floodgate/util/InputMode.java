@@ -26,10 +26,7 @@
 
 package org.geysermc.floodgate.util;
 
-import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
-
 public enum InputMode {
-    @JsonEnumDefaultValue
     UNKNOWN,
     KEYBOARD_MOUSE,
     TOUCH, // I guess Touch?
@@ -40,6 +37,7 @@ public enum InputMode {
 
     /**
      * Get the InputMode instance from the identifier.
+     *
      * @param id the InputMode identifier
      * @return The InputMode or {@link #UNKNOWN} if the DeviceOs wasn't found
      */

@@ -26,17 +26,14 @@
 
 package org.geysermc.floodgate.util;
 
-import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
-
 public enum UiProfile {
-    @JsonEnumDefaultValue
-    CLASSIC,
-    POCKET;
+    CLASSIC, POCKET;
 
     private static final UiProfile[] VALUES = values();
 
     /**
      * Get the UiProfile instance from the identifier.
+     *
      * @param id the UiProfile identifier
      * @return The UiProfile or {@link #CLASSIC} if the UiProfile wasn't found
      */
