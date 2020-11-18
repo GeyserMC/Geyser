@@ -100,10 +100,10 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
         World world = bukkitPlayer.getWorld();
-        return BlockTranslator.getJavaIdBlockMap().getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), 0);
+        return BlockTranslator.getJavaIdBlockMap().getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), BlockTranslator.JAVA_AIR_ID);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             for (int blockZ = 0; blockZ < 16; blockZ++) {
                 for (int blockX = 0; blockX < 16; blockX++) {
                     Block block = world.getBlockAt((x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ);
-                    int id = BlockTranslator.getJavaIdBlockMap().getOrDefault(block.getBlockData().getAsString(), BlockTranslator.AIR);
+                    int id = BlockTranslator.getJavaIdBlockMap().getOrDefault(block.getBlockData().getAsString(), BlockTranslator.JAVA_AIR_ID);
                     chunk.set(blockX, blockY, blockZ, id);
                 }
             }

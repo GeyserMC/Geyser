@@ -68,7 +68,8 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.AIR;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.JAVA_AIR_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_AIR_ID;
 import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
 
 @UtilityClass
@@ -246,7 +247,7 @@ public class ChunkUtils {
 
                 // V1 palette
                 IntList layer1Palette = new IntArrayList(2);
-                layer1Palette.add(0); // Air
+                layer1Palette.add(BEDROCK_AIR_ID); // Air - see BlockStorage's constructor for more information
                 layer1Palette.add(BEDROCK_WATER_ID);
 
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
@@ -318,18 +319,32 @@ public class ChunkUtils {
         }
     }
 
+    /**
+     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
+     * adds that block to the cache.
+     * @param session the Bedrock session to send/register the block to
+     * @param blockState the Java block state of the block
+     * @param position the position of the block
+     */
     public static void updateBlock(GeyserSession session, int blockState, Position position) {
         Vector3i pos = Vector3i.from(position.getX(), position.getY(), position.getZ());
         updateBlock(session, blockState, pos);
     }
 
+    /**
+     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
+     * adds that block to the cache.
+     * @param session the Bedrock session to send/register the block to
+     * @param blockState the Java block state of the block
+     * @param position the position of the block
+     */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
         long frameEntityId = ItemFrameEntity.getItemFrameEntityId(session, position);
         if (frameEntityId != -1) {
             // TODO: Very occasionally the item frame doesn't sync up when destroyed
             Entity entity = session.getEntityCache().getEntityByJavaId(frameEntityId);
-            if (blockState == AIR && entity != null) { // Item frame is still present and no block overrides that; refresh it
+            if (blockState == JAVA_AIR_ID && entity != null) { // Item frame is still present and no block overrides that; refresh it
                 ((ItemFrameEntity) entity).updateBlock(session);
                 return;
             }
@@ -358,7 +373,7 @@ public class ChunkUtils {
         if (BlockTranslator.isWaterlogged(blockState)) {
             waterPacket.setRuntimeId(BEDROCK_WATER_ID);
         } else {
-            waterPacket.setRuntimeId(0);
+            waterPacket.setRuntimeId(BEDROCK_AIR_ID);
         }
         session.sendUpstreamPacket(waterPacket);
 
