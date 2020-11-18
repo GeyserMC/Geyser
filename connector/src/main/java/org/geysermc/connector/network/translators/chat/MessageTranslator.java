@@ -84,7 +84,16 @@ public class MessageTranslator {
         Locale localeCode = Locale.forLanguageTag(locale.replace('_', '-'));
         component = RENDERER.render(component, localeCode);
 
-        return LegacyComponentSerializer.legacySection().serialize(component);
+        String legacy = LegacyComponentSerializer.legacySection().serialize(component);
+
+        // Strip strikethrough and underline as they are not supported on bedrock
+        legacy = legacy.replaceAll("\u00a7[mn]", "");
+
+        // Make color codes reset formatting like Java
+        // See https://minecraft.gamepedia.com/Formatting_codes#Usage
+        legacy = legacy.replaceAll("\u00a7([0-9a-f])", "\u00a7r\u00a7$1");
+
+        return legacy;
     }
 
     public static String convertMessage(String message) {
