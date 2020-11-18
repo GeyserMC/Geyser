@@ -55,7 +55,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         // are swapping servers
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (session.isSpawned()) {
-            String fakeDim = entity.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
+            String fakeDim = session.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
             DimensionUtils.switchDimension(session, fakeDim);
             DimensionUtils.switchDimension(session, newDimension);
 
@@ -101,7 +101,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
             session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getFloodgateRegisterData()));
         }
 
-        if (!newDimension.equals(entity.getDimension())) {
+        if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
         }
     }

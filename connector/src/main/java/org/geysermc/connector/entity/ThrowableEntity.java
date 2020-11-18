@@ -31,14 +31,23 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Used as a class for any object-like entity that moves as a projectile
+ */
 public class ThrowableEntity extends Entity {
 
     private Vector3f lastPosition;
-    private ScheduledFuture<?> positionUpdater;
+    /**
+     * Updates the position for the Bedrock client.
+     *
+     * Java clients assume the next positions of moving items. Bedrock needs to be explicitly told positions
+     */
+    protected ScheduledFuture<?> positionUpdater;
 
     public ThrowableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -49,18 +58,84 @@ public class ThrowableEntity extends Entity {
     public void spawnEntity(GeyserSession session) {
         super.spawnEntity(session);
         positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-            super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
-
-            if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
-                float gravity = 0.03f; // Snowball, Egg, and Ender Pearl
-                if (entityType == EntityType.THROWN_POTION || entityType == EntityType.LINGERING_POTION) {
-                    gravity = 0.05f;
-                } else if (entityType == EntityType.THROWN_EXP_BOTTLE) {
-                    gravity = 0.07f;
-                }
-                motion = motion.down(gravity);
+            if (session.isClosed()) {
+                positionUpdater.cancel(true);
+                return;
             }
+            updatePosition(session);
         }, 0, 50, TimeUnit.MILLISECONDS);
+    }
+
+    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+    }
+
+    protected void updatePosition(GeyserSession session) {
+        super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
+        float drag = getDrag(session);
+        float gravity = getGravity();
+        motion = motion.mul(drag).down(gravity);
+    }
+
+    /**
+     * Get the gravity of this entity type. Used for applying gravity while the entity is in motion.
+     *
+     * @return the amount of gravity to apply to this entity while in motion.
+     */
+    protected float getGravity() {
+        if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
+            switch (entityType) {
+                case THROWN_POTION:
+                case LINGERING_POTION:
+                    return 0.05f;
+                case THROWN_EXP_BOTTLE:
+                    return 0.07f;
+                case FIREBALL:
+                    return 0;
+                case SNOWBALL:
+                case THROWN_EGG:
+                case THROWN_ENDERPEARL:
+                    return 0.03f;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * @param session the session of the Bedrock client.
+     * @return the drag that should be multiplied to the entity's motion
+     */
+    protected float getDrag(GeyserSession session) {
+        if (isInWater(session)) {
+            return 0.8f;
+        } else {
+            switch (entityType) {
+                case THROWN_POTION:
+                case LINGERING_POTION:
+                case THROWN_EXP_BOTTLE:
+                case SNOWBALL:
+                case THROWN_EGG:
+                case THROWN_ENDERPEARL:
+                    return 0.99f;
+                case FIREBALL:
+                case SMALL_FIREBALL:
+                case DRAGON_FIREBALL:
+                    return 0.95f;
+            }
+        }
+        return 1;
+    }
+
+    /**
+     * @param session the session of the Bedrock client.
+     * @return true if this entity is currently in water.
+     */
+    protected boolean isInWater(GeyserSession session) {
+        if (session.getConnector().getConfig().isCacheChunks()) {
+            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+            return block == BlockTranslator.BEDROCK_WATER_ID;
+        }
+        return false;
     }
 
     @Override

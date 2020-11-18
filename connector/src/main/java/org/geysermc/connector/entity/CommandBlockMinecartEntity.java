@@ -26,13 +26,12 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.message.Message;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
 
@@ -51,7 +50,7 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
             metadata.put(EntityData.COMMAND_BLOCK_COMMAND, entityMetadata.getValue());
         }
         if (entityMetadata.getId() == 14) {
-            metadata.put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageUtils.getBedrockMessage((Message) entityMetadata.getValue()));
+            metadata.put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage(entityMetadata.getValue().toString()));
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
