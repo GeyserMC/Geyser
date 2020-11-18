@@ -32,8 +32,8 @@ public class ToolItemEntry extends ItemEntry {
     private final String toolType;
     private final String toolTier;
 
-    public ToolItemEntry(String javaIdentifier, int javaId, int bedrockId, int bedrockData, String toolType, String toolTier, boolean isBlock) {
-        super(javaIdentifier, javaId, bedrockId, bedrockData, isBlock);
+    public ToolItemEntry(String javaIdentifier, String bedrockIdentifier, int javaId, int bedrockId, int bedrockData, String toolType, String toolTier, boolean isBlock) {
+        super(javaIdentifier, bedrockIdentifier, javaId, bedrockId, bedrockData, isBlock);
         this.toolType = toolType;
         this.toolTier = toolTier;
     }
