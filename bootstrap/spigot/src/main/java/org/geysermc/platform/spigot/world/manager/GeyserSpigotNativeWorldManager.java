@@ -46,7 +46,7 @@ public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
         World world = bukkitPlayer.getWorld();
         return adapter.getBlockAt(world.getName(), x, y, z);

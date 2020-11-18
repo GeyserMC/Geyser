@@ -58,7 +58,7 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
         // Get block entity storage
         BlockStorage storage = Via.getManager().getConnection(bukkitPlayer.getUniqueId()).get(BlockStorage.class);
@@ -78,7 +78,7 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
      * @return the block state updated to the latest Minecraft version
      */
     @SuppressWarnings("deprecation")
-    public static int getLegacyBlock(BlockStorage storage, int blockId, int x, int y, int z) {
+    public int getLegacyBlock(BlockStorage storage, int blockId, int x, int y, int z) {
         // Convert block state from old version (1.12.2) -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
         blockId = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData().getNewBlockId(blockId);
         List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,

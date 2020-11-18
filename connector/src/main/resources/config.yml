@@ -151,4 +151,8 @@ enable-proxy-connections: false
 # 1400 is the default.
 # mtu: 1400
 
+# Whether to use direct server methods to retrieve information such as block states.
+# Turning this off for Spigot will stop NMS from being used but will have a performance impact.
+use-adapters: true
+
 config-version: 4

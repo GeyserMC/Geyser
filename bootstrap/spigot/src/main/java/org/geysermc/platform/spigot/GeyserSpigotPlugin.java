@@ -150,23 +150,32 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // Set if we need to use a different method for getting a player's locale
         SpigotCommandSender.setUseLegacyLocaleMethod(!isCompatible(Bukkit.getServer().getVersion(), "1.12.0"));
 
-        try {
-            String name = Bukkit.getServer().getClass().getPackage().getName();
-            String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
-            System.out.println(nmsVersion);
-            GeyserAdapters.registerWorldAdapter(PlatformType.SPIGOT, nmsVersion);
-            if (isViaVersion && isViaVersionNeeded()) {
-                if (isLegacy) {
-                    this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager();
+        if (connector.getConfig().isUseAdapters()) {
+            try {
+                String name = Bukkit.getServer().getClass().getPackage().getName();
+                String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
+                GeyserAdapters.registerWorldAdapter(PlatformType.SPIGOT, nmsVersion);
+                if (isViaVersion && isViaVersionNeeded()) {
+                    if (isLegacy) {
+                        // Pre-1.13
+                        this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager();
+                    } else {
+                        // Post-1.13
+                        this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
+                    }
                 } else {
-                    this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
+                    // No ViaVersion
+                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(use3dBiomes);
                 }
-            } else {
-                this.geyserWorldManager = new GeyserSpigotNativeWorldManager(use3dBiomes);
+                geyserLogger.debug("Using NMS adapter: " + this.geyserWorldManager.getClass() + ", " + nmsVersion);
+            } catch (Exception e) {
+                if (geyserConfig.isDebugMode()) {
+                    geyserLogger.debug("Error while attempting to find NMS adapter. Most likely, this can be safely ignored. :)");
+                    e.printStackTrace();
+                }
             }
-            System.out.println("Using NMS adapter!");
-        } catch (Exception ignored) {
-            ignored.printStackTrace();
+        } else {
+            geyserLogger.debug("Not using NMS adapter as it is disabled in the config.");
         }
         if (this.geyserWorldManager == null) {
             // No NMS adapter
@@ -180,7 +189,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 // Post-1.13
                 this.geyserWorldManager = new GeyserSpigotWorldManager(use3dBiomes);
             }
-            System.out.println("Using fallback world manager.");
+            geyserLogger.debug("Using default world manager: " + this.geyserWorldManager.getClass());
         }
         GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, this.geyserWorldManager);
 

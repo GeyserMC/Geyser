@@ -48,11 +48,16 @@ public class GeyserSpigot1_12NativeWorldManager extends GeyserSpigot1_12WorldMan
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
         // Get block entity storage
         BlockStorage storage = Via.getManager().getConnection(bukkitPlayer.getUniqueId()).get(BlockStorage.class);
         int blockId = adapter.getBlockAt(bukkitPlayer.getWorld().getName(), x, y, z);
         return getLegacyBlock(storage, blockId, x, y, z);
+    }
+
+    @Override
+    public int getLegacyBlock(BlockStorage storage, int blockId, int x, int y, int z) {
+        return super.getLegacyBlock(storage, blockId, x, y, z);
     }
 }
