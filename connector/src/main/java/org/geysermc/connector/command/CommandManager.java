@@ -31,9 +31,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.*;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class CommandManager {
 
@@ -90,6 +88,13 @@ public abstract class CommandManager {
         }
 
         cmd.execute(sender, args);
+    }
+
+    /**
+     * @return a list of all subcommands under {@code /geyser}.
+     */
+    public List<String> getCommandNames() {
+        return Arrays.asList(connector.getCommandManager().getCommands().keySet().toArray(new String[0]));
     }
 
     /**
