@@ -28,7 +28,7 @@ package org.geysermc.platform.spigot;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.adapters.GeyserAdapters;
+import org.geysermc.adapters.spigot.SpigotAdapters;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -61,7 +61,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
-
     private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotLogger geyserLogger;
@@ -154,7 +153,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             try {
                 String name = Bukkit.getServer().getClass().getPackage().getName();
                 String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
-                GeyserAdapters.registerWorldAdapter(PlatformType.SPIGOT, nmsVersion);
+                SpigotAdapters.registerWorldAdapter(nmsVersion);
                 if (isViaVersion && isViaVersionNeeded()) {
                     if (isLegacy) {
                         // Pre-1.13
@@ -200,8 +199,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        if (connector != null)
+        if (connector != null) {
             connector.shutdown();
+        }
     }
 
     @Override
@@ -266,7 +266,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             String t = stringArray[index].replaceAll("\\D", "");
             try {
                 temp[index] = Integer.parseInt(t);
-            } catch(NumberFormatException ex) {
+            } catch (NumberFormatException ex) {
                 temp[index] = 0;
             }
         }

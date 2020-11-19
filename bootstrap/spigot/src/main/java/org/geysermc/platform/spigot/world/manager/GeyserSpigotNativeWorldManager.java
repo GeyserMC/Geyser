@@ -26,29 +26,26 @@
 package org.geysermc.platform.spigot.world.manager;
 
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.geysermc.adapters.GeyserAdapters;
-import org.geysermc.adapters.WorldAdapter;
+import org.geysermc.adapters.spigot.SpigotAdapters;
+import org.geysermc.adapters.spigot.SpigotWorldAdapter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
-
-    protected final WorldAdapter adapter;
+    protected final SpigotWorldAdapter adapter;
 
     public GeyserSpigotNativeWorldManager(boolean use3dBiomes) {
         super(use3dBiomes);
-        adapter = GeyserAdapters.getWorldAdapter();
+        adapter = SpigotAdapters.getWorldAdapter();
     }
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+        Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
+        if (player == null) {
             return BlockTranslator.JAVA_AIR_ID;
         }
-        World world = bukkitPlayer.getWorld();
-        return adapter.getBlockAt(world.getName(), x, y, z);
+        return adapter.getBlockAt(player.getWorld(), x, y, z);
     }
 }

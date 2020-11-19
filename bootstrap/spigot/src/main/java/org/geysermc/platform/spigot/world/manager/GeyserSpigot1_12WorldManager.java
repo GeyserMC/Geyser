@@ -56,13 +56,13 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+        Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
+        if (player == null) {
             return BlockTranslator.JAVA_AIR_ID;
         }
         // Get block entity storage
-        BlockStorage storage = Via.getManager().getConnection(bukkitPlayer.getUniqueId()).get(BlockStorage.class);
-        Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
+        BlockStorage storage = Via.getManager().getConnection(player.getUniqueId()).get(BlockStorage.class);
+        Block block = player.getWorld().getBlockAt(x, y, z);
         // Black magic that gets the old block state ID
         int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
         return getLegacyBlock(storage, blockId, x, y, z);
@@ -102,13 +102,13 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     @SuppressWarnings("deprecation")
     @Override
     public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+        Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
+        if (player == null) {
             return;
         }
-        World world = bukkitPlayer.getWorld();
+        World world = player.getWorld();
         // Get block entity storage
-        BlockStorage storage = Via.getManager().getConnection(bukkitPlayer.getUniqueId()).get(BlockStorage.class);
+        BlockStorage storage = Via.getManager().getConnection(player.getUniqueId()).get(BlockStorage.class);
         for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
             for (int blockZ = 0; blockZ < 16; blockZ++) {
                 for (int blockX = 0; blockX < 16; blockX++) {
