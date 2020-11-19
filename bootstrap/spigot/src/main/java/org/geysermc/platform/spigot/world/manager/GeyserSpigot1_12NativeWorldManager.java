@@ -27,8 +27,8 @@ package org.geysermc.platform.spigot.world.manager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.geysermc.adapters.GeyserAdapters;
-import org.geysermc.adapters.WorldAdapter;
+import org.geysermc.adapters.spigot.SpigotAdapters;
+import org.geysermc.adapters.spigot.SpigotWorldAdapter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import us.myles.ViaVersion.api.Via;
@@ -38,21 +38,22 @@ import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.storage.BlockStorage;
  * Used with ViaVersion and pre-1.13.
  */
 public class GeyserSpigot1_12NativeWorldManager extends GeyserSpigot1_12WorldManager {
-    private final WorldAdapter adapter;
+    private final SpigotWorldAdapter adapter;
+
     public GeyserSpigot1_12NativeWorldManager() {
-        this.adapter = GeyserAdapters.getWorldAdapter();
+        this.adapter = SpigotAdapters.getWorldAdapter();
         // Unlike post-1.13, we can't build up a cache of block states, because block entities need some special conversion
     }
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+        Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
+        if (player == null) {
             return BlockTranslator.JAVA_AIR_ID;
         }
         // Get block entity storage
-        BlockStorage storage = Via.getManager().getConnection(bukkitPlayer.getUniqueId()).get(BlockStorage.class);
-        int blockId = adapter.getBlockAt(bukkitPlayer.getWorld().getName(), x, y, z);
+        BlockStorage storage = Via.getManager().getConnection(player.getUniqueId()).get(BlockStorage.class);
+        int blockId = adapter.getBlockAt(player.getWorld(), x, y, z);
         return getLegacyBlock(storage, blockId, x, y, z);
     }
 }
