@@ -50,11 +50,19 @@ import java.util.List;
  * You need ViaVersion to connect to an older server with the Geyser-Spigot plugin.
  */
 public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
+    /**
+     * The list of all protocols from the client's version to the server's.
+     */
+    private final List<Pair<Integer, Protocol>> protocolList;
+
     public GeyserSpigot1_12WorldManager() {
         super(false);
+        this.protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
+                ProtocolVersion.v1_13.getVersion());
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
         if (player == null) {
@@ -81,8 +89,6 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     public int getLegacyBlock(BlockStorage storage, int blockId, int x, int y, int z) {
         // Convert block state from old version (1.12.2) -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
         blockId = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData().getNewBlockId(blockId);
-        List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
-                ProtocolVersion.v1_13.getVersion());
         // Translate block entity differences - some information was stored in block tags and not block states
         if (storage.isWelcome(blockId)) { // No getOrDefault method
             BlockStorage.ReplacementData data = storage.get(new Position(x, (short) y, z));
