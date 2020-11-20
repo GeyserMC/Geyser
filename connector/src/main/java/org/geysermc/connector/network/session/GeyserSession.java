@@ -34,7 +34,6 @@ import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
@@ -75,6 +74,7 @@ import org.geysermc.connector.event.events.packet.DownstreamPacketReceiveEvent;
 import org.geysermc.connector.event.events.packet.DownstreamPacketSendEvent;
 import org.geysermc.connector.event.events.packet.UpstreamPacketSendEvent;
 import org.geysermc.connector.inventory.PlayerInventory;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
@@ -84,7 +84,6 @@ import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -157,6 +156,13 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private boolean jumping;
+
+    /**
+     * The dimension of the player.
+     * As all entities are in the same world, this can be safely applied to all other entities.
+     */
+    @Setter
+    private String dimension = DimensionUtils.OVERWORLD;
 
     @Setter
     private int breakingBlock;
@@ -232,6 +238,12 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private ScheduledFuture<?> bucketScheduledFuture;
+
+    /**
+     * Sends a movement packet every three seconds if the player hasn't moved. Prevents timeouts when AFK in certain instances.
+     */
+    @Setter
+    private ScheduledFuture<?> movementSendIfIdle;
 
     private boolean reducedDebugInfo = false;
 
@@ -488,7 +500,7 @@ public class GeyserSession implements CommandSender {
                         // as it has to be extracted from a JAR
                         if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
                             // This should probably be left hardcoded as it will only show for en_us clients
-                            sendMessage("Downloading your locale (en_us) this may take some time");
+                            sendMessage("Loading your locale (en_us); if this isn't already downloaded, this may take some time");
                         }
 
                         // Download and load the language for the player
@@ -511,7 +523,7 @@ public class GeyserSession implements CommandSender {
                             event.getCause().printStackTrace();
                         }
 
-                        upstream.disconnect(MessageUtils.getBedrockMessage(MessageSerializer.fromString(event.getReason())));
+                        upstream.disconnect(MessageTranslator.convertMessageLenient(event.getReason()));
                     }
 
                     @Override
@@ -624,6 +636,11 @@ public class GeyserSession implements CommandSender {
         return false;
     }
 
+     @Override
+     public String getLocale() {
+        return clientData.getLanguageCode();
+     }
+
     public void sendForm(FormWindow window, int id) {
         windowCache.showWindow(window, id);
     }
@@ -655,12 +672,12 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1);
-        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(playerEntity.getDimension()));
+        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(dimension));
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
-        startGamePacket.setAchievementsDisabled(true);
+        startGamePacket.setAchievementsDisabled(!connector.getConfig().isXboxAchievementsEnabled());
         startGamePacket.setCurrentTick(-1);
         startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
@@ -671,7 +688,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", true));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
-        startGamePacket.setCommandsEnabled(true);
+        startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());
         startGamePacket.setTexturePacksRequired(false);
         startGamePacket.setBonusChestEnabled(false);
         startGamePacket.setStartingWithMap(false);
@@ -693,7 +710,6 @@ public class GeyserSession implements CommandSender {
         // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setBlockPalette(BlockTranslator.BLOCKS);
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);

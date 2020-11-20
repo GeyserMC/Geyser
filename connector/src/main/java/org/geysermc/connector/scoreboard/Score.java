@@ -27,60 +27,107 @@ package org.geysermc.connector.scoreboard;
 
 import com.nukkitx.protocol.bedrock.data.ScoreInfo;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Getter
 @Accessors(chain = true)
-public class Score {
-    private final Objective objective;
-    private ScoreInfo cachedInfo;
+public final class Score {
     private final long id;
-
-    @Setter
-    private UpdateType updateType = UpdateType.ADD;
     private final String name;
-    private Team team;
-    private int score;
-    @Setter
-    private int oldScore = Integer.MIN_VALUE;
+    private ScoreInfo cachedInfo;
 
-    public Score(Objective objective, String name) {
-        this.id = objective.getScoreboard().getNextId().getAndIncrement();
-        this.objective = objective;
+    private ScoreData currentData;
+    private ScoreData cachedData;
+
+    public Score(long id, String name) {
+        this.id = id;
         this.name = name;
+        this.currentData = new ScoreData();
     }
 
     public String getDisplayName() {
+        Team team = cachedData.team;
         if (team != null) {
-            return team.getPrefix() + name + team.getSuffix();
+            return team.getDisplayName(name);
         }
         return name;
     }
 
     public Score setScore(int score) {
-        this.score = score;
-        updateType = UpdateType.UPDATE;
+        currentData.score = score;
         return this;
     }
 
+    public Team getTeam() {
+        return currentData.team;
+    }
+
     public Score setTeam(Team team) {
-        if (this.team != null && team != null) {
-            if (!this.team.equals(team)) {
-                this.team = team;
-                updateType = UpdateType.UPDATE;
+        if (currentData.team != null && team != null) {
+            if (!currentData.team.equals(team)) {
+                currentData.team = team;
+                currentData.updateType = UpdateType.UPDATE;
             }
             return this;
         }
         // simplified from (this.team != null && team == null) || (this.team == null && team != null)
-        if (this.team != null || team != null) {
-            this.team = team;
-            updateType = UpdateType.UPDATE;
+        if (currentData.team != null || team != null) {
+            currentData.team = team;
+            currentData.updateType = UpdateType.UPDATE;
         }
         return this;
     }
 
-    public void update() {
-        cachedInfo = new ScoreInfo(id, objective.getObjectiveName(), score, getDisplayName());
+    public UpdateType getUpdateType() {
+        return cachedData != null ? cachedData.updateType : currentData.updateType;
+    }
+
+    public Score setUpdateType(UpdateType updateType) {
+        if (updateType != UpdateType.NOTHING) {
+            currentData.updateTime = System.currentTimeMillis();
+        }
+        currentData.updateType = updateType;
+        return this;
+    }
+
+    public boolean shouldUpdate() {
+        return cachedData == null || currentData.updateTime > cachedData.updateTime ||
+                (currentData.team != null && currentData.team.shouldUpdate());
+    }
+
+    public void update(String objectiveName) {
+        if (cachedData == null) {
+            cachedData = new ScoreData();
+            cachedData.updateType = UpdateType.ADD;
+            if (currentData.updateType == UpdateType.REMOVE) {
+                cachedData.updateType = UpdateType.REMOVE;
+            }
+        } else {
+            cachedData.updateType = currentData.updateType;
+        }
+
+        cachedData.updateTime = currentData.updateTime;
+        cachedData.team = currentData.team;
+        cachedData.score = currentData.score;
+
+        String name = this.name;
+        if (cachedData.team != null) {
+            cachedData.team.prepareUpdate();
+            name = cachedData.team.getDisplayName(name);
+        }
+        cachedInfo = new ScoreInfo(id, objectiveName, cachedData.score, name);
+    }
+
+    @Getter
+    public static final class ScoreData {
+        protected UpdateType updateType;
+        protected long updateTime;
+
+        private Team team;
+        private int score;
+
+        protected ScoreData() {
+            updateType = UpdateType.ADD;
+        }
     }
 }

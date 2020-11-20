@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
 import org.geysermc.connector.inventory.Inventory;
@@ -35,7 +34,7 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LocaleUtils;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @Translator(packet = ServerOpenWindowPacket.class)
 public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
@@ -57,10 +56,9 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             return;
         }
 
-        String name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(packet.getName()),
-                session.getClientData().getLanguageCode());
+        String name = MessageTranslator.convertMessageLenient(packet.getName(), session.getLocale());
 
-        name = LocaleUtils.getLocaleString(name, session.getClientData().getLanguageCode());
+        name = LocaleUtils.getLocaleString(name, session.getLocale());
 
         Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);
         session.getInventoryCache().cacheInventory(newInventory);

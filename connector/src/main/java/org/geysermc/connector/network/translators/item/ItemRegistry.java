@@ -34,6 +34,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -56,13 +58,25 @@ public class ItemRegistry {
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     /**
-     * Boat item entry, used in BedrockInventoryTransactionTranslator.java
+     * Bamboo item entry, used in PandaEntity.java
      */
-    public static ItemEntry BOAT;
+    public static ItemEntry BAMBOO;
     /**
-     * Bucket item entry, used in BedrockInventoryTransactionTranslator.java
+     * Boat item entries, used in BedrockInventoryTransactionTranslator.java
      */
-    public static ItemEntry BUCKET;
+    public static IntList BOATS = new IntArrayList();
+    /**
+     * Bucket item entries (excluding the milk bucket), used in BedrockInventoryTransactionTranslator.java
+     */
+    public static IntList BUCKETS = new IntArrayList();
+    /**
+     * Empty item bucket, used in BedrockInventoryTransactionTranslator.java
+     */
+    public static ItemEntry MILK_BUCKET;
+    /**
+     * Egg item entry, used in JavaEntityStatusTranslator.java
+     */
+    public static ItemEntry EGG;
     /**
      * Gold item entry, used in PiglinEntity.java
      */
@@ -71,6 +85,10 @@ public class ItemRegistry {
      * Shield item entry, used in Entity.java and LivingEntity.java
      */
     public static ItemEntry SHIELD;
+    /**
+     * Wheat item entry, used in AbstractHorseEntity.java
+     */
+    public static ItemEntry WHEAT;
 
     public static int BARRIER_INDEX = 0;
 
@@ -80,10 +98,13 @@ public class ItemRegistry {
 
     static {
         /* Load item palette */
-        InputStream stream = FileUtils.getResource("bedrock/items.json");
+        InputStream stream = FileUtils.getResource("bedrock/runtime_item_states.json");
 
         TypeReference<List<JsonNode>> itemEntriesType = new TypeReference<List<JsonNode>>() {
         };
+
+        // Used to get the Bedrock namespaced ID (in instances where there are small differences)
+        Int2ObjectMap<String> bedrockIdToIdentifier = new Int2ObjectOpenHashMap<>();
 
         List<JsonNode> itemEntries;
         try {
@@ -92,8 +113,14 @@ public class ItemRegistry {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_bedrock"), e);
         }
 
+        int lodestoneCompassId = 0;
+
         for (JsonNode entry : itemEntries) {
             ITEMS.add(new StartGamePacket.ItemEntry(entry.get("name").textValue(), (short) entry.get("id").intValue()));
+            bedrockIdToIdentifier.put(entry.get("id").intValue(), entry.get("name").textValue());
+            if (entry.get("name").textValue().equals("minecraft:lodestone_compass")) {
+                lodestoneCompassId = entry.get("id").intValue();
+            }
         }
 
         stream = FileUtils.getResource("mappings/items.json");
@@ -109,28 +136,29 @@ public class ItemRegistry {
         Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();
+            int bedrockId = entry.getValue().get("bedrock_id").intValue();
+            String bedrockIdentifier = bedrockIdToIdentifier.get(bedrockId);
+            if (bedrockIdentifier == null) {
+                throw new RuntimeException("Missing Bedrock ID in mappings!: " + bedrockId);
+            }
             if (entry.getValue().has("tool_type")) {
                 if (entry.getValue().has("tool_tier")) {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
-                            entry.getKey(), itemIndex,
-                            entry.getValue().get("bedrock_id").intValue(),
+                            entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
                             entry.getValue().get("tool_tier").textValue(),
                             entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
                 } else {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
-                            entry.getKey(), itemIndex,
-                            entry.getValue().get("bedrock_id").intValue(),
+                            entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            "",
-                            entry.getValue().get("is_block").booleanValue()));
+                            "", entry.getValue().get("is_block").booleanValue()));
                 }
             } else {
                 ITEM_ENTRIES.put(itemIndex, new ItemEntry(
-                        entry.getKey(), itemIndex,
-                        entry.getValue().get("bedrock_id").intValue(),
+                        entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                         entry.getValue().get("bedrock_data").intValue(),
                         entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
             }
@@ -138,8 +166,11 @@ public class ItemRegistry {
                 case "minecraft:barrier":
                     BARRIER_INDEX = itemIndex;
                     break;
-                case "minecraft:oak_boat":
-                    BOAT = ITEM_ENTRIES.get(itemIndex);
+                case "minecraft:bamboo":
+                    BAMBOO = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:egg":
+                    EGG = ITEM_ENTRIES.get(itemIndex);
                     break;
                 case "minecraft:gold_ingot":
                     GOLD = ITEM_ENTRIES.get(itemIndex);
@@ -147,18 +178,32 @@ public class ItemRegistry {
                 case "minecraft:shield":
                     SHIELD = ITEM_ENTRIES.get(itemIndex);
                     break;
-                case "minecraft:bucket":
-                    BUCKET = ITEM_ENTRIES.get(itemIndex);
+                case "minecraft:milk_bucket":
+                    MILK_BUCKET = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:wheat":
+                    WHEAT = ITEM_ENTRIES.get(itemIndex);
                     break;
                 default:
                     break;
             }
 
+            if (entry.getKey().contains("boat")) {
+                BOATS.add(entry.getValue().get("bedrock_id").intValue());
+            } else if (entry.getKey().contains("bucket") && !entry.getKey().contains("milk")) {
+                BUCKETS.add(entry.getValue().get("bedrock_id").intValue());
+            }
+
             itemIndex++;
         }
 
-        // Add the loadstonecompass since it doesn't exist on java but we need it for item conversion
-        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestonecompass", itemIndex, 741, 0, false));
+        if (lodestoneCompassId == 0) {
+            throw new RuntimeException("Lodestone compass not found in item palette!");
+        }
+
+        // Add the loadstone compass since it doesn't exist on java but we need it for item conversion
+        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestone_compass", "minecraft:lodestone_compass", itemIndex,
+                lodestoneCompassId, 0, false));
 
         /* Load creative items */
         stream = FileUtils.getResource("bedrock/creative_items.json");
@@ -219,25 +264,14 @@ public class ItemRegistry {
      * @return an item entry from the given java edition identifier
      */
     public static ItemEntry getItemEntry(String javaIdentifier) {
-        return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> ITEM_ENTRIES.values()
-                .stream().filter(itemEntry -> itemEntry.getJavaIdentifier().equals(key)).findFirst().orElse(null));
-    }
-
-    /**
-     * Finds the Bedrock string identifier of an ItemEntry
-     *
-     * @param entry the ItemEntry to search for
-     * @return the Bedrock identifier
-     */
-    public static String getBedrockIdentifer(ItemEntry entry) {
-        String blockName = "";
-        for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
-            if (startGamePacketItemEntry.getId() == (short) entry.getBedrockId()) {
-                blockName = startGamePacketItemEntry.getIdentifier(); // Find the Bedrock string name
-                break;
+        return JAVA_IDENTIFIER_MAP.computeIfAbsent(javaIdentifier, key -> {
+            for (ItemEntry entry : ITEM_ENTRIES.values()) {
+                if (entry.getJavaIdentifier().equals(key)) {
+                    return entry;
+                }
             }
-        }
-        return blockName;
+            return null;
+        });
     }
 
     /**

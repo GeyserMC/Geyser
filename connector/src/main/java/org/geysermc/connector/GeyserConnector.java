@@ -32,6 +32,7 @@ import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.common.AuthType;
@@ -190,8 +191,7 @@ public class GeyserConnector {
         remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
-        if (config.isAboveBedrockNetherBuilding())
-            DimensionUtils.changeBedrockNetherId(); // Apply End dimension ID workaround to Nether
+        DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
 
         // https://github.com/GeyserMC/Geyser/issues/957
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
@@ -291,7 +291,7 @@ public class GeyserConnector {
             // Make a copy to prevent ConcurrentModificationException
             final List<GeyserSession> tmpPlayers = new ArrayList<>(players);
             for (GeyserSession playerSession : tmpPlayers) {
-                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getClientData().getLanguageCode()));
+                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getLocale()));
             }
 
             CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {

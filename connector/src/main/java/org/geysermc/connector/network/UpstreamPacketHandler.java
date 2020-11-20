@@ -83,9 +83,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (packetCodec == null) {
             if (loginPacket.getProtocolVersion() > BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
+                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 return true;
             } else if (loginPacket.getProtocolVersion() < BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 return true;
             }
@@ -213,7 +215,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         packet = result.getEvent().getPacket();
 
-        LanguageUtils.loadGeyserLocale(session.getClientData().getLanguageCode());
+        LanguageUtils.loadGeyserLocale(session.getLocale());
 
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
@@ -235,7 +237,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         packet = result.getEvent().getPacket();
 
         if (session.isLoggingIn()) {
-            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getClientData().getLanguageCode()));
+            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
         }
 
         return translateAndDefault(packet);

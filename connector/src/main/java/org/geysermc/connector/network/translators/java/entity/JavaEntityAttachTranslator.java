@@ -62,7 +62,7 @@ public class JavaEntityAttachTranslator extends PacketTranslator<ServerEntityAtt
             if ((attachedToId == null || packet.getAttachedToId() == 0)) {
                 // Is not being leashed
                 holderId.getMetadata().getFlags().setFlag(EntityFlag.LEASHED, false);
-                holderId.getMetadata().put(EntityData.LEASH_HOLDER_EID, 0);
+                holderId.getMetadata().put(EntityData.LEASH_HOLDER_EID, -1L);
                 holderId.updateBedrockMetadata(session);
                 EntityEventPacket eventPacket = new EntityEventPacket();
                 eventPacket.setRuntimeEntityId(holderId.getGeyserId());
