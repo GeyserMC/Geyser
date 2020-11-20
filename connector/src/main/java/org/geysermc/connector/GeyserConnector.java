@@ -36,7 +36,6 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.extension.ExtensionManager;
