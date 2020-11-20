@@ -69,18 +69,21 @@ public class SkinUtils {
                 skin.getSkinData(),
                 cape.getCapeId(),
                 cape.getCapeData(),
-                geometry.getGeometryName(),
-                geometry.getGeometryData()
+                geometry
         );
     }
 
     public static PlayerListPacket.Entry buildEntryManually(GeyserSession session, UUID uuid, String username, long geyserId,
                                                             String skinId, byte[] skinData,
                                                             String capeId, byte[] capeData,
-                                                            String geometryName, String geometryData) {
+                                                            SkinProvider.SkinGeometry geometry) {
+        if (geometry == SkinProvider.SKULL_GEOMETRY) {
+            // Prevents https://cdn.discordapp.com/attachments/613194828359925800/779458146191147008/unknown.png
+            skinId = skinId + "_skull";
+        }
         SerializedSkin serializedSkin = SerializedSkin.of(
-                skinId, geometryName, ImageData.of(skinData), Collections.emptyList(),
-                ImageData.of(capeData), geometryData, "", true, false, !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, skinId
+                skinId, geometry.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
+                ImageData.of(capeData), geometry.getGeometryData(), "", true, false, !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, skinId
         );
 
         // This attempts to find the xuid of the player so profile images show up for xbox accounts
@@ -126,9 +129,8 @@ public class SkinUtils {
                         if (!(entity instanceof SkullPlayerEntity)) {
                             // Don't apply cape if entity is skull
                             if (cape.isFailed()) {
-                                cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(
-                                        entity.getUuid(), false
-                                ), SkinProvider.EMPTY_CAPE, 3);
+                                cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(entity.getUuid()),
+                                        SkinProvider.EMPTY_CAPE, 3);
                             }
 
                             if (cape.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_CAPES) {
@@ -144,7 +146,7 @@ public class SkinUtils {
                         }
 
                         geometry = SkinProvider.getOrDefault(SkinProvider.requestBedrockGeometry(
-                                geometry, entity.getUuid(), false
+                                geometry, entity.getUuid()
                         ), geometry, 3);
 
                         // Not a bedrock player check for ears
@@ -186,8 +188,7 @@ public class SkinUtils {
                                     skin.getSkinData(),
                                     cape.getCapeId(),
                                     cape.getCapeData(),
-                                    geometry.getGeometryName(),
-                                    geometry.getGeometryData()
+                                    geometry
                             );
 
 
