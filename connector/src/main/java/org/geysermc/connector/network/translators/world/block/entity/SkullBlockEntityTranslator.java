@@ -32,6 +32,7 @@ import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -57,14 +58,11 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         byte skullVariant = BlockStateValues.getSkullVariant(blockState);
         float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;
         // Just in case...
-        if (skullVariant == -1) {
-            skullVariant = 0;
-        }
+        if (skullVariant == -1) skullVariant = 0;
         builder.put("Rotation", rotation);
         builder.put("SkullType", skullVariant);
     }
@@ -159,4 +157,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     public static boolean containsCustomSkull(Position position, GeyserSession session) {
         return session.getSkullCache().containsKey(position);
     }
+
+
 }
