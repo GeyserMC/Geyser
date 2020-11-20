@@ -54,6 +54,7 @@ import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -134,6 +135,7 @@ public class GeyserConnector {
         EntityIdentifierRegistry.init();
         ItemRegistry.init();
         ItemTranslator.init();
+        CollisionTranslator.init();
         LocaleUtils.init();
         PotionMixRegistry.init();
         RecipeRegistry.init();

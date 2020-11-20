@@ -23,25 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.player;
+package org.geysermc.platform.spigot.world.manager;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
-import org.geysermc.connector.entity.player.PlayerEntity;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.geysermc.adapters.spigot.SpigotAdapters;
+import org.geysermc.adapters.spigot.SpigotWorldAdapter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-@Translator(packet = ServerPlayerAbilitiesPacket.class)
-public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
+public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
+    protected final SpigotWorldAdapter adapter;
+
+    public GeyserSpigotNativeWorldManager(boolean use3dBiomes) {
+        super(use3dBiomes);
+        adapter = SpigotAdapters.getWorldAdapter();
+    }
 
     @Override
-    public void translate(ServerPlayerAbilitiesPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
-
-        session.setCanFly(packet.isCanFly());
-        session.setFlying(packet.isFlying());
-        session.sendAdventureSettings();
+    public int getBlockAt(GeyserSession session, int x, int y, int z) {
+        Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
+        if (player == null) {
+            return BlockTranslator.JAVA_AIR_ID;
+        }
+        return adapter.getBlockAt(player.getWorld(), x, y, z);
     }
 }

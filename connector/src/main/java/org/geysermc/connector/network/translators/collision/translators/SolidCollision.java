@@ -23,25 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.player;
+package org.geysermc.connector.network.translators.collision.translators;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
-import org.geysermc.connector.entity.player.PlayerEntity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
-@Translator(packet = ServerPlayerAbilitiesPacket.class)
-public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
-
-    @Override
-    public void translate(ServerPlayerAbilitiesPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
-
-        session.setCanFly(packet.isCanFly());
-        session.setFlying(packet.isFlying());
-        session.sendAdventureSettings();
+@CollisionRemapper(regex = "shulker_box$") // These have no collision in the mappings as it depends on the NBT data
+public class SolidCollision extends BlockCollision {
+    public SolidCollision(String params) {
+        super();
+        boundingBoxes = new BoundingBox[]{
+                new BoundingBox(0.5, 0.5, 0.5, 1, 1, 1)
+        };
     }
 }

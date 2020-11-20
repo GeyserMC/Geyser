@@ -23,25 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.player;
+package org.geysermc.connector.network.translators.collision.translators;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
-import org.geysermc.connector.entity.player.PlayerEntity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
 
-@Translator(packet = ServerPlayerAbilitiesPacket.class)
-public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
+import java.util.Arrays;
+import java.util.Comparator;
 
-    @Override
-    public void translate(ServerPlayerAbilitiesPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
+public class OtherCollision extends BlockCollision {
 
-        session.setCanFly(packet.isCanFly());
-        session.setFlying(packet.isFlying());
-        session.sendAdventureSettings();
+    public OtherCollision(ArrayNode collisionList) {
+        super();
+        boundingBoxes = new BoundingBox[collisionList.size()];
+
+        for (int i = 0; i < collisionList.size(); i++) {
+            ArrayNode collisionBoxArray = (ArrayNode) collisionList.get(i);
+            boundingBoxes[i] = new BoundingBox(collisionBoxArray.get(0).asDouble(),
+                    collisionBoxArray.get(1).asDouble(),
+                    collisionBoxArray.get(2).asDouble(),
+                    collisionBoxArray.get(3).asDouble(),
+                    collisionBoxArray.get(4).asDouble(),
+                    collisionBoxArray.get(5).asDouble());
+        }
+
+        // Sorting by lowest Y first fixes some bugs
+        Arrays.sort(boundingBoxes, Comparator.comparingDouble(BoundingBox::getMiddleY));
     }
 }

@@ -257,6 +257,8 @@
                                 <script><![CDATA[
                                     new org.reflections.Reflections("org.geysermc.connector.network.translators")
                                         .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators-reflections.xml")
+                                    new org.reflections.Reflections("org.geysermc.connector.network.translators.collision.translators")
+                                        .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators.collision.translators-reflections.xml")
                                     new org.reflections.Reflections("org.geysermc.connector.network.translators.item")
                                         .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators.item-reflections.xml")
                                     new org.reflections.Reflections("org.geysermc.connector.network.translators.sound")

@@ -23,25 +23,40 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.player;
+package org.geysermc.platform.spigot.world.manager;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
-import org.geysermc.connector.entity.player.PlayerEntity;
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-@Translator(packet = ServerPlayerAbilitiesPacket.class)
-public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
+/**
+ * Should only be used when we know {@link GeyserSpigotWorldManager#getBlockAt(GeyserSession, int, int, int)}
+ * cannot be accurate. Typically, this is when ViaVersion is not installed but a client still manages to connect.
+ * If this occurs to you somehow, please let us know!!
+ */
+public class GeyserSpigotFallbackWorldManager extends GeyserSpigotWorldManager {
+    public GeyserSpigotFallbackWorldManager() {
+        // Since this is pre-1.13 (and thus pre-1.15), there will never be 3D biomes.
+        super(false);
+    }
 
     @Override
-    public void translate(ServerPlayerAbilitiesPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
+    public int getBlockAt(GeyserSession session, int x, int y, int z) {
+        return BlockTranslator.JAVA_AIR_ID;
+    }
 
-        session.setCanFly(packet.isCanFly());
-        session.setFlying(packet.isFlying());
-        session.sendAdventureSettings();
+    @Override
+    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
+        // Do nothing, since we can't do anything with the chunk
+    }
+
+    @Override
+    public boolean hasMoreBlockDataThanChunkCache() {
+        return false;
+    }
+
+    @Override
+    public boolean isLegacy() {
+        return true;
     }
 }
