@@ -51,12 +51,13 @@ import java.util.List;
  */
 public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     /**
-     * Specific mapping data for 1.12 to 1.13
+     * Specific mapping data for 1.12 to 1.13. Used to convert the 1.12 block into the 1.13 block state.
+     * (Block IDs did not change between server versions until 1.13 and after)
      */
     private final MappingData mappingData1_12to1_13;
 
     /**
-     * The list of all protocols from the client's version to the server's.
+     * The list of all protocols from the client's version to 1.13.
      */
     private final List<Pair<Integer, Protocol>> protocolList;
 
