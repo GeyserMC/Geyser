@@ -51,12 +51,18 @@ import java.util.List;
  */
 public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     /**
+     * Specific mapping data for 1.12 to 1.13
+     */
+    private final MappingData mappingData1_12to1_13;
+
+    /**
      * The list of all protocols from the client's version to the server's.
      */
     private final List<Pair<Integer, Protocol>> protocolList;
 
     public GeyserSpigot1_12WorldManager() {
         super(false);
+        this.mappingData1_12to1_13 = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData();
         this.protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
                 ProtocolVersion.v1_13.getVersion());
     }
@@ -88,7 +94,7 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     @SuppressWarnings("deprecation")
     public int getLegacyBlock(BlockStorage storage, int blockId, int x, int y, int z) {
         // Convert block state from old version (1.12.2) -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
-        blockId = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData().getNewBlockId(blockId);
+        blockId = mappingData1_12to1_13.getNewBlockId(blockId);
         // Translate block entity differences - some information was stored in block tags and not block states
         if (storage.isWelcome(blockId)) { // No getOrDefault method
             BlockStorage.ReplacementData data = storage.get(new Position(x, (short) y, z));
