@@ -23,15 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.spigot.world;
+package org.geysermc.platform.spigot.world.manager;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Player;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
@@ -39,20 +43,22 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.GameRule;
 import org.geysermc.connector.utils.LanguageUtils;
-import us.myles.ViaVersion.protocols.protocol1_13_1to1_13.Protocol1_13_1To1_13;
-import us.myles.ViaVersion.protocols.protocol1_16_2to1_16_1.data.MappingData;
 
 import java.io.InputStream;
 
+/**
+ * The base world manager to use when there is no supported NMS revision
+ */
 public class GeyserSpigotWorldManager extends GeyserWorldManager {
-
-    private final boolean isLegacy;
-    private final boolean use3dBiomes;
     /**
-     * You need ViaVersion to connect to an older server with Geyser.
-     * However, we still check for ViaVersion in case there's some other way that gets Geyser on a pre-1.13 Bukkit server
+     * The current client protocol version for ViaVersion usage.
      */
-    private final boolean isViaVersion;
+    protected static final int CLIENT_PROTOCOL_VERSION = MinecraftConstants.PROTOCOL_VERSION;
+
+    /**
+     * Whether the server is pre-1.16 and therefore does not support 3D biomes on an API level guaranteed.
+     */
+    private final boolean use3dBiomes;
     /**
      * Stores a list of {@link Biome} ordinal numbers to Minecraft biome numeric IDs.
      *
@@ -66,10 +72,8 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
      */
     private final Int2IntMap biomeToIdMap = new Int2IntOpenHashMap(Biome.values().length);
 
-    public GeyserSpigotWorldManager(boolean isLegacy, boolean use3dBiomes, boolean isViaVersion) {
-        this.isLegacy = isLegacy;
+    public GeyserSpigotWorldManager(boolean use3dBiomes) {
         this.use3dBiomes = use3dBiomes;
-        this.isViaVersion = isViaVersion;
 
         // Load the values into the biome-to-ID map
         InputStream biomeStream = FileUtils.getResource("biomes.json");
@@ -81,8 +85,9 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         }
         // Only load in the biomes that are present in this version of Minecraft
         for (Biome enumBiome : Biome.values()) {
-            if (biomes.has(enumBiome.toString())) {
-                biomeToIdMap.put(enumBiome.ordinal(), biomes.get(enumBiome.toString()).intValue());
+            JsonNode biome = biomes.get(enumBiome.toString());
+            if (biome != null) {
+                biomeToIdMap.put(enumBiome.ordinal(), biome.intValue());
             } else {
                 GeyserConnector.getInstance().getLogger().debug("No biome mapping found for " + enumBiome.toString() +
                         ", defaulting to 0");
@@ -93,35 +98,35 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        if (session.getPlayerEntity() == null) {
-            return BlockTranslator.AIR;
+        Player bukkitPlayer;
+        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+            return BlockTranslator.JAVA_AIR_ID;
         }
-        if (Bukkit.getPlayer(session.getPlayerEntity().getUsername()) == null) {
-            return BlockTranslator.AIR;
-        }
-        if (isLegacy) {
-            return getLegacyBlock(session, x, y, z, isViaVersion);
-        }
-        //TODO possibly: detect server version for all versions and use ViaVersion for block state mappings like below
-        return BlockTranslator.getJavaIdBlockMap().getOrDefault(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z).getBlockData().getAsString(), 0);
+        World world = bukkitPlayer.getWorld();
+        return BlockTranslator.getJavaIdBlockMap().getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), BlockTranslator.JAVA_AIR_ID);
     }
 
-    @SuppressWarnings("deprecation")
-    public static int getLegacyBlock(GeyserSession session, int x, int y, int z, boolean isViaVersion) {
-        if (isViaVersion) {
-            Block block = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getBlockAt(x, y, z);
-            // Black magic that gets the old block state ID
-            int oldBlockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
-            // Convert block state from old version -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
-            int thirteenBlockId = us.myles.ViaVersion.protocols.protocol1_13to1_12_2.data.MappingData.blockMappings.getNewId(oldBlockId);
-            int thirteenPointOneBlockId = Protocol1_13_1To1_13.getNewBlockStateId(thirteenBlockId);
-            int fourteenBlockId = us.myles.ViaVersion.protocols.protocol1_14to1_13_2.data.MappingData.blockStateMappings.getNewId(thirteenPointOneBlockId);
-            int fifteenBlockId = us.myles.ViaVersion.protocols.protocol1_15to1_14_4.data.MappingData.blockStateMappings.getNewId(fourteenBlockId);
-            int sixteenBlockId = us.myles.ViaVersion.protocols.protocol1_16to1_15_2.data.MappingData.blockStateMappings.getNewId(fifteenBlockId);
-            return MappingData.blockStateMappings.getNewId(sixteenBlockId);
-        } else {
-            return BlockTranslator.AIR;
+    @Override
+    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
+        Player bukkitPlayer;
+        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+            return;
         }
+        World world = bukkitPlayer.getWorld();
+        for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
+            for (int blockZ = 0; blockZ < 16; blockZ++) {
+                for (int blockX = 0; blockX < 16; blockX++) {
+                    Block block = world.getBlockAt((x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ);
+                    int id = BlockTranslator.getJavaIdBlockMap().getOrDefault(block.getBlockData().getAsString(), BlockTranslator.JAVA_AIR_ID);
+                    chunk.set(blockX, blockY, blockZ, id);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean hasMoreBlockDataThanChunkCache() {
+        return true;
     }
 
     @Override
@@ -174,5 +179,17 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     @Override
     public boolean hasPermission(GeyserSession session, String permission) {
         return Bukkit.getPlayer(session.getPlayerEntity().getUsername()).hasPermission(permission);
+    }
+
+    /**
+     * This must be set to true if we are pre-1.13, and {@link BlockData#getAsString() does not exist}.
+     *
+     * This should be set to true if we are post-1.13 but before the latest version, and we should convert the old block state id
+     * to the current one.
+     *
+     * @return whether there is a difference between client block state and server block state that requires extra processing
+     */
+    public boolean isLegacy() {
+        return false;
     }
 }

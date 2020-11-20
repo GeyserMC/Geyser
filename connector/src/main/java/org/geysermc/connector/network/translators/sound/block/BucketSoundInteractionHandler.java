@@ -38,6 +38,7 @@ public class BucketSoundInteractionHandler implements BlockSoundInteractionHandl
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
+        if (session.getBucketScheduledFuture() == null) return; // No bucket was really interacted with
         String handItemIdentifier = ItemRegistry.getItem(session.getInventory().getItemInHand()).getJavaIdentifier();
         LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
         soundEventPacket.setPosition(position);
@@ -68,5 +69,6 @@ public class BucketSoundInteractionHandler implements BlockSoundInteractionHandl
             soundEventPacket.setSound(soundEvent);
             session.sendUpstreamPacket(soundEventPacket);
         }
+        session.setBucketScheduledFuture(null);
     }
 }

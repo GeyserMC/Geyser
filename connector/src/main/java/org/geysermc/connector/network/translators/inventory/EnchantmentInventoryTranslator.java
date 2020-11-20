@@ -42,6 +42,7 @@ import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -57,9 +58,8 @@ import java.util.List;
  */
 public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
 
-    private static final int DYE_ID = 351;
-    private static final short LAPIS_DAMAGE = 4;
-    private static final int ENCHANTED_BOOK_ID = 403;
+    private static final int DYE_ID = ItemRegistry.getItemEntry("minecraft:lapis_lazuli").getBedrockId();
+    private static final int ENCHANTED_BOOK_ID = ItemRegistry.getItemEntry("minecraft:enchanted_book").getBedrockId();
 
     public EnchantmentInventoryTranslator(InventoryUpdater updater) {
         super(2, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, updater);
@@ -73,8 +73,7 @@ public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
                 switch (action.getSlot()) {
                     case 1:
                         // Don't allow the slot to be put through if the item isn't lapis
-                        if ((action.getToItem().getId() != DYE_ID
-                                && action.getToItem().getDamage() != LAPIS_DAMAGE) && action.getToItem() != ItemData.AIR) {
+                        if ((action.getToItem().getId() != DYE_ID) && action.getToItem() != ItemData.AIR) {
                             updateInventory(session, inventory);
                             InventoryUtils.updateCursor(session);
                             return;
@@ -199,7 +198,7 @@ public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
 
     private String toRomanNumeral(GeyserSession session, int level) {
         return LocaleUtils.getLocaleString("enchantment.level." + level,
-                session.getClientData().getLanguageCode());
+                session.getLocale());
     }
 
     /**
@@ -261,7 +260,7 @@ public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
 
         public String toString(GeyserSession session) {
             return LocaleUtils.getLocaleString("enchantment.minecraft." + this.toString().toLowerCase(),
-                    session.getClientData().getLanguageCode());
+                    session.getLocale());
         }
     }
 }

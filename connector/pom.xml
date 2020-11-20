@@ -6,16 +6,15 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>parent</version>
-        <relativePath>../</relativePath>
+        <version>1.2.0-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
-    <version>1.1.0</version>
+
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -32,8 +31,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v408</artifactId>
-            <version>250beb2a94</version>
+            <artifactId>bedrock-v419</artifactId>
+            <version>ce59d39118</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -109,9 +108,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.GeyserMC</groupId>
+            <groupId>com.github.steveice10</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>e4a3aa636a</version>
+            <version>86e1901be5</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -139,20 +138,26 @@
         <dependency>
             <groupId>com.github.kyoripowered.adventure</groupId>
             <artifactId>adventure-api</artifactId>
-            <version>557865caef</version>
+            <version>7acd956</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.kyoripowered.adventure</groupId>
             <artifactId>adventure-text-serializer-gson</artifactId>
-            <version>557865caef</version>
+            <version>7acd956</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.kyoripowered.adventure</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>557865caef</version>
+            <version>7acd956</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.1</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -252,6 +257,8 @@
                                 <script><![CDATA[
                                     new org.reflections.Reflections("org.geysermc.connector.network.translators")
                                         .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators-reflections.xml")
+                                    new org.reflections.Reflections("org.geysermc.connector.network.translators.collision.translators")
+                                        .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators.collision.translators-reflections.xml")
                                     new org.reflections.Reflections("org.geysermc.connector.network.translators.item")
                                         .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators.item-reflections.xml")
                                     new org.reflections.Reflections("org.geysermc.connector.network.translators.sound")
@@ -282,6 +289,15 @@
                         <type>pom</type>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.0</version>
+                <configuration>
+                    <!-- Force the right file encoding during unit testing -->
+                    <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>

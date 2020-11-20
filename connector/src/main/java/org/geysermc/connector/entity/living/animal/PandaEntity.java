@@ -27,11 +27,18 @@ package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class PandaEntity extends AnimalEntity {
+
+    private int mainGene;
+    private int hiddenGene;
 
     public PandaEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -39,11 +46,56 @@ public class PandaEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 18) {
+            metadata.getFlags().setFlag(EntityFlag.EATING, (int) entityMetadata.getValue() > 0);
+            metadata.put(EntityData.EATING_COUNTER, entityMetadata.getValue());
+            if ((int) entityMetadata.getValue() != 0) {
+                // Particles and sound
+                EntityEventPacket packet = new EntityEventPacket();
+                packet.setRuntimeEntityId(geyserId);
+                packet.setType(EntityEventType.EATING_ITEM);
+                packet.setData(ItemRegistry.BAMBOO.getBedrockId() << 16);
+                session.sendUpstreamPacket(packet);
+            }
+        }
+        if (entityMetadata.getId() == 19) {
+            mainGene = (int) (byte) entityMetadata.getValue();
+            updateAppearance();
+        }
+        if (entityMetadata.getId() == 20) {
+            hiddenGene = (int) (byte) entityMetadata.getValue();
+            updateAppearance();
+        }
         if (entityMetadata.getId() == 21) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.SNEEZING, (xd & 0x02) == 0x02);
-            metadata.getFlags().setFlag(EntityFlag.EATING, (xd & 0x04) == 0x04);
+            metadata.getFlags().setFlag(EntityFlag.ROLLING, (xd & 0x04) == 0x04);
+            metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x08) == 0x08);
+            // Required to put these both for sitting to actually show
+            metadata.put(EntityData.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
+            metadata.put(EntityData.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
+            metadata.getFlags().setFlag(EntityFlag.LAYING_DOWN, (xd & 0x10) == 0x10);
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    /**
+     * Update the panda's appearance, and take into consideration the recessive brown and weak traits that only show up
+     * when both main and hidden genes match
+     */
+    private void updateAppearance() {
+        if (mainGene == 4 || mainGene == 5) {
+            // Main gene is a recessive trait
+            if (mainGene == hiddenGene) {
+                // Main and hidden genes match; this is what the panda looks like.
+                metadata.put(EntityData.VARIANT, mainGene);
+            } else {
+                // Genes have no effect on appearance
+                metadata.put(EntityData.VARIANT, 0);
+            }
+        } else {
+            // No need to worry about hidden gene
+            metadata.put(EntityData.VARIANT, mainGene);
+        }
     }
 }

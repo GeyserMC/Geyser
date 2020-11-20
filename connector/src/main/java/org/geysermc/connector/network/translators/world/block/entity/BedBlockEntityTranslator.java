@@ -26,27 +26,23 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @BlockEntity(name = "Bed", regex = "bed")
 public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
     @Override
     public boolean isBlock(int blockState) {
         return BlockStateValues.getBedColor(blockState) != -1;
     }
 
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         byte bedcolor = BlockStateValues.getBedColor(blockState);
         // Just in case...
-        if (bedcolor == -1) bedcolor = 0;
-        tags.put("color", bedcolor);
-        return tags;
+        if (bedcolor == -1) {
+            bedcolor = 0;
+        }
+        builder.put("color", bedcolor);
     }
-
 }

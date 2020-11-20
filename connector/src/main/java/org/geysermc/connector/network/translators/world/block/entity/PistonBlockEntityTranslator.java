@@ -34,9 +34,9 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
  * Pistons are a special case where they are only a block entity on Bedrock.
  */
 public class PistonBlockEntityTranslator {
-
     /**
      * Used in ChunkUtils to determine if the block is a piston.
+     *
      * @param blockState Java BlockState of block.
      * @return if block is a piston or not.
      */
@@ -46,8 +46,9 @@ public class PistonBlockEntityTranslator {
 
     /**
      * Calculates the Nukkit CompoundTag to send to the client on chunk
+     *
      * @param blockState Java block state of block.
-     * @param position Bedrock position of piston.
+     * @param position   Bedrock position of piston.
      * @return Bedrock tag of piston.
      */
     public static NbtMap getTag(int blockState, Vector3i position) {
@@ -57,14 +58,13 @@ public class PistonBlockEntityTranslator {
                 .putInt("z", position.getZ())
                 .putByte("isMovable", (byte) 1)
                 .putString("id", "PistonArm");
-        if (BlockStateValues.getPistonValues().containsKey(blockState)) {
-            boolean extended = BlockStateValues.getPistonValues().get(blockState);
-            // 1f if extended, otherwise 0f
-            tagBuilder.putFloat("Progress", (extended) ? 1.0f : 0.0f);
-            // 1 if sticky, 0 if not
-            tagBuilder.putByte("Sticky", (byte)((BlockStateValues.isStickyPiston(blockState)) ? 1 : 0));
-        }
+
+        boolean extended = BlockStateValues.getPistonValues().get(blockState);
+        // 1f if extended, otherwise 0f
+        tagBuilder.putFloat("Progress", (extended) ? 1.0f : 0.0f);
+        // 1 if sticky, 0 if not
+        tagBuilder.putByte("Sticky", (byte) ((BlockStateValues.isStickyPiston(blockState)) ? 1 : 0));
+
         return tagBuilder.build();
     }
-
 }

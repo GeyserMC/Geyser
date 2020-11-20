@@ -25,62 +25,22 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.connector.utils.MessageUtils;
+import com.nukkitx.nbt.NbtMapBuilder;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.SignUtils;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @BlockEntity(name = "Sign", regex = "sign")
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
-
-    @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
-
-        StringBuilder signText = new StringBuilder();
-        for(int i = 0; i < 4; i++) {
-            int currentLine = i+1;
-            String signLine = getOrDefault(tag.getValue().get("Text" + currentLine), "");
-            signLine = MessageUtils.getBedrockMessage(MessageSerializer.fromString(signLine));
-
-            // Check the character width on the sign to ensure there is no overflow that is usually hidden
-            // to Java Edition clients but will appear to Bedrock clients
-            int signWidth = 0;
-            StringBuilder finalSignLine = new StringBuilder();
-            for (char c : signLine.toCharArray()) {
-                signWidth += SignUtils.getCharacterWidth(c);
-                if (signWidth <= SignUtils.BEDROCK_CHARACTER_WIDTH_MAX) {
-                    finalSignLine.append(c);
-                } else {
-                    break;
-                }
-            }
-
-            // Java Edition 1.14 added the ability to change the text color of the whole sign using dye
-            if (tag.contains("Color")) {
-                signText.append(getBedrockSignColor(tag.get("Color").getValue().toString()));
-            }
-
-            signText.append(finalSignLine.toString());
-            signText.append("\n");
-        }
-
-        tags.put("Text", MessageUtils.getBedrockMessage(MessageSerializer.fromString(signText.toString())));
-        return tags;
-    }
-
     /**
      * Maps a color stored in a sign's Color tag to a Bedrock Edition formatting code.
      * <br>
-     * The color names correspond to dye names, because of this we can't use {@link MessageUtils#getColor(String)}.
+     * The color names correspond to dye names, because of this we can't use {@link MessageTranslator#getColor(String)}.
      *
      * @param javaColor The dye color stored in the sign's Color tag.
      * @return A Bedrock Edition formatting code for valid dye colors, otherwise an empty string.
      */
-    private static String getBedrockSignColor(String javaColor) {
+    private String getBedrockSignColor(String javaColor) {
         String base = "\u00a7";
         switch (javaColor) {
             case "white":
@@ -133,4 +93,41 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
         return base;
     }
 
+    @Override
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        StringBuilder signText = new StringBuilder();
+        for (int i = 0; i < 4; i++) {
+            int currentLine = i + 1;
+            String signLine = getOrDefault(tag.getValue().get("Text" + currentLine), "");
+            signLine = MessageTranslator.convertMessageLenient(signLine);
+
+            // Trim any trailing formatting codes
+            if (signLine.length() > 2 && signLine.toCharArray()[signLine.length() - 2] == '\u00a7') {
+                signLine = signLine.substring(0, signLine.length() - 2);
+            }
+
+            // Check the character width on the sign to ensure there is no overflow that is usually hidden
+            // to Java Edition clients but will appear to Bedrock clients
+            int signWidth = 0;
+            StringBuilder finalSignLine = new StringBuilder();
+            for (char c : signLine.toCharArray()) {
+                signWidth += SignUtils.getCharacterWidth(c);
+                if (signWidth <= SignUtils.BEDROCK_CHARACTER_WIDTH_MAX) {
+                    finalSignLine.append(c);
+                } else {
+                    break;
+                }
+            }
+
+            // Java Edition 1.14 added the ability to change the text color of the whole sign using dye
+            if (tag.contains("Color")) {
+                signText.append(getBedrockSignColor(tag.get("Color").getValue().toString()));
+            }
+
+            signText.append(finalSignLine.toString());
+            signText.append("\n");
+        }
+
+        builder.put("Text", signText.toString());
+    }
 }

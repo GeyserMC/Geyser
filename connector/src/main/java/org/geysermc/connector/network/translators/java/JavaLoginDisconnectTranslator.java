@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.packet.login.server.LoginDisconnectPack
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @Translator(packet = LoginDisconnectPacket.class)
 public class JavaLoginDisconnectTranslator extends PacketTranslator<LoginDisconnectPacket> {
@@ -37,6 +37,6 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<LoginDisconn
     @Override
     public void translate(LoginDisconnectPacket packet, GeyserSession session) {
         // The client doesn't manually get disconnected so we have to do it ourselves
-        session.disconnect(MessageUtils.getTranslatedBedrockMessage(packet.getReason(), session.getClientData().getLanguageCode()));
+        session.disconnect(MessageTranslator.convertMessage(packet.getReason().toString(), session.getLocale()));
     }
 }

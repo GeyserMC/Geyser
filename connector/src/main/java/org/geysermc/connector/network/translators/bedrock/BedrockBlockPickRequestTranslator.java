@@ -42,7 +42,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         int blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
         
         // Block is air - chunk caching is probably off
-        if (blockToPick == 0) {
+        if (blockToPick == BlockTranslator.JAVA_AIR_ID) {
             return;
         }
 

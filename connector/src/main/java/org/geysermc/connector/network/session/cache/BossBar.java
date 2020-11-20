@@ -33,7 +33,7 @@ import com.nukkitx.protocol.bedrock.packet.BossEventPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @AllArgsConstructor
 public class BossBar {
@@ -58,7 +58,7 @@ public class BossBar {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.CREATE);
-        bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getClientData().getLanguageCode()));
+        bossEventPacket.setTitle(MessageTranslator.convertMessage(title.toString(), session.getLocale()));
         bossEventPacket.setHealthPercentage(health);
         bossEventPacket.setColor(color); //ignored by client
         bossEventPacket.setOverlay(overlay);
@@ -72,7 +72,7 @@ public class BossBar {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.UPDATE_NAME);
-        bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getClientData().getLanguageCode()));
+        bossEventPacket.setTitle(MessageTranslator.convertMessage(title.toString(), session.getLocale()));
 
         session.sendUpstreamPacket(bossEventPacket);
     }

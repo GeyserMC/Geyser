@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.java;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerTitlePacket;
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
@@ -39,16 +39,23 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
     @Override
     public void translate(ServerTitlePacket packet, GeyserSession session) {
         SetTitlePacket titlePacket = new SetTitlePacket();
-        String locale = session.getClientData().getLanguageCode();
+        String locale = session.getLocale();
+
+        String text;
+        if (packet.getTitle() == null) {
+            text = " ";
+        } else {
+            text = MessageTranslator.convertMessage(packet.getTitle().toString(), locale);
+        }
 
         switch (packet.getAction()) {
             case TITLE:
                 titlePacket.setType(SetTitlePacket.Type.TITLE);
-                titlePacket.setText(MessageUtils.getTranslatedBedrockMessage(packet.getTitle(), locale));
+                titlePacket.setText(text);
                 break;
             case SUBTITLE:
                 titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
-                titlePacket.setText(MessageUtils.getTranslatedBedrockMessage(packet.getTitle(), locale));
+                titlePacket.setText(text);
                 break;
             case CLEAR:
             case RESET:
@@ -57,9 +64,10 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
                 break;
             case ACTION_BAR:
                 titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-                titlePacket.setText(MessageUtils.getTranslatedBedrockMessage(packet.getTitle(), locale));
+                titlePacket.setText(text);
                 break;
             case TIMES:
+                titlePacket.setType(SetTitlePacket.Type.TIMES);
                 titlePacket.setFadeInTime(packet.getFadeIn());
                 titlePacket.setFadeOutTime(packet.getFadeOut());
                 titlePacket.setStayTime(packet.getStay());

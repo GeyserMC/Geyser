@@ -32,10 +32,11 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.NonNull;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -50,8 +51,19 @@ public class EffectRegistry {
     public static final Map<SoundEffect, Effect> SOUND_EFFECTS = new HashMap<>();
     public static final Int2ObjectMap<SoundEvent> RECORDS = new Int2ObjectOpenHashMap<>();
 
-    private static Map<ParticleType, LevelEventType> particleTypeMap = new HashMap<>();
-    private static Map<ParticleType, String> particleStringMap = new HashMap<>();
+    /**
+     * Java particle type to Bedrock particle ID
+     * Used for area effect clouds.
+     */
+    private static final Object2IntMap<ParticleType> PARTICLE_TO_ID = new Object2IntOpenHashMap<>();
+    /**
+     * Java particle type to Bedrock level event
+     */
+    private static final Map<ParticleType, LevelEventType> PARTICLE_TO_LEVEL_EVENT = new HashMap<>();
+    /**
+     * Java particle type to Bedrock namespaced string ID
+     */
+    private static final Map<ParticleType, String> PARTICLE_TO_STRING = new HashMap<>();
 
     public static void init() {
         // no-op
@@ -68,22 +80,24 @@ public class EffectRegistry {
         }
 
         Iterator<Map.Entry<String, JsonNode>> particlesIterator = particleEntries.fields();
-        while (particlesIterator.hasNext()) {
-            Map.Entry<String, JsonNode> entry = particlesIterator.next();
-            try {
-                particleTypeMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), LevelEventType.valueOf(entry.getValue().asText().toUpperCase()));
-            } catch (IllegalArgumentException e1) {
-                try {
-                    particleStringMap.put(ParticleType.valueOf(entry.getKey().toUpperCase()), entry.getValue().asText());
-                    GeyserConnector.getInstance().getLogger().debug("Force to map particle "
-                            + entry.getKey()
-                            + "=>"
-                            + entry.getValue().asText()
-                            + ", it will take effect.");
-                } catch (IllegalArgumentException e2){
-                    GeyserConnector.getInstance().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.particle.failed_map", entry.getKey(), entry.getValue().asText()));
+        try {
+            while (particlesIterator.hasNext()) {
+                Map.Entry<String, JsonNode> entry = particlesIterator.next();
+                JsonNode bedrockId = entry.getValue().get("bedrockId");
+                JsonNode bedrockIdNumeric = entry.getValue().get("bedrockNumericId");
+                JsonNode eventType = entry.getValue().get("eventType");
+                if (bedrockIdNumeric != null) {
+                    PARTICLE_TO_ID.put(ParticleType.valueOf(entry.getKey().toUpperCase()), bedrockIdNumeric.asInt());
+                }
+                if (bedrockId != null) {
+                    PARTICLE_TO_STRING.put(ParticleType.valueOf(entry.getKey().toUpperCase()), bedrockId.asText());
+                }
+                if (eventType != null) {
+                    PARTICLE_TO_LEVEL_EVENT.put(ParticleType.valueOf(entry.getKey().toUpperCase()), LevelEventType.valueOf(eventType.asText().toUpperCase()));
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         /* Load effects */
@@ -149,11 +163,27 @@ public class EffectRegistry {
         }
     }
 
-    public static LevelEventType getParticleLevelEventType(@NonNull ParticleType type) {
-        return particleTypeMap.getOrDefault(type, null);
+    /**
+     * @param type the Java particle to search for
+     * @return the Bedrock integer ID of the particle, or -1 if it does not exist
+     */
+    public static int getParticleId(@NonNull ParticleType type) {
+        return PARTICLE_TO_ID.getOrDefault(type, -1);
     }
 
-    public static String getParticleString(@NonNull ParticleType type){
-        return particleStringMap.getOrDefault(type, null);
+    /**
+     * @param type the Java particle to search for
+     * @return the level event equivalent Bedrock particle
+     */
+    public static LevelEventType getParticleLevelEventType(@NonNull ParticleType type) {
+        return PARTICLE_TO_LEVEL_EVENT.getOrDefault(type, null);
+    }
+
+    /**
+     * @param type the Java particle to search for
+     * @return the namespaced ID equivalent for Bedrock
+     */
+    public static String getParticleString(@NonNull ParticleType type) {
+        return PARTICLE_TO_STRING.getOrDefault(type, null);
     }
 }

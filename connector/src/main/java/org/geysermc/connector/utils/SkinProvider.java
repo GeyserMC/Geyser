@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -42,13 +43,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class SkinProvider {
@@ -173,10 +168,21 @@ public class SkinProvider {
     public static CompletableFuture<SkinAndCape> requestSkinAndCape(UUID playerId, String skinUrl, String capeUrl) {
         return CompletableFuture.supplyAsync(() -> {
             long time = System.currentTimeMillis();
+            String newSkinUrl = skinUrl;
+
+            if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
+                // TODO: Don't have a for loop for this? Have a proper map?
+                for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
+                    if (session.getPlayerEntity().getUuid().equals(playerId)) {
+                        newSkinUrl = session.getClientData().getSkinId();
+                        break;
+                    }
+                }
+            }
 
             CapeProvider provider = capeUrl != null ? CapeProvider.MINECRAFT : null;
             SkinAndCape skinAndCape = new SkinAndCape(
-                    getOrDefault(requestSkin(playerId, skinUrl, false), EMPTY_SKIN, 5),
+                    getOrDefault(requestSkin(playerId, newSkinUrl, false), EMPTY_SKIN, 5),
                     getOrDefault(requestCape(capeUrl, provider, false), EMPTY_CAPE, 5)
             );
 
@@ -215,7 +221,6 @@ public class SkinProvider {
         if (capeUrl == null || capeUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_CAPE);
         if (requestedCapes.containsKey(capeUrl)) return requestedCapes.get(capeUrl); // already requested
 
-        boolean officialCape = provider == CapeProvider.MINECRAFT;
         Cape cachedCape = cachedCapes.getIfPresent(capeUrl);
         if (cachedCape != null) {
             return CompletableFuture.completedFuture(cachedCape);
@@ -290,7 +295,7 @@ public class SkinProvider {
         return CompletableFuture.completedFuture(officialSkin);
     }
 
-    public static CompletableFuture<Cape> requestBedrockCape(UUID playerID, boolean newThread) {
+    public static CompletableFuture<Cape> requestBedrockCape(UUID playerID) {
         Cape bedrockCape = cachedCapes.getIfPresent(playerID.toString() + ".Bedrock");
         if (bedrockCape == null) {
             bedrockCape = EMPTY_CAPE;
@@ -298,7 +303,7 @@ public class SkinProvider {
         return CompletableFuture.completedFuture(bedrockCape);
     }
 
-    public static CompletableFuture<SkinGeometry> requestBedrockGeometry(SkinGeometry currentGeometry, UUID playerID, boolean newThread) {
+    public static CompletableFuture<SkinGeometry> requestBedrockGeometry(SkinGeometry currentGeometry, UUID playerID) {
         SkinGeometry bedrockGeometry = cachedGeometry.getOrDefault(playerID, currentGeometry);
         return CompletableFuture.completedFuture(bedrockGeometry);
     }
@@ -606,15 +611,6 @@ public class SkinProvider {
         public static SkinGeometry getEars(boolean isSlim) {
             return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.ears" + (isSlim ? "Slim" : "") + "\"}}", (isSlim ? EARS_GEOMETRY_SLIM : EARS_GEOMETRY), false);
         }
-
-        /**
-         * Generate basic geometry for custom skulls
-         *
-         * @return The generated geometry for the skull model
-         */
-        public static SkinGeometry getSkull() {
-            return SKULL_GEOMETRY;
-        }
     }
 
     /*
@@ -626,7 +622,7 @@ public class SkinProvider {
     public enum CapeProvider {
         MINECRAFT,
         OPTIFINE("https://optifine.net/capes/%s.png", CapeUrlType.USERNAME),
-        LABYMOD("https://www.labymod.net/page/php/getCapeTexture.php?uuid=%s", CapeUrlType.UUID_DASHED),
+        LABYMOD("https://dl.labymod.net/capes/%s", CapeUrlType.UUID_DASHED),
         FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
         MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);
 

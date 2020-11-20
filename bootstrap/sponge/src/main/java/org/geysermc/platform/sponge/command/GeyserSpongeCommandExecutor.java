@@ -59,10 +59,10 @@ public class GeyserSpongeCommandExecutor implements CommandCallable {
                     source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return CommandResult.success();
                 }
-                getCommand(args[0]).execute(new SpongeCommandSender(source), args);
+                getCommand(args[0]).execute(new SpongeCommandSender(source), args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }
         } else {
-            getCommand("help").execute(new SpongeCommandSender(source), args);
+            getCommand("help").execute(new SpongeCommandSender(source), new String[0]);
         }
         return CommandResult.success();
     }
@@ -70,7 +70,7 @@ public class GeyserSpongeCommandExecutor implements CommandCallable {
     @Override
     public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) throws CommandException {
         if (arguments.split(" ").length == 1) {
-            return Arrays.asList("?", "help", "reload", "shutdown", "stop");
+            return connector.getCommandManager().getCommandNames();
         }
         return new ArrayList<>();
     }

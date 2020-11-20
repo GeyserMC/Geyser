@@ -94,7 +94,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     if (stringParticle != null) {
                         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
                         stringPacket.setIdentifier(stringParticle);
-                        stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getPlayerEntity().getDimension()));
+                        stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
                         stringPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
                         session.sendUpstreamPacket(stringPacket);
                     }

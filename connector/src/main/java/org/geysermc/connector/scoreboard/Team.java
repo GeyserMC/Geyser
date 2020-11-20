@@ -28,6 +28,7 @@ package org.geysermc.connector.scoreboard;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -36,62 +37,90 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@Getter @Setter
+@Getter
 @Accessors(chain = true)
-public class Team {
+public final class Team {
     private final Scoreboard scoreboard;
     private final String id;
 
-    private UpdateType updateType = UpdateType.ADD;
-    private String name;
+    @Getter(AccessLevel.NONE)
+    private final Set<String> entities;
+    @Setter private NameTagVisibility nameTagVisibility;
+    @Setter private TeamColor color;
 
-    private NameTagVisibility nameTagVisibility;
-    private String prefix;
-    private TeamColor color;
-    private String suffix;
-    private Set<String> entities = new ObjectOpenHashSet<>();
+    private TeamData currentData;
+    private TeamData cachedData;
+
+    private boolean updating;
 
     public Team(Scoreboard scoreboard, String id) {
         this.scoreboard = scoreboard;
         this.id = id;
+        currentData = new TeamData();
+        entities = new ObjectOpenHashSet<>();
     }
 
-    public void addEntities(String... names) {
-        List<String> added = new ArrayList<>();
-        for (String name : names) {
-            if (entities.add(name)) {
-                added.add(name);
-            }
+    private void checkAddedEntities(List<String> added) {
+        if (added.size() == 0) {
+            return;
         }
-        setUpdateType(UpdateType.UPDATE);
+        // we don't have to change the updateType,
+        // because the scores itself need updating, not the team
         for (Objective objective : scoreboard.getObjectives().values()) {
-            for (Score score : objective.getScores().values()) {
-                if (added.contains(score.getName())) {
+            for (String addedEntity : added) {
+                Score score = objective.getScores().get(addedEntity);
+                if (score != null) {
                     score.setTeam(this);
                 }
             }
         }
     }
 
+    public Team addEntities(String... names) {
+        List<String> added = new ArrayList<>();
+        for (String name : names) {
+            if (entities.add(name)) {
+                added.add(name);
+            }
+        }
+        checkAddedEntities(added);
+        return this;
+    }
+
+    public Team addEntities(Set<String> names) {
+        List<String> added = new ArrayList<>();
+        for (String name : names) {
+            if (entities.add(name)) {
+                added.add(name);
+            }
+        }
+        checkAddedEntities(added);
+        return this;
+    }
+
     public void removeEntities(String... names) {
         for (String name : names) {
             entities.remove(name);
         }
-        setUpdateType(UpdateType.UPDATE);
     }
 
     public boolean hasEntity(String name) {
         return entities.contains(name);
     }
 
+    public Team setName(String name) {
+        currentData.name = name;
+        return this;
+    }
+
     public Team setPrefix(String prefix) {
         // replace "null" to an empty string,
         // we do this here to improve the performance of Score#getDisplayName
         if (prefix.length() == 4 && "null".equals(prefix)) {
-            this.prefix = "";
+            currentData.prefix = "";
             return this;
         }
-        this.prefix = prefix;
+        currentData.prefix = prefix;
         return this;
     }
 
@@ -99,15 +128,92 @@ public class Team {
         // replace "null" to an empty string,
         // we do this here to improve the performance of Score#getDisplayName
         if (suffix.length() == 4 && "null".equals(suffix)) {
-            this.suffix = "";
+            currentData.suffix = "";
             return this;
         }
-        this.suffix = suffix;
+        currentData.suffix = suffix;
         return this;
+    }
+
+    public String getDisplayName(String score) {
+        return cachedData != null ?
+                cachedData.getDisplayName(score) :
+                currentData.getDisplayName(score);
+    }
+
+    public void markUpdated() {
+        updating = false;
+    }
+
+    public boolean shouldUpdate() {
+        return updating || cachedData == null || currentData.updateTime > cachedData.updateTime;
+    }
+
+    public void prepareUpdate() {
+        if (updating) {
+            return;
+        }
+        updating = true;
+
+        if (cachedData == null) {
+            cachedData = new TeamData();
+            cachedData.updateType = currentData.updateType != UpdateType.REMOVE ? UpdateType.ADD : UpdateType.REMOVE;
+        } else {
+            cachedData.updateType = currentData.updateType;
+        }
+
+        cachedData.updateTime = currentData.updateTime;
+        cachedData.name = currentData.name;
+        cachedData.prefix = currentData.prefix;
+        cachedData.suffix = currentData.suffix;
+    }
+
+    public UpdateType getUpdateType() {
+        return cachedData != null ? cachedData.updateType : currentData.updateType;
+    }
+
+    public Team setUpdateType(UpdateType updateType) {
+        if (updateType != UpdateType.NOTHING) {
+            currentData.updateTime = System.currentTimeMillis();
+        }
+        currentData.updateType = updateType;
+        return this;
+    }
+
+    public boolean isVisibleFor(String entity) {
+        switch (nameTagVisibility) {
+            case HIDE_FOR_OTHER_TEAMS:
+                return hasEntity(entity);
+            case HIDE_FOR_OWN_TEAM:
+                return !hasEntity(entity);
+            case ALWAYS:
+                return true;
+            case NEVER:
+                return false;
+        }
+        return true;
     }
 
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    @Getter
+    public static final class TeamData {
+        protected UpdateType updateType;
+        protected long updateTime;
+
+        protected String name;
+        protected String prefix;
+        protected String suffix;
+
+        protected TeamData() {
+            updateType = UpdateType.ADD;
+        }
+
+        public String getDisplayName(String score) {
+            return prefix + score + suffix;
+        }
     }
 }

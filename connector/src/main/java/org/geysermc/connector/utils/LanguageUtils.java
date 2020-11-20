@@ -59,6 +59,8 @@ public class LanguageUtils {
      */
     public static void loadGeyserLocale(String locale) {
         locale = formatLocale(locale);
+        // Don't load the locale if it's already loaded.
+        if (LOCALE_MAPPINGS.containsKey(locale)) return;
 
         InputStream localeStream = GeyserConnector.class.getClassLoader().getResourceAsStream("languages/texts/" + locale + ".properties");
 
@@ -103,7 +105,11 @@ public class LanguageUtils {
         locale = formatLocale(locale);
 
         Properties properties = LOCALE_MAPPINGS.get(locale);
-        String formatString = properties.getProperty(key);
+        String formatString = null;
+
+        if (properties != null) {
+            formatString = properties.getProperty(key);
+        }
 
         // Try and get the key from the default locale
         if (formatString == null) {
@@ -131,7 +137,7 @@ public class LanguageUtils {
      * @param locale The locale to format
      * @return The formatted locale
      */
-    private static String formatLocale(String locale) {
+    public static String formatLocale(String locale) {
         try {
             String[] parts = locale.toLowerCase().split("_");
             return parts[0] + "_" + parts[1].toUpperCase();
