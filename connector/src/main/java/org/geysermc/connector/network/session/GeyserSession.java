@@ -34,7 +34,6 @@ import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
@@ -66,6 +65,7 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
@@ -75,7 +75,6 @@ import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -145,6 +144,13 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private boolean jumping;
+
+    /**
+     * The dimension of the player.
+     * As all entities are in the same world, this can be safely applied to all other entities.
+     */
+    @Setter
+    private String dimension = DimensionUtils.OVERWORLD;
 
     @Setter
     private int breakingBlock;
@@ -493,7 +499,7 @@ public class GeyserSession implements CommandSender {
                             event.getCause().printStackTrace();
                         }
 
-                        upstream.disconnect(MessageUtils.getBedrockMessage(MessageSerializer.fromString(event.getReason())));
+                        upstream.disconnect(MessageTranslator.convertMessageLenient(event.getReason()));
                     }
 
                     @Override
@@ -634,12 +640,12 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1);
-        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(playerEntity.getDimension()));
+        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(dimension));
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
-        startGamePacket.setAchievementsDisabled(true);
+        startGamePacket.setAchievementsDisabled(!connector.getConfig().isXboxAchievementsEnabled());
         startGamePacket.setCurrentTick(-1);
         startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
@@ -650,7 +656,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", true));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
-        startGamePacket.setCommandsEnabled(true);
+        startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());
         startGamePacket.setTexturePacksRequired(false);
         startGamePacket.setBonusChestEnabled(false);
         startGamePacket.setStartingWithMap(false);
@@ -672,7 +678,6 @@ public class GeyserSession implements CommandSender {
         // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setBlockPalette(BlockTranslator.BLOCKS);
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);

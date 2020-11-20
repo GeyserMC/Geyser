@@ -67,7 +67,7 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("?", "help", "reload", "shutdown", "stop");
+            return connector.getCommandManager().getCommandNames();
         }
         return new ArrayList<>();
     }

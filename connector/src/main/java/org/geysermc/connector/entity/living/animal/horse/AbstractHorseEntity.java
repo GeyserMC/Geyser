@@ -27,10 +27,14 @@ package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class AbstractHorseEntity extends AnimalEntity {
 
@@ -47,6 +51,30 @@ public class AbstractHorseEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (xd & 0x04) == 0x04);
             metadata.getFlags().setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
             metadata.getFlags().setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
+
+            // HorseFlags
+            // Bred 0x10
+            // Eating 0x20
+            // Open mouth 0x80
+            int horseFlags = 0x0;
+            horseFlags = (xd & 0x40) == 0x40 ? horseFlags | 0x80 : horseFlags;
+
+            // Only set eating when we don't have mouth open so a player interaction doesn't trigger the eating animation
+            horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
+
+            // Set the flags into the display item
+            metadata.put(EntityData.DISPLAY_ITEM, horseFlags);
+
+            // Send the eating particles
+            // We use the wheat metadata as static particles since Java
+            // doesn't send over what item was used to feed the horse
+            if ((xd & 0x40) == 0x40) {
+                EntityEventPacket entityEventPacket = new EntityEventPacket();
+                entityEventPacket.setRuntimeEntityId(geyserId);
+                entityEventPacket.setType(EntityEventType.EATING_ITEM);
+                entityEventPacket.setData(ItemRegistry.WHEAT.getBedrockId() << 16);
+                session.sendUpstreamPacket(entityEventPacket);
+            }
         }
 
         // Needed to control horses

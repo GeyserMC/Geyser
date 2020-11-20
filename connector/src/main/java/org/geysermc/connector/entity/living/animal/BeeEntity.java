@@ -27,7 +27,10 @@ package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -41,9 +44,22 @@ public class BeeEntity extends AnimalEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 16) {
             byte xd = (byte) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
+            // Bee is performing sting attack; trigger animation
+            if ((xd & 0x02) == 0x02) {
+                EntityEventPacket packet = new EntityEventPacket();
+                packet.setRuntimeEntityId(geyserId);
+                packet.setType(EntityEventType.ATTACK_START);
+                packet.setData(0);
+                session.sendUpstreamPacket(packet);
+            }
+            // If the bee has stung
+            metadata.put(EntityData.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
             // If the bee has nectar or not
             metadata.getFlags().setFlag(EntityFlag.POWERED, (xd & 0x08) == 0x08);
+        }
+        if (entityMetadata.getId() == 17) {
+            // Converting "anger time" to a boolean
+            metadata.getFlags().setFlag(EntityFlag.ANGRY, (int) entityMetadata.getValue() > 0);
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

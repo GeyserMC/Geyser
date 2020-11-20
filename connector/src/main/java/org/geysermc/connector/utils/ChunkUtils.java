@@ -28,6 +28,7 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.chunk.BitStorage;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
+import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -65,16 +66,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.JAVA_AIR_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_AIR_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
 
 @UtilityClass
 public class ChunkUtils {
-
     /**
-     * Temporarily stores positions of BlockState values that are needed for certain block entities actively
+     * Temporarily stores positions of BlockState values that are needed for certain block entities actively.
+     * Not used if cache chunks is enabled
      */
     public static final Object2IntMap<Position> CACHED_BLOCK_ENTITIES = new Object2IntOpenHashMap<>();
 
@@ -107,7 +109,7 @@ public class ChunkUtils {
         ChunkSection[] sections = new ChunkSection[javaSections.length];
 
         // Temporarily stores compound tags of Bedrock-only block entities
-        List<NbtMap> bedrockOnlyBlockEntities = Collections.emptyList();
+        List<NbtMap> bedrockOnlyBlockEntities = new ArrayList<>();
 
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
@@ -155,6 +157,33 @@ public class ChunkUtils {
             }
 
             Palette javaPalette = javaSection.getPalette();
+            BitStorage javaData = javaSection.getStorage();
+
+            if (javaPalette instanceof GlobalPalette) {
+                // As this is the global palette, simply iterate through the whole chunk section once
+                ChunkSection section = new ChunkSection();
+                for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
+                    int javaId = javaData.get(yzx);
+                    int bedrockId = BlockTranslator.getBedrockBlockId(javaId);
+                    int xzy = indexYZXtoXZY(yzx);
+                    section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
+
+                    if (BlockTranslator.isWaterlogged(javaId)) {
+                        section.getBlockStorageArray()[1].setFullBlock(xzy, BEDROCK_WATER_ID);
+                    }
+
+                    // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
+                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
+                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                javaId
+                        ));
+                    }
+                }
+                sections[sectionY] = section;
+                continue;
+            }
+
             IntList bedrockPalette = new IntArrayList(javaPalette.size());
             waterloggedPaletteIds.clear();
             pistonOrFlowerPaletteIds.clear();
@@ -174,13 +203,10 @@ public class ChunkUtils {
                 }
             }
 
-            BitStorage javaData = javaSection.getStorage();
-
             // Add Bedrock-exclusive block entities
             // We only if the palette contained any blocks that are Bedrock-exclusive block entities to avoid iterating through the whole block data
             // for no reason, as most sections will not contain any pistons or flower pots
             if (!pistonOrFlowerPaletteIds.isEmpty()) {
-                bedrockOnlyBlockEntities = new ArrayList<>();
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                     int paletteId = javaData.get(yzx);
                     if (pistonOrFlowerPaletteIds.get(paletteId)) {
@@ -221,7 +247,7 @@ public class ChunkUtils {
 
                 // V1 palette
                 IntList layer1Palette = new IntArrayList(2);
-                layer1Palette.add(0); // Air
+                layer1Palette.add(BEDROCK_AIR_ID); // Air - see BlockStorage's constructor for more information
                 layer1Palette.add(BEDROCK_WATER_ID);
 
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
@@ -293,18 +319,37 @@ public class ChunkUtils {
         }
     }
 
+    /**
+     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
+     * adds that block to the cache.
+     * @param session the Bedrock session to send/register the block to
+     * @param blockState the Java block state of the block
+     * @param position the position of the block
+     */
     public static void updateBlock(GeyserSession session, int blockState, Position position) {
         Vector3i pos = Vector3i.from(position.getX(), position.getY(), position.getZ());
         updateBlock(session, blockState, pos);
     }
 
+    /**
+     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
+     * adds that block to the cache.
+     * @param session the Bedrock session to send/register the block to
+     * @param blockState the Java block state of the block
+     * @param position the position of the block
+     */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
-        if (ItemFrameEntity.positionContainsItemFrame(session, position) && blockState == AIR) {
-            ((ItemFrameEntity) session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, position))).updateBlock(session);
-            return;
-        } else if (ItemFrameEntity.positionContainsItemFrame(session, position)) {
-            Entity entity = session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, position));
+        long frameEntityId = ItemFrameEntity.getItemFrameEntityId(session, position);
+        if (frameEntityId != -1) {
+            // TODO: Very occasionally the item frame doesn't sync up when destroyed
+            Entity entity = session.getEntityCache().getEntityByJavaId(frameEntityId);
+            if (blockState == JAVA_AIR_ID && entity != null) { // Item frame is still present and no block overrides that; refresh it
+                ((ItemFrameEntity) entity).updateBlock(session);
+                return;
+            }
+
+            // Otherwise the item frame is gone
             if (entity != null) {
                 session.getEntityCache().removeEntity(entity, false);
             } else {
@@ -328,7 +373,7 @@ public class ChunkUtils {
         if (BlockTranslator.isWaterlogged(blockState)) {
             waterPacket.setRuntimeId(BEDROCK_WATER_ID);
         } else {
-            waterPacket.setRuntimeId(0);
+            waterPacket.setRuntimeId(BEDROCK_AIR_ID);
         }
         session.sendUpstreamPacket(waterPacket);
 
@@ -342,7 +387,10 @@ public class ChunkUtils {
                     ((BedrockOnlyBlockEntity) requiresBlockState).updateBlock(session, blockState, position);
                     break;
                 }
-                CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+                if (!session.getConnector().getConfig().isCacheChunks()) {
+                    // Blocks aren't saved to a chunk cache; resort to this smaller cache
+                    CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
+                }
                 break; //No block will be a part of two classes
             }
         }
