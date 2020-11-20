@@ -27,6 +27,7 @@ package org.geysermc.connector.network.session.cache;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientEditBookPacket;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
@@ -38,11 +39,8 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
  */
 public class BookEditCache {
     private final GeyserSession session;
+    @Setter
     private ClientEditBookPacket packet;
-    /**
-     * If false, we are expecting to send a book edit packet
-     */
-    private boolean noBookToSend;
     /**
      * Stores the last time a book update packet was sent to the server.
      */
@@ -50,14 +48,13 @@ public class BookEditCache {
 
     public BookEditCache(GeyserSession session) {
         this.session = session;
-        this.noBookToSend = true;
     }
 
     /**
      * Check to see if there is a book edit update to send, and if so, send it.
      */
     public void checkForSend() {
-        if (noBookToSend) {
+        if (packet == null) {
             // No new packet has to be sent
             return;
         }
@@ -68,21 +65,11 @@ public class BookEditCache {
         // Don't send the update if the player isn't not holding a book, shouldn't happen if we catch all interactions
         ItemStack itemStack = session.getInventory().getItemInHand();
         if (itemStack == null || itemStack.getId() != ItemRegistry.WRITABLE_BOOK.getJavaId()) {
-            noBookToSend = true;
+            packet = null;
             return;
         }
         session.getDownstream().getSession().send(packet);
-        noBookToSend = true;
+        packet = null;
         lastBookUpdate = System.currentTimeMillis();
-    }
-
-    /**
-     * Set a new {@link ClientEditBookPacket} to be sent to the server when ready
-     *
-     * @param packet the new packet with book information to send to the server
-     */
-    public void setPacket(ClientEditBookPacket packet) {
-        this.packet = packet;
-        noBookToSend = false;
     }
 }
