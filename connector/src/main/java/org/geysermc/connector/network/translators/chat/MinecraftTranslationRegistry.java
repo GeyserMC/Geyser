@@ -61,6 +61,16 @@ public class MinecraftTranslationRegistry implements TranslationRegistry {
         }
         m.appendTail(sb);
 
+        // Replace the `%x$s` with numbered inserts `{x}`
+        p = Pattern.compile("%([0-9]+)\\$s");
+        m = p.matcher(sb.toString());
+        sb = new StringBuffer();
+        while (m.find()) {
+            i = Integer.parseInt(m.group(1)) - 1;
+            m.appendReplacement(sb, "{" + i + "}");
+        }
+        m.appendTail(sb);
+
         return new MessageFormat(sb.toString(), locale);
     }
 

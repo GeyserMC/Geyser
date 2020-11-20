@@ -103,6 +103,9 @@ public class ItemRegistry {
         TypeReference<List<JsonNode>> itemEntriesType = new TypeReference<List<JsonNode>>() {
         };
 
+        // Used to get the Bedrock namespaced ID (in instances where there are small differences)
+        Int2ObjectMap<String> bedrockIdToIdentifier = new Int2ObjectOpenHashMap<>();
+
         List<JsonNode> itemEntries;
         try {
             itemEntries = GeyserConnector.JSON_MAPPER.readValue(stream, itemEntriesType);
@@ -114,6 +117,7 @@ public class ItemRegistry {
 
         for (JsonNode entry : itemEntries) {
             ITEMS.add(new StartGamePacket.ItemEntry(entry.get("name").textValue(), (short) entry.get("id").intValue()));
+            bedrockIdToIdentifier.put(entry.get("id").intValue(), entry.get("name").textValue());
             if (entry.get("name").textValue().equals("minecraft:lodestone_compass")) {
                 lodestoneCompassId = entry.get("id").intValue();
             }
@@ -132,28 +136,29 @@ public class ItemRegistry {
         Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();
+            int bedrockId = entry.getValue().get("bedrock_id").intValue();
+            String bedrockIdentifier = bedrockIdToIdentifier.get(bedrockId);
+            if (bedrockIdentifier == null) {
+                throw new RuntimeException("Missing Bedrock ID in mappings!: " + bedrockId);
+            }
             if (entry.getValue().has("tool_type")) {
                 if (entry.getValue().has("tool_tier")) {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
-                            entry.getKey(), itemIndex,
-                            entry.getValue().get("bedrock_id").intValue(),
+                            entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
                             entry.getValue().get("tool_tier").textValue(),
                             entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
                 } else {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
-                            entry.getKey(), itemIndex,
-                            entry.getValue().get("bedrock_id").intValue(),
+                            entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            "",
-                            entry.getValue().get("is_block").booleanValue()));
+                            "", entry.getValue().get("is_block").booleanValue()));
                 }
             } else {
                 ITEM_ENTRIES.put(itemIndex, new ItemEntry(
-                        entry.getKey(), itemIndex,
-                        entry.getValue().get("bedrock_id").intValue(),
+                        entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                         entry.getValue().get("bedrock_data").intValue(),
                         entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
             }
@@ -197,7 +202,7 @@ public class ItemRegistry {
         }
 
         // Add the loadstone compass since it doesn't exist on java but we need it for item conversion
-        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestone_compass", itemIndex,
+        ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestone_compass", "minecraft:lodestone_compass", itemIndex,
                 lodestoneCompassId, 0, false));
 
         /* Load creative items */
@@ -267,23 +272,6 @@ public class ItemRegistry {
             }
             return null;
         });
-    }
-
-    /**
-     * Finds the Bedrock string identifier of an ItemEntry
-     *
-     * @param entry the ItemEntry to search for
-     * @return the Bedrock identifier
-     */
-    public static String getBedrockIdentifier(ItemEntry entry) {
-        String blockName = "";
-        for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
-            if (startGamePacketItemEntry.getId() == (short) entry.getBedrockId()) {
-                blockName = startGamePacketItemEntry.getIdentifier(); // Find the Bedrock string name
-                break;
-            }
-        }
-        return blockName;
     }
 
     /**
