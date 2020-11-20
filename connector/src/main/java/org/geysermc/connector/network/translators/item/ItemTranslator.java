@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
@@ -35,23 +34,19 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
-
     private static final Int2ObjectMap<ItemTranslator> ITEM_STACK_TRANSLATORS = new Int2ObjectOpenHashMap<>();
     private static final List<NbtItemStackTranslator> NBT_TRANSLATORS;
 
@@ -220,7 +215,7 @@ public abstract class ItemTranslator {
     public abstract List<ItemEntry> getAppliedItems();
 
     public NbtMap translateNbtToBedrock(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
-        Map<String, Object> javaValue = new HashMap<>();
+        NbtMapBuilder builder = NbtMap.builder();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
                 com.github.steveice10.opennbt.tag.builtin.Tag javaTag = tag.get(str);
@@ -228,11 +223,9 @@ public abstract class ItemTranslator {
                 if (translatedTag == null)
                     continue;
 
-                javaValue.put(javaTag.getName(), translatedTag);
+                builder.put(javaTag.getName(), translatedTag);
             }
         }
-        NbtMapBuilder builder = NbtMap.builder();
-        javaValue.forEach(builder::put);
         return builder.build();
     }
 
@@ -388,26 +381,17 @@ public abstract class ItemTranslator {
     public static void translateDisplayProperties(GeyserSession session, CompoundTag tag) {
         if (tag != null) {
             CompoundTag display = tag.get("display");
-            if (display != null && !display.isEmpty() && display.contains("Name")) {
+            if (display != null && display.contains("Name")) {
                 String name = ((StringTag) display.get("Name")).getValue();
 
-                // If its not a message convert it
-                if (!MessageUtils.isMessage(name)) {
-                    Component component = LegacyComponentSerializer.legacySection().deserialize(name);
-                    name = GsonComponentSerializer.gson().serialize(component);
-                }
+                // Get the translated name and prefix it with a reset char
+                name = MessageTranslator.convertMessageLenient(name, session.getLocale());
 
-                // Check if its a message to translate
-                if (MessageUtils.isMessage(name)) {
-                    // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getLocale());
+                // Add the new name tag
+                display.put(new StringTag("Name", name));
 
-                    // Add the new name tag
-                    display.put(new StringTag("Name", name));
-
-                    // Add to the new root tag
-                    tag.put(display);
-                }
+                // Add to the new root tag
+                tag.put(display);
             }
         }
     }

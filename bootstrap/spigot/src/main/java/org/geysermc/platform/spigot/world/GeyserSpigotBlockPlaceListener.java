@@ -36,13 +36,13 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.platform.spigot.world.manager.GeyserSpigotWorldManager;
 
 @AllArgsConstructor
 public class GeyserSpigotBlockPlaceListener implements Listener {
 
     private final GeyserConnector connector;
-    private final boolean isLegacy;
-    private final boolean isViaVersion;
+    private final GeyserSpigotWorldManager worldManager;
 
     @EventHandler
     public void place(final BlockPlaceEvent event) {
@@ -52,14 +52,13 @@ public class GeyserSpigotBlockPlaceListener implements Listener {
                 placeBlockSoundPacket.setSound(SoundEvent.PLACE);
                 placeBlockSoundPacket.setPosition(Vector3f.from(event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ()));
                 placeBlockSoundPacket.setBabySound(false);
-                String javaBlockId;
-                if (isLegacy) {
-                    javaBlockId = BlockTranslator.getJavaIdBlockMap().inverse().get(GeyserSpigotWorldManager.getLegacyBlock(session,
-                            event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ(), isViaVersion));
+                if (worldManager.isLegacy()) {
+                    placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(worldManager.getBlockAt(session,
+                            event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ())));
                 } else {
-                    javaBlockId = event.getBlockPlaced().getBlockData().getAsString();
+                    String javaBlockId = event.getBlockPlaced().getBlockData().getAsString();
+                    placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaIdBlockMap().getOrDefault(javaBlockId, BlockTranslator.JAVA_AIR_ID)));
                 }
-                placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaIdBlockMap().getOrDefault(javaBlockId, 0)));
                 placeBlockSoundPacket.setIdentifier(":");
                 session.sendUpstreamPacket(placeBlockSoundPacket);
                 session.setLastBlockPlacePosition(null);

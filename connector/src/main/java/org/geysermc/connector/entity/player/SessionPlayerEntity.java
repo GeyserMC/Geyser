@@ -23,29 +23,45 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity;
+package org.geysermc.connector.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 /**
- * A wrapper to handle skulls more effectively - skulls have to be treated as entities since there are no
- * custom player skulls in Bedrock.
+ * The entity class specifically for a {@link GeyserSession}'s player.
  */
-public class SkullPlayerEntity extends PlayerEntity {
+public class SessionPlayerEntity extends PlayerEntity {
 
-    public SkullPlayerEntity(GameProfile gameProfile, long geyserId, Vector3f position, Vector3f rotation) {
-        super(gameProfile, 0, geyserId, position, Vector3f.ZERO, rotation);
-        setPlayerList(false);
+    private final GeyserSession session;
 
-        //Set bounding box to almost nothing so the skull is able to be broken and not cause entity to cast a shadow
-        metadata.clear();
-        metadata.put(EntityData.SCALE, 1.08f);
-        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.001f);
-        metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.001f);
-        metadata.getOrCreateFlags().setFlag(EntityFlag.CAN_SHOW_NAME, false);
-        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true); // Until the skin is loaded
+    public SessionPlayerEntity(GeyserSession session) {
+        super(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
+
+        valid = true;
+        this.session = session;
+        this.session.getCollisionManager().updatePlayerBoundingBox(position);
+    }
+
+    @Override
+    public void spawnEntity(GeyserSession session) {
+        // Already logged in
+    }
+
+    @Override
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        session.getCollisionManager().updatePlayerBoundingBox(position);
+        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+    }
+
+    @Override
+    public void setPosition(Vector3f position) {
+        if (session != null) { // null during entity initialization
+            session.getCollisionManager().updatePlayerBoundingBox(position);
+        }
+        super.setPosition(position);
     }
 }

@@ -34,8 +34,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.entity.PlayerEntity;
-import org.geysermc.connector.entity.SkullPlayerEntity;
+import org.geysermc.connector.entity.player.SkullPlayerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 

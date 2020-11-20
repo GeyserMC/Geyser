@@ -26,20 +26,16 @@
 package org.geysermc.connector.network.translators.item.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,54 +45,13 @@ import java.util.stream.Collectors;
 
 @ItemRemapper
 public class BannerTranslator extends ItemTranslator {
-
     private final List<ItemEntry> appliedItems;
 
     public BannerTranslator() {
-        appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("banner")).collect(Collectors.toList());
-    }
-
-    @Override
-    public ItemData translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
-        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, itemEntry);
-
-        ItemData itemData = super.translateToBedrock(itemStack, itemEntry);
-
-        CompoundTag blockEntityTag = itemStack.getNbt().get("BlockEntityTag");
-        if (blockEntityTag.contains("Patterns")) {
-            ListTag patterns = blockEntityTag.get("Patterns");
-
-            NbtMapBuilder builder = itemData.getTag().toBuilder();
-            builder.put("Patterns", convertBannerPattern(patterns));
-
-            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.build());
-        }
-
-        return itemData;
-    }
-
-    @Override
-    public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
-        if (itemData.getTag() == null) return super.translateToJava(itemData, itemEntry);
-
-        ItemStack itemStack = super.translateToJava(itemData, itemEntry);
-
-        NbtMap nbtTag = itemData.getTag();
-        if (nbtTag.containsKey("Patterns", NbtType.COMPOUND)) {
-            List<NbtMap> patterns = nbtTag.getList("Patterns", NbtType.COMPOUND);
-
-            CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
-            blockEntityTag.put(convertBannerPattern(patterns));
-
-            itemStack.getNbt().put(blockEntityTag);
-        }
-
-        return itemStack;
-    }
-
-    @Override
-    public List<ItemEntry> getAppliedItems() {
-        return appliedItems;
+        appliedItems = ItemRegistry.ITEM_ENTRIES.values()
+                .stream()
+                .filter(entry -> entry.getJavaIdentifier().endsWith("banner"))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -133,7 +88,6 @@ public class BannerTranslator extends ItemTranslator {
 
         return NbtMap.builder()
                 .putInt("Color", 15 - (int) pattern.get("Color").getValue())
-                .putString("Pattern", (String) pattern.get("Pattern").getValue())
                 .putString("Pattern", patternName)
                 .build();
     }
@@ -147,8 +101,7 @@ public class BannerTranslator extends ItemTranslator {
     public static ListTag convertBannerPattern(List<NbtMap> patterns) {
         List<Tag> tagsList = new ArrayList<>();
         for (Object patternTag : patterns) {
-            CompoundTag newPatternTag = getJavaBannerPattern((NbtMap) patternTag);
-            tagsList.add(newPatternTag);
+            tagsList.add(getJavaBannerPattern((NbtMap) patternTag));
         }
 
         return new ListTag("Patterns", tagsList);
@@ -166,5 +119,52 @@ public class BannerTranslator extends ItemTranslator {
         tags.put("Pattern", new StringTag("Pattern", pattern.getString("Pattern")));
 
         return new CompoundTag("", tags);
+    }
+
+    @Override
+    public ItemData translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
+        if (itemStack.getNbt() == null) {
+            return super.translateToBedrock(itemStack, itemEntry);
+        }
+
+        ItemData itemData = super.translateToBedrock(itemStack, itemEntry);
+
+        CompoundTag blockEntityTag = itemStack.getNbt().get("BlockEntityTag");
+        if (blockEntityTag != null && blockEntityTag.contains("Patterns")) {
+            ListTag patterns = blockEntityTag.get("Patterns");
+
+            NbtMapBuilder builder = itemData.getTag().toBuilder();
+            builder.put("Patterns", convertBannerPattern(patterns));
+
+            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.build());
+        }
+
+        return itemData;
+    }
+
+    @Override
+    public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
+        if (itemData.getTag() == null) {
+            return super.translateToJava(itemData, itemEntry);
+        }
+
+        ItemStack itemStack = super.translateToJava(itemData, itemEntry);
+
+        NbtMap nbtTag = itemData.getTag();
+        if (nbtTag.containsKey("Patterns", NbtType.COMPOUND)) {
+            List<NbtMap> patterns = nbtTag.getList("Patterns", NbtType.COMPOUND);
+
+            CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
+            blockEntityTag.put(convertBannerPattern(patterns));
+
+            itemStack.getNbt().put(blockEntityTag);
+        }
+
+        return itemStack;
+    }
+
+    @Override
+    public List<ItemEntry> getAppliedItems() {
+        return appliedItems;
     }
 }
