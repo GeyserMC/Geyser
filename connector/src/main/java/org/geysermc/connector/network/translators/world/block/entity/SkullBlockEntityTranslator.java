@@ -62,10 +62,11 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         byte skullVariant = BlockStateValues.getSkullVariant(blockState);
         float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;
         // Just in case...
-        if (skullVariant == -1) skullVariant = 0;
-        tags.put("Rotation", rotation);
-        tags.put("SkullType", skullVariant);
-        return tags;
+        if (skullVariant == -1) {
+            skullVariant = 0;
+        }
+        builder.put("Rotation", rotation);
+        builder.put("SkullType", skullVariant);
     }
 
     public static GameProfile getProfile(CompoundTag tag, GeyserSession session) {

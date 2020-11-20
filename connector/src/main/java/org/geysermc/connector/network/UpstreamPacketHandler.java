@@ -48,6 +48,7 @@ import org.geysermc.connector.utils.MathUtils;
 import org.geysermc.connector.utils.ResourcePack;
 import org.geysermc.connector.utils.ResourcePackManifest;
 import org.geysermc.connector.utils.SettingsUtils;
+import org.geysermc.connector.utils.StatisticsUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -82,9 +83,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (packetCodec == null) {
             if (loginPacket.getProtocolVersion() > BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
+                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 return true;
             } else if (loginPacket.getProtocolVersion() < BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 return true;
             }
@@ -146,7 +149,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             case HAVE_ALL_PACKS:
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
-                stackPacket.setExperimental(false);
+                stackPacket.setExperimentsPreviouslyToggled(false);
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
 
@@ -177,6 +180,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         if (packet.getFormId() == SettingsUtils.SETTINGS_FORM_ID) {
             return SettingsUtils.handleSettingsForm(session, packet.getFormData());
+        } else if (packet.getFormId() == StatisticsUtils.STATISTICS_MENU_FORM_ID) {
+            return StatisticsUtils.handleMenuForm(session, packet.getFormData());
+        } else if (packet.getFormId() == StatisticsUtils.STATISTICS_LIST_FORM_ID) {
+            return StatisticsUtils.handleListForm(session, packet.getFormData());
         }
 
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
@@ -208,7 +215,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         packet = result.getEvent().getPacket();
 
-        LanguageUtils.loadGeyserLocale(session.getClientData().getLanguageCode());
+        LanguageUtils.loadGeyserLocale(session.getLocale());
 
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
             PlayStatusPacket playStatusPacket = new PlayStatusPacket();
@@ -234,7 +241,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         packet = result.getEvent().getPacket();
 
         if (session.isLoggingIn()) {
-            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getClientData().getLanguageCode()));
+            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
         }
 
         return translateAndDefault(packet);

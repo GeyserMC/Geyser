@@ -58,9 +58,8 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     if (self) {
                         // Entity is ourself
                         playerEntity = session.getPlayerEntity();
-                        SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape -> {
-                            GeyserConnector.getInstance().getLogger().debug("Loading Local Bedrock Java Skin Data");
-                        });
+                        SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
+                                GeyserConnector.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data"));
                     } else {
                         playerEntity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
                     }

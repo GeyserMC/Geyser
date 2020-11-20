@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @ItemRemapper
 public class PotionTranslator extends ItemTranslator {
 
-    private List<ItemEntry> appliedItems;
+    private final List<ItemEntry> appliedItems;
 
     public PotionTranslator() {
         appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("potion")).collect(Collectors.toList());
@@ -57,7 +57,7 @@ public class PotionTranslator extends ItemTranslator {
             if (potion != null) {
                 return ItemData.of(itemEntry.getBedrockId(), potion.getBedrockId(), itemStack.getAmount(), translateNbtToBedrock(itemStack.getNbt()));
             }
-            GeyserConnector.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
+            GeyserConnector.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
         }
         return super.translateToBedrock(itemStack, itemEntry);
     }

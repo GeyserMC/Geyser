@@ -31,27 +31,26 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.*;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class CommandManager {
 
     @Getter
     private final Map<String, GeyserCommand> commands = Collections.synchronizedMap(new HashMap<>());
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public CommandManager(GeyserConnector connector) {
         this.connector = connector;
 
-        registerCommand(new HelpCommand(connector, "help", LanguageUtils.getLocaleStringLog("geyser.commands.help.desc"), "geyser.command.help"));
-        registerCommand(new ListCommand(connector, "list", LanguageUtils.getLocaleStringLog("geyser.commands.list.desc"), "geyser.command.list"));
-        registerCommand(new ReloadCommand(connector, "reload", LanguageUtils.getLocaleStringLog("geyser.commands.reload.desc"), "geyser.command.reload"));
-        registerCommand(new StopCommand(connector, "stop", LanguageUtils.getLocaleStringLog("geyser.commands.stop.desc"), "geyser.command.stop"));
-        registerCommand(new OffhandCommand(connector, "offhand", LanguageUtils.getLocaleStringLog("geyser.commands.offhand.desc"), "geyser.command.offhand"));
-        registerCommand(new DumpCommand(connector, "dump", LanguageUtils.getLocaleStringLog("geyser.commands.dump.desc"), "geyser.command.dump"));
-        registerCommand(new VersionCommand(connector, "version", LanguageUtils.getLocaleStringLog("geyser.commands.version.desc"), "geyser.command.version"));
+        registerCommand(new HelpCommand(connector, "help", "geyser.commands.help.desc", "geyser.command.help"));
+        registerCommand(new ListCommand(connector, "list", "geyser.commands.list.desc", "geyser.command.list"));
+        registerCommand(new ReloadCommand(connector, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
+        registerCommand(new StopCommand(connector, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
+        registerCommand(new OffhandCommand(connector, "offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
+        registerCommand(new DumpCommand(connector, "dump", "geyser.commands.dump.desc", "geyser.command.dump"));
+        registerCommand(new VersionCommand(connector, "version", "geyser.commands.version.desc", "geyser.command.version"));
+        registerCommand(new StatisticsCommand(connector, "statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
     }
 
     public void registerCommand(GeyserCommand command) {
@@ -89,6 +88,13 @@ public abstract class CommandManager {
         }
 
         cmd.execute(sender, args);
+    }
+
+    /**
+     * @return a list of all subcommands under {@code /geyser}.
+     */
+    public List<String> getCommandNames() {
+        return Arrays.asList(connector.getCommandManager().getCommands().keySet().toArray(new String[0]));
     }
 
     /**

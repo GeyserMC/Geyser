@@ -171,7 +171,8 @@ public class FileUtils {
     }
 
     /**
-     * Calculate the SHA256 hash of the resource pack file
+     * Calculate the SHA256 hash of a file
+     *
      * @param file File to calculate the hash for
      * @return A byte[] representation of the hash
      */
@@ -185,6 +186,24 @@ public class FileUtils {
         }
 
         return sha256;
+    }
+
+    /**
+     * Calculate the SHA1 hash of a file
+     *
+     * @param file File to calculate the hash for
+     * @return A byte[] representation of the hash
+     */
+    public static byte[] calculateSHA1(File file) {
+        byte[] sha1;
+
+        try {
+            sha1 = MessageDigest.getInstance("SHA-1").digest(Files.readAllBytes(file.toPath()));
+        } catch (Exception e) {
+            throw new RuntimeException("Could not calculate pack hash", e);
+        }
+
+        return sha1;
     }
 
     /**

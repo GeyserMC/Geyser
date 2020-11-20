@@ -243,4 +243,5 @@ public-key.pem
 locales/
 /cache/
 /packs/
+/dump.json
 /extensions/

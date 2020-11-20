@@ -35,30 +35,19 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
 public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
-
-    @Override
-    public boolean isBlock(int blockState) {
-        return (BlockStateValues.getFlowerPotValues().containsKey(blockState));
-    }
-
-    @Override
-    public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
-        BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
-        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-        updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(blockState));
-        updateBlockPacket.setBlockPosition(position);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        session.sendUpstreamPacket(updateBlockPacket);
-        BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
+    /**
+     * @param blockState the Java block state of a potential flower pot block
+     * @return true if the block is a flower pot
+     */
+    public static boolean isFlowerBlock(int blockState) {
+        return BlockStateValues.getFlowerPotValues().containsKey(blockState);
     }
 
     /**
      * Get the Nukkit CompoundTag of the flower pot.
+     *
      * @param blockState Java block state of flower pot.
-     * @param position Bedrock position of flower pot.
+     * @param position   Bedrock position of flower pot.
      * @return Bedrock tag of flower pot.
      */
     public static NbtMap getTag(int blockState, Vector3i position) {
@@ -79,5 +68,24 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
             }
         }
         return tagBuilder.build();
+    }
+
+    @Override
+    public boolean isBlock(int blockState) {
+        return isFlowerBlock(blockState);
+    }
+
+    @Override
+    public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
+        BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
+        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+        updateBlockPacket.setDataLayer(0);
+        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(blockState));
+        updateBlockPacket.setBlockPosition(position);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
+        session.sendUpstreamPacket(updateBlockPacket);
+        BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
     }
 }

@@ -36,21 +36,20 @@ import org.geysermc.connector.utils.ChunkUtils;
  * Does not implement BlockEntityTranslator because it's only a block entity in Bedrock
  */
 public class NoteblockBlockEntityTranslator implements RequiresBlockState {
-
     @Override
     public boolean isBlock(int blockState) {
         return BlockStateValues.getNoteblockPitch(blockState) != -1;
     }
 
     public static void translate(GeyserSession session, Position position) {
-        int blockState = ChunkUtils.CACHED_BLOCK_ENTITIES.getOrDefault(position, 0);
+        int blockState = session.getConnector().getConfig().isCacheChunks() ?
+                session.getConnector().getWorldManager().getBlockAt(session, position) :
+                ChunkUtils.CACHED_BLOCK_ENTITIES.removeInt(position);
         BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
         blockEventPacket.setEventType(0);
         blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
         session.sendUpstreamPacket(blockEventPacket);
-
-        ChunkUtils.CACHED_BLOCK_ENTITIES.remove(position);
     }
 
 }

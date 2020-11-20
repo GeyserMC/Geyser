@@ -26,38 +26,33 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
+import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.utils.MessageUtils;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @BlockEntity(name = "CommandBlock", regex = "command_block")
 public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> map = new HashMap<>();
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         if (tag.size() < 5) {
-            return map; // These values aren't here
+            return; // These values aren't here
         }
         // Java infers from the block state, but Bedrock needs it in the tag
-        map.put("conditionalMode", BlockStateValues.getCommandBlockValues().getOrDefault(blockState, (byte) 0));
+        builder.put("conditionalMode", BlockStateValues.getCommandBlockValues().getOrDefault(blockState, (byte) 0));
         // Java and Bedrock values
-        map.put("conditionMet", ((ByteTag) tag.get("conditionMet")).getValue());
-        map.put("auto", ((ByteTag) tag.get("auto")).getValue());
-        map.put("CustomName", MessageUtils.getBedrockMessage(((StringTag) tag.get("CustomName")).getValue()));
-        map.put("powered", ((ByteTag) tag.get("powered")).getValue());
-        map.put("Command", ((StringTag) tag.get("Command")).getValue());
-        map.put("SuccessCount", ((IntTag) tag.get("SuccessCount")).getValue());
-        map.put("TrackOutput", ((ByteTag) tag.get("TrackOutput")).getValue());
-        map.put("UpdateLastExecution", ((ByteTag) tag.get("UpdateLastExecution")).getValue());
+        builder.put("conditionMet", ((ByteTag) tag.get("conditionMet")).getValue());
+        builder.put("auto", ((ByteTag) tag.get("auto")).getValue());
+        builder.put("CustomName", MessageTranslator.convertMessage(((StringTag) tag.get("CustomName")).getValue()));
+        builder.put("powered", ((ByteTag) tag.get("powered")).getValue());
+        builder.put("Command", ((StringTag) tag.get("Command")).getValue());
+        builder.put("SuccessCount", ((IntTag) tag.get("SuccessCount")).getValue());
+        builder.put("TrackOutput", ((ByteTag) tag.get("TrackOutput")).getValue());
+        builder.put("UpdateLastExecution", ((ByteTag) tag.get("UpdateLastExecution")).getValue());
         if (tag.get("LastExecution") != null) {
-            map.put("LastExecution", ((LongTag) tag.get("LastExecution")).getValue());
+            builder.put("LastExecution", ((LongTag) tag.get("LastExecution")).getValue());
         } else {
-            map.put("LastExecution", (long) 0);
+            builder.put("LastExecution", (long) 0);
         }
-        return map;
     }
 
     @Override

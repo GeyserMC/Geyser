@@ -26,63 +26,58 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.entity.type.EntityType;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @BlockEntity(name = "MobSpawner", regex = "mob_spawner")
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
-
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        Tag current;
 
-        if (tag.get("MaxNearbyEntities") != null) {
-            tags.put("MaxNearbyEntities", (short) tag.get("MaxNearbyEntities").getValue());
+        if ((current = tag.get("MaxNearbyEntities")) != null) {
+            builder.put("MaxNearbyEntities", current.getValue());
         }
 
-        if (tag.get("RequiredPlayerRange") != null) {
-            tags.put("RequiredPlayerRange", (short) tag.get("RequiredPlayerRange").getValue());
+        if ((current = tag.get("RequiredPlayerRange")) != null) {
+            builder.put("RequiredPlayerRange", current.getValue());
         }
 
-        if (tag.get("SpawnCount") != null) {
-            tags.put("SpawnCount", (short) tag.get("SpawnCount").getValue());
+        if ((current = tag.get("SpawnCount")) != null) {
+            builder.put("SpawnCount", current.getValue());
         }
 
-        if (tag.get("MaxSpawnDelay") != null) {
-            tags.put("MaxSpawnDelay", (short) tag.get("MaxSpawnDelay").getValue());
+        if ((current = tag.get("MaxSpawnDelay")) != null) {
+            builder.put("MaxSpawnDelay", current.getValue());
         }
 
-        if (tag.get("Delay") != null) {
-            tags.put("Delay", (short) tag.get("Delay").getValue());
+        if ((current = tag.get("Delay")) != null) {
+            builder.put("Delay", current.getValue());
         }
 
-        if (tag.get("SpawnRange") != null) {
-            tags.put("SpawnRange", (short) tag.get("SpawnRange").getValue());
+        if ((current = tag.get("SpawnRange")) != null) {
+            builder.put("SpawnRange", current.getValue());
         }
 
-        if (tag.get("MinSpawnDelay") != null) {
-            tags.put("MinSpawnDelay", (short) tag.get("MinSpawnDelay").getValue());
+        if ((current = tag.get("MinSpawnDelay")) != null) {
+            builder.put("MinSpawnDelay", current.getValue());
         }
 
-        if (tag.get("SpawnData") != null) {
-            CompoundTag spawnData = tag.get("SpawnData");
+        CompoundTag spawnData = tag.get("SpawnData");
+        if (spawnData != null) {
             String entityID = (String) spawnData.get("id").getValue();
-            tags.put("EntityIdentifier", entityID);
+            builder.put("EntityIdentifier", entityID);
 
             EntityType type = EntityType.getFromIdentifier(entityID);
             if (type != null) {
-                tags.put("DisplayEntityWidth", type.getWidth());
-                tags.put("DisplayEntityHeight", type.getHeight());
-                tags.put("DisplayEntityScale", 1.0f);
+                builder.put("DisplayEntityWidth", type.getWidth());
+                builder.put("DisplayEntityHeight", type.getHeight());
+                builder.put("DisplayEntityScale", 1.0f);
             }
         }
 
-        tags.put("id", "MobSpawner");
-        tags.put("isMovable", (byte) 1);
-
-        return tags;
+        builder.put("id", "MobSpawner");
+        builder.put("isMovable", (byte) 1);
     }
-
 }

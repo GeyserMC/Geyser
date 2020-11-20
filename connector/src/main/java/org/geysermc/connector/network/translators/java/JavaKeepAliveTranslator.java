@@ -23,15 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.cache;
+package org.geysermc.connector.network.translators.java;
 
-import lombok.Getter;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-import java.util.HashMap;
-import java.util.Map;
+/**
+ * Used to forward the keep alive packet to the client in order to get back a reliable ping.
+ */
+@Translator(packet = ServerKeepAlivePacket.class)
+public class JavaKeepAliveTranslator extends PacketTranslator<ServerKeepAlivePacket> {
 
-public class DataCache<T> {
-
-    @Getter
-    private Map<String, T> cachedValues = new HashMap<String, T>();
+    @Override
+    public void translate(ServerKeepAlivePacket packet, GeyserSession session) {
+        session.setLastKeepAliveTimestamp(packet.getPingId());
+        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+        latencyPacket.setFromServer(true);
+        latencyPacket.setTimestamp(packet.getPingId());
+        session.sendUpstreamPacket(latencyPacket);
+    }
 }

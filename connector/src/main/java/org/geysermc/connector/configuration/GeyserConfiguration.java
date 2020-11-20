@@ -83,6 +83,8 @@ public interface GeyserConfiguration {
 
     boolean isAllowCustomSkulls();
 
+    boolean isXboxAchievementsEnabled();
+
     int getCacheImages();
 
     IMetricsInfo getMetrics();

@@ -34,8 +34,7 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.InputStream;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Manages any recipe-related storing
@@ -46,22 +45,45 @@ public class RecipeRegistry {
      * A list of all possible leather armor dyeing recipes.
      * Created manually.
      */
-    public static List<CraftingData> LEATHER_DYEING_RECIPES = new ObjectArrayList<>();
+    public static final List<CraftingData> LEATHER_DYEING_RECIPES = new ObjectArrayList<>();
     /**
      * A list of all possible firework rocket recipes, including the base rocket.
      * Obtained from a ProxyPass dump of protocol v407
      */
-    public static List<CraftingData> FIREWORK_ROCKET_RECIPES = new ObjectArrayList<>(21);
+    public static final List<CraftingData> FIREWORK_ROCKET_RECIPES = new ObjectArrayList<>();
     /**
      * A list of all possible firework star recipes.
      * Obtained from a ProxyPass dump of protocol v407
      */
-    public static List<CraftingData> FIREWORK_STAR_RECIPES = new ObjectArrayList<>(40);
+    public static final List<CraftingData> FIREWORK_STAR_RECIPES = new ObjectArrayList<>();
     /**
      * A list of all possible shulker box dyeing options.
      * Obtained from a ProxyPass dump of protocol v407
      */
-    public static List<CraftingData> SHULKER_BOX_DYEING_RECIPES = new ObjectArrayList<>();
+    public static final List<CraftingData> SHULKER_BOX_DYEING_RECIPES = new ObjectArrayList<>();
+    /**
+     * A list of all possible suspicious stew recipes.
+     * Obtained from a ProxyPass dump of protocol v407
+     */
+    public static final List<CraftingData> SUSPICIOUS_STEW_RECIPES = new ObjectArrayList<>();
+    /**
+     * A list of all possible tipped arrow recipes.
+     * Obtained from a ProxyPass dump of protocol v407
+     */
+    public static final List<CraftingData> TIPPED_ARROW_RECIPES = new ObjectArrayList<>();
+
+    // TODO: These are the other "multi" UUIDs that supposedly enable various recipes. Find out what each enables.
+    // 442d85ed-8272-4543-a6f1-418f90ded05d 8b36268c-1829-483c-a0f1-993b7156a8f2 602234e4-cac1-4353-8bb7-b1ebff70024b 98c84b38-1085-46bd-b1ce-dd38c159e6cc
+    // d81aaeaf-e172-4440-9225-868df030d27b b5c5d105-75a2-4076-af2b-923ea2bf4bf0 00000000-0000-0000-0000-000000000002 85939755-ba10-4d9d-a4cc-efb7a8e943c4
+    // d392b075-4ba1-40ae-8789-af868d56f6ce aecd2294-4b94-434b-8667-4499bb2c9327
+    /**
+     * Recipe data that, when sent to the client, enables book cloning
+     */
+    public static final CraftingData BOOK_CLONING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"));
+    /**
+     * Recipe data that, when sent to the client, enables tool repairing in a crafting table
+     */
+    public static final CraftingData TOOL_REPAIRING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"));
 
     static {
         // Get all recipes that are not directly sent from a Java server
@@ -88,6 +110,12 @@ public class RecipeRegistry {
         for (JsonNode entry : items.get("shulker_boxes")) {
             SHULKER_BOX_DYEING_RECIPES.add(getCraftingDataFromJsonNode(entry));
         }
+        for (JsonNode entry : items.get("suspicious_stew")) {
+            SUSPICIOUS_STEW_RECIPES.add(getCraftingDataFromJsonNode(entry));
+        }
+        for (JsonNode entry : items.get("tipped_arrows")) {
+            TIPPED_ARROW_RECIPES.add(getCraftingDataFromJsonNode(entry));
+        }
     }
 
     /**
@@ -97,11 +125,41 @@ public class RecipeRegistry {
      */
     private static CraftingData getCraftingDataFromJsonNode(JsonNode node) {
         ItemData output = ItemRegistry.getBedrockItemFromJson(node.get("output").get(0));
+        UUID uuid = UUID.randomUUID();
+        if (node.get("type").asInt() == 1) {
+            // Shaped recipe
+            List<String> shape = new ArrayList<>();
+            // Get the shape of the recipe
+            for (JsonNode chars : node.get("shape")) {
+                shape.add(chars.asText());
+            }
+
+            // In recipes.json each recipe is mapped by a letter
+            Map<String, ItemData> letterToRecipe = new HashMap<>();
+            Iterator<Map.Entry<String, JsonNode>> iterator = node.get("input").fields();
+            while (iterator.hasNext()) {
+                Map.Entry<String, JsonNode> entry = iterator.next();
+                letterToRecipe.put(entry.getKey(), ItemRegistry.getBedrockItemFromJson(entry.getValue()));
+            }
+
+            ItemData[] inputs = new ItemData[shape.size() * shape.get(0).length()];
+            int i = 0;
+            // Create a linear array of items from the "cube" of the shape
+            for (int j = 0; i < shape.size() * shape.get(0).length(); j++) {
+                for (char c : shape.get(j).toCharArray()) {
+                    ItemData data = letterToRecipe.getOrDefault(String.valueOf(c), ItemData.AIR);
+                    inputs[i] = data;
+                    i++;
+                }
+            }
+
+            return CraftingData.fromShaped(uuid.toString(), shape.get(0).length(), shape.size(),
+                    inputs, new ItemData[]{output}, uuid, "crafting_table", 0);
+        }
         List<ItemData> inputs = new ObjectArrayList<>();
         for (JsonNode entry : node.get("input")) {
             inputs.add(ItemRegistry.getBedrockItemFromJson(entry));
         }
-        UUID uuid = UUID.randomUUID();
         if (node.get("type").asInt() == 5) {
             // Shulker box
             return CraftingData.fromShulkerBox(uuid.toString(),
