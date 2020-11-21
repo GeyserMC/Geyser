@@ -56,8 +56,14 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
                 break;
         }
 
+        // Fallback to the old method if raw isn't set
+        String message = packet.getMessage().toString();
+        if (packet.getRawMessage() != null) {
+            message = packet.getRawMessage();
+        }
+
         textPacket.setNeedsTranslation(false);
-        textPacket.setMessage(MessageTranslator.convertMessage(packet.getMessage().toString(), session.getLocale()));
+        textPacket.setMessage(MessageTranslator.convertMessage(message, session.getLocale()));
 
         session.sendUpstreamPacket(textPacket);
     }

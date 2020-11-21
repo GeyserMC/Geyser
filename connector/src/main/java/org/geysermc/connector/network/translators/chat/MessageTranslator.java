@@ -42,6 +42,11 @@ public class MessageTranslator {
     // These are used for handling the translations of the messages
     private static final TranslatableComponentRenderer<Locale> RENDERER = TranslatableComponentRenderer.usingTranslationSource(new MinecraftTranslationRegistry());
 
+    //
+    private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.builder()
+            .legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.INSTANCE)
+            .build();
+
     // Store team colors for player names
     private static final Map<TeamColor, String> TEAM_COLORS = new HashMap<>();
 
@@ -76,7 +81,7 @@ public class MessageTranslator {
      * @return Parsed and formatted message for bedrock
      */
     public static String convertMessage(String message, String locale) {
-        Component component = GsonComponentSerializer.gson().deserialize(message);
+        Component component = GSON_SERIALIZER.deserialize(message);
 
         // Get a Locale from the given locale string
         Locale localeCode = Locale.forLanguageTag(locale.replace('_', '-'));
@@ -134,7 +139,7 @@ public class MessageTranslator {
      */
     public static String convertToJavaMessage(String message) {
         Component component = LegacyComponentSerializer.legacySection().deserialize(message);
-        return GsonComponentSerializer.gson().serialize(component);
+        return GSON_SERIALIZER.serialize(component);
     }
 
     /**
@@ -149,7 +154,7 @@ public class MessageTranslator {
         }
 
         try {
-            GsonComponentSerializer.gson().deserialize(text);
+            GSON_SERIALIZER.deserialize(text);
         } catch (Exception ex) {
             return false;
         }
