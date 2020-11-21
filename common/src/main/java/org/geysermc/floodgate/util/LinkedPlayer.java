@@ -58,11 +58,11 @@ public final class LinkedPlayer {
     }
 
     static LinkedPlayer fromString(String data) {
-        if (data.length() == 4) {
+        String[] split = data.split(";");
+        if (split.length != 3) {
             return null;
         }
 
-        String[] split = data.split(";");
         LinkedPlayer player = new LinkedPlayer(
                 split[0], UUID.fromString(split[1]), UUID.fromString(split[2])
         );
