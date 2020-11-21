@@ -42,7 +42,6 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayerListEntryPacket> {
     @Override
     public void translate(ServerPlayerListEntryPacket packet, GeyserSession session) {
-        System.out.println(packet.toString());
         if (packet.getAction() != PlayerListEntryAction.ADD_PLAYER && packet.getAction() != PlayerListEntryAction.REMOVE_PLAYER)
             return;
 

@@ -85,7 +85,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return null;
     }
 
-    public static void spawnPlayer(GeyserSession session, com.github.steveice10.opennbt.tag.builtin.CompoundTag tag, int blockState) {
+    public static void spawnPlayer(GeyserSession session, CompoundTag tag, int blockState) {
         int posX = (int) tag.get("x").getValue();
         int posY = (int) tag.get("y").getValue();
         int posZ = (int) tag.get("z").getValue();
@@ -123,17 +123,24 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
 
         GameProfile gameProfile = getProfile(tag);
-
         if (gameProfile == null) {
             return;
         }
 
+        Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
         Vector3f rotationVector = Vector3f.from(rotation, 0, rotation);
 
+        SkullPlayerEntity existingSkull = session.getSkullCache().get(blockPosition);
+        if (existingSkull != null) {
+            // Ensure that two skulls can't spawn on the same point
+            existingSkull.despawnEntity(session, blockPosition);
+        }
+
         SkullPlayerEntity player = new SkullPlayerEntity(gameProfile, geyserId, Vector3f.from(x, y, z), rotationVector);
+        player.setBlockState(blockState);
 
         // Cache entity
-        session.getSkullCache().put(Vector3i.from(posX, posY, posZ), player);
+        session.getSkullCache().put(blockPosition, player);
 
         // Only send to session if we are initialized, otherwise it will happen then.
         if (session.getUpstream().isInitialized()) {

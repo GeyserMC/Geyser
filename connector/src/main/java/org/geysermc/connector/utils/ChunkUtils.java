@@ -41,7 +41,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -71,9 +70,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.JAVA_AIR_ID;
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_AIR_ID;
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
 
 @UtilityClass
 public class ChunkUtils {
@@ -369,12 +366,9 @@ public class ChunkUtils {
         }
 
         SkullPlayerEntity skull = session.getSkullCache().getOrDefault(position, null);
-        if (skull != null && blockState == JAVA_AIR_ID) {
+        if (skull != null && blockState != skull.getBlockState()) {
             // Skull is gone
-            RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
-            removeEntityPacket.setUniqueEntityId(skull.getGeyserId());
-            session.sendUpstreamPacket(removeEntityPacket);
-            session.getSkullCache().remove(position);
+            skull.despawnEntity(session, position);
         }
 
         int blockId = BlockTranslator.getBedrockBlockId(blockState);
