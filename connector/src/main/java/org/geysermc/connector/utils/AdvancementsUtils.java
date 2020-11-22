@@ -141,7 +141,15 @@ public class AdvancementsUtils {
         }
 
         return true;
-    } // Handles "back" button
+    }
+    
+    /**
+     * Handle the list form response
+     *
+     * @param session The session that sent the response
+     * @param response The response string to parse
+     * @return True if the form was parsed correctly, false if not
+     */
     public static boolean handleListForm(GeyserSession session, String response) {
         SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_LIST_FORM_ID);
        listForm.setResponse(response);
