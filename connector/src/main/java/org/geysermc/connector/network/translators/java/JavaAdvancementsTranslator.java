@@ -36,15 +36,16 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
 
     @Override
     public void translate(ServerAdvancementsPacket packet, GeyserSession session) throws NullPointerException {
-
+        // Removes removed advancements from player's stored advancements
         for (String removedAdvancement : packet.getRemovedAdvancements()) {
             session.getStoredAdvancements().remove(removedAdvancement);
         }
-        for (Advancement advancement : packet.getAdvancements()) {
 
+        // Adds advancements to the player's stored advancements when advancements are sent
+        for (Advancement advancement : packet.getAdvancements()) {
             if (advancement.getDisplayData() != null && !advancement.getDisplayData().isHidden()){
-            session.getStoredAdvancements().put(advancement.getId(), advancement);
-            } else{
+                session.getStoredAdvancements().put(advancement.getId(), advancement);
+            } else {
                 session.getStoredAdvancements().remove(advancement.getId());
             }
         }

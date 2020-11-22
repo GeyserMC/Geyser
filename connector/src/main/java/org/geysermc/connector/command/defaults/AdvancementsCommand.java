@@ -25,8 +25,6 @@
 
 package org.geysermc.connector.command.defaults;
 
-import com.github.steveice10.mc.protocol.data.game.ClientRequest;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
 import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;

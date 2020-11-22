@@ -302,7 +302,11 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
+    /**
+     * Stores advancements for the player.
+     */
     private final Map<String, Advancement> storedAdvancements = new HashMap<>();
+
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
     private final Set<UUID> emotes = new HashSet<>();
