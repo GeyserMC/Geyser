@@ -45,7 +45,7 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
         if (packet.getTitle() == null) {
             text = " ";
         } else {
-            text = MessageTranslator.convertMessage(packet.getTitle().toString(), locale);
+            text = MessageTranslator.convertMessage(packet.getTitle(), locale);
         }
 
         switch (packet.getAction()) {
