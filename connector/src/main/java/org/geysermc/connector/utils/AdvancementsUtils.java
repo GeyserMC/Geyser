@@ -81,58 +81,48 @@ public class AdvancementsUtils {
             switch (formResponse.getClickedButtonId()) {
                 case 0:
                     title = LocaleUtils.getLocaleString("advancements.story.root.title", language);
-
-                        for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
-                            if (value.getKey().contains("story")){
-                                content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
-                                content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );
-                            }
+                    for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
+                        if (value.getKey().contains("story")){
+                            content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
+                            content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );
                         }
-
+                    }
                     break;
                 case 1:
                     title = LocaleUtils.getLocaleString("advancements.nether.root.title", language);
-
-                        for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
-                            if (value.getKey().contains("nether")){
-                                 content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
-                                 content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );
-                            }
+                    for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
+                        if (value.getKey().contains("nether")){
+                             content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
+                             content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );
+                        }
                     }
                     break;
                 case 2:
                     title = LocaleUtils.getLocaleString("advancements.end.root.title", language);
-
-                        for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
-                            if (value.getKey().contains("end")){
-                                content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
-                                content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );}
-                        }
-
+                    for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
+                        if (value.getKey().contains("end")){
+                            content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
+                            content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );}
+                    }
                     break;
                 case 3:
                     title = LocaleUtils.getLocaleString("advancements.adventure.root.title", language);
-
-                        for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
-                            if (value.getKey().contains("adventure")){
-                                content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
-                                content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );}
-                        }
-
+                    for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
+                        if (value.getKey().contains("adventure")){
+                            content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
+                            content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );}
+                    }
                     break;
                 case 4:
                     title = LocaleUtils.getLocaleString("advancements.husbandry.root.title", language);
-
-                        for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
-                            if (value.getKey().contains("husbandry")){
-                                content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
-                                content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );}
-                        }
-
+                    for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
+                        if (value.getKey().contains("husbandry")){
+                            content.append(" - " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getTitle().toString(), language) + "\n");
+                            content.append("     " + MessageTranslator.convertMessage(value.getValue().getDisplayData().getDescription().toString(), language)+ "\n\n" );}
+                    }
                     break;
 
         }
-
 
             // Showed advancements you have earned based on category selected
             SimpleFormWindow window = new SimpleFormWindow(title, content.toString());
@@ -141,15 +131,22 @@ public class AdvancementsUtils {
         }
 
         return true;
-    } // Handles "back" button
+    }
+
+    /**
+     * Handles the back button at the end of your advancements list
+     * @param session
+     * @param response
+     * @return
+     */
     public static boolean handleListForm(GeyserSession session, String response) {
         SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_LIST_FORM_ID);
-       listForm.setResponse(response);
+        listForm.setResponse(response);
 
         if (!listForm.isClosed()) {
             session.sendForm(buildMenuForm(session), ADVANCEMENTS_MENU_FORM_ID);
         }
-
+        
         return true;
     }
 }
