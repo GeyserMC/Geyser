@@ -99,7 +99,7 @@ public class AdvancementsUtils {
 
                     break;
                 case 1:
-                    title = LanguageUtils.getPlayerLocaleString("advancements.nether.root.title", language);
+                    title = LocaleUtils.getLocaleString("advancements.nether.root.title", language);
 
                         for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
                             if (value.getKey().contains("nether")){
@@ -109,7 +109,7 @@ public class AdvancementsUtils {
                     }
                     break;
                 case 2:
-                    title = LanguageUtils.getPlayerLocaleString("advancements.end.root.title", language);
+                    title = LocaleUtils.getLocaleString("advancements.end.root.title", language);
 
                         for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
                             if (value.getKey().contains("end")){
@@ -119,7 +119,7 @@ public class AdvancementsUtils {
 
                     break;
                 case 3:
-                    title = LanguageUtils.getPlayerLocaleString("advancements.adventure.root.title", language);
+                    title = LocaleUtils.getLocaleString("advancements.adventure.root.title", language);
 
                         for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
                             if (value.getKey().contains("adventure")){
@@ -129,7 +129,7 @@ public class AdvancementsUtils {
 
                     break;
                 case 4:
-                    title = LanguageUtils.getPlayerLocaleString("advancements.husbandry.root.title", language);
+                    title = LocaleUtils.getLocaleString("advancements.husbandry.root.title", language);
 
                         for (Map.Entry<String, Advancement> value : session.getStoredAdvancements().entrySet()) {
                             if (value.getKey().contains("husbandry")){
