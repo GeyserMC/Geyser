@@ -49,7 +49,5 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
                 session.getStoredAdvancements().remove(advancement.getId());
             }
         }
-
-
     }
 }
