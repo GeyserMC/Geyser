@@ -34,13 +34,7 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
-import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.LoginEncryptionUtils;
-import org.geysermc.connector.utils.MathUtils;
-import org.geysermc.connector.utils.ResourcePack;
-import org.geysermc.connector.utils.ResourcePackManifest;
-import org.geysermc.connector.utils.SettingsUtils;
-import org.geysermc.connector.utils.StatisticsUtils;
+import org.geysermc.connector.utils.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -148,7 +142,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return StatisticsUtils.handleMenuForm(session, packet.getFormData());
         } else if (packet.getFormId() == StatisticsUtils.STATISTICS_LIST_FORM_ID) {
             return StatisticsUtils.handleListForm(session, packet.getFormData());
+        } else if (packet.getFormId() == AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID) {
+            return AdvancementsUtils.handleMenuForm(session, packet.getFormData());
+        } else if (packet.getFormId() == AdvancementsUtils.ADVANCEMENTS_LIST_FORM_ID) {
+            return AdvancementsUtils.handleListForm(session, packet.getFormData());
         }
+
 
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
     }
