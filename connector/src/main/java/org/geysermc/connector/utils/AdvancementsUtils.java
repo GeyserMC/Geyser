@@ -63,7 +63,7 @@ public class AdvancementsUtils {
     /**
      * Handle the menu form response
      *
-     * @param session  The session that sent the response
+     * @param session The session that sent the response
      * @param response The response string to parse
      * @return True if the form was parsed correctly, false if not
      */
