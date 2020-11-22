@@ -152,7 +152,7 @@ public class AdvancementsUtils {
      */
     public static boolean handleListForm(GeyserSession session, String response) {
         SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_LIST_FORM_ID);
-       listForm.setResponse(response);
+        listForm.setResponse(response);
 
         if (!listForm.isClosed()) {
             session.sendForm(buildMenuForm(session), ADVANCEMENTS_MENU_FORM_ID);
