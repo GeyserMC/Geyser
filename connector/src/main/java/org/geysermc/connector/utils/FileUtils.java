@@ -198,7 +198,7 @@ public class FileUtils {
      * @return The created Reflections object
      */
     public static Reflections getReflections(String path) {
-        Reflections reflections = new Reflections(new ConfigurationBuilder());
+        Reflections reflections = new Reflections(new ConfigurationBuilder().setScanners());
         XmlSerializer serializer = new XmlSerializer();
         URL resource = FileUtils.class.getClassLoader().getResource("META-INF/reflections/" + path + "-reflections.xml");
         try (InputStream inputStream = resource.openConnection().getInputStream()) {
