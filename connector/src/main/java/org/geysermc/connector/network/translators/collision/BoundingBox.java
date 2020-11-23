@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.collision;
 
+import com.nukkitx.math.vector.Vector3d;
 import lombok.*;
 
 @Data
@@ -44,9 +45,43 @@ public class BoundingBox {
         middleZ += z;
     }
 
-    public boolean checkIntersection(int offsetX, int offsetY, int offsetZ, BoundingBox otherBox) {
+    public void extend(double x, double y, double z) {
+        middleX += x / 2;
+        middleY += y / 2;
+        middleZ += z / 2;
+
+        sizeX += Math.abs(x);
+        sizeY += Math.abs(y);
+        sizeZ += Math.abs(z);
+    }
+
+    public boolean checkIntersection(double offsetX, double offsetY, double offsetZ, BoundingBox otherBox) {
         return (Math.abs((middleX + offsetX) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX())) &&
                 (Math.abs((middleY + offsetY) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY())) &&
                 (Math.abs((middleZ + offsetZ) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ()));
+    }
+
+    public Vector3d getIntersectionSize(double offsetX, double offsetY, double offsetZ, BoundingBox otherBox) {
+        if (!checkIntersection(offsetX, offsetY, offsetZ, otherBox)) {
+            return Vector3d.ZERO;
+        }
+        Vector3d offset = Vector3d.from(offsetX, offsetY, offsetZ);
+        Vector3d minIntersection = getMin().add(offset).max(otherBox.getMin());
+        Vector3d maxIntersection = getMax().add(offset).min(otherBox.getMax());
+        return maxIntersection.sub(minIntersection);
+    }
+
+    public Vector3d getMin() {
+        double x = middleX - sizeX / 2;
+        double y = middleY - sizeY / 2;
+        double z = middleZ - sizeZ / 2;
+        return Vector3d.from(x, y, z);
+    }
+
+    public Vector3d getMax() {
+        double x = middleX + sizeX / 2;
+        double y = middleY + sizeY / 2;
+        double z = middleZ + sizeZ / 2;
+        return Vector3d.from(x, y, z);
     }
 }

@@ -151,4 +151,23 @@ public class BlockCollision {
         }
         return false;
     }
+
+    // TODO cache result
+    public BoundingBox getContainingBoundingBox() {
+        if (boundingBoxes.length == 0) {
+            return null;
+        } else if (boundingBoxes.length == 1) {
+            return boundingBoxes[0];
+        }
+        Vector3d minPos = Vector3d.from(1e6);
+        Vector3d maxPos = Vector3d.ZERO;
+        for (BoundingBox b : boundingBoxes) {
+            minPos = minPos.min(b.getMin());
+            maxPos = maxPos.max(b.getMax());
+        }
+
+        Vector3d size = maxPos.sub(minPos);
+        Vector3d middle = maxPos.add(minPos).div(2);
+        return new BoundingBox(middle.getX(), middle.getY(), middle.getZ(), size.getX(), size.getY(), size.getZ());
+    }
 }
