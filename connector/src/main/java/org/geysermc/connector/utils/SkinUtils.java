@@ -35,7 +35,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.geyser.LoadBedrockSkinEvent;
 import org.geysermc.connector.network.session.GeyserSession;

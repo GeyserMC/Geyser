@@ -77,6 +77,9 @@ public class LivingEntity extends Entity {
                                          getHand().equals(ItemData.AIR) && getOffHand().getId() == ItemRegistry.SHIELD.getBedrockId());
                 metadata.getFlags().setFlag(EntityFlag.USING_ITEM, (xd & 0x01) == 0x01 && !isUsingShield);
                 metadata.getFlags().setFlag(EntityFlag.BLOCKING, (xd & 0x01) == 0x01);
+
+                // Riptide spin attack
+                metadata.getFlags().setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
                 break;
             case 8:
                 metadata.put(EntityData.HEALTH, entityMetadata.getValue());

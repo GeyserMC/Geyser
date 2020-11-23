@@ -23,25 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.player;
+package org.geysermc.connector.network.translators.collision;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
-import org.geysermc.connector.entity.player.PlayerEntity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-@Translator(packet = ServerPlayerAbilitiesPacket.class)
-public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
+@Retention(value = RetentionPolicy.RUNTIME)
+public @interface CollisionRemapper {
 
-    @Override
-    public void translate(ServerPlayerAbilitiesPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
+    /**
+     * Regex of block identifiers to apply this collision to
+     * Matches against just the block ID name, not including the namespace or parameters
+     */
+    String regex();
 
-        session.setCanFly(packet.isCanFly());
-        session.setFlying(packet.isFlying());
-        session.sendAdventureSettings();
-    }
+    /**
+     * Regex of block state parameters to apply this collision to
+     * Defaults to matching any value
+     */
+    String paramRegex() default ".*";
+
+    /**
+     * Signals if a new instance needs to created for every block state
+     */
+    boolean usesParams() default false;
+
+    /**
+     * Signals if the default bounding boxes of this block as defined in collision.json should be passed to the
+     * constructor
+     */
+    boolean passDefaultBoxes() default false;
 }

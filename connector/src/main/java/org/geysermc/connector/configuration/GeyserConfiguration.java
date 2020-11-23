@@ -137,6 +137,8 @@ public interface GeyserConfiguration {
 
     int getMtu();
 
+    boolean isUseAdapters();
+
     int getConfigVersion();
 
     static void checkGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {

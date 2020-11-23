@@ -32,7 +32,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.translation.TranslationRegistry;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
@@ -41,8 +40,7 @@ import java.util.*;
 public class MessageTranslator {
 
     // These are used for handling the translations of the messages
-    private static final TranslationRegistry REGISTRY = new MinecraftTranslationRegistry();
-    private static final TranslatableComponentRenderer<Locale> RENDERER = TranslatableComponentRenderer.usingTranslationSource(REGISTRY);
+    private static final TranslatableComponentRenderer<Locale> RENDERER = TranslatableComponentRenderer.usingTranslationSource(new MinecraftTranslationRegistry());
 
     // Store team colors for player names
     private static final Map<TeamColor, String> TEAM_COLORS = new HashMap<>();
