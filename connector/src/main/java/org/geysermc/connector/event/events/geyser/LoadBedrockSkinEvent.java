@@ -29,7 +29,7 @@ package org.geysermc.connector.event.events.geyser;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.event.Cancellable;
 import org.geysermc.connector.event.GeyserEvent;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
