@@ -57,7 +57,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     if (self) {
                         // Entity is ourself
                         playerEntity = session.getPlayerEntity();
-                        playerEntity.setProfile(entry.getProfile());
+                        //TODO: playerEntity.setProfile(entry.getProfile()); seems to help with online mode skins but needs more testing to ensure Floodgate skins aren't overwritten
                         SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
                                 GeyserConnector.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data"));
                     } else {

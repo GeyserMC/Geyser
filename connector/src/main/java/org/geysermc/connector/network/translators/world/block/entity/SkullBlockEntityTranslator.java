@@ -98,7 +98,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         if (floorRotation == -1) {
             // Wall skull
             y += 0.25f;
-            switch (BlockStateValues.getWallSkullDirection().get(blockState)) {
+            switch (BlockStateValues.getSkullWallDirections().get(blockState)) {
                 case "north":
                     rotation = 180f;
                     z += 0.24f;
@@ -120,14 +120,15 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             rotation = (180f + (floorRotation * 22.5f)) % 360;
         }
 
+        Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
         long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
 
         GameProfile gameProfile = getProfile(tag);
         if (gameProfile == null) {
+            session.getConnector().getLogger().debug("Custom skull with no SkullOwner tag: " + blockPosition.toString());
             return;
         }
 
-        Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
         Vector3f rotationVector = Vector3f.from(rotation, 0, rotation);
 
         SkullPlayerEntity existingSkull = session.getSkullCache().get(blockPosition);

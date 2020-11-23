@@ -41,13 +41,13 @@ public class BlockStateValues {
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
-    private static final Map<Integer, String> WALL_SKULL_DIRECTION = new HashMap<>();
     private static final Map<String, NbtMap> FLOWER_POT_BLOCKS = new HashMap<>();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
+    private static final Int2ObjectMap<String> SKULL_WALL_DIRECTIONS = new Int2ObjectOpenHashMap<>();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
 
     /**
@@ -109,6 +109,11 @@ public class BlockStateValues {
         JsonNode skullRotation = entry.getValue().get("skull_rotation");
         if (skullRotation != null) {
             SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
+        }
+
+        if (entry.getKey().contains("wall_skull") || entry.getKey().contains("wall_head")) {
+            String direction = entry.getKey().substring(entry.getKey().lastIndexOf("facing=") + 7);
+            SKULL_WALL_DIRECTIONS.put(javaBlockState, direction.substring(0, direction.length() - 1));
         }
 
         JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
@@ -214,16 +219,6 @@ public class BlockStateValues {
 
     /**
      * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     * This gives a string rotation that Bedrock can use.
-     *
-     * @return Skull wall rotation value with the blockstate
-     */
-    public static Map<Integer, String> getWallSkullDirection() {
-        return WALL_SKULL_DIRECTION;
-    }
-
-    /**
-     * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
      * This gives a byte rotation that Bedrock can use.
      *
      * @param state BlockState of the block
@@ -233,6 +228,15 @@ public class BlockStateValues {
         return SKULL_ROTATIONS.getOrDefault(state, (byte) -1);
     }
 
+    /**
+     * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     * This gives a string rotation that Bedrock can use.
+     *
+     * @return Skull wall rotation value with the blockstate
+     */
+    public static Int2ObjectMap<String> getSkullWallDirections() {
+        return SKULL_WALL_DIRECTIONS;
+    }
 
     /**
      * Shulker box directions are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
