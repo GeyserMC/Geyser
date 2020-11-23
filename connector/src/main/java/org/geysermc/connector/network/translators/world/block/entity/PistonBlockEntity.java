@@ -27,7 +27,10 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValue;
 import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValueType;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.google.common.collect.ImmutableList;
+import com.nukkitx.math.vector.Vector3d;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -36,7 +39,12 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionManager;
+import org.geysermc.connector.network.translators.collision.CollisionTranslator;
+import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
@@ -121,6 +129,7 @@ public class PistonBlockEntity {
      * Send block entity data packets to update the position of the piston head
      */
     public void sendUpdate() {
+        correctPlayerPosition();
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
         blockEntityDataPacket.setBlockPosition(position);
         blockEntityDataPacket.setData(buildPistonTag());
@@ -338,7 +347,112 @@ public class PistonBlockEntity {
             updateBlockPacket.setRuntimeId(BlockTranslator.BEDROCK_AIR_ID);
             updateBlockPacket.setDataLayer(0);
             session.sendUpstreamPacket(updateBlockPacket);
+
+            session.getChunkCache().updateBlock(blockPos.getX(), blockPos.getY(), blockPos.getZ(), BlockTranslator.JAVA_AIR_ID);
         }
+    }
+
+    private void correctPlayerPosition() {
+        CollisionManager collisionManager = session.getCollisionManager();
+        BoundingBox playerBoundingBox = collisionManager.getPlayerBoundingBox();
+        BoundingBox playerCollision = new BoundingBox(playerBoundingBox.getMiddleX(), playerBoundingBox.getMiddleY(), playerBoundingBox.getMiddleZ(), playerBoundingBox.getSizeX(), playerBoundingBox.getSizeY(), playerBoundingBox.getSizeZ());
+
+        Vector3d movement = getMovement().toDouble();
+        Vector3d attachedBlockOffset;
+        if (action == PistonValueType.PUSHING) {
+            attachedBlockOffset = movement.mul(lastProgress);
+        } else {
+            attachedBlockOffset = movement.mul(1f - lastProgress);
+        }
+
+        double delta = Math.abs(progress - lastProgress);
+        Vector3d extend = movement.negate().toDouble().mul(delta);
+        playerCollision.extend(extend.getX(), extend.getY(), extend.getZ());
+
+        Vector3d playerPos = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
+        Vector3d correctedPlayerPos = playerPos;
+
+        for (Object2IntMap.Entry<Vector3i> entry : attachedBlocks.object2IntEntrySet()) {
+            Vector3d blockPos = entry.getKey().toDouble().add(attachedBlockOffset);
+            correctedPlayerPos = handleBlockCollision(blockPos, entry.getIntValue(), correctedPlayerPos, playerCollision);
+        }
+        if (!correctedPlayerPos.equals(playerPos)) {
+            SessionPlayerEntity playerEntity = session.getPlayerEntity();
+            playerEntity.moveAbsolute(session, correctedPlayerPos.toFloat(), playerEntity.getRotation(), playerEntity.isOnGround(), false);
+            ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(playerEntity.isOnGround(), position.getX(), position.getY(), position.getZ());
+            session.sendDownstreamPacket(playerPositionPacket);
+        }
+    }
+
+    private Vector3d handleBlockCollision(Vector3d blockPos, int javaId, Vector3d playerPos, BoundingBox playerCollision) {
+        BlockCollision blockCollision = CollisionTranslator.getCollision(javaId, 0, 0, 0);
+        if (blockCollision != null) {
+            BoundingBox blockBoundingBox = blockCollision.getContainingBoundingBox();
+            if (blockBoundingBox != null && blockBoundingBox.checkIntersection(blockPos.getX(), blockPos.getY(), blockPos.getZ(), playerCollision)) {
+                // Slime blocks launch players away
+                // TODO setting the motion doesn't actually cause the bedrock player to move
+                String javaIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(javaId, "");
+                if (javaIdentifier.equals("minecraft:slime_block")) {
+                    SessionPlayerEntity playerEntity = session.getPlayerEntity();
+                    Vector3f motion = playerEntity.getMotion();
+                    double motionX = motion.getX();
+                    double motionY = motion.getY();
+                    double motionZ = motion.getZ();
+                    switch (orientation) {
+                        case DOWN:
+                        case UP:
+                            motionY = getMovement().getY();
+                            break;
+                        case NORTH:
+                        case SOUTH:
+                            motionZ = getMovement().getZ();
+                            break;
+                        case WEST:
+                        case EAST:
+                            motionX = getMovement().getX();
+                            break;
+                    }
+                    playerEntity.setMotion(Vector3f.from(motionX, motionY, motionZ));
+                }
+                // Resolve collision
+                double delta = Math.abs(progress - lastProgress);
+                double maxIntersection = 0;
+                for (BoundingBox b : blockCollision.getBoundingBoxes()) {
+                    Vector3d intersectionSize = b.getIntersectionSize(blockPos.getX(), blockPos.getY(), blockPos.getZ(), playerCollision);
+                    switch (orientation) {
+                        case DOWN:
+                        case UP:
+                            maxIntersection = Math.max(maxIntersection, intersectionSize.getY());
+                            break;
+                        case NORTH:
+                        case SOUTH:
+                            maxIntersection = Math.max(maxIntersection, intersectionSize.getZ());
+                            break;
+                        case WEST:
+                        case EAST:
+                            maxIntersection = Math.max(maxIntersection, intersectionSize.getX());
+                            break;
+                    }
+                    if (maxIntersection > delta) {
+                        maxIntersection = delta + 0.01d;
+                        break;
+                    }
+                }
+                if (maxIntersection > 0) {
+                    Vector3d offset = getMovement().toDouble().mul(maxIntersection);
+
+                    CollisionManager collisionManager = session.getCollisionManager();
+                    collisionManager.updatePlayerBoundingBox(playerPos.add(offset));
+                    collisionManager.correctPlayerPosition();
+
+                    Vector3d correctedPlayerPos = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
+                    offset = correctedPlayerPos.sub(playerPos);
+                    playerCollision.translate(offset.getX(), offset.getY(), offset.getZ());
+                    return correctedPlayerPos;
+                }
+            }
+        }
+        return playerPos;
     }
 
     /**
