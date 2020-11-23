@@ -26,5 +26,9 @@
   {
     "from": "net.kyori.adventure",
     "to": "org.geysermc.platform.velocity.shaded.adventure"
+  },
+  {
+    "from": "org.objectweb.asm",
+    "to": "org.geysermc.platform.velocity.shaded.objectweb.asm"
   }
 ]

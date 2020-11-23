@@ -85,6 +85,10 @@
                                     <pattern>net.kyori.adventure</pattern>
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.adventure</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.objectweb.asm</pattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.objectweb.asm</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -95,7 +99,6 @@
                             <exclude>com.google.code.gson:*</exclude>
                             <exclude>io.netty:*</exclude>
                             <exclude>org.slf4j:*</exclude>
-                            <exclude>org.ow2.asm:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>
