@@ -23,25 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.player;
+package org.geysermc.connector.network.translators.collision;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
-import org.geysermc.connector.entity.player.PlayerEntity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import lombok.*;
 
-@Translator(packet = ServerPlayerAbilitiesPacket.class)
-public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
+@Data
+@AllArgsConstructor
+public class BoundingBox {
+    private double middleX;
+    private double middleY;
+    private double middleZ;
 
-    @Override
-    public void translate(ServerPlayerAbilitiesPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
+    private double sizeX;
+    private double sizeY;
+    private double sizeZ;
 
-        session.setCanFly(packet.isCanFly());
-        session.setFlying(packet.isFlying());
-        session.sendAdventureSettings();
+    public void translate(double x, double y, double z) {
+        middleX += x;
+        middleY += y;
+        middleZ += z;
+    }
+
+    public boolean checkIntersection(int offsetX, int offsetY, int offsetZ, BoundingBox otherBox) {
+        return (Math.abs((middleX + offsetX) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX())) &&
+                (Math.abs((middleY + offsetY) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY())) &&
+                (Math.abs((middleZ + offsetZ) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ()));
     }
 }

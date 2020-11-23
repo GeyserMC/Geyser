@@ -25,8 +25,10 @@
 
 package org.geysermc.platform.spigot;
 
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.geysermc.adapters.spigot.SpigotAdapters;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -43,18 +45,23 @@ import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.command.SpigotCommandSender;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
-import org.geysermc.platform.spigot.world.GeyserSpigotWorldManager;
+import org.geysermc.platform.spigot.world.manager.*;
+import us.myles.ViaVersion.api.Pair;
 import us.myles.ViaVersion.api.Via;
+import us.myles.ViaVersion.api.data.MappingData;
+import us.myles.ViaVersion.api.protocol.Protocol;
+import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
+import us.myles.ViaVersion.api.protocol.ProtocolVersion;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
-
     private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotLogger geyserLogger;
@@ -143,8 +150,48 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // Set if we need to use a different method for getting a player's locale
         SpigotCommandSender.setUseLegacyLocaleMethod(!isCompatible(Bukkit.getServer().getVersion(), "1.12.0"));
 
-        this.geyserWorldManager = new GeyserSpigotWorldManager(isLegacy, use3dBiomes, isViaVersion);
-        GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, isLegacy, isViaVersion);
+        if (connector.getConfig().isUseAdapters()) {
+            try {
+                String name = Bukkit.getServer().getClass().getPackage().getName();
+                String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
+                SpigotAdapters.registerWorldAdapter(nmsVersion);
+                if (isViaVersion && isViaVersionNeeded()) {
+                    if (isLegacy) {
+                        // Pre-1.13
+                        this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager();
+                    } else {
+                        // Post-1.13
+                        this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
+                    }
+                } else {
+                    // No ViaVersion
+                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(use3dBiomes);
+                }
+                geyserLogger.debug("Using NMS adapter: " + this.geyserWorldManager.getClass() + ", " + nmsVersion);
+            } catch (Exception e) {
+                if (geyserConfig.isDebugMode()) {
+                    geyserLogger.debug("Error while attempting to find NMS adapter. Most likely, this can be safely ignored. :)");
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            geyserLogger.debug("Not using NMS adapter as it is disabled in the config.");
+        }
+        if (this.geyserWorldManager == null) {
+            // No NMS adapter
+            if (isLegacy && isViaVersion) {
+                // Use ViaVersion for converting pre-1.13 block states
+                this.geyserWorldManager = new GeyserSpigot1_12WorldManager();
+            } else if (isLegacy) {
+                // Not sure how this happens - without ViaVersion, we don't know any block states, so just assume everything is air
+                this.geyserWorldManager = new GeyserSpigotFallbackWorldManager();
+            } else {
+                // Post-1.13
+                this.geyserWorldManager = new GeyserSpigotWorldManager(use3dBiomes);
+            }
+            geyserLogger.debug("Using default world manager: " + this.geyserWorldManager.getClass());
+        }
+        GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, this.geyserWorldManager);
 
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
@@ -156,8 +203,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        if (connector != null)
+        if (connector != null) {
             connector.shutdown();
+        }
     }
 
     @Override
@@ -190,6 +238,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return getDataFolder().toPath();
     }
 
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new GeyserSpigotDumpInfo();
+    }
+
     public boolean isCompatible(String version, String whichVersion) {
         int[] currentVersion = parseVersion(version);
         int[] otherVersion = parseVersion(whichVersion);
@@ -217,15 +270,43 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             String t = stringArray[index].replaceAll("\\D", "");
             try {
                 temp[index] = Integer.parseInt(t);
-            } catch(NumberFormatException ex) {
+            } catch (NumberFormatException ex) {
                 temp[index] = 0;
             }
         }
         return temp;
     }
 
-    @Override
-    public BootstrapDumpInfo getDumpInfo() {
-        return new GeyserSpigotDumpInfo();
+    /**
+     * @return the server version before ViaVersion finishes initializing
+     */
+    public ProtocolVersion getServerProtocolVersion() {
+        String bukkitVersion = Bukkit.getServer().getVersion();
+        // Turn "(MC: 1.16.4)" into 1.16.4.
+        String version = bukkitVersion.split("\\(MC: ")[1].split("\\)")[0];
+        return ProtocolVersion.getClosest(version);
+    }
+
+    /**
+     * This function should not run unless ViaVersion is installed on the server.
+     *
+     * @return true if there is any block mappings difference between the server and client.
+     */
+    private boolean isViaVersionNeeded() {
+        ProtocolVersion serverVersion = getServerProtocolVersion();
+        List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
+                serverVersion.getVersion());
+        if (protocolList == null) {
+            // No translation needed!
+            return false;
+        }
+        for (int i = protocolList.size() - 1; i >= 0; i--) {
+            MappingData mappingData = protocolList.get(i).getValue().getMappingData();
+            if (mappingData != null) {
+                return true;
+            }
+        }
+        // All mapping data is null, which means client and server block states are the same
+        return false;
     }
 }
