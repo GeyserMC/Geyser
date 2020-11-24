@@ -158,12 +158,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.kyoripowered.adventure</groupId>
-            <artifactId>adventure-nbt</artifactId>
-            <version>7acd956</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
