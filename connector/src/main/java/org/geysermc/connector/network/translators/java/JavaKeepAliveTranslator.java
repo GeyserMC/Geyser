@@ -25,24 +25,26 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
+import java.util.concurrent.TimeUnit;
+
 /**
- * Used to forward the keep alive packet to the client in order to get back a reliable ping.
+ * Used to send the keep alive packet back after delaying it by the Bedrock client's latency
  */
 @Translator(packet = ServerKeepAlivePacket.class)
 public class JavaKeepAliveTranslator extends PacketTranslator<ServerKeepAlivePacket> {
 
     @Override
     public void translate(ServerKeepAlivePacket packet, GeyserSession session) {
-        session.setLastKeepAliveTimestamp(packet.getPingId());
-        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-        latencyPacket.setFromServer(true);
-        latencyPacket.setTimestamp(packet.getPingId());
-        session.sendUpstreamPacket(latencyPacket);
+        // Delay sending the keep alive response packet by the Bedrock client's latency for more accurate ping
+        session.getConnector().getGeneralThreadPool().schedule(() ->
+                session.sendDownstreamPacket(new ClientKeepAlivePacket(packet.getPingId())),
+                session.getUpstream().getSession().getLatency(), TimeUnit.MILLISECONDS);
     }
 }
