@@ -47,6 +47,11 @@ public class BedrockProtocol {
 
     static {
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
+                .protocolVersion(422)
+                .minecraftVersion("1.16.200.56")
+                .build()
+        );
     }
 
     /**
