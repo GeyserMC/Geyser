@@ -369,6 +369,11 @@ public class PistonBlockEntity {
         double delta = Math.abs(progress - lastProgress);
         Vector3d extend = movement.negate().toDouble().mul(delta);
         playerCollision.extend(extend.getX(), extend.getY(), extend.getZ());
+        // Shrink the collision in the other axes slightly, to avoid false positives when pressed up against the side of blocks
+        Vector3d shrink = Vector3i.from(1).sub(getDirectionOffset().abs()).toDouble().mul(CollisionManager.COLLISION_TOLERANCE * 2);
+        playerCollision.setSizeX(playerCollision.getSizeX() - shrink.getX());
+        playerCollision.setSizeY(playerCollision.getSizeY() - shrink.getY());
+        playerCollision.setSizeZ(playerCollision.getSizeZ() - shrink.getZ());
 
         Vector3d playerPos = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
         Vector3d correctedPlayerPos = playerPos;
