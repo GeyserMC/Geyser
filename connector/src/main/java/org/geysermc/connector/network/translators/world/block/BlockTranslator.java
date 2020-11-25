@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValue;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.nbt.*;
@@ -99,6 +100,8 @@ public class BlockTranslator {
     public static final int JAVA_RUNTIME_FURNACE_LIT_ID;
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
+
+    private static final Object2IntMap<PistonValue> PISTON_HEADS = new Object2IntOpenHashMap<>();
 
     private static final int BLOCK_STATE_VERSION = 17825808;
 
@@ -259,6 +262,22 @@ public class BlockTranslator {
             } else if (javaId.startsWith("minecraft:spawner")) {
                 spawnerRuntimeId = javaRuntimeId;
             }
+
+            if (entry.getKey().startsWith("minecraft:piston_head") && entry.getKey().contains("short=false")) {
+                if (entry.getKey().contains("down")) {
+                    PISTON_HEADS.put(PistonValue.DOWN, javaRuntimeId);
+                } else if (entry.getKey().contains("up")) {
+                    PISTON_HEADS.put(PistonValue.UP, javaRuntimeId);
+                } else if (entry.getKey().contains("south")) {
+                    PISTON_HEADS.put(PistonValue.SOUTH, javaRuntimeId);
+                } else if (entry.getKey().contains("west")) {
+                    PISTON_HEADS.put(PistonValue.WEST, javaRuntimeId);
+                } else if (entry.getKey().contains("north")) {
+                    PISTON_HEADS.put(PistonValue.NORTH, javaRuntimeId);
+                } else if (entry.getKey().contains("east")) {
+                    PISTON_HEADS.put(PistonValue.EAST, javaRuntimeId);
+                }
+            }
         }
 
         if (cobwebRuntimeId == -1) {
@@ -395,5 +414,9 @@ public class BlockTranslator {
 
     public static int getJavaWaterloggedState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(1 << 31 | bedrockId);
+    }
+
+    public static int getPistonHead(PistonValue direction) {
+        return PISTON_HEADS.getOrDefault(direction, JAVA_AIR_ID);
     }
 }

@@ -373,8 +373,18 @@ public class PistonBlockEntity {
         Vector3d playerPos = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
         Vector3d correctedPlayerPos = playerPos;
 
+        Vector3d blockPos = position.toDouble().add(attachedBlockOffset);
+        int pistonHeadId = BlockTranslator.getPistonHead(orientation);
+
+        if (action == PistonValueType.PULLING) {
+            blockPos = position.add(getDirectionOffset()).toDouble().add(attachedBlockOffset);
+        }
+        if (testBlockCollision(blockPos, pistonHeadId, playerCollision)) {
+            correctedPlayerPos = handleBlockCollision(blockPos, pistonHeadId, correctedPlayerPos, playerCollision);
+        }
+
         for (Object2IntMap.Entry<Vector3i> entry : attachedBlocks.object2IntEntrySet()) {
-            Vector3d blockPos = entry.getKey().toDouble().add(attachedBlockOffset);
+            blockPos = entry.getKey().toDouble().add(attachedBlockOffset);
             if (testBlockCollision(blockPos, entry.getIntValue(), playerCollision)) {
                 // Slime blocks launch players away
                 String javaIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(entry.getIntValue(), "");
@@ -389,7 +399,7 @@ public class PistonBlockEntity {
         if (!correctedPlayerPos.equals(playerPos)) {
             SessionPlayerEntity playerEntity = session.getPlayerEntity();
             playerEntity.moveAbsolute(session, correctedPlayerPos.toFloat(), playerEntity.getRotation(), playerEntity.isOnGround(), false);
-            ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(playerEntity.isOnGround(), position.getX(), position.getY(), position.getZ());
+            ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(playerEntity.isOnGround(), correctedPlayerPos.getX(), correctedPlayerPos.getY(), correctedPlayerPos.getZ());
             session.sendDownstreamPacket(playerPositionPacket);
         }
     }
