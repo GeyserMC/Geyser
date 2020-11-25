@@ -32,6 +32,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
@@ -70,21 +71,28 @@ public class MessageTranslator {
      * @return Parsed and formatted message for bedrock
      */
     public static String convertMessage(Component message, String locale) {
-        // Get a Locale from the given locale string
-        Locale localeCode = Locale.forLanguageTag(locale.replace('_', '-'));
-        message = RENDERER.render(message, localeCode);
+        try {
+            // Get a Locale from the given locale string
+            Locale localeCode = Locale.forLanguageTag(locale.replace('_', '-'));
+            message = RENDERER.render(message, localeCode);
 
-        String legacy = LegacyComponentSerializer.legacySection().serialize(message);
+            String legacy = LegacyComponentSerializer.legacySection().serialize(message);
 
-        // Strip strikethrough and underline as they are not supported on bedrock
-        legacy = legacy.replaceAll("\u00a7[mn]", "");
+            // Strip strikethrough and underline as they are not supported on bedrock
+            legacy = legacy.replaceAll("\u00a7[mn]", "");
 
-        // Make color codes reset formatting like Java
-        // See https://minecraft.gamepedia.com/Formatting_codes#Usage
-        legacy = legacy.replaceAll("\u00a7([0-9a-f])", "\u00a7r\u00a7$1");
-        legacy = legacy.replaceAll("\u00a7r\u00a7r", "\u00a7r");
+            // Make color codes reset formatting like Java
+            // See https://minecraft.gamepedia.com/Formatting_codes#Usage
+            legacy = legacy.replaceAll("\u00a7([0-9a-f])", "\u00a7r\u00a7$1");
+            legacy = legacy.replaceAll("\u00a7r\u00a7r", "\u00a7r");
 
-        return legacy;
+            return legacy;
+        } catch (Exception | AssertionError e) {
+            GeyserConnector.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
+            GeyserConnector.getInstance().getLogger().error("Failed to parse message", e);
+
+            return "";
+        }
     }
 
     public static String convertMessage(String message, String locale) {
@@ -149,12 +157,11 @@ public class MessageTranslator {
         }
 
         try {
-            GSON_SERIALIZER.deserialize(text);
+            // We have to do this to stop "null" returning null and causing the method return to be wrong
+            return GSON_SERIALIZER.deserialize(text) != null;
         } catch (Exception ex) {
             return false;
         }
-
-        return true;
     }
 
     /**
