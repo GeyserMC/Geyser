@@ -157,11 +157,12 @@ public class MessageTranslator {
         }
 
         try {
-            // We have to do this to stop "null" returning null and causing the method return to be wrong
-            return GSON_SERIALIZER.deserialize(text) != null;
+            GSON_SERIALIZER.deserialize(text);
         } catch (Exception ex) {
             return false;
         }
+
+        return true;
     }
 
     /**
