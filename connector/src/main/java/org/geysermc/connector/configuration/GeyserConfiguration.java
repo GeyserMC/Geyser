@@ -81,11 +81,11 @@ public interface GeyserConfiguration {
 
     boolean isForceResourcePacks();
 
-    boolean isAllowCustomSkulls();
-
     boolean isXboxAchievementsEnabled();
 
     int getCacheImages();
+
+    boolean isAllowCustomSkulls();
 
     IMetricsInfo getMetrics();
 

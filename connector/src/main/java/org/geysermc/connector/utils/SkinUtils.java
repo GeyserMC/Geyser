@@ -26,7 +26,6 @@
 package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
@@ -35,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.events.geyser.LoadBedrockSkinEvent;
@@ -53,10 +53,9 @@ public class SkinUtils {
         GameProfileData data = GameProfileData.from(playerEntity.getProfile());
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
 
-        SkinProvider.SkinGeometry geometry = playerEntity.getGeometry();
-        if (geometry == null) {
-            geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
-        }
+        // Geometry is either legacy geometry or skull geometry if this is a skull
+        SkinProvider.SkinGeometry geometry = playerEntity instanceof SkullPlayerEntity ?
+                SkinProvider.SKULL_GEOMETRY : SkinProvider.SkinGeometry.getLegacy(data.isAlex());
 
         SkinProvider.Skin skin = SkinProvider.getCachedSkin(data.getSkinUrl());
         if (skin == null) {
@@ -72,18 +71,21 @@ public class SkinUtils {
                 skin.getSkinData(),
                 cape.getCapeId(),
                 cape.getCapeData(),
-                geometry.getGeometryName(),
-                geometry.getGeometryData()
+                geometry
         );
     }
 
     public static PlayerListPacket.Entry buildEntryManually(GeyserSession session, UUID uuid, String username, long geyserId,
                                                             String skinId, byte[] skinData,
                                                             String capeId, byte[] capeData,
-                                                            String geometryName, String geometryData) {
+                                                            SkinProvider.SkinGeometry geometry) {
+        if (geometry == SkinProvider.SKULL_GEOMETRY) {
+            // Prevents https://cdn.discordapp.com/attachments/613194828359925800/779458146191147008/unknown.png
+            skinId = skinId + "_skull";
+        }
         SerializedSkin serializedSkin = SerializedSkin.of(
-                skinId, geometryName, ImageData.of(skinData), Collections.emptyList(),
-                ImageData.of(capeData), geometryData, "", true, false, !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, skinId
+                skinId, geometry.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
+                ImageData.of(capeData), geometry.getGeometryData(), "", true, false, !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, skinId
         );
 
         // This attempts to find the xuid of the player so profile images show up for xbox accounts
@@ -125,28 +127,28 @@ public class SkinUtils {
                         SkinProvider.Skin skin = skinAndCape.getSkin();
                         SkinProvider.Cape cape = skinAndCape.getCape();
 
-                        if (!entity.getUsername().isEmpty()) {
-                                if (cape.isFailed()) {
-                                    cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(
-                                            entity.getUuid(), false
-                                    ), SkinProvider.EMPTY_CAPE, 3);
-                                }
-
-                                if (cape.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_CAPES) {
-                                    cape = SkinProvider.getOrDefault(SkinProvider.requestUnofficialCape(
-                                            cape, entity.getUuid(),
-                                            entity.getUsername(), false
-                                    ), SkinProvider.EMPTY_CAPE, SkinProvider.CapeProvider.VALUES.length * 3);
-                                }
+                        SkinProvider.SkinGeometry geometry;
+                        if (!(entity instanceof SkullPlayerEntity)) {
+                            // Don't apply cape if entity is skull
+                            if (cape.isFailed()) {
+                                cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(entity.getUuid()),
+                                        SkinProvider.EMPTY_CAPE, 3);
                             }
 
-                        SkinProvider.SkinGeometry geometry = entity.getGeometry();
-                            if (geometry == null) {
-                                geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
+                            if (cape.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_CAPES) {
+                                cape = SkinProvider.getOrDefault(SkinProvider.requestUnofficialCape(
+                                        cape, entity.getUuid(),
+                                        entity.getUsername(), false
+                                ), SkinProvider.EMPTY_CAPE, SkinProvider.CapeProvider.VALUES.length * 3);
                             }
+                            geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
+                        } else {
+                            cape = SkinProvider.EMPTY_CAPE;
+                            geometry = SkinProvider.SKULL_GEOMETRY;
+                        }
 
                         geometry = SkinProvider.getOrDefault(SkinProvider.requestBedrockGeometry(
-                                geometry, entity.getUuid(), false
+                                geometry, entity.getUuid()
                         ), geometry, 3);
 
 
@@ -189,8 +191,7 @@ public class SkinUtils {
                                     skin.getSkinData(),
                                     cape.getCapeId(),
                                     cape.getCapeData(),
-                                    geometry.getGeometryName(),
-                                    geometry.getGeometryData()
+                                    geometry
                             );
 
 
@@ -268,7 +269,7 @@ public class SkinUtils {
                 GameProfile.Property skinProperty = profile.getProperty("textures");
 
                 // TODO: Remove try/catch here
-                JsonNode skinObject = new ObjectMapper().readTree(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8));
+                JsonNode skinObject = GeyserConnector.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8));
                 JsonNode textures = skinObject.get("textures");
 
                 JsonNode skinTexture = textures.get("SKIN");

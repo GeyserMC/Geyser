@@ -81,9 +81,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector {
 
-    public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
-            .enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
@@ -272,7 +270,7 @@ public class GeyserConnector {
             message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
         }
         logger.info(message);
-        
+
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
         }

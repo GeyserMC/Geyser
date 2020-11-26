@@ -54,7 +54,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
-import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.utils.SkinProvider;
 import org.geysermc.connector.utils.SkinUtils;
 
@@ -72,8 +71,6 @@ public class PlayerEntity extends LivingEntity {
     private String displayName;
     private long lastSkinUpdate = -1;
     private boolean playerList = true;  // Player is in the player list
-
-    private SkinProvider.SkinGeometry geometry;
 
     /**
      * Saves the parrot currently on the player's left shoulder; otherwise null
@@ -122,26 +119,6 @@ public class PlayerEntity extends LivingEntity {
 
         updateEquipment(session);
         updateBedrockAttributes(session);
-    }
-
-    /**
-     * Add player to playerlist
-     */
-    public void addPlayerList(GeyserSession session) {
-        PlayerListPacket addPlayerListPacket = new PlayerListPacket();
-        addPlayerListPacket.setAction(PlayerListPacket.Action.ADD);
-        addPlayerListPacket.getEntries().add(SkinUtils.buildCachedEntry(session, this));
-        session.sendUpstreamPacket(addPlayerListPacket);
-    }
-
-    /**
-     * Remove player from playerlist
-     */
-    public void removePlayerList(GeyserSession session) {
-        PlayerListPacket removePlayerListPacket = new PlayerListPacket();
-        removePlayerListPacket.setAction(PlayerListPacket.Action.REMOVE);
-        removePlayerListPacket.getEntries().add(SkinUtils.buildCachedEntry(session, this));
-        session.sendUpstreamPacket(removePlayerListPacket);
     }
 
     public void sendPlayer(GeyserSession session) {

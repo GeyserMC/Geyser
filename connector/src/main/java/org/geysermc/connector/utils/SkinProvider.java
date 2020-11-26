@@ -221,7 +221,6 @@ public class SkinProvider {
         if (capeUrl == null || capeUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_CAPE);
         if (requestedCapes.containsKey(capeUrl)) return requestedCapes.get(capeUrl); // already requested
 
-        boolean officialCape = provider == CapeProvider.MINECRAFT;
         Cape cachedCape = cachedCapes.getIfPresent(capeUrl);
         if (cachedCape != null) {
             return CompletableFuture.completedFuture(cachedCape);
@@ -296,7 +295,7 @@ public class SkinProvider {
         return CompletableFuture.completedFuture(officialSkin);
     }
 
-    public static CompletableFuture<Cape> requestBedrockCape(UUID playerID, boolean newThread) {
+    public static CompletableFuture<Cape> requestBedrockCape(UUID playerID) {
         Cape bedrockCape = cachedCapes.getIfPresent(playerID.toString() + ".Bedrock");
         if (bedrockCape == null) {
             bedrockCape = EMPTY_CAPE;
@@ -304,7 +303,7 @@ public class SkinProvider {
         return CompletableFuture.completedFuture(bedrockCape);
     }
 
-    public static CompletableFuture<SkinGeometry> requestBedrockGeometry(SkinGeometry currentGeometry, UUID playerID, boolean newThread) {
+    public static CompletableFuture<SkinGeometry> requestBedrockGeometry(SkinGeometry currentGeometry, UUID playerID) {
         SkinGeometry bedrockGeometry = cachedGeometry.getOrDefault(playerID, currentGeometry);
         return CompletableFuture.completedFuture(bedrockGeometry);
     }
@@ -611,15 +610,6 @@ public class SkinProvider {
          */
         public static SkinGeometry getEars(boolean isSlim) {
             return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.ears" + (isSlim ? "Slim" : "") + "\"}}", (isSlim ? EARS_GEOMETRY_SLIM : EARS_GEOMETRY), false);
-        }
-
-        /**
-         * Generate basic geometry for custom skulls
-         *
-         * @return The generated geometry for the skull model
-         */
-        public static SkinGeometry getSkull() {
-            return SKULL_GEOMETRY;
         }
     }
 

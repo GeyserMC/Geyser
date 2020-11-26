@@ -52,6 +52,7 @@ import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -70,9 +71,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.JAVA_AIR_ID;
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_AIR_ID;
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
 
 @UtilityClass
 public class ChunkUtils {
@@ -367,12 +366,10 @@ public class ChunkUtils {
             }
         }
 
-        if (SkullBlockEntityTranslator.containsCustomSkull(new Position(position.getX(), position.getY(), position.getZ()), session) && blockState == BEDROCK_AIR_ID) {
-            Position skullPosition = new Position(position.getX(), position.getY(), position.getZ());
-            RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
-            removeEntityPacket.setUniqueEntityId(session.getSkullCache().get(skullPosition).getGeyserId());
-            session.sendUpstreamPacket(removeEntityPacket);
-            session.getSkullCache().remove(skullPosition);
+        SkullPlayerEntity skull = session.getSkullCache().getOrDefault(position, null);
+        if (skull != null && blockState != skull.getBlockState()) {
+            // Skull is gone
+            skull.despawnEntity(session, position);
         }
 
         int blockId = BlockTranslator.getBedrockBlockId(blockState);
