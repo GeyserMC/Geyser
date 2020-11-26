@@ -281,8 +281,7 @@ public class PistonBlockEntity {
      * @return True if the block sticks to adjacent blocks
      */
     private boolean isBlockSticky(int javaId) {
-        String javaIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(javaId, "");
-        return javaIdentifier.equals("minecraft:slime_block") || javaIdentifier.equals("minecraft:honey_block");
+        return javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID || javaId == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID;
     }
 
     /**
@@ -364,7 +363,7 @@ public class PistonBlockEntity {
 
         Vector3i direction = getDirectionOffset();
         Vector3d movement = getMovement().toDouble();
-        Vector3d attachedBlockOffset = movement.mul(lastProgress);;
+        Vector3d attachedBlockOffset = movement.mul(lastProgress);
         if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
             attachedBlockOffset = movement.mul(1f - lastProgress);
         }
@@ -392,22 +391,20 @@ public class PistonBlockEntity {
         // Check collision with all the attached blocks
         for (Object2IntMap.Entry<Vector3i> entry : attachedBlocks.object2IntEntrySet()) {
             blockPos = entry.getKey().toDouble().add(attachedBlockOffset);
-            if (testBlockCollision(blockPos, entry.getIntValue(), playerCollision)) {
-                // Slime blocks launch players away
-                String javaIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(entry.getIntValue(), "");
-                if (javaIdentifier.equals("minecraft:slime_block")) {
+            int javaId = entry.getIntValue();
+            if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
+                if (testBlockCollision(blockPos, javaId, playerCollision)) {
                     applySlimeBlockVelocity();
                     return; // TODO piston movement correction seems to cancel motion
                 }
-                // Don't bother to check collision with other blocks as we've reached the max displacement
-                if (displacement < 0.51d) {
+            } else if (displacement < 0.51d) { // Don't bother to check collision with other blocks as we've reached the max displacement
+                if (testBlockCollision(blockPos, entry.getIntValue(), playerCollision)) {
                     displacement = Math.max(getBlockIntersection(blockPos, entry.getIntValue(), playerCollision), displacement);
                 }
             }
         }
         if (displacement > 0) {
-            Vector3d offset = getMovement().toDouble().mul(displacement);
-            collisionManager.updatePlayerBoundingBox(playerPos.add(offset));
+            collisionManager.updatePlayerBoundingBox(playerPos.add(movement.mul(displacement)));
             collisionManager.correctPlayerPosition();
 
             Vector3d correctedPlayerPos = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());

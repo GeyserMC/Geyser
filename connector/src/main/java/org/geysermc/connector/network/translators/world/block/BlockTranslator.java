@@ -101,6 +101,9 @@ public class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
+    public static final int JAVA_RUNTIME_SLIME_BLOCK_ID;
+    public static final int JAVA_RUNTIME_HONEY_BLOCK_ID;
+
     private static final Object2IntMap<PistonValue> PISTON_HEADS = new Object2IntOpenHashMap<>();
 
     private static final int BLOCK_STATE_VERSION = 17825808;
@@ -150,6 +153,8 @@ public class BlockTranslator {
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
         int spawnerRuntimeId = -1;
+        int honeyBlockRuntimeId = -1;
+        int slimeBlockRuntimeId = -1;
         int uniqueJavaId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
         while (blocksIterator.hasNext()) {
@@ -263,20 +268,26 @@ public class BlockTranslator {
                 spawnerRuntimeId = javaRuntimeId;
             }
 
-            if (entry.getKey().startsWith("minecraft:piston_head") && entry.getKey().contains("short=false")) {
-                if (entry.getKey().contains("down")) {
+            if (javaId.startsWith("minecraft:piston_head") && javaId.contains("short=false")) {
+                if (javaId.contains("down")) {
                     PISTON_HEADS.put(PistonValue.DOWN, javaRuntimeId);
-                } else if (entry.getKey().contains("up")) {
+                } else if (javaId.contains("up")) {
                     PISTON_HEADS.put(PistonValue.UP, javaRuntimeId);
-                } else if (entry.getKey().contains("south")) {
+                } else if (javaId.contains("south")) {
                     PISTON_HEADS.put(PistonValue.SOUTH, javaRuntimeId);
-                } else if (entry.getKey().contains("west")) {
+                } else if (javaId.contains("west")) {
                     PISTON_HEADS.put(PistonValue.WEST, javaRuntimeId);
-                } else if (entry.getKey().contains("north")) {
+                } else if (javaId.contains("north")) {
                     PISTON_HEADS.put(PistonValue.NORTH, javaRuntimeId);
-                } else if (entry.getKey().contains("east")) {
+                } else if (javaId.contains("east")) {
                     PISTON_HEADS.put(PistonValue.EAST, javaRuntimeId);
                 }
+            }
+
+            if (javaId.equals("minecraft:honey_block")) {
+                honeyBlockRuntimeId = javaRuntimeId;
+            } else if (javaId.equals("minecraft:slime_block")) {
+                slimeBlockRuntimeId = javaRuntimeId;
             }
         }
 
@@ -314,6 +325,16 @@ public class BlockTranslator {
             throw new AssertionError("Unable to find air in palette");
         }
         BEDROCK_AIR_ID = airRuntimeId;
+
+        if (honeyBlockRuntimeId == -1) {
+            throw new AssertionError("Unable to find honey block in palette");
+        }
+        JAVA_RUNTIME_HONEY_BLOCK_ID = honeyBlockRuntimeId;
+
+        if (slimeBlockRuntimeId == -1) {
+            throw new AssertionError("Unable to find slime block in palette");
+        }
+        JAVA_RUNTIME_SLIME_BLOCK_ID = slimeBlockRuntimeId;
 
         // Loop around again to find all item frame runtime IDs and movingBlock's runtime ID
         int movingBlockId = -1;
