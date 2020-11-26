@@ -81,6 +81,18 @@ public class PistonBlockEntity {
     private static final NbtMap AIR_TAG = BlockTranslator.BLOCKS.get(BlockTranslator.BEDROCK_AIR_ID).getCompound("block");
     private static final List<Vector3i> ALL_DIRECTIONS = ImmutableList.of(Vector3i.from(1, 0, 0), Vector3i.from(0, 1, 0), Vector3i.from(0, 0, 1), Vector3i.from(-1, 0, 0), Vector3i.from(0, -1, 0), Vector3i.from(0, 0, -1));
 
+    private static final BoundingBox HONEY_BOUNDING_BOX;
+
+    static {
+        // Create a ~1 x ~0.5 x ~1 bounding box above the honey block
+        BlockCollision blockCollision = CollisionTranslator.getCollision(BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID, 0, 0, 0);
+        BoundingBox blockBoundingBox = blockCollision.getContainingBoundingBox();
+
+        double honeyHeight = blockBoundingBox.getMax().getY();
+        double boundingBoxHeight = 1.5 - honeyHeight;
+        HONEY_BOUNDING_BOX = new BoundingBox(0.5, honeyHeight + boundingBoxHeight / 2, 0.5, blockBoundingBox.getSizeX(), boundingBoxHeight, blockBoundingBox.getSizeZ());
+    }
+
     public PistonBlockEntity(GeyserSession session, Vector3i position, PistonValue orientation) {
         this.session = session;
         this.position = position;
@@ -397,9 +409,11 @@ public class PistonBlockEntity {
                     applySlimeBlockVelocity();
                     return; // TODO piston movement correction seems to cancel motion
                 }
+            } else if (javaId == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID && isPlayerAttached(blockPos, playerBoundingBox)) {
+                displacement = Math.max(delta, displacement);
             } else if (displacement < 0.51d) { // Don't bother to check collision with other blocks as we've reached the max displacement
-                if (testBlockCollision(blockPos, entry.getIntValue(), playerCollision)) {
-                    displacement = Math.max(getBlockIntersection(blockPos, entry.getIntValue(), playerCollision), displacement);
+                if (testBlockCollision(blockPos, javaId, playerCollision)) {
+                    displacement = Math.max(getBlockIntersection(blockPos, javaId, playerCollision), displacement);
                 }
             }
         }
@@ -412,6 +426,14 @@ public class PistonBlockEntity {
             ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(false, correctedPlayerPos.getX(), correctedPlayerPos.getY(), correctedPlayerPos.getZ());
             session.sendDownstreamPacket(playerPositionPacket);
         }
+    }
+
+    private boolean isPlayerAttached(Vector3d blockPos, BoundingBox playerBoundingBox) {
+        if (orientation == PistonValue.UP || orientation == PistonValue.DOWN) {
+            return false;
+        }
+        // TODO missing a check for onGround
+        return HONEY_BOUNDING_BOX.checkIntersection(blockPos.getX(), blockPos.getY(), blockPos.getZ(), playerBoundingBox);
     }
 
     private boolean testBlockCollision(Vector3d blockPos, int javaId, BoundingBox playerCollision) {
