@@ -25,31 +25,10 @@
 
 package org.geysermc.common.form.response;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.geysermc.common.form.component.ButtonComponent;
 
-@Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SimpleFormResponse implements FormResponse {
-    private static final SimpleFormResponse CLOSED = new SimpleFormResponse(true, false, -1, null);
-    private static final SimpleFormResponse INVALID = new SimpleFormResponse(false, true, -1, null);
-    private final boolean closed;
-    private final boolean invalid;
+public interface SimpleFormResponse extends FormResponse {
+    int getClickedButtonId();
 
-    private final int clickedButtonId;
-    private final ButtonComponent clickedButton;
-
-    public static SimpleFormResponse closed() {
-        return CLOSED;
-    }
-
-    public static SimpleFormResponse invalid() {
-        return INVALID;
-    }
-
-    public static SimpleFormResponse of(int clickedButtonId, ButtonComponent clickedButton) {
-        return new SimpleFormResponse(false, false, clickedButtonId, clickedButton);
-    }
+    ButtonComponent getClickedButton();
 }

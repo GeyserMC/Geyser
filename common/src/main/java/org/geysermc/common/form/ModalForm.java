@@ -25,79 +25,23 @@
 
 package org.geysermc.common.form;
 
-import com.google.gson.annotations.JsonAdapter;
-import lombok.Getter;
+import org.geysermc.common.form.impl.ModalFormImpl;
 import org.geysermc.common.form.response.ModalFormResponse;
-import org.geysermc.common.form.util.FormAdaptor;
 
-@Getter
-@JsonAdapter(FormAdaptor.class)
-public class ModalForm extends Form {
-    private final String title;
-    private final String content;
-    private final String button1;
-    private final String button2;
-
-    private ModalForm(String title, String content, String button1, String button2) {
-        super(Type.MODAL_FORM);
-
-        this.title = title;
-        this.content = content;
-        this.button1 = button1;
-        this.button2 = button2;
+public interface ModalForm extends Form<ModalFormResponse> {
+    static Builder builder() {
+        return new ModalFormImpl.Builder();
     }
 
-    public static Builder builder() {
-        return new Builder();
+    static ModalForm of(String title, String content, String button1, String button2) {
+        return ModalFormImpl.of(title, content, button1, button2);
     }
 
-    public static ModalForm of(String title, String content, String button1, String button2) {
-        return new ModalForm(title, content, button1, button2);
-    }
+    interface Builder extends FormBuilder<Builder, ModalForm> {
+        Builder content(String content);
 
-    public ModalFormResponse parseResponse(String data) {
-        if (isClosed(data)) {
-            return ModalFormResponse.closed();
-        }
+        Builder button1(String button1);
 
-        if ("true".equals(data)) {
-            return ModalFormResponse.of(0, button1);
-        } else if ("false".equals(data)) {
-            return ModalFormResponse.of(1, button2);
-        }
-        return ModalFormResponse.invalid();
-    }
-
-    public static final class Builder extends Form.Builder<Builder, ModalForm> {
-        private String content = "";
-        private String button1 = "";
-        private String button2 = "";
-
-        public Builder content(String content) {
-            this.content = translate(content);
-            return this;
-        }
-
-        public Builder button1(String button1) {
-            this.button1 = translate(button1);
-            return this;
-        }
-
-        public Builder button2(String button2) {
-            this.button2 = translate(button2);
-            return this;
-        }
-
-        @Override
-        public ModalForm build() {
-            ModalForm form = of(title, content, button1, button2);
-            if (biResponseHandler != null) {
-                form.setResponseHandler(response -> biResponseHandler.accept(form, response));
-                return form;
-            }
-
-            form.setResponseHandler(responseHandler);
-            return form;
-        }
+        Builder button2(String button2);
     }
 }

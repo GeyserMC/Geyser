@@ -25,24 +25,16 @@
 
 package org.geysermc.common.form.component;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
+import org.geysermc.common.form.impl.component.ToggleComponentImpl;
 
-@Getter
-public class ToggleComponent extends Component {
-    @SerializedName("default")
-    private final boolean defaultValue;
-
-    private ToggleComponent(String text, boolean defaultValue) {
-        super(Type.TOGGLE, text);
-        this.defaultValue = defaultValue;
+public interface ToggleComponent extends Component {
+    static ToggleComponent of(String text, boolean defaultValue) {
+        return ToggleComponentImpl.of(text, defaultValue);
     }
 
-    public static ToggleComponent of(String text, boolean defaultValue) {
-        return new ToggleComponent(text, defaultValue);
+    static ToggleComponent of(String text) {
+        return ToggleComponentImpl.of(text);
     }
 
-    public static ToggleComponent of(String text) {
-        return of(text, false);
-    }
+    boolean getDefaultValue();
 }

@@ -25,123 +25,59 @@
 
 package org.geysermc.common.form;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.geysermc.common.form.response.FormResponse;
-import org.geysermc.common.form.util.FormAdaptor;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-@Getter
-public abstract class Form {
-    protected static final Gson GSON =
-            new GsonBuilder()
-                    .registerTypeAdapter(ModalForm.class, new FormAdaptor())
-                    .create();
+/**
+ * Base class of all Forms. While it can be used it doesn't contain every data you could get when
+ * using the specific class of the form type.
+ *
+ * @param <T> class provided by the specific form type. It understands the response data and makes
+ *            the data easily accessible
+ */
+public interface Form<T extends FormResponse> {
+    /**
+     * Returns the form type of this specific instance. The valid form types can be found {@link
+     * FormType in the FormType class}
+     */
+    FormType getType();
 
-    private final Type type;
+    /**
+     * Returns the data that will be sent by Geyser to the Bedrock client
+     */
+    String getJsonData();
 
-    @Getter(AccessLevel.NONE)
-    protected String hardcodedJsonData = null;
+    /**
+     * Returns the handler that will be invoked once the form got a response from the Bedrock
+     * client
+     */
+    Consumer<String> getResponseHandler();
 
-    @Setter protected Consumer<String> responseHandler;
+    /**
+     * Sets the handler that will be invoked once the form got a response from the Bedrock client.
+     * This handler contains the raw data sent by the Bedrock client. See {@link
+     * #parseResponse(String)} if you want to turn the given data into something that's easier to
+     * handle.
+     *
+     * @param responseHandler the response handler
+     */
+    void setResponseHandler(Consumer<String> responseHandler);
 
-    public Form(Type type) {
-        this.type = type;
-    }
+    /**
+     * Parses the method into something provided by the form implementation, which will make the
+     * data given by the Bedrock client easier to handle.
+     *
+     * @param response the raw data given by the Bedrock client
+     * @return the data in an easy-to-handle class
+     */
+    T parseResponse(String response);
 
-    public static <T extends Form> T fromJson(String json, Class<T> formClass) {
-        return GSON.fromJson(json, formClass);
-    }
-
-    public String getJsonData() {
-        if (hardcodedJsonData != null) {
-            return hardcodedJsonData;
-        }
-        return GSON.toJson(this);
-    }
-
-    public abstract FormResponse parseResponse(String response);
-
-    @SuppressWarnings("unchecked")
-    public <T extends FormResponse> T parseResponseAs(String response) {
-        return (T) parseResponse(response);
-    }
-
-    public boolean isClosed(String response) {
-        return response == null || response.isEmpty() || response.equalsIgnoreCase("null");
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    public enum Type {
-        @SerializedName("form")
-        SIMPLE_FORM(SimpleForm.class),
-        @SerializedName("modal")
-        MODAL_FORM(ModalForm.class),
-        @SerializedName("custom_form")
-        CUSTOM_FORM(CustomForm.class);
-
-        private static final Type[] VALUES = values();
-        private final Class<? extends Form> typeClass;
-
-        public static Type getByOrdinal(int ordinal) {
-            return ordinal < VALUES.length ? VALUES[ordinal] : null;
-        }
-    }
-
-    public static abstract class Builder<T extends Builder<T, F>, F extends Form> {
-        protected String title = "";
-
-        protected BiFunction<String, String, String> translationHandler = null;
-        protected BiConsumer<F, String> biResponseHandler;
-        protected Consumer<String> responseHandler;
-        protected String locale;
-
-        public T title(String title) {
-            this.title = translate(title);
-            return self();
-        }
-
-        public T translator(BiFunction<String, String, String> translator, String locale) {
-            this.translationHandler = translator;
-            this.locale = locale;
-            return title(title);
-        }
-
-        public T translator(BiFunction<String, String, String> translator) {
-            return translator(translator, locale);
-        }
-
-        public T responseHandler(BiConsumer<F, String> responseHandler) {
-            biResponseHandler = responseHandler;
-            return self();
-        }
-
-        public T responseHandler(Consumer<String> responseHandler) {
-            this.responseHandler = responseHandler;
-            return self();
-        }
-
-        public abstract F build();
-
-        protected String translate(String text) {
-            if (translationHandler != null && text != null && !text.isEmpty()) {
-                return translationHandler.apply(text, locale);
-            }
-            return text;
-        }
-
-        @SuppressWarnings("unchecked")
-        protected T self() {
-            return (T) this;
-        }
-    }
+    /**
+     * Checks if the given data by the Bedrock client is saying that the client closed the form.
+     *
+     * @param response the raw data given by the Bedrock client
+     * @return true if the raw data implies that the Bedrock client closed the form
+     */
+    boolean isClosed(String response);
 }

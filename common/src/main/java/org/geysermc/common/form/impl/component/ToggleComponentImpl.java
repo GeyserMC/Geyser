@@ -23,25 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form.impl.component;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import com.google.gson.annotations.SerializedName;
+import org.geysermc.common.form.component.ComponentType;
+import org.geysermc.common.form.component.ToggleComponent;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+public final class ToggleComponentImpl extends Component implements ToggleComponent {
+    @SerializedName("default")
+    private final boolean defaultValue;
+
+    private ToggleComponentImpl(String text, boolean defaultValue) {
+        super(ComponentType.TOGGLE, text);
+        this.defaultValue = defaultValue;
     }
 
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
+    public static ToggleComponentImpl of(String text, boolean defaultValue) {
+        return new ToggleComponentImpl(text, defaultValue);
     }
 
-    static ButtonComponent of(String text) {
-        return of(text, null);
+    public static ToggleComponentImpl of(String text) {
+        return of(text, false);
     }
 
-    String getText();
-
-    FormImage getImage();
+    public boolean getDefaultValue() {
+        return defaultValue;
+    }
 }

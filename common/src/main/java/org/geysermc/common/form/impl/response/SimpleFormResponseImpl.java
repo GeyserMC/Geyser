@@ -23,25 +23,40 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form.impl.response;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.geysermc.common.form.component.ButtonComponent;
+import org.geysermc.common.form.response.SimpleFormResponse;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class SimpleFormResponseImpl implements SimpleFormResponse {
+    private static final SimpleFormResponseImpl CLOSED =
+            new SimpleFormResponseImpl(true, false, -1, null);
+    private static final SimpleFormResponseImpl INVALID =
+            new SimpleFormResponseImpl(false, true, -1, null);
+    private final boolean closed;
+    private final boolean invalid;
+
+    private final int clickedButtonId;
+    private final ButtonComponent clickedButton;
+
+    public static SimpleFormResponseImpl closed() {
+        return CLOSED;
     }
 
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
+    public static SimpleFormResponseImpl invalid() {
+        return INVALID;
     }
 
-    static ButtonComponent of(String text) {
-        return of(text, null);
+    public static SimpleFormResponseImpl of(int clickedButtonId, ButtonComponent clickedButton) {
+        return new SimpleFormResponseImpl(false, false, clickedButtonId, clickedButton);
     }
 
-    String getText();
-
-    FormImage getImage();
+    public String getClickedButtonText() {
+        return clickedButton.getText();
+    }
 }

@@ -25,78 +25,39 @@
 
 package org.geysermc.common.form.component;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
+import org.geysermc.common.form.impl.component.DropdownComponentImpl;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-@Getter
-public class DropdownComponent extends Component {
-    private final List<String> options;
-    @SerializedName("default")
-    private final int defaultOption;
-
-    private DropdownComponent(String text, List<String> options, int defaultOption) {
-        super(Type.DROPDOWN, text);
-        this.options = Collections.unmodifiableList(options);
-        this.defaultOption = defaultOption;
+public interface DropdownComponent extends Component {
+    static DropdownComponent of(String text, List<String> options, int defaultOption) {
+        return DropdownComponentImpl.of(text, options, defaultOption);
     }
 
-    public static DropdownComponent of(String text, List<String> options, int defaultOption) {
-        if (defaultOption == -1 || defaultOption >= options.size()) {
-            defaultOption = 0;
-        }
-        return new DropdownComponent(text, options, defaultOption);
+    static Builder builder() {
+        return new DropdownComponentImpl.Builder();
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static Builder builder(String text) {
+    static Builder builder(String text) {
         return builder().text(text);
     }
 
-    public static class Builder {
-        private final List<String> options = new ArrayList<>();
-        private String text;
-        private int defaultOption = 0;
+    List<String> getOptions();
 
-        public Builder text(String text) {
-            this.text = text;
-            return this;
-        }
+    int getDefaultOption();
 
-        public Builder option(String option, boolean isDefault) {
-            options.add(option);
-            if (isDefault) {
-                defaultOption = options.size() - 1;
-            }
-            return this;
-        }
+    interface Builder {
+        Builder text(String text);
 
-        public Builder option(String option) {
-            return option(option, false);
-        }
+        Builder option(String option, boolean isDefault);
 
-        public Builder defaultOption(int defaultOption) {
-            this.defaultOption = defaultOption;
-            return this;
-        }
+        Builder option(String option);
 
-        public DropdownComponent build() {
-            return of(text, options, defaultOption);
-        }
+        Builder defaultOption(int defaultOption);
 
-        public DropdownComponent translateAndBuild(Function<String, String> translator) {
-            for (int i = 0; i < options.size(); i++) {
-                options.set(i, translator.apply(options.get(i)));
-            }
+        DropdownComponent build();
 
-            return of(translator.apply(text), options, defaultOption);
-        }
+        DropdownComponent translateAndBuild(Function<String, String> translator);
     }
 }

@@ -23,25 +23,40 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import com.google.gson.annotations.SerializedName;
+import lombok.RequiredArgsConstructor;
+import org.geysermc.common.form.impl.util.FormImageImpl;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+public interface FormImage {
+    static FormImage of(Type type, String data) {
+        return FormImageImpl.of(type, data);
     }
 
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
+    static FormImage of(String type, String data) {
+        return FormImageImpl.of(type, data);
     }
 
-    static ButtonComponent of(String text) {
-        return of(text, null);
+    Type getType();
+
+    String getData();
+
+    @RequiredArgsConstructor
+    enum Type {
+        @SerializedName("path") PATH,
+        @SerializedName("url") URL;
+
+        private static final Type[] VALUES = values();
+
+        public static Type getByName(String name) {
+            String upper = name.toUpperCase();
+            for (Type value : VALUES) {
+                if (value.name().equals(upper)) {
+                    return value;
+                }
+            }
+            return null;
+        }
     }
-
-    String getText();
-
-    FormImage getImage();
 }

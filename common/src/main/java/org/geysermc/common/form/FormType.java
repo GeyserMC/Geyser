@@ -23,36 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.util;
+package org.geysermc.common.form;
 
-import lombok.AccessLevel;
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.geysermc.common.form.impl.CustomFormImpl;
+import org.geysermc.common.form.impl.ModalFormImpl;
+import org.geysermc.common.form.impl.SimpleFormImpl;
 
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class FormImage {
-    private final String type;
-    private final String data;
+@RequiredArgsConstructor
+public enum FormType {
+    @SerializedName("form")
+    SIMPLE_FORM(SimpleFormImpl.class),
+    @SerializedName("modal")
+    MODAL_FORM(ModalFormImpl.class),
+    @SerializedName("custom_form")
+    CUSTOM_FORM(CustomFormImpl.class);
 
-    public static FormImage of(String type, String data) {
-        return new FormImage(type, data);
-    }
+    private static final FormType[] VALUES = values();
+    private final Class<? extends Form> typeClass;
 
-    public static FormImage of(Type type, String data) {
-        return of(type.getName(), data);
-    }
-
-    @RequiredArgsConstructor
-    public enum Type {
-        PATH("path"),
-        URL("url");
-
-        @Getter private final String name;
-
-        @Override
-        public String toString() {
-            return name;
-        }
+    public static FormType getByOrdinal(int ordinal) {
+        return ordinal < VALUES.length ? VALUES[ordinal] : null;
     }
 }

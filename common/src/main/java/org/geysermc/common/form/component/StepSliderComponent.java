@@ -25,92 +25,47 @@
 
 package org.geysermc.common.form.component;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
+import org.geysermc.common.form.impl.component.StepSliderComponentImpl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-@Getter
-public final class StepSliderComponent extends Component {
-    private final List<String> steps;
-    @SerializedName("default")
-    private final int defaultStep;
-
-    private StepSliderComponent(String text, List<String> steps, int defaultStep) {
-        super(Type.STEP_SLIDER, text);
-        this.steps = Collections.unmodifiableList(steps);
-        this.defaultStep = defaultStep;
+public interface StepSliderComponent extends Component {
+    static StepSliderComponent of(String text, List<String> steps, int defaultStep) {
+        return StepSliderComponentImpl.of(text, steps, defaultStep);
     }
 
-    public static StepSliderComponent of(String text, List<String> steps, int defaultStep) {
-        if (text == null) {
-            text = "";
-        }
-
-        if (defaultStep >= steps.size() || defaultStep == -1) {
-            defaultStep = 0;
-        }
-
-        return new StepSliderComponent(text, steps, defaultStep);
+    static StepSliderComponent of(String text, int defaultStep, String... steps) {
+        return StepSliderComponentImpl.of(text, defaultStep, steps);
     }
 
-    public static StepSliderComponent of(String text, int defaultStep, String... steps) {
-        return of(text, Arrays.asList(steps), defaultStep);
+    static StepSliderComponent of(String text, String... steps) {
+        return StepSliderComponentImpl.of(text, steps);
     }
 
-    public static StepSliderComponent of(String text, String... steps) {
-        return of(text, 0, steps);
+    static Builder builder() {
+        return new StepSliderComponentImpl.Builder();
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static Builder builder(String text) {
+    static Builder builder(String text) {
         return builder().text(text);
     }
 
-    public static final class Builder {
-        private final List<String> steps = new ArrayList<>();
-        private String text;
-        private int defaultStep;
+    List<String> getSteps();
 
-        public Builder text(String text) {
-            this.text = text;
-            return this;
-        }
+    int getDefaultStep();
 
-        public Builder step(String step, boolean defaultStep) {
-            steps.add(step);
-            if (defaultStep) {
-                this.defaultStep = steps.size() - 1;
-            }
-            return this;
-        }
+    interface Builder {
+        Builder text(String text);
 
-        public Builder step(String step) {
-            return step(step, false);
-        }
+        Builder step(String step, boolean defaultStep);
 
-        public Builder defaultStep(int defaultStep) {
-            this.defaultStep = defaultStep;
-            return this;
-        }
+        Builder step(String step);
 
-        public StepSliderComponent build() {
-            return of(text, steps, defaultStep);
-        }
+        Builder defaultStep(int defaultStep);
 
-        public StepSliderComponent translateAndBuild(Function<String, String> translator) {
-            for (int i = 0; i < steps.size(); i++) {
-                steps.set(i, translator.apply(steps.get(i)));
-            }
+        StepSliderComponent build();
 
-            return of(translator.apply(text), steps, defaultStep);
-        }
+        StepSliderComponent translateAndBuild(Function<String, String> translator);
     }
 }

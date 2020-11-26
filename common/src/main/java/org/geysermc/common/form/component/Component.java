@@ -25,53 +25,8 @@
 
 package org.geysermc.common.form.component;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+public interface Component {
+    ComponentType getType();
 
-import java.util.Objects;
-
-@Getter
-public abstract class Component {
-    private final Type type;
-    private final String text;
-
-    Component(Type type, String text) {
-        Objects.requireNonNull(type, "Type cannot be null");
-        Objects.requireNonNull(text, "Text cannot be null");
-
-        this.type = type;
-        this.text = text;
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    public enum Type {
-        @SerializedName("dropdown")
-        DROPDOWN(DropdownComponent.class),
-        @SerializedName("input")
-        INPUT(InputComponent.class),
-        @SerializedName("label")
-        LABEL(LabelComponent.class),
-        @SerializedName("slider")
-        SLIDER(SliderComponent.class),
-        @SerializedName("step_slider")
-        STEP_SLIDER(StepSliderComponent.class),
-        @SerializedName("toggle")
-        TOGGLE(ToggleComponent.class);
-
-        private static final Type[] VALUES = values();
-
-        private final String name = name().toLowerCase();
-        private final Class<? extends Component> componentClass;
-
-        public static Type getByName(String name) {
-            for (Type type : VALUES) {
-                if (type.name.equals(name)) {
-                    return type;
-                }
-            }
-            return null;
-        }
-    }
+    String getText();
 }

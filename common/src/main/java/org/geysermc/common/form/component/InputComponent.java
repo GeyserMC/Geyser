@@ -25,30 +25,22 @@
 
 package org.geysermc.common.form.component;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
+import org.geysermc.common.form.impl.component.InputComponentImpl;
 
-@Getter
-public class InputComponent extends Component {
-    private final String placeholder;
-    @SerializedName("default")
-    private final String defaultText;
-
-    private InputComponent(String text, String placeholder, String defaultText) {
-        super(Type.INPUT, text);
-        this.placeholder = placeholder;
-        this.defaultText = defaultText;
+public interface InputComponent extends Component {
+    static InputComponent of(String text, String placeholder, String defaultText) {
+        return InputComponentImpl.of(text, placeholder, defaultText);
     }
 
-    public static InputComponent of(String text, String placeholder, String defaultText) {
-        return new InputComponent(text, placeholder, defaultText);
+    static InputComponent of(String text, String placeholder) {
+        return InputComponentImpl.of(text, placeholder, "");
     }
 
-    public static InputComponent of(String text, String placeholder) {
-        return new InputComponent(text, placeholder, "");
+    static InputComponent of(String text) {
+        return InputComponentImpl.of(text, "", "");
     }
 
-    public static InputComponent of(String text) {
-        return new InputComponent(text, "", "");
-    }
+    String getPlaceholder();
+
+    String getDefaultText();
 }

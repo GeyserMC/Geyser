@@ -27,9 +27,16 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.connector.entity.attribute.Attribute;
+import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.AttributeUtils;
+
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Used to send the keep alive packet back to the server
@@ -39,8 +46,26 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
     @Override
     public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
-        // The client sends a timestamp back but it's rounded and therefore unreliable when we need the exact number
-        ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(session.getLastKeepAliveTimestamp());
-        session.sendDownstreamPacket(keepAlivePacket);
+        if (packet.getTimestamp() > 0) {
+            // The client sends a timestamp back but it's rounded and therefore unreliable when we need the exact number
+            ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(session.getLastKeepAliveTimestamp());
+            session.sendDownstreamPacket(keepAlivePacket);
+            return;
+        }
+
+        // Hack to fix the url image loading bug
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+
+        Attribute attribute = session.getPlayerEntity().getAttributes().get(AttributeType.EXPERIENCE_LEVEL);
+        if (attribute != null) {
+            attributesPacket.setAttributes(Collections.singletonList(AttributeUtils.getBedrockAttribute(attribute)));
+        } else {
+            attributesPacket.setAttributes(Collections.singletonList(AttributeUtils.getBedrockAttribute(AttributeType.EXPERIENCE_LEVEL.getAttribute(0))));
+        }
+
+        session.getConnector().getGeneralThreadPool().schedule(
+                () -> session.sendUpstreamPacket(attributesPacket),
+                500, TimeUnit.MILLISECONDS);
     }
 }

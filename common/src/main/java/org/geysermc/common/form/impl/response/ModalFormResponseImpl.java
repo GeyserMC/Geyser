@@ -23,25 +23,40 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form.impl.response;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.geysermc.common.form.response.FormResponse;
+import org.geysermc.common.form.response.ModalFormResponse;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ModalFormResponseImpl implements ModalFormResponse {
+    private static final ModalFormResponseImpl CLOSED =
+            new ModalFormResponseImpl(true, false, -1, null);
+    private static final ModalFormResponseImpl INVALID =
+            new ModalFormResponseImpl(false, true, -1, null);
+    private final boolean closed;
+    private final boolean invalid;
+
+    private final int clickedButtonId;
+    private final String clickedButtonText;
+
+    public static ModalFormResponseImpl closed() {
+        return CLOSED;
     }
 
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
+    public static ModalFormResponseImpl invalid() {
+        return INVALID;
     }
 
-    static ButtonComponent of(String text) {
-        return of(text, null);
+    public static ModalFormResponseImpl of(int clickedButtonId, String clickedButtonText) {
+        return new ModalFormResponseImpl(false, false, clickedButtonId, clickedButtonText);
     }
 
-    String getText();
-
-    FormImage getImage();
+    public boolean getResult() {
+        return clickedButtonId == 0;
+    }
 }

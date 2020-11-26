@@ -23,25 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form.impl.component;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import lombok.Getter;
+import org.geysermc.common.form.component.ComponentType;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+import java.util.Objects;
+
+@Getter
+public abstract class Component {
+    private final ComponentType type;
+    private final String text;
+
+    Component(ComponentType type, String text) {
+        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(text, "Text cannot be null");
+
+        this.type = type;
+        this.text = text;
     }
-
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
-    }
-
-    static ButtonComponent of(String text) {
-        return of(text, null);
-    }
-
-    String getText();
-
-    FormImage getImage();
 }

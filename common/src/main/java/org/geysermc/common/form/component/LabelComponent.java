@@ -25,15 +25,10 @@
 
 package org.geysermc.common.form.component;
 
-import lombok.Getter;
+import org.geysermc.common.form.impl.component.LabelComponentImpl;
 
-@Getter
-public class LabelComponent extends Component {
-    private LabelComponent(String text) {
-        super(Type.LABEL, text);
-    }
-
-    public static LabelComponent of(String text) {
-        return new LabelComponent(text);
+public interface LabelComponent extends Component {
+    static LabelComponent of(String text) {
+        return LabelComponentImpl.of(text);
     }
 }

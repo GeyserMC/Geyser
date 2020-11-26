@@ -25,36 +25,10 @@
 
 package org.geysermc.common.form.response;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+public interface ModalFormResponse extends FormResponse {
+    int getClickedButtonId();
 
-@Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ModalFormResponse implements FormResponse {
-    private static final ModalFormResponse CLOSED =
-            new ModalFormResponse(true, false, -1, null);
-    private static final ModalFormResponse INVALID =
-            new ModalFormResponse(false, true, -1, null);
-    private final boolean closed;
-    private final boolean invalid;
+    String getClickedButtonText();
 
-    private final int clickedButtonId;
-    private final String clickedButtonText;
-
-    public static ModalFormResponse closed() {
-        return CLOSED;
-    }
-
-    public static ModalFormResponse invalid() {
-        return INVALID;
-    }
-
-    public static ModalFormResponse of(int clickedButtonId, String clickedButtonText) {
-        return new ModalFormResponse(false, false, clickedButtonId, clickedButtonText);
-    }
-
-    public boolean getResult() {
-        return clickedButtonId == 0;
-    }
+    boolean getResult();
 }

@@ -25,93 +25,37 @@
 
 package org.geysermc.common.form;
 
-import com.google.gson.annotations.JsonAdapter;
-import lombok.Getter;
 import org.geysermc.common.form.component.ButtonComponent;
+import org.geysermc.common.form.impl.SimpleFormImpl;
 import org.geysermc.common.form.response.SimpleFormResponse;
-import org.geysermc.common.form.util.FormAdaptor;
-import org.geysermc.common.form.util.FormImage;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-@Getter
-@JsonAdapter(FormAdaptor.class)
-public final class SimpleForm extends Form {
-    private final String title;
-    private final String content;
-    private final List<ButtonComponent> buttons;
-
-    private SimpleForm(String title, String content, List<ButtonComponent> buttons) {
-        super(Type.SIMPLE_FORM);
-
-        this.title = title;
-        this.content = content;
-        this.buttons = Collections.unmodifiableList(buttons);
+/**
+ *
+ */
+public interface SimpleForm extends Form<SimpleFormResponse> {
+    static Builder builder() {
+        return new SimpleFormImpl.Builder();
     }
 
-    public static Builder builder() {
-        return new Builder();
+    static SimpleForm of(String title, String content, List<ButtonComponent> buttons) {
+        return SimpleFormImpl.of(title, content, buttons);
     }
 
-    public static SimpleForm of(String title, String content, List<ButtonComponent> buttons) {
-        return new SimpleForm(title, content, buttons);
-    }
+    String getTitle();
 
-    public SimpleFormResponse parseResponse(String data) {
-        if (isClosed(data)) {
-            return SimpleFormResponse.closed();
-        }
+    String getContent();
 
-        int buttonId;
-        try {
-            buttonId = Integer.parseInt(data);
-        } catch (Exception exception) {
-            return SimpleFormResponse.invalid();
-        }
+    List<ButtonComponent> getButtons();
 
-        if (buttonId >= buttons.size()) {
-            return SimpleFormResponse.invalid();
-        }
+    interface Builder extends FormBuilder<Builder, SimpleForm> {
+        Builder content(String content);
 
-        return SimpleFormResponse.of(buttonId, buttons.get(buttonId));
-    }
+        Builder button(String text, FormImage.Type type, String data);
 
-    public static final class Builder extends Form.Builder<Builder, SimpleForm> {
-        private final List<ButtonComponent> buttons = new ArrayList<>();
-        private String content = "";
+        Builder button(String text, FormImage image);
 
-        public Builder content(String content) {
-            this.content = translate(content);
-            return this;
-        }
-
-        public Builder button(String text, FormImage.Type type, String data) {
-            buttons.add(ButtonComponent.of(translate(text), type, data));
-            return this;
-        }
-
-        public Builder button(String text, FormImage image) {
-            buttons.add(ButtonComponent.of(translate(text), image));
-            return this;
-        }
-
-        public Builder button(String text) {
-            buttons.add(ButtonComponent.of(translate(text)));
-            return this;
-        }
-
-        @Override
-        public SimpleForm build() {
-            SimpleForm form = of(title, content, buttons);
-            if (biResponseHandler != null) {
-                form.setResponseHandler(response -> biResponseHandler.accept(form, response));
-                return form;
-            }
-
-            form.setResponseHandler(responseHandler);
-            return form;
-        }
+        Builder button(String text);
     }
 }

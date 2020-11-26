@@ -23,25 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form.impl.component;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
+import org.geysermc.common.form.component.ComponentType;
+import org.geysermc.common.form.component.InputComponent;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+@Getter
+public final class InputComponentImpl extends Component implements InputComponent {
+    private final String placeholder;
+    @SerializedName("default")
+    private final String defaultText;
+
+    private InputComponentImpl(String text, String placeholder, String defaultText) {
+        super(ComponentType.INPUT, text);
+        this.placeholder = placeholder;
+        this.defaultText = defaultText;
     }
 
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
+    public static InputComponentImpl of(String text, String placeholder, String defaultText) {
+        return new InputComponentImpl(text, placeholder, defaultText);
     }
 
-    static ButtonComponent of(String text) {
-        return of(text, null);
+    public static InputComponentImpl of(String text, String placeholder) {
+        return new InputComponentImpl(text, placeholder, "");
     }
 
-    String getText();
-
-    FormImage getImage();
+    public static InputComponentImpl of(String text) {
+        return new InputComponentImpl(text, "", "");
+    }
 }

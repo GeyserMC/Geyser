@@ -27,40 +27,50 @@ package org.geysermc.connector.network.session.cache;
 
 import com.nukkitx.protocol.bedrock.packet.ModalFormRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ModalFormResponsePacket;
+import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.common.form.Form;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
 public class FormCache {
     private final AtomicInteger formId = new AtomicInteger(0);
-    private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<Form<?>> forms = new Int2ObjectOpenHashMap<>();
     private final GeyserSession session;
 
-    public int addForm(Form form) {
+    public int addForm(Form<?> form) {
         int windowId = formId.getAndIncrement();
         forms.put(windowId, form);
         return windowId;
     }
 
-    public int showForm(Form form) {
+    public int showForm(Form<?> form) {
         int windowId = addForm(form);
 
         ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
         formRequestPacket.setFormId(windowId);
         formRequestPacket.setFormData(form.getJsonData());
-
         session.sendUpstreamPacket(formRequestPacket);
+
+        // Hack to fix the url image loading bug
+        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+        latencyPacket.setFromServer(true);
+        latencyPacket.setTimestamp(-System.currentTimeMillis());
+        session.getConnector().getGeneralThreadPool().schedule(() ->
+                session.sendUpstreamPacket(latencyPacket),
+                500, TimeUnit.MILLISECONDS);
+
         return windowId;
     }
 
     public void handleResponse(ModalFormResponsePacket response) {
-        Form form = forms.get(response.getFormId());
+        Form<?> form = forms.get(response.getFormId());
         if (form == null) {
             return;
         }

@@ -23,25 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form.impl.util;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+@Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class FormImageImpl implements FormImage {
+    private final Type type;
+    private final String data;
+
+    public static FormImageImpl of(Type type, String data) {
+        return new FormImageImpl(type, data);
     }
 
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
+    public static FormImageImpl of(String type, String data) {
+        return of(Type.getByName(type), data);
     }
-
-    static ButtonComponent of(String text) {
-        return of(text, null);
-    }
-
-    String getText();
-
-    FormImage getImage();
 }

@@ -23,25 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
-    }
+public interface FormBuilder<T extends FormBuilder<T, F>, F extends Form<?>> {
+    T title(String title);
 
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
-    }
+    T translator(BiFunction<String, String, String> translator, String locale);
 
-    static ButtonComponent of(String text) {
-        return of(text, null);
-    }
+    T translator(BiFunction<String, String, String> translator);
 
-    String getText();
+    T responseHandler(BiConsumer<F, String> responseHandler);
 
-    FormImage getImage();
+    T responseHandler(Consumer<String> responseHandler);
+
+    F build();
 }

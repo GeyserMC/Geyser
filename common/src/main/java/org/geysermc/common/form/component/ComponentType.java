@@ -25,23 +25,37 @@
 
 package org.geysermc.common.form.component;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+@Getter
+@RequiredArgsConstructor
+public enum ComponentType {
+    @SerializedName("dropdown")
+    DROPDOWN(DropdownComponent.class),
+    @SerializedName("input")
+    INPUT(InputComponent.class),
+    @SerializedName("label")
+    LABEL(LabelComponent.class),
+    @SerializedName("slider")
+    SLIDER(SliderComponent.class),
+    @SerializedName("step_slider")
+    STEP_SLIDER(StepSliderComponent.class),
+    @SerializedName("toggle")
+    TOGGLE(ToggleComponent.class);
+
+    private static final ComponentType[] VALUES = values();
+
+    private final String name = name().toLowerCase();
+    private final Class<? extends Component> componentClass;
+
+    public static ComponentType getByName(String name) {
+        for (ComponentType type : VALUES) {
+            if (type.name.equals(name)) {
+                return type;
+            }
+        }
+        return null;
     }
-
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
-    }
-
-    static ButtonComponent of(String text) {
-        return of(text, null);
-    }
-
-    String getText();
-
-    FormImage getImage();
 }

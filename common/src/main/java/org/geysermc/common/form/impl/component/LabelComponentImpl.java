@@ -23,25 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form.impl.component;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import lombok.Getter;
+import org.geysermc.common.form.component.ComponentType;
+import org.geysermc.common.form.component.LabelComponent;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+@Getter
+public final class LabelComponentImpl extends Component implements LabelComponent {
+    private LabelComponentImpl(String text) {
+        super(ComponentType.LABEL, text);
     }
 
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
+    public static LabelComponentImpl of(String text) {
+        return new LabelComponentImpl(text);
     }
-
-    static ButtonComponent of(String text) {
-        return of(text, null);
-    }
-
-    String getText();
-
-    FormImage getImage();
 }

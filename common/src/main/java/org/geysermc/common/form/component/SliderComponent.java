@@ -25,49 +25,30 @@
 
 package org.geysermc.common.form.component;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
+import org.geysermc.common.form.impl.component.SliderComponentImpl;
 
-@Getter
-public final class SliderComponent extends Component {
-    private final float min;
-    private final float max;
-    private final int step;
-    @SerializedName("default")
-    private final float defaultValue;
-
-    private SliderComponent(String text, float min, float max, int step, float defaultValue) {
-        super(Type.SLIDER, text);
-        this.min = min;
-        this.max = max;
-        this.step = step;
-        this.defaultValue = defaultValue;
+public interface SliderComponent extends Component {
+    static SliderComponent of(String text, float min, float max, int step, float defaultValue) {
+        return SliderComponentImpl.of(text, min, max, step, defaultValue);
     }
 
-    public static SliderComponent of(String text, float min, float max, int step, float defaultValue) {
-        min = Math.max(min, 0f);
-        max = Math.max(max, min);
-
-        if (step < 1) {
-            step = 1;
-        }
-
-        if (defaultValue == -1f) {
-            defaultValue = (int) Math.floor(min + max / 2D);
-        }
-
-        return new SliderComponent(text, min, max, step, defaultValue);
+    static SliderComponent of(String text, float min, float max, int step) {
+        return SliderComponentImpl.of(text, min, max, step);
     }
 
-    public static SliderComponent of(String text, float min, float max, int step) {
-        return of(text, min, max, step, -1);
+    static SliderComponent of(String text, float min, float max, float defaultValue) {
+        return SliderComponentImpl.of(text, min, max, defaultValue);
     }
 
-    public static SliderComponent of(String text, float min, float max, float defaultValue) {
-        return of(text, min, max, -1, defaultValue);
+    static SliderComponent of(String text, float min, float max) {
+        return SliderComponentImpl.of(text, min, max);
     }
 
-    public static SliderComponent of(String text, float min, float max) {
-        return of(text, min, max, -1, -1);
-    }
+    float getMin();
+
+    float getMax();
+
+    int getStep();
+
+    float getDefaultValue();
 }

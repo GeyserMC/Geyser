@@ -23,25 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.form.component;
+package org.geysermc.common.form;
 
-import org.geysermc.common.form.FormImage;
-import org.geysermc.common.form.impl.component.ButtonComponentImpl;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.geysermc.common.form.impl.FormImpl;
+import org.geysermc.common.form.impl.util.FormAdaptor;
 
-public interface ButtonComponent {
-    static ButtonComponent of(String text, FormImage image) {
-        return ButtonComponentImpl.of(text, image);
+public final class Forms {
+    private static final Gson GSON =
+            new GsonBuilder()
+                    .registerTypeAdapter(FormImpl.class, new FormAdaptor())
+                    .create();
+
+    public static Gson getGson() {
+        return GSON;
     }
 
-    static ButtonComponent of(String text, FormImage.Type type, String data) {
-        return ButtonComponentImpl.of(text, type, data);
+    public static <T extends Form<?>> T fromJson(String json, Class<T> formClass) {
+        return GSON.fromJson(json, formClass);
     }
-
-    static ButtonComponent of(String text) {
-        return of(text, null);
-    }
-
-    String getText();
-
-    FormImage getImage();
 }

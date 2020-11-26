@@ -89,7 +89,7 @@ public class SettingsUtils {
         }
 
         builder.responseHandler((form, responseData) -> {
-            CustomFormResponse response = form.parseResponseAs(responseData);
+            CustomFormResponse response = form.parseResponse(responseData);
             if (response.isClosed() || response.isInvalid()) {
                 return;
             }
