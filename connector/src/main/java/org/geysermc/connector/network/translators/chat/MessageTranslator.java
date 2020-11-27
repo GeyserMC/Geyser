@@ -117,7 +117,7 @@ public class MessageTranslator {
      */
     public static String convertMessageLenient(String message, String locale) {
         if (message.trim().isEmpty()) {
-            return "";
+            return message;
         }
 
         try {
