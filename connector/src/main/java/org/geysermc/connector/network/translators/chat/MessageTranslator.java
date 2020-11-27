@@ -116,9 +116,13 @@ public class MessageTranslator {
      * @return Bedrock formatted message
      */
     public static String convertMessageLenient(String message, String locale) {
-        if (isMessage(message)) {
+        if (message.trim().isEmpty()) {
+            return "";
+        }
+
+        try {
             return convertMessage(message, locale);
-        } else {
+        } catch (Exception ex) {
             String convertedMessage = convertMessage(convertToJavaMessage(message), locale);
 
             // We have to do this since Adventure strips the starting reset character
@@ -143,26 +147,6 @@ public class MessageTranslator {
     public static String convertToJavaMessage(String message) {
         Component component = LegacyComponentSerializer.legacySection().deserialize(message);
         return GSON_SERIALIZER.serialize(component);
-    }
-
-    /**
-     * Checks if the given text string is a JSON message
-     *
-     * @param text String to test
-     * @return True if its a valid message JSON string, false if not
-     */
-    public static boolean isMessage(String text) {
-        if (text.trim().isEmpty()) {
-            return false;
-        }
-
-        try {
-            GSON_SERIALIZER.deserialize(text);
-        } catch (Exception ex) {
-            return false;
-        }
-
-        return true;
     }
 
     /**
