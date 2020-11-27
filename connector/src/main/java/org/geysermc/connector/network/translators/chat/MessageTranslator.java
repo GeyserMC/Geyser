@@ -87,7 +87,7 @@ public class MessageTranslator {
             legacy = legacy.replaceAll("\u00a7r\u00a7r", "\u00a7r");
 
             return legacy;
-        } catch (Exception | AssertionError e) {
+        } catch (Exception e) {
             GeyserConnector.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
             GeyserConnector.getInstance().getLogger().error("Failed to parse message", e);
 
@@ -122,7 +122,7 @@ public class MessageTranslator {
 
         try {
             return convertMessage(message, locale);
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
             String convertedMessage = convertMessage(convertToJavaMessage(message), locale);
 
             // We have to do this since Adventure strips the starting reset character
