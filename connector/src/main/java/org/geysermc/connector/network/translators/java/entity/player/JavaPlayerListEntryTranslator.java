@@ -30,7 +30,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.SkinUtils;
+import org.geysermc.connector.skin.SkinManager;
 
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntryAction;
@@ -58,7 +58,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                         // Entity is ourself
                         playerEntity = session.getPlayerEntity();
                         //TODO: playerEntity.setProfile(entry.getProfile()); seems to help with online mode skins but needs more testing to ensure Floodgate skins aren't overwritten
-                        SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
+                        SkinManager.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
                                 GeyserConnector.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data"));
                     } else {
                         playerEntity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
@@ -82,7 +82,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     playerEntity.setPlayerList(true);
                     playerEntity.setValid(true);
 
-                    PlayerListPacket.Entry playerListEntry = SkinUtils.buildCachedEntry(session, playerEntity);
+                    PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, playerEntity);
 
                     translate.getEntries().add(playerListEntry);
                     break;
