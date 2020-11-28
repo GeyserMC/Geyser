@@ -37,7 +37,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.skin.SkinManager;
+import org.geysermc.connector.skin.SkullSkinManager;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -147,7 +147,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         if (session.getUpstream().isInitialized()) {
             player.spawnEntity(session);
 
-            SkinManager.requestAndHandleSkinAndCape(player, session, (skinAndCape -> session.getConnector().getGeneralThreadPool().schedule(() -> {
+            SkullSkinManager.requestAndHandleSkinAndCape(player, session, (skinAndCape -> session.getConnector().getGeneralThreadPool().schedule(() -> {
                 // Delay to minimize split-second "player" pop-in
                 player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
                 player.updateBedrockMetadata(session);
