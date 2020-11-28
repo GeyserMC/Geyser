@@ -132,16 +132,19 @@ public class PistonBlockEntity {
             removeBlocks();
             createMovingBlocks();
         }
-
-        if (updater != null) {
-            updater.cancel(true);
-        }
     }
 
     /**
      * Send block entity data packets to update the position of the piston head
      */
     public void sendUpdate() {
+        if (updater != null && !updater.isDone()) {
+            return;
+        }
+        update();
+    }
+
+    private void update() {
         correctPlayerPosition();
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
         blockEntityDataPacket.setBlockPosition(position);
@@ -155,7 +158,7 @@ public class PistonBlockEntity {
             }
             updater = session.getConnector().getGeneralThreadPool().schedule(() -> {
                 updateProgress();
-                sendUpdate();
+                update();
             }, 50, TimeUnit.MILLISECONDS);
         } else {
             if (action != PistonValueType.PUSHING) {
@@ -422,8 +425,8 @@ public class PistonBlockEntity {
             collisionManager.correctPlayerPosition();
 
             Vector3d correctedPlayerPos = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
-            playerEntity.moveAbsolute(session, correctedPlayerPos.toFloat(), playerEntity.getRotation(), false, false);
-            ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(false, correctedPlayerPos.getX(), correctedPlayerPos.getY(), correctedPlayerPos.getZ());
+            playerEntity.moveAbsolute(session, correctedPlayerPos.toFloat(), playerEntity.getRotation(), true, false);
+            ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(true, correctedPlayerPos.getX(), correctedPlayerPos.getY(), correctedPlayerPos.getZ());
             session.sendDownstreamPacket(playerPositionPacket);
         }
     }

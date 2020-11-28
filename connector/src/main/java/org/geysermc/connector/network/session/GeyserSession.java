@@ -55,11 +55,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -137,7 +133,7 @@ public class GeyserSession implements CommandSender {
      * A map of Vector3i positions to PistonBlockEntities
      * Used for updating pistons when they extend or retract
      */
-    private final Object2ObjectMap<Vector3i, PistonBlockEntity> pistonCache = new Object2ObjectOpenHashMap<>();
+    private final Object2ObjectMap<Vector3i, PistonBlockEntity> pistonCache = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
 
     @Setter
     private Vector2i lastChunkPosition = null;
