@@ -234,6 +234,10 @@ public class MessageTranslator {
      * @return The chat color character
      */
     public static String toChatColor(TeamColor teamColor) {
+        if (teamColor.equals(TeamColor.NONE)) {
+            return "";
+        }
+
         NamedTextColor textColor = NamedTextColor.NAMES.value(teamColor.name().toLowerCase());
         if (textColor != null) {
             return getColor(textColor);
