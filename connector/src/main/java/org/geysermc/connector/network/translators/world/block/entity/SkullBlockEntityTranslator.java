@@ -136,7 +136,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         GameProfile gameProfile = getProfile(tag);
         if (gameProfile == null) {
-            session.getConnector().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition.toString());
+            session.getConnector().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition.toString() + " " + tag.toString());
             return;
         }
 
