@@ -31,7 +31,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -68,10 +67,7 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
         BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
         if (packet.getNbt().contains("SkullOwner") && SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS) {
-            CompoundTag owner = packet.getNbt().get("SkullOwner");
-            if (owner.contains("Properties")) {
-                SkullBlockEntityTranslator.spawnPlayer(session, packet.getNbt(), blockState);
-            }
+            SkullBlockEntityTranslator.spawnPlayer(session, packet.getNbt(), blockState);
         }
 
         // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty

@@ -33,21 +33,23 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.skin.SkinProvider;
 import org.geysermc.connector.skin.SkullSkinManager;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @BlockEntity(name = "Skull", regex = "skull")
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-    public static final boolean ALLOW_CUSTOM_SKULLS = GeyserConnector.getInstance().getConfig().isAllowCustomSkulls();
+    public static boolean ALLOW_CUSTOM_SKULLS;
 
     @Override
     public boolean isBlock(int blockState) {
@@ -69,17 +71,26 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     public static GameProfile getProfile(CompoundTag tag) {
         if (tag.contains("SkullOwner")) {
             CompoundTag owner = tag.get("SkullOwner");
-            CompoundTag Properties = owner.get("Properties");
+            CompoundTag properties = owner.get("Properties");
+            if (properties == null) {
+                try {
+                    CompletableFuture<GameProfile> gameProfile = SkinProvider.requestTexturesFromUsername(owner);
+                    return gameProfile.get();
+                }  catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
 
-            ListTag textures = Properties.get("textures");
+            ListTag textures = properties.get("textures");
             LinkedHashMap<?,?> tag1 = (LinkedHashMap<?,?>) textures.get(0).getValue();
             StringTag texture = (StringTag) tag1.get("Value");
 
-            List<GameProfile.Property> properties = new ArrayList<>();
+            List<GameProfile.Property> profileProperties = new ArrayList<>();
 
             GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "");
-            properties.add(new GameProfile.Property("textures", texture.getValue()));
-            gameProfile.setProperties(properties);
+            profileProperties.add(new GameProfile.Property("textures", texture.getValue()));
+            gameProfile.setProperties(profileProperties);
             return gameProfile;
         }
         return null;
@@ -125,7 +136,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         GameProfile gameProfile = getProfile(tag);
         if (gameProfile == null) {
-            session.getConnector().getLogger().debug("Custom skull with no SkullOwner tag: " + blockPosition.toString());
+            session.getConnector().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition.toString());
             return;
         }
 

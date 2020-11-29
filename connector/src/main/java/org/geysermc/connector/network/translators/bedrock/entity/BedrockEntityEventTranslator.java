@@ -41,6 +41,7 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
 
     @Override
     public void translate(EntityEventPacket packet, GeyserSession session) {
+        System.out.println(packet.toString());
         switch (packet.getType()) {
             // Resend the packet so we get the eating sounds
             case EATING_ITEM:

@@ -27,6 +27,10 @@ package org.geysermc.connector.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.AllArgsConstructor;
@@ -45,6 +49,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -459,6 +464,62 @@ public class SkinProvider {
         byte[] data = bufferedImageToImageData(image);
         image.flush();
         return data;
+    }
+
+    /**
+     * If a skull has a username but no textures, request them.
+     * @param skullOwner the CompoundTag of the skull with no textures
+     * @return a completable GameProfile with textures included
+     */
+    public static CompletableFuture<GameProfile> requestTexturesFromUsername(CompoundTag skullOwner) {
+        return CompletableFuture.supplyAsync(() -> {
+            Tag uuidTag = skullOwner.get("Id");
+            String uuidToString = "";
+            JsonNode node;
+            GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "");
+            boolean retrieveUuidFromInternet = !(uuidTag instanceof IntArrayTag); // also covers null check
+
+            if (!retrieveUuidFromInternet) {
+                int[] uuidAsArray = ((IntArrayTag) uuidTag).getValue();
+                // thank u viaversion
+                UUID uuid = new UUID((long) uuidAsArray[0] << 32 | ((long) uuidAsArray[1] & 0xFFFFFFFFL),
+                        (long) uuidAsArray[2] << 32 | ((long) uuidAsArray[3] & 0xFFFFFFFFL));
+                retrieveUuidFromInternet = uuid.version() != 4;
+                uuidToString = uuid.toString().replace("-", "");
+            }
+
+            try {
+                if (retrieveUuidFromInternet) {
+                    // Offline skin, or no present UUID
+                    HttpURLConnection con = (HttpURLConnection) new URL("https://api.mojang.com/users/profiles/minecraft/" + skullOwner.get("Name").getValue()).openConnection();
+                    con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
+                    node = GeyserConnector.JSON_MAPPER.readTree(con.getInputStream());
+                    JsonNode id = node.get("id");
+                    if (id == null) {
+                        GeyserConnector.getInstance().getLogger().debug("No UUID found in Mojang response for " + skullOwner.get("Name").getValue());
+                        return null;
+                    }
+                    uuidToString = id.asText();
+                }
+
+                // Get textures from UUID
+                HttpURLConnection con = (HttpURLConnection) new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuidToString).openConnection();
+                con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
+                node = GeyserConnector.JSON_MAPPER.readTree(con.getInputStream());
+                List<GameProfile.Property> profileProperties = new ArrayList<>();
+                JsonNode properties = node.get("Properties");
+                if (properties == null) {
+                    GeyserConnector.getInstance().getLogger().debug("No properties found in Mojang response for " + uuidToString);
+                    return null;
+                }
+                profileProperties.add(new GameProfile.Property("textures", node.get("properties").get(0).get("value").asText()));
+                gameProfile.setProperties(profileProperties);
+                return gameProfile;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }, EXECUTOR_SERVICE);
     }
 
     private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {
