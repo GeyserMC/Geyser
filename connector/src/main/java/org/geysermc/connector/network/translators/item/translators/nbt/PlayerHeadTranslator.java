@@ -45,11 +45,14 @@ public class PlayerHeadTranslator extends NbtItemStackTranslator {
                 Tag skullOwner = itemTag.get("SkullOwner");
                 if (skullOwner instanceof StringTag) {
                     name = (StringTag) skullOwner;
-                } else if (skullOwner instanceof CompoundTag) {
-                    name = ((CompoundTag) skullOwner).get("Name");
                 } else {
-                    session.getConnector().getLogger().debug("Not sure how to handle skull head item display. " + itemTag);
-                    return;
+                    StringTag skullName;
+                    if (skullOwner instanceof CompoundTag && (skullName = ((CompoundTag) skullOwner).get("Name")) != null) {
+                        name = skullName;
+                    } else {
+                        session.getConnector().getLogger().debug("Not sure how to handle skull head item display. " + itemTag);
+                        return;
+                    }
                 }
                 // Add correct name of player skull
                 // TODO: It's always yellow, even with a custom name. Handle?

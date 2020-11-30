@@ -60,15 +60,13 @@ public class SkullSkinManager extends SkinManager {
         return entry;
     }
 
-    public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
-                                                   Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
+    public static void requestAndHandleSkin(PlayerEntity entity, GeyserSession session,
+                                            Consumer<SkinProvider.Skin> skinConsumer) {
         GameProfileData data = GameProfileData.from(entity.getProfile());
 
-        SkinProvider.requestSkinAndCape(entity.getUuid(), data.getSkinUrl(), data.getCapeUrl())
-                .whenCompleteAsync((skinAndCape, throwable) -> {
+        SkinProvider.requestSkin(entity.getUuid(), data.getSkinUrl(), false)
+                .whenCompleteAsync((skin, throwable) -> {
                     try {
-                        SkinProvider.Skin skin = skinAndCape.getSkin();
-
                         if (session.getUpstream().isInitialized()) {
                             PlayerListPacket.Entry updatedEntry = buildSkullEntryManually(
                                     entity.getUuid(),
@@ -93,8 +91,8 @@ public class SkullSkinManager extends SkinManager {
                         GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                     }
 
-                    if (skinAndCapeConsumer != null) {
-                        skinAndCapeConsumer.accept(skinAndCape);
+                    if (skinConsumer != null) {
+                        skinConsumer.accept(skin);
                     }
                 });
     }

@@ -44,7 +44,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @BlockEntity(name = "Skull", regex = "skull")
@@ -68,18 +67,12 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         builder.put("SkullType", skullVariant);
     }
 
-    public static GameProfile getProfile(CompoundTag tag) {
+    public static CompletableFuture<GameProfile> getProfile(CompoundTag tag) {
         if (tag.contains("SkullOwner")) {
             CompoundTag owner = tag.get("SkullOwner");
             CompoundTag properties = owner.get("Properties");
             if (properties == null) {
-                try {
-                    CompletableFuture<GameProfile> gameProfile = SkinProvider.requestTexturesFromUsername(owner);
-                    return gameProfile.get();
-                }  catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                    return null;
-                }
+                return SkinProvider.requestTexturesFromUsername(owner);
             }
 
             ListTag textures = properties.get("textures");
@@ -91,9 +84,9 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "");
             profileProperties.add(new GameProfile.Property("textures", texture.getValue()));
             gameProfile.setProperties(profileProperties);
-            return gameProfile;
+            return CompletableFuture.completedFuture(gameProfile);
         }
-        return null;
+        return CompletableFuture.completedFuture(null);
     }
 
     public static void spawnPlayer(GeyserSession session, CompoundTag tag, int blockState) {
@@ -132,37 +125,38 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         }
 
         Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
+        Vector3f entityPosition = Vector3f.from(x, y, z);
+        Vector3f entityRotation = Vector3f.from(rotation, 0, rotation);
         long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
 
-        GameProfile gameProfile = getProfile(tag);
-        if (gameProfile == null) {
-            session.getConnector().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition.toString() + " " + tag.toString());
-            return;
-        }
+        getProfile(tag).whenComplete((gameProfile, throwable) -> {
+            if (gameProfile == null) {
+                session.getConnector().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition.toString() + " " + tag.toString());
+                return;
+            }
 
-        Vector3f rotationVector = Vector3f.from(rotation, 0, rotation);
+            SkullPlayerEntity existingSkull = session.getSkullCache().get(blockPosition);
+            if (existingSkull != null) {
+                // Ensure that two skulls can't spawn on the same point
+                existingSkull.despawnEntity(session, blockPosition);
+            }
 
-        SkullPlayerEntity existingSkull = session.getSkullCache().get(blockPosition);
-        if (existingSkull != null) {
-            // Ensure that two skulls can't spawn on the same point
-            existingSkull.despawnEntity(session, blockPosition);
-        }
+            SkullPlayerEntity player = new SkullPlayerEntity(gameProfile, geyserId, entityPosition, entityRotation);
+            player.setBlockState(blockState);
 
-        SkullPlayerEntity player = new SkullPlayerEntity(gameProfile, geyserId, Vector3f.from(x, y, z), rotationVector);
-        player.setBlockState(blockState);
+            // Cache entity
+            session.getSkullCache().put(blockPosition, player);
 
-        // Cache entity
-        session.getSkullCache().put(blockPosition, player);
+            // Only send to session if we are initialized, otherwise it will happen then.
+            if (session.getUpstream().isInitialized()) {
+                player.spawnEntity(session);
 
-        // Only send to session if we are initialized, otherwise it will happen then.
-        if (session.getUpstream().isInitialized()) {
-            player.spawnEntity(session);
-
-            SkullSkinManager.requestAndHandleSkinAndCape(player, session, (skinAndCape -> session.getConnector().getGeneralThreadPool().schedule(() -> {
-                // Delay to minimize split-second "player" pop-in
-                player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
-                player.updateBedrockMetadata(session);
-            }, 250, TimeUnit.MILLISECONDS)));
-        }
+                SkullSkinManager.requestAndHandleSkin(player, session, (skin -> session.getConnector().getGeneralThreadPool().schedule(() -> {
+                    // Delay to minimize split-second "player" pop-in
+                    player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
+                    player.updateBedrockMetadata(session);
+                }, 250, TimeUnit.MILLISECONDS)));
+            }
+        });
     }
 }
