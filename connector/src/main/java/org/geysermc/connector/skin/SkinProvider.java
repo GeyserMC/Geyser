@@ -491,9 +491,7 @@ public class SkinProvider {
             try {
                 if (retrieveUuidFromInternet) {
                     // Offline skin, or no present UUID
-                    HttpURLConnection con = (HttpURLConnection) new URL("https://api.mojang.com/users/profiles/minecraft/" + skullOwner.get("Name").getValue()).openConnection();
-                    con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
-                    node = GeyserConnector.JSON_MAPPER.readTree(con.getInputStream());
+                    node = WebUtils.getJson("https://api.mojang.com/users/profiles/minecraft/" + skullOwner.get("Name").getValue());
                     JsonNode id = node.get("id");
                     if (id == null) {
                         GeyserConnector.getInstance().getLogger().debug("No UUID found in Mojang response for " + skullOwner.get("Name").getValue());
@@ -503,9 +501,7 @@ public class SkinProvider {
                 }
 
                 // Get textures from UUID
-                HttpURLConnection con = (HttpURLConnection) new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuidToString).openConnection();
-                con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
-                node = GeyserConnector.JSON_MAPPER.readTree(con.getInputStream());
+                node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + uuidToString);
                 List<GameProfile.Property> profileProperties = new ArrayList<>();
                 JsonNode properties = node.get("Properties");
                 if (properties == null) {

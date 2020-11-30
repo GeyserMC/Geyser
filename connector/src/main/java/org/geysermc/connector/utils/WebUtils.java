@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.*;
@@ -55,6 +56,18 @@ public class WebUtils {
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
+
+    /**
+     * Makes a web request to the given URL and returns the body as a {@link JsonNode}.
+     *
+     * @param reqURL URL to fetch
+     * @return the response as JSON
+     */
+    public static JsonNode getJson(String reqURL) throws IOException {
+        HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
+        con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
+        return GeyserConnector.JSON_MAPPER.readTree(con.getInputStream());
     }
 
     /**
