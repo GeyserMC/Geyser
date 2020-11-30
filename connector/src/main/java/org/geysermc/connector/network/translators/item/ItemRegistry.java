@@ -53,7 +53,7 @@ public class ItemRegistry {
     private static final Map<String, ItemEntry> JAVA_IDENTIFIER_MAP = new HashMap<>();
 
     /**
-     * A list of all identifiers that only exist on Bedrock. Used to prevent creative items from becoming these unintentionally.
+     * A list of all identifiers that only exist on Java. Used to prevent creative items from becoming these unintentionally.
      */
     private static final List<String> JAVA_ONLY_ITEMS = Arrays.asList("minecraft:spectral_arrow", "minecraft:debug_stick",
             "minecraft:knowledge_book");
