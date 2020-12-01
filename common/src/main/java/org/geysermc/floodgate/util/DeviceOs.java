@@ -34,20 +34,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum DeviceOs {
     UNKNOWN("Unknown"),
-    ANDROID("Android"),
+    GOOGLE("Android"),
     IOS("iOS"),
     OSX("macOS"),
-    FIREOS("FireOS"),
+    AMAZON("Amazon"),
     GEARVR("Gear VR"),
     HOLOLENS("Hololens"),
-    WIN10("Windows 10"),
-    WIN32("Windows"),
+    UWP("Windows 10"),
+    WIN32("Windows x86"),
     DEDICATED("Dedicated"),
-    ORBIS("PS4"),
+    TVOS("Apple TV"),
+    PS4("PS4"),
     NX("Switch"),
-    SWITCH("Switch"),
-    XBOX_ONE("Xbox One"),
-    WIN_PHONE("Windows Phone");
+    XBOX("Xbox One"),
+    WINDOWS_PHONE("Windows Phone");
 
     private static final DeviceOs[] VALUES = values();
 

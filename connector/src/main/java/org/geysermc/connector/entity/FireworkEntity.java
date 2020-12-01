@@ -67,7 +67,8 @@ public class FireworkEntity extends Entity {
 
             // TODO: Remove once Mojang fixes bugs with fireworks crashing clients on these specific devices.
             // https://bugs.mojang.com/browse/MCPE-89115
-            if (session.getClientData().getDeviceOs() == DeviceOs.XBOX_ONE || session.getClientData().getDeviceOs() == DeviceOs.ORBIS) {
+            if (session.getClientData().getDeviceOs() == DeviceOs.XBOX
+                    || session.getClientData().getDeviceOs() == DeviceOs.PS4) {
                 return;
             }
 
