@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.java.entity.spawn;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -43,15 +43,21 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw());
 
-        PlayerEntity entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
-        if (entity == null) {
-            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
-            return;
-        }
+        PlayerEntity entity;
+        if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
+            // Server is sending a fake version of the current player
+            entity = new PlayerEntity(session.getPlayerEntity().getProfile(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), position, Vector3f.ZERO, rotation);
+        } else {
+            entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
+            if (entity == null) {
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
+                return;
+            }
 
-        entity.setEntityId(packet.getEntityId());
-        entity.setPosition(position);
-        entity.setRotation(rotation);
+            entity.setEntityId(packet.getEntityId());
+            entity.setPosition(position);
+            entity.setRotation(rotation);
+        }
         session.getEntityCache().cacheEntity(entity);
 
         if (session.getUpstream().isInitialized()) {

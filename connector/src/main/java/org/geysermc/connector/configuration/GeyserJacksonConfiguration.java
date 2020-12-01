@@ -107,6 +107,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
 
+    @JsonProperty("xbox-achievements-enabled")
+    private boolean xboxAchievementsEnabled = false;
+
     private MetricsInfo metrics = new MetricsInfo();
 
     @Getter
@@ -166,6 +169,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("mtu")
     private int mtu = 1400;
+
+    @JsonProperty("use-adapters")
+    private boolean useAdapters = true;
 
     @JsonProperty("config-version")
     private int configVersion = 0;

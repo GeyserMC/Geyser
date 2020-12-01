@@ -139,7 +139,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         NbtMapBuilder builder = NbtMap.builder();
         builder.putByte("Count", (byte) (Math.max(itemData.getCount() + specialPrice, 1)));
         builder.putShort("Damage", itemData.getDamage());
-        builder.putShort("id", (short) itemEntry.getBedrockId());
+        builder.putString("Name", itemEntry.getBedrockIdentifier());
         if (itemData.getTag() != null) {
             NbtMap tag = itemData.getTag().toBuilder().build();
             builder.put("tag", tag);

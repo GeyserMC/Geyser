@@ -37,6 +37,7 @@ import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.PillagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
 import org.geysermc.connector.entity.living.monster.raid.SpellcasterIllagerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 
 @Getter
 public enum EntityType {
@@ -47,12 +48,12 @@ public enum EntityType {
     SHEEP(SheepEntity.class, 13, 1.3f, 0.9f),
     WOLF(WolfEntity.class, 14, 0.85f, 0.6f),
     VILLAGER(VillagerEntity.class, 15, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:villager_v2"),
-    MOOSHROOM(AnimalEntity.class, 16, 1.4f, 0.9f),
+    MOOSHROOM(MooshroomEntity.class, 16, 1.4f, 0.9f),
     SQUID(SquidEntity.class, 17, 0.8f),
     RABBIT(RabbitEntity.class, 18, 0.5f, 0.4f),
-    BAT(AmbientEntity.class, 19, 0.9f, 0.5f),
+    BAT(BatEntity.class, 19, 0.9f, 0.5f),
     IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
-    SNOW_GOLEM(GolemEntity.class, 21, 1.9f, 0.7f),
+    SNOW_GOLEM(SnowGolemEntity.class, 21, 1.9f, 0.7f),
     OCELOT(OcelotEntity.class, 22, 0.35f, 0.3f),
     HORSE(HorseEntity.class, 23, 1.6f, 1.3965f),
     DONKEY(ChestedHorseEntity.class, 24, 1.6f, 1.3965f),
@@ -74,10 +75,10 @@ public enum EntityType {
     ENDERMAN(EndermanEntity.class, 38, 2.9f, 0.6f),
     SILVERFISH(MonsterEntity.class, 39, 0.3f, 0.4f),
     CAVE_SPIDER(MonsterEntity.class, 40, 0.5f, 0.7f),
-    GHAST(FlyingEntity.class, 41, 4.0f),
+    GHAST(GhastEntity.class, 41, 4.0f),
     MAGMA_CUBE(MagmaCubeEntity.class, 42, 0.51f),
     BLAZE(BlazeEntity.class, 43, 1.8f, 0.6f),
-    ZOMBIE_VILLAGER(ZombieEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f),
+    ZOMBIE_VILLAGER(ZombieVillagerEntity.class, 44, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:zombie_villager_v2"),
     WITCH(RaidParticipantEntity.class, 45, 1.8f, 0.6f, 0.6f, 1.62f),
     STRAY(AbstractSkeletonEntity.class, 46, 1.8f, 0.6f, 0.6f, 1.62f),
     HUSK(ZombieEntity.class, 47, 1.8f, 0.6f, 0.6f, 1.62f),
@@ -86,7 +87,7 @@ public enum EntityType {
     ELDER_GUARDIAN(ElderGuardianEntity.class, 50, 1.9975f),
     NPC(PlayerEntity.class, 51, 1.8f, 0.6f, 0.6f, 1.62f),
     WITHER(WitherEntity.class, 52, 3.5f, 0.9f),
-    ENDER_DRAGON(EnderDragonEntity.class, 53, 4f, 13f),
+    ENDER_DRAGON(EnderDragonEntity.class, 53, 0f, 0f),
     SHULKER(ShulkerEntity.class, 54, 1f, 1f),
     ENDERMITE(MonsterEntity.class, 55, 0.3f, 0.4f),
     AGENT(Entity.class, 56, 0f),
@@ -109,7 +110,7 @@ public enum EntityType {
     END_CRYSTAL(EnderCrystalEntity.class, 71, 2.0f, 2.0f, 2.0f, 0f, "minecraft:ender_crystal"),
     FIREWORK_ROCKET(FireworkEntity.class, 72, 0.25f, 0.25f, 0.25f, 0f, "minecraft:fireworks_rocket"),
     TRIDENT(TridentEntity.class, 73, 0f, 0f, 0f, 0f, "minecraft:thrown_trident"),
-    TURTLE(AnimalEntity.class, 74, 0.4f, 1.2f),
+    TURTLE(TurtleEntity.class, 74, 0.4f, 1.2f),
     CAT(CatEntity.class, 75, 0.35f, 0.3f),
     SHULKER_BULLET(Entity.class, 76, 0.3125f),
     FISHING_BOBBER(FishingHookEntity.class, 77, 0f, 0f, 0f, 0f, "minecraft:fishing_hook"),
@@ -125,9 +126,9 @@ public enum EntityType {
     THROWN_POTION(ThrowableEntity.class, 86, 0.25f, 0.25f, 0.25f, 0f, "minecraft:splash_potion"),
     THROWN_ENDERPEARL(ThrowableEntity.class, 87, 0.25f, 0.25f, 0.25f, 0f, "minecraft:ender_pearl"),
     LEASH_KNOT(LeashKnotEntity.class, 88, 0.5f, 0.375f),
-    WITHER_SKULL(Entity.class, 89, 0.3125f),
+    WITHER_SKULL(WitherSkullEntity.class, 89, 0.3125f),
     BOAT(BoatEntity.class, 90, 0.7f, 1.6f, 1.6f, 0.35f),
-    WITHER_SKULL_DANGEROUS(Entity.class, 91, 0f),
+    WITHER_SKULL_DANGEROUS(WitherSkullEntity.class, 91, 0f),
     LIGHTNING_BOLT(Entity.class, 93, 0f),
     SMALL_FIREBALL(ItemedFireballEntity.class, 94, 0.3125f),
     AREA_EFFECT_CLOUD(AreaEffectCloudEntity.class, 95, 0.5f, 1.0f),
@@ -141,7 +142,7 @@ public enum EntityType {
     LLAMA_SPIT(Entity.class, 102, 0.25f),
     EVOKER_FANGS(Entity.class, 103, 0.8f, 0.5f, 0.5f, 0f, "minecraft:evocation_fang"),
     EVOKER(SpellcasterIllagerEntity.class, 104, 1.95f, 0.6f, 0.6f, 0f, "minecraft:evocation_illager"),
-    VEX(MonsterEntity.class, 105, 0.8f, 0.4f),
+    VEX(VexEntity.class, 105, 0.8f, 0.4f),
     ICE_BOMB(Entity.class, 106, 0f),
     BALLOON(Entity.class, 107, 0f), //TODO
     PUFFERFISH(PufferFishEntity.class, 108, 0.7f, 0.7f),
@@ -153,7 +154,7 @@ public enum EntityType {
     FOX(FoxEntity.class, 121, 0.5f, 1.25f),
     BEE(BeeEntity.class, 122, 0.6f, 0.6f),
     STRIDER(StriderEntity.class, 125, 1.7f, 0.9f, 0f, 0f, "minecraft:strider"),
-    HOGLIN(AnimalEntity.class, 124, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:hoglin"),
+    HOGLIN(HoglinEntity.class, 124, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:hoglin"),
     ZOGLIN(ZoglinEntity.class, 126, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:zoglin"),
     PIGLIN(PiglinEntity.class, 123, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin"),
     PIGLIN_BRUTE(BasePiglinEntity.class, 127, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin_brute"),
@@ -166,7 +167,12 @@ public enum EntityType {
     /**
      * Not an entity in Bedrock, so we replace it with a Pillager
      */
-    ILLUSIONER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager");
+    ILLUSIONER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager"),
+
+    /**
+     * Not an entity in Bedrock, but used for the Ender Dragon's multiple hitboxes
+     */
+    ENDER_DRAGON_PART(EnderDragonPartEntity.class, 32, 0, 0, 0, 0, "minecraft:armor_stand");
 
     private static final EntityType[] VALUES = values();
 

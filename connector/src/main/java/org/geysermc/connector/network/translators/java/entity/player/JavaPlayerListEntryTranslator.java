@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -57,9 +57,8 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     if (self) {
                         // Entity is ourself
                         playerEntity = session.getPlayerEntity();
-                        SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape -> {
-                            GeyserConnector.getInstance().getLogger().debug("Loading Local Bedrock Java Skin Data");
-                        });
+                        SkinUtils.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
+                                GeyserConnector.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data"));
                     } else {
                         playerEntity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
                     }

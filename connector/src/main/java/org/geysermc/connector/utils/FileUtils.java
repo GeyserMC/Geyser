@@ -34,10 +34,7 @@ import org.reflections.Reflections;
 import org.reflections.serializers.XmlSerializer;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.security.MessageDigest;
@@ -159,7 +156,8 @@ public class FileUtils {
     }
 
     /**
-     * Calculate the SHA256 hash of the resource pack file
+     * Calculate the SHA256 hash of a file
+     *
      * @param file File to calculate the hash for
      * @return A byte[] representation of the hash
      */
@@ -167,12 +165,30 @@ public class FileUtils {
         byte[] sha256;
 
         try {
-            sha256 = MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file.toPath()));
+            sha256 = MessageDigest.getInstance("SHA-256").digest(readAllBytes(file));
         } catch (Exception e) {
             throw new RuntimeException("Could not calculate pack hash", e);
         }
 
         return sha256;
+    }
+
+    /**
+     * Calculate the SHA1 hash of a file
+     *
+     * @param file File to calculate the hash for
+     * @return A byte[] representation of the hash
+     */
+    public static byte[] calculateSHA1(File file) {
+        byte[] sha1;
+
+        try {
+            sha1 = MessageDigest.getInstance("SHA-1").digest(readAllBytes(file));
+        } catch (Exception e) {
+            throw new RuntimeException("Could not calculate pack hash", e);
+        }
+
+        return sha1;
     }
 
     /**
@@ -182,7 +198,7 @@ public class FileUtils {
      * @return The created Reflections object
      */
     public static Reflections getReflections(String path) {
-        Reflections reflections = new Reflections(new ConfigurationBuilder());
+        Reflections reflections = new Reflections(new ConfigurationBuilder().setScanners());
         XmlSerializer serializer = new XmlSerializer();
         URL resource = FileUtils.class.getClassLoader().getResource("META-INF/reflections/" + path + "-reflections.xml");
         try (InputStream inputStream = resource.openConnection().getInputStream()) {
@@ -190,5 +206,23 @@ public class FileUtils {
         } catch (IOException e) { }
 
         return reflections;
+    }
+
+    /**
+     * An android compatible version of {@link Files#readAllBytes}
+     *
+     * @param file File to read bytes of
+     * @return The byte array of the file
+     */
+    public static byte[] readAllBytes(File file) {
+        int size = (int) file.length();
+        byte[] bytes = new byte[size];
+        try {
+            BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+            buf.read(bytes, 0, bytes.length);
+            buf.close();
+        } catch (IOException ignored) { }
+
+        return bytes;
     }
 }

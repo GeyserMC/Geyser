@@ -23,22 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.common;
+package org.geysermc.connector.entity.living;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 
-@Getter
-@AllArgsConstructor
-public enum PlatformType {
+public class SnowGolemEntity extends GolemEntity {
 
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
+    public SnowGolemEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
+    }
 
-    private final String platformName;
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 15) {
+            byte xd = (byte) entityMetadata.getValue();
+            // Handle the visibility of the pumpkin
+            metadata.getFlags().setFlag(EntityFlag.SHEARED, (xd & 0x10) != 0x10);
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
+    }
 }

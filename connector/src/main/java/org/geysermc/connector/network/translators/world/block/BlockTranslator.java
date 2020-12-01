@@ -30,21 +30,25 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.nbt.*;
 import it.unimi.dsi.fastutil.ints.*;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
+import java.io.DataInputStream;
 import java.io.InputStream;
 import java.util.*;
 
 public class BlockTranslator {
-    public static final NbtList<NbtMap> BLOCKS;
-    public static final int AIR = 0;
+    /**
+     * The Java block runtime ID of air
+     */
+    public static final int JAVA_AIR_ID = 0;
+    /**
+     * The Bedrock block runtime ID of air
+     */
+    public static final int BEDROCK_AIR_ID;
     public static final int BEDROCK_WATER_ID;
 
     private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
@@ -67,6 +71,14 @@ public class BlockTranslator {
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
 
+    // The index of the collision data in collision.json
+    public static final Int2IntMap JAVA_RUNTIME_ID_TO_COLLISION_INDEX = new Int2IntOpenHashMap();
+
+    /**
+     * Java numeric ID to java unique identifier, used for block names in the statistics screen
+     */
+    public static final Int2ObjectMap<String> JAVA_ID_TO_JAVA_IDENTIFIER_MAP = new Int2ObjectOpenHashMap<>();
+
     /**
      * Runtime command block ID, used for fixing command block minecart appearances
      */
@@ -81,25 +93,31 @@ public class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
-    private static final int BLOCK_STATE_VERSION = 17825806;
+    private static final int BLOCK_STATE_VERSION = 17825808;
 
     static {
         /* Load block palette */
-        InputStream stream = FileUtils.getResource("bedrock/runtime_block_states.dat");
+        InputStream stream = FileUtils.getResource("bedrock/blockpalette.nbt");
 
         NbtList<NbtMap> blocksTag;
-        try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-            blocksTag = (NbtList<NbtMap>) nbtInputStream.readTag();
+        try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(stream))) {
+            NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
+            blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
         } catch (Exception e) {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
 
-        Map<NbtMap, NbtMap> blockStateMap = new HashMap<>();
+        // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
+        // as we no longer send a block palette
+        Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blocksTag.size());
 
-        for (NbtMap tag : blocksTag) {
-            if (blockStateMap.putIfAbsent(tag.getCompound("block"), tag) != null) {
+        for (int i = 0; i < blocksTag.size(); i++) {
+            NbtMap tag = blocksTag.get(i);
+            NbtMap blockTag = tag.getCompound("block");
+            if (blockStateOrderedMap.containsKey(blockTag)) {
                 throw new AssertionError("Duplicate block states in Bedrock palette");
             }
+            blockStateOrderedMap.put(blockTag, i);
         }
 
         stream = FileUtils.getResource("mappings/blocks.json");
@@ -109,27 +127,29 @@ public class BlockTranslator {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
-        Object2IntMap<NbtMap> addedStatesMap = new Object2IntOpenHashMap<>();
-        addedStatesMap.defaultReturnValue(-1);
-        List<NbtMap> paletteList = new ArrayList<>();
 
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
-        ref.getTypesAnnotatedWith(BlockEntity.class);
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity")
+                : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
 
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;
-        int bedrockRuntimeId = 0;
+        int airRuntimeId = -1;
         int cobwebRuntimeId = -1;
         int commandBlockRuntimeId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
         int spawnerRuntimeId = -1;
+        int uniqueJavaId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
             String javaId = entry.getKey();
             NbtMap blockTag = buildBedrockState(entry.getValue());
+            int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(blockTag, -1);
+            if (bedrockRuntimeId == -1) {
+                throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID!");
+            }
 
             // TODO fix this, (no block should have a null hardness)
             JsonNode hardnessNode = entry.getValue().get("block_hardness");
@@ -146,6 +166,11 @@ public class BlockTranslator {
             JsonNode toolTypeNode = entry.getValue().get("tool_type");
             if (toolTypeNode != null) {
                 JAVA_RUNTIME_ID_TO_TOOL_TYPE.put(javaRuntimeId, toolTypeNode.textValue());
+            }
+
+            JsonNode collisionIndexNode = entry.getValue().get("collision_index");
+            if (hardnessNode != null) {
+                JAVA_RUNTIME_ID_TO_COLLISION_INDEX.put(javaRuntimeId, collisionIndexNode.intValue());
             }
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
@@ -165,6 +190,11 @@ public class BlockTranslator {
             BlockStateValues.storeBlockStateValues(entry, javaRuntimeId);
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+
+            if (!JAVA_ID_TO_JAVA_IDENTIFIER_MAP.containsValue(cleanJavaIdentifier)) {
+                uniqueJavaId++;
+                JAVA_ID_TO_JAVA_IDENTIFIER_MAP.put(uniqueJavaId, cleanJavaIdentifier);
+            }
 
             if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
                 JAVA_TO_BEDROCK_IDENTIFIERS.put(cleanJavaIdentifier, bedrockIdentifier);
@@ -188,22 +218,12 @@ public class BlockTranslator {
                 BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
             }
 
-            NbtMap runtimeTag = blockStateMap.remove(blockTag);
-            if (runtimeTag != null) {
-                addedStatesMap.put(blockTag, bedrockRuntimeId);
-                paletteList.add(runtimeTag);
-            } else {
-                int duplicateRuntimeId = addedStatesMap.getOrDefault(blockTag, -1);
-                if (duplicateRuntimeId == -1) {
-                    GeyserConnector.getInstance().getLogger().debug("Mapping " + javaId + " was not found for bedrock edition!");
-                } else {
-                    JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, duplicateRuntimeId);
-                }
-                continue;
-            }
             JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
 
-            if (javaId.contains("wool")) {
+            if (bedrockIdentifier.equals("minecraft:air")) {
+                airRuntimeId = bedrockRuntimeId;
+
+            } else if (javaId.contains("wool")) {
                 JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
 
             } else if (javaId.contains("cobweb")) {
@@ -222,8 +242,6 @@ public class BlockTranslator {
             } else if (javaId.startsWith("minecraft:spawner")) {
                 spawnerRuntimeId = javaRuntimeId;
             }
-
-            bedrockRuntimeId++;
         }
 
         if (cobwebRuntimeId == -1) {
@@ -256,19 +274,17 @@ public class BlockTranslator {
         }
         BEDROCK_WATER_ID = waterRuntimeId;
 
-        paletteList.addAll(blockStateMap.values()); // Add any missing mappings that could crash the client
+        if (airRuntimeId == -1) {
+            throw new AssertionError("Unable to find air in palette");
+        }
+        BEDROCK_AIR_ID = airRuntimeId;
 
         // Loop around again to find all item frame runtime IDs
-        int frameRuntimeId = 0;
-        for (NbtMap tag : paletteList) {
-            NbtMap blockTag = tag.getCompound("block");
-            if (blockTag.getString("name").equals("minecraft:frame")) {
-                ITEM_FRAMES.put(tag, frameRuntimeId);
+        for (Object2IntMap.Entry<NbtMap> entry : blockStateOrderedMap.object2IntEntrySet()) {
+            if (entry.getKey().getString("name").equals("minecraft:frame")) {
+                ITEM_FRAMES.put(entry.getKey(), entry.getIntValue());
             }
-            frameRuntimeId++;
         }
-
-        BLOCKS = new NbtList<>(NbtType.COMPOUND, paletteList);
     }
 
     private BlockTranslator() {

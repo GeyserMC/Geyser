@@ -25,39 +25,46 @@
 
 package org.geysermc.platform.velocity.command;
 
-import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.command.CommandSource;
-
+import com.velocitypowered.api.command.SimpleCommand;
 import lombok.AllArgsConstructor;
-
-import net.kyori.text.TextComponent;
-
-import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @AllArgsConstructor
-public class GeyserVelocityCommandExecutor implements Command {
+public class GeyserVelocityCommandExecutor implements SimpleCommand {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     @Override
-    public void execute(CommandSource source, String[] args) {
-        if (args.length > 0) {
-            if (getCommand(args[0]) != null) {
-                if (!source.hasPermission(getCommand(args[0]).getPermission())) {
-                    // Not ideal to use log here but we dont get a session
-                    source.sendMessage(TextComponent.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
+    public void execute(Invocation invocation) {
+        if (invocation.arguments().length > 0) {
+            if (getCommand(invocation.arguments()[0]) != null) {
+                if (!invocation.source().hasPermission(getCommand(invocation.arguments()[0]).getPermission())) {
+                    CommandSender sender = new VelocityCommandSender(invocation.source());
+                    sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
                     return;
                 }
-                getCommand(args[0]).execute(new VelocityCommandSender(source), args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
+                getCommand(invocation.arguments()[0]).execute(new VelocityCommandSender(invocation.source()), invocation.arguments().length > 1 ? Arrays.copyOfRange(invocation.arguments(), 1, invocation.arguments().length) : new String[0]);
             }
         } else {
-            getCommand("help").execute(new VelocityCommandSender(source), new String[0]);
+            getCommand("help").execute(new VelocityCommandSender(invocation.source()), new String[0]);
         }
+    }
+
+    @Override
+    public List<String> suggest(Invocation invocation) {
+        if (invocation.arguments().length == 0) {
+            return connector.getCommandManager().getCommandNames();
+        }
+        return new ArrayList<>();
     }
 
     private GeyserCommand getCommand(String label) {

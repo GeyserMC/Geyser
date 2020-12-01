@@ -25,15 +25,13 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityRemoveEffectPacket;
+import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.EntityUtils;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityRemoveEffectPacket;
-import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 
 @Translator(packet = ServerEntityRemoveEffectPacket.class)
 public class JavaEntityRemoveEffectTranslator extends PacketTranslator<ServerEntityRemoveEffectPacket> {
@@ -43,7 +41,7 @@ public class JavaEntityRemoveEffectTranslator extends PacketTranslator<ServerEnt
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
-            ((PlayerEntity) entity).getEffectCache().removeEffect(packet.getEffect());
+            session.getEffectCache().removeEffect(packet.getEffect());
         }
         if (entity == null)
             return;
