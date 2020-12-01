@@ -80,7 +80,7 @@ public class GeyserConnector {
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper().enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     public static final String NAME = "Geyser";
-    public static final String VERSION = "DEV"; // A fallback for running in IDEs
+    public static final String VERSION = "1.2.0-SNAPSHOT (git-master-2281da0)"; // A fallback for running in IDEs
 
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
