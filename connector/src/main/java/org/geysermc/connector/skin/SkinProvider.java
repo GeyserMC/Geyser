@@ -512,7 +512,9 @@ public class SkinProvider {
                 gameProfile.setProperties(profileProperties);
                 return gameProfile;
             } catch (Exception e) {
-                e.printStackTrace();
+                if (GeyserConnector.getInstance().getConfig().isDebugMode()) {
+                    e.printStackTrace();
+                }
                 return null;
             }
         }, EXECUTOR_SERVICE);
