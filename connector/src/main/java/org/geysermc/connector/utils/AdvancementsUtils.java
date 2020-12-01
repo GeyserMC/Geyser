@@ -47,7 +47,7 @@ public class AdvancementsUtils {
     public static final int ADVANCEMENTS_LIST_FORM_ID = 1342;
     Map<Integer, String[]> buttonIdsToIdAndTitle = new HashMap<>();
 
-    private AdvancementsUtils(GeyserSession session) {
+    public AdvancementsUtils(GeyserSession session) {
 
     }
 
@@ -100,6 +100,7 @@ public class AdvancementsUtils {
             clickedButton = formResponse.getClickedButtonId();
 
         }
+        AdvancementsUtils advancementsUtils = new AdvancementsUtils(session);
         StringBuilder content = new StringBuilder();
         String[] id = advancementsUtils.buttonIdsToIdAndTitle.get(clickedButton);
         System.out.println(advancementsUtils.buttonIdsToIdAndTitle.get(clickedButton));
@@ -132,7 +133,7 @@ public class AdvancementsUtils {
      * @return True if the form was parsed correctly, false if not
      */
     public static boolean handleListForm(GeyserSession session, String response) {
-        AdvancementsUtils advancementsUtils = new AdvancementsUtils();
+        AdvancementsUtils advancementsUtils = new AdvancementsUtils(session);
         SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_LIST_FORM_ID);
         listForm.setResponse(response);
         SimpleFormResponse formResponse = (SimpleFormResponse) listForm.getResponse();
@@ -144,7 +145,9 @@ public class AdvancementsUtils {
             session.sendForm(window, ADVANCEMENTS_MENU_FORM_ID);
         }
         return true;
+
     }
+
 
 
 
