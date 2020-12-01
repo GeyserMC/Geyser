@@ -23,37 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.dump;
+package org.geysermc.floodgate.util;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConnector;
+import lombok.Setter;
 
-import java.util.List;
-
-@Getter
-public class BootstrapDumpInfo {
-    private final PlatformType platform;
-
-    public BootstrapDumpInfo() {
-        this.platform = GeyserConnector.getInstance().getPlatformType();
-    }
-
+public class FloodgateConfigHolder {
     @Getter
-    @AllArgsConstructor
-    public static class PluginInfo {
-        public boolean enabled;
-        public String name;
-        public String version;
-        public String main;
-        public List<String> authors;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class ListenerInfo {
-        public String ip;
-        public int port;
-    }
+    @Setter
+    private static Object config;
 }
