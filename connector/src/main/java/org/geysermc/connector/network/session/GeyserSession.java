@@ -306,8 +306,13 @@ public class GeyserSession implements CommandSender {
      * Stores advancements for the player.
      */
     private final Map<String, Advancement> storedAdvancements = new HashMap<>();
+
+    /**
+     * Stores the player's advancement categories that should be used for each button pressed in the advancement menu.
+     */
     @Setter
     private Map<Integer, String[]> buttonIdsToIdAndTitleAdvancements = new HashMap<>();
+
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
     private final Set<UUID> emotes = new HashSet<>();

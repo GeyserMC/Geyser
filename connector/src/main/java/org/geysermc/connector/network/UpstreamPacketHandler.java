@@ -136,19 +136,25 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        if (packet.getFormId() == SettingsUtils.SETTINGS_FORM_ID) {
-            return SettingsUtils.handleSettingsForm(session, packet.getFormData());
-        } else if (packet.getFormId() == StatisticsUtils.STATISTICS_MENU_FORM_ID) {
-            return StatisticsUtils.handleMenuForm(session, packet.getFormData());
-        } else if (packet.getFormId() == StatisticsUtils.STATISTICS_LIST_FORM_ID) {
-            return StatisticsUtils.handleListForm(session, packet.getFormData());
-        } else if (packet.getFormId() == AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID) {
-            return AdvancementsUtils.handleMenuForm(session, packet.getFormData());
-        } else if (packet.getFormId() == AdvancementsUtils.ADVANCEMENTS_LIST_FORM_ID) {
-            return AdvancementsUtils.handleListForm(session, packet.getFormData());
-        }
+        boolean handleForm =  LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
 
-        return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+        switch (packet.getFormId()) {
+            case SettingsUtils.SETTINGS_FORM_ID:
+                handleForm = SettingsUtils.handleSettingsForm(session, packet.getFormData());
+                break;
+            case StatisticsUtils.STATISTICS_MENU_FORM_ID:
+                handleForm = StatisticsUtils.handleMenuForm(session, packet.getFormData());
+                break;
+            case StatisticsUtils.STATISTICS_LIST_FORM_ID:
+                handleForm = StatisticsUtils.handleListForm(session, packet.getFormData());
+                break;
+            case AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID:
+                handleForm =  AdvancementsUtils.handleMenuForm(session, packet.getFormData());
+                break;
+            case AdvancementsUtils.ADVANCEMENTS_LIST_FORM_ID:
+               handleForm = AdvancementsUtils.handleListForm(session, packet.getFormData());
+        }
+        return handleForm;
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
