@@ -399,7 +399,7 @@ public class PistonBlockEntity {
             blockPos = blockPos.add(direction.toDouble());
         }
 
-        int pistonHeadId = BlockTranslator.getPistonHead(orientation);
+        int pistonHeadId = BlockStateValues.getPistonHead(orientation);
         if (testBlockCollision(blockPos, pistonHeadId, playerCollision)) {
             displacement = getBlockIntersection(blockPos, pistonHeadId, playerCollision);
         }

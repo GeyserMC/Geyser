@@ -26,8 +26,11 @@
 package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValue;
 import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +48,7 @@ public class BlockStateValues {
     private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
+    private static final Object2IntMap<PistonValue> PISTON_HEADS = new Object2IntOpenHashMap<>();
     private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
@@ -97,6 +101,22 @@ public class BlockStateValues {
             // True if extended, false if not
             PISTON_VALUES.put(javaBlockState, entry.getKey().contains("extended=true"));
             IS_STICKY_PISTON.put(javaBlockState, entry.getKey().contains("sticky"));
+            
+            if (entry.getKey().contains("head") && entry.getKey().contains("short=false")) {
+                if (entry.getKey().contains("down")) {
+                    PISTON_HEADS.put(PistonValue.DOWN, javaBlockState);
+                } else if (entry.getKey().contains("up")) {
+                    PISTON_HEADS.put(PistonValue.UP, javaBlockState);
+                } else if (entry.getKey().contains("south")) {
+                    PISTON_HEADS.put(PistonValue.SOUTH, javaBlockState);
+                } else if (entry.getKey().contains("west")) {
+                    PISTON_HEADS.put(PistonValue.WEST, javaBlockState);
+                } else if (entry.getKey().contains("north")) {
+                    PISTON_HEADS.put(PistonValue.NORTH, javaBlockState);
+                } else if (entry.getKey().contains("east")) {
+                    PISTON_HEADS.put(PistonValue.EAST, javaBlockState);
+                }       
+            }
             return;
         }
 
@@ -198,6 +218,17 @@ public class BlockStateValues {
 
     public static boolean isStickyPiston(int blockState) {
         return IS_STICKY_PISTON.get(blockState);
+    }
+
+    /**
+     * Get the Java Block State for a piston head for a specific direction
+     * This is used in PistonBlockEntity to get the BlockCollision for the piston head.
+     *
+     * @param direction Direction the piston head points in
+     * @return Block state for the piston head
+     */
+    public static int getPistonHead(PistonValue direction) {
+        return PISTON_HEADS.getOrDefault(direction, BlockTranslator.JAVA_AIR_ID);
     }
 
     /**

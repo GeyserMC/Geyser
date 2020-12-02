@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValue;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.nbt.*;
@@ -103,8 +102,6 @@ public class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SLIME_BLOCK_ID;
     public static final int JAVA_RUNTIME_HONEY_BLOCK_ID;
-
-    private static final Object2IntMap<PistonValue> PISTON_HEADS = new Object2IntOpenHashMap<>();
 
     private static final int BLOCK_STATE_VERSION = 17825808;
 
@@ -268,22 +265,6 @@ public class BlockTranslator {
                 spawnerRuntimeId = javaRuntimeId;
             }
 
-            if (javaId.startsWith("minecraft:piston_head") && javaId.contains("short=false")) {
-                if (javaId.contains("down")) {
-                    PISTON_HEADS.put(PistonValue.DOWN, javaRuntimeId);
-                } else if (javaId.contains("up")) {
-                    PISTON_HEADS.put(PistonValue.UP, javaRuntimeId);
-                } else if (javaId.contains("south")) {
-                    PISTON_HEADS.put(PistonValue.SOUTH, javaRuntimeId);
-                } else if (javaId.contains("west")) {
-                    PISTON_HEADS.put(PistonValue.WEST, javaRuntimeId);
-                } else if (javaId.contains("north")) {
-                    PISTON_HEADS.put(PistonValue.NORTH, javaRuntimeId);
-                } else if (javaId.contains("east")) {
-                    PISTON_HEADS.put(PistonValue.EAST, javaRuntimeId);
-                }
-            }
-
             if (javaId.equals("minecraft:honey_block")) {
                 honeyBlockRuntimeId = javaRuntimeId;
             } else if (javaId.equals("minecraft:slime_block")) {
@@ -435,9 +416,5 @@ public class BlockTranslator {
 
     public static int getJavaWaterloggedState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(1 << 31 | bedrockId);
-    }
-
-    public static int getPistonHead(PistonValue direction) {
-        return PISTON_HEADS.getOrDefault(direction, JAVA_AIR_ID);
     }
 }
