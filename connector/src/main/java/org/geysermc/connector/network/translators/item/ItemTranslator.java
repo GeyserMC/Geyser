@@ -111,6 +111,10 @@ public abstract class ItemTranslator {
                     translator.translateToJava(itemStack.getNbt(), javaItem);
                 }
             }
+            if (itemStack.getNbt().isEmpty()) {
+                // Otherwise, seems to causes issues with villagers accepting books, and I don't see how this will break anything else. - Camotoy
+                itemStack = new ItemStack(itemStack.getId(), itemStack.getAmount(), null);
+            }
         }
         return itemStack;
     }
@@ -126,7 +130,7 @@ public abstract class ItemTranslator {
 
         // This is a fallback for maps with no nbt
         if (nbt == null && bedrockItem.getJavaIdentifier().equals("minecraft:filled_map")) {
-            nbt = new com.github.steveice10.opennbt.tag.builtin.CompoundTag("");
+            nbt = new CompoundTag("");
             nbt.put(new IntTag("map", 0));
         }
 
@@ -218,7 +222,7 @@ public abstract class ItemTranslator {
         NbtMapBuilder builder = NbtMap.builder();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
-                com.github.steveice10.opennbt.tag.builtin.Tag javaTag = tag.get(str);
+                Tag javaTag = tag.get(str);
                 Object translatedTag = translateToBedrockNBT(javaTag);
                 if (translatedTag == null)
                     continue;
@@ -287,21 +291,21 @@ public abstract class ItemTranslator {
             return new NbtList(type, tagList);
         }
 
-        if (tag instanceof com.github.steveice10.opennbt.tag.builtin.CompoundTag) {
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag compoundTag = (com.github.steveice10.opennbt.tag.builtin.CompoundTag) tag;
+        if (tag instanceof CompoundTag) {
+            CompoundTag compoundTag = (CompoundTag) tag;
             return translateNbtToBedrock(compoundTag);
         }
 
         return null;
     }
 
-    public com.github.steveice10.opennbt.tag.builtin.CompoundTag translateToJavaNBT(String name, NbtMap tag) {
-        com.github.steveice10.opennbt.tag.builtin.CompoundTag javaTag = new com.github.steveice10.opennbt.tag.builtin.CompoundTag(name);
-        Map<String, com.github.steveice10.opennbt.tag.builtin.Tag> javaValue = javaTag.getValue();
+    public CompoundTag translateToJavaNBT(String name, NbtMap tag) {
+        CompoundTag javaTag = new CompoundTag(name);
+        Map<String, Tag> javaValue = javaTag.getValue();
         if (tag != null && !tag.isEmpty()) {
             for (String str : tag.keySet()) {
                 Object bedrockTag = tag.get(str);
-                com.github.steveice10.opennbt.tag.builtin.Tag translatedTag = translateToJavaNBT(str, bedrockTag);
+                Tag translatedTag = translateToJavaNBT(str, bedrockTag);
                 if (translatedTag == null)
                     continue;
 
@@ -313,7 +317,7 @@ public abstract class ItemTranslator {
         return javaTag;
     }
 
-    private com.github.steveice10.opennbt.tag.builtin.Tag translateToJavaNBT(String name, Object object) {
+    private Tag translateToJavaNBT(String name, Object object) {
         if (object instanceof int[]) {
             return new IntArrayTag(name, (int[]) object);
         }
@@ -355,10 +359,10 @@ public abstract class ItemTranslator {
         }
 
         if (object instanceof List) {
-            List<com.github.steveice10.opennbt.tag.builtin.Tag> tags = new ArrayList<>();
+            List<Tag> tags = new ArrayList<>();
 
             for (Object value : (List<?>) object) {
-                com.github.steveice10.opennbt.tag.builtin.Tag javaTag = translateToJavaNBT("", value);
+                Tag javaTag = translateToJavaNBT("", value);
                 if (javaTag != null)
                     tags.add(javaTag);
             }

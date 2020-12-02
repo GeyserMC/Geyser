@@ -187,7 +187,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(MovePlayerPacket packet) {
         if (session.isLoggingIn()) {
-            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
+            SetTitlePacket titlePacket = new SetTitlePacket();
+            titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+            titlePacket.setText(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
+            titlePacket.setFadeInTime(0);
+            titlePacket.setFadeOutTime(1);
+            titlePacket.setStayTime(2);
+            session.sendUpstreamPacket(titlePacket);
         }
 
         return translateAndDefault(packet);
