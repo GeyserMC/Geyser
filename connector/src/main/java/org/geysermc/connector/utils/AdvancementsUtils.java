@@ -103,7 +103,7 @@ public class AdvancementsUtils {
         try {
             for (Map.Entry<String, Advancement> advancementEntry : session.getStoredAdvancements().entrySet()) {
 
-                if (advancementEntry.getValue().getId().startsWith(idAndTitle[0].replace("/root", ""))) {
+                if (advancementEntry.getValue().getId().startsWith(idAndTitle[0].replace("/root", "").replace("root", ""))) {
                     content.append(MessageTranslator.convertMessage(advancementEntry.getValue().getDisplayData().getTitle().toString()) + "\n");
                 }
             }
