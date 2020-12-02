@@ -63,7 +63,7 @@ public class AdvancementsCommand extends GeyserCommand {
             }
         }
         if (session == null) return;
-        AdvancementsUtils advancementsUtils = new AdvancementsUtils(session);
+        AdvancementsUtils advancementsUtils = new AdvancementsUtils();
         SimpleFormWindow window = advancementsUtils.buildMenuForm(session);
         session.sendForm(window, AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID);
     }

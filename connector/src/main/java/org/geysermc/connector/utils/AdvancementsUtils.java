@@ -45,18 +45,14 @@ public class AdvancementsUtils {
     // Used in UpstreamPacketHandler.java
     public static final int ADVANCEMENTS_MENU_FORM_ID = 1341;
     public static final int ADVANCEMENTS_LIST_FORM_ID = 1342;
-    Map<Integer, String[]> buttonIdsToIdAndTitle = new HashMap<>();
 
-    public AdvancementsUtils(GeyserSession session) {
-
-    }
 
     /**
      * Build a form for the given session with all advancement categories
      *
      * @param session The session to build the form for
      */
-    public SimpleFormWindow buildMenuForm(GeyserSession session) throws NullPointerException {
+    public static SimpleFormWindow buildMenuForm(GeyserSession session) throws NullPointerException {
         // Cache the language for cleaner access
         String language = session.getClientData().getLanguageCode();
         // Created menu window for advancement categories
@@ -70,8 +66,8 @@ public class AdvancementsUtils {
 
             if (advancement.getValue().getId().endsWith("root")) {
                 window.getButtons().add(new FormButton(MessageTranslator.convertMessage(title, language) + " - " + MessageTranslator.convertMessage(description, language)));
-                buttonIdsToIdAndTitle.put(baseId++, idAndTitle);
-                System.out.println(baseId + " - "+idAndTitle[0] + " - " +  idAndTitle[1]);
+                session.getButtonIdsToIdAndTitleAdvancements().put(baseId++, idAndTitle);
+
             }
 
 
@@ -94,34 +90,37 @@ public class AdvancementsUtils {
         SimpleFormWindow menuForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_MENU_FORM_ID);
         menuForm.setResponse(response);
         SimpleFormResponse formResponse = (SimpleFormResponse) menuForm.getResponse();
-        int clickedButton = 0;
+        int clickedButton = -1;
 
         if (formResponse != null && formResponse.getClickedButton() != null) {
             clickedButton = formResponse.getClickedButtonId();
 
         }
-        AdvancementsUtils advancementsUtils = new AdvancementsUtils(session);
         StringBuilder content = new StringBuilder();
-        String[] id = advancementsUtils.buttonIdsToIdAndTitle.get(clickedButton);
-        System.out.println(advancementsUtils.buttonIdsToIdAndTitle.get(clickedButton));
-        for (String string : id) {
-            System.out.println(string);
-            content.append(LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ":\n");
-        }
+        String[] idAndTitle = session.getButtonIdsToIdAndTitleAdvancements().get(clickedButton);
 
-        // Showed advancements you have earned based on category selected
-        SimpleFormWindow window = new SimpleFormWindow(id[1], content.toString());
-        for (Map.Entry<String, Advancement> advancement : session.getStoredAdvancements().entrySet()) {
-            if (advancement.getValue().getId().startsWith(id[0])) {
-                content.append(" - " + MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getTitle().toString()) + "\n     " + MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getDescription().toString()) + "\n");
+        content.append(LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ":\n");
+        try {
+            for (Map.Entry<String, Advancement> advancementEntry : session.getStoredAdvancements().entrySet()) {
+
+                if (advancementEntry.getValue().getId().startsWith(idAndTitle[0].replace("/root", ""))) {
+                    content.append(MessageTranslator.convertMessage(advancementEntry.getValue().getDisplayData().getTitle().toString()) + "\n");
+                }
             }
+
+            // Showed advancements you have earned based on category selected
+            SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(idAndTitle[1]), content.toString());
+            for (Map.Entry<String, Advancement> advancement : session.getStoredAdvancements().entrySet()) {
+                if (advancement.getValue().getId().startsWith(idAndTitle[0].replace("/root", ""))) {
+                    content.append(" - " + MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getTitle().toString()) + "\n     " + MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getDescription().toString()) + "\n");
+                }
+            }
+            window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("gui.back", language)));
+
+
+            session.sendForm(window, ADVANCEMENTS_LIST_FORM_ID);
+        } catch (NullPointerException e) {
         }
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("gui.back", language)));
-
-
-
-
-        session.sendForm(window);
         return true;
     }
 
@@ -133,24 +132,16 @@ public class AdvancementsUtils {
      * @return True if the form was parsed correctly, false if not
      */
     public static boolean handleListForm(GeyserSession session, String response) {
-        AdvancementsUtils advancementsUtils = new AdvancementsUtils(session);
         SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_LIST_FORM_ID);
         listForm.setResponse(response);
         SimpleFormResponse formResponse = (SimpleFormResponse) listForm.getResponse();
-        if (!listForm.isClosed()) {
-            session.sendForm(advancementsUtils.buildMenuForm(session), ADVANCEMENTS_MENU_FORM_ID);
+        if (!listForm.isClosed() && formResponse != null && formResponse.getClickedButton() != null) {
+            session.sendForm(AdvancementsUtils.buildMenuForm(session), ADVANCEMENTS_MENU_FORM_ID);
         }
-        if (formResponse != null && formResponse.getClickedButton() != null) {
-            SimpleFormWindow window = advancementsUtils.buildMenuForm(session);
-            session.sendForm(window, ADVANCEMENTS_MENU_FORM_ID);
-        }
+
         return true;
 
     }
 
 
-
-
-
 }
-//test
