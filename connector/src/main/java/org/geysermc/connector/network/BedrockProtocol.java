@@ -47,7 +47,7 @@ public class BedrockProtocol {
 
     static {
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
-                .minecraftVersion("1.16.100.04") // We change this as 1.16.100.60 (beta) crashes with Geyser
+                .minecraftVersion("1.16.100/1.16.101") // We change this as 1.16.100.60 (beta) crashes with Geyser
                 .build()
         );
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
