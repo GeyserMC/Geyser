@@ -92,7 +92,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     craftingDataPacket.getCraftingData().add(RecipeRegistry.TOOL_REPAIRING_RECIPE_DATA);
                     break;
                 }
-                case  CRAFTING_SPECIAL_MAPCLONING: {
+                case CRAFTING_SPECIAL_MAPCLONING: {
                     craftingDataPacket.getCraftingData().add(RecipeRegistry.MAP_CLONING_RECIPE_DATA);
                     break;
                 }
