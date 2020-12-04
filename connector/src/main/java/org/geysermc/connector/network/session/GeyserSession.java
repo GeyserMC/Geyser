@@ -31,6 +31,7 @@ import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
+import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
@@ -309,6 +310,17 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private boolean waitingForStatistics = false;
+
+    /**
+     * Stores advancements for the player.
+     */
+    private final Map<String, Advancement> storedAdvancements = new HashMap<>();
+
+    /**
+     * Stores the player's advancement categories that should be used for each button pressed in the advancement menu.
+     */
+    @Setter
+    private Map<Integer, String[]> buttonIdsToIdAndTitleAdvancements = new HashMap<>();
 
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
