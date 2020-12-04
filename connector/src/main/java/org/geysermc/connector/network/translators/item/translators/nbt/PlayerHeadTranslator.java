@@ -39,7 +39,7 @@ public class PlayerHeadTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
-        if (!itemTag.contains("display") || !((CompoundTag) itemTag.get("display")).contains("name")) {
+        if (!itemTag.contains("display") || !((CompoundTag) itemTag.get("display")).contains("Name")) {
             if (itemTag.contains("SkullOwner")) {
                 StringTag name;
                 Tag skullOwner = itemTag.get("SkullOwner");
