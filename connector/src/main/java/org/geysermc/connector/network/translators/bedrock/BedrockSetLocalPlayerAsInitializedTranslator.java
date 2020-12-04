@@ -33,8 +33,6 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.skin.SkinManager;
 
-import java.util.concurrent.TimeUnit;
-
 @Translator(packet = SetLocalPlayerAsInitializedPacket.class)
 public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
     @Override
@@ -55,10 +53,10 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                 for (PlayerEntity entity : session.getSkullCache().values()) {
                     entity.spawnEntity(session);
 
-                    SkinManager.requestAndHandleSkinAndCape(entity, session, (skinAndCape) -> session.getConnector().getGeneralThreadPool().schedule(() -> {
+                    SkinManager.requestAndHandleSkinAndCape(entity, session, (skinAndCape) ->  {
                         entity.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
                         entity.updateBedrockMetadata(session);
-                    }, 2, TimeUnit.SECONDS));
+                    });
                 }
             }
         }

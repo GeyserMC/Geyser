@@ -96,27 +96,28 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         float x = posX + .5f;
         float y = posY - .01f;
         float z = posZ + .5f;
-        float rotation = 0f;
+        float rotation;
 
         byte floorRotation = BlockStateValues.getSkullRotation(blockState);
         if (floorRotation == -1) {
             // Wall skull
             y += 0.25f;
-            switch (BlockStateValues.getSkullWallDirections().get(blockState)) {
-                case "north":
-                    rotation = 180f;
+            rotation = BlockStateValues.getSkullWallDirections().get(blockState);
+            switch ((int) rotation) {
+                case 180:
+                    // North
                     z += 0.24f;
                     break;
-                case "south":
-                    rotation = 0;
+                case 0:
+                    // South
                     z -= 0.24f;
                     break;
-                case "west":
-                    rotation = 90;
+                case 90:
+                    // West
                     x += 0.24f;
                     break;
-                case "east":
-                    rotation = 270;
+                case 270:
+                    // East
                     x -= 0.24f;
                     break;
             }
