@@ -362,7 +362,7 @@ public class ChunkUtils {
             }
         }
 
-        SkullPlayerEntity skull = session.getSkullCache().getOrDefault(position, null);
+        SkullPlayerEntity skull = session.getSkullCache().get(position);
         if (skull != null && blockState != skull.getBlockState()) {
             // Skull is gone
             skull.despawnEntity(session, position);
