@@ -33,7 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.SkinUtils;
+import org.geysermc.connector.skin.SkinManager;
 
 @Translator(packet = ServerSpawnPlayerPacket.class)
 public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlayerPacket> {
@@ -62,7 +62,7 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
 
         if (session.getUpstream().isInitialized()) {
             entity.sendPlayer(session);
-            SkinUtils.requestAndHandleSkinAndCape(entity, session, null);
+            SkinManager.requestAndHandleSkinAndCape(entity, session, null);
         }
     }
 }

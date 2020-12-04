@@ -55,6 +55,7 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -78,7 +79,11 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector {
 
-    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
+            .enable(JsonParser.Feature.IGNORE_UNDEFINED)
+            .enable(JsonParser.Feature.ALLOW_COMMENTS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
 
     public static final String NAME = "Geyser";
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
@@ -182,6 +187,7 @@ public class GeyserConnector {
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
+        SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
         // https://github.com/GeyserMC/Geyser/issues/957
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
@@ -255,7 +261,7 @@ public class GeyserConnector {
             message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
         }
         logger.info(message);
-        
+
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
         }
