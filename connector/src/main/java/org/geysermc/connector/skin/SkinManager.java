@@ -119,7 +119,6 @@ public class SkinManager {
                         SkinProvider.Cape cape = skinAndCape.getCape();
                         SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
 
-                        // Don't apply cape if entity is skull
                         if (cape.isFailed()) {
                             cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(entity.getUuid()),
                                     SkinProvider.EMPTY_CAPE, 3);

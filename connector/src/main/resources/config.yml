@@ -109,7 +109,7 @@ cache-chunks: true
 # A value of 0 is disabled. (Default: 0)
 cache-images: 0
 
-# Allows custom skulls to be displayed.
+# Allows custom skulls to be displayed. Keeping them enabled may cause a performance decrease on older/weaker devices.
 allow-custom-skulls: true
 
 # Bedrock prevents building and displaying blocks above Y127 in the Nether -

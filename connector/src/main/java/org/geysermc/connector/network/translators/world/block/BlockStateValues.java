@@ -245,7 +245,7 @@ public class BlockStateValues {
 
     /**
      * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     * This gives a string rotation that Bedrock can use.
+     * This gives a integer rotation that Bedrock can use.
      *
      * @return Skull wall rotation value with the blockstate
      */
