@@ -46,7 +46,10 @@ public class BedrockProtocol {
     public static final List<BedrockPacketCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
+                .minecraftVersion("1.16.100/1.16.101") // We change this as 1.16.100.60 (beta) crashes with Geyser
+                .build()
+        );
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
                 .protocolVersion(422)
                 .minecraftVersion("1.16.200.56")
