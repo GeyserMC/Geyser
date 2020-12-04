@@ -111,6 +111,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             int floorY = position.getFloorY();
                             if (floorY <= -38 && floorY >= -40) {
                                 // Work around there being a floor at Y -40 and teleport the player below it
+                                // Moving from below Y -40 to above the void floor works fine
                                 entity.setPosition(entity.getPosition().sub(0, 4f, 0));
                                 MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
                                 movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
