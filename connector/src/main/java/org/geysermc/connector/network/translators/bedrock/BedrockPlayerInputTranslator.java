@@ -31,7 +31,9 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-// Makes minecarts respond to player input
+/**
+ * Sent by the client for minecarts and boats.
+ */
 @Translator(packet = PlayerInputPacket.class)
 public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPacket> {
 

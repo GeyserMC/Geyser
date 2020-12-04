@@ -48,6 +48,15 @@ public class RabbitEntity extends AnimalEntity {
                 metadata.put(EntityData.SCALE, .35f);
                 metadata.getFlags().setFlag(EntityFlag.BABY, true);
             }
+        } else if (entityMetadata.getId() == 16) {
+            int variant = (int) entityMetadata.getValue();
+
+            // Change the killer bunny to display as white since it only exists on Java Edition
+            if (variant == 99) {
+                variant = 1;
+            }
+
+            metadata.put(EntityData.VARIANT, variant);
         }
     }
 }

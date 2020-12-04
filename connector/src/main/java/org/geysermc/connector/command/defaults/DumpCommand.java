@@ -27,12 +27,10 @@ package org.geysermc.connector.command.defaults;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.dump.DumpInfo;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -40,6 +38,8 @@ import org.geysermc.connector.utils.WebUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class DumpCommand extends GeyserCommand {
 
@@ -73,7 +73,7 @@ public class DumpCommand extends GeyserCommand {
 
         AsteriskSerializer.showSensitive = showSensitive;
 
-        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.dump.collecting"));
+        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.dump.collecting", sender.getLocale()));
         String dumpData = "";
         try {
             if (offlineDump) {
@@ -82,7 +82,7 @@ public class DumpCommand extends GeyserCommand {
                 dumpData = MAPPER.writeValueAsString(new DumpInfo());
             }
         } catch (IOException e) {
-            sender.sendMessage(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.commands.dump.collect_error"));
+            sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.collect_error", sender.getLocale()));
             connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.dump.collect_error_short"), e);
             return;
         }
@@ -90,21 +90,21 @@ public class DumpCommand extends GeyserCommand {
         String uploadedDumpUrl = "";
 
         if (offlineDump) {
-            sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.dump.writing"));
+            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.dump.writing", sender.getLocale()));
 
             try {
                 FileOutputStream outputStream = new FileOutputStream(GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("dump.json").toFile());
                 outputStream.write(dumpData.getBytes());
                 outputStream.close();
             } catch (IOException e) {
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.commands.dump.write_error"));
+                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.write_error", sender.getLocale()));
                 connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.dump.write_error_short"), e);
                 return;
             }
 
             uploadedDumpUrl = "dump.json";
         } else {
-            sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.dump.uploading"));
+            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.dump.uploading", sender.getLocale()));
 
             String response;
             JsonNode responseNode;
@@ -112,22 +112,27 @@ public class DumpCommand extends GeyserCommand {
                 response = WebUtils.post(DUMP_URL + "documents", dumpData);
                 responseNode = MAPPER.readTree(response);
             } catch (IOException e) {
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.commands.dump.upload_error"));
+                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.upload_error", sender.getLocale()));
                 connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.dump.upload_error_short"), e);
                 return;
             }
 
             if (!responseNode.has("key")) {
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.commands.dump.upload_error_short") + ": " + (responseNode.has("message") ? responseNode.get("message").asText() : response));
+                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.upload_error_short", sender.getLocale()) + ": " + (responseNode.has("message") ? responseNode.get("message").asText() : response));
                 return;
             }
 
             uploadedDumpUrl = DUMP_URL + responseNode.get("key").asText();
         }
 
-        sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.commands.dump.message") + " " + ChatColor.DARK_AQUA + uploadedDumpUrl);
+        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.dump.message", sender.getLocale()) + " " + ChatColor.DARK_AQUA + uploadedDumpUrl);
         if (!sender.isConsole()) {
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.commands.dump.created", sender.getName(), uploadedDumpUrl));
         }
+    }
+
+    @Override
+    public List<String> getSubCommands() {
+        return Arrays.asList("offline", "full");
     }
 }

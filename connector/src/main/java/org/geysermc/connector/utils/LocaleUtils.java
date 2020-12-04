@@ -35,7 +35,6 @@ import org.geysermc.connector.GeyserConnector;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -48,7 +47,7 @@ public class LocaleUtils {
 
     private static final Map<String, Asset> ASSET_MAP = new HashMap<>();
 
-    private static String smallestURL = "";
+    private static VersionDownload clientJarInfo;
 
     static {
         // Create the locales folder
@@ -88,9 +87,8 @@ public class LocaleUtils {
 
             // Get the client jar for use when downloading the en_us locale
             GeyserConnector.getInstance().getLogger().debug(GeyserConnector.JSON_MAPPER.writeValueAsString(versionInfo.getDownloads()));
-            VersionDownload download = versionInfo.getDownloads().get("client");
-            GeyserConnector.getInstance().getLogger().debug(GeyserConnector.JSON_MAPPER.writeValueAsString(download));
-            smallestURL = download.getUrl();
+            clientJarInfo = versionInfo.getDownloads().get("client");
+            GeyserConnector.getInstance().getLogger().debug(GeyserConnector.JSON_MAPPER.writeValueAsString(clientJarInfo));
 
             // Get the assets list
             JsonNode assets = GeyserConnector.JSON_MAPPER.readTree(WebUtils.getBody(versionInfo.getAssetIndex().getUrl())).get("objects");
@@ -137,8 +135,29 @@ public class LocaleUtils {
 
         // Check if we have already downloaded the locale file
         if (localeFile.exists()) {
-            GeyserConnector.getInstance().getLogger().debug("Locale already downloaded: " + locale);
-            return;
+            String curHash = "";
+            String targetHash = "";
+
+            if (locale.equals("en_us")) {
+                try {
+                    File hashFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/en_us.hash").toFile();
+                    if (hashFile.exists()) {
+                        BufferedReader br = new BufferedReader(new FileReader(hashFile));
+                        curHash = br.readLine().trim();
+                    }
+                } catch (IOException ignored) { }
+                targetHash = clientJarInfo.getSha1();
+            } else {
+                curHash = byteArrayToHexString(FileUtils.calculateSHA1(localeFile));
+                targetHash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
+            }
+
+            if (!curHash.equals(targetHash)) {
+                GeyserConnector.getInstance().getLogger().debug("Locale out of date; re-downloading: " + locale);
+            } else {
+                GeyserConnector.getInstance().getLogger().debug("Locale already downloaded and up-to date: " + locale);
+                return;
+            }
         }
 
         // Create the en_us locale
@@ -203,11 +222,11 @@ public class LocaleUtils {
         try {
             // Let the user know we are downloading the JAR
             GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.locale.download.en_us"));
-            GeyserConnector.getInstance().getLogger().debug("Download URL: " + smallestURL);
+            GeyserConnector.getInstance().getLogger().debug("Download URL: " + clientJarInfo.getUrl());
 
             // Download the smallest JAR (client or server)
             Path tmpFilePath = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
-            WebUtils.downloadFile(smallestURL, tmpFilePath.toString());
+            WebUtils.downloadFile(clientJarInfo.getUrl(), tmpFilePath.toString());
 
             // Load in the JAR as a zip and extract the file
             ZipFile localeJar = new ZipFile(tmpFilePath.toString());
@@ -228,6 +247,9 @@ public class LocaleUtils {
             fileStream.close();
             localeJar.close();
 
+            // Store the latest jar hash
+            FileUtils.writeFile(GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/en_us.hash").toString(), clientJarInfo.getSha1().toCharArray());
+
             // Delete the nolonger needed client/server jar
             Files.delete(tmpFilePath);
         } catch (Exception e) {
@@ -244,15 +266,30 @@ public class LocaleUtils {
      */
     public static String getLocaleString(String messageText, String locale) {
         Map<String, String> localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(locale.toLowerCase());
-        if (localeStrings == null)
-            localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(LanguageUtils.getDefaultLocale());
         if (localeStrings == null) {
-            // Don't cause a NPE if the locale is STILL missing
-            GeyserConnector.getInstance().getLogger().debug("MISSING DEFAULT LOCALE: " + LanguageUtils.getDefaultLocale());
-            return messageText;
+            localeStrings = LocaleUtils.LOCALE_MAPPINGS.get(LanguageUtils.getDefaultLocale());
+            if (localeStrings == null) {
+                // Don't cause a NPE if the locale is STILL missing
+                GeyserConnector.getInstance().getLogger().debug("MISSING DEFAULT LOCALE: " + LanguageUtils.getDefaultLocale());
+                return messageText;
+            }
         }
 
         return localeStrings.getOrDefault(messageText, messageText);
+    }
+
+    /**
+     * Convert a byte array into a hex string
+     *
+     * @param b Byte array to convert
+     * @return The hex representation of the given byte array
+     */
+    private static String byteArrayToHexString(byte[] b) {
+        StringBuilder result = new StringBuilder();
+        for (byte value : b) {
+            result.append(Integer.toString((value & 0xff) + 0x100, 16).substring(1));
+        }
+        return result.toString();
     }
 
     public static void init() {

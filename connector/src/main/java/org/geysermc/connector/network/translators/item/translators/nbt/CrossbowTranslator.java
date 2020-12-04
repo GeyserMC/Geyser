@@ -45,15 +45,15 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
             if (!chargedProjectiles.getValue().isEmpty()) {
                 CompoundTag projectile = (CompoundTag) chargedProjectiles.getValue().get(0);
 
-                ItemEntry entry = ItemRegistry.getItemEntry((String) projectile.get("id").getValue());
-                if (entry == null) return;
+                ItemEntry projectileEntry = ItemRegistry.getItemEntry((String) projectile.get("id").getValue());
+                if (projectileEntry == null) return;
                 CompoundTag tag = projectile.get("tag");
                 ItemStack itemStack = new ItemStack(itemEntry.getJavaId(), (byte) projectile.get("Count").getValue(), tag);
                 ItemData itemData = ItemTranslator.translateToBedrock(session, itemStack);
 
                 CompoundTag newProjectile = new CompoundTag("chargedItem");
                 newProjectile.put(new ByteTag("Count", (byte) itemData.getCount()));
-                newProjectile.put(new StringTag("Name", ItemRegistry.getBedrockIdentifer(entry)));
+                newProjectile.put(new StringTag("Name", projectileEntry.getBedrockIdentifier()));
 
                 newProjectile.put(new ShortTag("Damage", itemData.getDamage()));
 

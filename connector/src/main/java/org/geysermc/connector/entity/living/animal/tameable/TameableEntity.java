@@ -29,9 +29,12 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class TameableEntity extends AnimalEntity {
 
@@ -46,11 +49,22 @@ public class TameableEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
             metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x04) == 0x04);
-            // Must be set for wolf collar color to work
-            // Extending it to all entities to prevent future bugs
-            if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
-                metadata.put(EntityData.OWNER_EID, session.getPlayerEntity().getGeyserId());
-            } // Can't de-tame an entity so no resetting the owner ID
+        }
+
+        // Note: Must be set for wolf collar color to work
+        if (entityMetadata.getId() == 17) {
+            if (entityMetadata.getValue() != null) {
+                // Owner UUID of entity
+                Entity entity = session.getEntityCache().getPlayerEntity((UUID) entityMetadata.getValue());
+                // Used as both a check since the player isn't in the entity cache and a normal fallback
+                if (entity == null) {
+                    entity = session.getPlayerEntity();
+                }
+                // Translate to entity ID
+                metadata.put(EntityData.OWNER_EID, entity.getGeyserId());
+            } else {
+                metadata.put(EntityData.OWNER_EID, 0L); // Reset
+            }
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

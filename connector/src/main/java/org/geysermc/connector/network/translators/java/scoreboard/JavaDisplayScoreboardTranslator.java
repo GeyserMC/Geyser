@@ -36,8 +36,7 @@ public class JavaDisplayScoreboardTranslator extends PacketTranslator<ServerDisp
 
     @Override
     public void translate(ServerDisplayScoreboardPacket packet, GeyserSession session) {
-        session.getWorldCache().getScoreboard().registerNewObjective(
-                packet.getName(), packet.getPosition()
-        );
+        session.getWorldCache().getScoreboard()
+                .displayObjective(packet.getName(), packet.getPosition());
     }
 }

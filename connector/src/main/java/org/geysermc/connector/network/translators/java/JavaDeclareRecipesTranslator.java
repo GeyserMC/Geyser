@@ -51,6 +51,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
 
     @Override
     public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
+        // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
+        int networkId = RecipeRegistry.LAST_RECIPE_NET_ID;
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
         for (Recipe recipe : packet.getRecipes()) {
@@ -63,7 +65,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                                inputs, new ItemData[]{output}, uuid, "crafting_table", 0));
+                                inputs, new ItemData[]{output}, uuid, "crafting_table", 0, networkId++));
                     }
                     break;
                 }
@@ -76,12 +78,23 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), inputs,
-                                new ItemData[]{output}, uuid, "crafting_table", 0));
+                                new ItemData[]{output}, uuid, "crafting_table", 0, networkId++));
                     }
                     break;
                 }
+
+                // These recipes are enabled by sending a special recipe
+                case CRAFTING_SPECIAL_BOOKCLONING: {
+                    craftingDataPacket.getCraftingData().add(RecipeRegistry.BOOK_CLONING_RECIPE_DATA);
+                    break;
+                }
+                case CRAFTING_SPECIAL_REPAIRITEM: {
+                    craftingDataPacket.getCraftingData().add(RecipeRegistry.TOOL_REPAIRING_RECIPE_DATA);
+                    break;
+                }
+
+                // Java doesn't actually tell us the recipes so we need to calculate this ahead of time.
                 case CRAFTING_SPECIAL_FIREWORK_ROCKET: {
-                    // Java doesn't actually tell us the recipes so we need to calculate this ahead of time.
                     craftingDataPacket.getCraftingData().addAll(RecipeRegistry.FIREWORK_ROCKET_RECIPES);
                     break;
                 }
@@ -91,6 +104,14 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 }
                 case CRAFTING_SPECIAL_SHULKERBOXCOLORING: {
                     craftingDataPacket.getCraftingData().addAll(RecipeRegistry.SHULKER_BOX_DYEING_RECIPES);
+                    break;
+                }
+                case CRAFTING_SPECIAL_SUSPICIOUSSTEW: {
+                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.SUSPICIOUS_STEW_RECIPES);
+                    break;
+                }
+                case CRAFTING_SPECIAL_TIPPEDARROW: {
+                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.TIPPED_ARROW_RECIPES);
                     break;
                 }
                 case CRAFTING_SPECIAL_ARMORDYE: {

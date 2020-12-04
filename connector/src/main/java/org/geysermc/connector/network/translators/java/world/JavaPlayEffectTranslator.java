@@ -78,7 +78,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                 textPacket.setMessage("record.nowPlaying");
                 List<String> params = new ArrayList<>();
                 String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
-                params.add(LocaleUtils.getLocaleString(recordString, session.getClientData().getLanguageCode()));
+                params.add(LocaleUtils.getLocaleString(recordString, session.getLocale()));
                 textPacket.setParameters(params);
                 session.sendUpstreamPacket(textPacket);
             }
