@@ -100,7 +100,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             movePacket = new ClientPlayerPositionPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
                         }
 
-                        // Compare positions here for void floor fix below before
+                        // Compare positions here for void floor fix below before the player's position variable is set to the packet position
                         boolean notMovingUp = entity.getPosition().getY() >= packet.getPosition().getY();
 
                         entity.setPosition(packet.getPosition(), false);
