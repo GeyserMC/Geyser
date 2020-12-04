@@ -100,7 +100,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             movePacket = new ClientPlayerPositionPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
                         }
 
+                        // Compare positions here for void floor fix below before
                         boolean notMovingUp = entity.getPosition().getY() >= packet.getPosition().getY();
+
                         entity.setPosition(packet.getPosition(), false);
                         entity.setOnGround(packet.isOnGround());
 
@@ -112,6 +114,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             if (floorY <= -38 && floorY >= -40) {
                                 // Work around there being a floor at Y -40 and teleport the player below it
                                 // Moving from below Y -40 to above the void floor works fine
+                                //TODO: This will need to be changed for 1.17
                                 entity.setPosition(entity.getPosition().sub(0, 4f, 0));
                                 MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
                                 movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
