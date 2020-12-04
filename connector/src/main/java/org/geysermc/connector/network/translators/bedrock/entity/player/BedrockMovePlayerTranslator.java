@@ -107,16 +107,19 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         // Send final movement changes
                         session.sendDownstreamPacket(movePacket);
 
-                        if (notMovingUp && position.getFloorY() <= -38 && position.getFloorY() >= -40) {
-                            // Work around there being a floor at Y -40 and teleport the player below it
-                            entity.setPosition(entity.getPosition().sub(0, 4f, 0));
-                            MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-                            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-                            movePlayerPacket.setPosition(entity.getPosition());
-                            movePlayerPacket.setRotation(entity.getBedrockRotation());
-                            movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-                            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
-                            session.sendUpstreamPacket(movePlayerPacket);
+                        if (notMovingUp) {
+                            int floorY = position.getFloorY();
+                            if (floorY <= -38 && floorY >= -40) {
+                                // Work around there being a floor at Y -40 and teleport the player below it
+                                entity.setPosition(entity.getPosition().sub(0, 4f, 0));
+                                MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+                                movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                                movePlayerPacket.setPosition(entity.getPosition());
+                                movePlayerPacket.setRotation(entity.getBedrockRotation());
+                                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+                                movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+                                session.sendUpstreamPacket(movePlayerPacket);
+                            }
                         }
                     } else {
                         // Not a valid move
