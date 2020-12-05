@@ -55,7 +55,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -67,7 +69,6 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
@@ -75,10 +76,10 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntity;
 import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -111,6 +112,7 @@ public class GeyserSession implements CommandSender {
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
     private InventoryCache inventoryCache;
+    private final PistonCache pistonCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
@@ -129,11 +131,6 @@ public class GeyserSession implements CommandSender {
      */
     private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
 
-    /**
-     * A map of Vector3i positions to PistonBlockEntities
-     * Used for updating pistons when they extend or retract
-     */
-    private final Object2ObjectMap<Vector3i, PistonBlockEntity> pistonCache = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
 
     @Setter
     private Vector2i lastChunkPosition = null;
@@ -329,6 +326,7 @@ public class GeyserSession implements CommandSender {
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
         this.inventoryCache = new InventoryCache(this);
+        this.pistonCache = new PistonCache(this);
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 

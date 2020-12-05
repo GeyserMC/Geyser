@@ -65,13 +65,12 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             // Unlike everything else, pistons need a block entity packet to convey motion
             // TODO: Doesn't register on chunk load; needs to be interacted with first
             Vector3i position = Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
-            PistonBlockEntity blockEntity = session.getPistonCache().get(position);
+            PistonBlockEntity blockEntity = session.getPistonCache().getPistonAt(position);
             if (blockEntity == null) {
                 blockEntity = new PistonBlockEntity(session, position, direction);
-                session.getPistonCache().put(position, blockEntity);
+                session.getPistonCache().putPiston(blockEntity);
             }
             blockEntity.setAction(action);
-            blockEntity.sendUpdate();
         } else if (packet.getValue() instanceof MobSpawnerValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
