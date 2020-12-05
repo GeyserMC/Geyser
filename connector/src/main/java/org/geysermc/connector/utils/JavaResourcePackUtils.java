@@ -27,6 +27,8 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.ResourcePackStatus;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientResourcePackStatusPacket;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TransferPacket;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -35,12 +37,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.common.window.response.SimpleFormResponse;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.ResourcePackCache;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.packconverter.api.PackConverter;
+import org.geysermc.packconverter.api.utils.CustomModelData;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Map;
 
 public class JavaResourcePackUtils {
@@ -77,11 +80,13 @@ public class JavaResourcePackUtils {
             }
             session.getConnector().getGeneralThreadPool().execute(() -> {
                 try {
-                    Arrays.fill(session.getResourcePackCache().getBedrockResourcePacks(), null);
-                    session.getResourcePackCache().getBedrockCustomItems().clear();
-                    session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().clear();
-                    session.getResourcePackCache().getBedrockCustomIdToProperBedrockId().clear();
-                    session.getResourcePackCache().setCustomModelDataActive(false);
+                    ResourcePackCache rpCache = session.getResourcePackCache();
+                    rpCache.setBedrockResourcePack(null);
+                    rpCache.getBedrockCustomItems().clear();
+                    rpCache.getJavaToCustomModelDataToBedrockId().clear();
+                    rpCache.getBedrockCustomIdToProperBedrockId().clear();
+                    rpCache.getComponentData().clear();
+                    rpCache.setCustomModelDataActive(false);
                     ResourcePack pack = null;
 //                    if (!session.getResourcePackCache().getResourcePackHash().isEmpty()) {
 //                        // Search through our translated packs to see if we've already converted this pack
@@ -96,7 +101,7 @@ public class JavaResourcePackUtils {
                         System.out.println("Downloading resource pack requested by " + session.getName());
                         session.sendMessage(LocaleUtils.getLocaleString("resourcepack.downloading", session.getClientData().getLanguageCode()));
                         String packName;
-                        if (session.getResourcePackCache().getResourcePackHash().isEmpty()) {
+                        if (rpCache.getResourcePackHash().isEmpty()) {
                             packName = session.getName() + "-" + System.currentTimeMillis() + ".zip";
                         } else {
                             packName = session.getResourcePackCache().getResourcePackHash() + ".zip";
@@ -110,29 +115,34 @@ public class JavaResourcePackUtils {
                         if (!converter.getCustomModelData().isEmpty()) {
                             // Get the last registered Bedrock index
                             int index = ItemRegistry.ITEMS.size();
-                            for (Map.Entry<String, Int2ObjectMap<String>> map : converter.getCustomModelData().entrySet()) {
+                            for (Map.Entry<String, Int2ObjectMap<CustomModelData>> map : converter.getCustomModelData().entrySet()) {
                                 ItemEntry itemEntry = ItemRegistry.getItemEntry("minecraft:" + map.getKey());
                                 // Start the registry of Java custom model data ID to Bedrock registered ID
                                 Int2IntMap customModelDataToBedrockId = new Int2IntOpenHashMap(map.getValue().size());
-                                for (Int2ObjectMap.Entry<String> customModelData : map.getValue().int2ObjectEntrySet()) {
+                                for (Int2ObjectMap.Entry<CustomModelData> customModelData : map.getValue().int2ObjectEntrySet()) {
                                     index++;
+                                    String identifier = customModelData.getValue().getIdentifier();
                                     // Put in our custom Bedrock identifier and the given Bedrock index
-                                    session.getResourcePackCache().getBedrockCustomItems().add(new StartGamePacket.ItemEntry(customModelData.getValue(), (short) index));
+                                    rpCache.getBedrockCustomItems().add(new StartGamePacket.ItemEntry(identifier, (short) index, true));
                                     // Put in the Java custom model data key and the Bedrock index (for item searching)
                                     customModelDataToBedrockId.put(customModelData.getIntKey(), index);
-                                    session.getResourcePackCache().getBedrockCustomIdToProperBedrockId().put(index, itemEntry.getBedrockId());
+                                    rpCache.getBedrockCustomIdToProperBedrockId().put(index, itemEntry.getBedrockId());
+                                    // Save the component data needed to send item properties (durability, is food, etc)
+                                    rpCache.getComponentData().add(new ComponentItemData(identifier, NbtMap.builder()
+                                            .putCompound("components", customModelData.getValue().getNbt())
+                                            .putInt("id", index)
+                                            .putString("name", identifier)
+                                    .build()));
                                 }
                                 // Put in the final lookup of Java ID to custom model data indexes to Bedrock ID
-                                session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().put(
-                                        itemEntry.getJavaId(), customModelDataToBedrockId);
+                                rpCache.getJavaToCustomModelDataToBedrockId().put(itemEntry.getJavaId(), customModelDataToBedrockId);
                             }
-                            session.getResourcePackCache().setBedrockBehaviorPack(ResourcePack.loadPack(translatedPacks.resolve("bp_" + packName).toFile()));
                         }
                         //noinspection ResultOfMethodCallIgnored
                         javaPacks.resolve(packName).toFile().delete();
                         pack = ResourcePack.loadPack(translatedPacks.resolve(packName).toFile());
                     }
-                    session.getResourcePackCache().setBedrockResourcePack(pack);
+                    rpCache.setBedrockResourcePack(pack);
                 } catch (Exception e) {
                     e.printStackTrace();
                     ClientResourcePackStatusPacket failPacket = new ClientResourcePackStatusPacket(ResourcePackStatus.FAILED_DOWNLOAD);

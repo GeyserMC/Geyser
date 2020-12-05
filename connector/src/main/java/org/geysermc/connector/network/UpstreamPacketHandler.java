@@ -27,6 +27,7 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -91,14 +92,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             ResourcePackManifest.Header header = translatedResourcePack.getManifest().getHeader();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(),
                     header.getVersionString(), translatedResourcePack.getFile().length(), "", "", header.getUuid().toString(), false));
-            if (session.getResourcePackCache().getBedrockBehaviorPack() != null) {
-                // Behavior pack is not null, add it
-                ResourcePack translatedBehaviorPack = session.getResourcePackCache().getBedrockResourcePacks()[1];
-                ResourcePackManifest.Header behaviorHeader = translatedBehaviorPack.getManifest().getHeader();
-                // Add to the behavior packs
-                resourcePacksInfo.getBehaviorPackInfos().add(new ResourcePacksInfoPacket.Entry(behaviorHeader.getUuid().toString(),
-                        behaviorHeader.getVersionString(), translatedBehaviorPack.getFile().length(), "", "", behaviorHeader.getUuid().toString(), false));
-            }
             if (!session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().isEmpty()) {
                 session.getResourcePackCache().setCustomModelDataActive(true);
             }
@@ -118,20 +111,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 break;
 
             case SEND_PACKS:
+                ResourcePack translatedResourcePack = session.getResourcePackCache().getBedrockResourcePack();
                 for (String id : packet.getPackIds()) {
-                    boolean isResourcePack = true;
                     ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
                     String[] packID = id.split("_");
                     ResourcePack pack = null;
-                    for (int i = 0; i < session.getResourcePackCache().getBedrockResourcePacks().length; i++) {
-                        ResourcePack translatedResourcePack = session.getResourcePackCache().getBedrockResourcePacks()[i];
+                    if (translatedResourcePack != null) {
                         if (packID[0].equals(translatedResourcePack.getManifest().getHeader().getUuid().toString())) {
                             pack = translatedResourcePack;
-                            // Index 0 - resource pack
-                            if (i > 0) {
-                                isResourcePack = false;
-                            }
-                            break;
                         }
                     }
                     if (pack == null) {
@@ -147,7 +134,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     data.setHash(pack.getSha256());
                     data.setPackVersion(packID[1]);
                     data.setPremium(false);
-                    data.setType(isResourcePack ? ResourcePackType.RESOURCE : ResourcePackType.BEHAVIOR);
+                    data.setType(ResourcePackType.RESOURCE);
 
                     session.sendUpstreamPacket(data);
                     System.out.println(data);
@@ -164,15 +151,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
                 }
-                if (session.getResourcePackCache().getBedrockResourcePack() != null) {
-                    ResourcePack translatedResourcePack = session.getResourcePackCache().getBedrockResourcePacks()[0];
+                translatedResourcePack = session.getResourcePackCache().getBedrockResourcePack();
+                if (translatedResourcePack != null) {
                     ResourcePackManifest.Header header = translatedResourcePack.getManifest().getHeader();
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
-                    if (session.getResourcePackCache().getBedrockBehaviorPack() != null) {
-                        ResourcePack translatedBehaviorPack = session.getResourcePackCache().getBedrockResourcePacks()[1];
-                        ResourcePackManifest.Header behaviorHeader = translatedBehaviorPack.getManifest().getHeader();
-                        // Add to the behavior packs
-                        stackPacket.getBehaviorPacks().add(new ResourcePackStackPacket.Entry(behaviorHeader.getUuid().toString(), behaviorHeader.getVersionString(), ""));
+                    if (session.getResourcePackCache().isCustomModelDataActive()) {
+                        // Needed for the ItemComponentPacket to function as of 1.16.100
+                        stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                     }
                 }
 
@@ -261,8 +246,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         System.out.println(packet);
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         ResourcePack pack = null;
-        for (ResourcePack translatedResourcePack : session.getResourcePackCache().getBedrockResourcePacks()) {
-            if (translatedResourcePack == null) continue;
+        ResourcePack translatedResourcePack = session.getResourcePackCache().getBedrockResourcePack();
+        if (translatedResourcePack != null) {
             if (packet.getPackId().equals(translatedResourcePack.getManifest().getHeader().getUuid())) {
                 pack = translatedResourcePack;
             }

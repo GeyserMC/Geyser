@@ -364,6 +364,13 @@ public class GeyserSession implements CommandSender {
         startGame();
         this.remoteServer = remoteServer;
 
+        if (resourcePackCache.isCustomModelDataActive()) {
+            ItemComponentPacket componentPacket = new ItemComponentPacket();
+            componentPacket.getItems().addAll(resourcePackCache.getComponentData());
+            upstream.sendPacket(componentPacket);
+            System.out.println(componentPacket);
+        }
+
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();

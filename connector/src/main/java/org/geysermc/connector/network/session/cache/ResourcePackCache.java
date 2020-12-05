@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.session.cache;
 
+import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
@@ -48,12 +49,9 @@ public class ResourcePackCache {
     private String resourcePackUrl;
     private String resourcePackHash;
 
-    /**
-     * Index 0 - resource pack
-     * Index 1 - behavior pack, if any
-     */
-    private ResourcePack[] bedrockResourcePacks = new ResourcePack[] {null, null};
+    private ResourcePack bedrockResourcePack;
     private final List<StartGamePacket.ItemEntry> bedrockCustomItems = new ObjectArrayList<>();
+    private final List<ComponentItemData> componentData = new ObjectArrayList<>();
     private final Int2ObjectMap<Int2IntMap> javaToCustomModelDataToBedrockId = new Int2ObjectOpenHashMap<>();
     /**
      * Used to reverse search for the item when translating to Java in ItemTranslator
@@ -66,22 +64,6 @@ public class ResourcePackCache {
 
     public ResourcePackCache() {
 
-    }
-
-    public ResourcePack getBedrockResourcePack() {
-        return this.bedrockResourcePacks[0];
-    }
-
-    public ResourcePack getBedrockBehaviorPack() {
-        return this.bedrockResourcePacks[1];
-    }
-
-    public void setBedrockResourcePack(ResourcePack pack) {
-        this.bedrockResourcePacks[0] = pack;
-    }
-
-    public void setBedrockBehaviorPack(ResourcePack pack) {
-        this.bedrockResourcePacks[1] = pack;
     }
 
     public List<StartGamePacket.ItemEntry> getAllItems() {
