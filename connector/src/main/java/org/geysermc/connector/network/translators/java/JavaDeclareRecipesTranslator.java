@@ -51,6 +51,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
 
     @Override
     public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
+        // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
+        int networkId = RecipeRegistry.LAST_RECIPE_NET_ID;
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
         for (Recipe recipe : packet.getRecipes()) {
@@ -63,7 +65,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                                inputs, new ItemData[]{output}, uuid, "crafting_table", 0));
+                                inputs, new ItemData[]{output}, uuid, "crafting_table", 0, networkId++));
                     }
                     break;
                 }
@@ -76,7 +78,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), inputs,
-                                new ItemData[]{output}, uuid, "crafting_table", 0));
+                                new ItemData[]{output}, uuid, "crafting_table", 0, networkId++));
                     }
                     break;
                 }

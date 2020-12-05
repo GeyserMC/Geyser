@@ -42,6 +42,12 @@ import java.util.*;
 public class RecipeRegistry {
 
     /**
+     * Stores the last used recipe network ID. Since 1.16.200 (and for server-authoritative inventories),
+     * each recipe needs a unique network ID (or else in .200 the client crashes).
+     */
+    public static int LAST_RECIPE_NET_ID = 0;
+
+    /**
      * A list of all possible leather armor dyeing recipes.
      * Created manually.
      */
@@ -79,13 +85,16 @@ public class RecipeRegistry {
     /**
      * Recipe data that, when sent to the client, enables book cloning
      */
-    public static final CraftingData BOOK_CLONING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"));
+    public static final CraftingData BOOK_CLONING_RECIPE_DATA;
     /**
      * Recipe data that, when sent to the client, enables tool repairing in a crafting table
      */
-    public static final CraftingData TOOL_REPAIRING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+    public static final CraftingData TOOL_REPAIRING_RECIPE_DATA;
 
     static {
+        BOOK_CLONING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), LAST_RECIPE_NET_ID++);
+        TOOL_REPAIRING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"), LAST_RECIPE_NET_ID++);
+
         // Get all recipes that are not directly sent from a Java server
         InputStream stream = FileUtils.getResource("mappings/recipes.json");
 
@@ -154,7 +163,7 @@ public class RecipeRegistry {
             }
 
             return CraftingData.fromShaped(uuid.toString(), shape.get(0).length(), shape.size(),
-                    inputs, new ItemData[]{output}, uuid, "crafting_table", 0);
+                    inputs, new ItemData[]{output}, uuid, "crafting_table", 0, LAST_RECIPE_NET_ID++);
         }
         List<ItemData> inputs = new ObjectArrayList<>();
         for (JsonNode entry : node.get("input")) {
@@ -163,10 +172,10 @@ public class RecipeRegistry {
         if (node.get("type").asInt() == 5) {
             // Shulker box
             return CraftingData.fromShulkerBox(uuid.toString(),
-                    inputs.toArray(new ItemData[0]), new ItemData[]{output}, uuid, "crafting_table", 0);
+                    inputs.toArray(new ItemData[0]), new ItemData[]{output}, uuid, "crafting_table", 0, LAST_RECIPE_NET_ID++);
         }
         return CraftingData.fromShapeless(uuid.toString(),
-                inputs.toArray(new ItemData[0]), new ItemData[]{output}, uuid, "crafting_table", 0);
+                inputs.toArray(new ItemData[0]), new ItemData[]{output}, uuid, "crafting_table", 0, LAST_RECIPE_NET_ID++);
     }
 
     public static void init() {
