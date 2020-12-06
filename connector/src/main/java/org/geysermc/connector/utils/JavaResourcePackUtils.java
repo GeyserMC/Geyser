@@ -52,6 +52,7 @@ public class JavaResourcePackUtils {
 
     public static boolean handleBedrockResponse(GeyserSession session, String formData) {
         SimpleFormWindow window = session.getResourcePackCache().getForm();
+        // Sometimes sends twice?
         if (window == null) return true;
         session.getResourcePackCache().setForm(null);
         window.setResponse(formData);
@@ -98,15 +99,15 @@ public class JavaResourcePackUtils {
 //                        }
 //                    }
                     if (pack == null) {
-                        System.out.println("Downloading resource pack requested by " + session.getName());
-                        session.sendMessage(LocaleUtils.getLocaleString("resourcepack.downloading", session.getClientData().getLanguageCode()));
+                        session.getConnector().getLogger().info("Downloading resource pack requested by " + session.getName());
+                        session.sendMessage(LocaleUtils.getLocaleString("resourcepack.downloading", session.getLocale()));
                         String packName;
                         if (rpCache.getResourcePackHash().isEmpty()) {
                             packName = session.getName() + "-" + System.currentTimeMillis() + ".zip";
                         } else {
-                            packName = session.getResourcePackCache().getResourcePackHash() + ".zip";
+                            packName = rpCache.getResourcePackHash() + ".zip";
                         }
-                        WebUtils.downloadFile(session.getResourcePackCache().getResourcePackUrl(), javaPacks.resolve(packName).toString());
+                        WebUtils.downloadFile(rpCache.getResourcePackUrl(), javaPacks.resolve(packName).toString());
                         PackConverter converter = new PackConverter(javaPacks.resolve(packName),
                                 translatedPacks.resolve(packName));
                         converter.convert();
