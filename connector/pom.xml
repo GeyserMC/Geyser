@@ -224,7 +224,7 @@
                                 </replacement>
                                 <replacement>
                                     <token> VERSION = ".*"</token>
-                                    <value> VERSION = "${project.version} (git-${git.branch}-${git.commit.id.abbrev})"</value>
+                                    <value> VERSION = "${project.version} (" + GIT_VERSION + ")"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
