@@ -35,6 +35,7 @@ import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -44,9 +45,9 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
     private final GeyserSpigotLogger logger;
 
     @Override
-    public GeyserPingInfo getPingInformation() {
+    public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
         try {
-            ServerListPingEvent event = new GeyserPingEvent(InetAddress.getLocalHost(), Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers());
+            ServerListPingEvent event = new GeyserPingEvent(inetSocketAddress.getAddress(), Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers());
             Bukkit.getPluginManager().callEvent(event);
             GeyserPingInfo geyserPingInfo = new GeyserPingInfo(event.getMotd(),
                     new GeyserPingInfo.Players(event.getMaxPlayers(), event.getNumPlayers()),
