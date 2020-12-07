@@ -38,31 +38,29 @@ import org.spongepowered.api.network.status.StatusClient;
 import org.spongepowered.api.profile.GameProfile;
 
 import java.lang.reflect.Method;
-import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.util.Optional;
 
 public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
 
-    private static final GeyserStatusClient STATUS_CLIENT = new GeyserStatusClient();
     private static final Cause CAUSE = Cause.of(EventContext.empty(), Sponge.getServer());
 
     private static Method SpongeStatusResponse_create;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public GeyserPingInfo getPingInformation() {
+    public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
         // come on Sponge, this is in commons, why not expose it :(
         ClientPingServerEvent event;
         try {
-            if(SpongeStatusResponse_create == null) {
+            if (SpongeStatusResponse_create == null) {
                 Class SpongeStatusResponse = Class.forName("org.spongepowered.common.network.status.SpongeStatusResponse");
                 Class MinecraftServer = Class.forName("net.minecraft.server.MinecraftServer");
                 SpongeStatusResponse_create = SpongeStatusResponse.getDeclaredMethod("create", MinecraftServer);
             }
 
             Object response = SpongeStatusResponse_create.invoke(null, Sponge.getServer());
-            event = SpongeEventFactory.createClientPingServerEvent(CAUSE, STATUS_CLIENT, (ClientPingServerEvent.Response) response);
+            event = SpongeEventFactory.createClientPingServerEvent(CAUSE, new GeyserStatusClient(inetSocketAddress), (ClientPingServerEvent.Response) response);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
@@ -76,7 +74,7 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
                 new GeyserPingInfo.Version(
                         event.getResponse().getVersion().getName(),
                         MinecraftConstants.PROTOCOL_VERSION) // thanks for also not exposing this sponge
-                );
+        );
         event.getResponse().getPlayers().get().getProfiles().stream()
                 .map(GameProfile::getName)
                 .map(op -> op.orElseThrow(IllegalStateException::new))
@@ -87,11 +85,15 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
     @SuppressWarnings("NullableProblems")
     private static class GeyserStatusClient implements StatusClient {
 
-        private static final InetSocketAddress FAKE_REMOTE = new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69);
+        private final InetSocketAddress remote;
+
+        public GeyserStatusClient(InetSocketAddress remote) {
+            this.remote = remote;
+        }
 
         @Override
         public InetSocketAddress getAddress() {
-            return FAKE_REMOTE;
+            return this.remote;
         }
 
         @Override
