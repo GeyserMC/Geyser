@@ -78,7 +78,6 @@ public class RecipeRegistry {
      */
     public static final List<CraftingData> TIPPED_ARROW_RECIPES = new ObjectArrayList<>();
 
-    // TODO: Confirm that these are the correct functions for the multi ids
     /**
      * Recipe data that, when sent to the client, enables book cloning
      */
