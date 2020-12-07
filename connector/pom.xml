@@ -219,8 +219,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token>VERSION = ".*"</token>
-                                    <value>VERSION = "${project.version} (git-${git.branch}-${git.commit.id.abbrev})"</value>
+                                    <token> VERSION = ".*"</token>
+                                    <value> VERSION = "${project.version} (git-${git.branch}-${git.commit.id.abbrev})"</value>
+                                </replacement>
+                                <replacement>
+                                    <token> GIT_VERSION = ".*"</token>
+                                    <value> GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
