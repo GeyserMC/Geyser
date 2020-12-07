@@ -104,10 +104,6 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     craftingDataPacket.getCraftingData().add(RecipeRegistry.BANNER_DUPLICATING_RECIPE_DATA);
                     break;
                 }
-                case CRAFTING_SPECIAL_BANNERADDPATTERN: {
-                    craftingDataPacket.getCraftingData().add(RecipeRegistry.BANNER_ADD_PATTERN_RECIPE_DATA);
-                    break;
-                }
 
                 // Java doesn't actually tell us the recipes so we need to calculate this ahead of time.
                 case CRAFTING_SPECIAL_FIREWORK_ROCKET: {

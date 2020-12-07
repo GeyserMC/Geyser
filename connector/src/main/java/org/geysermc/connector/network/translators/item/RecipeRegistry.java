@@ -99,10 +99,6 @@ public class RecipeRegistry {
      * Recipe data that, when sent to the client, enables banner duplicating
      */
     public static final CraftingData BANNER_DUPLICATING_RECIPE_DATA;
-    /**
-     * Recipe data that, when sent to the client, enables banner pattern adding
-     */
-    public static final CraftingData BANNER_ADD_PATTERN_RECIPE_DATA;
 
 
     static {
@@ -111,7 +107,6 @@ public class RecipeRegistry {
         MAP_EXTENDING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), LAST_RECIPE_NET_ID++);
         MAP_CLONING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), LAST_RECIPE_NET_ID++);
         BANNER_DUPLICATING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), LAST_RECIPE_NET_ID++);
-        BANNER_ADD_PATTERN_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("d81aaeaf-e172-4440-9225-868df030d27b"), LAST_RECIPE_NET_ID++);
         // https://github.com/pmmp/PocketMine-MP/blob/stable/src/pocketmine/inventory/MultiRecipe.php
 
         // Get all recipes that are not directly sent from a Java server
