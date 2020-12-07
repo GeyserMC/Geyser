@@ -219,12 +219,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token> GIT_VERSION = ".*"</token>
-                                    <value> GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
+                                    <token>VERSION = ".*"</token>
+                                    <value>VERSION = "${project.version} (" + GIT_VERSION + ")"</value>
                                 </replacement>
                                 <replacement>
-                                    <token> VERSION = ".*"</token>
-                                    <value> VERSION = "${project.version} (" + GIT_VERSION + ")"</value>
+                                    <token>GIT_VERSION = ".*"</token>
+                                    <value>GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
@@ -242,12 +242,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token> GIT_VERSION = ".*"</token>
-                                    <value> GIT_VERSION = "DEV"</value>
+                                    <token>VERSION = ".*"</token>
+                                    <value>VERSION = "DEV"</value>
                                 </replacement>
                                 <replacement>
-                                    <token> VERSION = ".*"</token>
-                                    <value> VERSION = "DEV"</value>
+                                    <token>GIT_VERSION = ".*"</token>
+                                    <value>GIT_VERSION = "DEV"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
