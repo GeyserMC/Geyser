@@ -43,7 +43,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface GeyserEventHandler {
     // Events are processed from lowest to highest priority
-    int priority() default EventHandler.PRIORITY.NORMAL;
+    int priority() default EventHandler.Priority.NORMAL;
 
     // If ignoreCancelled is true then the handler will not be executed
     boolean ignoreCancelled() default false;

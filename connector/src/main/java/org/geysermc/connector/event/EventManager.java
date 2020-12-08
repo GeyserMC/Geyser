@@ -65,10 +65,8 @@ public class EventManager {
      */
     public <T extends GeyserEvent> EventResult<T> triggerEvent(T event) {
         if (event != null) {
-        if (eventHandlers.containsKey(event.getClass())) {
-
-            for (EventHandler<?> handler : eventHandlers.get(event.getClass())) {
-
+            if (eventHandlers.containsKey(event.getClass())) {
+                for (EventHandler<?> handler : eventHandlers.get(event.getClass())) {
                     try {
                         //noinspection unchecked
                         ((EventHandler<T>) handler).execute(event);

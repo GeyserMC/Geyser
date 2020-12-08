@@ -8,7 +8,7 @@ in turn based upon their priority.
 
 An event derives from [GeyserEvent](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/event/GeyserEvent.html) 
 and can implement [Cancellable](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/event/Cancellable.html) 
-if it should support being cancelled, and [Session](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/event/Session.html) 
+if it should support being cancelled, and [EventSession](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/event/EventSession.html) 
 if it should support a [GeyserSession](https://bundabrg.github.io/Geyser/apidocs/org/geysermc/connector/network/session/GeyserSession.html).
 
 !!! example
@@ -100,7 +100,7 @@ You'll note the `build()` on the end. `on()` returns a Builder that can add opti
 
 The following additional parameters are available:
 
-* `priority(int)` - Set the event priority. Default `EventHandler.PRIORITY.NORMAL`
+* `priority(int)` - Set the event priority. Default `EventHandler.Priority.NORMAL`
 * `ignoreCancelled(boolean)` - If true the handler will not execute if cancelled. Default `true`.
 
 !!! example

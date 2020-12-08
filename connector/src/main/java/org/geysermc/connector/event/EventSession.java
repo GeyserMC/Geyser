@@ -31,7 +31,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 /**
  * An event that has an associated GeyserSession
  */
-public interface Session {
+public interface EventSession {
     /**
      * Return the {@code GeyserSession} for this Event
      *
