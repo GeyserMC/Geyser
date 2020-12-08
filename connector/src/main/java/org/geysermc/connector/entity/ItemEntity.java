@@ -35,26 +35,11 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 public class ItemEntity extends Entity {
 
+    Vector3f positionBeforeSend;
+
     public ItemEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-    }
-
-    @Override
-    public void spawnEntity(GeyserSession session) {
-        AddEntityPacket addEntityPacket = new AddEntityPacket();
-        addEntityPacket.setIdentifier(entityType.getIdentifier());
-        addEntityPacket.setRuntimeEntityId(geyserId);
-        addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(Vector3f.from(position.getX(), position.getY() + 0.3f, position.getZ()));
-        addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(getBedrockRotation());
-        addEntityPacket.setEntityType(entityType.getType());
-        addEntityPacket.getMetadata().putAll(metadata);
-
-        valid = true;
-        session.sendUpstreamPacket(addEntityPacket);
-
-        session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+        positionBeforeSend = this.position;
     }
 
     @Override
@@ -62,7 +47,7 @@ public class ItemEntity extends Entity {
         if (entityMetadata.getId() == 7) {
             AddItemEntityPacket itemPacket = new AddItemEntityPacket();
             itemPacket.setRuntimeEntityId(geyserId);
-            itemPacket.setPosition(Vector3f.from(position.getX(), position.getY() + 0.3f, position.getZ()));
+            itemPacket.setPosition(position);
             itemPacket.setMotion(motion);
             itemPacket.setUniqueEntityId(geyserId);
             itemPacket.setFromFishing(false);
@@ -76,16 +61,19 @@ public class ItemEntity extends Entity {
 
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        Vector3f movePosition = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
-        boolean OnGroundChange = onGround != isOnGround;
-
         setRotation(rotation);
         setOnGround(isOnGround);
 
+        position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
-        if (position.distanceSquared(movePosition) > 0.25f || OnGroundChange)
+        // There was a phenomenon where too constant updates were made,
+        // affecting the velocity value of the item entity,
+        // causing the to break through the floor.
+        // So Update was performed before the update and when the location to be moved is greater than 0.5 meters.
+        // It moved less than 0.5, but if the variable for whether it was on the floor was changed to update its position when it hits the floor, we updated it.
+        if (positionBeforeSend.distanceSquared(position) > 0.25f || onGround != isOnGround)
         {
-            this.position = movePosition;
+            positionBeforeSend = position;
 
             MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
             moveEntityPacket.setRuntimeEntityId(geyserId);
@@ -100,14 +88,13 @@ public class ItemEntity extends Entity {
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        boolean OnGroundChange = onGround != isOnGround;
-
+        setPosition(position);
         setRotation(rotation);
         setOnGround(isOnGround);
 
-        if (this.position.distanceSquared(position) > 0.25f || OnGroundChange)
+        if (positionBeforeSend.distanceSquared(position) > 0.25f || onGround != isOnGround)
         {
-            setPosition(position);
+            positionBeforeSend = position;
 
             MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
             moveEntityPacket.setRuntimeEntityId(geyserId);
