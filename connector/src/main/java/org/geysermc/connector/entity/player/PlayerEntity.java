@@ -27,7 +27,6 @@ package org.geysermc.connector.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -39,11 +38,11 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.attribute.Attribute;
@@ -54,8 +53,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
-import org.geysermc.connector.utils.SkinProvider;
-import org.geysermc.connector.utils.SkinUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +66,6 @@ public class PlayerEntity extends LivingEntity {
     private UUID uuid;
     private String username;
     private String displayName;
-    private long lastSkinUpdate = -1;
     private boolean playerList = true;  // Player is in the player list
 
     /**
@@ -259,9 +255,9 @@ public class PlayerEntity extends LivingEntity {
 
         if (entityMetadata.getId() == 2) {
             String username = this.username;
-            TextMessage name = (TextMessage) entityMetadata.getValue();
+            Component name = (Component) entityMetadata.getValue();
             if (name != null) {
-                username = MessageTranslator.convertMessage(name.toString());
+                username = MessageTranslator.convertMessage(name);
             }
             Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {

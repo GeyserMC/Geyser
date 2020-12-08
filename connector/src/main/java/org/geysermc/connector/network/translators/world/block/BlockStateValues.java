@@ -47,7 +47,7 @@ public class BlockStateValues {
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
-    private static final Int2ObjectMap<String> SKULL_WALL_DIRECTIONS = new Int2ObjectOpenHashMap<>();
+    private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
 
     /**
@@ -113,7 +113,22 @@ public class BlockStateValues {
 
         if (entry.getKey().contains("wall_skull") || entry.getKey().contains("wall_head")) {
             String direction = entry.getKey().substring(entry.getKey().lastIndexOf("facing=") + 7);
-            SKULL_WALL_DIRECTIONS.put(javaBlockState, direction.substring(0, direction.length() - 1));
+            int rotation = 0;
+            switch (direction.substring(0, direction.length() - 1)) {
+                case "north":
+                    rotation = 180;
+                    break;
+                case "south":
+                    rotation = 0;
+                    break;
+                case "west":
+                    rotation = 90;
+                    break;
+                case "east":
+                    rotation = 270;
+                    break;
+            }
+            SKULL_WALL_DIRECTIONS.put(javaBlockState, rotation);
         }
 
         JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
@@ -230,11 +245,11 @@ public class BlockStateValues {
 
     /**
      * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     * This gives a string rotation that Bedrock can use.
+     * This gives a integer rotation that Bedrock can use.
      *
      * @return Skull wall rotation value with the blockstate
      */
-    public static Int2ObjectMap<String> getSkullWallDirections() {
+    public static Int2IntMap getSkullWallDirections() {
         return SKULL_WALL_DIRECTIONS;
     }
 

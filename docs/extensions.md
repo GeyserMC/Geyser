@@ -72,7 +72,7 @@ Add the following to the relevant section of your `pom.xml`
             EventHandler<GeyserStopEvent> handler = on(GeyserStopEvent.class, event -> {
                 System.err.println("I'm also dead");
             })
-                .priority(EventHandler.PRIORITY.HIGH);
+                .priority(EventHandler.Priority.HIGH);
         }
         
         @GeyserEventHandler

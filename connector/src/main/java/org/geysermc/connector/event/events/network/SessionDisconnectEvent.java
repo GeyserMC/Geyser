@@ -31,7 +31,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import org.geysermc.connector.event.GeyserEvent;
-import org.geysermc.connector.event.Session;
+import org.geysermc.connector.event.EventSession;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -40,7 +40,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuppressWarnings("JavaDoc")
-public class SessionDisconnectEvent extends GeyserEvent implements Session {
+public class SessionDisconnectEvent extends GeyserEvent implements EventSession {
     @NonNull
     private final GeyserSession session;
 

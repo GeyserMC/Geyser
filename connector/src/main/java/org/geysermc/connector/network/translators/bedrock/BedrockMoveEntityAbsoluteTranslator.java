@@ -31,13 +31,14 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-// Used for horses
+/**
+ * Sent by the client when moving a horse.
+ */
 @Translator(packet = MoveEntityAbsolutePacket.class)
 public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEntityAbsolutePacket> {
 
     @Override
     public void translate(MoveEntityAbsolutePacket packet, GeyserSession session) {
-
         ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
                 packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(),
                 packet.getRotation().getY() - 90, packet.getRotation().getX()

@@ -41,7 +41,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -295,12 +294,9 @@ public class ChunkUtils {
 
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
 
-            //Check for custom skulls
-            if (tag.contains("SkullOwner") && SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS) {
-                CompoundTag owner = tag.get("SkullOwner");
-                if (owner.contains("Properties")) {
-                    SkullBlockEntityTranslator.spawnPlayer(session, tag, blockState);
-                }
+            // Check for custom skulls
+            if (SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS && tag.contains("SkullOwner")) {
+                SkullBlockEntityTranslator.spawnPlayer(session, tag, blockState);
             }
             i++;
         }
@@ -366,7 +362,7 @@ public class ChunkUtils {
             }
         }
 
-        SkullPlayerEntity skull = session.getSkullCache().getOrDefault(position, null);
+        SkullPlayerEntity skull = session.getSkullCache().get(position);
         if (skull != null && blockState != skull.getBlockState()) {
             // Skull is gone
             skull.despawnEntity(session, position);

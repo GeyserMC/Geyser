@@ -27,7 +27,6 @@
 package org.geysermc.connector.event.handlers;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.geysermc.connector.event.Cancellable;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.GeyserEvent;
@@ -41,7 +40,7 @@ import java.util.function.BiConsumer;
 @Getter
 public class LambdaEventHandler<T extends GeyserEvent> extends EventHandler<T> {
     private final BiConsumer<T, EventHandler<T>> consumer;
-    private int priority = PRIORITY.NORMAL;
+    private int priority = Priority.NORMAL;
     private boolean ignoreCancelled = true;
 
     public LambdaEventHandler(EventManager manager, Class<T> cls, BiConsumer<T, EventHandler<T>> consumer) {

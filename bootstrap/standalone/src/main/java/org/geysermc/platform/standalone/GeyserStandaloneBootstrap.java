@@ -205,7 +205,12 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             }
         } catch (IOException ex) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
-            System.exit(0);
+            if (gui == null) {
+                System.exit(1);
+            } else {
+                // Leave the process running so the GUI is still visible
+                return;
+            }
         }
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 

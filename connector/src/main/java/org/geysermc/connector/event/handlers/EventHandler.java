@@ -87,7 +87,7 @@ public abstract class EventHandler<T extends GeyserEvent> implements Comparable<
     }
 
     @SuppressWarnings("unused")
-    public static class PRIORITY {
+    public static class Priority {
         public final static int LOWEST = 10;
         public final static int LOW = 4;
         public final static int NORMAL = 50;

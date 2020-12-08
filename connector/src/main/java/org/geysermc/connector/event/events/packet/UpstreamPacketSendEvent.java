@@ -33,7 +33,7 @@ import lombok.NonNull;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.event.Cancellable;
 import org.geysermc.connector.event.GeyserEvent;
-import org.geysermc.connector.event.Session;
+import org.geysermc.connector.event.EventSession;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.lang.reflect.InvocationTargetException;
@@ -43,7 +43,7 @@ import java.util.Map;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuppressWarnings("JavaDoc")
-public abstract class UpstreamPacketSendEvent<T extends BedrockPacket> extends GeyserEvent implements Cancellable, Session {
+public abstract class UpstreamPacketSendEvent<T extends BedrockPacket> extends GeyserEvent implements Cancellable, EventSession {
     // Cache of Packet Class to Event Class
     private static final Map<Class<? extends BedrockPacket>, Class<?>> classMap = new HashMap<>();
 

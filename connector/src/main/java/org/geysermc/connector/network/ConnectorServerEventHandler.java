@@ -65,7 +65,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         GeyserPingInfo pingInfo = null;
         if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = connector.getBootstrap().getGeyserPingPassthrough();
-            pingInfo = pingPassthrough.getPingInformation();
+            pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
         }
 
         BedrockPong pong = new BedrockPong();

@@ -31,9 +31,8 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.SkinUtils;
-
-import java.util.concurrent.TimeUnit;
+import org.geysermc.connector.skin.SkinManager;
+import org.geysermc.connector.skin.SkullSkinManager;
 
 @Translator(packet = SetLocalPlayerAsInitializedPacket.class)
 public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
@@ -46,7 +45,7 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
 
                 for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
                     if (!entity.isValid()) {
-                        SkinUtils.requestAndHandleSkinAndCape(entity, session, null);
+                        SkinManager.requestAndHandleSkinAndCape(entity, session, null);
                         entity.sendPlayer(session);
                     }
                 }
@@ -55,10 +54,10 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                 for (PlayerEntity entity : session.getSkullCache().values()) {
                     entity.spawnEntity(session);
 
-                    SkinUtils.requestAndHandleSkinAndCape(entity, session, (skinAndCape) -> session.getConnector().getGeneralThreadPool().schedule(() -> {
+                    SkullSkinManager.requestAndHandleSkin(entity, session, (skin) ->  {
                         entity.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
                         entity.updateBedrockMetadata(session);
-                    }, 2, TimeUnit.SECONDS));
+                    });
                 }
             }
         }

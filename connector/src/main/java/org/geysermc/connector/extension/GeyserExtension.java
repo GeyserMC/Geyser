@@ -113,12 +113,12 @@ public abstract class GeyserExtension {
     }
 
     /**
-     * Register all Events contained in an instantiated class. The methods must be annotated by {@code GeyserEvent}
+     * Register all Events contained in an instantiated class. The methods must be annotated by {@code GeyserEventHandler}
      * @param obj Class to register events
      */
     public void registerEvents(Object obj) {
         for (Method method : obj.getClass().getMethods()) {
-            // Check that the method is annotated with @Event
+            // Check that the method is annotated with @GeyserEventHandler
             if (method.getAnnotation(GeyserEventHandler.class) == null) {
                 continue;
             }
