@@ -51,12 +51,14 @@ import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.RequiresBlockState;
+import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArray;
@@ -68,9 +70,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.JAVA_AIR_ID;
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_AIR_ID;
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.BEDROCK_WATER_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
 
 @UtilityClass
 public class ChunkUtils {
@@ -293,6 +293,11 @@ public class ChunkUtils {
             }
 
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
+
+            // Check for custom skulls
+            if (SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS && tag.contains("SkullOwner")) {
+                SkullBlockEntityTranslator.spawnPlayer(session, tag, blockState);
+            }
             i++;
         }
 
@@ -355,6 +360,12 @@ public class ChunkUtils {
             } else {
                 ItemFrameEntity.removePosition(session, position);
             }
+        }
+
+        SkullPlayerEntity skull = session.getSkullCache().get(position);
+        if (skull != null && blockState != skull.getBlockState()) {
+            // Skull is gone
+            skull.despawnEntity(session, position);
         }
 
         int blockId = BlockTranslator.getBedrockBlockId(blockState);

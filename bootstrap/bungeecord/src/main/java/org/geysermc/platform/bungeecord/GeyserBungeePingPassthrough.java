@@ -47,14 +47,12 @@ import java.util.concurrent.CompletableFuture;
 @AllArgsConstructor
 public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, Listener {
 
-    private static final GeyserPendingConnection PENDING_CONNECTION = new GeyserPendingConnection();
-
     private final ProxyServer proxyServer;
 
     @Override
-    public GeyserPingInfo getPingInformation() {
+    public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
         CompletableFuture<ProxyPingEvent> future = new CompletableFuture<>();
-        proxyServer.getPluginManager().callEvent(new ProxyPingEvent(PENDING_CONNECTION, getPingInfo(), (event, throwable) -> {
+        proxyServer.getPluginManager().callEvent(new ProxyPingEvent(new GeyserPendingConnection(inetSocketAddress), getPingInfo(), (event, throwable) -> {
             if (throwable != null) future.completeExceptionally(throwable);
             else future.complete(event);
         }));
@@ -89,7 +87,12 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
     private static class GeyserPendingConnection implements PendingConnection {
 
         private static final UUID FAKE_UUID = UUID.nameUUIDFromBytes("geyser!internal".getBytes());
-        private static final InetSocketAddress FAKE_REMOTE = new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69);
+
+        private final InetSocketAddress remote;
+
+        public GeyserPendingConnection(InetSocketAddress remote) {
+            this.remote = remote;
+        }
 
         @Override
         public String getName() {
@@ -143,7 +146,7 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
         @Override
         public InetSocketAddress getAddress() {
-            return FAKE_REMOTE;
+            return remote;
         }
 
         @Override
