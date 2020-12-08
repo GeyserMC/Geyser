@@ -37,6 +37,7 @@ import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementsPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.Client;
@@ -302,6 +303,9 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
+
+    @Setter
+    private Map<String, Map<String, Long>> storedAdvancementProgress = null;
     /**
      * Stores advancements for the player.
      */
@@ -311,7 +315,19 @@ public class GeyserSession implements CommandSender {
      * Stores the player's advancement categories that should be used for each button pressed in the advancement menu.
      */
     @Setter
-    private Map<Integer, String[]> buttonIdsToIdAndTitleAdvancements = new HashMap<>();
+    private Map<Integer, String[]> buttonIdsToIdAndTitleButtonAdvancementCategories = new HashMap<>();
+
+    /**
+     * Stores the player's advancement categories that should be used for each button pressed in the advancement list menu.
+     */
+    @Setter
+    private Map<Integer, Advancement> buttonIdsToAdvancement = new HashMap<>();
+
+    /**
+     * Stores player's chosen advancement's ID and title for use in form creators.
+     */
+    @Setter
+    private String[] storedAdvancementCategoryIdAndTitle = null;
 
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
@@ -721,7 +737,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Send a packet immediately to the player.
-     * 
+     *
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {

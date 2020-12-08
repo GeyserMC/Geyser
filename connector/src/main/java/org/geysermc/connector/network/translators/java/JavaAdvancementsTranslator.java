@@ -40,7 +40,7 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
         for (String removedAdvancement : packet.getRemovedAdvancements()) {
             session.getStoredAdvancements().remove(removedAdvancement);
         }
-
+        session.setStoredAdvancementProgress(packet.getProgress());
         // Adds advancements to the player's stored advancements when advancements are sent
         for (Advancement advancement : packet.getAdvancements()) {
             if (advancement.getDisplayData() != null && !advancement.getDisplayData().isHidden()){

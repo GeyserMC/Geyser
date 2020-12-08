@@ -152,7 +152,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 handleForm =  AdvancementsUtils.handleMenuForm(session, packet.getFormData());
                 break;
             case AdvancementsUtils.ADVANCEMENTS_LIST_FORM_ID:
-               handleForm = AdvancementsUtils.handleListForm(session, packet.getFormData());
+                handleForm = AdvancementsUtils.handleListForm(session, packet.getFormData());
+                break;
+            case AdvancementsUtils.ADVANCEMENT_INFO_FORM_ID:
+                handleForm = AdvancementsUtils.handleInfoForm(session, packet.getFormData());
+                break;
         }
         return handleForm;
     }
