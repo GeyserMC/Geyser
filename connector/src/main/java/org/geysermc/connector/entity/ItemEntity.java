@@ -40,6 +40,15 @@ public class ItemEntity extends Entity {
     }
 
     @Override
+    public void setMotion(Vector3f motion)
+    {
+        if (isOnGround())
+            motion = Vector3f.from(motion.getX(), 0, motion.getZ());
+
+        super.setMotion(motion);
+    }
+
+    @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround, teleported);
     }
