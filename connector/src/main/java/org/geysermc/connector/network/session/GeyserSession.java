@@ -63,6 +63,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
@@ -327,7 +328,10 @@ public class GeyserSession implements CommandSender {
      * Stores the player's advancement categories that should be used for each button pressed in the advancement menu.
      */
     @Setter
-    private Map<Integer, String[]> buttonIdsToIdAndTitleButtonAdvancementCategories = new HashMap<>();
+    private Map<Integer, String> buttonIdsToIdButtonAdvancementCategories = new HashMap<>();
+
+    @Setter
+    private Map<Integer, Component> buttonIdsToTitleButtonAdvancementCategories = new HashMap<>();
 
     /**
      * Stores the player's advancement categories that should be used for each button pressed in the advancement list menu.
@@ -339,7 +343,10 @@ public class GeyserSession implements CommandSender {
      * Stores player's chosen advancement's ID and title for use in form creators.
      */
     @Setter
-    private String[] storedAdvancementCategoryIdAndTitle = null;
+    private String storedAdvancementCategoryId = null;
+
+    @Setter
+    private Component storedAdvancementCategoryTitle = null;
 
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
