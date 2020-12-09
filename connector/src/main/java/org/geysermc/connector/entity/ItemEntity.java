@@ -43,7 +43,7 @@ public class ItemEntity extends Entity {
     @Override
     public void setPosition(Vector3f position)
     {
-        this.position = position.from(position.getX(), position.getY() + BASE_OFFSET_Y, position.getZ());
+        this.position = Vector3f.from(position.getX(), position.getY() + BASE_OFFSET_Y, position.getZ());
     }
 
     @Override
