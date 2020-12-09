@@ -40,8 +40,7 @@ public class ItemEntity extends Entity {
     }
 
     @Override
-    public void setMotion(Vector3f motion)
-    {
+    public void setMotion(Vector3f motion) {
         if (isOnGround())
             motion = Vector3f.from(motion.getX(), 0, motion.getZ());
 
