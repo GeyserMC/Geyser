@@ -132,6 +132,10 @@ public class PistonBlockEntity {
         blockEntityDataPacket.setBlockPosition(position);
         blockEntityDataPacket.setData(buildPistonTag());
         session.sendUpstreamPacket(blockEntityDataPacket);
+
+        session.getPistonCache().resetPlayerMovement();
+        update();
+        session.getPistonCache().sendPlayerMovement();
     }
 
     /**
@@ -484,7 +488,7 @@ public class PistonBlockEntity {
                 break;
             }
         }
-        return Math.min(maxIntersection, 0.5d) + 0.01d;
+        return Math.min(maxIntersection, delta) + 0.01d;
     }
 
     /**
