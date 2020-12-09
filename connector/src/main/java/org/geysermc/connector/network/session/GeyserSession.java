@@ -67,10 +67,9 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
+import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
@@ -78,6 +77,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
@@ -353,6 +353,9 @@ public class GeyserSession implements CommandSender {
     public void connect(RemoteServer remoteServer) {
         startGame();
         this.remoteServer = remoteServer;
+
+        // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
+        upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 

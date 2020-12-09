@@ -30,17 +30,27 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <!-- Temporary (our fork) while bugs with 2.6.1-SNAPSHOT are worked out -->
-            <groupId>com.github.GeyserMC.Protocol</groupId>
+            <groupId>com.github.CloudburstMC.Protocol</groupId>
             <artifactId>bedrock-v422</artifactId>
-            <version>2149098</version>
+            <version>87d862d69d</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <groupId>net.sf.trove4j</groupId>
                     <artifactId>trove</artifactId>
                 </exclusion>
+                <!-- Stay on the older version of Network while it's rewritten -->
+                <exclusion>
+                    <groupId>com.nukkitx.network</groupId>
+                    <artifactId>raknet</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.network</groupId>
+            <artifactId>raknet</artifactId>
+            <version>1.6.20</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
