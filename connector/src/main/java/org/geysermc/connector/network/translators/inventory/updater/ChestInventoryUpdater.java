@@ -32,9 +32,11 @@ import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 public class ChestInventoryUpdater extends InventoryUpdater {
@@ -46,12 +48,12 @@ public class ChestInventoryUpdater extends InventoryUpdater {
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
 
-        ItemData[] bedrockItems = new ItemData[paddedSize];
-        for (int i = 0; i < bedrockItems.length; i++) {
+        List<ItemData> bedrockItems = new ArrayList<>(paddedSize);
+        for (int i = 0; i < paddedSize; i++) {
             if (i < translator.size) {
-                bedrockItems[i] = inventory.getItem(i).getItemData(session);
+                bedrockItems.add(inventory.getItem(i).getItemData(session));
             } else {
-                bedrockItems[i] = UNUSUABLE_SPACE_BLOCK;
+                bedrockItems.add(UNUSUABLE_SPACE_BLOCK);
             }
         }
 

@@ -68,7 +68,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                                inputs, new ItemData[]{output}, uuid, "crafting_table", 0, netId));
+                                Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, netId));
                         recipeMap.put(netId++, recipe);
                     }
                     break;
@@ -81,8 +81,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
-                                shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), inputs,
-                                new ItemData[]{output}, uuid, "crafting_table", 0, netId));
+                                shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
+                                        Collections.singletonList(output), uuid, "crafting_table", 0, netId));
                         recipeMap.put(netId++, recipe);
                     }
                     break;

@@ -38,6 +38,8 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
@@ -62,7 +64,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         for (int i = 36; i < 45; i++) {
             contents[i - 36] = inventory.getItem(i).getItemData(session);
         }
-        inventoryContentPacket.setContents(contents);
+        inventoryContentPacket.setContents(Arrays.asList(contents));
         session.sendUpstreamPacket(inventoryContentPacket);
 
         // Armor
@@ -72,13 +74,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         for (int i = 5; i < 9; i++) {
             contents[i - 5] = inventory.getItem(i).getItemData(session);
         }
-        armorContentPacket.setContents(contents);
+        armorContentPacket.setContents(Arrays.asList(contents));
         session.sendUpstreamPacket(armorContentPacket);
 
         // Offhand
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
-        offhandPacket.setContents(new ItemData[]{inventory.getItem(45).getItemData(session)});
+        offhandPacket.setContents(Collections.singletonList(inventory.getItem(45).getItemData(session)));
         session.sendUpstreamPacket(offhandPacket);
     }
 
@@ -127,7 +129,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
-            offhandPacket.setContents(new ItemData[]{inventory.getItem(slot).getItemData(session)});
+            offhandPacket.setContents(Collections.singletonList(inventory.getItem(slot).getItemData(session)));
             session.sendUpstreamPacket(offhandPacket);
         }
     }
