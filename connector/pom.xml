@@ -230,8 +230,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token>VERSION = ".*"</token>
-                                    <value>VERSION = "${project.version} (git-${git.branch}-${git.commit.id.abbrev})"</value>
+                                    <token>String VERSION = ".*"</token>
+                                    <value>String VERSION = "${project.version} (" + GIT_VERSION + ")"</value>
+                                </replacement>
+                                <replacement>
+                                    <token>String GIT_VERSION = ".*"</token>
+                                    <value>String GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
@@ -249,8 +253,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token>VERSION = ".*"</token>
-                                    <value>VERSION = "DEV"</value>
+                                    <token>String VERSION = ".*"</token>
+                                    <value>String VERSION = "DEV"</value>
+                                </replacement>
+                                <replacement>
+                                    <token>String GIT_VERSION = ".*"</token>
+                                    <value>String GIT_VERSION = "DEV"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
