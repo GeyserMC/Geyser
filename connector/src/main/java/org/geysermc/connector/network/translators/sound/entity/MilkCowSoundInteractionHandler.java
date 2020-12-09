@@ -39,7 +39,7 @@ public class MilkCowSoundInteractionHandler implements EntitySoundInteractionHan
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, Entity value) {
-        if (!ItemRegistry.getItem(session.getInventory().getItemInHand()).getJavaIdentifier().equals("minecraft:bucket")) {
+        if (!session.getPlayerInventory().getItemInHand().getItemEntry().getJavaIdentifier().equals("minecraft:bucket")) {
             return;
         }
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();

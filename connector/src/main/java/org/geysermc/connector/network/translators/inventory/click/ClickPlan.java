@@ -1,0 +1,211 @@
+/*
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.connector.network.translators.inventory.click;
+
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientConfirmTransactionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.Value;
+import org.geysermc.connector.inventory.GeyserItemStack;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.SlotType;
+import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.*;
+
+public class ClickPlan {
+    private final List<ClickAction> plan = new ArrayList<>();
+    private final Int2ObjectMap<GeyserItemStack> simulatedItems;
+    private GeyserItemStack simulatedCursor;
+    private boolean simulating;
+
+    private final GeyserSession session;
+    private final InventoryTranslator translator;
+    private final Inventory inventory;
+
+    public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory) {
+        this.session = session;
+        this.translator = translator;
+        this.inventory = inventory;
+
+        this.simulatedItems = new Int2ObjectOpenHashMap<>(inventory.getSize());
+        this.simulatedCursor = session.getPlayerInventory().getCursor().copy();
+        this.simulating = true;
+    }
+
+    public void add(Click click, int slot) {
+        if (!simulating)
+            throw new UnsupportedOperationException("ClickPlan already executed");
+
+        if (click == Click.LEFT_OUTSIDE || click == Click.RIGHT_OUTSIDE) {
+            slot = Click.OUTSIDE_SLOT;
+        }
+
+        ClickAction action = new ClickAction(click, slot);
+        plan.add(action);
+        simulateAction(action);
+    }
+
+    public void execute(boolean refresh) {
+        simulating = false;
+        ListIterator<ClickAction> planIter = plan.listIterator();
+        while (planIter.hasNext()) {
+            ClickAction action = planIter.next();
+
+            if (action.slot != Click.OUTSIDE_SLOT && translator.getSlotType(action.slot) != SlotType.NORMAL) {
+                refresh = true;
+            }
+
+            ItemStack clickedItemStack;
+            if (!planIter.hasNext() && refresh) {
+                clickedItemStack = InventoryUtils.REFRESH_ITEM;
+            } else if (action.click.windowAction == WindowAction.DROP_ITEM || action.slot == Click.OUTSIDE_SLOT) {
+                clickedItemStack = null;
+            } else {
+                clickedItemStack = inventory.getItem(action.slot).getItemStack();
+            }
+
+            short actionId = inventory.getNextTransactionId();
+            ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(
+                    inventory.getId(),
+                    actionId,
+                    action.slot,
+                    clickedItemStack,
+                    action.click.windowAction,
+                    action.click.actionParam
+            );
+
+            simulateAction(action);
+
+            session.sendDownstreamPacket(clickPacket);
+            if (clickedItemStack == InventoryUtils.REFRESH_ITEM) {
+                session.sendDownstreamPacket(new ClientConfirmTransactionPacket(inventory.getId(), actionId, true));
+            }
+            System.out.println(clickPacket);
+        }
+    }
+
+    public GeyserItemStack getItem(int slot) {
+        return simulatedItems.computeIfAbsent(slot, k -> inventory.getItem(slot).copy());
+    }
+
+    public GeyserItemStack getCursor() {
+        return simulatedCursor;
+    }
+
+    private void setItem(int slot, GeyserItemStack item) {
+        if (simulating) {
+            simulatedItems.put(slot, item);
+        } else {
+            inventory.setItem(slot, item);
+        }
+    }
+
+    private void setCursor(GeyserItemStack item) {
+        if (simulating) {
+            simulatedCursor = item;
+        } else {
+            session.getPlayerInventory().setCursor(item);
+        }
+    }
+
+    private void simulateAction(ClickAction action) {
+        GeyserItemStack cursor = simulating ? getCursor() : session.getPlayerInventory().getCursor();
+        switch (action.click) {
+            case LEFT_OUTSIDE:
+                setCursor(GeyserItemStack.EMPTY);
+                return;
+            case RIGHT_OUTSIDE:
+                if (!cursor.isEmpty()) {
+                    cursor.sub(1);
+                }
+                return;
+        }
+
+        GeyserItemStack clicked = simulating ? getItem(action.slot) : inventory.getItem(action.slot);
+        if (translator.getSlotType(action.slot) == SlotType.OUTPUT) {
+            if (cursor.isEmpty() && !clicked.isEmpty()) {
+                setCursor(clicked.copy());
+            } else if (InventoryUtils.canStack(cursor, clicked)) {
+                cursor.add(clicked.getAmount());
+            }
+        } else {
+            switch (action.click) {
+                case LEFT:
+                    if (!InventoryUtils.canStack(cursor, clicked)) {
+                        setCursor(clicked);
+                        setItem(action.slot, cursor);
+                    } else {
+                        setCursor(GeyserItemStack.EMPTY);
+                        clicked.add(cursor.getAmount());
+                    }
+                    break;
+                case RIGHT:
+                    if (cursor.isEmpty() && !clicked.isEmpty()) {
+                        int half = clicked.getAmount() / 2; //smaller half
+                        setCursor(clicked.copy(clicked.getAmount() - half)); //larger half
+                        clicked.setAmount(half);
+                    } else if (!cursor.isEmpty() && clicked.isEmpty()) {
+                        cursor.sub(1);
+                        setItem(action.slot, cursor.copy(1));
+                    } else if (InventoryUtils.canStack(cursor, clicked)) {
+                        cursor.sub(1);
+                        clicked.add(1);
+                    }
+                    break;
+                case DROP_ONE:
+                    if (!clicked.isEmpty()) {
+                        clicked.sub(1);
+                    }
+                    break;
+                case DROP_ALL:
+                    setItem(action.slot, GeyserItemStack.EMPTY);
+                    break;
+            }
+        }
+    }
+
+    public Set<Integer> getAffectedSlots() {
+        Set<Integer> affectedSlots = new HashSet<>();
+        for (ClickAction action : plan) {
+            if (translator.getSlotType(action.slot) == SlotType.NORMAL && action.slot != Click.OUTSIDE_SLOT) {
+                affectedSlots.add(action.slot);
+            }
+        }
+        return affectedSlots;
+    }
+
+    @Value
+    private static class ClickAction {
+        Click click;
+        int slot;
+    }
+}

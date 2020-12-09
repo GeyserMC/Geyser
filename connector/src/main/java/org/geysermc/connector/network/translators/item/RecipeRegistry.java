@@ -47,6 +47,8 @@ public class RecipeRegistry {
      */
     public static int LAST_RECIPE_NET_ID = 0;
 
+    //public static final Int2ObjectMap<Recipe>
+
     /**
      * A list of all possible leather armor dyeing recipes.
      * Created manually.

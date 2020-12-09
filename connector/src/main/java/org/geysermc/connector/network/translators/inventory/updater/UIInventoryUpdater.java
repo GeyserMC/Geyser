@@ -32,9 +32,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 
-public class CursorInventoryUpdater extends InventoryUpdater {
+public class UIInventoryUpdater extends InventoryUpdater {
 
-    //TODO: Consider renaming this? Since the Protocol enum updated
     @Override
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
@@ -46,7 +45,7 @@ public class CursorInventoryUpdater extends InventoryUpdater {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(bedrockSlot);
-            slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i)));
+            slotPacket.setItem(inventory.getItem(i).getItemData(session));
             session.sendUpstreamPacket(slotPacket);
         }
     }
@@ -59,7 +58,7 @@ public class CursorInventoryUpdater extends InventoryUpdater {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(ContainerId.UI);
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
+        slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         session.sendUpstreamPacket(slotPacket);
         return true;
     }

@@ -25,14 +25,11 @@
 
 package org.geysermc.connector.network.translators.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
-import org.geysermc.connector.utils.InventoryUtils;
-
-import java.util.List;
 
 public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     private final InventoryUpdater updater;
@@ -53,17 +50,10 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void translateActions(GeyserSession session, Inventory inventory, List<InventoryActionData> actions) {
-        for (InventoryActionData action : actions) {
-            if (action.getSource().getContainerId() == inventory.getId()) {
-                if (action.getSlot() >= size) {
-                    updateInventory(session, inventory);
-                    InventoryUtils.updateCursor(session);
-                    return;
-                }
-            }
+    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
+        if (javaSlot < this.size) {
+            return new BedrockContainerSlot(ContainerSlotType.CONTAINER, javaSlot);
         }
-
-        super.translateActions(session, inventory, actions);
+        return super.javaSlotToBedrockContainer(javaSlot);
     }
 }

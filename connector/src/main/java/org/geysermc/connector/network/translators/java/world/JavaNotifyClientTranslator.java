@@ -111,7 +111,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.sendAdventureSettings();
 
                 // Update the crafting grid to add/remove barriers for creative inventory
-                PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());
+                PlayerInventoryTranslator.updateCraftingGrid(session, session.getPlayerInventory());
                 break;
             case ENTER_CREDITS:
                 switch ((EnterCreditsValue) packet.getValue()) {

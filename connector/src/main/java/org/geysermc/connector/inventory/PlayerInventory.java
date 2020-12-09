@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 public class PlayerInventory extends Inventory {
@@ -40,20 +40,24 @@ public class PlayerInventory extends Inventory {
     private int heldItemSlot;
 
     @Getter
-    private ItemStack cursor;
+    @Setter
+    @NonNull
+    private GeyserItemStack cursor = GeyserItemStack.EMPTY;
 
     public PlayerInventory() {
         super(0, null, 46);
         heldItemSlot = 0;
     }
 
-    public void setCursor(ItemStack stack) {
-        if (stack != null && (stack.getId() == 0 || stack.getAmount() < 1))
-            stack = null;
-        cursor = stack;
+    public GeyserItemStack getItemInHand() {
+        return items[36 + heldItemSlot];
     }
 
-    public ItemStack getItemInHand() {
-        return items[36 + heldItemSlot];
+    public void setItemInHand(@NonNull GeyserItemStack item) {
+        items[36 + heldItemSlot] = item;
+    }
+
+    public GeyserItemStack getOffhand() {
+        return items[45];
     }
 }

@@ -40,7 +40,7 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
 
         ItemData[] bedrockItems = new ItemData[translator.size];
         for (int i = 0; i < bedrockItems.length; i++) {
-            bedrockItems[translator.javaSlotToBedrock(i)] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
+            bedrockItems[translator.javaSlotToBedrock(i)] = inventory.getItem(i).getItemData(session);
         }
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
@@ -57,7 +57,7 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(inventory.getId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
+        slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         session.sendUpstreamPacket(slotPacket);
         return true;
     }

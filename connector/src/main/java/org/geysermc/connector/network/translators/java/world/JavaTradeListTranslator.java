@@ -38,6 +38,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateTradePacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.MerchantContainer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -53,8 +54,14 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
 
     @Override
     public void translate(ServerTradeListPacket packet, GeyserSession session) {
-        Entity villager = session.getPlayerEntity();
-        session.setVillagerTrades(packet.getTrades());
+        Inventory openInventory = session.getOpenInventory();
+        if (!(openInventory instanceof MerchantContainer && openInventory.getId() == packet.getWindowId())) {
+            return;
+        }
+
+        MerchantContainer merchantInventory = (MerchantContainer) openInventory;
+        merchantInventory.setVillagerTrades(packet.getTrades());
+        Entity villager = merchantInventory.getVillager();
         villager.getMetadata().put(EntityData.TRADE_TIER, packet.getVillagerLevel() - 1);
         villager.getMetadata().put(EntityData.MAX_TRADE_TIER, 4);
         villager.getMetadata().put(EntityData.TRADE_XP, packet.getExperience());
@@ -64,30 +71,28 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
         updateTradePacket.setContainerId((short) packet.getWindowId());
         updateTradePacket.setContainerType(ContainerType.TRADE);
-        Inventory openInv = session.getInventoryCache().getOpenInventory();
         String displayName;
-        if (openInv != null && openInv.getId() == packet.getWindowId()) {
-            displayName = openInv.getTitle();
+        //TODO: verify correct window title behavior
+        Entity realVillager = session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
+        if (realVillager != null && realVillager.getMetadata().containsKey(EntityData.NAMETAG) && realVillager.getMetadata().getString(EntityData.NAMETAG) != null) {
+            displayName = realVillager.getMetadata().getString(EntityData.NAMETAG);
         } else {
-            Entity realVillager = session.getEntityCache().getEntityByGeyserId(session.getLastInteractedVillagerEid());
-            if (realVillager != null && realVillager.getMetadata().containsKey(EntityData.NAMETAG) && realVillager.getMetadata().getString(EntityData.NAMETAG) != null) {
-                displayName = realVillager.getMetadata().getString(EntityData.NAMETAG);
-            } else {
-                displayName = realVillager != null &&
-                        realVillager.getEntityType() == EntityType.WANDERING_TRADER ? "Wandering Trader" : "Villager";
-            }
+            displayName = realVillager != null &&
+                    realVillager.getEntityType() == EntityType.WANDERING_TRADER ? "Wandering Trader" : "Villager";
         }
         updateTradePacket.setDisplayName(displayName);
         updateTradePacket.setSize(0);
         updateTradePacket.setNewTradingUi(true);
         updateTradePacket.setUsingEconomyTrade(true);
         updateTradePacket.setPlayerUniqueEntityId(session.getPlayerEntity().getGeyserId());
-        updateTradePacket.setTraderUniqueEntityId(session.getPlayerEntity().getGeyserId());
+        updateTradePacket.setTraderUniqueEntityId(villager.getGeyserId());
         NbtMapBuilder builder = NbtMap.builder();
         List<NbtMap> tags = new ArrayList<>();
-        for (VillagerTrade trade : packet.getTrades()) {
+        for (int i = 0; i < packet.getTrades().length; i++) {
+            VillagerTrade trade = packet.getTrades()[i];
             NbtMapBuilder recipe = NbtMap.builder();
-            recipe.putInt("maxUses", trade.getMaxUses());
+            recipe.putInt("netId", i + 1);
+            recipe.putInt("maxUses", trade.isTradeDisabled() ? 0 : trade.getMaxUses());
             recipe.putInt("traderExp", trade.getXp());
             recipe.putFloat("priceMultiplierA", trade.getPriceMultiplier());
             recipe.put("sell", getItemTag(session, trade.getOutput(), 0));

@@ -26,6 +26,8 @@
 package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -38,23 +40,39 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
     @Override
     public void translate(ServerSetSlotPacket packet, GeyserSession session) {
-        if (packet.getWindowId() == 255 && packet.getSlot() == -1) { //cursor
-            if (session.getCraftSlot() != 0)
+        session.addInventoryTask(() -> {
+            if (packet.getWindowId() == 255) { //cursor
+                GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
+                GeyserItemStack oldItem = session.getPlayerInventory().getCursor();
+                if (newItem.getItemData(session).equals(oldItem.getItemData(session))) {
+                    newItem.setNetId(oldItem.getNetId());
+                } else {
+                    newItem.setNetId(session.getItemNetId().getAndIncrement());
+                }
+                session.getPlayerInventory().setCursor(newItem);
+                InventoryUtils.updateCursor(session);
+                return;
+            }
+
+            //TODO: support window id -2, should update player inventory
+            Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
+            if (inventory == null)
                 return;
 
-            session.getInventory().setCursor(packet.getItem());
-            InventoryUtils.updateCursor(session);
-            return;
-        }
-
-        Inventory inventory = session.getInventoryCache().getInventories().get(packet.getWindowId());
-        if (inventory == null || (packet.getWindowId() != 0 && inventory.getWindowType() == null))
-            return;
-
-        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
-        if (translator != null) {
-            inventory.setItem(packet.getSlot(), packet.getItem());
-            translator.updateSlot(session, inventory, packet.getSlot());
-        }
+            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+            if (translator != null) {
+                GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
+                GeyserItemStack oldItem = inventory.getItem(packet.getSlot());
+                if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
+                    newItem.setNetId(oldItem.getNetId());
+                    System.out.println("OLD: " + newItem.getNetId());
+                } else {
+                    newItem.setNetId(session.getItemNetId().getAndIncrement());
+                    System.out.println("NEW: " + newItem.getNetId());
+                }
+                inventory.setItem(packet.getSlot(), newItem);
+                translator.updateSlot(session, inventory, packet.getSlot());
+            }
+        });
     }
 }
