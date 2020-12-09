@@ -146,8 +146,9 @@ public class SkinProvider {
             if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
                 GeyserSession session = GeyserConnector.getInstance().getPlayerByUuid(playerId);
 
-                if (session != null)
+                if (session != null) {
                     newSkinUrl = session.getClientData().getSkinId();
+                }
             }
 
             CapeProvider provider = capeUrl != null ? CapeProvider.MINECRAFT : null;
