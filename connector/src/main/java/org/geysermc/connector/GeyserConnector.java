@@ -67,10 +67,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -325,12 +322,38 @@ public class GeyserConnector {
         players.remove(player);
     }
 
+    /**
+     * Gets a player by their current UUID
+     *
+     * @param uuid the uuid
+     * @return the player or <code>null</code> if there is no player online with this UUID
+     */
+    public GeyserSession getPlayerByUuid(UUID uuid) {
+        for (GeyserSession session : players) {
+            if (!session.getPlayerEntity().getUuid().equals(uuid))
+                continue;
+
+            return session;
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets a player by their Xbox UUID
+     *
+     * @param xboxUuid the Xbox UUID
+     * @return the player or <code>null</code> if there is no player online with this XUID
+     */
     public GeyserSession getPlayerByXboxUuid(String xboxUuid) {
-        return players
-                .stream()
-                .filter(player -> player.getAuthData() != null && player.getAuthData().getXboxUUID().equals(xboxUuid))
-                .findFirst()
-                .orElse(null);
+        for (GeyserSession session : players) {
+            if (session.getAuthData() == null || !session.getAuthData().getXboxUUID().equals(xboxUuid))
+                continue;
+
+            return session;
+        }
+
+        return null;
     }
 
     public static GeyserConnector start(PlatformType platformType, GeyserBootstrap bootstrap) {
