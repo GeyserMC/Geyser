@@ -330,10 +330,9 @@ public class GeyserConnector {
      */
     public GeyserSession getPlayerByUuid(UUID uuid) {
         for (GeyserSession session : players) {
-            if (!session.getPlayerEntity().getUuid().equals(uuid))
-                continue;
-
-            return session;
+            if (session.getPlayerEntity().getUuid().equals(uuid)) {
+                return session;
+            }
         }
 
         return null;
