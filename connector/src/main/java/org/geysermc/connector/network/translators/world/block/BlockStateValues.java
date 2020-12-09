@@ -253,6 +253,16 @@ public class BlockStateValues {
     }
 
     /**
+     * Check if a block is a piston head.
+     *
+     * @param state BlockState of the block
+     * @return True if it is a piston head
+     */
+    public static boolean isPistonHead(int state) {
+        return PISTON_HEADS.containsValue(state);
+    }
+
+    /**
      * Skull variations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
      * This gives a byte variant ID that Bedrock can use.
      *

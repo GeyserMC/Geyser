@@ -80,8 +80,8 @@ public class PistonCache {
     }
 
     public void sendPlayerMovement() {
-        System.out.println("update " + System.currentTimeMillis());
         SessionPlayerEntity playerEntity = session.getPlayerEntity();
+        // Sending a movement packet cancels motion from slime blocks in the Y direction
         if (!playerDisplacement.equals(Vector3d.ZERO) && playerMotion.getY() == 0) {
             CollisionManager collisionManager = session.getCollisionManager();
             if (collisionManager.correctPlayerPosition()) {
@@ -103,7 +103,6 @@ public class PistonCache {
         }
         if (!playerMotion.equals(Vector3f.ZERO)) {
             playerEntity.setMotion(playerMotion);
-            System.out.println(playerMotion);
             SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
             setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
             setEntityMotionPacket.setMotion(playerMotion);

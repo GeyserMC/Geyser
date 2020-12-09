@@ -33,7 +33,6 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -47,6 +46,8 @@ import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.connector.utils.ChunkUtils;
 
 import java.util.*;
 
@@ -128,10 +129,7 @@ public class PistonBlockEntity {
             createMovingBlocks();
         }
 
-        BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
-        blockEntityDataPacket.setBlockPosition(position);
-        blockEntityDataPacket.setData(buildPistonTag());
-        session.sendUpstreamPacket(blockEntityDataPacket);
+        BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
 
         session.getPistonCache().resetPlayerMovement();
         update();
@@ -144,10 +142,7 @@ public class PistonBlockEntity {
     public void update() {
         updateProgress();
         correctPlayerPosition();
-        BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
-        blockEntityDataPacket.setBlockPosition(position);
-        blockEntityDataPacket.setData(buildPistonTag());
-        session.sendUpstreamPacket(blockEntityDataPacket);
+        BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
         if (!isDone()) {
             if (action == PistonValueType.CANCELLED_MID_PUSH && attachedBlocks.size() > 0) {
                 finishMovingBlocks();
@@ -168,14 +163,13 @@ public class PistonBlockEntity {
     private void removePistonHead() {
         Vector3i blockInFront = position.add(getDirectionOffset());
         int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockInFront);
-        String javaId = BlockTranslator.getJavaIdBlockMap().inverse().get(blockId);
-        if (javaId.contains("piston_head")) {
-            session.getChunkCache().updateBlock(blockInFront.getX(), blockInFront.getY(), blockInFront.getZ(), BlockTranslator.JAVA_AIR_ID);
+        if (blockId == BlockStateValues.getPistonHead(orientation)) {
+            ChunkUtils.updateBlock(session, BlockTranslator.JAVA_AIR_ID, blockInFront);
         }
     }
 
     /**
-     * Find the blocks pushed, pulled or broken by the piston
+     * Find the blocks pushed, pulled, or broken by the piston
      */
     private void findAffectedBlocks() {
         attachedBlocks.clear();
@@ -198,7 +192,7 @@ public class PistonBlockEntity {
         }
 
         boolean moveBlocks = true;
-        while (!blocksToCheck.isEmpty()) {
+        while (!blocksToCheck.isEmpty() && attachedBlocks.size() < 12) {
             Vector3i blockPos = blocksToCheck.remove();
             // Skip blocks we've already checked
             if (blocksChecked.contains(blockPos)) {
@@ -241,13 +235,13 @@ public class PistonBlockEntity {
                         }
                     }
                 }
-            } else if (!canDestroyBlock(blockId)) {
+                // Check next block in line
+                blocksToCheck.add(blockPos.add(movement));
+            } else if (cannotDestroyBlock(blockId)) {
                 // Block can't be moved or destroyed, so it blocks all block movement
                 moveBlocks = false;
                 break;
             }
-            // Check next block in line
-            blocksToCheck.add(blockPos.add(movement));
         }
         if (!moveBlocks) {
             attachedBlocks.clear();
@@ -260,9 +254,10 @@ public class PistonBlockEntity {
             return true;
         }
         // Pistons can only be moved if they aren't extended
-        if (PistonBlockEntityTranslator.isBlock(javaId)) {
+        if (PistonBlockEntityTranslator.isBlock(javaId) && !BlockStateValues.isPistonHead(javaId)) {
             return !BlockStateValues.getPistonValues().get(javaId);
         }
+        // Bedrock, End portal frames, etc. can't be moved
         if (BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(javaId) == -1.0d) {
             return false;
         }
@@ -278,8 +273,8 @@ public class PistonBlockEntity {
         return BlockTranslator.getBlockEntityString(javaId) == null;
     }
 
-    private boolean canDestroyBlock(int javaId)  {
-        return BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "normal").equals("destroy");
+    private boolean cannotDestroyBlock(int javaId)  {
+        return !BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "normal").equals("destroy");
     }
 
     /**
@@ -348,15 +343,7 @@ public class PistonBlockEntity {
      */
     private void removeBlocks() {
         for (Vector3i blockPos : attachedBlocks.keySet()) {
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-            updateBlockPacket.setBlockPosition(blockPos);
-            updateBlockPacket.setRuntimeId(BlockTranslator.BEDROCK_AIR_ID);
-            updateBlockPacket.setDataLayer(0);
-            session.sendUpstreamPacket(updateBlockPacket);
-
-            session.getChunkCache().updateBlock(blockPos.getX(), blockPos.getY(), blockPos.getZ(), BlockTranslator.JAVA_AIR_ID);
+            ChunkUtils.updateBlock(session, BlockTranslator.JAVA_AIR_ID, blockPos);
         }
     }
 
@@ -420,6 +407,12 @@ public class PistonBlockEntity {
         }
     }
 
+    /**
+     * Checks if a player is attached to the top of a honey block.
+     * @param blockPos The position of the honey block.
+     * @param playerBoundingBox The player's bounding box.
+     * @return True if the player attached, otherwise false
+     */
     private boolean isPlayerAttached(Vector3d blockPos, BoundingBox playerBoundingBox) {
         if (orientation == PistonValue.UP || orientation == PistonValue.DOWN) {
             return false;
@@ -507,10 +500,7 @@ public class PistonBlockEntity {
             updateBlockPacket.setDataLayer(0);
             session.sendUpstreamPacket(updateBlockPacket);
             // Update moving block with correct details
-            BlockEntityDataPacket entityDataPacket = new BlockEntityDataPacket();
-            entityDataPacket.setBlockPosition(newPos);
-            entityDataPacket.setData(buildMovingBlockTag(newPos, javaId, position));
-            session.sendUpstreamPacket(entityDataPacket);
+            BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(newPos, javaId, position), newPos);
         });
     }
 
@@ -522,24 +512,12 @@ public class PistonBlockEntity {
         attachedBlocks.forEach((blockPos, javaId) -> {
             blockPos = blockPos.add(movement);
             // Send a final block entity packet to detach blocks
-            BlockEntityDataPacket entityDataPacket = new BlockEntityDataPacket();
-            entityDataPacket.setBlockPosition(blockPos);
-            entityDataPacket.setData(buildMovingBlockTag(blockPos, javaId, Vector3i.from(0, -1, 0)));
-            session.sendUpstreamPacket(entityDataPacket);
+            BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(blockPos, javaId, Vector3i.from(0, -1, 0)), blockPos);
             // Replace with final block
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-            updateBlockPacket.setBlockPosition(blockPos);
-            updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(javaId));
-            updateBlockPacket.setDataLayer(0);
-            session.sendUpstreamPacket(updateBlockPacket);
+            ChunkUtils.updateBlock(session, javaId, blockPos);
             // Send piston block entity data
             if (PistonBlockEntityTranslator.isBlock(javaId)) {
-                BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
-                blockEntityDataPacket.setBlockPosition(blockPos);
-                blockEntityDataPacket.setData(PistonBlockEntityTranslator.getTag(javaId, blockPos));
-                session.sendUpstreamPacket(blockEntityDataPacket);
+                BlockEntityUtils.updateBlockEntity(session, PistonBlockEntityTranslator.getTag(javaId, blockPos), blockPos);
             }
         });
     }
