@@ -70,7 +70,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
     }
 
     @Override
-    public GeyserPingInfo getPingInformation() {
+    public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
         return pingInfo;
     }
 

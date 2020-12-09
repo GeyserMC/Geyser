@@ -54,7 +54,7 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
         switch (packet.getAction()) {
             case ADD:
             case UPDATE:
-                objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName().toString()))
+                objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
                         .setType(packet.getType().ordinal());
                 break;
             case REMOVE:

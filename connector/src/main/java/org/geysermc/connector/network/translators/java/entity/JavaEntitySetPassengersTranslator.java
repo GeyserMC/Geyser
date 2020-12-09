@@ -61,6 +61,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             if (passengerId == session.getPlayerEntity().getEntityId()) {
                 passenger = session.getPlayerEntity();
                 session.setRidingVehicleEntity(entity);
+                // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
+                if (session.getConnector().getConfig().isCacheChunks()) {
+                    session.confirmTeleport(passenger.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0).toDouble());
+                }
             }
             // Passenger hasn't loaded in and entity link needs to be set later
             if (passenger == null && passengerId != 0) {

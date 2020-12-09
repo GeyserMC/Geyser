@@ -36,6 +36,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 
@@ -64,6 +65,10 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
                 // Cache chunks is not enabled; use block entity cache
                 ChunkUtils.CACHED_BLOCK_ENTITIES.removeInt(packet.getPosition());
         BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), blockState), packet.getPosition());
+        // Check for custom skulls.
+        if (SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS && packet.getNbt().contains("SkullOwner")) {
+            SkullBlockEntityTranslator.spawnPlayer(session, packet.getNbt(), blockState);
+        }
 
         // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty
         if (packet.getType() == UpdatedTileType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&

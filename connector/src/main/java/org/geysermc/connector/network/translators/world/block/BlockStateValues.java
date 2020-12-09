@@ -51,6 +51,7 @@ public class BlockStateValues {
     private static final Object2IntMap<PistonValue> PISTON_HEADS = new Object2IntOpenHashMap<>();
     private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
+    private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
 
     /**
@@ -128,6 +129,26 @@ public class BlockStateValues {
         JsonNode skullRotation = entry.getValue().get("skull_rotation");
         if (skullRotation != null) {
             SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
+        }
+
+        if (entry.getKey().contains("wall_skull") || entry.getKey().contains("wall_head")) {
+            String direction = entry.getKey().substring(entry.getKey().lastIndexOf("facing=") + 7);
+            int rotation = 0;
+            switch (direction.substring(0, direction.length() - 1)) {
+                case "north":
+                    rotation = 180;
+                    break;
+                case "south":
+                    rotation = 0;
+                    break;
+                case "west":
+                    rotation = 90;
+                    break;
+                case "east":
+                    rotation = 270;
+                    break;
+            }
+            SKULL_WALL_DIRECTIONS.put(javaBlockState, rotation);
         }
 
         JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
@@ -253,6 +274,15 @@ public class BlockStateValues {
         return SKULL_ROTATIONS.getOrDefault(state, (byte) -1);
     }
 
+    /**
+     * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     * This gives a integer rotation that Bedrock can use.
+     *
+     * @return Skull wall rotation value with the blockstate
+     */
+    public static Int2IntMap getSkullWallDirections() {
+        return SKULL_WALL_DIRECTIONS;
+    }
 
     /**
      * Shulker box directions are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.

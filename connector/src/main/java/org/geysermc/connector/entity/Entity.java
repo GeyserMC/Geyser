@@ -32,7 +32,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
-import com.github.steveice10.mc.protocol.data.message.Message;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
@@ -45,6 +44,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
@@ -313,11 +313,11 @@ public class Entity {
                 }
                 break;
             case 2: // custom name
-                if (entityMetadata.getValue() instanceof Message) {
-                    Message message = (Message) entityMetadata.getValue();
+                if (entityMetadata.getValue() instanceof Component) {
+                    Component message = (Component) entityMetadata.getValue();
                     if (message != null)
                         // Always translate even if it's a TextMessage since there could be translatable parameters
-                        metadata.put(EntityData.NAMETAG, MessageTranslator.convertMessage(message.toString(), session.getLocale()));
+                        metadata.put(EntityData.NAMETAG, MessageTranslator.convertMessage(message, session.getLocale()));
                 }
                 break;
             case 3: // is custom name visible
