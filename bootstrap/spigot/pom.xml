@@ -29,6 +29,11 @@
             <version>3.2.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.geysermc.adapters</groupId>
+            <artifactId>spigot-all</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${outputName}-Spigot</finalName>
