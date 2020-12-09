@@ -44,6 +44,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
@@ -54,7 +55,6 @@ import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
-import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -323,6 +323,14 @@ public class GeyserConnector {
 
     public void removePlayer(GeyserSession player) {
         players.remove(player);
+    }
+
+    public GeyserSession getPlayerByXboxUuid(String xboxUuid) {
+        return players
+                .stream()
+                .filter(player -> player.getAuthData() != null && player.getAuthData().getXboxUUID().equals(xboxUuid))
+                .findFirst()
+                .orElse(null);
     }
 
     public static GeyserConnector start(PlatformType platformType, GeyserBootstrap bootstrap) {
