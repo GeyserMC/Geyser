@@ -346,10 +346,9 @@ public class GeyserConnector {
      */
     public GeyserSession getPlayerByXboxUuid(String xboxUuid) {
         for (GeyserSession session : players) {
-            if (session.getAuthData() == null || !session.getAuthData().getXboxUUID().equals(xboxUuid))
-                continue;
-
-            return session;
+            if (session.getAuthData() != null && session.getAuthData().getXboxUUID().equals(xboxUuid))
+                return session;
+            }
         }
 
         return null;
