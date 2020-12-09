@@ -60,8 +60,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             NoteblockBlockEntityTranslator.translate(session, packet.getPosition());
         } else if (packet.getValue() instanceof PistonValue) {
             PistonValueType action = (PistonValueType) packet.getType();
-            PistonValue direction = fixDirection((PistonValue) packet.getValue());
-
+            PistonValue direction = (PistonValue) packet.getValue();
             // Unlike everything else, pistons need a block entity packet to convey motion
             // TODO: Doesn't register on chunk load; needs to be interacted with first
             Vector3i position = Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
@@ -112,20 +111,5 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             blockEntityPacket.setData(builder.build());
             session.sendUpstreamPacket(blockEntityPacket);
         }
-    }
-
-    /**
-     * The enum values in PistonValue is in the wrong order compared to Minecraft
-     */
-    private PistonValue fixDirection(PistonValue direction) {
-        switch (direction) {
-            case SOUTH:
-                return PistonValue.NORTH;
-            case WEST:
-                return PistonValue.SOUTH;
-            case NORTH:
-                return PistonValue.WEST;
-        }
-        return direction;
     }
 }

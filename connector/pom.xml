@@ -110,7 +110,7 @@
         <dependency>
             <groupId>com.github.steveice10</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>26201a4</version>
+            <version>e1db422</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
