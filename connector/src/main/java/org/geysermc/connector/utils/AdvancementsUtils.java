@@ -73,7 +73,9 @@ public class AdvancementsUtils {
             }
 
         }
-
+        if (window.getButtons().isEmpty()) {
+            window.setContent(LocaleUtils.getLocaleString("advancements.empty", language));
+        }
         return window;
     }
 
@@ -108,7 +110,7 @@ public class AdvancementsUtils {
             String id = session.getStoredAdvancementCategoryId();
             Component title = session.getStoredAdvancementCategoryTitle();
             int x = 0;
-            SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(title), "");
+            SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(title, language), "");
             session.getButtonIdsToAdvancement().clear();
             for (Map.Entry<String, Advancement> advancementEntry : session.getStoredAdvancements().entrySet()) {
                 if (advancementEntry.getValue() != null) {
