@@ -101,6 +101,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("cache-images")
     private int cacheImages = 0;
 
+    @JsonProperty("allow-custom-skulls")
+    private boolean allowCustomSkulls = true;
+
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding = false;
 
@@ -169,6 +172,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("mtu")
     private int mtu = 1400;
+
+    @JsonProperty("use-adapters")
+    private boolean useAdapters = true;
 
     @JsonProperty("config-version")
     private int configVersion = 0;

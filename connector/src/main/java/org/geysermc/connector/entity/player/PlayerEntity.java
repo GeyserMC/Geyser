@@ -23,11 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity;
+package org.geysermc.connector.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.message.TextMessage;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -43,15 +42,17 @@ import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.EntityEffectCache;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,9 +65,7 @@ public class PlayerEntity extends LivingEntity {
     private GameProfile profile;
     private UUID uuid;
     private String username;
-    private long lastSkinUpdate = -1;
     private boolean playerList = true;  // Player is in the player list
-    private final EntityEffectCache effectCache;
 
     /**
      * Saves the parrot currently on the player's left shoulder; otherwise null
@@ -83,14 +82,10 @@ public class PlayerEntity extends LivingEntity {
         profile = gameProfile;
         uuid = gameProfile.getId();
         username = gameProfile.getName();
-        effectCache = new EntityEffectCache();
-        if (geyserId == 1) valid = true;
     }
 
     @Override
     public void spawnEntity(GeyserSession session) {
-        if (geyserId == 1) return;
-
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
         addPlayerPacket.setUuid(uuid);
         addPlayerPacket.setUsername(username);
@@ -161,6 +156,10 @@ public class PlayerEntity extends LivingEntity {
         setRotation(rotation);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
+        // If this is the player logged in through this Geyser session
+        if (geyserId == 1) {
+            session.getCollisionManager().updatePlayerBoundingBox(position);
+        }
         setOnGround(isOnGround);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
@@ -232,7 +231,18 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public void setPosition(Vector3f position) {
-        this.position = position.add(0, entityType.getOffset(), 0);
+        setPosition(position, true);
+    }
+
+    /**
+     * Set the player position and specify if the entity type's offset should be added. Set to false when the player
+     * sends us a move packet where the offset is already added
+     *
+     * @param position the new position of the Bedrock player
+     * @param includeOffset whether to include the offset
+     */
+    public void setPosition(Vector3f position, boolean includeOffset) {
+        this.position = includeOffset ? position.add(0, entityType.getOffset(), 0) : position;
     }
 
     @Override
@@ -241,15 +251,15 @@ public class PlayerEntity extends LivingEntity {
 
         if (entityMetadata.getId() == 2) {
             String username = this.username;
-            TextMessage name = (TextMessage) entityMetadata.getValue();
+            Component name = (Component) entityMetadata.getValue();
             if (name != null) {
-                username = MessageUtils.getBedrockMessage(name);
+                username = MessageTranslator.convertMessage(name);
             }
             Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
                 String displayName = "";
                 if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
-                    displayName = MessageUtils.toChatColor(team.getColor()) + username;
+                    displayName = MessageTranslator.toChatColor(team.getColor()) + username;
                     displayName = team.getCurrentData().getDisplayName(displayName);
                 }
                 metadata.put(EntityData.NAMETAG, displayName);

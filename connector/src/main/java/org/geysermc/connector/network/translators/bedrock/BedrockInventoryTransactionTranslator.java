@@ -118,13 +118,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 false);
                         session.sendDownstreamPacket(blockPacket);
 
-                        // Otherwise boats will not be able to be placed in survival and buckets wont work on mobile
-                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BOAT.getBedrockId()) {
+                        // Otherwise boats will not be able to be placed in survival and buckets won't work on mobile
+                        if (packet.getItemInHand() != null && ItemRegistry.BOATS.contains(packet.getItemInHand().getId())) {
                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             session.sendDownstreamPacket(itemPacket);
                         }
                         // Check actions, otherwise buckets may be activated when block inventories are accessed
-                        else if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId()) {
+                        else if (packet.getItemInHand() != null && ItemRegistry.BUCKETS.contains(packet.getItemInHand().getId())) {
                             // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
                             InventorySlotPacket slotPacket = new InventorySlotPacket();
                             slotPacket.setContainerId(ContainerId.INVENTORY);
@@ -173,8 +173,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Handled in ITEM_USE if the item is not milk
-                        if (packet.getItemInHand() != null && packet.getItemInHand().getId() == ItemRegistry.BUCKET.getBedrockId() &&
-                                packet.getItemInHand().getDamage() != 1) {
+                        if (packet.getItemInHand() != null && ItemRegistry.BUCKETS.contains(packet.getItemInHand().getId()) &&
+                                packet.getItemInHand().getId() != ItemRegistry.MILK_BUCKET.getBedrockId()) {
                             break;
                         }
 

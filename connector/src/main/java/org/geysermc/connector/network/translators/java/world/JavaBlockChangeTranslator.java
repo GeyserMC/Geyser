@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockC
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.connector.common.PlatformType;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;

@@ -36,10 +36,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
@@ -204,7 +204,12 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             }
         } catch (IOException ex) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
-            System.exit(0);
+            if (gui == null) {
+                System.exit(1);
+            } else {
+                // Leave the process running so the GUI is still visible
+                return;
+            }
         }
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 

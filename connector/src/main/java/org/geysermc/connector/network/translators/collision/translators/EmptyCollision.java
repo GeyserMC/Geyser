@@ -23,22 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.common;
+package org.geysermc.connector.network.translators.collision.translators;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
 
-@Getter
-@AllArgsConstructor
-public enum PlatformType {
-
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
-
-    private final String platformName;
+public class EmptyCollision extends BlockCollision {
+    public EmptyCollision(String params) {
+        super();
+        boundingBoxes = new BoundingBox[0];
+    }
 }

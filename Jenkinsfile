@@ -24,6 +24,7 @@ pipeline {
             when {
                 branch "master"
             }
+
             steps {
                 sh 'mvn javadoc:jar source:jar deploy -DskipTests'
             }
