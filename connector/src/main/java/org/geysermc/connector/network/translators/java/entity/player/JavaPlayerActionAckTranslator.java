@@ -54,7 +54,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
             stopBreak.setType(LevelEventType.BLOCK_STOP_BREAK);
             stopBreak.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
             stopBreak.setData(0);
-            session.setBreakingBlock(BlockTranslator.AIR);
+            session.setBreakingBlock(BlockTranslator.JAVA_AIR_ID);
             session.sendUpstreamPacket(stopBreak);
         }
         if (!session.getConnector().getConfig().isCacheChunks()) {
