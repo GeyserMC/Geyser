@@ -83,8 +83,9 @@ public class SkinManager {
         String xuid = "";
         GeyserSession player = GeyserConnector.getInstance().getPlayerByUuid(uuid);
 
-        if (player != null)
+        if (player != null) {
             xuid = player.getAuthData().getXboxUUID();
+        }
 
         PlayerListPacket.Entry entry;
 
@@ -268,8 +269,9 @@ public class SkinManager {
                 if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
                     GeyserSession session = GeyserConnector.getInstance().getPlayerByUuid(profile.getId());
 
-                    if (session != null)
+                    if (session != null) {
                         skinUrl = session.getClientData().getSkinId();
+                    }
                 }
                 return new GameProfileData(skinUrl, SkinProvider.EMPTY_CAPE.getTextureUrl(), isAlex);
             }
