@@ -96,12 +96,8 @@ public class AdvancementsUtils {
             session.setStoredAdvancementCategoryId(session.getButtonIdsToIdButtonAdvancementCategories().get(formResponse.getClickedButtonId()));
             session.setStoredAdvancementCategoryTitle(session.getButtonIdsToTitleButtonAdvancementCategories().get(formResponse.getClickedButtonId()));
         }
-
-
-
-        try {
+        
             session.sendForm(buildListForm(session), ADVANCEMENTS_LIST_FORM_ID);
-        } catch (NullPointerException ignored) {}
         return true;
     }
     public static SimpleFormWindow buildListForm(GeyserSession session) {
