@@ -60,7 +60,7 @@ public class AdvancementsUtils {
         // Cache the language for cleaner access
         String language = session.getClientData().getLanguageCode();
         // Created menu window for advancement categories
-        SimpleFormWindow window = new SimpleFormWindow(LocaleUtils.getLocaleString("gui.advancements", language), "");
+        SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("gui.advancements", language), "");
         int baseId = 0;
         session.getButtonIdsToIdButtonAdvancementCategories().clear();
         for (Map.Entry<String, Advancement> advancement : session.getStoredAdvancements().entrySet()) {
@@ -74,7 +74,7 @@ public class AdvancementsUtils {
 
         }
         if (window.getButtons().isEmpty()) {
-            window.setContent(LocaleUtils.getLocaleString("advancements.empty", language));
+            window.setContent(LanguageUtils.getPlayerLocaleString("advancements.empty", language));
         }
         return window;
     }
@@ -99,9 +99,9 @@ public class AdvancementsUtils {
 
 
 
-
-        session.sendForm(buildListForm(session), ADVANCEMENTS_LIST_FORM_ID);
-
+        try {
+            session.sendForm(buildListForm(session), ADVANCEMENTS_LIST_FORM_ID);
+        } catch (NullPointerException ignored) {}
         return true;
     }
     public static SimpleFormWindow buildListForm(GeyserSession session) {
@@ -113,30 +113,32 @@ public class AdvancementsUtils {
             SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(title, language), "");
             session.getButtonIdsToAdvancement().clear();
             for (Map.Entry<String, Advancement> advancementEntry : session.getStoredAdvancements().entrySet()) {
-                if (advancementEntry.getValue() != null) {
-                    if (advancementEntry.getValue().getId().startsWith(id.replace("/root", "").replace("root", ""))) {
-                        boolean earned = true;
-                        if (session.getStoredAdvancementProgress().get(advancementEntry.getValue().getId()) != null || session.getStoredAdvancementProgress() != null || !session.getStoredAdvancementProgress().get(advancementEntry.getValue().getId()).entrySet().isEmpty()) {
-                            for (Map.Entry<String, Long> entry : session.getStoredAdvancementProgress().get(advancementEntry.getValue().getId()).entrySet()) {
-                                if (entry.getValue() == -1) {
-                                    earned = false;
-                                    break;
+                if (id != null) {
+                    if (advancementEntry.getValue() != null) {
+                        if (advancementEntry.getValue().getId().startsWith(id.replace("/root", "").replace("root", ""))) {
+                            boolean earned = true;
+                            if (session.getStoredAdvancementProgress().get(advancementEntry.getValue().getId()) != null || session.getStoredAdvancementProgress() != null || !session.getStoredAdvancementProgress().get(advancementEntry.getValue().getId()).entrySet().isEmpty()) {
+                                for (Map.Entry<String, Long> entry : session.getStoredAdvancementProgress().get(advancementEntry.getValue().getId()).entrySet()) {
+                                    if (entry.getValue() == -1) {
+                                        earned = false;
+                                        break;
+                                    }
                                 }
                             }
+                            if (earned || !advancementEntry.getValue().getDisplayData().isShowToast()) {
+                                window.getButtons().add(new FormButton("§6" + MessageTranslator.convertMessage(advancementEntry.getValue().getDisplayData().getTitle()) + "\n"));
+                            } else {
+                                window.getButtons().add(new FormButton(MessageTranslator.convertMessage(advancementEntry.getValue().getDisplayData().getTitle()) + "\n"));
+                            }
+                            session.getButtonIdsToAdvancement().put(x++, advancementEntry.getValue());
                         }
-                        if (earned || !advancementEntry.getValue().getDisplayData().isShowToast()) {
-                            window.getButtons().add(new FormButton("§6" + MessageTranslator.convertMessage(advancementEntry.getValue().getDisplayData().getTitle()) + "\n"));
-                        } else {
-                            window.getButtons().add(new FormButton(MessageTranslator.convertMessage(advancementEntry.getValue().getDisplayData().getTitle()) + "\n"));
-                        }
-                        session.getButtonIdsToAdvancement().put(x++, advancementEntry.getValue());
                     }
                 }
             }
 
 
 
-            window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("gui.back", language)));
+            window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("gui.back", language)));
 
 
             return window;
@@ -187,11 +189,11 @@ public class AdvancementsUtils {
 
         content.append(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), language) + "\n");
         content.append(MessageTranslator.convertMessage(advancement.getDisplayData().getDescription(), language) + "\n\n");
-        content.append(ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString()) + "["  + LocaleUtils.getLocaleString("geyser.advancements." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), language) + "]" + "\n\n" + "§f");
-        content.append(LocaleUtils.getLocaleString("geyser.advancements.earned", language) + ": " + LocaleUtils.getLocaleString("geyser.gui.exit." + earned, language) + "\n");
-        content.append(LocaleUtils.getLocaleString("geyser.advancements.parentid", language) + ": " + MessageTranslator.convertMessage(session.getStoredAdvancements().get(advancement.getParentId()).getDisplayData().getTitle(), language) + "\n");
+        content.append(ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString()) + "["  + LanguageUtils.getPlayerLocaleString("geyser.advancements." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), language) + "]" + "\n\n" + "§f");
+        content.append(LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ": " + LanguageUtils.getPlayerLocaleString("geyser.gui.exit." + earned, language) + "\n");
+        content.append(LanguageUtils.getPlayerLocaleString("geyser.advancements.parentid", language) + ": " + MessageTranslator.convertMessage(session.getStoredAdvancements().get(advancement.getParentId()).getDisplayData().getTitle(), language) + "\n");
         SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()), content.toString());
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("gui.back", language)));
+        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("gui.back", language)));
 
 
 

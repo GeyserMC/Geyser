@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvancementsPacket> {
 
     @Override
-    public void translate(ServerAdvancementsPacket packet, GeyserSession session) throws NullPointerException {
+    public void translate(ServerAdvancementsPacket packet, GeyserSession session) {
         // Removes removed advancements from player's stored advancements
         for (String removedAdvancement : packet.getRemovedAdvancements()) {
             session.getStoredAdvancements().remove(removedAdvancement);
