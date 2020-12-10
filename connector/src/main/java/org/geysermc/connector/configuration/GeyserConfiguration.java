@@ -85,6 +85,8 @@ public interface GeyserConfiguration {
 
     int getCacheImages();
 
+    boolean isAllowCustomSkulls();
+
     IMetricsInfo getMetrics();
 
     interface IBedrockConfiguration {
@@ -107,7 +109,7 @@ public interface GeyserConfiguration {
         String getAddress();
 
         int getPort();
-        
+
         void setAddress(String address);
 
         void setPort(int port);
@@ -134,6 +136,8 @@ public interface GeyserConfiguration {
     boolean isEnableProxyConnections();
 
     int getMtu();
+
+    boolean isUseAdapters();
 
     int getConfigVersion();
 

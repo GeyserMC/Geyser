@@ -105,7 +105,11 @@ public class LanguageUtils {
         locale = formatLocale(locale);
 
         Properties properties = LOCALE_MAPPINGS.get(locale);
-        String formatString = properties.getProperty(key);
+        String formatString = null;
+
+        if (properties != null) {
+            formatString = properties.getProperty(key);
+        }
 
         // Try and get the key from the default locale
         if (formatString == null) {

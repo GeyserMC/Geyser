@@ -46,7 +46,7 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
     public void translate(ServerExplosionPacket packet, GeyserSession session) {
         for (ExplodedBlockRecord record : packet.getExploded()) {
             Vector3f pos = Vector3f.from(packet.getX() + record.getX(), packet.getY() + record.getY(), packet.getZ() + record.getZ());
-            ChunkUtils.updateBlock(session, BlockTranslator.AIR, pos.toInt());
+            ChunkUtils.updateBlock(session, BlockTranslator.JAVA_AIR_ID, pos.toInt());
         }
 
         Vector3f pos = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());

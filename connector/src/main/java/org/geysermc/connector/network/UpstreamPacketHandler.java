@@ -61,9 +61,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (packetCodec == null) {
             if (loginPacket.getProtocolVersion() > BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
+                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 return true;
             } else if (loginPacket.getProtocolVersion() < BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
                 return true;
             }
@@ -80,7 +82,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         for(ResourcePack resourcePack : ResourcePack.PACKS.values()) {
             ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
-            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(), "", "", "", false));
+            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
+                    header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(),
+                            "", "", "", false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserConnector.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -185,7 +189,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(MovePlayerPacket packet) {
         if (session.isLoggingIn()) {
-            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
+            SetTitlePacket titlePacket = new SetTitlePacket();
+            titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+            titlePacket.setText(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
+            titlePacket.setFadeInTime(0);
+            titlePacket.setFadeOutTime(1);
+            titlePacket.setStayTime(2);
+            session.sendUpstreamPacket(titlePacket);
         }
 
         return translateAndDefault(packet);
