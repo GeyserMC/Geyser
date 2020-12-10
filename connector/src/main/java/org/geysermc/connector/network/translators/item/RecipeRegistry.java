@@ -78,10 +78,6 @@ public class RecipeRegistry {
      */
     public static final List<CraftingData> TIPPED_ARROW_RECIPES = new ObjectArrayList<>();
 
-    // TODO: These are the other "multi" UUIDs that supposedly enable various recipes. Find out what each enables.
-    // 442d85ed-8272-4543-a6f1-418f90ded05d 8b36268c-1829-483c-a0f1-993b7156a8f2 602234e4-cac1-4353-8bb7-b1ebff70024b 98c84b38-1085-46bd-b1ce-dd38c159e6cc
-    // d81aaeaf-e172-4440-9225-868df030d27b b5c5d105-75a2-4076-af2b-923ea2bf4bf0 00000000-0000-0000-0000-000000000002 85939755-ba10-4d9d-a4cc-efb7a8e943c4
-    // d392b075-4ba1-40ae-8789-af868d56f6ce aecd2294-4b94-434b-8667-4499bb2c9327
     /**
      * Recipe data that, when sent to the client, enables book cloning
      */
@@ -90,10 +86,27 @@ public class RecipeRegistry {
      * Recipe data that, when sent to the client, enables tool repairing in a crafting table
      */
     public static final CraftingData TOOL_REPAIRING_RECIPE_DATA;
+    /**
+     * Recipe data that, when sent to the client, enables map extending in a crafting table
+     */
+    public static final CraftingData MAP_EXTENDING_RECIPE_DATA;
+    /**
+     * Recipe data that, when sent to the client, enables map cloning in a crafting table
+     */
+    public static final CraftingData MAP_CLONING_RECIPE_DATA;
+    /**
+     * Recipe data that, when sent to the client, enables banner duplicating
+     */
+    public static final CraftingData BANNER_DUPLICATING_RECIPE_DATA;
+
 
     static {
         BOOK_CLONING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), LAST_RECIPE_NET_ID++);
         TOOL_REPAIRING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"), LAST_RECIPE_NET_ID++);
+        MAP_EXTENDING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), LAST_RECIPE_NET_ID++);
+        MAP_CLONING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), LAST_RECIPE_NET_ID++);
+        BANNER_DUPLICATING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), LAST_RECIPE_NET_ID++);
+        // https://github.com/pmmp/PocketMine-MP/blob/stable/src/pocketmine/inventory/MultiRecipe.php
 
         // Get all recipes that are not directly sent from a Java server
         InputStream stream = FileUtils.getResource("mappings/recipes.json");

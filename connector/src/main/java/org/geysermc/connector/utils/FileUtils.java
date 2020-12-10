@@ -215,14 +215,27 @@ public class FileUtils {
      * @return The byte array of the file
      */
     public static byte[] readAllBytes(File file) {
-        int size = (int) file.length();
-        byte[] bytes = new byte[size];
         try {
-            BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+            return readAllBytes(new FileInputStream(file));
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot read " + file);
+        }
+    }
+
+    /**
+     * @param stream the InputStream to read off of
+     * @return the byte array of an InputStream
+     */
+    public static byte[] readAllBytes(InputStream stream) {
+        try {
+            int size = stream.available();
+            byte[] bytes = new byte[size];
+            BufferedInputStream buf = new BufferedInputStream(stream);
             buf.read(bytes, 0, bytes.length);
             buf.close();
-        } catch (IOException ignored) { }
-
-        return bytes;
+            return bytes;
+        } catch (IOException e) {
+            throw new RuntimeException("Error while trying to read input stream!");
+        }
     }
 }
