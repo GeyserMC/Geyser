@@ -69,7 +69,7 @@ public class AdvancementsUtils {
             if (advancement.getValue().getId().endsWith("root")) {
                 window.getButtons().add(new FormButton(MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getTitle(), language) + " - " + MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getDescription(), language)));
                 session.getButtonIdsToIdButtonAdvancementCategories().put(baseId++, id);
-                session.getButtonIdsToTitleButtonAdvancementCategories().put(baseId++, title);
+                session.getButtonIdsToTitleButtonAdvancementCategories().put(baseId, title);
             }
 
         }
