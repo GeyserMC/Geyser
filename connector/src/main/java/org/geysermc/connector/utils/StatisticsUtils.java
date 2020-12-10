@@ -28,11 +28,11 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.MagicValues;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.statistic.*;
-import org.geysermc.common.form.SimpleForm;
-import org.geysermc.common.form.response.SimpleFormResponse;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.cumulus.SimpleForm;
+import org.geysermc.cumulus.response.SimpleFormResponse;
 
 import java.util.Map;
 import java.util.regex.Matcher;

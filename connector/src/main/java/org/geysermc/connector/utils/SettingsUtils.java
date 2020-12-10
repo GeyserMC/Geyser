@@ -27,12 +27,12 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
-import org.geysermc.common.form.CustomForm;
-import org.geysermc.common.form.component.DropdownComponent;
-import org.geysermc.common.form.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.WorldManager;
+import org.geysermc.cumulus.CustomForm;
+import org.geysermc.cumulus.component.DropdownComponent;
+import org.geysermc.cumulus.response.CustomFormResponse;
 
 public class SettingsUtils {
 

@@ -27,15 +27,14 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.ServerSettingsRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerSettingsResponsePacket;
-import org.geysermc.common.form.CustomForm;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.SettingsUtils;
+import org.geysermc.cumulus.CustomForm;
 
 @Translator(packet = ServerSettingsRequestPacket.class)
 public class BedrockServerSettingsRequestTranslator extends PacketTranslator<ServerSettingsRequestPacket> {
-
     @Override
     public void translate(ServerSettingsRequestPacket packet, GeyserSession session) {
         CustomForm window = SettingsUtils.buildForm(session);

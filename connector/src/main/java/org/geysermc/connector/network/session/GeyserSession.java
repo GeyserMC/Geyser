@@ -57,8 +57,6 @@ import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.geysermc.common.form.Form;
-import org.geysermc.common.form.FormBuilder;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
@@ -76,6 +74,8 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.*;
+import org.geysermc.cumulus.Form;
+import org.geysermc.cumulus.util.FormBuilder;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 
@@ -607,7 +607,7 @@ public class GeyserSession implements CommandSender {
         return this.upstream.getAddress();
     }
 
-    public void sendForm(Form<?> form) {
+    public void sendForm(Form form) {
         formCache.showForm(form);
     }
 

@@ -28,13 +28,13 @@ package org.geysermc.connector.network.translators.java;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 import com.google.common.base.Charsets;
-import org.geysermc.common.form.Form;
-import org.geysermc.common.form.FormType;
-import org.geysermc.common.form.Forms;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.cumulus.Form;
+import org.geysermc.cumulus.Forms;
+import org.geysermc.cumulus.util.FormType;
 
 import java.nio.charset.StandardCharsets;
 
@@ -63,7 +63,7 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
 
             String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
 
-            Form<?> form = Forms.fromJson(dataString, type.getTypeClass());
+            Form form = Forms.fromJson(dataString, type);
             form.setResponseHandler(response -> {
                 byte[] raw = response.getBytes(StandardCharsets.UTF_8);
                 byte[] finalData = new byte[raw.length + 2];

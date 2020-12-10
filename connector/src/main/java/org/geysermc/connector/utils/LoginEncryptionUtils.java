@@ -34,14 +34,14 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-import org.geysermc.common.form.CustomForm;
-import org.geysermc.common.form.SimpleForm;
-import org.geysermc.common.form.response.CustomFormResponse;
-import org.geysermc.common.form.response.SimpleFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
+import org.geysermc.cumulus.CustomForm;
+import org.geysermc.cumulus.SimpleForm;
+import org.geysermc.cumulus.response.CustomFormResponse;
+import org.geysermc.cumulus.response.SimpleFormResponse;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
