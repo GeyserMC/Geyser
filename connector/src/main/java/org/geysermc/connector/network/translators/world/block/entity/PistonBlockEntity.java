@@ -157,13 +157,18 @@ public class PistonBlockEntity {
         }
     }
 
+    private boolean isPistonHead(int blockId) {
+        String javaId = BlockTranslator.getJavaIdBlockMap().inverse().get(blockId);
+        return javaId.contains("piston_head");
+    }
+
     /**
      * Removes lingering piston heads
      */
     private void removePistonHead() {
         Vector3i blockInFront = position.add(getDirectionOffset());
         int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockInFront);
-        if (blockId == BlockStateValues.getPistonHead(orientation)) {
+        if (isPistonHead(blockId)) {
             ChunkUtils.updateBlock(session, BlockTranslator.JAVA_AIR_ID, blockInFront);
         }
     }
@@ -254,7 +259,7 @@ public class PistonBlockEntity {
             return true;
         }
         // Pistons can only be moved if they aren't extended
-        if (PistonBlockEntityTranslator.isBlock(javaId) && !BlockStateValues.isPistonHead(javaId)) {
+        if (PistonBlockEntityTranslator.isBlock(javaId) && !isPistonHead(javaId)) {
             return !BlockStateValues.getPistonValues().get(javaId);
         }
         // Bedrock, End portal frames, etc. can't be moved
@@ -384,7 +389,9 @@ public class PistonBlockEntity {
             int javaId = entry.getIntValue();
             if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
                 if (testBlockCollision(blockPos, javaId, playerCollision)) {
-                    applySlimeBlockMotion();
+                    Vector3d playerPos = Vector3d.from(playerCollision.getMiddleX(), playerCollision.getMiddleY(), playerCollision.getMiddleZ());
+                    playerPos = playerPos.add(movement.mul(displacement));
+                    applySlimeBlockMotion(blockPos.add(0.5, 0.5, 0.5), playerPos);
                 }
             }
             if (javaId == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID && isPlayerAttached(blockPos, playerBoundingBox)) {
@@ -430,24 +437,72 @@ public class PistonBlockEntity {
         return false;
     }
 
-    private void applySlimeBlockMotion() {
+    /**
+     * Launches a player if the player is on the pushing side of the slime block
+     * @param blockPos Position of the slime block
+     * @param playerPos The player's position
+     */
+    private void applySlimeBlockMotion(Vector3d blockPos, Vector3d playerPos) {
+        PistonValue movementDirection = orientation;
+        // Invert direction when pulling
+        if (action == PistonValueType.PULLING) {
+            switch (movementDirection) {
+                case DOWN:
+                    movementDirection = PistonValue.UP;
+                    break;
+                case UP:
+                    movementDirection = PistonValue.DOWN;
+                    break;
+                case NORTH:
+                    movementDirection = PistonValue.SOUTH;
+                    break;
+                case SOUTH:
+                    movementDirection = PistonValue.NORTH;
+                    break;
+                case WEST:
+                    movementDirection = PistonValue.EAST;
+                    break;
+                case EAST:
+                    movementDirection = PistonValue.WEST;
+                    break;
+            }
+        }
+
         Vector3f movement = getMovement().toFloat();
         Vector3f motion = session.getPistonCache().getPlayerMotion();
         double motionX = motion.getX();
         double motionY = motion.getY();
         double motionZ = motion.getZ();
-        switch (orientation) {
+        switch (movementDirection) {
             case DOWN:
+                if (playerPos.getY() < blockPos.getY()) {
+                    motionY = movement.getY();
+                }
+                break;
             case UP:
-                motionY = movement.getY();
+                if (playerPos.getY() > blockPos.getY()) {
+                    motionY = movement.getY();
+                }
                 break;
             case NORTH:
+                if (playerPos.getZ() < blockPos.getZ()) {
+                    motionZ = movement.getZ();
+                }
+                break;
             case SOUTH:
-                motionZ = movement.getZ();
+                if (playerPos.getZ() > blockPos.getZ()) {
+                    motionZ = movement.getZ();
+                }
                 break;
             case WEST:
+                if (playerPos.getX() < blockPos.getX()) {
+                    motionX = movement.getX();
+                }
+                break;
             case EAST:
-                motionX = movement.getX();
+                if (playerPos.getX() > blockPos.getX()) {
+                    motionX = movement.getX();
+                }
                 break;
         }
         session.getPistonCache().setPlayerMotion(Vector3f.from(motionX, motionY, motionZ));
