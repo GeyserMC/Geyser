@@ -316,9 +316,12 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
-
+    /**
+     * Stores the player's advancement progress
+     */
     @Setter
     private Map<String, Map<String, Long>> storedAdvancementProgress = null;
+
     /**
      * Stores advancements for the player.
      */
@@ -327,16 +330,16 @@ public class GeyserSession implements CommandSender {
     /**
      * Stores the player's advancement categories that should be used for each button pressed in the advancement menu.
      */
-    @Setter
     private Map<Integer, String> buttonIdsToIdButtonAdvancementCategories = new HashMap<>();
 
-    @Setter
+    /**
+     * Stores the player's advancement titles that should be used for each button pressed in the advancement menu.
+     */
     private Map<Integer, Component> buttonIdsToTitleButtonAdvancementCategories = new HashMap<>();
 
     /**
      * Stores the player's advancement categories that should be used for each button pressed in the advancement list menu.
      */
-    @Setter
     private Map<Integer, Advancement> buttonIdsToAdvancement = new HashMap<>();
 
     /**
@@ -345,6 +348,9 @@ public class GeyserSession implements CommandSender {
     @Setter
     private String storedAdvancementCategoryId = null;
 
+    /**
+     * Stores the player's title of the advancement category for use in building the list form
+     */
     @Setter
     private Component storedAdvancementCategoryTitle = null;
 
