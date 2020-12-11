@@ -52,17 +52,30 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
         // Adds advancements to the player's stored advancements when advancements are sent
         // Also sends notifications for any new advancements
         for (Advancement advancement : packet.getAdvancements()) {
-            if (!session.getStoredAdvancements().isEmpty() && !session.getStoredAdvancements().containsValue(advancement) && advancement != null && advancement.getDisplayData() != null) {
+            if (advancement.getDisplayData() != null && !advancement.getDisplayData().isHidden()){
+                session.getStoredAdvancements().put(advancement.getId(), advancement);
+            } else {
+                session.getStoredAdvancements().remove(advancement.getId());
+            }
+        }
+
+        // Handle all advancements progress updates
+        // TODO: Ignore progress updates on initial join
+        // TODO: Find a better way of storing all the clients known advancements encase `session.getStoredAdvancements()` doesn't contain one we have unlocked
+        for (Map.Entry<String, Map<String, Long>> progress : packet.getProgress().entrySet()) {
+            Advancement advancement = session.getStoredAdvancements().get(progress.getKey());
+            if (advancement != null && advancement.getDisplayData() != null) {
                 String color = AdvancementsUtils.ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString());
                 String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.getLocale());
+
                 boolean earned = true;
-                if (session.getStoredAdvancementProgress().get(advancement.getId()) != null || session.getStoredAdvancementProgress() != null || !session.getStoredAdvancementProgress().get(advancement.getId()).entrySet().isEmpty()) {
-                    for (Map.Entry<String, Long> entry : session.getStoredAdvancementProgress().get(advancement.getId()).entrySet()) {
-                        if (entry.getValue() == -1) {
-                            earned = false;
-                        }
+                for (Map.Entry<String, Long> entry : packet.getProgress().get(advancement.getId()).entrySet()) {
+                    if (entry.getValue() == -1) {
+                        earned = false;
+                        break;
                     }
                 }
+
                 if (earned) {
                     SetTitlePacket titlePacket = new SetTitlePacket();
                     titlePacket.setText(color + "[" + LocaleUtils.getLocaleString("advancements.toast." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), session.getLocale()) + "] " + advancementName);
@@ -71,17 +84,8 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
                     titlePacket.setFadeInTime(3);
                     titlePacket.setStayTime(3);
                     session.sendUpstreamPacket(titlePacket);
-                    break;
                 }
             }
-
-
-            if (advancement.getDisplayData() != null && !advancement.getDisplayData().isHidden()){
-                session.getStoredAdvancements().put(advancement.getId(), advancement);
-            } else {
-                session.getStoredAdvancements().remove(advancement.getId());
-            }
         }
-
     }
 }
