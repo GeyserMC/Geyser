@@ -64,6 +64,8 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
                     }
                 }
                 if (earned) {
+                    SetTitlePacket titlePacket = new SetTitlePacket();
+                    titlePacket.setText(color + "[" + LocaleUtils.getLocaleString("advancements.toast." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), session.getLocale()) + "] " + advancementName);
                     titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
                     titlePacket.setFadeOutTime(3);
                     titlePacket.setFadeInTime(3);
