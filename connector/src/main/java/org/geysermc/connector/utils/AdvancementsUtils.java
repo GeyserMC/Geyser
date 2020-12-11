@@ -26,8 +26,6 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementsPacket;
-import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import net.kyori.adventure.text.Component;
 import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.common.window.button.FormButton;
@@ -48,12 +46,11 @@ public class AdvancementsUtils {
     // Color codes used in buildInfoForm
     public static final Map<String, String> ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES = new HashMap<>();
     static {
-        ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.put("TASK", "§a");
-        ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.put("GOAL", "§a");
-        ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.put("CHALLENGE", "§5");
+        String base = "\u00a7";
+        ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.put("TASK", base + "a");
+        ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.put("GOAL", base + "a");
+        ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.put("CHALLENGE", base + "5");
     }
-
-
 
     /**
      * Build a form for the given session with all advancement categories
@@ -64,8 +61,10 @@ public class AdvancementsUtils {
     public static SimpleFormWindow buildMenuForm(GeyserSession session) {
         // Cache the language for cleaner access
         String language = session.getClientData().getLanguageCode();
+
         // Created menu window for advancement categories
         SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("gui.advancements", language), "");
+
         int baseId = 0;
         session.getButtonIdsToIdButtonAdvancementCategories().clear();
         for (Map.Entry<String, Advancement> advancement : session.getStoredAdvancements().entrySet()) {
@@ -78,31 +77,12 @@ public class AdvancementsUtils {
             }
 
         }
+
         if (window.getButtons().isEmpty()) {
             window.setContent(LanguageUtils.getPlayerLocaleString("advancements.empty", language));
         }
+
         return window;
-    }
-
-    /**
-     * Handle the menu form response
-     *
-     * @param session The session that sent the response
-     * @param response The response string to parse
-     * @return True if the form was parsed correctly, false if not
-     */
-    public static boolean handleMenuForm(GeyserSession session, String response) {
-        SimpleFormWindow menuForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_MENU_FORM_ID);
-        menuForm.setResponse(response);
-        SimpleFormResponse formResponse = (SimpleFormResponse) menuForm.getResponse();
-
-        if (formResponse != null && formResponse.getClickedButton() != null) {
-            session.setStoredAdvancementCategoryId(session.getButtonIdsToIdButtonAdvancementCategories().get(formResponse.getClickedButtonId()));
-            session.setStoredAdvancementCategoryTitle(session.getButtonIdsToTitleButtonAdvancementCategories().get(formResponse.getClickedButtonId()));
-        }
-
-        session.sendForm(buildListForm(session), ADVANCEMENTS_LIST_FORM_ID);
-        return true;
     }
 
     /**
@@ -116,9 +96,11 @@ public class AdvancementsUtils {
         String language = session.getClientData().getLanguageCode();
         String id = session.getStoredAdvancementCategoryId();
         Component title = session.getStoredAdvancementCategoryTitle();
-        int x = 0;
+
+        // Create the window
         SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(title, language), "");
 
+        int x = 0;
         session.getButtonIdsToAdvancement().clear();
         for (Map.Entry<String, Advancement> advancementEntry : session.getStoredAdvancements().entrySet()) {
             if (id != null && advancementEntry.getValue() != null && advancementEntry.getValue().getId().startsWith(id.replace("/root", "").replace("root", ""))) {
@@ -146,6 +128,61 @@ public class AdvancementsUtils {
     }
 
     /**
+     * Builds the advancement display info based on the chosen category
+     *
+     * @param session The session used to create the info display
+     * @param advancement The advancement used to create the info display
+     *
+     * @return The information for the chosen advancement
+     */
+    public static SimpleFormWindow buildInfoForm(GeyserSession session, Advancement advancement) {
+        // Cache language for easier access
+        String language = session.getLocale();
+
+        String earned = "yes";
+        if (session.getStoredAdvancementProgress().get(advancement.getId()) != null || session.getStoredAdvancementProgress() != null || !session.getStoredAdvancementProgress().get(advancement.getId()).entrySet().isEmpty()) {
+            for (Map.Entry<String, Long> entry : session.getStoredAdvancementProgress().get(advancement.getId()).entrySet()) {
+                if (entry.getValue() == -1) {
+                    earned = "no";
+                    break;
+                }
+            }
+        }
+
+        String content = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), language) + "\n" +
+                MessageTranslator.convertMessage(advancement.getDisplayData().getDescription(), language) + "\n\n" +
+                ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString()) + "[" + LanguageUtils.getPlayerLocaleString("geyser.advancements." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), language) + "]" + "\n\n" + "§f" +
+                LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ": " + LanguageUtils.getPlayerLocaleString("gui." + earned, language) + "\n" +
+                LanguageUtils.getPlayerLocaleString("geyser.advancements.parentid", language) + ": " + MessageTranslator.convertMessage(session.getStoredAdvancements().get(advancement.getParentId()).getDisplayData().getTitle(), language) + "\n";
+        SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()), content);
+        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("gui.back", language)));
+
+        return window;
+    }
+
+    /**
+     * Handle the menu form response
+     *
+     * @param session The session that sent the response
+     * @param response The response string to parse
+     * @return True if the form was parsed correctly, false if not
+     */
+    public static boolean handleMenuForm(GeyserSession session, String response) {
+        SimpleFormWindow menuForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_MENU_FORM_ID);
+        menuForm.setResponse(response);
+
+        SimpleFormResponse formResponse = (SimpleFormResponse) menuForm.getResponse();
+
+        if (formResponse != null && formResponse.getClickedButton() != null) {
+            session.setStoredAdvancementCategoryId(session.getButtonIdsToIdButtonAdvancementCategories().get(formResponse.getClickedButtonId()));
+            session.setStoredAdvancementCategoryTitle(session.getButtonIdsToTitleButtonAdvancementCategories().get(formResponse.getClickedButtonId()));
+        }
+
+        session.sendForm(buildListForm(session), ADVANCEMENTS_LIST_FORM_ID);
+        return true;
+    }
+
+    /**
      * Handle the list form response (Advancement category choice)
      *
      * @param session The session that sent the response
@@ -155,7 +192,9 @@ public class AdvancementsUtils {
     public static boolean handleListForm(GeyserSession session, String response) {
         SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_LIST_FORM_ID);
         listForm.setResponse(response);
+
         SimpleFormResponse formResponse = (SimpleFormResponse) listForm.getResponse();
+
         if (!listForm.isClosed() && formResponse != null && formResponse.getClickedButton() != null) {
             if (session.getButtonIdsToAdvancement().get(formResponse.getClickedButtonId()) != null) {
                 if (!session.getButtonIdsToAdvancement().get(formResponse.getClickedButtonId()).getId().endsWith("root")) {
@@ -171,45 +210,19 @@ public class AdvancementsUtils {
         return true;
     }
 
-
     /**
-     * Builds the advancement display info based on the chosen category
+     * Handle the info form response
      *
-     * @param session The session used to create the info display
-     * @param advancement The advancement used to create the info display
-     *
-     * @return The information for the chosen advancement
+     * @param session The session that sent the response
+     * @param response The response string to parse
+     * @return True if the form was parsed correctly, false if not
      */
-    public static SimpleFormWindow buildInfoForm(GeyserSession session, Advancement advancement) {
-        // Cache language for easier access
-        String language = session.getLocale();
-        StringBuilder content = new StringBuilder();
-        String earned = "yes";
-        if (session.getStoredAdvancementProgress().get(advancement.getId()) != null || session.getStoredAdvancementProgress() != null || !session.getStoredAdvancementProgress().get(advancement.getId()).entrySet().isEmpty()) {
-            for (Map.Entry<String, Long> entry : session.getStoredAdvancementProgress().get(advancement.getId()).entrySet()) {
-                if (entry.getValue() == -1) {
-                    earned = "no";
-                    break;
-                }
-            }
-        }
-
-        content.append(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), language) + "\n");
-        content.append(MessageTranslator.convertMessage(advancement.getDisplayData().getDescription(), language) + "\n\n");
-        content.append(ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString()) + "["  + LanguageUtils.getPlayerLocaleString("geyser.advancements." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), language) + "]" + "\n\n" + "§f");
-        content.append(LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ": " + LanguageUtils.getPlayerLocaleString("gui." + earned, language) + "\n");
-        content.append(LanguageUtils.getPlayerLocaleString("geyser.advancements.parentid", language) + ": " + MessageTranslator.convertMessage(session.getStoredAdvancements().get(advancement.getParentId()).getDisplayData().getTitle(), language) + "\n");
-        SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()), content.toString());
-        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("gui.back", language)));
-
-        return window;
-    }
-
     public static boolean handleInfoForm(GeyserSession session, String response) {
         SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENT_INFO_FORM_ID);
-
         listForm.setResponse(response);
+
         SimpleFormResponse formResponse = (SimpleFormResponse) listForm.getResponse();
+
         if (!listForm.isClosed() && formResponse != null && formResponse.getClickedButton() != null) {
             session.sendForm(buildListForm(session), ADVANCEMENTS_LIST_FORM_ID);
         }

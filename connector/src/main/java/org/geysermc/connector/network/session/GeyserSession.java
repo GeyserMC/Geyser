@@ -38,7 +38,6 @@ import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementsPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.Client;
@@ -320,7 +319,7 @@ public class GeyserSession implements CommandSender {
      * Stores the player's advancement progress
      */
     @Setter
-    private Map<String, Map<String, Long>> storedAdvancementProgress = null;
+    private Map<String, Map<String, Long>> storedAdvancementProgress = new HashMap<>();
 
     /**
      * Stores advancements for the player.
@@ -330,17 +329,17 @@ public class GeyserSession implements CommandSender {
     /**
      * Stores the player's advancement categories that should be used for each button pressed in the advancement menu.
      */
-    private Map<Integer, String> buttonIdsToIdButtonAdvancementCategories = new HashMap<>();
+    private final Map<Integer, String> buttonIdsToIdButtonAdvancementCategories = new HashMap<>();
 
     /**
      * Stores the player's advancement titles that should be used for each button pressed in the advancement menu.
      */
-    private Map<Integer, Component> buttonIdsToTitleButtonAdvancementCategories = new HashMap<>();
+    private final Map<Integer, Component> buttonIdsToTitleButtonAdvancementCategories = new HashMap<>();
 
     /**
      * Stores the player's advancement categories that should be used for each button pressed in the advancement list menu.
      */
-    private Map<Integer, Advancement> buttonIdsToAdvancement = new HashMap<>();
+    private final Map<Integer, Advancement> buttonIdsToAdvancement = new HashMap<>();
 
     /**
      * Stores player's chosen advancement's ID and title for use in form creators.

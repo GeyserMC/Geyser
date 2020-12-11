@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.checkerframework.checker.units.qual.A;
 import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
@@ -63,6 +62,7 @@ public class AdvancementsCommand extends GeyserCommand {
             }
         }
         if (session == null) return;
+
         SimpleFormWindow window = AdvancementsUtils.buildMenuForm(session);
         session.sendForm(window, AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID);
     }

@@ -136,7 +136,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        boolean handleForm =  LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+        boolean handleForm;
 
         switch (packet.getFormId()) {
             case SettingsUtils.SETTINGS_FORM_ID:
@@ -157,7 +157,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             case AdvancementsUtils.ADVANCEMENT_INFO_FORM_ID:
                 handleForm = AdvancementsUtils.handleInfoForm(session, packet.getFormData());
                 break;
+            default:
+                handleForm = LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+                break;
         }
+
         return handleForm;
     }
 
