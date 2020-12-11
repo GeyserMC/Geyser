@@ -26,6 +26,8 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementsPacket;
+import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import net.kyori.adventure.text.Component;
 import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.common.window.button.FormButton;
@@ -44,7 +46,7 @@ public class AdvancementsUtils {
     public static final int ADVANCEMENT_INFO_FORM_ID = 1343;
 
     // Color codes used in buildInfoForm
-    private static final Map<String, String> ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES = new HashMap<>();
+    public static final Map<String, String> ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES = new HashMap<>();
     static {
         ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.put("TASK", "§a");
         ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.put("GOAL", "§a");
@@ -182,11 +184,11 @@ public class AdvancementsUtils {
         // Cache language for easier access
         String language = session.getLocale();
         StringBuilder content = new StringBuilder();
-        String earned = "confirm";
+        String earned = "yes";
         if (session.getStoredAdvancementProgress().get(advancement.getId()) != null || session.getStoredAdvancementProgress() != null || !session.getStoredAdvancementProgress().get(advancement.getId()).entrySet().isEmpty()) {
             for (Map.Entry<String, Long> entry : session.getStoredAdvancementProgress().get(advancement.getId()).entrySet()) {
                 if (entry.getValue() == -1) {
-                    earned = "deny";
+                    earned = "no";
                     break;
                 }
             }
@@ -195,7 +197,7 @@ public class AdvancementsUtils {
         content.append(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), language) + "\n");
         content.append(MessageTranslator.convertMessage(advancement.getDisplayData().getDescription(), language) + "\n\n");
         content.append(ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString()) + "["  + LanguageUtils.getPlayerLocaleString("geyser.advancements." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), language) + "]" + "\n\n" + "§f");
-        content.append(LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ": " + LanguageUtils.getPlayerLocaleString("geyser.gui.exit." + earned, language) + "\n");
+        content.append(LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ": " + LanguageUtils.getPlayerLocaleString("gui." + earned, language) + "\n");
         content.append(LanguageUtils.getPlayerLocaleString("geyser.advancements.parentid", language) + ": " + MessageTranslator.convertMessage(session.getStoredAdvancements().get(advancement.getParentId()).getDisplayData().getTitle(), language) + "\n");
         SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()), content.toString());
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("gui.back", language)));

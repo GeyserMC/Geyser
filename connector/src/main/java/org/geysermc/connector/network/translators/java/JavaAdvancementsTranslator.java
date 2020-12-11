@@ -27,9 +27,14 @@ package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementsPacket;
+import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.utils.AdvancementsUtils;
+import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.utils.LocaleUtils;
 
 @Translator(packet = ServerAdvancementsPacket.class)
 public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvancementsPacket> {
@@ -37,8 +42,20 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
     @Override
     public void translate(ServerAdvancementsPacket packet, GeyserSession session) {
         // Removes removed advancements from player's stored advancements
+
         for (String removedAdvancement : packet.getRemovedAdvancements()) {
             session.getStoredAdvancements().remove(removedAdvancement);
+        }
+       for (Advancement advancement : packet.getAdvancements()) {
+         if (!session.getStoredAdvancements().isEmpty() && !session.getStoredAdvancements().containsValue(advancement)) {
+             SetTitlePacket tpacket = new SetTitlePacket();
+             tpacket.setText(AdvancementsUtils.ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString()) + "[" + LocaleUtils.getLocaleString("advancements.toast." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), session.getLocale()) + "] " + MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.getLocale()));
+             tpacket.setType(SetTitlePacket.Type.ACTIONBAR);
+             tpacket.setFadeOutTime(3);
+             tpacket.setFadeInTime(3);
+             tpacket.setStayTime(3);
+             session.sendUpstreamPacket(tpacket);
+            }
         }
         session.setStoredAdvancementProgress(packet.getProgress());
         // Adds advancements to the player's stored advancements when advancements are sent
@@ -49,5 +66,6 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
                 session.getStoredAdvancements().remove(advancement.getId());
             }
         }
+
     }
 }
