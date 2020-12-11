@@ -35,6 +35,8 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.AdvancementsUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
+import java.util.Map;
+
 @Translator(packet = ServerAdvancementsPacket.class)
 public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvancementsPacket> {
 
@@ -50,19 +52,27 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
         // Adds advancements to the player's stored advancements when advancements are sent
         // Also sends notifications for any new advancements
         for (Advancement advancement : packet.getAdvancements()) {
-            if (!session.getStoredAdvancements().isEmpty() && !session.getStoredAdvancements().containsValue(advancement)) {
+            if (!session.getStoredAdvancements().isEmpty() && !session.getStoredAdvancements().containsValue(advancement) && advancement != null && advancement.getDisplayData() != null) {
                 String color = AdvancementsUtils.ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString());
                 String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.getLocale());
-
-                SetTitlePacket titlePacket = new SetTitlePacket();
-                titlePacket.setText(color + "[" + LocaleUtils.getLocaleString("advancements.toast." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), session.getLocale()) + "] " + advancementName);
-                titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-                titlePacket.setFadeOutTime(3);
-                titlePacket.setFadeInTime(3);
-                titlePacket.setStayTime(3);
-
-                session.sendUpstreamPacket(titlePacket);
+                boolean earned = true;
+                if (session.getStoredAdvancementProgress().get(advancement.getId()) != null || session.getStoredAdvancementProgress() != null || !session.getStoredAdvancementProgress().get(advancement.getId()).entrySet().isEmpty()) {
+                    for (Map.Entry<String, Long> entry : session.getStoredAdvancementProgress().get(advancement.getId()).entrySet()) {
+                        if (entry.getValue() == -1) {
+                            earned = false;
+                        }
+                    }
+                }
+                if (earned) {
+                    titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+                    titlePacket.setFadeOutTime(3);
+                    titlePacket.setFadeInTime(3);
+                    titlePacket.setStayTime(3);
+                    session.sendUpstreamPacket(titlePacket);
+                    break;
+                }
             }
+
 
             if (advancement.getDisplayData() != null && !advancement.getDisplayData().isHidden()){
                 session.getStoredAdvancements().put(advancement.getId(), advancement);
