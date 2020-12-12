@@ -68,6 +68,9 @@ import java.util.concurrent.TimeUnit;
 @Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
 
+    private static final float MAXIMUM_BLOCK_PLACING_DISTANCE = 64f;
+    private static final float MAXIMUM_BLOCK_DESTROYING_DISTANCE = 36f;
+
     @Override
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
         switch (packet.getTransactionType()) {
@@ -98,7 +101,15 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
-                        if (checkForRange(session, blockPos)) {
+                        /*
+                         * Checks to ensure that the range will be accepted by the server.
+                         * "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),
+                         * but how much a server will accept from the client maximum
+                         */
+                        if (!(session.getPlayerEntity().getPosition().sub(0, EntityType.PLAYER.getOffset(), 0)
+                                .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_PLACING_DISTANCE)) {
+                            // The client thinks that its blocks have been successfully placed. Restore the server's blocks instead.
+                            restoreCorrectBlock(session, blockPos);
                             return;
                         }
 
@@ -192,7 +203,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setLastBlockPlacedId(null);
                         session.setLastBlockPlacePosition(null);
 
-                        if (checkForRange(session, packet.getBlockPosition())) {
+                        // Same deal with block placing as above.
+                        if (!(session.getPlayerEntity().getPosition().sub(0, EntityType.PLAYER.getOffset(), 0)
+                                .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_DESTROYING_DISTANCE)) {
+                            restoreCorrectBlock(session, packet.getBlockPosition());
                             return;
                         }
 
@@ -278,33 +292,25 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     }
 
     /**
-     * Checks to ensure that the range will be accepted by the server.
-     * Not in range doesn't refer to how far a vanilla client goes (that's a whole other mess),
-     * but how much a server will accept from the client maximum
+     * Restore the correct block state from the server without updating the chunk cache.
      *
-     * @param session the session of the client
-     * @param blockPos the block position that the client is attempting to place
-     * @return true if the action should be cancelled
+     * @param session the session of the Bedrock client
+     * @param blockPos the block position to restore
      */
-    private boolean checkForRange(GeyserSession session, Vector3i blockPos) {
-        boolean isNotInRange = !(session.getPlayerEntity().getPosition().sub(0, EntityType.PLAYER.getOffset(), 0)
-                .distanceSquared(blockPos.toFloat().add(0.5f, 0.5f, 0.5f)) < 64f);
-        if (isNotInRange) {
-            int javaBlockState = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.setDataLayer(0);
-            updateBlockPacket.setBlockPosition(blockPos);
-            updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(javaBlockState));
-            updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-            session.sendUpstreamPacket(updateBlockPacket);
+    private void restoreCorrectBlock(GeyserSession session, Vector3i blockPos) {
+        int javaBlockState = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+        updateBlockPacket.setDataLayer(0);
+        updateBlockPacket.setBlockPosition(blockPos);
+        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(javaBlockState));
+        updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        session.sendUpstreamPacket(updateBlockPacket);
 
-            UpdateBlockPacket updateWaterPacket = new UpdateBlockPacket();
-            updateWaterPacket.setDataLayer(1);
-            updateWaterPacket.setBlockPosition(blockPos);
-            updateWaterPacket.setRuntimeId(BlockTranslator.isWaterlogged(javaBlockState) ? BlockTranslator.BEDROCK_WATER_ID : BlockTranslator.BEDROCK_AIR_ID);
-            updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
-            session.sendUpstreamPacket(updateWaterPacket);
-        }
-        return isNotInRange;
+        UpdateBlockPacket updateWaterPacket = new UpdateBlockPacket();
+        updateWaterPacket.setDataLayer(1);
+        updateWaterPacket.setBlockPosition(blockPos);
+        updateWaterPacket.setRuntimeId(BlockTranslator.isWaterlogged(javaBlockState) ? BlockTranslator.BEDROCK_WATER_ID : BlockTranslator.BEDROCK_AIR_ID);
+        updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        session.sendUpstreamPacket(updateWaterPacket);
     }
 }
