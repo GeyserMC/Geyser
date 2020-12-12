@@ -94,7 +94,8 @@ public class PistonCache {
         if (!playerDisplacement.equals(Vector3d.ZERO) && playerMotion.getY() == 0) {
             // Sending small movement packets also cancels all motion
             // Not sending any movement packets when in motion causes players to get stuck in slime blocks
-            if (playerDisplacement.lengthSquared() > SMALL_DISPLACEMENT || (playerMotion.equals(Vector3f.ZERO) && lastMotionPacket > MOTION_TIMEOUT)) {
+            long timeSinceMotionPacket = System.currentTimeMillis() - lastMotionPacket;
+            if (playerDisplacement.lengthSquared() > SMALL_DISPLACEMENT || (playerMotion.equals(Vector3f.ZERO) && timeSinceMotionPacket > MOTION_TIMEOUT)) {
                 CollisionManager collisionManager = session.getCollisionManager();
                 if (collisionManager.correctPlayerPosition()) {
                     Vector3d position = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
