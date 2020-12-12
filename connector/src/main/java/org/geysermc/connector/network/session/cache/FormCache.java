@@ -77,7 +77,7 @@ public class FormCache {
 
         Consumer<String> responseConsumer = form.getResponseHandler();
         if (responseConsumer != null) {
-            responseConsumer.accept(response.getFormData().trim());
+            responseConsumer.accept(response.getFormData());
         }
 
         removeWindow(response.getFormId());
