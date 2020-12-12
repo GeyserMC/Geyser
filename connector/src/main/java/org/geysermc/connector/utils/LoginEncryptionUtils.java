@@ -162,7 +162,7 @@ public class LoginEncryptionUtils {
         String userLanguage = session.getLocale();
         SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.title", userLanguage), LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.desc", userLanguage));
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_login", userLanguage)));
-        window.getButtons().add(new FormButton("Login with MSA"));
+        window.getButtons().add(new FormButton("Login with Microsoft")); // TODO: Move this to a locale string
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_disconnect", userLanguage)));
 
         session.sendForm(window, AUTH_FORM_ID);

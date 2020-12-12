@@ -448,7 +448,7 @@ public class GeyserSession implements CommandSender {
         // new thread so clients don't timeout
         new Thread(() -> {
             try {
-                MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService("204cefd1-4818-4de1-b98d-513fae875d88");
+                MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
 
                 if (username == null && password == null) {
                     MsaAuthenticationService.MsCodeResponse response = msaAuthenticationService.getAuthCode();
