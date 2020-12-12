@@ -39,8 +39,6 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
     @Override
     public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
-        // The client sends a timestamp back but it's rounded and therefore unreliable when we need the exact number
-        ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(session.getLastKeepAliveTimestamp());
-        session.sendDownstreamPacket(keepAlivePacket);
+        session.sendDownstreamPacket(new ClientKeepAlivePacket(packet.getTimestamp() / 1000));
     }
 }

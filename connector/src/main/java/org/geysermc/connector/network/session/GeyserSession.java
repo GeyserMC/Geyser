@@ -196,12 +196,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private long lastWindowCloseTime = 0;
 
-    /**
-     * Saves the timestamp of the last keep alive packet
-     */
-    @Setter
-    private long lastKeepAliveTimestamp = 0;
-
     @Setter
     private VillagerTrade[] villagerTrades;
     @Setter
