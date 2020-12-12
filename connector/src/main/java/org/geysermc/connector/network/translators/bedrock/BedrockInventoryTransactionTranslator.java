@@ -204,7 +204,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setLastBlockPlacePosition(null);
 
                         // Same deal with block placing as above.
-                        if (!(session.getPlayerEntity().getPosition().sub(0, EntityType.PLAYER.getOffset(), 0)
+                        // No idea what's going on with the Y coordinate here
+                        if (!(session.getPlayerEntity().getPosition().sub(0, (EntityType.PLAYER.getOffset() - 1.5f), 0)
                                 .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_DESTROYING_DISTANCE)) {
                             restoreCorrectBlock(session, packet.getBlockPosition());
                             return;
