@@ -68,14 +68,14 @@ public class TestCommand extends GeyserCommand {
                 @Override
                 public void run() {
                     try {
-                        String authToken = msaAuthenticationService.getSessionTokenFromCode(response.device_code);
+                        msaAuthenticationService.login();
 
 //                        AuthenticationService authService = new AuthenticationService("");
 //                        authService.setAccessToken(authToken);
 //
 //                        GeyserConnector.getInstance().getLogger().debug(new MinecraftProtocol(authService).toString());
 
-                        sender.sendMessage(authToken);
+                        sender.sendMessage(msaAuthenticationService.getAccessToken());
 
                         this.cancel();
                     } catch (RequestException e) {

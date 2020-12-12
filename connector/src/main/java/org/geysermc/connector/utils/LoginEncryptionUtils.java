@@ -34,14 +34,12 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-import org.geysermc.common.window.CustomFormBuilder;
-import org.geysermc.common.window.CustomFormWindow;
-import org.geysermc.common.window.FormWindow;
-import org.geysermc.common.window.SimpleFormWindow;
+import org.geysermc.common.window.*;
 import org.geysermc.common.window.button.FormButton;
 import org.geysermc.common.window.component.InputComponent;
 import org.geysermc.common.window.component.LabelComponent;
 import org.geysermc.common.window.response.CustomFormResponse;
+import org.geysermc.common.window.response.ModalFormResponse;
 import org.geysermc.common.window.response.SimpleFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -158,11 +156,13 @@ public class LoginEncryptionUtils {
 
     private static int AUTH_FORM_ID = 1336;
     private static int AUTH_DETAILS_FORM_ID = 1337;
+    public static int AUTH_MSA_FORM_ID = 1335;
 
     public static void showLoginWindow(GeyserSession session) {
         String userLanguage = session.getLocale();
         SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.title", userLanguage), LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.desc", userLanguage));
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_login", userLanguage)));
+        window.getButtons().add(new FormButton("Login with MSA"));
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_disconnect", userLanguage)));
 
         session.sendForm(window, AUTH_FORM_ID);
@@ -184,7 +184,7 @@ public class LoginEncryptionUtils {
         if (!windowCache.getWindows().containsKey(formId))
             return false;
 
-        if(formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID) {
+        if(formId == AUTH_FORM_ID || formId == AUTH_DETAILS_FORM_ID || formId == AUTH_MSA_FORM_ID) {
             FormWindow window = windowCache.getWindows().remove(formId);
             window.setResponse(formData.trim());
 
@@ -209,11 +209,21 @@ public class LoginEncryptionUtils {
                     if (response != null) {
                         if (response.getClickedButtonId() == 0) {
                             showLoginDetailsWindow(session);
-                        } else if(response.getClickedButtonId() == 1) {
+                        } else if (response.getClickedButtonId() == 1) {
+                            // TODO: Add a form here to support username and password login
+                            session.authenticateWithMsa();
+                        } else if(response.getClickedButtonId() == 2) {
                             session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
                         }
                     } else {
                         showLoginWindow(session);
+                    }
+                } else if (formId == AUTH_MSA_FORM_ID && window instanceof ModalFormWindow) {
+                    ModalFormResponse response = (ModalFormResponse) window.getResponse();
+                    if (response != null) {
+                        if (response.getClickedButtonId() == 1) {
+                            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
+                        }
                     }
                 }
             }

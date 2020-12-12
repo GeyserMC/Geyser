@@ -26,8 +26,10 @@
 package org.geysermc.connector.network.session;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
+import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
@@ -63,6 +65,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
+import org.geysermc.common.window.ModalFormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
@@ -425,137 +428,7 @@ public class GeyserSession implements CommandSender {
                     protocol = new MinecraftProtocol(username);
                 }
 
-                boolean floodgate = connector.getAuthType() == AuthType.FLOODGATE;
-                final PublicKey publicKey;
-
-                if (floodgate) {
-                    PublicKey key = null;
-                    try {
-                        key = EncryptionUtil.getKeyFromFile(
-                                connector.getConfig().getFloodgateKeyPath(),
-                                PublicKey.class
-                        );
-                    } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
-                        connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), e);
-                    }
-                    publicKey = key;
-                } else publicKey = null;
-
-                if (publicKey != null) {
-                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
-                }
-
-                downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
-                // Let Geyser handle sending the keep alive
-                downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
-                downstream.getSession().addListener(new SessionAdapter() {
-                    @Override
-                    public void packetSending(PacketSendingEvent event) {
-                        //todo move this somewhere else
-                        if (event.getPacket() instanceof HandshakePacket && floodgate) {
-                            String encrypted = "";
-                            try {
-                                encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
-                                        clientData.getGameVersion(),
-                                        authData.getName(),
-                                        authData.getXboxUUID(),
-                                        clientData.getDeviceOS().ordinal(),
-                                        clientData.getLanguageCode(),
-                                        clientData.getCurrentInputMode().ordinal(),
-                                        upstream.getSession().getAddress().getAddress().getHostAddress()
-                                ));
-                            } catch (Exception e) {
-                                connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
-                            }
-
-                            HandshakePacket handshakePacket = event.getPacket();
-                            event.setPacket(new HandshakePacket(
-                                    handshakePacket.getProtocolVersion(),
-                                    handshakePacket.getHostname() + '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted,
-                                    handshakePacket.getPort(),
-                                    handshakePacket.getIntent()
-                            ));
-                        }
-                    }
-
-                    @Override
-                    public void connected(ConnectedEvent event) {
-                        loggingIn = false;
-                        loggedIn = true;
-                        if (protocol.getProfile() == null) {
-                            // Java account is offline
-                            disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
-                            return;
-                        }
-                        connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect", authData.getName(), protocol.getProfile().getName(), remoteServer.getAddress()));
-                        playerEntity.setUuid(protocol.getProfile().getId());
-                        playerEntity.setUsername(protocol.getProfile().getName());
-
-                        String locale = clientData.getLanguageCode();
-
-                        // Let the user know there locale may take some time to download
-                        // as it has to be extracted from a JAR
-                        if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
-                            // This should probably be left hardcoded as it will only show for en_us clients
-                            sendMessage("Loading your locale (en_us); if this isn't already downloaded, this may take some time");
-                        }
-
-                        // Download and load the language for the player
-                        LocaleUtils.downloadAndLoadLocale(locale);
-                    }
-
-                    @Override
-                    public void disconnected(DisconnectedEvent event) {
-                        loggingIn = false;
-                        loggedIn = false;
-                        connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteServer.getAddress(), event.getReason()));
-                        if (event.getCause() != null) {
-                            event.getCause().printStackTrace();
-                        }
-
-                        upstream.disconnect(MessageTranslator.convertMessageLenient(event.getReason()));
-                    }
-
-                    @Override
-                    public void packetReceived(PacketReceivedEvent event) {
-                        if (!closed) {
-                            //handle consecutive respawn packets
-                            if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
-                                manyDimPackets = lastDimPacket != null;
-                                lastDimPacket = event.getPacket();
-                                return;
-                            } else if (lastDimPacket != null) {
-                                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
-                                lastDimPacket = null;
-                            }
-
-                            // Required, or else Floodgate players break with Bukkit chunk caching
-                            if (event.getPacket() instanceof LoginSuccessPacket) {
-                                GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
-                                playerEntity.setUsername(profile.getName());
-                                playerEntity.setUuid(profile.getId());
-
-                                // Check if they are not using a linked account
-                                if (connector.getAuthType() == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
-                                    SkinManager.handleBedrockSkin(playerEntity, clientData);
-                                }
-                            }
-
-                            PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
-                        }
-                    }
-
-                    @Override
-                    public void packetError(PacketErrorEvent event) {
-                        connector.getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.downstream_error", event.getCause().getMessage()));
-                        if (connector.getConfig().isDebugMode())
-                            event.getCause().printStackTrace();
-                        event.setSuppress(true);
-                    }
-                });
-
-                downstream.getSession().connect();
-                connector.addPlayer(this);
+                authenticatePostProtocol();
             } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
@@ -563,6 +436,196 @@ public class GeyserSession implements CommandSender {
                 ex.printStackTrace();
             }
         }).start();
+    }
+
+    public void authenticateWithMsa(String username, String password) {
+        if (loggedIn) {
+            connector.getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().getName()));
+            return;
+        }
+
+        loggingIn = true;
+        // new thread so clients don't timeout
+        new Thread(() -> {
+            try {
+                MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService("204cefd1-4818-4de1-b98d-513fae875d88");
+
+                if (username == null && password == null) {
+                    MsaAuthenticationService.MsCodeResponse response = msaAuthenticationService.getAuthCode();
+
+                    //this.sendMessage("Please enter the code '" + response.user_code + "' on " + response.verification_uri);
+
+                    ModalFormWindow msaCodeWindow = new ModalFormWindow("%xbox.signin", "%xbox.signin.website\n%xbox.signin.url\n%xbox.signin.enterCode\n" + response.user_code, "Done", "%menu.disconnect");
+                    this.sendForm(msaCodeWindow, LoginEncryptionUtils.AUTH_MSA_FORM_ID);
+
+                    // Wait for the code to validate
+                    while (true) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ignored) {
+                        }
+
+                        try {
+                            msaAuthenticationService.login();
+                            break;
+                        } catch (RequestException e) {
+                            if (!(e instanceof AuthPendingException)) {
+                                throw e;
+                            }
+                        }
+                    }
+                } else {
+                    throw new AssertionError("Username and password auth isn't implemented yet");
+                }
+
+                protocol = new MinecraftProtocol(msaAuthenticationService);
+
+                authenticatePostProtocol();
+            } catch (InvalidCredentialsException | IllegalArgumentException e) {
+                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", getAuthData().getName()));
+                disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
+            } catch (RequestException ex) {
+                ex.printStackTrace();
+            }
+        }).start();
+    }
+
+    public void authenticateWithMsa() {
+        authenticateWithMsa(null, null);
+    }
+
+    private void authenticatePostProtocol() {
+        boolean floodgate = connector.getAuthType() == AuthType.FLOODGATE;
+        final PublicKey publicKey;
+
+        if (floodgate) {
+            PublicKey key = null;
+            try {
+                key = EncryptionUtil.getKeyFromFile(
+                        connector.getConfig().getFloodgateKeyPath(),
+                        PublicKey.class
+                );
+            } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
+                connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), e);
+            }
+            publicKey = key;
+        } else publicKey = null;
+
+        if (publicKey != null) {
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+        }
+
+        downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
+        // Let Geyser handle sending the keep alive
+        downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
+        downstream.getSession().addListener(new SessionAdapter() {
+            @Override
+            public void packetSending(PacketSendingEvent event) {
+                //todo move this somewhere else
+                if (event.getPacket() instanceof HandshakePacket && floodgate) {
+                    String encrypted = "";
+                    try {
+                        encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
+                                clientData.getGameVersion(),
+                                authData.getName(),
+                                authData.getXboxUUID(),
+                                clientData.getDeviceOS().ordinal(),
+                                clientData.getLanguageCode(),
+                                clientData.getCurrentInputMode().ordinal(),
+                                upstream.getSession().getAddress().getAddress().getHostAddress()
+                        ));
+                    } catch (Exception e) {
+                        connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                    }
+
+                    HandshakePacket handshakePacket = event.getPacket();
+                    event.setPacket(new HandshakePacket(
+                            handshakePacket.getProtocolVersion(),
+                            handshakePacket.getHostname() + '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted,
+                            handshakePacket.getPort(),
+                            handshakePacket.getIntent()
+                    ));
+                }
+            }
+
+            @Override
+            public void connected(ConnectedEvent event) {
+                loggingIn = false;
+                loggedIn = true;
+                if (protocol.getProfile() == null) {
+                    // Java account is offline
+                    disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+                    return;
+                }
+                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect", authData.getName(), protocol.getProfile().getName(), remoteServer.getAddress()));
+                playerEntity.setUuid(protocol.getProfile().getId());
+                playerEntity.setUsername(protocol.getProfile().getName());
+
+                String locale = clientData.getLanguageCode();
+
+                // Let the user know there locale may take some time to download
+                // as it has to be extracted from a JAR
+                if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
+                    // This should probably be left hardcoded as it will only show for en_us clients
+                    sendMessage("Loading your locale (en_us); if this isn't already downloaded, this may take some time");
+                }
+
+                // Download and load the language for the player
+                LocaleUtils.downloadAndLoadLocale(locale);
+            }
+
+            @Override
+            public void disconnected(DisconnectedEvent event) {
+                loggingIn = false;
+                loggedIn = false;
+                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteServer.getAddress(), event.getReason()));
+                if (event.getCause() != null) {
+                    event.getCause().printStackTrace();
+                }
+
+                upstream.disconnect(MessageTranslator.convertMessageLenient(event.getReason()));
+            }
+
+            @Override
+            public void packetReceived(PacketReceivedEvent event) {
+                if (!closed) {
+                    //handle consecutive respawn packets
+                    if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
+                        manyDimPackets = lastDimPacket != null;
+                        lastDimPacket = event.getPacket();
+                        return;
+                    } else if (lastDimPacket != null) {
+                        PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
+                        lastDimPacket = null;
+                    }
+
+                    // Required, or else Floodgate players break with Bukkit chunk caching
+                    if (event.getPacket() instanceof LoginSuccessPacket) {
+                        GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
+                        playerEntity.setUsername(profile.getName());
+                        playerEntity.setUuid(profile.getId());
+
+                        // Check if they are not using a linked account
+                        if (connector.getAuthType() == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
+                            SkinManager.handleBedrockSkin(playerEntity, clientData);
+                        }
+                    }
+
+                    PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
+                }
+            }
+
+            @Override
+            public void packetError(PacketErrorEvent event) {
+                connector.getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.downstream_error", event.getCause().getMessage()));
+                if (connector.getConfig().isDebugMode())
+                    event.getCause().printStackTrace();
+                event.setSuppress(true);
+            }
+        });
+
+        downstream.getSession().connect();
+        connector.addPlayer(this);
     }
 
     public void disconnect(String reason) {
