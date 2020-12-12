@@ -85,7 +85,7 @@ public final class Score {
     }
 
     public UpdateType getUpdateType() {
-        return cachedData != null ? cachedData.updateType : currentData.updateType;
+        return currentData.updateType;
     }
 
     public Score setUpdateType(UpdateType updateType) {
