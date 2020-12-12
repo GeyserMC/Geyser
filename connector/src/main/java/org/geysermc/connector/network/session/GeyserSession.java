@@ -385,6 +385,8 @@ public class GeyserSession implements CommandSender {
         // Don't let the client modify the inventory on death
         // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
+        // Ensure client doesn't try and do anything funky; the server handles this for us
+        gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         upstream.sendPacket(gamerulePacket);
     }
 
