@@ -170,8 +170,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
         if (session.getConnector().getConfig().isCacheChunks()) {
-            // Cancel movement when being pushed by pistons only when not being launched by slime blocks
-            if (!session.getPistonCache().getPlayerDisplacement().equals(Vector3d.ZERO) && session.getPistonCache().getPlayerMotion().equals(Vector3f.ZERO)) {
+            if (session.getPistonCache().shouldCancelMovement()) {
                 recalculatePosition(session);
                 return null;
             }

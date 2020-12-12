@@ -51,10 +51,17 @@ public class PistonCache {
 
     @Getter @Setter
     private Vector3d playerDisplacement = Vector3d.ZERO;
+    private Vector3d lastPlayerDisplacement = Vector3d.ZERO;
     @Getter @Setter
     private Vector3f playerMotion = Vector3f.ZERO;
 
+    @Getter
+    private long lastMotionPacket;
+
     private ScheduledFuture<?> updater;
+
+    private static final double SMALL_DISPLACEMENT = 0.25;
+    private static final double MOTION_TIMEOUT = 200;
 
     public PistonCache(GeyserSession session) {
         this.session = session;
@@ -64,6 +71,7 @@ public class PistonCache {
         resetPlayerMovement();
 
         if (session.isClosed() || pistons.isEmpty()) {
+            lastPlayerDisplacement = Vector3d.ZERO;
             updater.cancel(false);
             return;
         }
@@ -75,6 +83,7 @@ public class PistonCache {
     }
 
     public void resetPlayerMovement() {
+        lastPlayerDisplacement = playerDisplacement;
         playerDisplacement = Vector3d.ZERO;
         playerMotion = Vector3f.ZERO;
     }
@@ -83,25 +92,31 @@ public class PistonCache {
         SessionPlayerEntity playerEntity = session.getPlayerEntity();
         // Sending a movement packet cancels motion from slime blocks in the Y direction
         if (!playerDisplacement.equals(Vector3d.ZERO) && playerMotion.getY() == 0) {
-            CollisionManager collisionManager = session.getCollisionManager();
-            if (collisionManager.correctPlayerPosition()) {
-                Vector3d position = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
-                playerEntity.setPosition(position.toFloat(), true);
-                // Using MoveEntityAbsolutePacket for teleporting seems to be smoother than MovePlayerPacket
-                // It also keeps motion from slime blocks
-                MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-                moveEntityPacket.setRuntimeEntityId(playerEntity.getGeyserId());
-                moveEntityPacket.setPosition(playerEntity.getPosition());
-                moveEntityPacket.setRotation(playerEntity.getBedrockRotation());
-                moveEntityPacket.setOnGround(playerEntity.isOnGround());
-                moveEntityPacket.setTeleported(true);
-                session.sendUpstreamPacket(moveEntityPacket);
+            // Sending small movement packets also cancels all motion
+            // Not sending any movement packets when in motion causes players to get stuck in slime blocks
+            if (playerDisplacement.lengthSquared() > SMALL_DISPLACEMENT || (playerMotion.equals(Vector3f.ZERO) && lastMotionPacket > MOTION_TIMEOUT)) {
+                CollisionManager collisionManager = session.getCollisionManager();
+                if (collisionManager.correctPlayerPosition()) {
+                    Vector3d position = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
+                    playerEntity.setPosition(position.toFloat(), true);
+                    // Using MoveEntityAbsolutePacket for teleporting seems to be smoother than MovePlayerPacket
+                    // It also keeps motion from slime blocks
+                    MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+                    moveEntityPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+                    moveEntityPacket.setPosition(playerEntity.getPosition());
+                    moveEntityPacket.setRotation(playerEntity.getBedrockRotation());
+                    moveEntityPacket.setOnGround(playerEntity.isOnGround());
+                    moveEntityPacket.setTeleported(true);
+                    session.sendUpstreamPacket(moveEntityPacket);
 
-                ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(true, position.getX(), position.getY(), position.getZ());
-                session.sendDownstreamPacket(playerPositionPacket);
+                    ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(true, position.getX(), position.getY(), position.getZ());
+                    session.sendDownstreamPacket(playerPositionPacket);
+                }
             }
         }
         if (!playerMotion.equals(Vector3f.ZERO)) {
+            lastMotionPacket = System.currentTimeMillis();
+
             playerEntity.setMotion(playerMotion);
             SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
             setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
@@ -124,5 +139,11 @@ public class PistonCache {
 
     public void clear() {
         pistons.clear();
+    }
+
+    public boolean shouldCancelMovement() {
+        // Cancel packets when being pushed by a piston and not recently launched by a slime block
+        long timeSinceMotionPacket = System.currentTimeMillis() - lastMotionPacket;
+        return timeSinceMotionPacket > MOTION_TIMEOUT && !(playerDisplacement.equals(Vector3d.ZERO) && lastPlayerDisplacement.equals(Vector3d.ZERO));
     }
 }
