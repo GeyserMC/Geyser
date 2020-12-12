@@ -27,15 +27,29 @@ package org.geysermc.connector.ping;
 
 import org.geysermc.connector.common.ping.GeyserPingInfo;
 
+import java.net.Inet4Address;
+import java.net.InetSocketAddress;
+
 /**
  * Interface that retrieves ping passthrough information from the Java server
  */
 public interface IGeyserPingPassthrough {
 
     /**
-     * Get the MOTD of the server displayed on the multiplayer screen
+     * Get the MOTD of the server displayed on the multiplayer screen. It uses a fake remote, as the remote isn't important in this context.
+     *
      * @return string of the MOTD
      */
-    GeyserPingInfo getPingInformation();
+    default GeyserPingInfo getPingInformation() {
+        return this.getPingInformation(new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69));
+    }
+
+    /**
+     * Get the MOTD of the server displayed on the multiplayer screen
+     *
+     * @param inetSocketAddress the ip address of the client pinging the server
+     * @return string of the MOTD
+     */
+    GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress);
 
 }

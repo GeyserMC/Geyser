@@ -35,6 +35,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
@@ -49,11 +50,14 @@ import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -63,9 +67,9 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.player.SessionPlayerEntity;
+import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
@@ -73,8 +77,11 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.skin.SkinManager;
 import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
@@ -85,6 +92,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -100,18 +108,23 @@ public class GeyserSession implements CommandSender {
     @Setter
     private BedrockClientData clientData;
 
-    private PlayerEntity playerEntity;
+    private final SessionPlayerEntity playerEntity;
     private PlayerInventory inventory;
 
     private ChunkCache chunkCache;
     private EntityCache entityCache;
+    private EntityEffectCache effectCache;
     private InventoryCache inventoryCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
-    @Setter
-    private TeleportCache teleportCache;
+    private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
 
-    @Getter
+    /**
+     * Stores session collision
+     */
+    private final CollisionManager collisionManager;
+
+    private final Map<Vector3i, SkullPlayerEntity> skullCache = new ConcurrentHashMap<>();
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
     /**
@@ -136,7 +149,6 @@ public class GeyserSession implements CommandSender {
 
     private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
 
-    @Setter
     private boolean sneaking;
 
     @Setter
@@ -317,11 +329,14 @@ public class GeyserSession implements CommandSender {
         this.bookEditCache = new BookEditCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
+        this.effectCache = new EntityEffectCache();
         this.inventoryCache = new InventoryCache(this);
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
-        this.playerEntity = new PlayerEntity(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
+        this.collisionManager = new CollisionManager(this);
+
+        this.playerEntity = new SessionPlayerEntity(this);
         this.inventory = new PlayerInventory();
 
         this.spawned = false;
@@ -342,6 +357,9 @@ public class GeyserSession implements CommandSender {
     public void connect(RemoteServer remoteServer) {
         startGame();
         this.remoteServer = remoteServer;
+
+        // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
+        upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
@@ -523,7 +541,7 @@ public class GeyserSession implements CommandSender {
 
                                 // Check if they are not using a linked account
                                 if (connector.getAuthType() == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
-                                    SkinUtils.handleBedrockSkin(playerEntity, clientData);
+                                    SkinManager.handleBedrockSkin(playerEntity, clientData);
                                 }
                             }
 
@@ -566,6 +584,7 @@ public class GeyserSession implements CommandSender {
         this.bookEditCache = null;
         this.chunkCache = null;
         this.entityCache = null;
+        this.effectCache = null;
         this.worldCache = null;
         this.inventoryCache = null;
         this.windowCache = null;
@@ -579,6 +598,12 @@ public class GeyserSession implements CommandSender {
 
     public void setAuthenticationData(AuthData authData) {
         this.authData = authData;
+    }
+
+    public void setSneaking(boolean sneaking) {
+        this.sneaking = sneaking;
+        collisionManager.updatePlayerBoundingBox();
+        collisionManager.updateScaffoldingFlags();
     }
 
     @Override
@@ -653,7 +678,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLightningLevel(0);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", true));
+        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", connector.getConfig().isShowCoordinates()));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());
@@ -684,24 +709,81 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(startGamePacket);
     }
 
-    public boolean confirmTeleport(Vector3d position) {
-        if (teleportCache != null) {
-            if (!teleportCache.canConfirm(position)) {
-                GeyserConnector.getInstance().getLogger().debug("Unconfirmed Teleport " + teleportCache.getTeleportConfirmId()
-                        + " Ignore movement " + position + " expected " + teleportCache);
-                return false;
+    public void addTeleport(TeleportCache teleportCache) {
+        teleportMap.put(teleportCache.getTeleportConfirmId(), teleportCache);
+
+        ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
+
+        // Remove any teleports with a higher number - maybe this is a world change that reset the ID to 0?
+        while (it.hasNext()) {
+            Int2ObjectMap.Entry<TeleportCache> entry = it.next();
+            int nextID = entry.getValue().getTeleportConfirmId();
+            if (nextID > teleportCache.getTeleportConfirmId()) {
+                it.remove();
             }
-            int teleportId = teleportCache.getTeleportConfirmId();
-            teleportCache = null;
-            ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(teleportId);
-            sendDownstreamPacket(teleportConfirmPacket);
         }
+    }
+
+    public boolean confirmTeleport(Vector3d position) {
+        if (teleportMap.size() == 0) {
+            return true;
+        }
+        int teleportID = -1;
+
+        for (Int2ObjectMap.Entry<TeleportCache> entry : teleportMap.int2ObjectEntrySet()) {
+            if (entry.getValue().canConfirm(position)) {
+                if (entry.getValue().getTeleportConfirmId() > teleportID) {
+                    teleportID = entry.getValue().getTeleportConfirmId();
+                }
+            }
+        }
+
+        ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
+
+        if (teleportID != -1) {
+            // Confirm the current teleport and any earlier ones
+            while (it.hasNext()) {
+                TeleportCache entry = it.next().getValue();
+                int nextID = entry.getTeleportConfirmId();
+                if (nextID <= teleportID) {
+                    ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(nextID);
+                    sendDownstreamPacket(teleportConfirmPacket);
+                    // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
+                    ClientPlayerPositionRotationPacket positionPacket = new ClientPlayerPositionRotationPacket(playerEntity.isOnGround(),
+                            entry.getX(), entry.getY(), entry.getZ(), entry.getYaw(), entry.getPitch());
+                    sendDownstreamPacket(positionPacket);
+                    it.remove();
+                    connector.getLogger().debug("Confirmed teleport " + nextID);
+                }
+            }
+        }
+
+        if (teleportMap.size() > 0) {
+            int resendID = -1;
+            for (Int2ObjectMap.Entry<TeleportCache> entry : teleportMap.int2ObjectEntrySet()) {
+                TeleportCache teleport = entry.getValue();
+                teleport.incrementUnconfirmedFor();
+                if (teleport.shouldResend()) {
+                    if (teleport.getTeleportConfirmId() >= resendID) {
+                        resendID = teleport.getTeleportConfirmId();
+                    }
+                }
+            }
+
+            if (resendID != -1) {
+                connector.getLogger().debug("Resending teleport " + resendID);
+                TeleportCache teleport = teleportMap.get(resendID);
+                getPlayerEntity().moveAbsolute(this, Vector3f.from(teleport.getX(), teleport.getY(), teleport.getZ()),
+                        teleport.getYaw(), teleport.getPitch(), playerEntity.isOnGround(), true);
+            }
+        }
+
         return true;
     }
 
     /**
      * Queue a packet to be sent to player.
-     *
+     * 
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
@@ -714,7 +796,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Send a packet immediately to the player.
-     * 
+     *
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {

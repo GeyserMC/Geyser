@@ -43,15 +43,13 @@ import java.util.concurrent.ExecutionException;
 @AllArgsConstructor
 public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
-    private static final GeyserInboundConnection FAKE_INBOUND_CONNECTION = new GeyserInboundConnection();
-
     private final ProxyServer server;
 
     @Override
-    public GeyserPingInfo getPingInformation() {
+    public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
         ProxyPingEvent event;
         try {
-            event = server.getEventManager().fire(new ProxyPingEvent(FAKE_INBOUND_CONNECTION, ServerPing.builder()
+            event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress), ServerPing.builder()
                     .description(server.getConfiguration().getMotdComponent()).onlinePlayers(server.getPlayerCount())
                     .maximumPlayers(server.getConfiguration().getShowMaxPlayers()).build())).get();
         } catch (ExecutionException | InterruptedException e) {
@@ -74,11 +72,15 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
     private static class GeyserInboundConnection implements InboundConnection {
 
-        private static final InetSocketAddress FAKE_REMOTE = new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69);
+        private final InetSocketAddress remote;
+
+        public GeyserInboundConnection(InetSocketAddress remote) {
+            this.remote = remote;
+        }
 
         @Override
         public InetSocketAddress getRemoteAddress() {
-            return FAKE_REMOTE;
+            return this.remote;
         }
 
         @Override

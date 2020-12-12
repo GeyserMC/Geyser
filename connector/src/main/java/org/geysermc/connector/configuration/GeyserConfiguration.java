@@ -71,6 +71,8 @@ public interface GeyserConfiguration {
 
     boolean isShowCooldown();
 
+    boolean isShowCoordinates();
+
     String getDefaultLocale();
 
     Path getFloodgateKeyPath();
@@ -84,6 +86,8 @@ public interface GeyserConfiguration {
     boolean isXboxAchievementsEnabled();
 
     int getCacheImages();
+
+    boolean isAllowCustomSkulls();
 
     IMetricsInfo getMetrics();
 
@@ -107,7 +111,7 @@ public interface GeyserConfiguration {
         String getAddress();
 
         int getPort();
-        
+
         void setAddress(String address);
 
         void setPort(int port);
@@ -134,6 +138,8 @@ public interface GeyserConfiguration {
     boolean isEnableProxyConnections();
 
     int getMtu();
+
+    boolean isUseAdapters();
 
     int getConfigVersion();
 

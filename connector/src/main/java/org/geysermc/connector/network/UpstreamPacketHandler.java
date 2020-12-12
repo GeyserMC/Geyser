@@ -82,7 +82,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         for(ResourcePack resourcePack : ResourcePack.PACKS.values()) {
             ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
-            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(), "", "", "", false));
+            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
+                    header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(),
+                            "", "", "", false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserConnector.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -187,7 +189,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public boolean handle(MovePlayerPacket packet) {
         if (session.isLoggingIn()) {
-            session.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
+            SetTitlePacket titlePacket = new SetTitlePacket();
+            titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+            titlePacket.setText(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
+            titlePacket.setFadeInTime(0);
+            titlePacket.setFadeOutTime(1);
+            titlePacket.setStayTime(2);
+            session.sendUpstreamPacket(titlePacket);
         }
 
         return translateAndDefault(packet);
