@@ -436,8 +436,7 @@ public class PistonBlockEntity {
         if (orientation == PistonValue.UP || orientation == PistonValue.DOWN) {
             return false;
         }
-        // TODO missing a check for onGround
-        return HONEY_BOUNDING_BOX.checkIntersection(blockPos.getX(), blockPos.getY(), blockPos.getZ(), playerBoundingBox);
+        return session.getPlayerEntity().isOnGround() && HONEY_BOUNDING_BOX.checkIntersection(blockPos.getX(), blockPos.getY(), blockPos.getZ(), playerBoundingBox);
     }
 
     private boolean testBlockCollision(Vector3d blockPos, BlockCollision blockCollision, BoundingBox playerCollision) {

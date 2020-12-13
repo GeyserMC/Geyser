@@ -55,13 +55,18 @@ public class PistonCache {
     @Getter @Setter
     private Vector3f playerMotion = Vector3f.ZERO;
 
-    @Getter
     private long lastMotionPacket;
 
-    private ScheduledFuture<?> updater;
-
+    /**
+     * The square length of displacement to ignore when being launched by a slime block
+     */
     private static final double SMALL_DISPLACEMENT = 0.25;
+    /**
+     * The number of milliseconds after a motion packet to still be considered in motion.
+     */
     private static final double MOTION_TIMEOUT = 200;
+
+    private ScheduledFuture<?> updater;
 
     public PistonCache(GeyserSession session) {
         this.session = session;
@@ -94,8 +99,7 @@ public class PistonCache {
         if (!playerDisplacement.equals(Vector3d.ZERO) && playerMotion.getY() == 0) {
             // Sending small movement packets also cancels all motion
             // Not sending any movement packets when in motion causes players to get stuck in slime blocks
-            long timeSinceMotionPacket = System.currentTimeMillis() - lastMotionPacket;
-            if (playerDisplacement.lengthSquared() > SMALL_DISPLACEMENT || (playerMotion.equals(Vector3f.ZERO) && timeSinceMotionPacket > MOTION_TIMEOUT)) {
+            if (!isInMotion() || playerDisplacement.lengthSquared() > SMALL_DISPLACEMENT) {
                 CollisionManager collisionManager = session.getCollisionManager();
                 if (collisionManager.correctPlayerPosition()) {
                     Vector3d position = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
@@ -110,7 +114,7 @@ public class PistonCache {
                     moveEntityPacket.setTeleported(true);
                     session.sendUpstreamPacket(moveEntityPacket);
 
-                    ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(true, position.getX(), position.getY(), position.getZ());
+                    ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(playerEntity.isOnGround(), position.getX(), position.getY(), position.getZ());
                     session.sendDownstreamPacket(playerPositionPacket);
                 }
             }
@@ -142,9 +146,17 @@ public class PistonCache {
         pistons.clear();
     }
 
-    public boolean shouldCancelMovement() {
-        // Cancel packets when being pushed by a piston and not recently launched by a slime block
+    private boolean isInMotion() {
         long timeSinceMotionPacket = System.currentTimeMillis() - lastMotionPacket;
-        return timeSinceMotionPacket > MOTION_TIMEOUT && !(playerDisplacement.equals(Vector3d.ZERO) && lastPlayerDisplacement.equals(Vector3d.ZERO));
+        return !playerMotion.equals(Vector3f.ZERO) || timeSinceMotionPacket < MOTION_TIMEOUT;
+    }
+
+    /**
+     * Check whether a movement packet should be canceled.
+     * This cancels packets when being pushed by a piston and when not recently launched by a slime block
+     * @return True if the packet should be canceled
+     */
+    public boolean shouldCancelMovement() {
+        return !isInMotion() && !(playerDisplacement.equals(Vector3d.ZERO) && lastPlayerDisplacement.equals(Vector3d.ZERO));
     }
 }
