@@ -90,6 +90,9 @@ allow-third-party-ears: false
 # Allow a fake cooldown indicator to be sent. Bedrock players do not see a cooldown as they still use 1.8 combat
 show-cooldown: true
 
+# Controls if coordinates are shown to players.
+show-coordinates: true
+
 # The default locale if we dont have the one the client requested. Uncomment to not use the default system language.
 # default-locale: en_us
 
@@ -119,8 +122,8 @@ allow-custom-skulls: true
 above-bedrock-nether-building: false
 
 # Force clients to load all resource packs if there are any.
-# If set to false it allows the user to disconnect from the server if they don't
-# want to download the resource packs
+# If set to false, it allows the user to connect to the server even if they don't
+# want to download the resource packs.
 force-resource-packs: true
 
 # Allows Xbox achievements to be unlocked.

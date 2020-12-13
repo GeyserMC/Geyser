@@ -68,8 +68,8 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
+import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.event.EventManager;
 import org.geysermc.connector.event.EventResult;
 import org.geysermc.connector.event.events.geyser.GeyserLoginEvent;
@@ -79,7 +79,6 @@ import org.geysermc.connector.event.events.packet.DownstreamPacketReceiveEvent;
 import org.geysermc.connector.event.events.packet.DownstreamPacketSendEvent;
 import org.geysermc.connector.event.events.packet.UpstreamPacketSendEvent;
 import org.geysermc.connector.inventory.PlayerInventory;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
@@ -87,6 +86,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
@@ -205,12 +205,6 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private long lastWindowCloseTime = 0;
-
-    /**
-     * Saves the timestamp of the last keep alive packet
-     */
-    @Setter
-    private long lastKeepAliveTimestamp = 0;
 
     @Setter
     private VillagerTrade[] villagerTrades;
@@ -375,6 +369,9 @@ public class GeyserSession implements CommandSender {
 
         startGame();
 
+        // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
+        upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
+
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
@@ -405,6 +402,8 @@ public class GeyserSession implements CommandSender {
         // Don't let the client modify the inventory on death
         // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
+        // Ensure client doesn't try and do anything funky; the server handles this for us
+        gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         sendUpstreamPacket(gamerulePacket);
 
         // Spawn the player
@@ -713,7 +712,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLightningLevel(0);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", true));
+        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", connector.getConfig().isShowCoordinates()));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());

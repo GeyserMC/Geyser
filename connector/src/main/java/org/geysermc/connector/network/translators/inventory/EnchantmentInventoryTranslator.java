@@ -47,9 +47,7 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * A temporary reconstruction of the enchantment table UI until our inventory rewrite is complete.
@@ -100,11 +98,11 @@ public class EnchantmentInventoryTranslator extends BlockInventoryTranslator {
     @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
         super.updateInventory(session, inventory);
-        ItemData[] items = new ItemData[5];
-        items[0] = ItemTranslator.translateToBedrock(session, inventory.getItem(0));
-        items[1] = ItemTranslator.translateToBedrock(session, inventory.getItem(1));
+        List<ItemData> items = new ArrayList<>(5);
+        items.add(ItemTranslator.translateToBedrock(session, inventory.getItem(0)));
+        items.add(ItemTranslator.translateToBedrock(session, inventory.getItem(1)));
         for (int i = 0; i < 3; i++) {
-            items[i + 2] = session.getEnchantmentSlotData()[i].getItem() != null ? session.getEnchantmentSlotData()[i].getItem() : createEnchantmentBook();
+            items.add(session.getEnchantmentSlotData()[i].getItem() != null ? session.getEnchantmentSlotData()[i].getItem() : createEnchantmentBook());
         }
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
