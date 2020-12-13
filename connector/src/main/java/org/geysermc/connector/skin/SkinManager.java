@@ -273,14 +273,14 @@ public class SkinManager {
                 }
                 // return default skin with default cape when texture data is invalid
                 String skinUrl = isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl();
-                if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
-                    for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
-                        if (session.getPlayerEntity().getUuid().equals(profile.getId())) {
-                            skinUrl = session.getClientData().getSkinId();
-                            break;
-                        }
-                    }
-                }
+//                if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
+//                    for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
+//                        if (session.getPlayerEntity().getUuid().equals(profile.getId())) {
+//                            skinUrl = session.getClientData().getSkinId();
+//                            break;
+//                        }
+//                    }
+//                }
                 return new GameProfileData(skinUrl, SkinProvider.EMPTY_CAPE.getTextureUrl(), isAlex);
             }
         }
