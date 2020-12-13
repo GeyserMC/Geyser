@@ -53,7 +53,7 @@ public class ArmorStandEntity extends LivingEntity {
             position = position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
         }
 
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+        super.moveAbsolute(session, position, Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX()), isOnGround, teleported);
     }
 
     @Override
@@ -94,5 +94,11 @@ public class ArmorStandEntity extends LivingEntity {
             }
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public void spawnEntity(GeyserSession session) {
+        this.rotation = Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX());
+        super.spawnEntity(session);
     }
 }

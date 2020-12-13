@@ -112,6 +112,9 @@ public class SettingsUtils {
         settingsForm.setResponse(response);
 
         CustomFormResponse settingsResponse = (CustomFormResponse) settingsForm.getResponse();
+        if (settingsResponse == null) {
+            return false;
+        }
         int offset = 0;
 
         offset++; // Client settings title
