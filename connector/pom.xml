@@ -31,15 +31,26 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v419</artifactId>
-            <version>ce59d39118</version>
+            <artifactId>bedrock-v422</artifactId>
+            <version>87d862d69d</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <groupId>net.sf.trove4j</groupId>
                     <artifactId>trove</artifactId>
                 </exclusion>
+                <!-- Stay on the older version of Network while it's rewritten -->
+                <exclusion>
+                    <groupId>com.nukkitx.network</groupId>
+                    <artifactId>raknet</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.network</groupId>
+            <artifactId>raknet</artifactId>
+            <version>1.6.20</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
@@ -219,8 +230,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token>VERSION = ".*"</token>
-                                    <value>VERSION = "${project.version} (git-${git.branch}-${git.commit.id.abbrev})"</value>
+                                    <token>String VERSION = ".*"</token>
+                                    <value>String VERSION = "${project.version} (" + GIT_VERSION + ")"</value>
+                                </replacement>
+                                <replacement>
+                                    <token>String GIT_VERSION = ".*"</token>
+                                    <value>String GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
@@ -238,8 +253,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token>VERSION = ".*"</token>
-                                    <value>VERSION = "DEV"</value>
+                                    <token>String VERSION = ".*"</token>
+                                    <value>String VERSION = "DEV"</value>
+                                </replacement>
+                                <replacement>
+                                    <token>String GIT_VERSION = ".*"</token>
+                                    <value>String GIT_VERSION = "DEV"</value>
                                 </replacement>
                             </replacements>
                         </configuration>

@@ -39,6 +39,8 @@ public class EnderCrystalEntity extends Entity {
     public EnderCrystalEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
+        // Bedrock 1.16.100+ - prevents the entity from appearing on fire itself when fire is underneath it
+        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     @Override
