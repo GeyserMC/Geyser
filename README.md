@@ -49,7 +49,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
   - Smithing Table
 
 ## What can't be fixed
-The following things can't be fixed because of bedrock limitations. They might be fixable in the future, but not as of now.
+The following things can't be fixed because of Bedrock limitations. They might be fixable in the future, but not as of now.
 
 - Custom heads in inventories
 
