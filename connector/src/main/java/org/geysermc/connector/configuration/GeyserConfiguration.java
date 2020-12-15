@@ -117,6 +117,8 @@ public interface GeyserConfiguration {
         void setPort(int port);
 
         String getAuthType();
+
+        boolean isUseProxyProtocol();
     }
 
     interface IUserAuthenticationInfo {
