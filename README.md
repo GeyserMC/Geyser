@@ -53,6 +53,7 @@ The following things can't be fixed because of Bedrock limitations. They might b
 
 - Custom heads in inventories
 - Clickable links in chat
+- Glowing effect
 
 ## Compiling
 1. Clone the repo to your computer
