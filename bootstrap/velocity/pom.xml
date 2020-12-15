@@ -97,7 +97,16 @@
                     <artifactSet>
                         <excludes>
                             <exclude>com.google.code.gson:*</exclude>
-                            <exclude>io.netty:*</exclude>
+                            <!-- Needed because Velocity provides every dependency except netty-resolver-dns -->
+                            <exclude>io.netty:netty-transport-native-epoll:*</exclude>
+                            <exclude>io.netty:netty-transport-native-unix-common:*</exclude>
+                            <exclude>io.netty:netty-transport-native-kqueue:*</exclude>
+                            <exclude>io.netty:netty-handler:*</exclude>
+                            <exclude>io.netty:netty-common:*</exclude>
+                            <exclude>io.netty:netty-buffer:*</exclude>
+                            <exclude>io.netty:netty-resolver:*</exclude>
+                            <exclude>io.netty:netty-transport:*</exclude>
+                            <exclude>io.netty:netty-codec:*</exclude>
                             <exclude>org.slf4j:*</exclude>
                         </excludes>
                     </artifactSet>
