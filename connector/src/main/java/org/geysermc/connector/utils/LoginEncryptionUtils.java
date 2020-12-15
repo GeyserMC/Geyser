@@ -106,7 +106,11 @@ public class LoginEncryptionUtils {
             connector.getLogger().debug(String.format("Is player data valid? %s", validChain));
 
             if (!validChain && !session.getConnector().getConfig().isEnableProxyConnections()) {
-                session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                if (session.getConnector().getConfig().isXboxAuthEnabled()){
+                	session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                } else {
+                	connector.getLogger().warning(session.authData.getName()+" hasn't been passed Xbox-authentication.");//TODO:Add translation support
+                }
                 return;
             }
             JWSObject jwt = JWSObject.parse(certChainData.get(certChainData.size() - 1).asText());

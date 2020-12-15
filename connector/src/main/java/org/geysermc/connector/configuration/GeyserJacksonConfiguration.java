@@ -115,6 +115,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("xbox-achievements-enabled")
     private boolean xboxAchievementsEnabled = false;
+    
+    @JsonProperty("xbox-auth-enabled")
+    private boolean xboxAuthEnabled = true;
 
     private MetricsInfo metrics = new MetricsInfo();
 
