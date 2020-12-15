@@ -27,19 +27,28 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.geysermc.connector.entity.BoatEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-// Used for horses
+/**
+ * Sent by the client when moving a horse.
+ */
 @Translator(packet = MoveEntityAbsolutePacket.class)
 public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEntityAbsolutePacket> {
 
     @Override
     public void translate(MoveEntityAbsolutePacket packet, GeyserSession session) {
-
+        float y = packet.getPosition().getY();
+        if (session.getRidingVehicleEntity() instanceof BoatEntity) {
+            // Remove some Y position to prevents boats from looking like they're floating in water
+            // Not by the full boat offset because 1.16.100 complains and that's probably not good for the future
+            y -= (EntityType.BOAT.getOffset() - 0.5f);
+        }
         ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
-                packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ(),
+                packet.getPosition().getX(), y, packet.getPosition().getZ(),
                 packet.getRotation().getY() - 90, packet.getRotation().getX()
         );
         session.sendDownstreamPacket(clientVehicleMovePacket);

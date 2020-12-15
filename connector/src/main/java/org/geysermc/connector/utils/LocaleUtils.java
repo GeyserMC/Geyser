@@ -140,9 +140,10 @@ public class LocaleUtils {
 
             if (locale.equals("en_us")) {
                 try {
-                    Path hashFile = localeFile.getParentFile().toPath().resolve("en_us.hash");
-                    if (hashFile.toFile().exists()) {
-                        curHash = String.join("", Files.readAllLines(hashFile));
+                    File hashFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/en_us.hash").toFile();
+                    if (hashFile.exists()) {
+                        BufferedReader br = new BufferedReader(new FileReader(hashFile));
+                        curHash = br.readLine().trim();
                     }
                 } catch (IOException ignored) { }
                 targetHash = clientJarInfo.getSha1();
@@ -247,7 +248,7 @@ public class LocaleUtils {
             localeJar.close();
 
             // Store the latest jar hash
-            FileUtils.writeFile(localeFile.getParentFile().toPath().resolve("en_us.hash").toString(), clientJarInfo.getSha1().toCharArray());
+            FileUtils.writeFile(GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/en_us.hash").toString(), clientJarInfo.getSha1().toCharArray());
 
             // Delete the nolonger needed client/server jar
             Files.delete(tmpFilePath);

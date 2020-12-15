@@ -54,6 +54,8 @@ import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.collision.CollisionTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -82,9 +84,14 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class GeyserConnector {
 
-    public static final ObjectMapper JSON_MAPPER = new ObjectMapper().enable(JsonParser.Feature.IGNORE_UNDEFINED).enable(JsonParser.Feature.ALLOW_COMMENTS).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
+            .enable(JsonParser.Feature.IGNORE_UNDEFINED)
+            .enable(JsonParser.Feature.ALLOW_COMMENTS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
 
     public static final String NAME = "Geyser";
+    public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
 
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
@@ -141,6 +148,7 @@ public class GeyserConnector {
         EntityIdentifierRegistry.init();
         ItemRegistry.init();
         ItemTranslator.init();
+        CollisionTranslator.init();
         LocaleUtils.init();
         PotionMixRegistry.init();
         RecipeRegistry.init();
@@ -198,6 +206,7 @@ public class GeyserConnector {
         }
 
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
+        SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
         // https://github.com/GeyserMC/Geyser/issues/957
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
@@ -216,7 +225,6 @@ public class GeyserConnector {
 
         if (config.getMetrics().isEnabled()) {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
-            metrics.addCustomChart(new Metrics.SingleLineChart("servers", () -> 1));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> AuthType.getByName(config.getRemote().getAuthType()).toString().toLowerCase()));

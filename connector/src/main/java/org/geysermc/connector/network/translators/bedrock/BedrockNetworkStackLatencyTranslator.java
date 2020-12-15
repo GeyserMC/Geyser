@@ -34,6 +34,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.AttributeUtils;
+import org.geysermc.floodgate.util.DeviceOs;
 
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -46,9 +47,20 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
     @Override
     public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
+        long pingId;
+        // so apparently, as of 1.16.200
+        // PS4 divides the network stack latency timestamp FOR US!!!
+        // WTF
+        if (session.getClientData().getDeviceOs().equals(DeviceOs.PS4)) {
+            // Ignore the weird DeviceOS, our order is wrong and will be fixed in Floodgate 2.0
+            pingId = packet.getTimestamp();
+        } else {
+            pingId = packet.getTimestamp() / 1000;
+        }
+
+        // negative timestamps are used as hack to fix the url image loading bug
         if (packet.getTimestamp() > 0) {
-            // The client sends a timestamp back but it's rounded and therefore unreliable when we need the exact number
-            ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(session.getLastKeepAliveTimestamp());
+            ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(pingId);
             session.sendDownstreamPacket(keepAlivePacket);
             return;
         }

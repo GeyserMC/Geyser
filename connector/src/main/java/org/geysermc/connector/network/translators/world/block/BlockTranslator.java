@@ -71,6 +71,9 @@ public class BlockTranslator {
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
 
+    // The index of the collision data in collision.json
+    public static final Int2IntMap JAVA_RUNTIME_ID_TO_COLLISION_INDEX = new Int2IntOpenHashMap();
+
     /**
      * Java numeric ID to java unique identifier, used for block names in the statistics screen
      */
@@ -163,6 +166,11 @@ public class BlockTranslator {
             JsonNode toolTypeNode = entry.getValue().get("tool_type");
             if (toolTypeNode != null) {
                 JAVA_RUNTIME_ID_TO_TOOL_TYPE.put(javaRuntimeId, toolTypeNode.textValue());
+            }
+
+            JsonNode collisionIndexNode = entry.getValue().get("collision_index");
+            if (hardnessNode != null) {
+                JAVA_RUNTIME_ID_TO_COLLISION_INDEX.put(javaRuntimeId, collisionIndexNode.intValue());
             }
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);

@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.chat;
 
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.translation.TranslationRegistry;
+import net.kyori.adventure.translation.Translator;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -40,10 +40,10 @@ import java.util.regex.Pattern;
  * This class is used for mapping a translation key with the already loaded Java locale data
  * Used in MessageTranslator.java as part of the KyoriPowered/Adventure library
  */
-public class MinecraftTranslationRegistry implements TranslationRegistry {
+public class MinecraftTranslationRegistry implements Translator {
     @Override
     public @NonNull Key name() {
-        return Key.key("", "");
+        return Key.key("geyser", "minecraft_translations");
     }
 
     @Override
@@ -61,21 +61,16 @@ public class MinecraftTranslationRegistry implements TranslationRegistry {
         }
         m.appendTail(sb);
 
+        // Replace the `%x$s` with numbered inserts `{x}`
+        p = Pattern.compile("%([0-9]+)\\$s");
+        m = p.matcher(sb.toString());
+        sb = new StringBuffer();
+        while (m.find()) {
+            i = Integer.parseInt(m.group(1)) - 1;
+            m.appendReplacement(sb, "{" + i + "}");
+        }
+        m.appendTail(sb);
+
         return new MessageFormat(sb.toString(), locale);
-    }
-
-    @Override
-    public void defaultLocale(@NonNull Locale locale) {
-
-    }
-
-    @Override
-    public void register(@NonNull String key, @NonNull Locale locale, @NonNull MessageFormat format) {
-
-    }
-
-    @Override
-    public void unregister(@NonNull String key) {
-
     }
 }

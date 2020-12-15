@@ -37,6 +37,7 @@ import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.PillagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
 import org.geysermc.connector.entity.living.monster.raid.SpellcasterIllagerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 
 @Getter
 public enum EntityType {
@@ -99,7 +100,7 @@ public enum EntityType {
     ARMOR_STAND(ArmorStandEntity.class, 61, 1.975f, 0.5f),
     TRIPOD_CAMERA(Entity.class, 62, 0f),
     PLAYER(PlayerEntity.class, 63, 1.8f, 0.6f, 0.6f, 1.62f),
-    ITEM(ItemEntity.class, 64, 0.25f, 0.25f),
+    ITEM(ItemEntity.class, 64, 0.25f, 0.25f, 0.25f, 0.125f),
     PRIMED_TNT(TNTEntity.class, 65, 0.98f, 0.98f, 0.98f, 0f, "minecraft:tnt"),
     FALLING_BLOCK(FallingBlockEntity.class, 66, 0.98f, 0.98f),
     MOVING_BLOCK(Entity.class, 67, 0f),

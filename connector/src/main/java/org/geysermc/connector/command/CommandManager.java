@@ -31,9 +31,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.*;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class CommandManager {
 
@@ -52,6 +50,7 @@ public abstract class CommandManager {
         registerCommand(new OffhandCommand(connector, "offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
         registerCommand(new DumpCommand(connector, "dump", "geyser.commands.dump.desc", "geyser.command.dump"));
         registerCommand(new VersionCommand(connector, "version", "geyser.commands.version.desc", "geyser.command.version"));
+        registerCommand(new SettingsCommand(connector, "settings", "geyser.commands.settings.desc", "geyser.command.settings"));
         registerCommand(new StatisticsCommand(connector, "statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
     }
 
@@ -90,6 +89,13 @@ public abstract class CommandManager {
         }
 
         cmd.execute(sender, args);
+    }
+
+    /**
+     * @return a list of all subcommands under {@code /geyser}.
+     */
+    public List<String> getCommandNames() {
+        return Arrays.asList(connector.getCommandManager().getCommands().keySet().toArray(new String[0]));
     }
 
     /**
