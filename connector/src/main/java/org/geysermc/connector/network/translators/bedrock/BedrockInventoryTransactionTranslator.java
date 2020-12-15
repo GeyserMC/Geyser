@@ -39,6 +39,8 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.*;
@@ -69,6 +71,8 @@ import java.util.concurrent.TimeUnit;
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
 
     private static final float MAXIMUM_BLOCK_PLACING_DISTANCE = 64f;
+    private static final int CREATIVE_EYE_HEIGHT_PLACE_DISTANCE = 49;
+    private static final int SURVIVAL_EYE_HEIGHT_PLACE_DISTANCE = 36;
     private static final float MAXIMUM_BLOCK_DESTROYING_DISTANCE = 36f;
 
     @Override
@@ -100,19 +104,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.setLastInteractionTime(System.currentTimeMillis());
                         }
 
-                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
-                        /*
-                         * Checks to ensure that the range will be accepted by the server.
-                         * "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),
-                         * but how much a server will accept from the client maximum
-                         */
-                        if (!(session.getPlayerEntity().getPosition().sub(0, EntityType.PLAYER.getOffset(), 0)
-                                .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_PLACING_DISTANCE)) {
-                            // The client thinks that its blocks have been successfully placed. Restore the server's blocks instead.
-                            restoreCorrectBlock(session, blockPos);
-                            return;
-                        }
-
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
                         if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId()) &&
                                 session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
@@ -125,6 +116,46 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.sendDownstreamPacket(interactAtPacket);
                             break;
                         }
+
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
+                        /*
+                        Checks to ensure that the range will be accepted by the server.
+                        "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),
+                        but how much a server will accept from the client maximum
+                         */
+                        // CraftBukkit+ check - see https://github.com/PaperMC/Paper/blob/458db6206daae76327a64f4e2a17b67a7e38b426/Spigot-Server-Patches/0532-Move-range-check-for-block-placing-up.patch
+                        Vector3f playerPosition = session.getPlayerEntity().getPosition();
+                        EntityFlags flags = session.getPlayerEntity().getMetadata().getFlags();
+
+                        // Adjust position for current eye height
+                        if (flags.getFlag(EntityFlag.SNEAKING)) {
+                            playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 1.27f), 0);
+                        } else if (flags.getFlag(EntityFlag.SWIMMING) || flags.getFlag(EntityFlag.GLIDING) || flags.getFlag(EntityFlag.DAMAGE_NEARBY_MOBS)) {
+                            // Swimming, gliding, or using the trident spin attack
+                            playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.4f), 0);
+                        } else if (flags.getFlag(EntityFlag.SLEEPING)) {
+                            playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.2f), 0);
+                        } // else, we don't have to modify the position
+
+                        float diffX = playerPosition.getX() - packet.getBlockPosition().getX();
+                        float diffY = playerPosition.getY() - packet.getBlockPosition().getY();
+                        float diffZ = playerPosition.getZ() - packet.getBlockPosition().getZ();
+                        if (((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ)) >
+                                (session.getGameMode().equals(GameMode.CREATIVE) ? CREATIVE_EYE_HEIGHT_PLACE_DISTANCE : SURVIVAL_EYE_HEIGHT_PLACE_DISTANCE)) {
+                            restoreCorrectBlock(session, blockPos);
+                            return;
+                        }
+
+                        // Vanilla check
+                        if (!(session.getPlayerEntity().getPosition().sub(0, EntityType.PLAYER.getOffset(), 0)
+                                .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_PLACING_DISTANCE)) {
+                            // The client thinks that its blocks have been successfully placed. Restore the server's blocks instead.
+                            restoreCorrectBlock(session, blockPos);
+                            return;
+                        }
+                        /*
+                        Block place checks end - client is good to go
+                         */
 
                         ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(
                                 new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
