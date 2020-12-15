@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Charsets;
 import lombok.Getter;
-import org.geysermc.connector.utils.SkinProvider;
+import org.geysermc.connector.skin.SkinProvider;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
 import org.geysermc.floodgate.util.RawSkin;

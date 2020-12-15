@@ -56,9 +56,9 @@ public class SettingsCommand extends GeyserCommand {
                 }
             }
         }
-        if (session == null) return;
-        SettingsUtils.buildForm(session);
-        session.sendForm(session.getSettingsForm(), SettingsUtils.SETTINGS_FORM_ID);
+        if (session != null) {
+            session.sendForm(SettingsUtils.buildForm(session));
+        }
     }
 
     @Override
