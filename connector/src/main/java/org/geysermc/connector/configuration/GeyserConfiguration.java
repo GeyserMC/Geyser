@@ -71,6 +71,8 @@ public interface GeyserConfiguration {
 
     boolean isShowCooldown();
 
+    boolean isShowCoordinates();
+
     String getDefaultLocale();
 
     Path getFloodgateKeyPath();
