@@ -142,7 +142,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         float diffZ = playerPosition.getZ() - packet.getBlockPosition().getZ();
                         if (((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ)) >
                                 (session.getGameMode().equals(GameMode.CREATIVE) ? CREATIVE_EYE_HEIGHT_PLACE_DISTANCE : SURVIVAL_EYE_HEIGHT_PLACE_DISTANCE)) {
-                            restoreCorrectBlock(session, blockPos);
+                            restoreCorrectBlock(session, blockPos, packet);
                             return;
                         }
 
@@ -150,7 +150,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (!(session.getPlayerEntity().getPosition().sub(0, EntityType.PLAYER.getOffset(), 0)
                                 .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_PLACING_DISTANCE)) {
                             // The client thinks that its blocks have been successfully placed. Restore the server's blocks instead.
-                            restoreCorrectBlock(session, blockPos);
+                            restoreCorrectBlock(session, blockPos, packet);
                             return;
                         }
                         /*
@@ -234,11 +234,16 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setLastBlockPlacedId(null);
                         session.setLastBlockPlacePosition(null);
 
-                        // Same deal with block placing as above.
+                        // Same deal with vanilla block placing as above.
                         // No idea what's going on with the Y coordinate here
-                        if (!(session.getPlayerEntity().getPosition().sub(0, (EntityType.PLAYER.getOffset() - 1.5f), 0)
-                                .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_DESTROYING_DISTANCE)) {
-                            restoreCorrectBlock(session, packet.getBlockPosition());
+                        playerPosition = session.getPlayerEntity().getPosition();
+                        Vector3f floatBlockPosition = packet.getBlockPosition().toFloat();
+                        diffX = playerPosition.getX() - (floatBlockPosition.getX() + 0.5f);
+                        diffY = (playerPosition.getY() - EntityType.PLAYER.getOffset()) - (floatBlockPosition.getY() + 0.5f) + 1.5f;
+                        diffZ = playerPosition.getZ() - (floatBlockPosition.getZ() + 0.5f);
+                        float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
+                        if (distanceSquared > MAXIMUM_BLOCK_DESTROYING_DISTANCE) {
+                            restoreCorrectBlock(session, packet.getBlockPosition(), packet);
                             return;
                         }
 
@@ -329,7 +334,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
      * @param session the session of the Bedrock client
      * @param blockPos the block position to restore
      */
-    private void restoreCorrectBlock(GeyserSession session, Vector3i blockPos) {
+    private void restoreCorrectBlock(GeyserSession session, Vector3i blockPos, InventoryTransactionPacket packet) {
         int javaBlockState = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
@@ -344,5 +349,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         updateWaterPacket.setRuntimeId(BlockTranslator.isWaterlogged(javaBlockState) ? BlockTranslator.BEDROCK_WATER_ID : BlockTranslator.BEDROCK_AIR_ID);
         updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(updateWaterPacket);
+
+        // Reset the item in hand to prevent "missing" blocks
+        InventorySlotPacket slotPacket = new InventorySlotPacket();
+        slotPacket.setContainerId(ContainerId.INVENTORY);
+        slotPacket.setSlot(packet.getHotbarSlot());
+        slotPacket.setItem(packet.getItemInHand());
+        session.sendUpstreamPacket(slotPacket);
     }
 }
