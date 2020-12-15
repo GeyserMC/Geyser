@@ -25,26 +25,32 @@
 
 package org.geysermc.connector.network.translators.chat;
 
+import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class MessageTranslator {
 
     // These are used for handling the translations of the messages
     private static final TranslatableComponentRenderer<Locale> RENDERER = TranslatableComponentRenderer.usingTranslationSource(new MinecraftTranslationRegistry());
 
-    // Construct our own {@link GsonComponentSerializer} encase we need to change anything
+    // Construct our own {@link GsonComponentSerializer} since we need to change a setting
     private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.builder()
+            // Specify that we may be expecting legacy hover events
+            .legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get())
             .build();
 
     // Store team colors for player names
@@ -61,6 +67,9 @@ public class MessageTranslator {
         TEAM_FORMATS.put(TeamColor.BOLD, TextDecoration.BOLD);
         TEAM_FORMATS.put(TeamColor.STRIKETHROUGH, TextDecoration.STRIKETHROUGH);
         TEAM_FORMATS.put(TeamColor.ITALIC, TextDecoration.ITALIC);
+
+        // Tell MCProtocolLib to use our serializer
+        DefaultComponentSerializer.set(GSON_SERIALIZER);
     }
 
     /**
