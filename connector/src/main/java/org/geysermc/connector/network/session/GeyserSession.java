@@ -230,6 +230,17 @@ public class GeyserSession implements CommandSender {
     private long lastHitTime;
 
     /**
+     * Saves if the client is steering left on a boat.
+     */
+    @Setter
+    private boolean steeringLeft;
+    /**
+     * Saves if the client is steering right on a boat.
+     */
+    @Setter
+    private boolean steeringRight;
+
+    /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
      * See https://github.com/GeyserMC/Geyser/issues/503 for context.
      */
