@@ -32,7 +32,7 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
 import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
-import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
@@ -44,7 +44,7 @@ public class CraftingInventoryTranslator extends BaseInventoryTranslator {
         super(10);
         int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:crafting_table");
         this.holder = new BlockInventoryHolder(BlockTranslator.getBedrockBlockId(javaBlockState), ContainerType.WORKBENCH);
-        this.updater = new ContainerInventoryUpdater();
+        this.updater = new CursorInventoryUpdater();
     }
 
     @Override

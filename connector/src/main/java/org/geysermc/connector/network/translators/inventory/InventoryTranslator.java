@@ -295,21 +295,28 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.RECIPE_ID;
                     recipeId = craftAction.getRecipeNetworkId();
-                    System.out.println(session.getCraftingRecipes().get(recipeId));
+                    //System.out.println(session.getCraftingRecipes().get(recipeId));
                     autoCraft = false;
                     break;
                 }
-                /*case CRAFT_RECIPE_AUTO: {
-                    AutoCraftRecipeStackRequestActionData autoCraftAction = (AutoCraftRecipeStackRequestActionData) action;
-                    if (craftState != CraftState.START) {
-                        return rejectRequest(request);
-                    }
-                    craftState = CraftState.RECIPE_ID;
-                    recipeId = autoCraftAction.getRecipeNetworkId();
-                    autoCraft = true;
-                    //TODO: reject transaction if crafting grid is not clear
-                    break;
-                }*/
+//                case CRAFT_RECIPE_AUTO: {
+//                    AutoCraftRecipeStackRequestActionData autoCraftAction = (AutoCraftRecipeStackRequestActionData) action;
+//                    if (craftState != CraftState.START) {
+//                        return rejectRequest(request);
+//                    }
+//                    craftState = CraftState.RECIPE_ID;
+//                    recipeId = autoCraftAction.getRecipeNetworkId();
+//                    Recipe recipe = session.getCraftingRecipes().get(recipeId);
+//                    System.out.println(recipe);
+//                    if (recipe == null) {
+//                        return rejectRequest(request);
+//                    }
+////                    ClientPrepareCraftingGridPacket packet = new ClientPrepareCraftingGridPacket(session.getOpenInventory().getId(), recipe.getIdentifier(), true);
+////                    session.sendDownstreamPacket(packet);
+//                    autoCraft = true;
+//                    //TODO: reject transaction if crafting grid is not clear
+//                    break;
+//                }
                 case CRAFT_RESULTS_DEPRECATED: {
                     CraftResultsDeprecatedStackRequestActionData deprecatedCraftAction = (CraftResultsDeprecatedStackRequestActionData) action;
                     if (craftState != CraftState.RECIPE_ID) {
