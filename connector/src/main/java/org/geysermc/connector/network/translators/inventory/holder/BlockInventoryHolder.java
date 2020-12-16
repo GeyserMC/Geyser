@@ -38,6 +38,9 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
+/**
+ * Manages the fake block we implement for each inventory.
+ */
 @AllArgsConstructor
 public class BlockInventoryHolder extends InventoryHolder {
     private final int blockId;

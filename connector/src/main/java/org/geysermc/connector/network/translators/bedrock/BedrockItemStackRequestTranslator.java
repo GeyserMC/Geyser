@@ -32,7 +32,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = ItemStackRequestPacket.class)
 public class BedrockItemStackRequestTranslator extends PacketTranslator<ItemStackRequestPacket> {

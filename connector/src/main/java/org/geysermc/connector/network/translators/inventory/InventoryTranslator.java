@@ -58,9 +58,9 @@ public abstract class InventoryTranslator {
             put(WindowType.GENERIC_9X4, new DoubleChestInventoryTranslator(36));
             put(WindowType.GENERIC_9X5, new DoubleChestInventoryTranslator(45));
             put(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
+            put(WindowType.CRAFTING, new CraftingInventoryTranslator());
             /*put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
             put(WindowType.ANVIL, new AnvilInventoryTranslator());
-            put(WindowType.CRAFTING, new CraftingInventoryTranslator());
             put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());*/
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
             /*put(WindowType.SMITHING, new SmithingInventoryTranslator());
@@ -295,7 +295,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.RECIPE_ID;
                     recipeId = craftAction.getRecipeNetworkId();
-                    System.out.println(session.getCraftingRecipes().get(recipeId).toString());
+                    System.out.println(session.getCraftingRecipes().get(recipeId));
                     autoCraft = false;
                     break;
                 }
