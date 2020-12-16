@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.floodgate.util.DeviceOS;
 
 /**
  * Used to send the keep alive packet back to the server
@@ -39,6 +40,16 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
     @Override
     public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
-        session.sendDownstreamPacket(new ClientKeepAlivePacket(packet.getTimestamp() / 1000));
+        long pingId;
+        // so apparently, as of 1.16.200
+        // PS4 divides the network stack latency timestamp FOR US!!!
+        // WTF
+        if (session.getClientData().getDeviceOS().equals(DeviceOS.NX)) {
+            // Ignore the weird DeviceOS, our order is wrong and will be fixed in Floodgate 2.0
+            pingId = packet.getTimestamp();
+        } else {
+            pingId = packet.getTimestamp() / 1000;
+        }
+        session.sendDownstreamPacket(new ClientKeepAlivePacket(pingId));
     }
 }
