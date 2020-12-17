@@ -52,9 +52,18 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
         // Don't send command suggestions if they are disabled
         if (!session.getConnector().getConfig().isCommandSuggestions()) {
-            session.getConnector().getLogger().debug("Not sending command suggestions as they are disabled.");
+            session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
+
+            // Only send the `help` command so Bedrock doesn't override it with its own, built-in help command.
+            CommandEnumData aliases = new CommandEnumData( "helpAliases", new String[] { "help" }, false);
+            CommandData helpCommand = new CommandData("help", "", Collections.emptyList(), (byte) 0, aliases, new CommandParamData[0][0]);
+
+            AvailableCommandsPacket helpPacket = new AvailableCommandsPacket();
+            helpPacket.getCommands().add(helpCommand);
+            session.sendUpstreamPacket(helpPacket);
             return;
         }
+
         List<CommandData> commandData = new ArrayList<>();
         Int2ObjectMap<String> commands = new Int2ObjectOpenHashMap<>();
         Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
@@ -82,9 +91,6 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             commands.put(nodeIndex, node.getName());
         }
 
-        // The command flags, not sure what these do apart from break things
-        List<CommandData.Flag> flags = new ArrayList<>();
-
         // Loop through all the found commands
         for (int commandID : commands.keySet()) {
             String commandName = commands.get(commandID);
@@ -96,15 +102,13 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             CommandParamData[][] params = getParams(packet.getNodes()[commandID], packet.getNodes());
 
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, session.getConnector().getCommandManager().getDescription(commandName), flags, (byte) 0, aliases, params);
+            CommandData data = new CommandData(commandName, session.getConnector().getCommandManager().getDescription(commandName), Collections.emptyList(), (byte) 0, aliases, params);
             commandData.add(data);
         }
 
         // Add our commands to the AvailableCommandsPacket for the bedrock client
         AvailableCommandsPacket availableCommandsPacket = new AvailableCommandsPacket();
-        for (CommandData data : commandData) {
-            availableCommandsPacket.getCommands().add(data);
-        }
+        availableCommandsPacket.getCommands().addAll(commandData);
 
         GeyserConnector.getInstance().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
 
