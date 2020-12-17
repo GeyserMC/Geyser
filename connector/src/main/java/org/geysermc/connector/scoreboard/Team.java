@@ -66,7 +66,7 @@ public final class Team {
         }
         // we don't have to change the updateType,
         // because the scores itself need updating, not the team
-        for (Objective objective : scoreboard.getObjectives().values()) {
+        for (Objective objective : scoreboard.getObjectives()) {
             for (String addedEntity : added) {
                 Score score = objective.getScores().get(addedEntity);
                 if (score != null) {
@@ -169,6 +169,10 @@ public final class Team {
     }
 
     public UpdateType getUpdateType() {
+        return currentData.updateType;
+    }
+
+    public UpdateType getCachedUpdateType() {
         return cachedData != null ? cachedData.updateType : currentData.updateType;
     }
 
