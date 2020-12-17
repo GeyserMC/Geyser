@@ -64,6 +64,15 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
             session.setRaining(false);
         }
 
+        if (session.isThunder()) {
+            LevelEventPacket stopThunderPacket = new LevelEventPacket();
+            stopThunderPacket.setType(LevelEventType.STOP_THUNDERSTORM);
+            stopThunderPacket.setData(0);
+            stopThunderPacket.setPosition(Vector3f.ZERO);
+            session.sendUpstreamPacket(stopThunderPacket);
+            session.setThunder(false);
+        }
+
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (!session.getDimension().equals(newDimension) || !packet.getWorldName().equals(session.getWorldName())) {
             if (!packet.getWorldName().equals(session.getWorldName()) && session.getDimension().equals(newDimension)) {
