@@ -43,7 +43,6 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockUtils;
 
@@ -157,14 +156,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case DIMENSION_CHANGE_SUCCESS:
-                if (session.getPendingDimSwitches().decrementAndGet() == 0) {
-                    //sometimes the client doesn't feel like loading
-                    PlayStatusPacket spawnPacket = new PlayStatusPacket();
-                    spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-                    session.sendUpstreamPacket(spawnPacket);
-                    entity.updateBedrockAttributes(session);
-                    session.getEntityCache().updateBossBars();
-                }
+                //sometimes the client doesn't feel like loading
+                PlayStatusPacket spawnPacket = new PlayStatusPacket();
+                spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+                session.sendUpstreamPacket(spawnPacket);
+                entity.updateBedrockAttributes(session);
+                session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
                 session.setJumping(true);

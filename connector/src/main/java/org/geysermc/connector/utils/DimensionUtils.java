@@ -57,8 +57,6 @@ public class DimensionUtils {
     public static void switchDimension(GeyserSession session, String javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
-        if (javaDimension.equals(session.getDimension()))
-            return;
 
         if (session.getMovementSendIfIdle() != null) {
             session.getMovementSendIfIdle().cancel(true);
@@ -67,9 +65,6 @@ public class DimensionUtils {
         session.getEntityCache().removeAllEntities();
         session.getItemFrameCache().clear();
         session.getSkullCache().clear();
-        if (session.getPendingDimSwitches().getAndIncrement() > 0) {
-            ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
-        }
 
         Vector3i pos = Vector3i.from(0, Short.MAX_VALUE, 0);
 
@@ -149,5 +144,20 @@ public class DimensionUtils {
     public static void changeBedrockNetherId(boolean isAboveNetherBedrockBuilding) {
         // Change dimension ID to the End to allow for building above Bedrock
         BEDROCK_NETHER_ID = isAboveNetherBedrockBuilding ? 2 : 1;
+    }
+
+    /**
+     * Gets the fake dimension we send clients to so we aren't switching to the same dimension without an additional
+     * dimension switch.
+     *
+     * @param currentDimension the current
+     * @return the fake dimension to transfer to
+     */
+    public static String getFakeDim(String currentDimension, String newDimension) {
+        if (BEDROCK_NETHER_ID == 2) {
+            // Prevents rare instances of Bedrock locking up
+            return javaToBedrock(newDimension) == 2 ? OVERWORLD : NETHER;
+        }
+        return currentDimension.equals(OVERWORLD) ? NETHER : OVERWORLD;
     }
 }
