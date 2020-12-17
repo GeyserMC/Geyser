@@ -54,12 +54,8 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
         if (!session.getConnector().getConfig().isCommandSuggestions()) {
             session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
 
-            // Only send the `help` command so Bedrock doesn't override it with its own, built-in help command.
-            CommandEnumData aliases = new CommandEnumData("helpAliases", new String[] { "help" }, false);
-            CommandData helpCommand = new CommandData("help", "", Collections.emptyList(), (byte) 0, aliases, new CommandParamData[0][0]);
-
+            // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.
             AvailableCommandsPacket helpPacket = new AvailableCommandsPacket();
-            helpPacket.getCommands().add(helpCommand);
             session.sendUpstreamPacket(helpPacket);
             return;
         }
@@ -91,6 +87,9 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             commands.put(nodeIndex, node.getName());
         }
 
+        // The command flags, not sure what these do apart from break things
+        List<CommandData.Flag> flags = Collections.emptyList();
+
         // Loop through all the found commands
         for (int commandID : commands.keySet()) {
             String commandName = commands.get(commandID);
@@ -102,7 +101,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             CommandParamData[][] params = getParams(packet.getNodes()[commandID], packet.getNodes());
 
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, session.getConnector().getCommandManager().getDescription(commandName), Collections.emptyList(), (byte) 0, aliases, params);
+            CommandData data = new CommandData(commandName, session.getConnector().getCommandManager().getDescription(commandName), flags, (byte) 0, aliases, params);
             commandData.add(data);
         }
 
