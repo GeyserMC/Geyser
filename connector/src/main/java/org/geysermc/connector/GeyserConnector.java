@@ -339,14 +339,14 @@ public class GeyserConnector {
     }
 
     /**
-     * Gets a player by their Xbox UUID
+     * Gets a player by their Xbox user identifier
      *
-     * @param xboxUuid the Xbox UUID
-     * @return the player or <code>null</code> if there is no player online with this XUID
+     * @param xboxUuid the Xbox user identifier
+     * @return the player or <code>null</code> if there is no player online with this xuid
      */
-    public GeyserSession getPlayerByXboxUuid(String xboxUuid) {
+    public GeyserSession getPlayerByXuid(String xuid) {
         for (GeyserSession session : players) {
-            if (session.getAuthData() != null && session.getAuthData().getXboxUUID().equals(xboxUuid)) {
+            if (session.getAuthData() != null && session.getAuthData().getXboxUUID().equals(xuid)) {
                 return session;
             }
         }
