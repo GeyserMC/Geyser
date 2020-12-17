@@ -55,7 +55,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
 
             // Only send the `help` command so Bedrock doesn't override it with its own, built-in help command.
-            CommandEnumData aliases = new CommandEnumData( "helpAliases", new String[] { "help" }, false);
+            CommandEnumData aliases = new CommandEnumData("helpAliases", new String[] { "help" }, false);
             CommandData helpCommand = new CommandData("help", "", Collections.emptyList(), (byte) 0, aliases, new CommandParamData[0][0]);
 
             AvailableCommandsPacket helpPacket = new AvailableCommandsPacket();
@@ -96,7 +96,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             String commandName = commands.get(commandID);
 
             // Create a basic alias
-            CommandEnumData aliases = new CommandEnumData( commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
+            CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
 
             // Get and parse all params
             CommandParamData[][] params = getParams(packet.getNodes()[commandID], packet.getNodes());
