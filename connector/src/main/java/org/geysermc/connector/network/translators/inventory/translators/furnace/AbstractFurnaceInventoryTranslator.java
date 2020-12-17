@@ -37,7 +37,7 @@ import org.geysermc.connector.network.translators.inventory.updater.ContainerInv
 
 public abstract class AbstractFurnaceInventoryTranslator extends AbstractBlockInventoryTranslator {
     AbstractFurnaceInventoryTranslator(String javaBlockIdentifier, ContainerType containerType) {
-        super(3, javaBlockIdentifier, containerType, new ContainerInventoryUpdater());
+        super(3, javaBlockIdentifier, containerType, ContainerInventoryUpdater.INSTANCE);
     }
 
     @Override

@@ -32,6 +32,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 public class CursorInventoryUpdater extends InventoryUpdater {
+    public static final CursorInventoryUpdater INSTANCE = new CursorInventoryUpdater();
     
     @Override
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {

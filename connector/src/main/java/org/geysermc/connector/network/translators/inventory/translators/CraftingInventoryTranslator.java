@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.inventory.updater.CursorInvent
 
 public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslator {
     public CraftingInventoryTranslator() {
-        super(10, "minecraft:crafting_table", ContainerType.WORKBENCH, new CursorInventoryUpdater());
+        super(10, "minecraft:crafting_table", ContainerType.WORKBENCH, CursorInventoryUpdater.INSTANCE);
     }
 
     @Override
