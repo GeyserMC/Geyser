@@ -342,7 +342,7 @@ public class GeyserConnector {
     /**
      * Gets a player by their Xbox user identifier
      *
-     * @param xboxUuid the Xbox user identifier
+     * @param xuid the Xbox user identifier
      * @return the player or <code>null</code> if there is no player online with this xuid
      */
     public GeyserSession getPlayerByXuid(String xuid) {
