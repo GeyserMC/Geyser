@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory;
+package org.geysermc.connector.network.translators.inventory.translators.chest;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;

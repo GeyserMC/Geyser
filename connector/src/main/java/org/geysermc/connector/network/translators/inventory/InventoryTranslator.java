@@ -40,6 +40,16 @@ import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.click.Click;
 import org.geysermc.connector.network.translators.inventory.click.ClickPlan;
+import org.geysermc.connector.network.translators.inventory.translators.CraftingInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.MerchantInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.PlayerInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.chest.DoubleChestInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.chest.SingleChestInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.furnace.BlastFurnaceInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.furnace.FurnaceInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.furnace.SmokerInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
@@ -63,19 +73,18 @@ public abstract class InventoryTranslator {
             put(WindowType.ANVIL, new AnvilInventoryTranslator());
             put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());*/
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
-            /*put(WindowType.SMITHING, new SmithingInventoryTranslator());
+            //put(WindowType.SMITHING, new SmithingInventoryTranslator());
             //put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
 
-            InventoryTranslator furnace = new FurnaceInventoryTranslator();
-            put(WindowType.FURNACE, furnace);
-            put(WindowType.BLAST_FURNACE, furnace);
-            put(WindowType.SMOKER, furnace);
+            put(WindowType.FURNACE, new FurnaceInventoryTranslator());
+            put(WindowType.BLAST_FURNACE, new BlastFurnaceInventoryTranslator());
+            put(WindowType.SMOKER, new SmokerInventoryTranslator());
 
             InventoryUpdater containerUpdater = new ContainerInventoryUpdater();
-            put(WindowType.GENERIC_3X3, new BlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, containerUpdater));
-            put(WindowType.HOPPER, new BlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, containerUpdater));
-            put(WindowType.SHULKER_BOX, new BlockInventoryTranslator(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, containerUpdater));
-            //put(WindowType.BEACON, new BlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO*/
+            //put(WindowType.GENERIC_3X3, new AbstractBlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, containerUpdater));
+            //put(WindowType.HOPPER, new AbstractBlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, containerUpdater));
+            //put(WindowType.SHULKER_BOX, new AbstractBlockInventoryTranslator(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, containerUpdater));
+            //put(WindowType.BEACON, new AbstractBlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO*/
         }
     };
 

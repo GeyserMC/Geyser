@@ -43,11 +43,9 @@ import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.chest.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 import java.util.Collections;
 import java.util.Objects;

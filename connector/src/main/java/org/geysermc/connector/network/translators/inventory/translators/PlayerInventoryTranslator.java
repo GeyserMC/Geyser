@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory;
+package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
@@ -34,6 +34,9 @@ import com.nukkitx.protocol.bedrock.packet.ItemStackRequestPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.SlotType;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;

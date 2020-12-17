@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory;
+package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -32,9 +32,12 @@ import org.geysermc.connector.inventory.Container;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.SlotType;
 
 public abstract class BaseInventoryTranslator extends InventoryTranslator {
-    BaseInventoryTranslator(int size) {
+    public BaseInventoryTranslator(int size) {
         super(size);
     }
 

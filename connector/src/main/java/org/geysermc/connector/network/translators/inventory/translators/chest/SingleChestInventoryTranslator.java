@@ -23,37 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory;
+package org.geysermc.connector.network.translators.inventory.translators.chest;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.updater.ChestInventoryUpdater;
-import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
+import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
-    private final InventoryUpdater updater;
+public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
+    private final InventoryHolder holder;
 
-    public ChestInventoryTranslator(int size, int paddedSize) {
-        super(size);
-        this.updater = new ChestInventoryUpdater(paddedSize);
+    public SingleChestInventoryTranslator(int size) {
+        super(size, 27);
+        int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
+        this.holder = new BlockInventoryHolder(BlockTranslator.getBedrockBlockId(javaBlockState), ContainerType.CONTAINER);
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        updater.updateInventory(this, session, inventory);
+    public void prepareInventory(GeyserSession session, Inventory inventory) {
+        holder.prepareInventory(this, session, inventory);
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        updater.updateSlot(this, session, inventory, slot);
+    public void openInventory(GeyserSession session, Inventory inventory) {
+        holder.openInventory(this, session, inventory);
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
-        if (javaSlot < this.size) {
-            return new BedrockContainerSlot(ContainerSlotType.CONTAINER, javaSlot);
-        }
-        return super.javaSlotToBedrockContainer(javaSlot);
+    public void closeInventory(GeyserSession session, Inventory inventory) {
+        holder.closeInventory(this, session, inventory);
     }
 }
