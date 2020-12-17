@@ -153,7 +153,7 @@ public class DimensionUtils {
      * @param currentDimension the current
      * @return the fake dimension to transfer to
      */
-    public static String getFakeDim(String currentDimension, String newDimension) {
+    public static String getTemporaryDimension(String currentDimension, String newDimension) {
         if (BEDROCK_NETHER_ID == 2) {
             // Prevents rare instances of Bedrock locking up
             return javaToBedrock(newDimension) == 2 ? OVERWORLD : NETHER;

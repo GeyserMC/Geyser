@@ -55,7 +55,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         // are swapping servers
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (session.isSpawned()) {
-            String fakeDim = DimensionUtils.getFakeDim(session.getDimension(), newDimension);
+            String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
             DimensionUtils.switchDimension(session, fakeDim);
 
             session.getWorldCache().removeScoreboard();

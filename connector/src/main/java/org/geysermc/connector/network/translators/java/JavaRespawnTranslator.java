@@ -77,7 +77,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         if (!session.getDimension().equals(newDimension) || !packet.getWorldName().equals(session.getWorldName())) {
             if (!packet.getWorldName().equals(session.getWorldName()) && session.getDimension().equals(newDimension)) {
                 // Switching to a new world (based off the world name change); send a fake dimension change
-                String fakeDim = DimensionUtils.getFakeDim(session.getDimension(), newDimension);
+                String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
                 DimensionUtils.switchDimension(session, fakeDim);
             }
             session.setWorldName(packet.getWorldName());
