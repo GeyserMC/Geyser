@@ -147,10 +147,11 @@ public class DimensionUtils {
     }
 
     /**
-     * Gets the fake dimension we send clients to so we aren't switching to the same dimension without an additional
+     * Gets the fake, temporary dimension we send clients to so we aren't switching to the same dimension without an additional
      * dimension switch.
      *
-     * @param currentDimension the current
+     * @param currentDimension the current dimension of the player
+     * @param newDimension the new dimension that the player will be transferred to
      * @return the fake dimension to transfer to
      */
     public static String getTemporaryDimension(String currentDimension, String newDimension) {
