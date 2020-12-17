@@ -55,8 +55,8 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
 
             // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.
-            AvailableCommandsPacket helpPacket = new AvailableCommandsPacket();
-            session.sendUpstreamPacket(helpPacket);
+            AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
+            session.sendUpstreamPacket(emptyPacket);
             return;
         }
 
