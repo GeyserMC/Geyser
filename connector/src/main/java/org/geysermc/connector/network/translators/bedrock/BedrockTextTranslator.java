@@ -38,7 +38,7 @@ public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
 
     @Override
     public void translate(TextPacket packet, GeyserSession session) {
-        String message = packet.getMessage().replaceAll("^\\.", "/").trim();
+        String message = packet.getMessage();
 
         if (MessageTranslator.isTooLong(message, session)) {
             return;

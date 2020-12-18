@@ -36,8 +36,14 @@ public final class Score {
     private final String name;
     private ScoreInfo cachedInfo;
 
-    private ScoreData currentData;
-    private ScoreData cachedData;
+    /**
+     * Changes that have been made since the last cached data.
+     */
+    private Score.ScoreData currentData;
+    /**
+     * The data that is currently displayed to the Bedrock client.
+     */
+    private Score.ScoreData cachedData;
 
     public Score(long id, String name) {
         this.id = id;
@@ -79,7 +85,7 @@ public final class Score {
     }
 
     public UpdateType getUpdateType() {
-        return cachedData != null ? cachedData.updateType : currentData.updateType;
+        return currentData.updateType;
     }
 
     public Score setUpdateType(UpdateType updateType) {

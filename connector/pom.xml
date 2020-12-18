@@ -153,19 +153,25 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
-            <version>4.2.0</version>
+            <version>4.3.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-gson</artifactId>
-            <version>4.2.0</version>
+            <version>4.3.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>4.2.0</version>
+            <version>4.3.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-gson-legacy-impl</artifactId>
+            <version>4.3.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -230,8 +236,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token>VERSION = ".*"</token>
-                                    <value>VERSION = "${project.version} (git-${git.branch}-${git.commit.id.abbrev})"</value>
+                                    <token>String VERSION = ".*"</token>
+                                    <value>String VERSION = "${project.version} (" + GIT_VERSION + ")"</value>
+                                </replacement>
+                                <replacement>
+                                    <token>String GIT_VERSION = ".*"</token>
+                                    <value>String GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
@@ -249,8 +259,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token>VERSION = ".*"</token>
-                                    <value>VERSION = "DEV"</value>
+                                    <token>String VERSION = ".*"</token>
+                                    <value>String VERSION = "DEV"</value>
+                                </replacement>
+                                <replacement>
+                                    <token>String GIT_VERSION = ".*"</token>
+                                    <value>String GIT_VERSION = "DEV"</value>
                                 </replacement>
                             </replacements>
                         </configuration>

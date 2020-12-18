@@ -210,12 +210,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private long lastWindowCloseTime = 0;
 
-    /**
-     * Saves the timestamp of the last keep alive packet
-     */
-    @Setter
-    private long lastKeepAliveTimestamp = 0;
-
     @Setter
     private VillagerTrade[] villagerTrades;
     @Setter
@@ -236,6 +230,17 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private long lastHitTime;
+
+    /**
+     * Saves if the client is steering left on a boat.
+     */
+    @Setter
+    private boolean steeringLeft;
+    /**
+     * Saves if the client is steering right on a boat.
+     */
+    @Setter
+    private boolean steeringRight;
 
     /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
@@ -406,6 +411,8 @@ public class GeyserSession implements CommandSender {
         // Don't let the client modify the inventory on death
         // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
+        // Ensure client doesn't try and do anything funky; the server handles this for us
+        gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -687,7 +694,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLightningLevel(0);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", true));
+        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", connector.getConfig().isShowCoordinates()));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());
