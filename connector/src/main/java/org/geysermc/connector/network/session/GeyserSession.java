@@ -250,6 +250,12 @@ public class GeyserSession implements CommandSender {
     @Setter
     private ScheduledFuture<?> movementSendIfIdle;
 
+    /**
+     * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
+     */
+    @Setter
+    private boolean daylightCycle = true;
+
     private boolean reducedDebugInfo = false;
 
     @Setter
