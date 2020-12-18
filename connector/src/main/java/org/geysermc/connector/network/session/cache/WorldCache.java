@@ -66,12 +66,17 @@ public class WorldCache {
     }
 
     /**
-     * Tell the client to hide or show the coordinates
+     * Tell the client to hide or show the coordinates. This doesn't do anything if <code>show-coordinates</code>
+     * is disabled in the Geyser configuration.
      *
      * @param value True to show, false to hide
      */
     public void setShowCoordinates(boolean value) {
-        showCoordinates = value;
-        session.sendGameRule("showcoordinates", value);
+        boolean geyserShowCoordinates = session.getConnector().getConfig().isShowCoordinates();
+        showCoordinates = geyserShowCoordinates && value;
+        if (geyserShowCoordinates) {
+            // Don't send an update if show coordinates aren't allowed to be shown
+            session.sendGameRule("showcoordinates", value);
+        }
     }
 }
