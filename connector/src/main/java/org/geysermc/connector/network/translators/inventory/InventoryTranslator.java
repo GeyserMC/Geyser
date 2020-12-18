@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -67,9 +68,9 @@ public abstract class InventoryTranslator {
             put(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
             put(WindowType.CRAFTING, new CraftingInventoryTranslator());
             put(WindowType.SHULKER_BOX, new ShulkerInventoryTranslator());
-            /*put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
-            put(WindowType.ANVIL, new AnvilInventoryTranslator());
-            put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());*/
+            put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
+            //put(WindowType.ANVIL, new AnvilInventoryTranslator());
+            //put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
             //put(WindowType.SMITHING, new SmithingInventoryTranslator());
             //put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
@@ -81,6 +82,11 @@ public abstract class InventoryTranslator {
             put(WindowType.GENERIC_3X3, new GenericBlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER));
             put(WindowType.HOPPER, new GenericBlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER));
             //put(WindowType.BEACON, new AbstractBlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO*/
+
+            //put(WindowType.CARTOGRAPHY
+            //put(WindowType.STONECUTTER
+            //put(WindowType.LOOM
+            //put(WindowType.
         }
     };
 
@@ -129,8 +135,12 @@ public abstract class InventoryTranslator {
                 case TAKE:
                 case PLACE: {
                     TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
-                    if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination())))
+                    if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
+                        session.getConnector().getLogger().error("DEBUG: About to reject request.");
+                        session.getConnector().getLogger().error("Source: " + transferAction.getSource().toString() + " Result: " + checkNetId(session, inventory, transferAction.getSource()));
+                        session.getConnector().getLogger().error("Destination: " + transferAction.getDestination().toString() + " Result: " + checkNetId(session, inventory, transferAction.getDestination()));
                         return rejectRequest(request);
+                    }
 
                     if (isCursor(transferAction.getSource()) && isCursor(transferAction.getDestination())) { //???
                         return rejectRequest(request);
@@ -272,6 +282,30 @@ public abstract class InventoryTranslator {
                 case CRAFT_CREATIVE: {
                     CraftCreativeStackRequestActionData creativeAction = (CraftCreativeStackRequestActionData) action;
                     System.out.println(creativeAction.getCreativeItemNetworkId());
+                }
+                case DESTROY: {
+                    //TODO: Yeah this doesn't work yet.
+
+                    // Only called when a creative client wants to destroy an item... I think - Camotoy
+                    DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
+                    if (session.getGameMode() == GameMode.CREATIVE) {
+                        if (isCursor(destroyAction.getSource())) {
+                            session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+                            return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
+                        } else {
+                            int javaSlot = bedrockSlotToJava(destroyAction.getSource());
+                            inventory.setItem(javaSlot, GeyserItemStack.EMPTY);
+                            ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
+                                    javaSlot,
+                                    new ItemStack(0)
+                            );
+                            session.sendDownstreamPacket(creativeActionPacket);
+                            Set<Integer> affectedSlots = Collections.singleton(javaSlot);
+                            return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
+                        }
+                    } else {
+                        return rejectRequest(request);
+                    }
                 }
                 default:
                     return rejectRequest(request);
