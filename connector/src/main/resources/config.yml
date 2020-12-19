@@ -23,6 +23,14 @@ bedrock:
   motd2: "Another Geyser server."
   # The Server Name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.
   server-name: "Geyser"
+  # Whether to enable PROXY protocol or not for clients. You DO NOT WANT this feature unless you run UDP reverse proxy
+  # in front of your Geyser instance.
+  enable-proxy-protocol: false
+  # A list of allowed PROXY protocol speaking proxy IP addresses/subnets. Only effective when "enable-proxy-protocol" is enabled, and
+  # should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
+  # Keeping this list empty means there is no IP address whitelist.
+  # Both IP addresses and subnets are supported.
+  #proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16" ]
 remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,
