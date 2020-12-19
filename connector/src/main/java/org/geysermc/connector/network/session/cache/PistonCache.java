@@ -51,9 +51,14 @@ public class PistonCache {
 
     @Getter @Setter
     private Vector3d playerDisplacement = Vector3d.ZERO;
-    private Vector3d lastPlayerDisplacement = Vector3d.ZERO;
     @Getter @Setter
     private Vector3f playerMotion = Vector3f.ZERO;
+
+    /**
+     * Stores whether a player has/will collide with any moving blocks.
+     */
+    @Getter @Setter
+    private boolean playerCollided = false;
 
     private long lastMotionPacket;
 
@@ -76,7 +81,6 @@ public class PistonCache {
         resetPlayerMovement();
 
         if (session.isClosed() || pistons.isEmpty()) {
-            lastPlayerDisplacement = Vector3d.ZERO;
             updater.cancel(false);
             return;
         }
@@ -88,8 +92,8 @@ public class PistonCache {
     }
 
     public void resetPlayerMovement() {
-        lastPlayerDisplacement = playerDisplacement;
         playerDisplacement = Vector3d.ZERO;
+        playerCollided = false;
         playerMotion = Vector3f.ZERO;
     }
 
@@ -157,6 +161,6 @@ public class PistonCache {
      * @return True if the packet should be canceled
      */
     public boolean shouldCancelMovement() {
-        return !isInMotion() && !(playerDisplacement.equals(Vector3d.ZERO) && lastPlayerDisplacement.equals(Vector3d.ZERO));
+        return !isInMotion() && (!playerDisplacement.equals(Vector3d.ZERO) || playerCollided);
     }
 }
