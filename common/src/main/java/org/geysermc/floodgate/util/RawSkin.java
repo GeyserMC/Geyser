@@ -45,13 +45,18 @@ public final class RawSkin {
     }
 
     public static RawSkin decode(byte[] data) throws InvalidFormatException {
+        return decode(data, 0);
+    }
+
+    public static RawSkin decode(byte[] data, int offset) throws InvalidFormatException {
+        // offset is an amount of bytes before the Base64 starts
         if (data == null) {
             return null;
         }
 
-        int maxEncodedLength = 4 * (((64 * 64 * 4 + 9) + 2) / 3);
+        int maxEncodedLength = Base64Utils.getEncodedLength(64 * 64 * 4 + 9);
         // if the RawSkin is longer then the max Java Edition skin length
-        if (data.length > maxEncodedLength) {
+        if ((data.length - offset) > maxEncodedLength) {
             throw new InvalidFormatException(format(
                     "Encoded data cannot be longer then %s bytes! Got %s",
                     maxEncodedLength, data.length
@@ -59,7 +64,7 @@ public final class RawSkin {
         }
 
         // if the encoded data doesn't even contain the width, height (8 bytes, 2 ints) and isAlex
-        if (data.length < 4 * ((9 + 2) / 3)) {
+        if ((data.length - offset) < Base64Utils.getEncodedLength(9)) {
             throw new InvalidFormatException("Encoded data must be at least 16 bytes long!");
         }
 
