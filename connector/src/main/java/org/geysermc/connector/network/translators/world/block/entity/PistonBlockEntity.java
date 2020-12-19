@@ -277,8 +277,8 @@ public class PistonBlockEntity {
             case "push_only":
                 return isPushing;
         }
-        // Pistons can't move tile entities
-        return BlockTranslator.getBlockEntityString(javaId) == null;
+        // Pistons can't move block entities
+        return !BlockTranslator.JAVA_RUNTIME_ID_TO_HAS_BLOCK_ENTITY.getOrDefault(javaId, false);
     }
 
     private boolean cannotDestroyBlock(int javaId)  {
