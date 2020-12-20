@@ -76,7 +76,7 @@ public final class BedrockData {
         return new BedrockData(
                 split[0], split[1], split[2], Integer.parseInt(split[3]), split[4],
                 Integer.parseInt(split[5]), Integer.parseInt(split[6]), split[7],
-                linkedPlayer, Boolean.parseBoolean(split[9]), split.length
+                linkedPlayer, "1".equals(split[8]), split.length
         );
     }
 
@@ -93,6 +93,7 @@ public final class BedrockData {
         // The format is the same as the order of the fields in this class
         return version + '\0' + username + '\0' + xuid + '\0' + deviceOs + '\0' +
                 languageCode + '\0' + uiProfile + '\0' + inputMode + '\0' + ip + '\0' +
-                fromProxy + '\0' + (linkedPlayer != null ? linkedPlayer.toString() : "null");
+                (fromProxy ? 1 : 0) + '\0' +
+                (linkedPlayer != null ? linkedPlayer.toString() : "null");
     }
 }

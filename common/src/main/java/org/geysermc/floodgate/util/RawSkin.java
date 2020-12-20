@@ -26,7 +26,6 @@
 package org.geysermc.floodgate.util;
 
 import lombok.AllArgsConstructor;
-import lombok.ToString;
 
 import java.nio.ByteBuffer;
 import java.util.Base64;
@@ -34,7 +33,6 @@ import java.util.Base64;
 import static java.lang.String.format;
 
 @AllArgsConstructor
-@ToString
 public final class RawSkin {
     public int width;
     public int height;
@@ -44,11 +42,20 @@ public final class RawSkin {
     private RawSkin() {
     }
 
-    public static RawSkin decode(byte[] data) throws InvalidFormatException {
-        return decode(data, 0);
+    public static RawSkin decode(byte[] data, int offset) throws InvalidFormatException {
+        if (data == null || offset < 0 || data.length <= offset) {
+            return null;
+        }
+        if (offset == 0) {
+            return decode(data);
+        }
+
+        byte[] rawSkin = new byte[data.length - offset];
+        System.arraycopy(data, offset, rawSkin, 0, rawSkin.length);
+        return decode(rawSkin);
     }
 
-    public static RawSkin decode(byte[] data, int offset) throws InvalidFormatException {
+    public static RawSkin decode(byte[] data) throws InvalidFormatException {
         // offset is an amount of bytes before the Base64 starts
         if (data == null) {
             return null;
@@ -56,7 +63,7 @@ public final class RawSkin {
 
         int maxEncodedLength = Base64Utils.getEncodedLength(64 * 64 * 4 + 9);
         // if the RawSkin is longer then the max Java Edition skin length
-        if ((data.length - offset) > maxEncodedLength) {
+        if (data.length > maxEncodedLength) {
             throw new InvalidFormatException(format(
                     "Encoded data cannot be longer then %s bytes! Got %s",
                     maxEncodedLength, data.length
@@ -64,7 +71,7 @@ public final class RawSkin {
         }
 
         // if the encoded data doesn't even contain the width, height (8 bytes, 2 ints) and isAlex
-        if ((data.length - offset) < Base64Utils.getEncodedLength(9)) {
+        if (data.length < Base64Utils.getEncodedLength(9)) {
             throw new InvalidFormatException("Encoded data must be at least 16 bytes long!");
         }
 
