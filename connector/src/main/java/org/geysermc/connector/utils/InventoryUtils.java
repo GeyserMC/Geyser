@@ -219,12 +219,17 @@ public class InventoryUtils {
                 }
             }
 
-            ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
-                    new ItemStack(ItemRegistry.getItemEntry(itemName).getJavaId()));
-            if ((slot - 36) != session.getInventory().getHeldItemSlot()) {
-                setHotbarItem(session, slot);
+            ItemEntry entry = ItemRegistry.getItemEntry(itemName);
+            if (entry != null) {
+                ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
+                        new ItemStack(entry.getJavaId()));
+                if ((slot - 36) != session.getInventory().getHeldItemSlot()) {
+                    setHotbarItem(session, slot);
+                }
+                session.sendDownstreamPacket(actionPacket);
+            } else {
+                session.getConnector().getLogger().debug("Cannot find item for block " + itemName);
             }
-            session.sendDownstreamPacket(actionPacket);
         }
     }
 
