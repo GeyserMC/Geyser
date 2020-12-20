@@ -136,6 +136,10 @@ public abstract class InventoryTranslator {
                 case PLACE: {
                     TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
+                        if (session.getGameMode().equals(GameMode.CREATIVE) && transferAction.getSource().getContainer() == ContainerSlotType.CRAFTING_INPUT &&
+                                transferAction.getSource().getSlot() >= 28 && transferAction.getSource().getSlot() <= 31) {
+                            return rejectRequest(request, false);
+                        }
                         session.getConnector().getLogger().error("DEBUG: About to reject request.");
                         session.getConnector().getLogger().error("Source: " + transferAction.getSource().toString() + " Result: " + checkNetId(session, inventory, transferAction.getSource()));
                         session.getConnector().getLogger().error("Destination: " + transferAction.getDestination().toString() + " Result: " + checkNetId(session, inventory, transferAction.getDestination()));
@@ -504,7 +508,14 @@ public abstract class InventoryTranslator {
     }
 
     public static ItemStackResponsePacket.Response rejectRequest(ItemStackRequestPacket.Request request) {
-        new Throwable("DEBUGGING: ItemStackRequest rejected").printStackTrace(); //TODO: temporary debugging
+        return rejectRequest(request, true);
+    }
+
+    public static ItemStackResponsePacket.Response rejectRequest(ItemStackRequestPacket.Request request, boolean throwError) {
+        if (throwError) {
+            // Currently for debugging, but might be worth it to keep in the future if something goes terribly wrong.
+            new Throwable("DEBUGGING: ItemStackRequest rejected").printStackTrace();
+        }
         return new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.ERROR, request.getRequestId(), Collections.emptyList());
     }
 
