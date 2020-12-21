@@ -475,7 +475,9 @@ public class GeyserSession implements CommandSender {
                         }
                     }
                 } else {
-                    throw new AssertionError("Username and password auth isn't implemented yet");
+                    msaAuthenticationService.setUsername(username);
+                    msaAuthenticationService.setPassword(password);
+                    msaAuthenticationService.login();
                 }
 
                 protocol = new MinecraftProtocol(msaAuthenticationService);
