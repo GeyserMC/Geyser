@@ -343,8 +343,12 @@ public class BlockTranslator {
         return BLOCK_STATE_VERSION;
     }
 
+    /**
+     * @param javaId the Java string identifier to search for
+     * @return the Java block state integer, or {@link #JAVA_AIR_ID} if there is no valid entry.
+     */
     public static int getJavaBlockState(String javaId) {
-        return JAVA_ID_BLOCK_MAP.get(javaId);
+        return JAVA_ID_BLOCK_MAP.getOrDefault(javaId, JAVA_AIR_ID);
     }
 
     public static boolean isWaterlogged(int state) {
