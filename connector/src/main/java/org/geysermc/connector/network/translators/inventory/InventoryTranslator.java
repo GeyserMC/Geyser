@@ -73,9 +73,9 @@ public abstract class InventoryTranslator {
             put(WindowType.SHULKER_BOX, new ShulkerInventoryTranslator());
             put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
             //put(WindowType.ANVIL, new AnvilInventoryTranslator());
-            //put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
+            put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
-            //put(WindowType.SMITHING, new SmithingInventoryTranslator());
+            put(WindowType.SMITHING, new SmithingInventoryTranslator());
             //put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
 
             put(WindowType.FURNACE, new FurnaceInventoryTranslator());
@@ -154,7 +154,7 @@ public abstract class InventoryTranslator {
 
                     if (isCursor(transferAction.getSource()) && isCursor(transferAction.getDestination())) { //???
                         return rejectRequest(request);
-                    } else if (session.getGameMode().equals(GameMode.CREATIVE) && inventory instanceof PlayerInventory) { // TODO: does the Java server use the player inventory in all instances?
+                    } else if (session.getGameMode().equals(GameMode.CREATIVE) && inventory instanceof PlayerInventory) { // TODO: does the Java server use this stuff all the time in creative?
                         // Creative acts a little differently because it just edits slots
                         int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
@@ -369,6 +369,7 @@ public abstract class InventoryTranslator {
                         return rejectRequest(request);
                     }
                     if (!isCursor(destroyAction.getSource())) {
+                        // Item exists; let's remove it from the inventory
                         int javaSlot = bedrockSlotToJava(destroyAction.getSource());
                         ClientCreativeInventoryActionPacket destroyItemPacket = new ClientCreativeInventoryActionPacket(
                                 javaSlot,
@@ -382,6 +383,16 @@ public abstract class InventoryTranslator {
                         // Just sync up the item on our end, since the server doesn't care what's in our cursor
                         session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
                     }
+                    break;
+                }
+                // These three are called for the grindstone
+                case CONSUME: {
+                    break;
+                }
+                case CRAFT_NON_IMPLEMENTED_DEPRECATED: {
+                    break;
+                }
+                case CRAFT_RESULTS_DEPRECATED: {
                     break;
                 }
                 default:
