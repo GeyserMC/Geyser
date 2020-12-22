@@ -51,6 +51,12 @@
             <artifactId>raknet</artifactId>
             <version>1.6.20</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
@@ -125,10 +131,6 @@
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-all</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>net.kyori</groupId>
                     <artifactId>adventure-text-serializer-gson</artifactId>
                 </exclusion>
@@ -143,6 +145,12 @@
             <artifactId>PacketLib</artifactId>
             <version>54f761c</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion> <!-- Move this exclusion back to MCProtocolLib it gets the latest PacketLib -->
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
@@ -150,6 +158,34 @@
             <version>4.1.56.Final</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Network dependencies we are updating ourselves -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <version>4.1.56.Final</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-buffer</artifactId>
+            <version>4.1.56.Final</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+            <version>4.1.56.Final</version>
+            <scope>compile</scope>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-kqueue</artifactId>
+            <version>4.1.56.Final</version>
+            <scope>compile</scope>
+            <classifier>osx-x86_64</classifier>
+        </dependency>
+        <!-- End -->
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
