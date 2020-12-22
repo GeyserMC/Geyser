@@ -31,10 +31,13 @@ import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.ItemStackRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
@@ -92,6 +95,7 @@ public abstract class InventoryTranslator {
 
     public static final int PLAYER_INVENTORY_SIZE = 36;
     public static final int PLAYER_INVENTORY_OFFSET = 9;
+    private static final int MAX_ITEM_STACK_SIZE = 64;
     public final int size;
 
     public abstract void prepareInventory(GeyserSession session, Inventory inventory);
@@ -114,6 +118,7 @@ public abstract class InventoryTranslator {
                 if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE || firstAction.getType() == StackRequestActionType.CRAFT_RECIPE_AUTO) {
                     responsePacket.getEntries().add(translateCraftingRequest(session, inventory, request));
                 } else if (firstAction.getType() == StackRequestActionType.CRAFT_CREATIVE) {
+                    // This is also used for pulling items out of creative
                     responsePacket.getEntries().add(translateCreativeRequest(session, inventory, request));
                 } else {
                     responsePacket.getEntries().add(translateRequest(session, inventory, request));
@@ -129,6 +134,7 @@ public abstract class InventoryTranslator {
     public ItemStackResponsePacket.Response translateRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
         System.out.println(request);
         ClickPlan plan = new ClickPlan(session, this, inventory);
+        IntSet affectedSlots = new IntOpenHashSet();
         for (StackRequestActionData action : request.getActions()) {
             GeyserItemStack cursor = session.getPlayerInventory().getCursor();
             switch (action.getType()) {
@@ -148,6 +154,73 @@ public abstract class InventoryTranslator {
 
                     if (isCursor(transferAction.getSource()) && isCursor(transferAction.getDestination())) { //???
                         return rejectRequest(request);
+                    } else if (session.getGameMode().equals(GameMode.CREATIVE) && inventory instanceof PlayerInventory) { // TODO: does the Java server use the player inventory in all instances?
+                        // Creative acts a little differently because it just edits slots
+                        int sourceSlot = bedrockSlotToJava(transferAction.getSource());
+                        int destSlot = bedrockSlotToJava(transferAction.getDestination());
+                        boolean sourceIsCursor = isCursor(transferAction.getSource());
+                        boolean destIsCursor = isCursor(transferAction.getDestination());
+
+                        GeyserItemStack sourceItem = sourceIsCursor ? session.getPlayerInventory().getCursor() :
+                                inventory.getItem(sourceSlot);
+                        GeyserItemStack newItem = sourceItem.copy();
+                        if (sourceIsCursor) {
+                            GeyserItemStack destItem = inventory.getItem(destSlot);
+                            if (destItem.getId() == sourceItem.getId()) {
+                                // Combining items
+                                int itemsLeftOver = destItem.getAmount() + transferAction.getCount();
+                                if (itemsLeftOver > MAX_ITEM_STACK_SIZE) {
+                                    // Items will remain in cursor because destination slot gets set to 64
+                                    destItem.setAmount(MAX_ITEM_STACK_SIZE);
+                                    sourceItem.setAmount(itemsLeftOver - MAX_ITEM_STACK_SIZE);
+                                } else {
+                                    // Cursor will be emptied
+                                    destItem.setAmount(itemsLeftOver);
+                                    session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+                                }
+                                ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
+                                        destSlot,
+                                        destItem.getItemStack()
+                                );
+                                session.sendDownstreamPacket(creativeActionPacket);
+                                affectedSlots.add(destSlot);
+                                break;
+                            }
+                        }
+                        // Update the item count with however much the client took
+                        newItem.setAmount(transferAction.getCount());
+                        // Remove that amount from the existing item
+                        sourceItem.setAmount(sourceItem.getAmount() - transferAction.getCount());
+                        if (sourceItem.isEmpty()) {
+                            // Item is basically deleted
+                            if (sourceIsCursor) {
+                                session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+                            } else {
+                                inventory.setItem(sourceSlot, GeyserItemStack.EMPTY);
+                            }
+                        }
+                        if (destIsCursor) {
+                            session.getPlayerInventory().setCursor(newItem);
+                        } else {
+                            inventory.setItem(destSlot, newItem);
+                        }
+                        GeyserItemStack itemToUpdate = destIsCursor ? sourceItem : newItem;
+                        // The Java server doesn't care about what's in the mouse in creative mode, so we just need to track
+                        // which inventory slot the client modified
+                        ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
+                                destIsCursor ? sourceSlot : destSlot,
+                                itemToUpdate.isEmpty() ? new ItemStack(0) : itemToUpdate.getItemStack()
+                        );
+                        session.sendDownstreamPacket(creativeActionPacket);
+                        System.out.println(creativeActionPacket);
+
+                        if (!sourceIsCursor) { // Cursor is always added for us as an affected slot
+                            affectedSlots.add(sourceSlot);
+                        }
+                        if (!destIsCursor) {
+                            affectedSlots.add(destSlot);
+                        }
+
                     } else if (isCursor(transferAction.getSource())) { //releasing cursor
                         int sourceAmount = cursor.getAmount();
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
@@ -286,37 +359,38 @@ public abstract class InventoryTranslator {
                 case CRAFT_CREATIVE: {
                     CraftCreativeStackRequestActionData creativeAction = (CraftCreativeStackRequestActionData) action;
                     System.out.println(creativeAction.getCreativeItemNetworkId());
+                    break;
                 }
                 case DESTROY: {
-                    //TODO: Yeah this doesn't work yet.
-
                     // Only called when a creative client wants to destroy an item... I think - Camotoy
                     DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
-                    if (session.getGameMode() == GameMode.CREATIVE) {
-                        if (isCursor(destroyAction.getSource())) {
-                            session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
-                            return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
-                        } else {
-                            int javaSlot = bedrockSlotToJava(destroyAction.getSource());
-                            inventory.setItem(javaSlot, GeyserItemStack.EMPTY);
-                            ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
-                                    javaSlot,
-                                    new ItemStack(0)
-                            );
-                            session.sendDownstreamPacket(creativeActionPacket);
-                            Set<Integer> affectedSlots = Collections.singleton(javaSlot);
-                            return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
-                        }
-                    } else {
+                    if (!session.getGameMode().equals(GameMode.CREATIVE)) {
+                        // If this happens, let's throw an error and figure out why.
                         return rejectRequest(request);
                     }
+                    if (!isCursor(destroyAction.getSource())) {
+                        int javaSlot = bedrockSlotToJava(destroyAction.getSource());
+                        ClientCreativeInventoryActionPacket destroyItemPacket = new ClientCreativeInventoryActionPacket(
+                                javaSlot,
+                                new ItemStack(0)
+                        );
+                        session.sendDownstreamPacket(destroyItemPacket);
+                        System.out.println(destroyItemPacket);
+                        inventory.setItem(javaSlot, GeyserItemStack.EMPTY);
+                        affectedSlots.add(javaSlot);
+                    } else {
+                        // Just sync up the item on our end, since the server doesn't care what's in our cursor
+                        session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+                    }
+                    break;
                 }
                 default:
                     return rejectRequest(request);
             }
         }
         plan.execute(false);
-        return acceptRequest(request, makeContainerEntries(session, inventory, plan.getAffectedSlots()));
+        affectedSlots.addAll(plan.getAffectedSlots());
+        return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
     
     public ItemStackResponsePacket.Response translateCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
@@ -480,18 +554,26 @@ public abstract class InventoryTranslator {
                     if (transferAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
                         return rejectRequest(request);
                     }
+                    // Reference the creative items list we send to the client to know what it's asking of us
+                    ItemData creativeItem = ItemRegistry.CREATIVE_ITEMS[creativeId - 1];
+                    // Get the correct count
+                    creativeItem = ItemData.of(creativeItem.getId(), creativeItem.getDamage(), transferAction.getCount(),  creativeItem.getTag());
+                    ItemStack javaCreativeItem = ItemTranslator.translateToJava(creativeItem);
+
                     if (isCursor(transferAction.getDestination())) {
-                        session.getPlayerInventory().setCursor(GeyserItemStack.from(ItemTranslator.translateToJava(ItemRegistry.CREATIVE_ITEMS[creativeId]), session.getItemNetId().getAndIncrement())); //TODO
-                        return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
+                        session.getPlayerInventory().setCursor(GeyserItemStack.from(javaCreativeItem, session.getItemNetId().getAndIncrement()));
+                        return acceptRequest(request, Collections.singletonList(
+                                new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CURSOR,
+                                        Collections.singletonList(makeItemEntry(session, 0, session.getPlayerInventory().getCursor())))));
                     } else {
                         int javaSlot = bedrockSlotToJava(transferAction.getDestination());
-                        ItemStack javaItem = ItemTranslator.translateToJava(ItemRegistry.CREATIVE_ITEMS[creativeId - 1]); //TODO
-                        inventory.setItem(javaSlot, GeyserItemStack.from(javaItem, session.getItemNetId().getAndIncrement()));
+                        inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem, session.getItemNetId().getAndIncrement()));
                         ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
                                 javaSlot,
-                                javaItem
+                                javaCreativeItem
                         );
                         session.sendDownstreamPacket(creativeActionPacket);
+                        System.out.println(creativeActionPacket);
                         Set<Integer> affectedSlots = Collections.singleton(javaSlot);
                         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
                     }

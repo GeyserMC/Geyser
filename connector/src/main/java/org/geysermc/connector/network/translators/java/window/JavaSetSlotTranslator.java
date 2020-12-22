@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,6 +39,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
     @Override
     public void translate(ServerSetSlotPacket packet, GeyserSession session) {
+        System.out.println(packet.toString());
         session.addInventoryTask(() -> {
             if (packet.getWindowId() == 255) { //cursor
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
