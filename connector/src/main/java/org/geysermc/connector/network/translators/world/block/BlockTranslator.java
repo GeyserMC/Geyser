@@ -30,15 +30,18 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.nbt.*;
 import it.unimi.dsi.fastutil.ints.*;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
 
 public class BlockTranslator {
     /**
@@ -64,8 +67,6 @@ public class BlockTranslator {
 
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
-
-    private static final Int2ObjectMap<String> JAVA_ID_TO_BLOCK_ENTITY_MAP = new Int2ObjectOpenHashMap<>();
 
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
@@ -175,18 +176,6 @@ public class BlockTranslator {
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
 
-            // Used for adding all "special" Java block states to block state map
-            String identifier;
-            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
-            for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
-                identifier = clazz.getAnnotation(BlockEntity.class).regex();
-                // Endswith, or else the block bedrock gets picked up for bed
-                if (bedrockIdentifier.endsWith(identifier) && !identifier.equals("")) {
-                    JAVA_ID_TO_BLOCK_ENTITY_MAP.put(javaRuntimeId, clazz.getAnnotation(BlockEntity.class).name());
-                    break;
-                }
-            }
-
             BlockStateValues.storeBlockStateValues(entry, javaRuntimeId);
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
@@ -195,6 +184,8 @@ public class BlockTranslator {
                 uniqueJavaId++;
                 JAVA_ID_TO_JAVA_IDENTIFIER_MAP.put(uniqueJavaId, cleanJavaIdentifier);
             }
+
+            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
             if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
                 JAVA_TO_BEDROCK_IDENTIFIERS.put(cleanJavaIdentifier, bedrockIdentifier);
@@ -352,12 +343,12 @@ public class BlockTranslator {
         return BLOCK_STATE_VERSION;
     }
 
+    /**
+     * @param javaId the Java string identifier to search for
+     * @return the Java block state integer, or {@link #JAVA_AIR_ID} if there is no valid entry.
+     */
     public static int getJavaBlockState(String javaId) {
-        return JAVA_ID_BLOCK_MAP.get(javaId);
-    }
-
-    public static String getBlockEntityString(int javaId) {
-        return JAVA_ID_TO_BLOCK_ENTITY_MAP.get(javaId);
+        return JAVA_ID_BLOCK_MAP.getOrDefault(javaId, JAVA_AIR_ID);
     }
 
     public static boolean isWaterlogged(int state) {

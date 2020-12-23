@@ -38,13 +38,14 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.translators.chest.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.chest.DoubleChestInventoryTranslator;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 import java.util.Collections;
@@ -206,12 +207,17 @@ public class InventoryUtils {
                 }
             }
 
-            ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
-                    new ItemStack(ItemRegistry.getItemEntry(itemName).getJavaId()));
-            if ((slot - 36) != inventory.getHeldItemSlot()) {
-                setHotbarItem(session, slot);
+            ItemEntry entry = ItemRegistry.getItemEntry(itemName);
+            if (entry != null) {
+                ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
+                        new ItemStack(entry.getJavaId()));
+                if ((slot - 36) != inventory.getHeldItemSlot()) {
+                    setHotbarItem(session, slot);
+                }
+                session.sendDownstreamPacket(actionPacket);
+            } else {
+                session.getConnector().getLogger().debug("Cannot find item for block " + itemName);
             }
-            session.sendDownstreamPacket(actionPacket);
         }
     }
 
