@@ -80,6 +80,7 @@ public abstract class InventoryTranslator {
 
             /* Specific Inventories */
             put(WindowType.ANVIL, new AnvilInventoryTranslator());
+            put(WindowType.BEACON, new BeaconInventoryTranslator());
             put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
             put(WindowType.CRAFTING, new CraftingInventoryTranslator());
             put(WindowType.ENCHANTMENT, new EnchantingInventoryTranslator());
@@ -91,7 +92,6 @@ public abstract class InventoryTranslator {
             /* Generics */
             put(WindowType.GENERIC_3X3, new GenericBlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER));
             put(WindowType.HOPPER, new GenericBlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER));
-            //put(WindowType.BEACON, new AbstractBlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO
 
             //put(WindowType.CARTOGRAPHY
             //put(WindowType.STONECUTTER
