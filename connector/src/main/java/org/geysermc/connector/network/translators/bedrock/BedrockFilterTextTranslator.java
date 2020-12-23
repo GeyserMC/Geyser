@@ -23,31 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowPropertyPacket;
-import org.geysermc.connector.inventory.Inventory;
+import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.utils.InventoryUtils;
 
-@Translator(packet = ServerWindowPropertyPacket.class)
-public class JavaWindowPropertyTranslator extends PacketTranslator<ServerWindowPropertyPacket> {
+/**
+ * Used to send strings to the client and filter out unwanted words.
+ * Java doesn't care, so we don't care, and we approve all strings.
+ */
+@Translator(packet = FilterTextPacket.class)
+public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPacket> {
 
     @Override
-    public void translate(ServerWindowPropertyPacket packet, GeyserSession session) {
+    public void translate(FilterTextPacket packet, GeyserSession session) {
+        // TODO: Bedrock doesn't send this. Why?
         System.out.println(packet.toString());
-        session.addInventoryTask(() -> {
-            Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
-            if (inventory == null)
-                return;
-
-            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
-            if (translator != null) {
-                translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
-            }
-        });
+        packet.setFromServer(true);
+        session.sendUpstreamPacket(packet);
     }
 }

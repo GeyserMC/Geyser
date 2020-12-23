@@ -44,12 +44,11 @@ import org.geysermc.connector.network.translators.inventory.updater.InventoryUpd
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
 
 public class MerchantInventoryTranslator extends BaseInventoryTranslator {
-
     private final InventoryUpdater updater;
 
     public MerchantInventoryTranslator() {
         super(3);
-        this.updater = new UIInventoryUpdater();
+        this.updater = UIInventoryUpdater.INSTANCE;
     }
 
     @Override

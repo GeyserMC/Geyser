@@ -62,29 +62,36 @@ public abstract class InventoryTranslator {
 
     public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<WindowType, InventoryTranslator>() {
         {
+            /* Player Inventory */
             put(null, new PlayerInventoryTranslator()); //player inventory
+
+            /* Chest UIs */
             put(WindowType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
             put(WindowType.GENERIC_9X2, new SingleChestInventoryTranslator(18));
             put(WindowType.GENERIC_9X3, new SingleChestInventoryTranslator(27));
             put(WindowType.GENERIC_9X4, new DoubleChestInventoryTranslator(36));
             put(WindowType.GENERIC_9X5, new DoubleChestInventoryTranslator(45));
             put(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
-            put(WindowType.CRAFTING, new CraftingInventoryTranslator());
-            put(WindowType.SHULKER_BOX, new ShulkerInventoryTranslator());
-            put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
-            //put(WindowType.ANVIL, new AnvilInventoryTranslator());
-            put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
-            put(WindowType.MERCHANT, new MerchantInventoryTranslator());
-            put(WindowType.SMITHING, new SmithingInventoryTranslator());
-            //put(WindowType.ENCHANTMENT, new EnchantmentInventoryTranslator()); //TODO
 
+            /* Furnaces */
             put(WindowType.FURNACE, new FurnaceInventoryTranslator());
             put(WindowType.BLAST_FURNACE, new BlastFurnaceInventoryTranslator());
             put(WindowType.SMOKER, new SmokerInventoryTranslator());
 
+            /* Specific Inventories */
+            put(WindowType.ANVIL, new AnvilInventoryTranslator());
+            put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
+            put(WindowType.CRAFTING, new CraftingInventoryTranslator());
+            put(WindowType.ENCHANTMENT, new EnchantingInventoryTranslator());
+            put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
+            put(WindowType.MERCHANT, new MerchantInventoryTranslator());
+            put(WindowType.SHULKER_BOX, new ShulkerInventoryTranslator());
+            put(WindowType.SMITHING, new SmithingInventoryTranslator());
+
+            /* Generics */
             put(WindowType.GENERIC_3X3, new GenericBlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER));
             put(WindowType.HOPPER, new GenericBlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER));
-            //put(WindowType.BEACON, new AbstractBlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO*/
+            //put(WindowType.BEACON, new AbstractBlockInventoryTranslator(1, "minecraft:beacon", ContainerType.BEACON)); //TODO
 
             //put(WindowType.CARTOGRAPHY
             //put(WindowType.STONECUTTER
@@ -110,12 +117,30 @@ public abstract class InventoryTranslator {
     public abstract SlotType getSlotType(int javaSlot);
     public abstract Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory);
 
+    /**
+     * Should be overrided if this request matches a certain criteria and shouldn't be treated normally.
+     * E.G. anvil renaming or enchanting
+     */
+    public boolean shouldHandleRequestFirst(StackRequestActionData action) {
+        return false;
+    }
+
+    /**
+     * If {@link #shouldHandleRequestFirst(StackRequestActionData)} returns true, this will be called
+     */
+    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
+        return null;
+    }
+
     public void translateRequests(GeyserSession session, Inventory inventory, List<ItemStackRequestPacket.Request> requests) {
         ItemStackResponsePacket responsePacket = new ItemStackResponsePacket();
         for (ItemStackRequestPacket.Request request : requests) {
             if (request.getActions().length > 0) {
                 StackRequestActionData firstAction = request.getActions()[0];
-                if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE || firstAction.getType() == StackRequestActionType.CRAFT_RECIPE_AUTO) {
+                if (shouldHandleRequestFirst(firstAction)) {
+                    // Some special request that shouldn't be processed normally
+                    responsePacket.getEntries().add(translateSpecialRequest(session, inventory, request));
+                } else if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE || firstAction.getType() == StackRequestActionType.CRAFT_RECIPE_AUTO) {
                     responsePacket.getEntries().add(translateCraftingRequest(session, inventory, request));
                 } else if (firstAction.getType() == StackRequestActionType.CRAFT_CREATIVE) {
                     // This is also used for pulling items out of creative
@@ -335,12 +360,30 @@ public abstract class InventoryTranslator {
                         return rejectRequest(request);
 
                     if (isCursor(dropAction.getSource())) { //clicking outside of window
-                        int sourceAmount = plan.getCursor().getAmount();
-                        if (dropAction.getCount() == sourceAmount) { //drop all
-                            plan.add(Click.LEFT_OUTSIDE, Click.OUTSIDE_SLOT);
-                        } else { //drop some
-                            for (int i = 0; i < dropAction.getCount(); i++) {
-                                plan.add(Click.RIGHT_OUTSIDE, Click.OUTSIDE_SLOT); //drop one until goal is met
+                        if (session.getGameMode() == GameMode.CREATIVE && inventory instanceof PlayerInventory) {
+                            GeyserItemStack cursorItem = session.getPlayerInventory().getCursor();
+                            GeyserItemStack droppingItem = cursorItem.copy();
+                            // Subtract the cursor item by however much is being dropped
+                            cursorItem.setAmount(cursorItem.getAmount() - dropAction.getCount());
+                            if (cursorItem.isEmpty()) {
+                                // Cursor item no longer exists
+                                session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+                            }
+                            droppingItem.setAmount(dropAction.getCount());
+                            ClientCreativeInventoryActionPacket packet = new ClientCreativeInventoryActionPacket(
+                                    Click.OUTSIDE_SLOT,
+                                    droppingItem.getItemStack()
+                            );
+                            System.out.println(packet.toString());
+                            session.sendDownstreamPacket(packet);
+                        } else {
+                            int sourceAmount = plan.getCursor().getAmount();
+                            if (dropAction.getCount() == sourceAmount) { //drop all
+                                plan.add(Click.LEFT_OUTSIDE, Click.OUTSIDE_SLOT);
+                            } else { //drop some
+                                for (int i = 0; i < dropAction.getCount(); i++) {
+                                    plan.add(Click.RIGHT_OUTSIDE, Click.OUTSIDE_SLOT); //drop one until goal is met
+                                }
                             }
                         }
                     } else { //dropping from inventory
@@ -393,6 +436,10 @@ public abstract class InventoryTranslator {
                     break;
                 }
                 case CRAFT_RESULTS_DEPRECATED: {
+                    break;
+                }
+                case CRAFT_RECIPE_OPTIONAL: {
+                    // Anvils and cartography tables will handle this
                     break;
                 }
                 default:
@@ -578,7 +625,14 @@ public abstract class InventoryTranslator {
                                         Collections.singletonList(makeItemEntry(session, 0, session.getPlayerInventory().getCursor())))));
                     } else {
                         int javaSlot = bedrockSlotToJava(transferAction.getDestination());
-                        inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem, session.getItemNetId().getAndIncrement()));
+                        GeyserItemStack existingItem = inventory.getItem(javaSlot);
+                        if (existingItem.getId() == javaCreativeItem.getId()) {
+                            // Adding more to an existing item
+                            existingItem.setAmount(existingItem.getAmount() + transferAction.getCount());
+                            javaCreativeItem = existingItem.getItemStack();
+                        } else {
+                            inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem, session.getItemNetId().getAndIncrement()));
+                        }
                         ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
                                 javaSlot,
                                 javaCreativeItem

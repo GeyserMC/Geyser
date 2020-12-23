@@ -29,11 +29,11 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
-import org.geysermc.connector.network.translators.inventory.updater.CursorInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
 
 public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslator {
     public SmithingInventoryTranslator() {
-        super(3, "minecraft:smithing_table", ContainerType.SMITHING_TABLE, CursorInventoryUpdater.INSTANCE);
+        super(3, "minecraft:smithing_table", ContainerType.SMITHING_TABLE, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

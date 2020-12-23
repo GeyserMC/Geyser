@@ -25,26 +25,30 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.geysermc.connector.inventory.AnvilContainer;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
 
-public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTranslator {
-    public GrindstoneInventoryTranslator() {
-        super(3, "minecraft:grindstone[face=floor,facing=north]", ContainerType.GRINDSTONE, UIInventoryUpdater.INSTANCE);
+public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
+    public AnvilInventoryTranslator() {
+        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.GRINDSTONE_INPUT) {
+        if (slotInfoData.getContainer() == ContainerSlotType.ANVIL_INPUT) {
             return 0;
         }
-        if (slotInfoData.getContainer() == ContainerSlotType.GRINDSTONE_ADDITIONAL) {
+        if (slotInfoData.getContainer() == ContainerSlotType.ANVIL_MATERIAL) {
             return 1;
         }
-        if (slotInfoData.getContainer() == ContainerSlotType.GRINDSTONE_RESULT || slotInfoData.getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
+        if (slotInfoData.getContainer() == ContainerSlotType.ANVIL_RESULT || slotInfoData.getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
             return 2;
         }
         return super.bedrockSlotToJava(slotInfoData);
@@ -54,11 +58,11 @@ public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTransla
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
         switch (slot) {
             case 0:
-                return new BedrockContainerSlot(ContainerSlotType.GRINDSTONE_INPUT, 16);
+                return new BedrockContainerSlot(ContainerSlotType.ANVIL_INPUT, 1);
             case 1:
-                return new BedrockContainerSlot(ContainerSlotType.GRINDSTONE_ADDITIONAL, 17);
+                return new BedrockContainerSlot(ContainerSlotType.ANVIL_MATERIAL, 2);
             case 2:
-                return new BedrockContainerSlot(ContainerSlotType.GRINDSTONE_RESULT, 50);
+                return new BedrockContainerSlot(ContainerSlotType.ANVIL_RESULT, 50);
         }
         return super.javaSlotToBedrockContainer(slot);
     }
@@ -67,12 +71,17 @@ public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTransla
     public int javaSlotToBedrock(int slot) {
         switch (slot) {
             case 0:
-                return 16;
+                return 1;
             case 1:
-                return 17;
+                return 2;
             case 2:
                 return 50;
         }
         return super.javaSlotToBedrock(slot);
+    }
+
+    @Override
+    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
+        return new AnvilContainer(name, windowId, windowType, this.size, playerInventory);
     }
 }
