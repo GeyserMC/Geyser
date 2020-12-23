@@ -109,7 +109,7 @@ public abstract class BlockEntityTranslator {
         int y = ((IntTag) tag.getValue().get("y")).getValue();
         int z = ((IntTag) tag.getValue().get("z")).getValue();
 
-        NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(id), x, y, z).toBuilder();
+        NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(id), x, y, z);
         translateTag(tagBuilder, tag, blockState);
         return tagBuilder.build();
     }
@@ -123,13 +123,12 @@ public abstract class BlockEntityTranslator {
         return tag;
     }
 
-    protected NbtMap getConstantBedrockTag(String bedrockId, int x, int y, int z) {
+    protected NbtMapBuilder getConstantBedrockTag(String bedrockId, int x, int y, int z) {
         return NbtMap.builder()
                 .putInt("x", x)
                 .putInt("y", y)
                 .putInt("z", z)
-                .putString("id", bedrockId)
-                .build();
+                .putString("id", bedrockId);
     }
 
     @SuppressWarnings("unchecked")

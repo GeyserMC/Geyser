@@ -29,7 +29,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-@BlockEntity(name = "ShulkerBox", regex = "shulker_box")
+@BlockEntity(name = "ShulkerBox")
 public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {

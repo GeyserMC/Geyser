@@ -29,7 +29,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-@BlockEntity(name = "Bed", regex = "bed")
+@BlockEntity(name = "Bed")
 public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
     public boolean isBlock(int blockState) {
