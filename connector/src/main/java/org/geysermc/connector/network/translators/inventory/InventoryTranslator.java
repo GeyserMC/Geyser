@@ -89,6 +89,7 @@ public abstract class InventoryTranslator {
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
             put(WindowType.SHULKER_BOX, new ShulkerInventoryTranslator());
             put(WindowType.SMITHING, new SmithingInventoryTranslator());
+            put(WindowType.STONECUTTER, new StonecutterInventoryTranslator());
 
             /* Generics */
             put(WindowType.GENERIC_3X3, new GenericBlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER));
@@ -96,8 +97,7 @@ public abstract class InventoryTranslator {
 
             /* todo */
             //put(WindowType.CARTOGRAPHY
-            //put(WindowType.STONECUTTER
-            //put(WindowType.
+            // horse
         }
     };
 
