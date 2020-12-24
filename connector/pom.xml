@@ -153,6 +153,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-haproxy</artifactId>
+            <version>4.1.56.Final</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.11</version> <!-- This isn't the latest version to get round https://github.com/ronmamo/reflections/issues/273 -->
