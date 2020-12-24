@@ -105,7 +105,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public boolean shouldHandleRequestFirst(StackRequestActionData action) {
+    public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         return action.getType() == StackRequestActionType.CRAFT_RECIPE;
     }
 

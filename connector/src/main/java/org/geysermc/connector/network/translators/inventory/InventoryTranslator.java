@@ -85,6 +85,7 @@ public abstract class InventoryTranslator {
             put(WindowType.CRAFTING, new CraftingInventoryTranslator());
             put(WindowType.ENCHANTMENT, new EnchantingInventoryTranslator());
             put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
+            put(WindowType.LOOM, new LoomInventoryTranslator());
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
             put(WindowType.SHULKER_BOX, new ShulkerInventoryTranslator());
             put(WindowType.SMITHING, new SmithingInventoryTranslator());
@@ -93,10 +94,9 @@ public abstract class InventoryTranslator {
             put(WindowType.GENERIC_3X3, new GenericBlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER));
             put(WindowType.HOPPER, new GenericBlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER));
 
-            /* Workstations */
+            /* todo */
             //put(WindowType.CARTOGRAPHY
             //put(WindowType.STONECUTTER
-            put(WindowType.LOOM, new LoomInventoryTranslator());
             //put(WindowType.
         }
     };
@@ -122,12 +122,12 @@ public abstract class InventoryTranslator {
      * Should be overrided if this request matches a certain criteria and shouldn't be treated normally.
      * E.G. anvil renaming or enchanting
      */
-    public boolean shouldHandleRequestFirst(StackRequestActionData action) {
+    public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         return false;
     }
 
     /**
-     * If {@link #shouldHandleRequestFirst(StackRequestActionData)} returns true, this will be called
+     * If {@link #shouldHandleRequestFirst(StackRequestActionData, Inventory)} returns true, this will be called
      */
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
         return null;
@@ -138,7 +138,7 @@ public abstract class InventoryTranslator {
         for (ItemStackRequestPacket.Request request : requests) {
             if (request.getActions().length > 0) {
                 StackRequestActionData firstAction = request.getActions()[0];
-                if (shouldHandleRequestFirst(firstAction)) {
+                if (shouldHandleRequestFirst(firstAction, inventory)) {
                     // Some special request that shouldn't be processed normally
                     responsePacket.getEntries().add(translateSpecialRequest(session, inventory, request));
                 } else if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE || firstAction.getType() == StackRequestActionType.CRAFT_RECIPE_AUTO) {

@@ -89,7 +89,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public boolean shouldHandleRequestFirst(StackRequestActionData action) {
+    public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         return action.getType() == StackRequestActionType.BEACON_PAYMENT;
     }
 
