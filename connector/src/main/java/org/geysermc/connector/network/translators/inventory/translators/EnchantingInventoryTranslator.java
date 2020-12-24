@@ -127,7 +127,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
         }
         if (javaSlot == -1) {
             // Slot should be determined as 0, 1, or 2
-            throw new RuntimeException("Cannot find enchant slot for item!");
+            return rejectRequest(request);
         }
         ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), javaSlot);
         System.out.println(packet);

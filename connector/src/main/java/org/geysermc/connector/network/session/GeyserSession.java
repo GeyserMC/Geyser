@@ -53,7 +53,7 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -214,10 +214,10 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.
-     * The key is the Java ID of the item; the values are all the possible outputs' Java IDs
+     * The key is the Java ID of the item; the values are all the possible outputs' Java IDs sorted by their string identifier
      */
     @Setter
-    private Int2ObjectMap<IntSet> stonecutterRecipes;
+    private Int2ObjectMap<IntList> stonecutterRecipes;
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.

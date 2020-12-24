@@ -36,10 +36,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -58,7 +55,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = RecipeRegistry.LAST_RECIPE_NET_ID + 1;
         Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>();
-        Int2ObjectMap<IntSet> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
         for (Recipe recipe : packet.getRecipes()) {
@@ -141,26 +138,46 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 }
                 case STONECUTTING: {
                     StoneCuttingRecipeData stoneCuttingData = (StoneCuttingRecipeData) recipe.getData();
-                    // As of 1.16.4, all stonecutter recipes have one ingredient option
                     ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
-                    ItemData input = ItemTranslator.translateToBedrock(session, ingredient);
-                    ItemData output = ItemTranslator.translateToBedrock(session, stoneCuttingData.getResult());
-                    UUID uuid = UUID.randomUUID();
-                    // We need to register stonecutting recipes so they show up on Bedrock
-                    craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                            Collections.singletonList(input), Collections.singletonList(output), uuid, "stonecutter", 0, netId++));
-                    // Save the recipe list for reference when crafting
-                    IntSet outputs = stonecutterRecipeMap.get(ingredient.getId());
-                    if (outputs == null) {
-                        outputs = new IntOpenHashSet();
-                        stonecutterRecipeMap.put(ingredient.getId(), outputs);
+                    List<StoneCuttingRecipeData> data = unsortedStonecutterData.get(ingredient.getId());
+                    if (data == null) {
+                        data = new ArrayList<>();
+                        unsortedStonecutterData.put(ingredient.getId(), data);
                     }
-                    // Add the ingredient as the key and all possible values as the value
-                    outputs.add(stoneCuttingData.getResult().getId());
+                    data.add(stoneCuttingData);
+                    // Save for processing after all recipes have been received
                 }
             }
         }
         craftingDataPacket.getPotionMixData().addAll(PotionMixRegistry.POTION_MIXES);
+
+        Int2ObjectMap<IntList> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
+        for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
+            data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
+                    // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
+                    // We can get the correct order for button pressing
+                    ItemRegistry.getItem(stoneCuttingRecipeData.getResult()).getJavaIdentifier())));
+            // Now that it's sorted, let's translate these recipes
+            for (StoneCuttingRecipeData stoneCuttingData : data.getValue()) {
+                // As of 1.16.4, all stonecutter recipes have one ingredient option
+                ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
+                ItemData input = ItemTranslator.translateToBedrock(session, ingredient);
+                ItemData output = ItemTranslator.translateToBedrock(session, stoneCuttingData.getResult());
+                UUID uuid = UUID.randomUUID();
+                // We need to register stonecutting recipes so they show up on Bedrock
+                craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
+                        Collections.singletonList(input), Collections.singletonList(output), uuid, "stonecutter", 0, netId++));
+                // Save the recipe list for reference when crafting
+                IntList outputs = stonecutterRecipeMap.get(ingredient.getId());
+                if (outputs == null) {
+                    outputs = new IntArrayList();
+                    // Add the ingredient as the key and all possible values as the value
+                    stonecutterRecipeMap.put(ingredient.getId(), outputs);
+                }
+                outputs.add(stoneCuttingData.getResult().getId());
+            }
+        }
+
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);
         session.setStonecutterRecipes(stonecutterRecipeMap);

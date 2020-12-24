@@ -35,15 +35,14 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequ
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
 import com.nukkitx.protocol.bedrock.packet.ItemStackRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
+import org.geysermc.connector.network.translators.inventory.SlotType;
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-
-import java.util.stream.Collectors;
 
 public class StonecutterInventoryTranslator extends AbstractBlockInventoryTranslator {
     public StonecutterInventoryTranslator() {
@@ -66,20 +65,21 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         // Get the ID of the item we are cutting
         int id = inventory.getItem(0).getId();
         // Look up all possible options of cutting from this ID
-        IntSet results = session.getStonecutterRecipes().get(id);
+        IntList results = session.getStonecutterRecipes().get(id);
         if (results == null) {
             return rejectRequest(request);
         }
+        System.out.println(id +  " " + results);
         ItemStack javaOutput = ItemTranslator.translateToJava(craftData.getResultItems()[0]);
-        // TODO bruh
+        System.out.println(javaOutput);
         // Getting the index of the item in the Java stonecutter list
-        // We do need to sort them by their Java ID to preserve index, though
-        int index = results.stream().sorted().collect(Collectors.toList()).indexOf(javaOutput.getId());
-        ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), index + 1);
+        ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), results.indexOf(javaOutput.getId()));
         System.out.println(packet.toString());
         session.sendDownstreamPacket(packet);
-        // We don't know there is an output here, so we tell ourselves that there is
-        inventory.setItem(1, GeyserItemStack.from(javaOutput, session.getItemNetId().incrementAndGet()));
+        if (inventory.getItem(1).getId() != javaOutput.getId()) {
+            // We don't know there is an output here, so we tell ourselves that there is
+            inventory.setItem(1, GeyserItemStack.from(javaOutput, session.getItemNetId().incrementAndGet()));
+        }
         return translateRequest(session, inventory, request);
     }
 
@@ -114,5 +114,13 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
             return 50;
         }
         return super.javaSlotToBedrock(slot);
+    }
+
+    @Override
+    public SlotType getSlotType(int javaSlot) {
+        if (javaSlot == 1) {
+            return SlotType.OUTPUT;
+        }
+        return super.getSlotType(javaSlot);
     }
 }

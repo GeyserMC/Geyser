@@ -26,6 +26,8 @@
 package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientClickWindowButtonPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -38,11 +40,15 @@ import com.nukkitx.protocol.bedrock.packet.ItemStackRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 
+import java.util.Collections;
 import java.util.List;
 
 public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
@@ -95,6 +101,20 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
+    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, int javaDestinationSlot) {
+        if (javaDestinationSlot != 1) {
+            return false;
+        }
+        GeyserItemStack itemStack = session.getPlayerInventory().getCursor();
+        if (itemStack.isEmpty()) {
+            return false;
+        }
+
+        // Reject the item if Bedrock is attempting to put in a dye that is not a dye in Java Edition
+        return !ItemRegistry.getItem(itemStack.getItemStack()).getJavaIdentifier().contains("_dye");
+    }
+
+    @Override
     public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         // If the LOOM_MATERIAL slot is not empty, we are crafting a pattern that does not come from an item
         return action.getType() == StackRequestActionType.CRAFT_NON_IMPLEMENTED_DEPRECATED && inventory.getItem(2).isEmpty();
@@ -103,18 +123,17 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     @Override
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
         // TODO: I anticipate this will be changed in the future to use something non-deprecated. Keep an eye out.
-        // Also TODO: Shift-clicking doesn't work here.
         StackRequestActionData data = request.getActions()[1];
         if (!(data instanceof CraftResultsDeprecatedStackRequestActionData)) {
             return rejectRequest(request);
         }
         CraftResultsDeprecatedStackRequestActionData craftData = (CraftResultsDeprecatedStackRequestActionData) data;
         // Get the patterns compound tag
-        List<NbtMap> blockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
+        List<NbtMap> newblockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
         // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
-        String pattern = blockEntityTag.get(blockEntityTag.size() - 1).getString("Pattern");
+        NbtMap pattern = newblockEntityTag.get(newblockEntityTag.size() - 1);
         // Get the Java index of this pattern
-        int index = PATTERN_TO_INDEX.getOrDefault(pattern, -1);
+        int index = PATTERN_TO_INDEX.getOrDefault(pattern.getString("Pattern"), -1);
         if (index == -1) {
             return rejectRequest(request);
         }
@@ -124,6 +143,30 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), index);
         System.out.println(packet);
         session.sendDownstreamPacket(packet);
+        GeyserItemStack inputCopy = inventory.getItem(0).copy();
+        inputCopy.setNetId(session.getItemNetId().incrementAndGet());
+        // Add the pattern manually, for better item synchronization
+        if (inputCopy.getNbt() == null) {
+            inputCopy.setNbt(new CompoundTag(""));
+        }
+        CompoundTag blockEntityTag = inputCopy.getNbt().get("BlockEntityTag");
+        CompoundTag javaBannerPattern = BannerTranslator.getJavaBannerPattern(pattern);
+        if (blockEntityTag != null) {
+            ListTag patternsList = blockEntityTag.get("Patterns");
+            if (patternsList != null) {
+                patternsList.add(javaBannerPattern);
+            } else {
+                patternsList = new ListTag("Patterns", Collections.singletonList(javaBannerPattern));
+                blockEntityTag.put(patternsList);
+            }
+        } else {
+            blockEntityTag = new CompoundTag("BlockEntityTag");
+            ListTag patternsList = new ListTag("Patterns", Collections.singletonList(javaBannerPattern));
+            blockEntityTag.put(patternsList);
+            inputCopy.getNbt().put(blockEntityTag);
+        }
+        // Set the new item as the output
+        inventory.setItem(3, inputCopy);
 
         return translateRequest(session, inventory, request);
     }
