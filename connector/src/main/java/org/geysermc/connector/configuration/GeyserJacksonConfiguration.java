@@ -122,6 +122,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private MetricsInfo metrics = new MetricsInfo();
 
     @Getter
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BedrockConfiguration implements IBedrockConfiguration {
         @AsteriskSerializer.Asterisk(sensitive = true)
         private String address = "0.0.0.0";
@@ -140,6 +141,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     }
 
     @Getter
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RemoteConfiguration implements IRemoteConfiguration {
         @Setter
         @AsteriskSerializer.Asterisk(sensitive = true)
@@ -173,6 +175,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     }
 
     @Getter
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MetricsInfo implements IMetricsInfo {
         private boolean enabled = true;
 
