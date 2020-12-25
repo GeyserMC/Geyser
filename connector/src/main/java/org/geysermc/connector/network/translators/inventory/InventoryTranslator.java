@@ -82,6 +82,7 @@ public abstract class InventoryTranslator {
             put(WindowType.ANVIL, new AnvilInventoryTranslator());
             put(WindowType.BEACON, new BeaconInventoryTranslator());
             put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
+            put(WindowType.CARTOGRAPHY, new CartographyInventoryTranslator());
             put(WindowType.CRAFTING, new CraftingInventoryTranslator());
             put(WindowType.ENCHANTMENT, new EnchantingInventoryTranslator());
             put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
@@ -96,7 +97,6 @@ public abstract class InventoryTranslator {
             put(WindowType.HOPPER, new GenericBlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER));
 
             /* todo */
-            //put(WindowType.CARTOGRAPHY
             // horse
         }
     };
@@ -122,9 +122,11 @@ public abstract class InventoryTranslator {
      * Should be overwritten in cases where specific inventories should reject an item being in a specific spot.
      * For examples, looms use this to reject items that are dyes in Bedrock but not in Java.
      *
+     * javaSourceSlot will be -1 if the cursor is the source
+     *
      * @return true if this transfer should be rejected
      */
-    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, int javaDestinationSlot) {
+    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, int javaSourceSlot, int javaDestinationSlot) {
         return false;
     }
 
@@ -188,9 +190,10 @@ public abstract class InventoryTranslator {
                         return rejectRequest(request);
                     }
 
+                    int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
 
-                    if (shouldRejectItemPlace(session, inventory, destSlot)) {
+                    if (shouldRejectItemPlace(session, inventory, isCursor(transferAction.getSource()) ? -1 :sourceSlot, destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }
@@ -199,7 +202,6 @@ public abstract class InventoryTranslator {
                         return rejectRequest(request);
                     } else if (session.getGameMode().equals(GameMode.CREATIVE) && inventory instanceof PlayerInventory) { // TODO: does the Java server use this stuff all the time in creative?
                         // Creative acts a little differently because it just edits slots
-                        int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                         boolean sourceIsCursor = isCursor(transferAction.getSource());
                         boolean destIsCursor = isCursor(transferAction.getDestination());
 
@@ -228,6 +230,15 @@ public abstract class InventoryTranslator {
                                 affectedSlots.add(destSlot);
                                 break;
                             }
+                        } else {
+                            // Delete the source since we're moving it
+                            inventory.setItem(sourceSlot, GeyserItemStack.EMPTY);
+                            ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
+                                    sourceSlot,
+                                    new ItemStack(0)
+                            );
+                            session.sendDownstreamPacket(creativeActionPacket);
+                            affectedSlots.add(sourceSlot);
                         }
                         // Update the item count with however much the client took
                         newItem.setAmount(transferAction.getCount());
@@ -273,7 +284,6 @@ public abstract class InventoryTranslator {
                             }
                         }
                     } else if (isCursor(transferAction.getDestination())) { //picking up into cursor
-                        int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                         GeyserItemStack sourceItem = plan.getItem(sourceSlot);
                         int sourceAmount = sourceItem.getAmount();
                         if (cursor.isEmpty()) { //picking up into empty cursor
@@ -303,7 +313,6 @@ public abstract class InventoryTranslator {
                         if (!cursor.isEmpty()) { //TODO: handle slot transfer when cursor is already in use (temp slot)
                             return rejectRequest(request);
                         }
-                        int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                         int sourceAmount = plan.getItem(sourceSlot).getAmount();
                         if (transferAction.getCount() == sourceAmount) { //transfer all
                             plan.add(Click.LEFT, sourceSlot); //pickup source
@@ -339,7 +348,37 @@ public abstract class InventoryTranslator {
                     if (!(checkNetId(session, inventory, swapAction.getSource()) && checkNetId(session, inventory, swapAction.getDestination())))
                         return rejectRequest(request);
 
-                    if (isCursor(swapAction.getSource()) && isCursor(swapAction.getDestination())) { //???
+                    if (session.getGameMode().equals(GameMode.CREATIVE) && inventory instanceof PlayerInventory) {
+                        int destSlot = bedrockSlotToJava(swapAction.getDestination());
+                        GeyserItemStack oldSourceItem;
+                        GeyserItemStack oldDestinationItem = inventory.getItem(destSlot);
+                        if (isCursor(swapAction.getSource())) {
+                            oldSourceItem = session.getPlayerInventory().getCursor();
+                            session.getPlayerInventory().setCursor(oldDestinationItem);
+                        } else {
+                            int sourceSlot = bedrockSlotToJava(swapAction.getSource());
+                            oldSourceItem = inventory.getItem(sourceSlot);
+                            ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
+                                    sourceSlot,
+                                    oldDestinationItem.isEmpty() ? new ItemStack(0) : oldDestinationItem.getItemStack() // isEmpty check... just in case
+                            );
+                            System.out.println(creativeActionPacket);
+                            session.sendDownstreamPacket(creativeActionPacket);
+                            inventory.setItem(sourceSlot, oldDestinationItem);
+                        }
+                        if (isCursor(swapAction.getDestination())) {
+                            session.getPlayerInventory().setCursor(oldSourceItem);
+                        } else {
+                            ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
+                                    destSlot,
+                                    oldSourceItem.isEmpty() ? new ItemStack(0) : oldSourceItem.getItemStack()
+                            );
+                            System.out.println(creativeActionPacket);
+                            session.sendDownstreamPacket(creativeActionPacket);
+                            inventory.setItem(destSlot, oldSourceItem);
+                        }
+
+                    } else if (isCursor(swapAction.getSource()) && isCursor(swapAction.getDestination())) { //???
                         return rejectRequest(request);
                     } else if (isCursor(swapAction.getSource())) { //swap cursor
                         int destSlot = bedrockSlotToJava(swapAction.getDestination());

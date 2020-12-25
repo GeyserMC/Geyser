@@ -101,11 +101,11 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, int javaDestinationSlot) {
+    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, int javaSourceSlot, int javaDestinationSlot) {
         if (javaDestinationSlot != 1) {
             return false;
         }
-        GeyserItemStack itemStack = session.getPlayerInventory().getCursor();
+        GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
         if (itemStack.isEmpty()) {
             return false;
         }
@@ -129,9 +129,9 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         }
         CraftResultsDeprecatedStackRequestActionData craftData = (CraftResultsDeprecatedStackRequestActionData) data;
         // Get the patterns compound tag
-        List<NbtMap> newblockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
+        List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
         // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
-        NbtMap pattern = newblockEntityTag.get(newblockEntityTag.size() - 1);
+        NbtMap pattern = newBlockEntityTag.get(newBlockEntityTag.size() - 1);
         // Get the Java index of this pattern
         int index = PATTERN_TO_INDEX.getOrDefault(pattern.getString("Pattern"), -1);
         if (index == -1) {
