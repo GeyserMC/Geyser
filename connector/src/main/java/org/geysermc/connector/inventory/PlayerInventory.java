@@ -45,7 +45,7 @@ public class PlayerInventory extends Inventory {
     private GeyserItemStack cursor = GeyserItemStack.EMPTY;
 
     public PlayerInventory() {
-        super(0, null, 46);
+        super(0, 46);
         heldItemSlot = 0;
     }
 

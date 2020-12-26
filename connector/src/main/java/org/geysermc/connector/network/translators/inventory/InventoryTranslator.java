@@ -60,10 +60,11 @@ import java.util.*;
 @AllArgsConstructor
 public abstract class InventoryTranslator {
 
+    public static final InventoryTranslator PLAYER_INVENTORY_TRANSLATOR = new PlayerInventoryTranslator();
     public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<WindowType, InventoryTranslator>() {
         {
             /* Player Inventory */
-            put(null, new PlayerInventoryTranslator()); //player inventory
+            put(null, PLAYER_INVENTORY_TRANSLATOR);
 
             /* Chest UIs */
             put(WindowType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
@@ -95,9 +96,6 @@ public abstract class InventoryTranslator {
             /* Generics */
             put(WindowType.GENERIC_3X3, new GenericBlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER));
             put(WindowType.HOPPER, new GenericBlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER));
-
-            /* todo */
-            // horse
         }
     };
 
@@ -193,7 +191,7 @@ public abstract class InventoryTranslator {
                     int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
 
-                    if (shouldRejectItemPlace(session, inventory, isCursor(transferAction.getSource()) ? -1 :sourceSlot, destSlot)) {
+                    if (shouldRejectItemPlace(session, inventory, isCursor(transferAction.getSource()) ? -1 : sourceSlot, destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }

@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowItemsPacket;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -56,7 +55,7 @@ public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItem
                 inventory.setItem(i, newItem);
             }
 
-            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+            InventoryTranslator translator = session.getInventoryTranslator();
             if (translator != null) {
                 translator.updateInventory(session, inventory);
             }

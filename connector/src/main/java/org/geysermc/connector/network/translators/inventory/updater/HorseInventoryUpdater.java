@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.inventory.updater;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
@@ -35,28 +34,36 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 import java.util.Arrays;
 
-public abstract class InventoryUpdater {
+public class HorseInventoryUpdater extends InventoryUpdater {
+    public static final HorseInventoryUpdater INSTANCE = new HorseInventoryUpdater();
+
+    @Override
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-        ItemData[] bedrockItems = new ItemData[36];
-        for (int i = 0; i < 36; i++) {
-            final int offset = i < 9 ? 27 : -9;
-            bedrockItems[i] = inventory.getItem(translator.size + i + offset).getItemData(session);
+        super.updateInventory(translator, session, inventory);
+
+        ItemData[] bedrockItems = new ItemData[translator.size];
+        for (int i = 0; i < bedrockItems.length; i++) {
+            bedrockItems[translator.javaSlotToBedrock(i)] = inventory.getItem(i).getItemData(session);
         }
+
         InventoryContentPacket contentPacket = new InventoryContentPacket();
-        contentPacket.setContainerId(ContainerId.INVENTORY);
+        contentPacket.setContainerId(inventory.getId());
         contentPacket.setContents(Arrays.asList(bedrockItems));
         session.sendUpstreamPacket(contentPacket);
     }
 
+    @Override
     public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
-        if (javaSlot >= translator.size) {
-            InventorySlotPacket slotPacket = new InventorySlotPacket();
-            slotPacket.setContainerId(ContainerId.INVENTORY);
-            slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-            slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
-            session.sendUpstreamPacket(slotPacket);
+        if (super.updateSlot(translator, session, inventory, javaSlot))
             return true;
-        }
-        return false;
+
+        InventorySlotPacket slotPacket = new InventorySlotPacket();
+        slotPacket.setContainerId(4); // Horse GUI?
+        slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
+        slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
+        session.sendUpstreamPacket(slotPacket);
+        System.out.println(slotPacket);
+        return true;
     }
+
 }

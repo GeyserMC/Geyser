@@ -143,6 +143,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), index);
         System.out.println(packet);
         session.sendDownstreamPacket(packet);
+
         GeyserItemStack inputCopy = inventory.getItem(0).copy();
         inputCopy.setNetId(session.getItemNetId().incrementAndGet());
         // Add the pattern manually, for better item synchronization

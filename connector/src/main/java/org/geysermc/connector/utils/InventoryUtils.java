@@ -56,7 +56,7 @@ public class InventoryUtils {
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag(""));
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
-        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+        InventoryTranslator translator = session.getInventoryTranslator();
         if (translator != null) {
             session.setOpenInventory(inventory);
             translator.prepareInventory(session, inventory);
@@ -84,10 +84,11 @@ public class InventoryUtils {
 
         Inventory inventory = getInventory(session, windowId);
         if (inventory != null) {
-            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+            InventoryTranslator translator = session.getInventoryTranslator();
             translator.closeInventory(session, inventory);
             session.setLastWindowCloseTime(System.currentTimeMillis());
         }
+        session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         session.setOpenInventory(null);
     }
 

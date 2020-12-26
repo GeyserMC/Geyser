@@ -57,6 +57,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     @Override
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
         // TODO: Also surely to change in the future
+        // TODO: don't spam the ClickWindowButtonPacket?
         StackRequestActionData data = request.getActions()[1];
         if (!(data instanceof CraftResultsDeprecatedStackRequestActionData)) {
             return rejectRequest(request);

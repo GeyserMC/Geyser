@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import lombok.Getter;
 import lombok.NonNull;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
@@ -38,8 +37,8 @@ public class Container extends Inventory {
     private final PlayerInventory playerInventory;
     private final int containerSize;
 
-    public Container(String title, int id, WindowType windowType, int size, PlayerInventory playerInventory) {
-        super(title, id, windowType, size);
+    public Container(String title, int id, int size, PlayerInventory playerInventory) {
+        super(title, id, size);
         this.playerInventory = playerInventory;
         this.containerSize = this.size + InventoryTranslator.PLAYER_INVENTORY_SIZE;
     }

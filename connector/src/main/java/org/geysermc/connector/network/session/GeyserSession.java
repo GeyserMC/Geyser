@@ -83,6 +83,7 @@ import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.skin.SkinManager;
 import org.geysermc.connector.utils.*;
@@ -122,6 +123,9 @@ public class GeyserSession implements CommandSender {
     private final PlayerInventory playerInventory;
     @Setter
     private Inventory openInventory;
+
+    @Setter
+    private InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
 
     private final AtomicInteger itemNetId = new AtomicInteger(1);
 

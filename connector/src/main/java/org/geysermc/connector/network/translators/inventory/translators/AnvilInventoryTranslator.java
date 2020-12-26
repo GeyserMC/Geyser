@@ -82,6 +82,6 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
 
     @Override
     public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new AnvilContainer(name, windowId, windowType, this.size, playerInventory);
+        return new AnvilContainer(name, windowId, this.size, playerInventory);
     }
 }

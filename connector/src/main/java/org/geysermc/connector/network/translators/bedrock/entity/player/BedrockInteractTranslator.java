@@ -38,6 +38,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -357,14 +358,23 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 break;
             case OPEN_INVENTORY:
                 if (session.getOpenInventory() == null) {
-                    session.setOpenInventory(session.getPlayerInventory());
+                    Entity ridingEntity = session.getRidingVehicleEntity();
+                    if (ridingEntity instanceof AbstractHorseEntity) {
+                        if (ridingEntity.getMetadata().getFlags().getFlag(EntityFlag.TAMED)) {
+                            // We should request to open the horse inventory instead
+                            ClientPlayerStatePacket openHorseWindowPacket = new ClientPlayerStatePacket((int)session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
+                            session.sendDownstreamPacket(openHorseWindowPacket);
+                        }
+                    } else {
+                        session.setOpenInventory(session.getPlayerInventory());
 
-                    ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-                    containerOpenPacket.setId((byte) 0);
-                    containerOpenPacket.setType(ContainerType.INVENTORY);
-                    containerOpenPacket.setUniqueEntityId(-1);
-                    containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
-                    session.sendUpstreamPacket(containerOpenPacket);
+                        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
+                        containerOpenPacket.setId((byte) 0);
+                        containerOpenPacket.setType(ContainerType.INVENTORY);
+                        containerOpenPacket.setUniqueEntityId(-1);
+                        containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
+                        session.sendUpstreamPacket(containerOpenPacket);
+                    }
                 }
                 break;
         }

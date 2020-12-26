@@ -149,6 +149,6 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new MerchantContainer(name, windowId, windowType, this.size, playerInventory);
+        return new MerchantContainer(name, windowId, this.size, playerInventory);
     }
 }

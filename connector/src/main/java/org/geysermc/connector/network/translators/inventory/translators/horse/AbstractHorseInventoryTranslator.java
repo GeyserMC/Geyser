@@ -23,31 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.inventory.translators.horse;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowPropertyPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.network.translators.inventory.translators.BaseInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.updater.HorseInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 
-@Translator(packet = ServerWindowPropertyPacket.class)
-public class JavaWindowPropertyTranslator extends PacketTranslator<ServerWindowPropertyPacket> {
+public abstract class AbstractHorseInventoryTranslator extends BaseInventoryTranslator {
+    private final InventoryUpdater updater;
+
+    public AbstractHorseInventoryTranslator(int size) {
+        super(size);
+        this.updater = HorseInventoryUpdater.INSTANCE;
+    }
 
     @Override
-    public void translate(ServerWindowPropertyPacket packet, GeyserSession session) {
-        System.out.println(packet.toString());
-        session.addInventoryTask(() -> {
-            Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
-            if (inventory == null)
-                return;
+    public void prepareInventory(GeyserSession session, Inventory inventory) {
 
-            InventoryTranslator translator = session.getInventoryTranslator();
-            if (translator != null) {
-                translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
-            }
-        });
+    }
+
+    @Override
+    public void openInventory(GeyserSession session, Inventory inventory) {
+
+    }
+
+    @Override
+    public void closeInventory(GeyserSession session, Inventory inventory) {
+
+    }
+
+    @Override
+    public void updateInventory(GeyserSession session, Inventory inventory) {
+        updater.updateInventory(this, session, inventory);
+    }
+
+    @Override
+    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
+        updater.updateSlot(this, session, inventory, slot);
     }
 }

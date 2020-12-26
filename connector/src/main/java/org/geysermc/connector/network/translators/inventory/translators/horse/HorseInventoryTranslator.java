@@ -23,10 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.inventory;
+package org.geysermc.connector.network.translators.inventory.translators.horse;
 
-public class AnvilContainer extends Container {
-    public AnvilContainer(String title, int id, int size, PlayerInventory playerInventory) {
-        super(title, id, size, playerInventory);
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
+
+public class HorseInventoryTranslator extends AbstractHorseInventoryTranslator {
+    public HorseInventoryTranslator(int size) {
+        super(size);
+    }
+
+    @Override
+    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+        if (slotInfoData.getContainer() == ContainerSlotType.HORSE_EQUIP) {
+            return slotInfoData.getSlot();
+        }
+        return super.bedrockSlotToJava(slotInfoData);
+    }
+
+    @Override
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+        if (slot == 0 || slot == 1) {
+            return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, slot);
+        }
+        return super.javaSlotToBedrockContainer(slot);
     }
 }

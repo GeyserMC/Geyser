@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.inventory.EnchantOptionData;
 import lombok.Getter;
 
@@ -41,8 +40,8 @@ public class EnchantingContainer extends Container {
     @Getter
     private final GeyserEnchantOption[] geyserEnchantOptions;
 
-    public EnchantingContainer(String title, int id, WindowType windowType, int size, PlayerInventory playerInventory) {
-        super(title, id, windowType, size, playerInventory);
+    public EnchantingContainer(String title, int id, int size, PlayerInventory playerInventory) {
+        super(title, id, size, playerInventory);
 
         enchantOptions = new EnchantOptionData[3];
         geyserEnchantOptions = new GeyserEnchantOption[3];

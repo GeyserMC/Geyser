@@ -43,7 +43,7 @@ public class BedrockItemStackRequestTranslator extends PacketTranslator<ItemStac
         if (inventory == null)
             return;
 
-        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+        InventoryTranslator translator = session.getInventoryTranslator();
         session.addInventoryTask(() -> translator.translateRequests(session, inventory, packet.getRequests()));
     }
 }

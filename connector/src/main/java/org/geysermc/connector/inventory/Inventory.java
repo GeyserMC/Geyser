@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.NonNull;
@@ -37,9 +36,6 @@ public class Inventory {
 
     @Getter
     protected int id;
-
-    @Getter
-    protected WindowType windowType;
 
     @Getter
     protected final int size;
@@ -64,14 +60,13 @@ public class Inventory {
     @Getter
     protected short transactionId = 0;
 
-    protected Inventory(int id, WindowType windowType, int size) {
-        this("Inventory", id, windowType, size);
+    protected Inventory(int id, int size) {
+        this("Inventory", id, size);
     }
 
-    protected Inventory(String title, int id, WindowType windowType, int size) {
+    protected Inventory(String title, int id, int size) {
         this.title = title;
         this.id = id;
-        this.windowType = windowType;
         this.size = size;
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);

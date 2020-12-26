@@ -26,7 +26,6 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,7 +35,7 @@ public class FurnaceInventory extends Inventory {
     @Setter
     private int test;
 
-    public FurnaceInventory(String title, int id, WindowType windowType, int size) {
-        super(title, id, windowType, size);
+    public FurnaceInventory(String title, int id, int size) {
+        super(title, id, size);
     }
 }

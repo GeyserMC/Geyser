@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.inventory;
+package org.geysermc.connector.network.translators.inventory.translators.horse;
 
-public class AnvilContainer extends Container {
-    public AnvilContainer(String title, int id, int size, PlayerInventory playerInventory) {
-        super(title, id, size, playerInventory);
+public class LlamaInventoryTranslator extends ChestedHorseInventoryTranslator {
+    public LlamaInventoryTranslator(int size) {
+        super(size, 1);
     }
 }
