@@ -31,6 +31,8 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientConfi
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.Value;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
@@ -193,8 +195,11 @@ public class ClickPlan {
         }
     }
 
-    public Set<Integer> getAffectedSlots() {
-        Set<Integer> affectedSlots = new HashSet<>();
+    /**
+     * @return a new set of all affected slots. This isn't a constant variable; it's newly generated each time it is run.
+     */
+    public IntSet getAffectedSlots() {
+        IntSet affectedSlots = new IntOpenHashSet();
         for (ClickAction action : plan) {
             if (translator.getSlotType(action.slot) == SlotType.NORMAL && action.slot != Click.OUTSIDE_SLOT) {
                 affectedSlots.add(action.slot);
@@ -206,6 +211,9 @@ public class ClickPlan {
     @Value
     private static class ClickAction {
         Click click;
+        /**
+         * Java slot
+         */
         int slot;
     }
 }

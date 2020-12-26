@@ -67,11 +67,11 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         }
 
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
-        if (!entity.getDimension().equals(newDimension)) {
+        if (!session.getDimension().equals(newDimension)) {
             DimensionUtils.switchDimension(session, newDimension);
         } else {
             if (session.isManyDimPackets()) { //reloading world
-                String fakeDim = entity.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
+                String fakeDim = session.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
                 DimensionUtils.switchDimension(session, fakeDim);
                 DimensionUtils.switchDimension(session, newDimension);
             } else {

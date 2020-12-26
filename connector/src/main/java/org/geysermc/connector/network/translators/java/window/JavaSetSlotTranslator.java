@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,6 +39,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
     @Override
     public void translate(ServerSetSlotPacket packet, GeyserSession session) {
+        System.out.println(packet.toString());
         session.addInventoryTask(() -> {
             if (packet.getWindowId() == 255) { //cursor
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
@@ -47,7 +47,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 if (newItem.getItemData(session).equals(oldItem.getItemData(session))) {
                     newItem.setNetId(oldItem.getNetId());
                 } else {
-                    newItem.setNetId(session.getItemNetId().getAndIncrement());
+                    newItem.setNetId(session.getNextItemNetId());
                 }
                 session.getPlayerInventory().setCursor(newItem);
                 InventoryUtils.updateCursor(session);
@@ -59,7 +59,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
             if (inventory == null)
                 return;
 
-            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+            InventoryTranslator translator = session.getInventoryTranslator();
             if (translator != null) {
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
                 GeyserItemStack oldItem = inventory.getItem(packet.getSlot());
@@ -67,7 +67,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                     newItem.setNetId(oldItem.getNetId());
                     System.out.println("OLD: " + newItem.getNetId());
                 } else {
-                    newItem.setNetId(session.getItemNetId().getAndIncrement());
+                    newItem.setNetId(session.getNextItemNetId());
                     System.out.println("NEW: " + newItem.getNetId());
                 }
                 inventory.setItem(packet.getSlot(), newItem);

@@ -78,7 +78,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                 int r = (int) (data.getRed()*255);
                 int g = (int) (data.getGreen()*255);
                 int b = (int) (data.getBlue()*255);
-                particle.setType(LevelEventType.PARTICLE_REDSTONE);
+                particle.setType(LevelEventType.PARTICLE_FALLING_DUST);
                 particle.setData(((0xff) << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff));
                 particle.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
                 session.sendUpstreamPacket(particle);
@@ -94,7 +94,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     if (stringParticle != null) {
                         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
                         stringPacket.setIdentifier(stringParticle);
-                        stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getPlayerEntity().getDimension()));
+                        stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
                         stringPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
                         session.sendUpstreamPacket(stringPacket);
                     }

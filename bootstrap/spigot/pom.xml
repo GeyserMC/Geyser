@@ -6,15 +6,15 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.1.0</version>
-        <relativePath>../</relativePath>
+        <version>1.2.0-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-spigot</artifactId>
+
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -26,8 +26,13 @@
         <dependency>
             <groupId>us.myles</groupId>
             <artifactId>viaversion</artifactId>
-            <version>3.1.1</version>
+            <version>3.2.0</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geysermc.adapters</groupId>
+            <artifactId>spigot-all</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>

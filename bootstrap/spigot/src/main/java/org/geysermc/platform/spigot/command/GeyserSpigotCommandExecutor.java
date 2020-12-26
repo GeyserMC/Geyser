@@ -32,7 +32,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.GeyserCommand;
-import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.ArrayList;
@@ -42,21 +41,17 @@ import java.util.List;
 @AllArgsConstructor
 public class GeyserSpigotCommandExecutor implements TabExecutor {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length > 0) {
             if (getCommand(args[0]) != null) {
                 if (!sender.hasPermission(getCommand(args[0]).getPermission())) {
-                    String message = "";
-                    if (sender instanceof GeyserSession) {
-                        message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", ((GeyserSession) sender).getClientData().getLanguageCode());
-                    } else {
-                        message = LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail");
-                    }
+                    SpigotCommandSender commandSender = new SpigotCommandSender(sender);
+                    String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", commandSender.getLocale());;
 
-                    sender.sendMessage(ChatColor.RED + message);
+                    commandSender.sendMessage(ChatColor.RED + message);
                     return true;
                 }
                 getCommand(args[0]).execute(new SpigotCommandSender(sender), args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
@@ -72,7 +67,7 @@ public class GeyserSpigotCommandExecutor implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("?", "help", "reload", "shutdown", "stop");
+            return connector.getCommandManager().getCommandNames();
         }
         return new ArrayList<>();
     }

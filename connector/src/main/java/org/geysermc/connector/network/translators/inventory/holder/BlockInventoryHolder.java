@@ -38,6 +38,9 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
+/**
+ * Manages the fake block we implement for each inventory.
+ */
 @AllArgsConstructor
 public class BlockInventoryHolder extends InventoryHolder {
     private final int blockId;
@@ -45,6 +48,11 @@ public class BlockInventoryHolder extends InventoryHolder {
 
     @Override
     public void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+        //TODO: Improve on this (for example, multiple block states). We need this for the beacon.
+        if (BlockTranslator.getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, session.getLastInteractionPosition())) == blockId) {
+            inventory.setHolderPosition(session.getLastInteractionPosition());
+            return;
+        }
         Vector3i position = session.getPlayerEntity().getPosition().toInt();
         position = position.add(Vector3i.UP);
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
@@ -79,6 +87,9 @@ public class BlockInventoryHolder extends InventoryHolder {
     @Override
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         Vector3i holderPos = inventory.getHolderPosition();
+        if (holderPos.equals(session.getLastInteractionPosition())) {
+            return;
+        }
         Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
         int realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();

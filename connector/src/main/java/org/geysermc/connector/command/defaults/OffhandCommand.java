@@ -36,7 +36,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class OffhandCommand extends GeyserCommand {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public OffhandCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
@@ -58,7 +58,7 @@ public class OffhandCommand extends GeyserCommand {
             session.sendDownstreamPacket(releaseItemPacket);
             return;
         }
-        // Needed for Bukkit - sender is not an instance of GeyserSession
+        // Needed for Spigot - sender is not an instance of GeyserSession
         for (GeyserSession session : connector.getPlayers()) {
             if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
                 ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
@@ -67,5 +67,10 @@ public class OffhandCommand extends GeyserCommand {
                 break;
             }
         }
+    }
+
+    @Override
+    public boolean isExecutableOnConsole() {
+        return false;
     }
 }

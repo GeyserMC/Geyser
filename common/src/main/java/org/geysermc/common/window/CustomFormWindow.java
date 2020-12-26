@@ -92,7 +92,7 @@ public class CustomFormWindow extends FormWindow {
     }
 
     public void setResponse(String data) {
-        if (data == null || data.equalsIgnoreCase("null") || data.isEmpty()) {
+        if (data == null || data.trim().equalsIgnoreCase("null") || data.isEmpty()) {
             closed = true;
             return;
         }
@@ -108,7 +108,7 @@ public class CustomFormWindow extends FormWindow {
 
         List<String> componentResponses = new ArrayList<>();
         try {
-            componentResponses = new ObjectMapper().readValue(data, new TypeReference<List<String>>(){});
+            componentResponses = new ObjectMapper().readValue(data.trim(), new TypeReference<List<String>>(){});
         } catch (IOException e) { }
 
         for (String response : componentResponses) {

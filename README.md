@@ -18,7 +18,7 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have now joined us here!
 
-### Currently supporting Minecraft Bedrock v1.16.x and Minecraft Java v1.16.3.
+### Currently supporting Minecraft Bedrock v1.16.100/v1.16.101/v1.16.200 and Minecraft Java v1.16.4.
 
 ## Setting Up
 Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set up Geyser.
@@ -34,16 +34,26 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Test Server: `test.geysermc.org` port `25565` for Java and `19132` for Bedrock
 
 ## What's Left to be Added/Fixed
-- The Following Inventories 
-  - [ ] Enchantment Table (as a proper GUI)
-  - [ ] Beacon
-  - [ ] Cartography Table
-  - [ ] Stonecutter
-  - [ ] Structure Block
-  - [ ] Horse Inventory
-  - [ ] Loom
-  - [ ] Smithing Table
+- Lecterns
+- Near-perfect movement (to the point where anticheat on large servers is unlikely to ban you)
+- Resource pack conversion/CustomModelData
 - Some Entity Flags
+- The Following Inventories 
+  - Enchantment Table (as a proper GUI)
+  - Beacon
+  - Cartography Table
+  - Stonecutter
+  - Structure Block
+  - Horse Inventory
+  - Loom
+  - Smithing Table
+
+## What can't be fixed
+The following things can't be fixed because of Bedrock limitations. They might be fixable in the future, but not as of now.
+
+- Custom heads in inventories
+- Clickable links in chat
+- Glowing effect
 
 ## Compiling
 1. Clone the repo to your computer

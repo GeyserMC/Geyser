@@ -125,8 +125,8 @@ public class BlockUtils {
             return calculateBreakTime(blockHardness, toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock, isCobweb, toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false, false, false);
         }
 
-        hasteLevel = session.getPlayerEntity().getEffectCache().getEffectLevel(Effect.FASTER_DIG);
-        miningFatigueLevel = session.getPlayerEntity().getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
+        hasteLevel = session.getEffectCache().getEffectLevel(Effect.FASTER_DIG);
+        miningFatigueLevel = session.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
 
         boolean isInWater = session.getConnector().getConfig().isCacheChunks()
                 && BlockTranslator.getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt())) == BlockTranslator.BEDROCK_WATER_ID;

@@ -26,16 +26,11 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.nbt.NbtMapBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
-
-@BlockEntity(name = "Empty", regex = "")
+@BlockEntity(name = "Empty")
 public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
-
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        return new HashMap<>();
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
     }
-
 }

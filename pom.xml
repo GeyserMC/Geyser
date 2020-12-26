@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.geysermc</groupId>
     <artifactId>geyser-parent</artifactId>
-    <version>parent</version>
+    <version>1.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Geyser</name>
     <description>Allows for players from Minecraft Bedrock Edition to join Minecraft Java Edition servers.</description>
@@ -42,8 +42,8 @@
             <url>https://jitpack.io</url>
         </repository>
         <repository>
-            <id>nukkitx-release-repo</id>
-            <url>https://repo.nukkitx.com/maven-releases/</url>
+            <id>opencollab-release-repo</id>
+            <url>https://repo.opencollab.dev/maven-releases/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -52,8 +52,8 @@
             </snapshots>
         </repository>
         <repository>
-            <id>nukkitx-snapshot-repo</id>
-            <url>https://repo.nukkitx.com/maven-snapshots/</url>
+            <id>opencollab-snapshot-repo</id>
+            <url>https://repo.opencollab.dev/maven-snapshots/</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -74,13 +74,13 @@
     <distributionManagement>
         <repository>
             <id>releases</id>
-            <name>nukkitx-releases</name>
-            <url>https://repo.nukkitx.com/maven-releases</url>
+            <name>opencollab-releases</name>
+            <url>https://repo.opencollab.dev/maven-releases</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
-            <name>nukkitx-snapshots</name>
-            <url>https://repo.nukkitx.com/maven-snapshots</url>
+            <name>opencollab-snapshots</name>
+            <url>https://repo.opencollab.dev/maven-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 

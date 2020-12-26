@@ -32,18 +32,18 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = ItemStackRequestPacket.class)
 public class BedrockItemStackRequestTranslator extends PacketTranslator<ItemStackRequestPacket> {
 
     @Override
     public void translate(ItemStackRequestPacket packet, GeyserSession session) {
+        session.getConnector().getLogger().info(packet.toString());
         Inventory inventory = session.getOpenInventory();
         if (inventory == null)
             return;
 
-        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+        InventoryTranslator translator = session.getInventoryTranslator();
         session.addInventoryTask(() -> translator.translateRequests(session, inventory, packet.getRequests()));
     }
 }

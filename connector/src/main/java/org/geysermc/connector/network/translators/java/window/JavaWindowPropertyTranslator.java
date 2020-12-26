@@ -38,12 +38,13 @@ public class JavaWindowPropertyTranslator extends PacketTranslator<ServerWindowP
 
     @Override
     public void translate(ServerWindowPropertyPacket packet, GeyserSession session) {
+        System.out.println(packet.toString());
         session.addInventoryTask(() -> {
             Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
             if (inventory == null)
                 return;
 
-            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+            InventoryTranslator translator = session.getInventoryTranslator();
             if (translator != null) {
                 translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
             }

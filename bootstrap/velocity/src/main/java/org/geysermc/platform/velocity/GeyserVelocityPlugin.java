@@ -33,9 +33,9 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
@@ -121,7 +121,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
-        this.commandManager.register(new GeyserVelocityCommandExecutor(connector), "geyser");
+        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(connector));
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
         } else {
