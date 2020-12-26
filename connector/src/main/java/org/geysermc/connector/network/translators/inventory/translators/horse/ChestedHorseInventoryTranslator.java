@@ -66,7 +66,7 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
         if (slot == this.equipSlot) {
             return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, 0);
         }
-        if (slot <= this.size) {
+        if (slot <= this.size - 1) { // Accommodate for the lack of one slot (saddle or armor)
             return new BedrockContainerSlot(ContainerSlotType.CONTAINER, slot - 1);
         }
         return super.javaSlotToBedrockContainer(slot);
@@ -77,7 +77,7 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
         if (slot == 0 && this.equipSlot == 0) {
             return 0;
         }
-        if (slot <= this.size) {
+        if (slot <= this.size - 1) {
             return slot - 1;
         }
         return super.javaSlotToBedrock(slot);
