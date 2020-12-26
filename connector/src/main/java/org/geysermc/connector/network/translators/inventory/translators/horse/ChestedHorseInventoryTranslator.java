@@ -42,7 +42,8 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
 
     /**
      * @param size the total Java size of the inventory
-     * @param equipSlot the Java equipment slot. For
+     * @param equipSlot the Java equipment slot. Java always has two slots - one for armor and one for saddle. Chested horses
+     *                  on Bedrock only acknowledge one slot.
      */
     public ChestedHorseInventoryTranslator(int size, int equipSlot) {
         super(size);
@@ -103,10 +104,10 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
             horseItems[i] = inventory.getItem(i + 1).getItemData(session);
         }
 
-        InventoryContentPacket llamaPacket = new InventoryContentPacket();
-        llamaPacket.setContainerId(inventory.getId());
-        llamaPacket.setContents(Arrays.asList(horseItems));
-        System.out.println(llamaPacket);
-        session.sendUpstreamPacket(llamaPacket);
+        InventoryContentPacket horseContentsPacket = new InventoryContentPacket();
+        horseContentsPacket.setContainerId(inventory.getId());
+        horseContentsPacket.setContents(Arrays.asList(horseItems));
+        System.out.println(horseContentsPacket);
+        session.sendUpstreamPacket(horseContentsPacket);
     }
 }

@@ -40,7 +40,7 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
     @Override
     public void translate(FilterTextPacket packet, GeyserSession session) {
         // TODO: Bedrock doesn't send this. Why?
-        System.out.println(packet.toString());
+        session.getConnector().getLogger().error(packet.toString());
         packet.setFromServer(true);
         session.sendUpstreamPacket(packet);
     }

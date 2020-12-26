@@ -81,6 +81,12 @@ public class RecipeRegistry {
     public static final List<CraftingData> TIPPED_ARROW_RECIPES = new ObjectArrayList<>();
 
     /**
+     * Recipe data that, when sent to the client, enables cartography features.
+     * This does not have a Java equivalent.
+     */
+    public static final List<CraftingData> CARTOGRAPHY_RECIPE_DATA = new ObjectArrayList<>();
+
+    /**
      * Recipe data that, when sent to the client, enables book cloning
      */
     public static final CraftingData BOOK_CLONING_RECIPE_DATA;
@@ -108,6 +114,11 @@ public class RecipeRegistry {
         MAP_EXTENDING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), LAST_RECIPE_NET_ID++);
         MAP_CLONING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), LAST_RECIPE_NET_ID++);
         BANNER_DUPLICATING_RECIPE_DATA = CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), LAST_RECIPE_NET_ID++);
+
+        CARTOGRAPHY_RECIPE_DATA.add(CraftingData.fromMulti(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), LAST_RECIPE_NET_ID++)); // Map extending
+        CARTOGRAPHY_RECIPE_DATA.add(CraftingData.fromMulti(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), LAST_RECIPE_NET_ID++)); // Map cloning
+        CARTOGRAPHY_RECIPE_DATA.add(CraftingData.fromMulti(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), LAST_RECIPE_NET_ID++)); // Map upgrading
+        CARTOGRAPHY_RECIPE_DATA.add(CraftingData.fromMulti(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), LAST_RECIPE_NET_ID++)); // Map locking
         // https://github.com/pmmp/PocketMine-MP/blob/stable/src/pocketmine/inventory/MultiRecipe.php
 
         // Get all recipes that are not directly sent from a Java server

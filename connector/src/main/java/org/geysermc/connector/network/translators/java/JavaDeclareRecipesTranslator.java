@@ -149,6 +149,9 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 }
             }
         }
+        // Add all cartography table recipe UUIDs, so we can use the cartography table
+        craftingDataPacket.getCraftingData().addAll(RecipeRegistry.CARTOGRAPHY_RECIPE_DATA);
+
         craftingDataPacket.getPotionMixData().addAll(PotionMixRegistry.POTION_MIXES);
 
         Int2ObjectMap<IntList> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();

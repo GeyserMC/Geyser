@@ -127,6 +127,10 @@ public class GeyserSession implements CommandSender {
     @Setter
     private InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
 
+    /**
+     * Use {@link #getNextItemNetId()} instead for consistency
+     */
+    @Getter(AccessLevel.NONE)
     private final AtomicInteger itemNetId = new AtomicInteger(1);
 
     @Getter(AccessLevel.NONE)
@@ -727,12 +731,10 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLevelName(serverName);
 
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
-        // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
-        // startGamePacket.setMovementServerAuthoritative(true);
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         upstream.sendPacket(startGamePacket);
@@ -771,6 +773,13 @@ public class GeyserSession implements CommandSender {
                 return null;
             });
         }
+    }
+
+    /**
+     * @return the next Bedrock item network ID to use for a new item
+     */
+    public int getNextItemNetId() {
+        return itemNetId.getAndIncrement();
     }
 
     public void addTeleport(TeleportCache teleportCache) {

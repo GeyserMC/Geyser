@@ -45,7 +45,6 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 
 import java.util.Collections;
@@ -111,7 +110,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         }
 
         // Reject the item if Bedrock is attempting to put in a dye that is not a dye in Java Edition
-        return !ItemRegistry.getItem(itemStack.getItemStack()).getJavaIdentifier().contains("_dye");
+        return !itemStack.getItemEntry().getJavaIdentifier().endsWith("_dye");
     }
 
     @Override
@@ -145,7 +144,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         session.sendDownstreamPacket(packet);
 
         GeyserItemStack inputCopy = inventory.getItem(0).copy();
-        inputCopy.setNetId(session.getItemNetId().incrementAndGet());
+        inputCopy.setNetId(session.getNextItemNetId());
         // Add the pattern manually, for better item synchronization
         if (inputCopy.getNbt() == null) {
             inputCopy.setNbt(new CompoundTag(""));

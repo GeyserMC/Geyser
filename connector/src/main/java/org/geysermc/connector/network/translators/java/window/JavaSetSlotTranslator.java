@@ -47,7 +47,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 if (newItem.getItemData(session).equals(oldItem.getItemData(session))) {
                     newItem.setNetId(oldItem.getNetId());
                 } else {
-                    newItem.setNetId(session.getItemNetId().getAndIncrement());
+                    newItem.setNetId(session.getNextItemNetId());
                 }
                 session.getPlayerInventory().setCursor(newItem);
                 InventoryUtils.updateCursor(session);
@@ -67,7 +67,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                     newItem.setNetId(oldItem.getNetId());
                     System.out.println("OLD: " + newItem.getNetId());
                 } else {
-                    newItem.setNetId(session.getItemNetId().getAndIncrement());
+                    newItem.setNetId(session.getNextItemNetId());
                     System.out.println("NEW: " + newItem.getNetId());
                 }
                 inventory.setItem(packet.getSlot(), newItem);

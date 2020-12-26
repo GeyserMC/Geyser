@@ -50,7 +50,7 @@ public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItem
                 if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
                     newItem.setNetId(oldItem.getNetId());
                 } else {
-                    newItem.setNetId(session.getItemNetId().getAndIncrement());
+                    newItem.setNetId(session.getNextItemNetId());
                 }
                 inventory.setItem(i, newItem);
             }

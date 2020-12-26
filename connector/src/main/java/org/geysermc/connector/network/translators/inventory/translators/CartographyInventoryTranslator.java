@@ -33,7 +33,6 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class CartographyInventoryTranslator extends AbstractBlockInventoryTranslator {
     public CartographyInventoryTranslator() {
@@ -42,10 +41,14 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, int javaSourceSlot, int javaDestinationSlot) {
-        if (javaDestinationSlot == 1) {
+        if (javaDestinationSlot == 0) {
+            // Bedrock Edition can use paper in slot 0
+            GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
+            return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:paper");
+        }if (javaDestinationSlot == 1) {
             // Bedrock Edition can use a compass to create locator maps in the ADDITIONAL slot
             GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
-            return ItemRegistry.getItem(itemStack.getItemStack()).getJavaIdentifier().equals("minecraft:compass");
+            return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:compass");
         } else if (javaSourceSlot == 2) {
             // Java doesn't allow an item to be renamed; this is why CARTOGRAPHY_ADDITIONAL could remain empty for Bedrock
             return inventory.getItem(1).isEmpty();

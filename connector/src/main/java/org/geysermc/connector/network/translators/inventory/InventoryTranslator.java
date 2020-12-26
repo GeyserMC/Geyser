@@ -120,7 +120,7 @@ public abstract class InventoryTranslator {
      * Should be overwritten in cases where specific inventories should reject an item being in a specific spot.
      * For examples, looms use this to reject items that are dyes in Bedrock but not in Java.
      *
-     * javaSourceSlot will be -1 if the cursor is the source
+     * The source/destination slot will be -1 if the cursor is the slot
      *
      * @return true if this transfer should be rejected
      */
@@ -191,7 +191,8 @@ public abstract class InventoryTranslator {
                     int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
 
-                    if (shouldRejectItemPlace(session, inventory, isCursor(transferAction.getSource()) ? -1 : sourceSlot, destSlot)) {
+                    if (shouldRejectItemPlace(session, inventory, isCursor(transferAction.getSource()) ? -1 : sourceSlot,
+                            isCursor(transferAction.getDestination()) ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }
@@ -673,7 +674,7 @@ public abstract class InventoryTranslator {
                     ItemStack javaCreativeItem = ItemTranslator.translateToJava(creativeItem);
 
                     if (isCursor(transferAction.getDestination())) {
-                        session.getPlayerInventory().setCursor(GeyserItemStack.from(javaCreativeItem, session.getItemNetId().getAndIncrement()));
+                        session.getPlayerInventory().setCursor(GeyserItemStack.from(javaCreativeItem, session.getNextItemNetId()));
                         return acceptRequest(request, Collections.singletonList(
                                 new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CURSOR,
                                         Collections.singletonList(makeItemEntry(session, 0, session.getPlayerInventory().getCursor())))));
@@ -685,7 +686,7 @@ public abstract class InventoryTranslator {
                             existingItem.setAmount(existingItem.getAmount() + transferAction.getCount());
                             javaCreativeItem = existingItem.getItemStack();
                         } else {
-                            inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem, session.getItemNetId().getAndIncrement()));
+                            inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem, session.getNextItemNetId()));
                         }
                         ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
                                 javaSlot,
@@ -750,7 +751,7 @@ public abstract class InventoryTranslator {
     public static ItemStackResponsePacket.ItemEntry makeItemEntry(GeyserSession session, int bedrockSlot, GeyserItemStack itemStack) {
         ItemStackResponsePacket.ItemEntry itemEntry;
         if (!itemStack.isEmpty()) {
-            int newNetId = session.getItemNetId().getAndIncrement();
+            int newNetId = session.getNextItemNetId();
             itemStack.setNetId(newNetId);
             itemEntry = new ItemStackResponsePacket.ItemEntry((byte) bedrockSlot, (byte) bedrockSlot, (byte) itemStack.getAmount(), newNetId, "");
         } else {

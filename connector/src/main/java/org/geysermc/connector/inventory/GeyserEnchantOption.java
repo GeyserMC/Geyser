@@ -73,6 +73,6 @@ public class GeyserEnchantOption {
         }
         return new EnchantOptionData(xpCost, javaIndex + 16, EMPTY,
                 Collections.singletonList(new EnchantData(bedrockEnchantIndex, enchantLevel)), EMPTY,
-                javaEnchantIndex == -1 ? "unknown" : ENCHANT_NAMES.get(javaEnchantIndex), session.getItemNetId().incrementAndGet());
+                javaEnchantIndex == -1 ? "unknown" : ENCHANT_NAMES.get(javaEnchantIndex), session.getNextItemNetId());
     }
 }
