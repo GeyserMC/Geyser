@@ -25,11 +25,8 @@
 
 package org.geysermc.connector.inventory;
 
-/**
- * Used to determine if rename packets should be sent.
- */
-public class AnvilContainer extends Container {
-    public AnvilContainer(String title, int id, int size, PlayerInventory playerInventory) {
+public class CartographyContainer extends Container {
+    public CartographyContainer(String title, int id, int size, PlayerInventory playerInventory) {
         super(title, id, size, playerInventory);
     }
 }

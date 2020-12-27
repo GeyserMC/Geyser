@@ -25,11 +25,14 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.geysermc.connector.inventory.CartographyContainer;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
@@ -45,13 +48,10 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
             // Bedrock Edition can use paper in slot 0
             GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
             return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:paper");
-        }if (javaDestinationSlot == 1) {
+        } else if (javaDestinationSlot == 1) {
             // Bedrock Edition can use a compass to create locator maps in the ADDITIONAL slot
             GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
             return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:compass");
-        } else if (javaSourceSlot == 2) {
-            // Java doesn't allow an item to be renamed; this is why CARTOGRAPHY_ADDITIONAL could remain empty for Bedrock
-            return inventory.getItem(1).isEmpty();
         }
         return false;
     }
@@ -94,5 +94,10 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
                 return 50;
         }
         return super.javaSlotToBedrock(slot);
+    }
+
+    @Override
+    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
+        return new CartographyContainer(name, windowId, this.size, playerInventory);
     }
 }

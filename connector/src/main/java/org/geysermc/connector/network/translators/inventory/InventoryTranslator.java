@@ -39,6 +39,7 @@ import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.AllArgsConstructor;
+import org.geysermc.connector.inventory.CartographyContainer;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
@@ -483,8 +484,25 @@ public abstract class InventoryTranslator {
                     }
                     break;
                 }
-                // These three are called for the grindstone
+                // The following three tend to be called for UI inventories
                 case CONSUME: {
+                    if (inventory instanceof CartographyContainer) {
+                        // TODO add this for more inventories? Only seems to glitch out the cartography table, though.
+                        ConsumeStackRequestActionData consumeData = (ConsumeStackRequestActionData) action;
+                        int sourceSlot = bedrockSlotToJava(consumeData.getSource());
+                        if (sourceSlot == 0 && inventory.getItem(1).isEmpty()) {
+                            // Java doesn't allow an item to be renamed; this is why CARTOGRAPHY_ADDITIONAL could remain empty for Bedrock
+                            // We check this during slot 0 since setting the inventory slots here messes up shouldRejectItemPlace
+                            return rejectRequest(request, false);
+                        }
+
+                        GeyserItemStack item = inventory.getItem(sourceSlot);
+                        item.setAmount(item.getAmount() - consumeData.getCount());
+                        if (item.isEmpty()) {
+                            inventory.setItem(sourceSlot, GeyserItemStack.EMPTY);
+                        }
+                        affectedSlots.add(sourceSlot);
+                    }
                     break;
                 }
                 case CRAFT_NON_IMPLEMENTED_DEPRECATED: {
