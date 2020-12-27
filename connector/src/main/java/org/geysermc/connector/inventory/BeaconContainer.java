@@ -34,7 +34,7 @@ public class BeaconContainer extends Container {
     private int primaryId;
     private int secondaryId;
 
-    public BeaconContainer(String title, int id,int size, PlayerInventory playerInventory) {
+    public BeaconContainer(String title, int id, int size, PlayerInventory playerInventory) {
         super(title, id, size, playerInventory);
     }
 }

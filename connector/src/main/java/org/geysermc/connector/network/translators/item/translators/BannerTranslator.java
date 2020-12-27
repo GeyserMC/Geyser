@@ -32,7 +32,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
@@ -182,7 +181,6 @@ public class BannerTranslator extends ItemTranslator {
 
     @Override
     public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
-        GeyserConnector.getInstance().getLogger().warning(itemEntry.toString());
         if (itemData.getTag() == null) {
             return super.translateToJava(itemData, itemEntry);
         }
