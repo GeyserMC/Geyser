@@ -34,7 +34,7 @@ import java.util.Map;
 
 public interface GeyserConfiguration {
 
-    // Modify this when you update the config
+    // Modify this when you introduce breaking changes into the config
     int CURRENT_CONFIG_VERSION = 4;
 
     IBedrockConfiguration getBedrock();
@@ -117,6 +117,8 @@ public interface GeyserConfiguration {
         void setPort(int port);
 
         String getAuthType();
+
+        boolean isUseProxyProtocol();
     }
 
     interface IUserAuthenticationInfo {
