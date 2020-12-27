@@ -462,6 +462,7 @@ public abstract class InventoryTranslator {
                 }
                 case DESTROY: {
                     // Only called when a creative client wants to destroy an item... I think - Camotoy
+                    //TODO there is a Count here we don't use
                     DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
                     if (!session.getGameMode().equals(GameMode.CREATIVE)) {
                         // If this happens, let's throw an error and figure out why.
