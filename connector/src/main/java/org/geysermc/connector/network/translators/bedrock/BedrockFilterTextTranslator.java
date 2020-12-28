@@ -25,31 +25,21 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.floodgate.util.DeviceOS;
 
 /**
- * Used to send the keep alive packet back to the server
+ * Used to send strings to the server and filter out unwanted words.
+ * Java doesn't care, so we don't care, and we approve all strings.
  */
-@Translator(packet = NetworkStackLatencyPacket.class)
-public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<NetworkStackLatencyPacket> {
+@Translator(packet = FilterTextPacket.class)
+public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPacket> {
 
     @Override
-    public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
-        long pingId;
-        // so apparently, as of 1.16.200
-        // PS4 divides the network stack latency timestamp FOR US!!!
-        // WTF
-        if (session.getClientData().getDeviceOS().equals(DeviceOS.NX)) {
-            // Ignore the weird DeviceOS, our order is wrong and will be fixed in Floodgate 2.0
-            pingId = packet.getTimestamp();
-        } else {
-            pingId = packet.getTimestamp() / 1000;
-        }
-        session.sendDownstreamPacket(new ClientKeepAlivePacket(pingId));
+    public void translate(FilterTextPacket packet, GeyserSession session) {
+        packet.setFromServer(true);
+        session.sendUpstreamPacket(packet);
     }
 }
