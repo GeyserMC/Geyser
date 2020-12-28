@@ -72,7 +72,6 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
             LecternContainer lecternContainer = (LecternContainer) inventory;
             lecternContainer.setCurrentBedrockPage(value / 2);
             lecternContainer.setBlockEntityTag(lecternContainer.getBlockEntityTag().toBuilder().putInt("page", lecternContainer.getCurrentBedrockPage()).build());
-            System.out.println(lecternContainer.getBlockEntityTag());
             BlockEntityUtils.updateBlockEntity(session, lecternContainer.getBlockEntityTag(), lecternContainer.getPosition());
         }
     }
@@ -100,7 +99,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                 if (tag != null) {
                     // Position has to be the last interacted position... right?
                     Vector3i position = session.getLastInteractionPosition();
-                    // shouldRefresh means that we should boot out the
+                    // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
                     boolean shouldRefresh = !session.getConnector().getWorldManager().shouldExpectLecternHandled() && !session.getLecternCache().contains(position);
                     int pagesSize = ((ListTag) tag.get("pages")).size();
                     ItemData itemData = geyserItemStack.getItemData(session);
@@ -116,7 +115,6 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                     // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild
                     // the block entity tag
                     lecternContainer.setBlockEntityTag(blockEntityTag);
-                    System.out.println(blockEntityTag);
                     lecternContainer.setPosition(position);
                     if (shouldRefresh) {
                         // Update the lectern because it's not updated client-side
@@ -148,6 +146,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
             builder.putByte("hasBook", (byte) 1);
             builder.putInt("totalPages", totalPages);
         } else {
+            // Not usually needed, but helps with kicking out Bedrock players from reading the UI
             builder.putByte("hasBook", (byte) 0);
         }
         return builder;
