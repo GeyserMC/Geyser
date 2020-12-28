@@ -42,6 +42,7 @@ public class BlockStateValues {
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Map<String, NbtMap> FLOWER_POT_BLOCKS = new HashMap<>();
+    private static final Int2BooleanMap LECTERN_BOOK_STATES = new Int2BooleanOpenHashMap();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
@@ -85,6 +86,11 @@ public class BlockStateValues {
 
         if (entry.getKey().contains("potted_") || entry.getKey().contains("flower_pot")) {
             FLOWER_POT_VALUES.put(javaBlockState, entry.getKey().replace("potted_", ""));
+            return;
+        }
+
+        if (entry.getKey().startsWith("minecraft:lectern")) {
+            LECTERN_BOOK_STATES.put(javaBlockState, entry.getKey().contains("has_book=true"));
             return;
         }
 
@@ -195,6 +201,10 @@ public class BlockStateValues {
      */
     public static Map<String, NbtMap> getFlowerPotBlocks() {
         return FLOWER_POT_BLOCKS;
+    }
+
+    public static Int2BooleanMap getLecternBookStates() {
+        return LECTERN_BOOK_STATES;
     }
 
     /**

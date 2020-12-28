@@ -97,6 +97,9 @@ public abstract class InventoryTranslator {
             /* Generics */
             put(WindowType.GENERIC_3X3, new GenericBlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER));
             put(WindowType.HOPPER, new GenericBlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER));
+
+            /* Lectern */
+            put(WindowType.LECTERN, new LecternInventoryTranslator());
         }
     };
 

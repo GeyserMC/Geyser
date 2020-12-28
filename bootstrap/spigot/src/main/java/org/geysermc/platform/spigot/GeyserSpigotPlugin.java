@@ -157,14 +157,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 if (isViaVersion && isViaVersionNeeded()) {
                     if (isLegacy) {
                         // Pre-1.13
-                        this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager();
+                        this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager(this);
                     } else {
                         // Post-1.13
                         this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
                     }
                 } else {
                     // No ViaVersion
-                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(use3dBiomes);
+                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this, use3dBiomes);
                 }
                 geyserLogger.debug("Using NMS adapter: " + this.geyserWorldManager.getClass() + ", " + nmsVersion);
             } catch (Exception e) {
@@ -180,13 +180,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             // No NMS adapter
             if (isLegacy && isViaVersion) {
                 // Use ViaVersion for converting pre-1.13 block states
-                this.geyserWorldManager = new GeyserSpigot1_12WorldManager();
+                this.geyserWorldManager = new GeyserSpigot1_12WorldManager(this);
             } else if (isLegacy) {
                 // Not sure how this happens - without ViaVersion, we don't know any block states, so just assume everything is air
-                this.geyserWorldManager = new GeyserSpigotFallbackWorldManager();
+                this.geyserWorldManager = new GeyserSpigotFallbackWorldManager(this);
             } else {
                 // Post-1.13
-                this.geyserWorldManager = new GeyserSpigotWorldManager(use3dBiomes);
+                this.geyserWorldManager = new GeyserSpigotWorldManager(this, use3dBiomes);
             }
             geyserLogger.debug("Using default world manager: " + this.geyserWorldManager.getClass());
         }

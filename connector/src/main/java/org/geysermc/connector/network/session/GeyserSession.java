@@ -153,6 +153,16 @@ public class GeyserSession implements CommandSender {
      */
     private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
 
+    /**
+     * Stores a list of all lectern locations and their block entity tags.
+     * See {@link org.geysermc.connector.network.translators.world.WorldManager#getLecternDataAt(GeyserSession, int, int, int, boolean)}
+     * for more information.
+     */
+    private final List<Vector3i> lecternCache = new ArrayList<>();
+
+    @Setter
+    private boolean droppingLecternBook;
+
     @Setter
     private Vector2i lastChunkPosition = null;
     private int renderDistance;

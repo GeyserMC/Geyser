@@ -23,30 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.spigot.world.manager;
+package org.geysermc.connector.inventory;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.geysermc.adapters.spigot.SpigotAdapters;
-import org.geysermc.adapters.spigot.SpigotWorldAdapter;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtMap;
+import lombok.Getter;
+import lombok.Setter;
 
-public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
-    protected final SpigotWorldAdapter adapter;
+public class LecternContainer extends Container {
+    @Getter @Setter
+    private int currentBedrockPage = 0;
+    @Getter @Setter
+    private NbtMap blockEntityTag;
+    @Getter @Setter
+    private Vector3i position;
 
-    public GeyserSpigotNativeWorldManager(Plugin plugin, boolean use3dBiomes) {
-        super(plugin, use3dBiomes);
-        adapter = SpigotAdapters.getWorldAdapter();
-    }
-
-    @Override
-    public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
-        if (player == null) {
-            return BlockTranslator.JAVA_AIR_ID;
-        }
-        return adapter.getBlockAt(player.getWorld(), x, y, z);
+    public LecternContainer(String title, int id, int size, PlayerInventory playerInventory) {
+        super(title, id, size, playerInventory);
     }
 }

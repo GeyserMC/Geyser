@@ -47,7 +47,7 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
     private final Int2IntMap oldToNewBlockId;
 
     public GeyserSpigotLegacyNativeWorldManager(GeyserSpigotPlugin plugin, boolean use3dBiomes) {
-        super(use3dBiomes);
+        super(plugin, use3dBiomes);
         IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
         ProtocolVersion serverVersion = plugin.getServerProtocolVersion();
