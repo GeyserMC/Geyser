@@ -152,12 +152,11 @@ public class BlockCollision {
         return false;
     }
 
-    // TODO cache result
     public BoundingBox getContainingBoundingBox() {
         if (boundingBoxes.length == 0) {
             return null;
         } else if (boundingBoxes.length == 1) {
-            return boundingBoxes[0];
+            return boundingBoxes[0].clone();
         }
         Vector3d minPos = Vector3d.from(1e6);
         Vector3d maxPos = Vector3d.ZERO;

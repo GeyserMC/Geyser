@@ -30,7 +30,7 @@ import lombok.*;
 
 @Data
 @AllArgsConstructor
-public class BoundingBox {
+public class BoundingBox implements Cloneable{
     private double middleX;
     private double middleY;
     private double middleZ;
@@ -55,20 +55,32 @@ public class BoundingBox {
         sizeZ += Math.abs(z);
     }
 
+    public void extend(Vector3d extend) {
+        extend(extend.getX(), extend.getY(), extend.getZ());
+    }
+
     public boolean checkIntersection(double offsetX, double offsetY, double offsetZ, BoundingBox otherBox) {
         return (Math.abs((middleX + offsetX) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX())) &&
                 (Math.abs((middleY + offsetY) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY())) &&
                 (Math.abs((middleZ + offsetZ) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ()));
     }
 
-    public Vector3d getIntersectionSize(double offsetX, double offsetY, double offsetZ, BoundingBox otherBox) {
-        if (!checkIntersection(offsetX, offsetY, offsetZ, otherBox)) {
+    public boolean checkIntersection(Vector3d offset, BoundingBox otherBox) {
+        return checkIntersection(offset.getX(), offset.getY(), offset.getZ(), otherBox);
+    }
+
+    public Vector3d getIntersectionSize(Vector3d offset, BoundingBox otherBox) {
+        if (!checkIntersection(offset, otherBox)) {
             return Vector3d.ZERO;
         }
-        Vector3d offset = Vector3d.from(offsetX, offsetY, offsetZ);
         Vector3d minIntersection = getMin().add(offset).max(otherBox.getMin());
         Vector3d maxIntersection = getMax().add(offset).min(otherBox.getMax());
         return maxIntersection.sub(minIntersection);
+    }
+
+    public Vector3d getIntersectionSize(double offsetX, double offsetY, double offsetZ, BoundingBox otherBox) {
+        Vector3d offset = Vector3d.from(offsetX, offsetY, offsetZ);
+        return getIntersectionSize(offset, otherBox);
     }
 
     public Vector3d getMin() {
@@ -83,5 +95,19 @@ public class BoundingBox {
         double y = middleY + sizeY / 2;
         double z = middleZ + sizeZ / 2;
         return Vector3d.from(x, y, z);
+    }
+
+    @SneakyThrows(CloneNotSupportedException.class)
+    @Override
+    public BoundingBox clone() {
+        BoundingBox clone = (BoundingBox) super.clone();
+        clone.middleX = middleX;
+        clone.middleY = middleY;
+        clone.middleZ = middleZ;
+
+        clone.sizeX = sizeX;
+        clone.sizeY = sizeY;
+        clone.sizeZ = sizeZ;
+        return clone;
     }
 }
