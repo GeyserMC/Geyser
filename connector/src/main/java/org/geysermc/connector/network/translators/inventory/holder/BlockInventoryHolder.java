@@ -96,6 +96,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
         blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
+        blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
     }
 }
