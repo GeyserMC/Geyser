@@ -371,9 +371,11 @@ public class BlockTranslator {
     }
 
     /**
-     * Get the pick item of a block
+     * Get the item a Java client would receive when pressing
+     * the Pick Block key on a specific Java block state.
+     *
      * @param javaId The Java runtime id of the block
-     * @return The Java Identifier of the item
+     * @return The Java identifier of the item
      */
     public static String getPickItem(int javaId) {
         String itemIdentifier = JAVA_RUNTIME_ID_TO_PICK_ITEM.get(javaId);
