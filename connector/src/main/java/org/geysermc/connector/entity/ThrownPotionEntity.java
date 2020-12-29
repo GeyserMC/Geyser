@@ -40,11 +40,13 @@ import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.Potion;
 
+import java.util.EnumSet;
+
 public class ThrownPotionEntity extends ThrowableEntity {
+    private static final EnumSet<Potion> NON_ENCHANTED_POTIONS = EnumSet.of(Potion.WATER, Potion.MUNDANE, Potion.THICK, Potion.AWKWARD);
+
     public ThrownPotionEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-
-        metadata.getFlags().setFlag(EntityFlag.ENCHANTED, true);
     }
 
     @Override
@@ -58,13 +60,14 @@ public class ThrownPotionEntity extends ThrowableEntity {
                     Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
                     if (potion != null) {
                         metadata.put(EntityData.POTION_AUX_VALUE, potion.getBedrockId());
+                        metadata.getFlags().setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
                     } else {
                         metadata.put(EntityData.POTION_AUX_VALUE, 0);
                         GeyserConnector.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
                     }
                 }
 
-                boolean isLingering = ItemRegistry.getItem(itemStack).getJavaIdentifier().equals("minecraft:lingering_potion");
+                boolean isLingering = itemEntry.getJavaIdentifier().equals("minecraft:lingering_potion");
                 metadata.getFlags().setFlag(EntityFlag.LINGERING, isLingering);
             }
         }
