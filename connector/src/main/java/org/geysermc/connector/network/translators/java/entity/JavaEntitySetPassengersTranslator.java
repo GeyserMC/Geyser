@@ -86,9 +86,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
                 passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, !passengers.isEmpty() ? -90f : 0f);
             } else {
-                passenger.getMetadata().remove(EntityData.RIDER_ROTATION_LOCKED);
-                passenger.getMetadata().remove(EntityData.RIDER_MAX_ROTATION);
-                passenger.getMetadata().remove(EntityData.RIDER_MIN_ROTATION);
+                passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
+                passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
+                passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
             }
 
             passenger.updateBedrockMetadata(session);
@@ -110,6 +110,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), EntityLinkData.Type.REMOVE, false));
                 session.sendUpstreamPacket(linkPacket);
                 passengers.remove(passenger.getEntityId());
+                passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
+                passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
+                passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
 
                 this.updateOffset(passenger, entity, session, false, false, (packet.getPassengerIds().length > 1));
             } else {

@@ -144,12 +144,10 @@ public class SkinProvider {
             String newSkinUrl = skinUrl;
 
             if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
-                // TODO: Don't have a for loop for this? Have a proper map?
-                for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
-                    if (session.getPlayerEntity().getUuid().equals(playerId)) {
-                        newSkinUrl = session.getClientData().getSkinId();
-                        break;
-                    }
+                GeyserSession session = GeyserConnector.getInstance().getPlayerByUuid(playerId);
+
+                if (session != null) {
+                    newSkinUrl = session.getClientData().getSkinId();
                 }
             }
 
