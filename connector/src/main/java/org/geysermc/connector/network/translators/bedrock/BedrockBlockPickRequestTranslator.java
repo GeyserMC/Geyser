@@ -46,7 +46,6 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             return;
         }
 
-        String targetIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockToPick).split("\\[")[0];
-        InventoryUtils.findOrCreatePickedBlock(session, targetIdentifier);
+        InventoryUtils.findOrCreateItem(session, BlockTranslator.getPickItem(blockToPick));
     }
 }

@@ -46,6 +46,7 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -168,11 +169,15 @@ public class InventoryUtils {
      * @param session the Bedrock client's session
      * @param itemName the Java identifier of the item to search/select
      */
-    public static void findOrCreatePickedBlock(GeyserSession session, String itemName) {
+    public static void findOrCreateItem(GeyserSession session, String itemName) {
         // Get the inventory to choose a slot to pick
         Inventory inventory = session.getInventoryCache().getOpenInventory();
         if (inventory == null) {
             inventory = session.getInventory();
+        }
+
+        if (itemName.equals("minecraft:air")) {
+            return;
         }
 
         // Check hotbar for item
