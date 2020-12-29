@@ -557,8 +557,13 @@ public class PistonBlockEntity {
      */
     private void createMovingBlocks() {
         Vector3i movement = getMovement();
+        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
         attachedBlocks.forEach((blockPos, javaId) -> {
             Vector3i newPos = blockPos.add(movement);
+            // Don't place a movingBlock if it will collide with the player as it has collision and messes with motion
+            if (SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox)) {
+                return;
+            }
             // Place a moving block at the new location of the block
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
