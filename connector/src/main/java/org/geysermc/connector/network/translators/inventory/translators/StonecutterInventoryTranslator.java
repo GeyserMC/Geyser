@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientClickWindowButtonPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
@@ -38,6 +39,8 @@ import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.PlayerInventory;
+import org.geysermc.connector.inventory.StonecutterContainer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.SlotType;
@@ -57,12 +60,12 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     @Override
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
         // TODO: Also surely to change in the future
-        // TODO: don't spam the ClickWindowButtonPacket?
         StackRequestActionData data = request.getActions()[1];
         if (!(data instanceof CraftResultsDeprecatedStackRequestActionData)) {
             return rejectRequest(request);
         }
         CraftResultsDeprecatedStackRequestActionData craftData = (CraftResultsDeprecatedStackRequestActionData) data;
+        StonecutterContainer container = (StonecutterContainer) inventory;
         // Get the ID of the item we are cutting
         int id = inventory.getItem(0).getJavaId();
         // Look up all possible options of cutting from this ID
@@ -73,13 +76,18 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         System.out.println(id +  " " + results);
         ItemStack javaOutput = ItemTranslator.translateToJava(craftData.getResultItems()[0]);
         System.out.println(javaOutput);
-        // Getting the index of the item in the Java stonecutter list
-        ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), results.indexOf(javaOutput.getId()));
-        System.out.println(packet.toString());
-        session.sendDownstreamPacket(packet);
-        if (inventory.getItem(1).getJavaId() != javaOutput.getId()) {
-            // We don't know there is an output here, so we tell ourselves that there is
-            inventory.setItem(1, GeyserItemStack.from(javaOutput, session.getNextItemNetId()), session);
+        int button = results.indexOf(javaOutput.getId());
+        // If we've already pressed the button with this item, no need to press it again!
+        if (container.getStonecutterButton() != button) {
+            // Getting the index of the item in the Java stonecutter list
+            ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), button);
+            System.out.println(packet.toString());
+            session.sendDownstreamPacket(packet);
+            container.setStonecutterButton(button);
+            if (inventory.getItem(1).getJavaId() != javaOutput.getId()) {
+                // We don't know there is an output here, so we tell ourselves that there is
+                inventory.setItem(1, GeyserItemStack.from(javaOutput, session.getNextItemNetId()), session);
+            }
         }
         return translateRequest(session, inventory, request);
     }
@@ -123,5 +131,10 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
             return SlotType.OUTPUT;
         }
         return super.getSlotType(javaSlot);
+    }
+
+    @Override
+    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
+        return new StonecutterContainer(name, windowId, this.size, playerInventory);
     }
 }
