@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.world.particle.Particle;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
@@ -45,6 +46,8 @@ public class AreaEffectCloudEntity extends Entity {
         metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
         metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_RATE, -0.005f);
         metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, -0.5f);
+
+        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     @Override

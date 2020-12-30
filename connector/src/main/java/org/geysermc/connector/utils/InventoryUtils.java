@@ -160,9 +160,13 @@ public class InventoryUtils {
      * @param session the Bedrock client's session
      * @param itemName the Java identifier of the item to search/select
      */
-    public static void findOrCreatePickedBlock(GeyserSession session, String itemName) {
+    public static void findOrCreateItem(GeyserSession session, String itemName) {
         // Get the inventory to choose a slot to pick
         PlayerInventory inventory = session.getPlayerInventory();
+
+        if (itemName.equals("minecraft:air")) {
+            return;
+        }
 
         // Check hotbar for item
         for (int i = 36; i < 45; i++) {
