@@ -64,7 +64,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         }
         CraftResultsDeprecatedStackRequestActionData craftData = (CraftResultsDeprecatedStackRequestActionData) data;
         // Get the ID of the item we are cutting
-        int id = inventory.getItem(0).getId();
+        int id = inventory.getItem(0).getJavaId();
         // Look up all possible options of cutting from this ID
         IntList results = session.getStonecutterRecipes().get(id);
         if (results == null) {
@@ -77,9 +77,9 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), results.indexOf(javaOutput.getId()));
         System.out.println(packet.toString());
         session.sendDownstreamPacket(packet);
-        if (inventory.getItem(1).getId() != javaOutput.getId()) {
+        if (inventory.getItem(1).getJavaId() != javaOutput.getId()) {
             // We don't know there is an output here, so we tell ourselves that there is
-            inventory.setItem(1, GeyserItemStack.from(javaOutput, session.getNextItemNetId()));
+            inventory.setItem(1, GeyserItemStack.from(javaOutput, session.getNextItemNetId()), session);
         }
         return translateRequest(session, inventory, request);
     }

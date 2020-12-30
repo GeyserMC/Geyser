@@ -166,7 +166,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
             inputCopy.getNbt().put(blockEntityTag);
         }
         // Set the new item as the output
-        inventory.setItem(3, inputCopy);
+        inventory.setItem(3, inputCopy, session);
 
         return translateRequest(session, inventory, request);
     }

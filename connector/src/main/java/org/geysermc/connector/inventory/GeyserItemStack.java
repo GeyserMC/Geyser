@@ -39,32 +39,34 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 public class GeyserItemStack {
     public static final GeyserItemStack EMPTY = new GeyserItemStack(0, 0, null);
 
-    private final int id;
+    private final int javaId;
     private int amount;
     private CompoundTag nbt;
     private int netId;
+    private boolean netIdWasUpdated;
 
-    public GeyserItemStack(int id) {
-        this(id, 1);
+    public GeyserItemStack(int javaId) {
+        this(javaId, 1);
     }
 
-    public GeyserItemStack(int id, int amount) {
-        this(id, amount, null);
+    public GeyserItemStack(int javaId, int amount) {
+        this(javaId, amount, null);
     }
 
-    public GeyserItemStack(int id, int amount, CompoundTag nbt) {
-        this(id, amount, nbt, 1);
+    public GeyserItemStack(int javaId, int amount, CompoundTag nbt) {
+        this(javaId, amount, nbt, 1);
     }
 
-    public GeyserItemStack(int id, int amount, CompoundTag nbt, int netId) {
-        this.id = id;
+    public GeyserItemStack(int javaId, int amount, CompoundTag nbt, int netId) {
+        this.javaId = javaId;
         this.amount = amount;
         this.nbt = nbt;
         this.netId = netId;
+        this.netIdWasUpdated = !this.isEmpty();
     }
 
-    public int getId() {
-        return isEmpty() ? 0 : id;
+    public int getJavaId() {
+        return isEmpty() ? 0 : javaId;
     }
 
     public int getAmount() {
@@ -73,6 +75,11 @@ public class GeyserItemStack {
 
     public CompoundTag getNbt() {
         return isEmpty() ? null : nbt;
+    }
+
+    public void setNetId(int netId) {
+        this.netId = netId;
+        this.netIdWasUpdated = true;
     }
 
     public int getNetId() {
@@ -96,7 +103,7 @@ public class GeyserItemStack {
     }
 
     public ItemStack getItemStack() {
-        return isEmpty() ? null : new ItemStack(id, amount, nbt);
+        return isEmpty() ? null : new ItemStack(javaId, amount, nbt);
     }
 
     public ItemData getItemData(GeyserSession session) {
@@ -106,11 +113,11 @@ public class GeyserItemStack {
     }
 
     public ItemEntry getItemEntry() {
-        return ItemRegistry.ITEM_ENTRIES.get(getId());
+        return ItemRegistry.ITEM_ENTRIES.get(getJavaId());
     }
 
     public boolean isEmpty() {
-        return amount <= 0 || id == 0;
+        return amount <= 0 || javaId == 0;
     }
 
     public GeyserItemStack copy() {
@@ -118,6 +125,6 @@ public class GeyserItemStack {
     }
 
     public GeyserItemStack copy(int newAmount) {
-        return isEmpty() ? EMPTY : new GeyserItemStack(id, newAmount, nbt == null ? null : nbt.clone(), netId);
+        return isEmpty() ? EMPTY : new GeyserItemStack(javaId, newAmount, nbt == null ? null : nbt.clone(), netId);
     }
 }

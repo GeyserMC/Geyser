@@ -46,13 +46,7 @@ public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItem
 
             for (int i = 0; i < packet.getItems().length; i++) {
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItems()[i]);
-                GeyserItemStack oldItem = inventory.getItem(i);
-                if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
-                    newItem.setNetId(oldItem.getNetId());
-                } else {
-                    newItem.setNetId(session.getNextItemNetId());
-                }
-                inventory.setItem(i, newItem);
+                inventory.setItem(i, newItem, session);
             }
 
             InventoryTranslator translator = session.getInventoryTranslator();

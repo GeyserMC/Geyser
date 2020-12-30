@@ -27,6 +27,7 @@ package org.geysermc.connector.inventory;
 
 import lombok.Getter;
 import lombok.NonNull;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 /**
@@ -53,11 +54,11 @@ public class Container extends Inventory {
     }
 
     @Override
-    public void setItem(int slot, @NonNull GeyserItemStack item) {
+    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot < this.size) {
-            super.setItem(slot, item);
+            super.setItem(slot, newItem, session);
         } else {
-            playerInventory.setItem(slot - this.size + InventoryTranslator.PLAYER_INVENTORY_OFFSET, item);
+            playerInventory.setItem(slot - this.size + InventoryTranslator.PLAYER_INVENTORY_OFFSET, newItem, session);
         }
     }
 

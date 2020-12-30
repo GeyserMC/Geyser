@@ -286,11 +286,11 @@ public class Entity {
                     // Shield code
                     if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
                         PlayerInventory playerInv = session.getPlayerInventory();
-                        if ((playerInv.getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) ||
-                                (playerInv.getOffhand().getId() == ItemRegistry.SHIELD.getJavaId())) {
+                        if ((playerInv.getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) ||
+                                (playerInv.getOffhand().getJavaId() == ItemRegistry.SHIELD.getJavaId())) {
                             ClientPlayerUseItemPacket useItemPacket;
                             metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
-                            if (playerInv.getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) {
+                            if (playerInv.getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) {
                                 useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             }
                             // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent

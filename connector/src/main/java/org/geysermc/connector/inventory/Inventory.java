@@ -29,6 +29,7 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Arrays;
 
@@ -76,8 +77,16 @@ public class Inventory {
         return items[slot];
     }
 
-    public void setItem(int slot, @NonNull GeyserItemStack item) {
-        items[slot] = item;
+    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
+        GeyserItemStack oldItem = items[slot];
+        if (!newItem.isEmpty()) {
+            if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
+                newItem.setNetId(oldItem.getNetId());
+            } else {
+                newItem.setNetId(session.getNextItemNetId());
+            }
+        }
+        items[slot] = newItem;
     }
 
     public short getNextTransactionId() {

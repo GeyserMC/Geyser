@@ -213,7 +213,7 @@ public abstract class InventoryTranslator {
                         GeyserItemStack newItem = sourceItem.copy();
                         if (sourceIsCursor) {
                             GeyserItemStack destItem = inventory.getItem(destSlot);
-                            if (destItem.getId() == sourceItem.getId()) {
+                            if (destItem.getJavaId() == sourceItem.getJavaId()) {
                                 // Combining items
                                 int itemsLeftOver = destItem.getAmount() + transferAction.getCount();
                                 if (itemsLeftOver > MAX_ITEM_STACK_SIZE) {
@@ -235,7 +235,7 @@ public abstract class InventoryTranslator {
                             }
                         } else {
                             // Delete the source since we're moving it
-                            inventory.setItem(sourceSlot, GeyserItemStack.EMPTY);
+                            inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
                             ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
                                     sourceSlot,
                                     new ItemStack(0)
@@ -252,13 +252,13 @@ public abstract class InventoryTranslator {
                             if (sourceIsCursor) {
                                 session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
                             } else {
-                                inventory.setItem(sourceSlot, GeyserItemStack.EMPTY);
+                                inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
                             }
                         }
                         if (destIsCursor) {
                             session.getPlayerInventory().setCursor(newItem);
                         } else {
-                            inventory.setItem(destSlot, newItem);
+                            inventory.setItem(destSlot, newItem, session);
                         }
                         GeyserItemStack itemToUpdate = destIsCursor ? sourceItem : newItem;
                         // The Java server doesn't care about what's in the mouse in creative mode, so we just need to track
@@ -386,7 +386,7 @@ public abstract class InventoryTranslator {
                             );
                             System.out.println(creativeActionPacket);
                             session.sendDownstreamPacket(creativeActionPacket);
-                            inventory.setItem(sourceSlot, oldDestinationItem);
+                            inventory.setItem(sourceSlot, oldDestinationItem, session);
                         }
                         if (isCursor(swapAction.getDestination())) {
                             session.getPlayerInventory().setCursor(oldSourceItem);
@@ -397,7 +397,7 @@ public abstract class InventoryTranslator {
                             );
                             System.out.println(creativeActionPacket);
                             session.sendDownstreamPacket(creativeActionPacket);
-                            inventory.setItem(destSlot, oldSourceItem);
+                            inventory.setItem(destSlot, oldSourceItem, session);
                         }
 
                     } else if (isCursor(swapAction.getSource()) && isCursor(swapAction.getDestination())) { //???
@@ -499,7 +499,7 @@ public abstract class InventoryTranslator {
                         );
                         session.sendDownstreamPacket(destroyItemPacket);
                         System.out.println(destroyItemPacket);
-                        inventory.setItem(javaSlot, GeyserItemStack.EMPTY);
+                        inventory.setItem(javaSlot, GeyserItemStack.EMPTY, session);
                         affectedSlots.add(javaSlot);
                     } else {
                         // Just sync up the item on our end, since the server doesn't care what's in our cursor
@@ -522,7 +522,7 @@ public abstract class InventoryTranslator {
                         GeyserItemStack item = inventory.getItem(sourceSlot);
                         item.setAmount(item.getAmount() - consumeData.getCount());
                         if (item.isEmpty()) {
-                            inventory.setItem(sourceSlot, GeyserItemStack.EMPTY);
+                            inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
                         }
                         affectedSlots.add(sourceSlot);
                     }
@@ -718,16 +718,16 @@ public abstract class InventoryTranslator {
                         session.getPlayerInventory().setCursor(GeyserItemStack.from(javaCreativeItem, session.getNextItemNetId()));
                         return acceptRequest(request, Collections.singletonList(
                                 new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CURSOR,
-                                        Collections.singletonList(makeItemEntry(session, 0, session.getPlayerInventory().getCursor())))));
+                                        Collections.singletonList(makeItemEntry(0, session.getPlayerInventory().getCursor())))));
                     } else {
                         int javaSlot = bedrockSlotToJava(transferAction.getDestination());
                         GeyserItemStack existingItem = inventory.getItem(javaSlot);
-                        if (existingItem.getId() == javaCreativeItem.getId()) {
+                        if (existingItem.getJavaId() == javaCreativeItem.getId()) {
                             // Adding more to an existing item
                             existingItem.setAmount(existingItem.getAmount() + transferAction.getCount());
                             javaCreativeItem = existingItem.getItemStack();
                         } else {
-                            inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem, session.getNextItemNetId()));
+                            inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem, session.getNextItemNetId()), session);
                         }
                         ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
                                 javaSlot,
@@ -765,8 +765,8 @@ public abstract class InventoryTranslator {
     public boolean checkNetId(GeyserSession session, Inventory inventory, StackRequestSlotInfoData slotInfoData) {
         if (slotInfoData.getStackNetworkId() < 0)
             return true;
-        if (slotInfoData.getContainer() == ContainerSlotType.CURSOR) //TODO: temporary
-            return true;
+//        if (slotInfoData.getContainer() == ContainerSlotType.CURSOR) //TODO: temporary
+//            return true;
 
         GeyserItemStack currentItem = isCursor(slotInfoData) ? session.getPlayerInventory().getCursor() : inventory.getItem(bedrockSlotToJava(slotInfoData));
         return currentItem.getNetId() == slotInfoData.getStackNetworkId();
@@ -826,7 +826,7 @@ public abstract class InventoryTranslator {
         for (int slot : affectedSlots) {
             BedrockContainerSlot bedrockSlot = javaSlotToBedrockContainer(slot);
             List<ItemStackResponsePacket.ItemEntry> list = containerMap.computeIfAbsent(bedrockSlot.getContainer(), k -> new ArrayList<>());
-            list.add(makeItemEntry(session, bedrockSlot.getSlot(), inventory.getItem(slot)));
+            list.add(makeItemEntry(bedrockSlot.getSlot(), inventory.getItem(slot)));
         }
 
         List<ItemStackResponsePacket.ContainerEntry> containerEntries = new ArrayList<>();
@@ -834,18 +834,16 @@ public abstract class InventoryTranslator {
             containerEntries.add(new ItemStackResponsePacket.ContainerEntry(entry.getKey(), entry.getValue()));
         }
 
-        ItemStackResponsePacket.ItemEntry cursorEntry = makeItemEntry(session, 0, session.getPlayerInventory().getCursor());
+        ItemStackResponsePacket.ItemEntry cursorEntry = makeItemEntry(0, session.getPlayerInventory().getCursor());
         containerEntries.add(new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry)));
 
         return containerEntries;
     }
 
-    public static ItemStackResponsePacket.ItemEntry makeItemEntry(GeyserSession session, int bedrockSlot, GeyserItemStack itemStack) {
+    public static ItemStackResponsePacket.ItemEntry makeItemEntry(int bedrockSlot, GeyserItemStack itemStack) {
         ItemStackResponsePacket.ItemEntry itemEntry;
         if (!itemStack.isEmpty()) {
-            int newNetId = session.getNextItemNetId();
-            itemStack.setNetId(newNetId);
-            itemEntry = new ItemStackResponsePacket.ItemEntry((byte) bedrockSlot, (byte) bedrockSlot, (byte) itemStack.getAmount(), newNetId, "");
+            itemEntry = new ItemStackResponsePacket.ItemEntry((byte) bedrockSlot, (byte) bedrockSlot, (byte) itemStack.getAmount(), itemStack.getNetId(), "");
         } else {
             itemEntry = new ItemStackResponsePacket.ItemEntry((byte) bedrockSlot, (byte) bedrockSlot, (byte) 0, 0, "");
         }

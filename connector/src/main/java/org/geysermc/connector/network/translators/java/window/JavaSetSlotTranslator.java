@@ -62,15 +62,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
             InventoryTranslator translator = session.getInventoryTranslator();
             if (translator != null) {
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-                GeyserItemStack oldItem = inventory.getItem(packet.getSlot());
-                if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
-                    newItem.setNetId(oldItem.getNetId());
-                    System.out.println("OLD: " + newItem.getNetId());
-                } else {
-                    newItem.setNetId(session.getNextItemNetId());
-                    System.out.println("NEW: " + newItem.getNetId());
-                }
-                inventory.setItem(packet.getSlot(), newItem);
+                inventory.setItem(packet.getSlot(), newItem, session);
                 translator.updateSlot(session, inventory, packet.getSlot());
             }
         });

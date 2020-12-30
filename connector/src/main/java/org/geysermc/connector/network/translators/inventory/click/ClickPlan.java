@@ -127,7 +127,7 @@ public class ClickPlan {
         if (simulating) {
             simulatedItems.put(slot, item);
         } else {
-            inventory.setItem(slot, item);
+            inventory.setItem(slot, item, session);
         }
     }
 

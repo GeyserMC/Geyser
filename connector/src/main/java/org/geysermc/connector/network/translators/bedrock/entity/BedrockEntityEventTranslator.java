@@ -61,7 +61,7 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                         VillagerTrade[] trades = merchantInventory.getVillagerTrades();
                         if (trades != null && packet.getData() >= 0 && packet.getData() < trades.length) {
                             VillagerTrade trade = merchantInventory.getVillagerTrades()[packet.getData()];
-                            openInventory.setItem(2, GeyserItemStack.from(trade.getOutput()));
+                            openInventory.setItem(2, GeyserItemStack.from(trade.getOutput()), session);
                             villager.getMetadata().put(EntityData.TRADE_XP, trade.getXp() + villager.getMetadata().getInt(EntityData.TRADE_XP));
                             villager.updateBedrockMetadata(session);
                         }

@@ -186,7 +186,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         break;
                     case 1:
                         // Handled in Entity.java
-                        if (session.getPlayerInventory().getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) {
+                        if (session.getPlayerInventory().getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) {
                             break;
                         }
 
