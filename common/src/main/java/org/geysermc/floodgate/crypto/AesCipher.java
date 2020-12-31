@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.security.Key;
 import java.security.SecureRandom;
@@ -99,13 +100,15 @@ public final class AesCipher implements FloodgateCipher {
             }
 
             ivLength = buffer.position() - mark - 1; // don't include the splitter itself
-            buffer.position(mark); // reset to the pre-while index
+            // don't remove this cast, it'll cause problems if you remove it
+            ((Buffer) buffer).position(mark); // reset to the pre-while index
         }
 
         byte[] iv = new byte[ivLength];
         buffer.get(iv);
 
-        buffer.position(buffer.position() + 1); // skip splitter
+        // don't remove this cast, it'll cause problems if you remove it
+        ((Buffer) buffer).position(buffer.position() + 1); // skip splitter
 
         byte[] cipherText = new byte[buffer.remaining()];
         buffer.get(cipherText);
