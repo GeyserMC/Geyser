@@ -63,8 +63,7 @@ public class AdvancementsUtils {
         String language = session.getClientData().getLanguageCode();
 
         // Created menu window for advancement categories
-        SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("gui.advancements", language), "");
-
+        SimpleFormWindow window = new SimpleFormWindow(LocaleUtils.getLocaleString("gui.advancements", language), "");
         int baseId = 0;
         session.getButtonIdsToIdButtonAdvancementCategories().clear();
         for (Map.Entry<String, Advancement> advancement : session.getStoredAdvancements().entrySet()) {
