@@ -125,7 +125,7 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
         for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
             for (int blockZ = 0; blockZ < 16; blockZ++) {
                 for (int blockX = 0; blockX < 16; blockX++) {
-                    Block block = world.getBlockAt(x, y, z);
+                    Block block = world.getBlockAt((x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ);
                     // Black magic that gets the old block state ID
                     int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
                     chunk.set(blockX, blockY, blockZ, getLegacyBlock(storage, blockId, (x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ));

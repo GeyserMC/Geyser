@@ -110,6 +110,6 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
         // Verify it is, indeed, an item
         if (entry == null) return;
 
-        InventoryUtils.findOrCreatePickedBlock(session, fullItemName);
+        InventoryUtils.findOrCreateItem(session, fullItemName);
     }
 }
