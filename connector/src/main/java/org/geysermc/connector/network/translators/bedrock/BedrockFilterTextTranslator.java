@@ -25,26 +25,21 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
+import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
-
-@Translator(packet = TextPacket.class)
-public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
+/**
+ * Used to send strings to the server and filter out unwanted words.
+ * Java doesn't care, so we don't care, and we approve all strings.
+ */
+@Translator(packet = FilterTextPacket.class)
+public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPacket> {
 
     @Override
-    public void translate(TextPacket packet, GeyserSession session) {
-        String message = packet.getMessage();
-
-        if (MessageTranslator.isTooLong(message, session)) {
-            return;
-        }
-
-        ClientChatPacket chatPacket = new ClientChatPacket(message);
-        session.sendDownstreamPacket(chatPacket);
+    public void translate(FilterTextPacket packet, GeyserSession session) {
+        packet.setFromServer(true);
+        session.sendUpstreamPacket(packet);
     }
 }

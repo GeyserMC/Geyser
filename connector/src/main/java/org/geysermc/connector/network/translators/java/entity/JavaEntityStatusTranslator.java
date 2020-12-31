@@ -89,6 +89,7 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
             case LIVING_DROWN:
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
+            case LIVING_HURT_THORNS:
                 entityEventPacket.setType(EntityEventType.HURT);
                 break;
             case LIVING_DEATH:

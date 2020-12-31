@@ -46,6 +46,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
@@ -56,7 +57,6 @@ import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
-import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.event.events.geyser.GeyserStopEvent;
 import org.geysermc.connector.utils.DimensionUtils;
@@ -70,10 +70,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -344,6 +341,38 @@ public class GeyserConnector {
 
     public void removePlayer(GeyserSession player) {
         players.remove(player);
+    }
+
+    /**
+     * Gets a player by their current UUID
+     *
+     * @param uuid the uuid
+     * @return the player or <code>null</code> if there is no player online with this UUID
+     */
+    public GeyserSession getPlayerByUuid(UUID uuid) {
+        for (GeyserSession session : players) {
+            if (session.getPlayerEntity().getUuid().equals(uuid)) {
+                return session;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets a player by their Xbox user identifier
+     *
+     * @param xuid the Xbox user identifier
+     * @return the player or <code>null</code> if there is no player online with this xuid
+     */
+    public GeyserSession getPlayerByXuid(String xuid) {
+        for (GeyserSession session : players) {
+            if (session.getAuthData() != null && session.getAuthData().getXboxUUID().equals(xuid)) {
+                return session;
+            }
+        }
+
+        return null;
     }
 
     public static GeyserConnector start(PlatformType platformType, GeyserBootstrap bootstrap) {
