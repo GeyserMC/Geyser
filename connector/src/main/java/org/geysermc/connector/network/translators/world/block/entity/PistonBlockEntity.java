@@ -131,10 +131,6 @@ public class PistonBlockEntity {
         }
 
         BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
-
-        session.getPistonCache().resetPlayerMovement();
-        update();
-        session.getPistonCache().sendPlayerMovement();
     }
 
     /**
