@@ -189,7 +189,10 @@ public final class Scoreboard {
                     remove = false;
                 }
 
-                if (score.shouldUpdate()) {
+                if (objectiveRemove && score.getCachedData() != null) {
+                    // This score has been sent to the client and needs to be removed since the objective is being removed
+                    remove = true;
+                } else if (score.shouldUpdate()) {
                     score.update(objective.getObjectiveName());
                 }
 

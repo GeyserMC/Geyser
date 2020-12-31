@@ -71,7 +71,7 @@ public class VersionCommand extends GeyserCommand {
                 Properties gitProp = new Properties();
                 gitProp.load(FileUtils.getResource("git.properties"));
 
-                String buildXML = WebUtils.getBody("https://ci.nukkitx.com/job/GeyserMC/job/Geyser/job/" + URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
+                String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" + URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
                 if (buildXML.startsWith("<buildNumber>")) {
                     int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
                     int buildNum = Integer.parseInt(gitProp.getProperty("git.build.number"));

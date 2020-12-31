@@ -164,19 +164,19 @@ public class RecipeRegistry {
                 letterToRecipe.put(entry.getKey(), ItemRegistry.getBedrockItemFromJson(entry.getValue()));
             }
 
-            ItemData[] inputs = new ItemData[shape.size() * shape.get(0).length()];
+            List<ItemData> inputs = new ArrayList<>(shape.size() * shape.get(0).length());
             int i = 0;
             // Create a linear array of items from the "cube" of the shape
             for (int j = 0; i < shape.size() * shape.get(0).length(); j++) {
                 for (char c : shape.get(j).toCharArray()) {
                     ItemData data = letterToRecipe.getOrDefault(String.valueOf(c), ItemData.AIR);
-                    inputs[i] = data;
+                    inputs.add(data);
                     i++;
                 }
             }
 
             return CraftingData.fromShaped(uuid.toString(), shape.get(0).length(), shape.size(),
-                    inputs, new ItemData[]{output}, uuid, "crafting_table", 0, LAST_RECIPE_NET_ID++);
+                    inputs, Collections.singletonList(output), uuid, "crafting_table", 0, LAST_RECIPE_NET_ID++);
         }
         List<ItemData> inputs = new ObjectArrayList<>();
         for (JsonNode entry : node.get("input")) {
@@ -185,10 +185,10 @@ public class RecipeRegistry {
         if (node.get("type").asInt() == 5) {
             // Shulker box
             return CraftingData.fromShulkerBox(uuid.toString(),
-                    inputs.toArray(new ItemData[0]), new ItemData[]{output}, uuid, "crafting_table", 0, LAST_RECIPE_NET_ID++);
+                    inputs, Collections.singletonList(output), uuid, "crafting_table", 0, LAST_RECIPE_NET_ID++);
         }
         return CraftingData.fromShapeless(uuid.toString(),
-                inputs.toArray(new ItemData[0]), new ItemData[]{output}, uuid, "crafting_table", 0, LAST_RECIPE_NET_ID++);
+                inputs, Collections.singletonList(output), uuid, "crafting_table", 0, LAST_RECIPE_NET_ID++);
     }
 
     public static void init() {
