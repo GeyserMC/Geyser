@@ -152,7 +152,7 @@ public class AdvancementsUtils {
         String content = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), language) + "\n" +
                 MessageTranslator.convertMessage(advancement.getDisplayData().getDescription(), language) + "\n\n" +
                 ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString()) + "[" + LanguageUtils.getPlayerLocaleString("geyser.advancements." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), language) + "]" + "\n\n" + "§f" +
-                LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ": " + LanguageUtils.getPlayerLocaleString("gui." + earned, language) + "\n" +
+                LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ": " + LocaleUtils.getLocaleString("gui." + earned, language) + "\n" +
                 LanguageUtils.getPlayerLocaleString("geyser.advancements.parentid", language) + ": " + MessageTranslator.convertMessage(session.getStoredAdvancements().get(advancement.getParentId()).getDisplayData().getTitle(), language) + "\n";
         SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()), content);
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("gui.back", language)));
