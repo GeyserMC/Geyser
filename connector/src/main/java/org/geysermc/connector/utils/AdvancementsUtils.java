@@ -78,7 +78,7 @@ public class AdvancementsUtils {
         }
 
         if (window.getButtons().isEmpty()) {
-            window.setContent(LanguageUtils.getPlayerLocaleString("advancements.empty", language));
+            window.setContent(LocaleUtils.getLocaleString("advancements.empty", language));
         }
 
         return window;
