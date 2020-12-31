@@ -136,33 +136,26 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        boolean handleForm;
+        if (packet.getFormData().contains("null")) {
+            return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+        }
 
         switch (packet.getFormId()) {
             case SettingsUtils.SETTINGS_FORM_ID:
-                handleForm = SettingsUtils.handleSettingsForm(session, packet.getFormData());
-                break;
+                return SettingsUtils.handleSettingsForm(session, packet.getFormData());
             case StatisticsUtils.STATISTICS_MENU_FORM_ID:
-                handleForm = StatisticsUtils.handleMenuForm(session, packet.getFormData());
-                break;
+                return StatisticsUtils.handleMenuForm(session, packet.getFormData());
             case StatisticsUtils.STATISTICS_LIST_FORM_ID:
-                handleForm = StatisticsUtils.handleListForm(session, packet.getFormData());
-                break;
+                return StatisticsUtils.handleListForm(session, packet.getFormData());
             case AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID:
-                handleForm =  AdvancementsUtils.handleMenuForm(session, packet.getFormData());
-                break;
+                return AdvancementsUtils.handleMenuForm(session, packet.getFormData());
             case AdvancementsUtils.ADVANCEMENTS_LIST_FORM_ID:
-                handleForm = AdvancementsUtils.handleListForm(session, packet.getFormData());
-                break;
+                return AdvancementsUtils.handleListForm(session, packet.getFormData());
             case AdvancementsUtils.ADVANCEMENT_INFO_FORM_ID:
-                handleForm = AdvancementsUtils.handleInfoForm(session, packet.getFormData());
-                break;
-            default:
-                handleForm = LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
-                break;
+                return AdvancementsUtils.handleInfoForm(session, packet.getFormData());
         }
 
-        return handleForm;
+        return false;
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
