@@ -38,5 +38,6 @@ public class EnderDragonPartEntity extends Entity {
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
         metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
+        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 }
