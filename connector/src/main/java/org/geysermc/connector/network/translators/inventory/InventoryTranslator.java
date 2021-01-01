@@ -223,7 +223,7 @@ public abstract class InventoryTranslator {
                                 } else {
                                     // Cursor will be emptied
                                     destItem.setAmount(itemsLeftOver);
-                                    session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+                                    session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
                                 }
                                 ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
                                         destSlot,
@@ -250,13 +250,13 @@ public abstract class InventoryTranslator {
                         if (sourceItem.isEmpty()) {
                             // Item is basically deleted
                             if (sourceIsCursor) {
-                                session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+                                session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
                             } else {
                                 inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
                             }
                         }
                         if (destIsCursor) {
-                            session.getPlayerInventory().setCursor(newItem);
+                            session.getPlayerInventory().setCursor(newItem, session);
                         } else {
                             inventory.setItem(destSlot, newItem, session);
                         }
@@ -340,7 +340,7 @@ public abstract class InventoryTranslator {
                             //try to transfer items with least clicks possible
                             int halfSource = sourceAmount - (sourceAmount / 2); //larger half
                             int holding;
-                            if (transferAction.getCount() <= halfSource) { //faster to take only half
+                            if (plan.getCursor().isEmpty() && transferAction.getCount() <= halfSource) { //faster to take only half. CURSOR MUST BE EMPTY
                                 plan.add(Click.RIGHT, sourceSlot);
                                 holding = halfSource;
                             } else { //need all
@@ -376,7 +376,7 @@ public abstract class InventoryTranslator {
                         GeyserItemStack oldDestinationItem = inventory.getItem(destSlot);
                         if (isCursor(swapAction.getSource())) {
                             oldSourceItem = session.getPlayerInventory().getCursor();
-                            session.getPlayerInventory().setCursor(oldDestinationItem);
+                            session.getPlayerInventory().setCursor(oldDestinationItem, session);
                         } else {
                             int sourceSlot = bedrockSlotToJava(swapAction.getSource());
                             oldSourceItem = inventory.getItem(sourceSlot);
@@ -389,7 +389,7 @@ public abstract class InventoryTranslator {
                             inventory.setItem(sourceSlot, oldDestinationItem, session);
                         }
                         if (isCursor(swapAction.getDestination())) {
-                            session.getPlayerInventory().setCursor(oldSourceItem);
+                            session.getPlayerInventory().setCursor(oldSourceItem, session);
                         } else {
                             ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
                                     destSlot,
@@ -445,7 +445,7 @@ public abstract class InventoryTranslator {
                             cursorItem.setAmount(cursorItem.getAmount() - dropAction.getCount());
                             if (cursorItem.isEmpty()) {
                                 // Cursor item no longer exists
-                                session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+                                session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
                             }
                             droppingItem.setAmount(dropAction.getCount());
                             ClientCreativeInventoryActionPacket packet = new ClientCreativeInventoryActionPacket(
@@ -503,7 +503,7 @@ public abstract class InventoryTranslator {
                         affectedSlots.add(javaSlot);
                     } else {
                         // Just sync up the item on our end, since the server doesn't care what's in our cursor
-                        session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+                        session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
                     }
                     break;
                 }
@@ -715,7 +715,7 @@ public abstract class InventoryTranslator {
                     ItemStack javaCreativeItem = ItemTranslator.translateToJava(creativeItem);
 
                     if (isCursor(transferAction.getDestination())) {
-                        session.getPlayerInventory().setCursor(GeyserItemStack.from(javaCreativeItem, session.getNextItemNetId()));
+                        session.getPlayerInventory().setCursor(GeyserItemStack.from(javaCreativeItem, session.getNextItemNetId()), session);
                         return acceptRequest(request, Collections.singletonList(
                                 new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CURSOR,
                                         Collections.singletonList(makeItemEntry(0, session.getPlayerInventory().getCursor())))));

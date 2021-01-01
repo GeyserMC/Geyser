@@ -43,13 +43,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
         session.addInventoryTask(() -> {
             if (packet.getWindowId() == 255) { //cursor
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-                GeyserItemStack oldItem = session.getPlayerInventory().getCursor();
-                if (newItem.getItemData(session).equals(oldItem.getItemData(session))) {
-                    newItem.setNetId(oldItem.getNetId());
-                } else {
-                    newItem.setNetId(session.getNextItemNetId());
-                }
-                session.getPlayerInventory().setCursor(newItem);
+                session.getPlayerInventory().setCursor(newItem, session);
                 InventoryUtils.updateCursor(session);
                 return;
             }

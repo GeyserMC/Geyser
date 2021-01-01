@@ -63,6 +63,11 @@ public class ClickPlan {
         this.simulating = true;
     }
 
+    private void resetSimulation() {
+        this.simulatedItems.clear();
+        this.simulatedCursor = session.getPlayerInventory().getCursor().copy();
+    }
+
     public void add(Click click, int slot) {
         if (!simulating)
             throw new UnsupportedOperationException("ClickPlan already executed");
@@ -77,7 +82,8 @@ public class ClickPlan {
     }
 
     public void execute(boolean refresh) {
-        simulating = false;
+        //update geyser inventory after simulation to avoid net id desync
+        resetSimulation();
         ListIterator<ClickAction> planIter = plan.listIterator();
         while (planIter.hasNext()) {
             ClickAction action = planIter.next();
@@ -92,7 +98,7 @@ public class ClickPlan {
             } else if (action.click.windowAction == WindowAction.DROP_ITEM || action.slot == Click.OUTSIDE_SLOT) {
                 clickedItemStack = null;
             } else {
-                clickedItemStack = inventory.getItem(action.slot).getItemStack();
+                clickedItemStack = getItem(action.slot).getItemStack();
             }
 
             short actionId = inventory.getNextTransactionId();
@@ -113,6 +119,12 @@ public class ClickPlan {
             }
             System.out.println(clickPacket);
         }
+
+        session.getPlayerInventory().setCursor(simulatedCursor, session);
+        for (Int2ObjectMap.Entry<GeyserItemStack> simulatedSlot : simulatedItems.int2ObjectEntrySet()) {
+            inventory.setItem(simulatedSlot.getIntKey(), simulatedSlot.getValue(), session);
+        }
+        simulating = false;
     }
 
     public GeyserItemStack getItem(int slot) {
@@ -135,7 +147,7 @@ public class ClickPlan {
         if (simulating) {
             simulatedCursor = item;
         } else {
-            session.getPlayerInventory().setCursor(item);
+            session.getPlayerInventory().setCursor(item, session);
         }
     }
 

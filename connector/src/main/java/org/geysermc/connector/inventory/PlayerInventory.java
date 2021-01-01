@@ -28,6 +28,7 @@ package org.geysermc.connector.inventory;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.geysermc.connector.network.session.GeyserSession;
 
 public class PlayerInventory extends Inventory {
 
@@ -40,13 +41,17 @@ public class PlayerInventory extends Inventory {
     private int heldItemSlot;
 
     @Getter
-    @Setter
     @NonNull
     private GeyserItemStack cursor = GeyserItemStack.EMPTY;
 
     public PlayerInventory() {
         super(0, 46);
         heldItemSlot = 0;
+    }
+
+    public void setCursor(@NonNull GeyserItemStack newCursor, GeyserSession session) {
+        updateItemNetId(cursor, newCursor, session);
+        cursor = newCursor;
     }
 
     public GeyserItemStack getItemInHand() {
