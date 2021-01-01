@@ -39,6 +39,7 @@ public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSo
 
     @Override
     public void translate(ServerStopSoundPacket packet, GeyserSession session) {
+        //If the sound is null (very likely) we can just send a basic stop sound packet
         if (packet.getSound() == null) {
             StopSoundPacket stopPacket = new StopSoundPacket();
             stopPacket.setStoppingAllSound(true);
@@ -73,5 +74,10 @@ public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSo
 
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
         stopSoundPacket.setSoundName(playsound);
+        // packet not mapped in the library
+        stopSoundPacket.setStoppingAllSound(false);
+
+        session.sendUpstreamPacket(stopSoundPacket);
+        session.getConnector().getLogger().debug("[StopSound] Packet sent - " + packet.toString() + " --> " + stopSoundPacket);
     }
 }
