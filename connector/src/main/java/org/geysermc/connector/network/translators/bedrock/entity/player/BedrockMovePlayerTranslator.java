@@ -100,11 +100,31 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             movePacket = new ClientPlayerPositionPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
                         }
 
+                        // Compare positions here for void floor fix below before the player's position variable is set to the packet position
+                        boolean notMovingUp = entity.getPosition().getY() >= packet.getPosition().getY();
+
                         entity.setPosition(packet.getPosition(), false);
                         entity.setOnGround(packet.isOnGround());
 
                         // Send final movement changes
                         session.sendDownstreamPacket(movePacket);
+
+                        if (notMovingUp) {
+                            int floorY = position.getFloorY();
+                            if (floorY <= -38 && floorY >= -40) {
+                                // Work around there being a floor at Y -40 and teleport the player below it
+                                // Moving from below Y -40 to above the void floor works fine
+                                //TODO: This will need to be changed for 1.17
+                                entity.setPosition(entity.getPosition().sub(0, 4f, 0));
+                                MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+                                movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                                movePlayerPacket.setPosition(entity.getPosition());
+                                movePlayerPacket.setRotation(entity.getBedrockRotation());
+                                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+                                movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+                                session.sendUpstreamPacket(movePlayerPacket);
+                            }
+                        }
                     } else {
                         // Not a valid move
                         session.getConnector().getLogger().debug("Recalculating position...");
