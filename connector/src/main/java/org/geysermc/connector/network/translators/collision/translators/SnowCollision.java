@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
@@ -90,6 +92,11 @@ public class SnowCollision extends BlockCollision {
             double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
             // If the player actually can't step onto it (they can step onto it from other snow layers)
             if ((boxMaxY - playerMinY) > 0.5) {
+                // Make the player jump over the snow, which makes walking seamless
+                SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+                motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                motionPacket.setMotion(Vector3f.from(0, 0.42f, 0));
+                session.sendUpstreamPacket(motionPacket);
                 // Cancel the movement
                 return false;
             }
