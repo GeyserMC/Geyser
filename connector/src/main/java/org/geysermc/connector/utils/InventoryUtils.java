@@ -79,7 +79,7 @@ public class InventoryUtils {
     }
 
     public static void closeInventory(GeyserSession session, int windowId) {
-        session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY);
+        session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
         updateCursor(session);
 
         Inventory inventory = getInventory(session, windowId);

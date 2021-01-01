@@ -79,6 +79,11 @@ public class Inventory {
 
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         GeyserItemStack oldItem = items[slot];
+        updateItemNetId(oldItem, newItem, session);
+        items[slot] = newItem;
+    }
+
+    protected static void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
         if (!newItem.isEmpty()) {
             if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
                 newItem.setNetId(oldItem.getNetId());
@@ -86,7 +91,6 @@ public class Inventory {
                 newItem.setNetId(session.getNextItemNetId());
             }
         }
-        items[slot] = newItem;
     }
 
     public short getNextTransactionId() {

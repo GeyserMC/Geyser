@@ -43,7 +43,6 @@ public class GeyserItemStack {
     private int amount;
     private CompoundTag nbt;
     private int netId;
-    private boolean netIdWasUpdated;
 
     public GeyserItemStack(int javaId) {
         this(javaId, 1);
@@ -62,7 +61,6 @@ public class GeyserItemStack {
         this.amount = amount;
         this.nbt = nbt;
         this.netId = netId;
-        this.netIdWasUpdated = !this.isEmpty();
     }
 
     public int getJavaId() {
@@ -79,7 +77,6 @@ public class GeyserItemStack {
 
     public void setNetId(int netId) {
         this.netId = netId;
-        this.netIdWasUpdated = true;
     }
 
     public int getNetId() {
