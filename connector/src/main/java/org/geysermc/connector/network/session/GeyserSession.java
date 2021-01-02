@@ -29,6 +29,8 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
+import com.github.steveice10.mc.auth.service.AuthenticationService;
+import com.github.steveice10.mc.auth.service.MojangAuthenticationService;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
@@ -66,7 +68,6 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
-import org.geysermc.common.window.ModalFormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
@@ -111,6 +112,10 @@ public class GeyserSession implements CommandSender {
     private AuthData authData;
     @Setter
     private BedrockClientData clientData;
+
+    @Deprecated
+    @Setter
+    private boolean microsoftAccount;
 
     private final SessionPlayerEntity playerEntity;
     private PlayerInventory inventory;
@@ -257,7 +262,6 @@ public class GeyserSession implements CommandSender {
     /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
      */
-    @Setter
     private boolean daylightCycle = true;
 
     private boolean reducedDebugInfo = false;
@@ -437,13 +441,23 @@ public class GeyserSession implements CommandSender {
         new Thread(() -> {
             try {
                 if (password != null && !password.isEmpty()) {
-                    protocol = new MinecraftProtocol(username, password);
+                    AuthenticationService authenticationService;
+                    if (microsoftAccount) {
+                        authenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
+                    } else {
+                        authenticationService = new MojangAuthenticationService();
+                    }
+                    authenticationService.setUsername(username);
+                    authenticationService.setPassword(password);
+                    authenticationService.login();
+
+                    protocol = new MinecraftProtocol(authenticationService);
                 } else {
                     protocol = new MinecraftProtocol(username);
                 }
 
-                authenticatePostProtocol();
-            } catch (InvalidCredentialsException | IllegalArgumentException e) {
+                connectDownstream();
+            } catch (IllegalArgumentException e) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
@@ -452,7 +466,10 @@ public class GeyserSession implements CommandSender {
         }).start();
     }
 
-    public void authenticateWithMsa(String username, String password) {
+    /**
+     * Present a form window to the user asking to
+     */
+    public void authenticateWithMicrosoftCode() {
         if (loggedIn) {
             connector.getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().getName()));
             return;
@@ -464,39 +481,37 @@ public class GeyserSession implements CommandSender {
             try {
                 MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
 
-                if (username == null && password == null) {
-                    MsaAuthenticationService.MsCodeResponse response = msaAuthenticationService.getAuthCode();
+                MsaAuthenticationService.MsCodeResponse response = msaAuthenticationService.getAuthCode();
+                LoginEncryptionUtils.showMicrosoftCodeWindow(this, response);
 
-                    //this.sendMessage("Please enter the code '" + response.user_code + "' on " + response.verification_uri);
+                // This just looks cool
+                SetTimePacket packet = new SetTimePacket();
+                packet.setTime(16000);
+                sendUpstreamPacket(packet);
 
-                    ModalFormWindow msaCodeWindow = new ModalFormWindow("%xbox.signin", "%xbox.signin.website\n%xbox.signin.url\n%xbox.signin.enterCode\n" + response.user_code, "Done", "%menu.disconnect");
-                    this.sendForm(msaCodeWindow, LoginEncryptionUtils.AUTH_MSA_FORM_ID);
+                // Wait for the code to validate
+                while (true) {
+                    if (loggedIn || closed) {
+                        return;
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {
+                    }
 
-                    // Wait for the code to validate
-                    while (true) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException ignored) {
-                        }
-
-                        try {
-                            msaAuthenticationService.login();
-                            break;
-                        } catch (RequestException e) {
-                            if (!(e instanceof AuthPendingException)) {
-                                throw e;
-                            }
+                    try {
+                        msaAuthenticationService.login();
+                        break;
+                    } catch (RequestException e) {
+                        if (!(e instanceof AuthPendingException)) {
+                            throw e;
                         }
                     }
-                } else {
-                    msaAuthenticationService.setUsername(username);
-                    msaAuthenticationService.setPassword(password);
-                    msaAuthenticationService.login();
                 }
 
                 protocol = new MinecraftProtocol(msaAuthenticationService);
 
-                authenticatePostProtocol();
+                connectDownstream();
             } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", getAuthData().getName()));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
@@ -506,11 +521,10 @@ public class GeyserSession implements CommandSender {
         }).start();
     }
 
-    public void authenticateWithMsa() {
-        authenticateWithMsa(null, null);
-    }
-
-    private void authenticatePostProtocol() {
+    /**
+     * After getting whatever credentials needed, we attempt to join the Java server.
+     */
+    private void connectDownstream() {
         boolean floodgate = connector.getAuthType() == AuthType.FLOODGATE;
         final PublicKey publicKey;
 
@@ -644,6 +658,9 @@ public class GeyserSession implements CommandSender {
             }
         });
 
+        if (!daylightCycle) {
+            setDaylightCycle(true);
+        }
         downstream.getSession().connect();
         connector.addPlayer(this);
     }
@@ -906,6 +923,12 @@ public class GeyserSession implements CommandSender {
     public void setReducedDebugInfo(boolean value) {
         worldCache.setShowCoordinates(!value);
         reducedDebugInfo = value;
+    }
+
+    public void setDaylightCycle(boolean doCycle) {
+        sendGameRule("dodaylightcycle", doCycle);
+        // Save the value so we don't have to constantly send a daylight cycle gamerule update
+        this.daylightCycle = doCycle;
     }
 
     /**
