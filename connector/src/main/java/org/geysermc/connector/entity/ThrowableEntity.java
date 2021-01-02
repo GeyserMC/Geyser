@@ -117,8 +117,11 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     protected boolean isInWater(GeyserSession session) {
         if (session.getConnector().getConfig().isCacheChunks()) {
-            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-            return block == BlockTranslator.BEDROCK_WATER_ID;
+            if (0 <= position.getFloorY() && position.getFloorY() <= 255) {
+                int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+                String javaIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(block);
+                return javaIdentifier.startsWith("minecraft:water");
+            }
         }
         return false;
     }
