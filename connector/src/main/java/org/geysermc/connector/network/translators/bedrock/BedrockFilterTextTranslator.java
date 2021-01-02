@@ -23,15 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.response;
+package org.geysermc.connector.network.translators.bedrock;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@AllArgsConstructor
-@Getter
-public class FormResponseData {
+/**
+ * Used to send strings to the server and filter out unwanted words.
+ * Java doesn't care, so we don't care, and we approve all strings.
+ */
+@Translator(packet = FilterTextPacket.class)
+public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPacket> {
 
-    private int elementID;
-    private String elementContent;
+    @Override
+    public void translate(FilterTextPacket packet, GeyserSession session) {
+        packet.setFromServer(true);
+        session.sendUpstreamPacket(packet);
+    }
 }
