@@ -192,7 +192,7 @@ public class LoginEncryptionUtils {
     public static void showMicrosoftAuthenticationWindow(GeyserSession session) {
         String userLanguage = session.getLocale();
         SimpleFormWindow window = new SimpleFormWindow(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_login.microsoft", userLanguage), "");
-        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.method.browser", userLanguage))); //TODO translate
+        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.method.browser", userLanguage)));
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.method.password", userLanguage))); // This form won't show if password authentication is disabled
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.notice.btn_disconnect", userLanguage)));
         session.sendForm(window, AUTH_MSA_DETAILS_FORM_ID);
