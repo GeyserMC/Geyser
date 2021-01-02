@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
 
     @Override
     public void translate(TextPacket packet, GeyserSession session) {
-        String message = packet.getMessage().replaceAll("^\\.", "/").trim();
+        String message = packet.getMessage();
 
         if (MessageTranslator.isTooLong(message, session)) {
             return;

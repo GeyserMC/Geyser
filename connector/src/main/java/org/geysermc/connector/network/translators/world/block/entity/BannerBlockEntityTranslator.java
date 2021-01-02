@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,13 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
 
         if (tag.contains("Patterns")) {
             ListTag patterns = tag.get("Patterns");
-            builder.put("Patterns", BannerTranslator.convertBannerPattern(patterns));
+            if (patterns.equals(BannerTranslator.OMINOUS_BANNER_PATTERN)) {
+                // This is an ominous banner; don't try to translate the raw patterns (it doesn't translate correctly)
+                // and tell the Bedrock client that this is an ominous banner
+                builder.putInt("Type", 1);
+            } else {
+                builder.put("Patterns", BannerTranslator.convertBannerPattern(patterns));
+            }
         }
 
         if (tag.contains("CustomName")) {
