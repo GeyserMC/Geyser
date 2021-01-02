@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.player;
+package org.geysermc.connector.network.translators.java.world;
 
 import com.github.steveice10.mc.protocol.data.game.world.sound.BuiltinSound;
 import com.github.steveice10.mc.protocol.data.game.world.sound.CustomSound;
@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
 @Translator(packet = ServerStopSoundPacket.class)
-public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSoundPacket> {
+public class JavaStopSoundTranslator extends PacketTranslator<ServerStopSoundPacket> {
 
     @Override
     public void translate(ServerStopSoundPacket packet, GeyserSession session) {
@@ -57,7 +57,7 @@ public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSo
             session.getConnector().getLogger().debug("Unknown sound packet, we were unable to map this. " + packet.toString());
             return;
         }
-        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound);
+        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound.replace("minecraft:", ""));
         session.getConnector().getLogger()
                 .debug("[StopSound] Sound mapping " + packetSound + " -> "
                         + soundMapping + (soundMapping == null ? "[not found]" : "")
