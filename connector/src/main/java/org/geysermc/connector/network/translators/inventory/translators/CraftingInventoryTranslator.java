@@ -67,4 +67,12 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
         }
         return super.bedrockSlotToJava(slotInfoData);
     }
+
+    @Override
+    public int javaSlotToBedrock(int slot) {
+        if (slot < size) {
+            return slot == 0 ? 50 : slot + 31;
+        }
+        return super.javaSlotToBedrock(slot);
+    }
 }
