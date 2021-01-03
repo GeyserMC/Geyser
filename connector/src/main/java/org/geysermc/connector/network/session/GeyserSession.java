@@ -457,7 +457,7 @@ public class GeyserSession implements CommandSender {
                 }
 
                 connectDownstream();
-            } catch (IllegalArgumentException e) {
+            } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
