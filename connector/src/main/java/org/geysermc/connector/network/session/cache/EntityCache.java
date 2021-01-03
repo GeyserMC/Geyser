@@ -99,7 +99,6 @@ public class EntityCache {
         for (Entity entity : entities) {
             session.getEntityCache().removeEntity(entity, false);
         }
-        tickableEntities.clear();
     }
 
     public Entity getEntityByGeyserId(long geyserId) {
