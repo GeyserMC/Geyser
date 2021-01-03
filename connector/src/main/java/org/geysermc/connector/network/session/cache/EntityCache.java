@@ -64,10 +64,11 @@ public class EntityCache {
     public void spawnEntity(Entity entity) {
         if (cacheEntity(entity)) {
             entity.spawnEntity(session);
-        }
-        if (entity instanceof Tickable) {
-            // Start ticking it
-            tickableEntities.add((Tickable) entity);
+
+            if (entity instanceof Tickable) {
+                // Start ticking it
+                tickableEntities.add((Tickable) entity);
+            }
         }
     }
 
