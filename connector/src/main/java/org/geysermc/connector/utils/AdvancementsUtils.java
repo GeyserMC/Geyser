@@ -191,7 +191,6 @@ public class AdvancementsUtils {
     public static boolean handleListForm(GeyserSession session, String response) {
         SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_LIST_FORM_ID);
         listForm.setResponse(response);
-
         SimpleFormResponse formResponse = (SimpleFormResponse) listForm.getResponse();
 
         if (!listForm.isClosed() && formResponse != null && formResponse.getClickedButton() != null) {
@@ -199,7 +198,7 @@ public class AdvancementsUtils {
                 if (!session.getButtonIdsToAdvancement().get(formResponse.getClickedButtonId()).getId().endsWith("root")) {
                     session.sendForm(buildInfoForm(session, session.getButtonIdsToAdvancement().get(formResponse.getClickedButtonId())), ADVANCEMENT_INFO_FORM_ID);
                 } else {
-                    session.sendForm(buildListForm(session), ADVANCEMENT_INFO_FORM_ID);
+                    session.sendForm(buildListForm(session), ADVANCEMENTS_LIST_FORM_ID);
                 }
             } else {
                 session.sendForm(buildMenuForm(session), ADVANCEMENTS_MENU_FORM_ID);
