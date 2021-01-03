@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
 
     @Override
     public void translate(ServerAdvancementsPacket packet, GeyserSession session) {
+        sendToolbarAdvancementUpdates(session, packet);
         // Removes removed advancements from player's stored advancements
         for (String removedAdvancement : packet.getRemovedAdvancements()) {
             session.getStoredAdvancements().remove(removedAdvancement);
@@ -58,32 +59,36 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
                 session.getStoredAdvancements().remove(advancement.getId());
             }
         }
+    }
 
-        // Handle all advancements progress updates
-        // TODO: Ignore progress updates on initial join
-        // TODO: Find a better way of storing all the clients known advancements encase `session.getStoredAdvancements()` doesn't contain one we have unlocked
-        for (Map.Entry<String, Map<String, Long>> progress : packet.getProgress().entrySet()) {
-            Advancement advancement = session.getStoredAdvancements().get(progress.getKey());
-            if (advancement != null && advancement.getDisplayData() != null) {
-                String color = AdvancementsUtils.ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString());
-                String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.getLocale());
+    // Handle all advancements progress updates
+    public static void sendToolbarAdvancementUpdates(GeyserSession session, ServerAdvancementsPacket packet) {
+        if (!session.getStoredAdvancementProgress().isEmpty()) {
+            for (Map.Entry<String, Map<String, Long>> progress : packet.getProgress().entrySet()) {
+                Advancement advancement = session.getStoredAdvancements().get(progress.getKey());
+                if (advancement != null && advancement.getDisplayData() != null) {
+                    String color = AdvancementsUtils.ADVANCEMENT_FRAME_TYPES_TO_COLOR_CODES.get(advancement.getDisplayData().getFrameType().toString());
+                    String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.getLocale());
+                    boolean earned = true;
 
-                boolean earned = true;
-                for (Map.Entry<String, Long> entry : packet.getProgress().get(advancement.getId()).entrySet()) {
-                    if (entry.getValue() == -1) {
-                        earned = false;
-                        break;
+                    for (Map.Entry<String, Long> entry : packet.getProgress().get(advancement.getId()).entrySet()) {
+                        if (entry.getValue() == -1) {
+                            earned = false;
+                            break;
+                        }
                     }
-                }
 
-                if (earned) {
-                    SetTitlePacket titlePacket = new SetTitlePacket();
-                    titlePacket.setText(color + "[" + LocaleUtils.getLocaleString("advancements.toast." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), session.getLocale()) + "] " + advancementName);
-                    titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-                    titlePacket.setFadeOutTime(3);
-                    titlePacket.setFadeInTime(3);
-                    titlePacket.setStayTime(3);
-                    session.sendUpstreamPacket(titlePacket);
+                    if (earned) {
+                        SetTitlePacket titlePacket = new SetTitlePacket();
+                        titlePacket.setText(color + "[" + LocaleUtils.getLocaleString("advancements.toast." + advancement.getDisplayData().getFrameType().toString().toLowerCase(), session.getLocale()) + "] " + advancementName);
+                        titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+                        titlePacket.setFadeOutTime(3);
+                        titlePacket.setFadeInTime(3);
+                        titlePacket.setStayTime(3);
+                        session.sendUpstreamPacket(titlePacket);
+                    }
+                } else {
+                    session.getStoredAdvancements().remove(advancement.getId(), advancement);
                 }
             }
         }
