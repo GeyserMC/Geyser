@@ -21,7 +21,7 @@ public class LongClassName {
     /**
     * Javadoc comment to explain what a function does.
     */
-    @RandomAnnotation(AnnotationStuff)
+    @RandomAnnotation(stuff = true, moreStuff = "might exist")
     public void applyStuff() {
         Variable variable = new Variable();
         Variable otherVariable = new Variable();
