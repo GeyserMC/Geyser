@@ -147,6 +147,7 @@ public class ItemRegistry {
             if (bedrockIdentifier == null) {
                 throw new RuntimeException("Missing Bedrock ID in mappings!: " + bedrockId);
             }
+            int stackSize = entry.getValue().get("stack_size") == null ? 64 : entry.getValue().get("stack_size").intValue();
             if (entry.getValue().has("tool_type")) {
                 if (entry.getValue().has("tool_tier")) {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
@@ -154,19 +155,22 @@ public class ItemRegistry {
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
                             entry.getValue().get("tool_tier").textValue(),
-                            entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
+                            entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue(),
+                            stackSize));
                 } else {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
                             entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            "", entry.getValue().get("is_block").booleanValue()));
+                            "", entry.getValue().get("is_block").booleanValue(),
+                            stackSize));
                 }
             } else {
                 ITEM_ENTRIES.put(itemIndex, new ItemEntry(
                         entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                         entry.getValue().get("bedrock_data").intValue(),
-                        entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
+                        entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue(),
+                        stackSize));
             }
             switch (entry.getKey()) {
                 case "minecraft:barrier":
@@ -209,7 +213,7 @@ public class ItemRegistry {
 
         // Add the loadstone compass since it doesn't exist on java but we need it for item conversion
         ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestone_compass", "minecraft:lodestone_compass", itemIndex,
-                lodestoneCompassId, 0, false));
+                lodestoneCompassId, 0, false, 1));
 
         /* Load creative items */
         stream = FileUtils.getResource("bedrock/creative_items.json");
