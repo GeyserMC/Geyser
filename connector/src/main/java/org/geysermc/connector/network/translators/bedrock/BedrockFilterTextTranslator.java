@@ -23,25 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 /**
- * Used to forward the keep alive packet to the client in order to get back a reliable ping.
+ * Used to send strings to the server and filter out unwanted words.
+ * Java doesn't care, so we don't care, and we approve all strings.
  */
-@Translator(packet = ServerKeepAlivePacket.class)
-public class JavaKeepAliveTranslator extends PacketTranslator<ServerKeepAlivePacket> {
+@Translator(packet = FilterTextPacket.class)
+public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPacket> {
 
     @Override
-    public void translate(ServerKeepAlivePacket packet, GeyserSession session) {
-        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-        latencyPacket.setFromServer(true);
-        latencyPacket.setTimestamp(packet.getPingId() * 1000);
-        session.sendUpstreamPacket(latencyPacket);
+    public void translate(FilterTextPacket packet, GeyserSession session) {
+        packet.setFromServer(true);
+        session.sendUpstreamPacket(packet);
     }
 }

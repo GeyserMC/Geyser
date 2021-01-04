@@ -76,7 +76,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         for(ResourcePack resourcePack : ResourcePack.PACKS.values()) {
             ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
-            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(), "", "", "", false));
+            resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
+                    header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(),
+                            "", "", "", false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserConnector.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -136,29 +138,26 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        boolean handleForm =  LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+        if (packet.getFormData().contains("null")) {
+            return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+        }
 
         switch (packet.getFormId()) {
             case SettingsUtils.SETTINGS_FORM_ID:
-                handleForm = SettingsUtils.handleSettingsForm(session, packet.getFormData());
-                break;
+                return SettingsUtils.handleSettingsForm(session, packet.getFormData());
             case StatisticsUtils.STATISTICS_MENU_FORM_ID:
-                handleForm = StatisticsUtils.handleMenuForm(session, packet.getFormData());
-                break;
+                return StatisticsUtils.handleMenuForm(session, packet.getFormData());
             case StatisticsUtils.STATISTICS_LIST_FORM_ID:
-                handleForm = StatisticsUtils.handleListForm(session, packet.getFormData());
-                break;
+                return StatisticsUtils.handleListForm(session, packet.getFormData());
             case AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID:
-                handleForm =  AdvancementsUtils.handleMenuForm(session, packet.getFormData());
-                break;
+                return AdvancementsUtils.handleMenuForm(session, packet.getFormData());
             case AdvancementsUtils.ADVANCEMENTS_LIST_FORM_ID:
-                handleForm = AdvancementsUtils.handleListForm(session, packet.getFormData());
-                break;
+                return AdvancementsUtils.handleListForm(session, packet.getFormData());
             case AdvancementsUtils.ADVANCEMENT_INFO_FORM_ID:
-                handleForm = AdvancementsUtils.handleInfoForm(session, packet.getFormData());
-                break;
+                return AdvancementsUtils.handleInfoForm(session, packet.getFormData());
         }
-        return handleForm;
+
+        return false;
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {

@@ -89,6 +89,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("show-cooldown")
     private boolean showCooldown = true;
 
+    @JsonProperty("show-coordinates")
+    private boolean showCoordinates = true;
+
     @JsonProperty("allow-third-party-ears")
     private boolean allowThirdPartyEars = false;
 
@@ -145,6 +148,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @Setter
         @JsonProperty("auth-type")
         private String authType = "online";
+
+        @JsonProperty("use-proxy-protocol")
+        private boolean useProxyProtocol = false;
     }
 
     @Getter

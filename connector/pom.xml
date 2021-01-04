@@ -31,15 +31,26 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v419</artifactId>
-            <version>ce59d39118</version>
+            <artifactId>bedrock-v422</artifactId>
+            <version>d41b84e86c</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <groupId>net.sf.trove4j</groupId>
                     <artifactId>trove</artifactId>
                 </exclusion>
+                <!-- Stay on the older version of Network while it's rewritten -->
+                <exclusion>
+                    <groupId>com.nukkitx.network</groupId>
+                    <artifactId>raknet</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.network</groupId>
+            <artifactId>raknet</artifactId>
+            <version>1.6.20</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
@@ -114,12 +125,24 @@
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-all</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>net.kyori</groupId>
                     <artifactId>adventure-text-serializer-gson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.github.steveice10</groupId>
+                    <artifactId>packetlib</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.steveice10</groupId>
+            <artifactId>PacketLib</artifactId>
+            <version>54f761c</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion> <!-- Move this exclusion back to MCProtocolLib it gets the latest PacketLib -->
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -127,6 +150,12 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-resolver-dns</artifactId>
             <version>4.1.43.Final</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-haproxy</artifactId>
+            <version>4.1.56.Final</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -142,19 +171,25 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
-            <version>4.2.0</version>
+            <version>4.3.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-gson</artifactId>
-            <version>4.2.0</version>
+            <version>4.3.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>4.2.0</version>
+            <version>4.3.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-gson-legacy-impl</artifactId>
+            <version>4.3.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -162,12 +197,6 @@
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>RELEASE</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -225,8 +254,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token>VERSION = ".*"</token>
-                                    <value>VERSION = "${project.version} (git-${git.branch}-${git.commit.id.abbrev})"</value>
+                                    <token>String VERSION = ".*"</token>
+                                    <value>String VERSION = "${project.version} (" + GIT_VERSION + ")"</value>
+                                </replacement>
+                                <replacement>
+                                    <token>String GIT_VERSION = ".*"</token>
+                                    <value>String GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
                                 </replacement>
                             </replacements>
                         </configuration>
@@ -244,8 +277,12 @@
                             </includes>
                             <replacements>
                                 <replacement>
-                                    <token>VERSION = ".*"</token>
-                                    <value>VERSION = "DEV"</value>
+                                    <token>String VERSION = ".*"</token>
+                                    <value>String VERSION = "DEV"</value>
+                                </replacement>
+                                <replacement>
+                                    <token>String GIT_VERSION = ".*"</token>
+                                    <value>String GIT_VERSION = "DEV"</value>
                                 </replacement>
                             </replacements>
                         </configuration>

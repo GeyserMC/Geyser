@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,18 +25,17 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.AdvancementsUtils;
+import org.geysermc.connector.utils.SettingsUtils;
 
-public class AdvancementsCommand extends GeyserCommand {
+public class SettingsCommand extends GeyserCommand {
 
     private final GeyserConnector connector;
 
-    public AdvancementsCommand(GeyserConnector connector, String name, String description, String permission) {
+    public SettingsCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
 
         this.connector = connector;
@@ -44,10 +43,6 @@ public class AdvancementsCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (sender.isConsole()) {
-            return;
-        }
-
         // Make sure the sender is a Bedrock edition client
         GeyserSession session = null;
         if (sender instanceof GeyserSession) {
@@ -62,9 +57,8 @@ public class AdvancementsCommand extends GeyserCommand {
             }
         }
         if (session == null) return;
-
-        SimpleFormWindow window = AdvancementsUtils.buildMenuForm(session);
-        session.sendForm(window, AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID);
+        SettingsUtils.buildForm(session);
+        session.sendForm(session.getSettingsForm(), SettingsUtils.SETTINGS_FORM_ID);
     }
 
     @Override
