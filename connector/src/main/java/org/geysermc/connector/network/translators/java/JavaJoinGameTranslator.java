@@ -55,12 +55,12 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         // are swapping servers
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (session.isSpawned()) {
-            String fakeDim = session.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
+            String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
             DimensionUtils.switchDimension(session, fakeDim);
-            DimensionUtils.switchDimension(session, newDimension);
 
             session.getWorldCache().removeScoreboard();
         }
+        session.setWorldName(packet.getWorldName());
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
