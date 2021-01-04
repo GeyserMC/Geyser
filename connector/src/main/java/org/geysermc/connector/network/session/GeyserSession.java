@@ -31,7 +31,6 @@ import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
-import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
@@ -62,7 +61,6 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.kyori.adventure.text.Component;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
@@ -112,6 +110,7 @@ public class GeyserSession implements CommandSender {
     private final SessionPlayerEntity playerEntity;
     private PlayerInventory inventory;
 
+    private AdvancementsCache advancementsCache;
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
@@ -326,44 +325,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
-    /**
-     * Stores the player's advancement progress
-     */
-    @Setter
-    private Map<String, Map<String, Long>> storedAdvancementProgress = new HashMap<>();
-
-    /**
-     * Stores advancements for the player.
-     */
-    private final Map<String, Advancement> storedAdvancements = new HashMap<>();
-
-    /**
-     * Stores the player's advancement categories that should be used for each button pressed in the advancement menu.
-     */
-    private final Map<Integer, String> buttonIdsToIdButtonAdvancementCategories = new HashMap<>();
-
-    /**
-     * Stores the player's advancement titles that should be used for each button pressed in the advancement menu.
-     */
-    private final Map<Integer, Component> buttonIdsToTitleButtonAdvancementCategories = new HashMap<>();
-
-    /**
-     * Stores the player's advancement categories that should be used for each button pressed in the advancement list menu.
-     */
-    private final Map<Integer, Advancement> buttonIdsToAdvancement = new HashMap<>();
-
-    /**
-     * Stores player's chosen advancement's ID and title for use in form creators.
-     */
-    @Setter
-    private String storedAdvancementCategoryId = null;
-
-    /**
-     * Stores the player's title of the advancement category for use in building the list form
-     */
-    @Setter
-    private Component storedAdvancementCategoryTitle = null;
-
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
     private final Set<UUID> emotes = new HashSet<>();
@@ -374,6 +335,7 @@ public class GeyserSession implements CommandSender {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
 
+        this.advancementsCache = new AdvancementsCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
@@ -624,6 +586,7 @@ public class GeyserSession implements CommandSender {
             }
         }
 
+        this.advancementsCache = null;
         this.chunkCache = null;
         this.entityCache = null;
         this.effectCache = null;
