@@ -61,6 +61,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -230,6 +231,7 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private Int2ObjectMap<Recipe> craftingRecipes;
+    private final Set<String> unlockedRecipes;
 
     /**
      * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.
@@ -382,6 +384,7 @@ public class GeyserSession implements CommandSender {
         this.openInventory = null;
         this.inventoryFuture = CompletableFuture.completedFuture(null);
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
+        this.unlockedRecipes = new ObjectOpenHashSet<>();
 
         this.spawned = false;
         this.loggedIn = false;

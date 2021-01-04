@@ -23,23 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory.click;
+package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.data.game.window.*;
-import lombok.AllArgsConstructor;
+import com.github.steveice10.mc.protocol.data.game.UnlockRecipesAction;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerUnlockRecipesPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@AllArgsConstructor
-public enum Click {
-    LEFT(WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK),
-    RIGHT(WindowAction.CLICK_ITEM, ClickItemParam.RIGHT_CLICK),
-    LEFT_SHIFT(WindowAction.SHIFT_CLICK_ITEM, ShiftClickItemParam.LEFT_CLICK),
-    DROP_ONE(WindowAction.DROP_ITEM, DropItemParam.DROP_FROM_SELECTED),
-    DROP_ALL(WindowAction.DROP_ITEM, DropItemParam.DROP_SELECTED_STACK),
-    LEFT_OUTSIDE(WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK),
-    RIGHT_OUTSIDE(WindowAction.CLICK_ITEM, ClickItemParam.RIGHT_CLICK);
+import java.util.Arrays;
 
-    public static final int OUTSIDE_SLOT = -999;
+@Translator(packet = ServerUnlockRecipesPacket.class)
+public class JavaUnlockRecipesTranslator extends PacketTranslator<ServerUnlockRecipesPacket> {
 
-    public final WindowAction windowAction;
-    public final WindowActionParam actionParam;
+    @Override
+    public void translate(ServerUnlockRecipesPacket packet, GeyserSession session) {
+        if (packet.getAction() == UnlockRecipesAction.REMOVE) {
+            session.getUnlockedRecipes().removeAll(Arrays.asList(packet.getRecipes()));
+        } else {
+            session.getUnlockedRecipes().addAll(Arrays.asList(packet.getRecipes()));
+        }
+    }
 }
+

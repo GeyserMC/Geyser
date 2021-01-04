@@ -166,10 +166,15 @@ public class ClickPlan {
 
         GeyserItemStack clicked = simulating ? getItem(action.slot) : inventory.getItem(action.slot);
         if (translator.getSlotType(action.slot) == SlotType.OUTPUT) {
-            if (cursor.isEmpty() && !clicked.isEmpty()) {
-                setCursor(clicked.copy());
-            } else if (InventoryUtils.canStack(cursor, clicked)) {
-                cursor.add(clicked.getAmount());
+            switch (action.click) {
+                case LEFT:
+                case RIGHT:
+                    if (cursor.isEmpty() && !clicked.isEmpty()) {
+                        setCursor(clicked.copy());
+                    } else if (InventoryUtils.canStack(cursor, clicked)) {
+                        cursor.add(clicked.getAmount());
+                    }
+                    break;
             }
         } else {
             switch (action.click) {
@@ -194,6 +199,9 @@ public class ClickPlan {
                         cursor.sub(1);
                         clicked.add(1);
                     }
+                    break;
+                case LEFT_SHIFT:
+                    //TODO
                     break;
                 case DROP_ONE:
                     if (!clicked.isEmpty()) {

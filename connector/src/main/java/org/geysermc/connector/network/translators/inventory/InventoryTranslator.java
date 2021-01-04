@@ -27,8 +27,12 @@ package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientPrepareCraftingGridPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
@@ -552,7 +556,8 @@ public abstract class InventoryTranslator {
 
         int recipeId = 0;
         int resultSize = 0;
-        boolean autoCraft;
+        int timesCrafted = 0;
+        boolean autoCraft = false;
         CraftState craftState = CraftState.START;
 
         int leftover = 0;
@@ -566,28 +571,30 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.RECIPE_ID;
                     recipeId = craftAction.getRecipeNetworkId();
-                    //System.out.println(session.getCraftingRecipes().get(recipeId));
                     autoCraft = false;
                     break;
                 }
-//                case CRAFT_RECIPE_AUTO: {
-//                    AutoCraftRecipeStackRequestActionData autoCraftAction = (AutoCraftRecipeStackRequestActionData) action;
-//                    if (craftState != CraftState.START) {
-//                        return rejectRequest(request);
-//                    }
-//                    craftState = CraftState.RECIPE_ID;
-//                    recipeId = autoCraftAction.getRecipeNetworkId();
-//                    Recipe recipe = session.getCraftingRecipes().get(recipeId);
-//                    System.out.println(recipe);
-//                    if (recipe == null) {
-//                        return rejectRequest(request);
-//                    }
-////                    ClientPrepareCraftingGridPacket packet = new ClientPrepareCraftingGridPacket(session.getOpenInventory().getId(), recipe.getIdentifier(), true);
-////                    session.sendDownstreamPacket(packet);
-//                    autoCraft = true;
-//                    //TODO: reject transaction if crafting grid is not clear
-//                    break;
-//                }
+                case CRAFT_RECIPE_AUTO: {
+                    AutoCraftRecipeStackRequestActionData autoCraftAction = (AutoCraftRecipeStackRequestActionData) action;
+                    if (craftState != CraftState.START) {
+                        return rejectRequest(request);
+                    }
+                    craftState = CraftState.RECIPE_ID;
+
+                    recipeId = autoCraftAction.getRecipeNetworkId();
+                    if (!plan.getCursor().isEmpty()) {
+                        return rejectRequest(request);
+                    }
+                    //reject if crafting grid is not clear
+                    int gridSize = inventory.getId() == 0 ? 4 : 9;
+                    for (int i = 1; i <= gridSize; i++) {
+                        if (!inventory.getItem(i).isEmpty()) {
+                            return rejectRequest(request);
+                        }
+                    }
+                    autoCraft = true;
+                    break;
+                }
                 case CRAFT_RESULTS_DEPRECATED: {
                     CraftResultsDeprecatedStackRequestActionData deprecatedCraftAction = (CraftResultsDeprecatedStackRequestActionData) action;
                     if (craftState != CraftState.RECIPE_ID) {
@@ -599,7 +606,8 @@ public abstract class InventoryTranslator {
                         return rejectRequest(request);
                     }
                     resultSize = deprecatedCraftAction.getResultItems()[0].getCount();
-                    if (resultSize <= 0) {
+                    timesCrafted = deprecatedCraftAction.getTimesCrafted();
+                    if (resultSize <= 0 || timesCrafted <= 0) {
                         return rejectRequest(request);
                     }
                     break;
@@ -628,11 +636,45 @@ public abstract class InventoryTranslator {
                     }
 
                     int sourceSlot = bedrockSlotToJava(transferAction.getSource());
+                    int destSlot = bedrockSlotToJava(transferAction.getDestination());
+
+                    if (autoCraft) {
+                        Recipe recipe = session.getCraftingRecipes().get(recipeId);
+                        //cannot use java recipe book if recipe is locked
+                        if (recipe == null || !session.getUnlockedRecipes().contains(recipe.getIdentifier())) {
+                            return rejectRequest(request);
+                        }
+
+                        boolean cursorDest = isCursor(transferAction.getDestination());
+                        boolean makeAll = timesCrafted > 1;
+                        if (cursorDest) {
+                            makeAll = false;
+                        }
+
+                        ClientPrepareCraftingGridPacket prepareCraftingPacket = new ClientPrepareCraftingGridPacket(inventory.getId(), recipe.getIdentifier(), makeAll);
+                        session.sendDownstreamPacket(prepareCraftingPacket);
+
+                        ItemStack output = null;
+                        switch (recipe.getType()) {
+                            case CRAFTING_SHAPED:
+                                output = ((ShapedRecipeData)recipe.getData()).getResult();
+                                break;
+                            case CRAFTING_SHAPELESS:
+                                output = ((ShapelessRecipeData)recipe.getData()).getResult();
+                                break;
+                        }
+                        inventory.setItem(0, GeyserItemStack.from(output), session);
+
+                        plan.add(cursorDest ? Click.LEFT : Click.LEFT_SHIFT, 0);
+                        plan.execute(true);
+
+                        return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
+                    }
+
                     if (isCursor(transferAction.getDestination())) {
                         plan.add(Click.LEFT, sourceSlot);
                         craftState = CraftState.DONE;
                     } else {
-                        int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         if (leftover != 0) {
                             if (transferAction.getCount() > leftover) {
                                 return rejectRequest(request);
