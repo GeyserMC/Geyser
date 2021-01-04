@@ -23,26 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity;
+package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-public class TridentEntity extends AbstractArrowEntity {
-
-    public TridentEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
+/**
+ * Used to send strings to the server and filter out unwanted words.
+ * Java doesn't care, so we don't care, and we approve all strings.
+ */
+@Translator(packet = FilterTextPacket.class)
+public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPacket> {
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 10) {
-            metadata.getFlags().setFlag(EntityFlag.ENCHANTED, (boolean) entityMetadata.getValue());
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void translate(FilterTextPacket packet, GeyserSession session) {
+        packet.setFromServer(true);
+        session.sendUpstreamPacket(packet);
     }
 }

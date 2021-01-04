@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,11 +81,10 @@ public class SkinManager {
 
         // This attempts to find the xuid of the player so profile images show up for xbox accounts
         String xuid = "";
-        for (GeyserSession player : GeyserConnector.getInstance().getPlayers()) {
-            if (player.getPlayerEntity().getUuid().equals(uuid)) {
-                xuid = player.getAuthData().getXboxUUID();
-                break;
-            }
+        GeyserSession player = GeyserConnector.getInstance().getPlayerByUuid(uuid);
+
+        if (player != null) {
+            xuid = player.getAuthData().getXboxUUID();
         }
 
         PlayerListPacket.Entry entry;
@@ -268,11 +267,10 @@ public class SkinManager {
                 // return default skin with default cape when texture data is invalid
                 String skinUrl = isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl();
                 if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
-                    for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
-                        if (session.getPlayerEntity().getUuid().equals(profile.getId())) {
-                            skinUrl = session.getClientData().getSkinId();
-                            break;
-                        }
+                    GeyserSession session = GeyserConnector.getInstance().getPlayerByUuid(profile.getId());
+
+                    if (session != null) {
+                        skinUrl = session.getClientData().getSkinId();
                     }
                 }
                 return new GameProfileData(skinUrl, SkinProvider.EMPTY_CAPE.getTextureUrl(), isAlex);

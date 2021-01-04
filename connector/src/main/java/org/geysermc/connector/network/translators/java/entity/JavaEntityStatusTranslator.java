@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -89,6 +89,7 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
             case LIVING_DROWN:
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
+            case LIVING_HURT_THORNS:
                 entityEventPacket.setType(EntityEventType.HURT);
                 break;
             case LIVING_DEATH:
