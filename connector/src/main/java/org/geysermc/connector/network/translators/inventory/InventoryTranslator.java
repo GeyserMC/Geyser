@@ -757,7 +757,7 @@ public abstract class InventoryTranslator {
                     ItemStack javaCreativeItem = ItemTranslator.translateToJava(creativeItem);
 
                     if (isCursor(transferAction.getDestination())) {
-                        session.getPlayerInventory().setCursor(GeyserItemStack.from(javaCreativeItem, session.getNextItemNetId()), session);
+                        session.getPlayerInventory().setCursor(GeyserItemStack.from(javaCreativeItem), session);
                         return acceptRequest(request, Collections.singletonList(
                                 new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CURSOR,
                                         Collections.singletonList(makeItemEntry(0, session.getPlayerInventory().getCursor())))));
@@ -769,7 +769,7 @@ public abstract class InventoryTranslator {
                             existingItem.setAmount(existingItem.getAmount() + transferAction.getCount());
                             javaCreativeItem = existingItem.getItemStack();
                         } else {
-                            inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem, session.getNextItemNetId()), session);
+                            inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem), session);
                         }
                         ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
                                 javaSlot,

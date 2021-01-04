@@ -91,11 +91,7 @@ public class GeyserItemStack {
     }
 
     public static GeyserItemStack from(ItemStack itemStack) {
-        return from(itemStack, 1);
-    }
-
-    public static GeyserItemStack from(ItemStack itemStack, int netId) {
-        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getNbt(), netId);
+        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getNbt());
     }
 
     public ItemStack getItemStack() {

@@ -33,6 +33,9 @@ import org.geysermc.connector.network.translators.Translator;
 
 import java.util.Arrays;
 
+/**
+ * Used to list recipes that we can definitely use the recipe book for (and therefore save on packet usage)
+ */
 @Translator(packet = ServerUnlockRecipesPacket.class)
 public class JavaUnlockRecipesTranslator extends PacketTranslator<ServerUnlockRecipesPacket> {
 

@@ -47,6 +47,11 @@ import org.geysermc.connector.network.translators.item.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Used to send all valid recipes from Java to Bedrock.
+ *
+ * Bedrock REQUIRES a CraftingDataPacket to be sent in order to craft anything.
+ */
 @Translator(packet = ServerDeclareRecipesPacket.class)
 public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclareRecipesPacket> {
 
