@@ -496,8 +496,7 @@ public class GeyserSession implements CommandSender {
                     }
                     try {
                         Thread.sleep(1000);
-                    } catch (InterruptedException ignored) {
-                    }
+                    } catch (InterruptedException ignored) { }
 
                     try {
                         msaAuthenticationService.login();
@@ -925,6 +924,12 @@ public class GeyserSession implements CommandSender {
         reducedDebugInfo = value;
     }
 
+    /**
+     * Changes the daylight cycle gamerule on the client
+     * This is used in the login screen along-side normal usage
+     *
+     * @param doCycle If the cycle should continue
+     */
     public void setDaylightCycle(boolean doCycle) {
         sendGameRule("dodaylightcycle", doCycle);
         // Save the value so we don't have to constantly send a daylight cycle gamerule update
