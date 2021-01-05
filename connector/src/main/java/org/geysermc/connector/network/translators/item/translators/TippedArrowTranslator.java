@@ -70,6 +70,7 @@ public class TippedArrowTranslator extends ItemTranslator {
 
     @Override
     public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
+        GeyserConnector.getInstance().getLogger().warning(itemData.toString() + " " + itemEntry.getJavaIdentifier());
         TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByBedrockId(itemData.getDamage());
         ItemStack itemStack = super.translateToJava(itemData, itemEntry);
         if (tippedArrowPotion != null) {

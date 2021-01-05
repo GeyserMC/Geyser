@@ -56,7 +56,7 @@ public class ItemRegistry {
      * A list of all identifiers that only exist on Java. Used to prevent creative items from becoming these unintentionally.
      */
     private static final List<String> JAVA_ONLY_ITEMS = Arrays.asList("minecraft:spectral_arrow", "minecraft:debug_stick",
-            "minecraft:knowledge_book");
+            "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:furnace_minecart");
 
     public static final ItemData[] CREATIVE_ITEMS;
 
