@@ -156,7 +156,7 @@ public class ItemRegistry {
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
                             entry.getValue().get("tool_tier").textValue(),
-                            entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue(),
+                            entry.getValue().get("is_block").booleanValue(),
                             stackSize));
                 } else {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
@@ -170,7 +170,7 @@ public class ItemRegistry {
                 ITEM_ENTRIES.put(itemIndex, new ItemEntry(
                         entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                         entry.getValue().get("bedrock_data").intValue(),
-                        entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue(),
+                        entry.getValue().get("is_block").booleanValue(),
                         stackSize));
             }
             switch (entry.getKey()) {
