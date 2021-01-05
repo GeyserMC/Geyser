@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,14 +31,12 @@ import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
-import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Client;
@@ -63,7 +61,6 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import net.kyori.adventure.text.Component;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
@@ -97,7 +94,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements CommandSender {
@@ -114,6 +110,7 @@ public class GeyserSession implements CommandSender {
     private final SessionPlayerEntity playerEntity;
     private PlayerInventory inventory;
 
+    private AdvancementsCache advancementsCache;
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
@@ -150,7 +147,11 @@ public class GeyserSession implements CommandSender {
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
 
-    private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
+    /**
+     * Keeps track of the world name for respawning.
+     */
+    @Setter
+    private String worldName = null;
 
     private boolean sneaking;
 
@@ -186,9 +187,6 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private Vector3i lastInteractionPosition = Vector3i.ZERO;
-
-    private boolean manyDimPackets = false;
-    private ServerRespawnPacket lastDimPacket = null;
 
     @Setter
     private Entity ridingVehicleEntity;
@@ -327,44 +325,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
-    /**
-     * Stores the player's advancement progress
-     */
-    @Setter
-    private Map<String, Map<String, Long>> storedAdvancementProgress = new HashMap<>();
-
-    /**
-     * Stores advancements for the player.
-     */
-    private final Map<String, Advancement> storedAdvancements = new HashMap<>();
-
-    /**
-     * Stores the player's advancement categories that should be used for each button pressed in the advancement menu.
-     */
-    private final Map<Integer, String> buttonIdsToIdButtonAdvancementCategories = new HashMap<>();
-
-    /**
-     * Stores the player's advancement titles that should be used for each button pressed in the advancement menu.
-     */
-    private final Map<Integer, Component> buttonIdsToTitleButtonAdvancementCategories = new HashMap<>();
-
-    /**
-     * Stores the player's advancement categories that should be used for each button pressed in the advancement list menu.
-     */
-    private final Map<Integer, Advancement> buttonIdsToAdvancement = new HashMap<>();
-
-    /**
-     * Stores player's chosen advancement's ID and title for use in form creators.
-     */
-    @Setter
-    private String storedAdvancementCategoryId = null;
-
-    /**
-     * Stores the player's title of the advancement category for use in building the list form
-     */
-    @Setter
-    private Component storedAdvancementCategoryTitle = null;
-
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
     private final Set<UUID> emotes = new HashSet<>();
@@ -375,6 +335,7 @@ public class GeyserSession implements CommandSender {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
 
+        this.advancementsCache = new AdvancementsCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
@@ -577,16 +538,6 @@ public class GeyserSession implements CommandSender {
                     @Override
                     public void packetReceived(PacketReceivedEvent event) {
                         if (!closed) {
-                            //handle consecutive respawn packets
-                            if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
-                                manyDimPackets = lastDimPacket != null;
-                                lastDimPacket = event.getPacket();
-                                return;
-                            } else if (lastDimPacket != null) {
-                                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
-                                lastDimPacket = null;
-                            }
-
                             // Required, or else Floodgate players break with Bukkit chunk caching
                             if (event.getPacket() instanceof LoginSuccessPacket) {
                                 GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
@@ -635,6 +586,7 @@ public class GeyserSession implements CommandSender {
             }
         }
 
+        this.advancementsCache = null;
         this.chunkCache = null;
         this.entityCache = null;
         this.effectCache = null;

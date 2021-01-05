@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,14 +36,14 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
 @Translator(packet = ServerPlaySoundPacket.class)
-public class JavaPlayerPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPacket> {
+public class JavaPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPacket> {
 
     @Override
     public void translate(ServerPlaySoundPacket packet, GeyserSession session) {
         String packetSound;
-        if(packet.getSound() instanceof BuiltinSound) {
+        if (packet.getSound() instanceof BuiltinSound) {
             packetSound = ((BuiltinSound) packet.getSound()).getName();
-        } else if(packet.getSound() instanceof CustomSound) {
+        } else if (packet.getSound() instanceof CustomSound) {
             packetSound = ((CustomSound) packet.getSound()).getName();
         } else {
             session.getConnector().getLogger().debug("Unknown sound packet, we were unable to map this. " + packet.toString());
