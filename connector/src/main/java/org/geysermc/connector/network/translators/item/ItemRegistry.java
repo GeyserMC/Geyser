@@ -147,7 +147,8 @@ public class ItemRegistry {
             if (bedrockIdentifier == null) {
                 throw new RuntimeException("Missing Bedrock ID in mappings!: " + bedrockId);
             }
-            int stackSize = entry.getValue().get("stack_size") == null ? 64 : entry.getValue().get("stack_size").intValue();
+            JsonNode stackSizeNode = entry.getValue().get("stack_size");
+            int stackSize = stackSizeNode == null ? 64 : stackSizeNode.intValue();
             if (entry.getValue().has("tool_type")) {
                 if (entry.getValue().has("tool_tier")) {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
