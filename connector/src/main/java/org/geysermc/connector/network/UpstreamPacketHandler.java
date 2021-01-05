@@ -93,7 +93,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             ResourcePack translatedResourcePack = session.getResourcePackCache().getBedrockResourcePack();
             ResourcePackManifest.Header header = translatedResourcePack.getManifest().getHeader();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(header.getUuid().toString(),
-                    header.getVersionString(), translatedResourcePack.getFile().length(), "", "", header.getUuid().toString(), false));
+                    header.getVersionString(), translatedResourcePack.getFile().length(), "", "", header.getUuid().toString(), false, false));
             if (!session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().isEmpty()) {
                 session.getResourcePackCache().setCustomModelDataActive(true);
             }
