@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -189,7 +189,10 @@ public final class Scoreboard {
                     remove = false;
                 }
 
-                if (score.shouldUpdate()) {
+                if (objectiveRemove && score.getCachedData() != null) {
+                    // This score has been sent to the client and needs to be removed since the objective is being removed
+                    remove = true;
+                } else if (score.shouldUpdate()) {
                     score.update(objective.getObjectiveName());
                 }
 

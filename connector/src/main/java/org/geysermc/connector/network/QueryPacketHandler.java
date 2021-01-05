@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -174,7 +174,7 @@ public class QueryPacketHandler {
         gameData.put("hostname", motd);
         gameData.put("gametype", "SMP");
         gameData.put("game_id", "MINECRAFT");
-        gameData.put("version", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion());
+        gameData.put("version", GeyserConnector.NAME + " (" + GeyserConnector.GIT_VERSION + ") " + BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion());
         gameData.put("plugins", "");
         gameData.put("map", map);
         gameData.put("numplayers", currentPlayerCount);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                                inputs, new ItemData[]{output}, uuid, "crafting_table", 0, networkId++));
+                                Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, networkId++));
                     }
                     break;
                 }
@@ -77,8 +77,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
-                                shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), inputs,
-                                new ItemData[]{output}, uuid, "crafting_table", 0, networkId++));
+                                shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
+                                Collections.singletonList(output), uuid, "crafting_table", 0, networkId++));
                     }
                     break;
                 }
@@ -90,6 +90,18 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 }
                 case CRAFTING_SPECIAL_REPAIRITEM: {
                     craftingDataPacket.getCraftingData().add(RecipeRegistry.TOOL_REPAIRING_RECIPE_DATA);
+                    break;
+                }
+                case CRAFTING_SPECIAL_MAPCLONING: {
+                    craftingDataPacket.getCraftingData().add(RecipeRegistry.MAP_CLONING_RECIPE_DATA);
+                    break;
+                }
+                case CRAFTING_SPECIAL_MAPEXTENDING: {
+                    craftingDataPacket.getCraftingData().add(RecipeRegistry.MAP_EXTENDING_RECIPE_DATA);
+                    break;
+                }
+                case CRAFTING_SPECIAL_BANNERDUPLICATE: {
+                    craftingDataPacket.getCraftingData().add(RecipeRegistry.BANNER_DUPLICATING_RECIPE_DATA);
                     break;
                 }
 

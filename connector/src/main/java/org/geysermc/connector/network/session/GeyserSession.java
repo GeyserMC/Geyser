@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,8 @@ import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
+import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
@@ -68,8 +68,8 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
+import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.UpstreamPacketHandler;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
@@ -80,6 +80,7 @@ import org.geysermc.connector.network.session.cache.*;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
@@ -96,7 +97,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements CommandSender {
@@ -156,7 +156,11 @@ public class GeyserSession implements CommandSender {
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
 
-    private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
+    /**
+     * Keeps track of the world name for respawning.
+     */
+    @Setter
+    private String worldName = null;
 
     private boolean sneaking;
 
@@ -193,9 +197,6 @@ public class GeyserSession implements CommandSender {
     @Setter
     private Vector3i lastInteractionPosition = Vector3i.ZERO;
 
-    private boolean manyDimPackets = false;
-    private ServerRespawnPacket lastDimPacket = null;
-
     @Setter
     private Entity ridingVehicleEntity;
 
@@ -204,12 +205,6 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private long lastWindowCloseTime = 0;
-
-    /**
-     * Saves the timestamp of the last keep alive packet
-     */
-    @Setter
-    private long lastKeepAliveTimestamp = 0;
 
     @Setter
     private VillagerTrade[] villagerTrades;
@@ -235,6 +230,17 @@ public class GeyserSession implements CommandSender {
     private long lastHitTime;
 
     /**
+     * Saves if the client is steering left on a boat.
+     */
+    @Setter
+    private boolean steeringLeft;
+    /**
+     * Saves if the client is steering right on a boat.
+     */
+    @Setter
+    private boolean steeringRight;
+
+    /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
      * See https://github.com/GeyserMC/Geyser/issues/503 for context.
      */
@@ -253,6 +259,12 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private ScheduledFuture<?> movementSendIfIdle;
+
+    /**
+     * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
+     */
+    @Setter
+    private boolean daylightCycle = true;
 
     private boolean reducedDebugInfo = false;
 
@@ -364,6 +376,9 @@ public class GeyserSession implements CommandSender {
         startGame();
         this.remoteServer = remoteServer;
 
+        // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
+        upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
+
         if (resourcePackCache.isCustomModelDataActive()) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
             componentPacket.getItems().addAll(resourcePackCache.getComponentData());
@@ -405,6 +420,8 @@ public class GeyserSession implements CommandSender {
         // Don't let the client modify the inventory on death
         // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
+        // Ensure client doesn't try and do anything funky; the server handles this for us
+        gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -460,6 +477,10 @@ public class GeyserSession implements CommandSender {
                 }
 
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
+                if (connector.getConfig().getRemote().isUseProxyProtocol()) {
+                    downstream.getSession().setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
+                    downstream.getSession().setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
+                }
                 // Let Geyser handle sending the keep alive
                 downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
                 downstream.getSession().addListener(new SessionAdapter() {
@@ -533,16 +554,6 @@ public class GeyserSession implements CommandSender {
                     @Override
                     public void packetReceived(PacketReceivedEvent event) {
                         if (!closed) {
-                            //handle consecutive respawn packets
-                            if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
-                                manyDimPackets = lastDimPacket != null;
-                                lastDimPacket = event.getPacket();
-                                return;
-                            } else if (lastDimPacket != null) {
-                                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
-                                lastDimPacket = null;
-                            }
-
                             // Required, or else Floodgate players break with Bukkit chunk caching
                             if (event.getPacket() instanceof LoginSuccessPacket) {
                                 GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
@@ -652,7 +663,6 @@ public class GeyserSession implements CommandSender {
 
     public void setRenderDistance(int renderDistance) {
         renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
-        if (renderDistance > 32) renderDistance = 32; // <3 u ViaVersion but I don't like crashing clients x)
         this.renderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
@@ -690,7 +700,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLightningLevel(0);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", true));
+        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", connector.getConfig().isShowCoordinates()));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,10 +39,9 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ServerKeepAlivePac
 
     @Override
     public void translate(ServerKeepAlivePacket packet, GeyserSession session) {
-        session.setLastKeepAliveTimestamp(packet.getPingId());
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
         latencyPacket.setFromServer(true);
-        latencyPacket.setTimestamp(packet.getPingId());
+        latencyPacket.setTimestamp(packet.getPingId() * 1000);
         session.sendUpstreamPacket(latencyPacket);
     }
 }

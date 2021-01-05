@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         GeyserPingInfo pingInfo = null;
         if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = connector.getBootstrap().getGeyserPingPassthrough();
-            pingInfo = pingPassthrough.getPingInformation();
+            pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
         }
 
         BedrockPong pong = new BedrockPong();

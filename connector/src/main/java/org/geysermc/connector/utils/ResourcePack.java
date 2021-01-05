@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -64,7 +64,7 @@ public class ResourcePack {
             // As we just created the directory it will be empty
             return;
         }
-        
+
         for (File file : directory.listFiles()) {
             if (file.getName().endsWith(".zip") || file.getName().endsWith(".mcpack")) {
                 ResourcePack pack = loadPack(file);
@@ -87,10 +87,13 @@ public class ResourcePack {
                 if (x.getName().contains("manifest.json")) {
                     try {
                         ResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), ResourcePackManifest.class);
-
-                        pack.file = file;
-                        pack.manifest = manifest;
-                        pack.version = ResourcePackManifest.Version.fromArray(manifest.getHeader().getVersion());
+                        // Sometimes a pack_manifest file is present and not in a valid format,
+                        // but a manifest file is, so we null check through that one
+                        if (manifest.getHeader().getUuid() != null) {
+                            pack.file = file;
+                            pack.manifest = manifest;
+                            pack.version = ResourcePackManifest.Version.fromArray(manifest.getHeader().getVersion());
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

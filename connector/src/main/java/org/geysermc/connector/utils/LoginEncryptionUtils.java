@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -198,12 +198,12 @@ public class LoginEncryptionUtils {
                         String password = response.getInputResponses().get(2);
 
                         session.authenticate(email, password);
+
+                        // Clear windows so authentication data isn't accidentally cached
+                        windowCache.getWindows().clear();
                     } else {
                         showLoginDetailsWindow(session);
                     }
-
-                    // Clear windows so authentication data isn't accidentally cached
-                    windowCache.getWindows().clear();
                 } else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
                     SimpleFormResponse response = (SimpleFormResponse) window.getResponse();
                     if (response != null) {
