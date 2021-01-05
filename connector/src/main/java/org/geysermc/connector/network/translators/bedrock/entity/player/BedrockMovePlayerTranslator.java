@@ -46,7 +46,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
-        if (!session.isSpawned() || session.getPendingDimSwitches().get() > 0) return;
+        if (!session.isSpawned()) return;
 
         if (!session.getUpstream().isInitialized()) {
             MoveEntityAbsolutePacket moveEntityBack = new MoveEntityAbsolutePacket();
