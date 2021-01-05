@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,8 @@ public class BlockTranslator {
 
     // The index of the collision data in collision.json
     public static final Int2IntMap JAVA_RUNTIME_ID_TO_COLLISION_INDEX = new Int2IntOpenHashMap();
+
+    private static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_PICK_ITEM = new Int2ObjectOpenHashMap<>();
 
     /**
      * Java numeric ID to java unique identifier, used for block names in the statistics screen
@@ -174,6 +176,11 @@ public class BlockTranslator {
             JsonNode collisionIndexNode = entry.getValue().get("collision_index");
             if (hardnessNode != null) {
                 JAVA_RUNTIME_ID_TO_COLLISION_INDEX.put(javaRuntimeId, collisionIndexNode.intValue());
+            }
+
+            JsonNode pickItemNode = entry.getValue().get("pick_item");
+            if (pickItemNode != null) {
+                JAVA_RUNTIME_ID_TO_PICK_ITEM.put(javaRuntimeId, pickItemNode.textValue());
             }
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
@@ -363,5 +370,20 @@ public class BlockTranslator {
 
     public static int getJavaWaterloggedState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(1 << 31 | bedrockId);
+    }
+
+    /**
+     * Get the item a Java client would receive when pressing
+     * the Pick Block key on a specific Java block state.
+     *
+     * @param javaId The Java runtime id of the block
+     * @return The Java identifier of the item
+     */
+    public static String getPickItem(int javaId) {
+        String itemIdentifier = JAVA_RUNTIME_ID_TO_PICK_ITEM.get(javaId);
+        if (itemIdentifier == null) {
+            return JAVA_ID_BLOCK_MAP.inverse().get(javaId).split("\\[")[0];
+        }
+        return itemIdentifier;
     }
 }
