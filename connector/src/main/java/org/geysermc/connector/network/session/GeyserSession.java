@@ -621,16 +621,6 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetReceived(PacketReceivedEvent event) {
                 if (!closed) {
-                    //handle consecutive respawn packets
-                    if (event.getPacket().getClass().equals(ServerRespawnPacket.class)) {
-                        manyDimPackets = lastDimPacket != null;
-                        lastDimPacket = event.getPacket();
-                        return;
-                    } else if (lastDimPacket != null) {
-                        PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(lastDimPacket.getClass(), lastDimPacket, GeyserSession.this);
-                        lastDimPacket = null;
-                    }
-
                     // Required, or else Floodgate players break with Bukkit chunk caching
                     if (event.getPacket() instanceof LoginSuccessPacket) {
                         GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
