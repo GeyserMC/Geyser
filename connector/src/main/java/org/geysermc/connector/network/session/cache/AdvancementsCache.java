@@ -146,15 +146,14 @@ public class AdvancementsCache {
         String earned = isEarned(advancement) ? "yes" : "no";
 
         String description = getColorFromAdvancementFrameType(advancement) + MessageTranslator.convertMessage(advancement.getDisplayData().getDescription(), language);
-        String earnedString = LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language) + ": " +
-                LocaleUtils.getLocaleString("gui." + earned, language);
+        String earnedString = LanguageUtils.getPlayerLocaleString("geyser.advancements.earned", language, LocaleUtils.getLocaleString("gui." + earned, language));
 
         /*
         Layout will look like:
 
-        (Title) Stone Age
-        (Description:)
-        Mine stone with your new pickaxe
+        (Form title) Stone Age
+
+        (Description) Mine stone with your new pickaxe
 
         Earned: Yes
         Parent Advancement: Minecraft // If relevant
@@ -164,8 +163,7 @@ public class AdvancementsCache {
                 earnedString + "\n";
         if (!currentAdvancementCategoryId.equals(advancement.getParentId())) {
             // Only display the parent if it is not the category
-            content += LanguageUtils.getPlayerLocaleString("geyser.advancements.parentid", language) + ": " +
-                    MessageTranslator.convertMessage(storedAdvancements.get(advancement.getParentId()).getDisplayData().getTitle(), language);
+            content += LanguageUtils.getPlayerLocaleString("geyser.advancements.parentid", language, MessageTranslator.convertMessage(storedAdvancements.get(advancement.getParentId()).getDisplayData().getTitle(), language));
         }
         SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()), content);
         window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("gui.back", language)));
