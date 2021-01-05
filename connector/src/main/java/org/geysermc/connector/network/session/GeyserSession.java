@@ -41,7 +41,6 @@ import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Client;
@@ -99,7 +98,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements CommandSender {
@@ -156,7 +154,11 @@ public class GeyserSession implements CommandSender {
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
 
-    private final AtomicInteger pendingDimSwitches = new AtomicInteger(0);
+    /**
+     * Keeps track of the world name for respawning.
+     */
+    @Setter
+    private String worldName = null;
 
     private boolean sneaking;
 
@@ -192,9 +194,6 @@ public class GeyserSession implements CommandSender {
      */
     @Setter
     private Vector3i lastInteractionPosition = Vector3i.ZERO;
-
-    private boolean manyDimPackets = false;
-    private ServerRespawnPacket lastDimPacket = null;
 
     @Setter
     private Entity ridingVehicleEntity;

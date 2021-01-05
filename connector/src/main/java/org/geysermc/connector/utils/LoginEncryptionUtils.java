@@ -226,12 +226,12 @@ public class LoginEncryptionUtils {
                         String password = response.getInputResponses().get(2);
 
                         session.authenticate(email, password);
+
+                        // Clear windows so authentication data isn't accidentally cached
+                        windowCache.getWindows().clear();
                     } else {
                         showLoginDetailsWindow(session);
                     }
-
-                    // Clear windows so authentication data isn't accidentally cached
-                    windowCache.getWindows().clear();
                 } else if (formId == AUTH_FORM_ID && window instanceof SimpleFormWindow) {
                     boolean isPasswordAuthentication = session.getConnector().getConfig().getRemote().isPasswordAuthentication();
                     int microsoftButton = isPasswordAuthentication ? 1 : 0;
