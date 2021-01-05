@@ -132,7 +132,7 @@ above-bedrock-nether-building: false
 force-resource-packs: true
 
 # Allows Xbox achievements to be unlocked.
-# THIS DISABLES ALL COMMANDS FROM BEING RAN IN-GAME, as otherwise Bedrock thinks you are cheating.
+# THIS DISABLES ALL COMMANDS FROM SUCCESSFULLY RUNNING FOR BEDROCK IN-GAME, as otherwise Bedrock thinks you are cheating.
 xbox-achievements-enabled: false
 
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
