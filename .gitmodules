@@ -3,4 +3,4 @@
 	url = https://github.com/GeyserMC/mappings.git
 [submodule "connector/src/main/resources/languages"]
 	path = connector/src/main/resources/languages
-	url = https://github.com/YHDiamond/languages.git
+	url = https://github.com/GeyserMC/languages.git
