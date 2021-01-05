@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.AdvancementsCache;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.utils.*;
 
@@ -138,26 +139,22 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        if (packet.getFormData().contains("null")) {
-            return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
-        }
-
         switch (packet.getFormId()) {
+            case AdvancementsCache.ADVANCEMENT_INFO_FORM_ID:
+                return session.getAdvancementsCache().handleInfoForm(packet.getFormData());
+            case AdvancementsCache.ADVANCEMENTS_LIST_FORM_ID:
+                return session.getAdvancementsCache().handleListForm(packet.getFormData());
+            case AdvancementsCache.ADVANCEMENTS_MENU_FORM_ID:
+                return session.getAdvancementsCache().handleMenuForm(packet.getFormData());
             case SettingsUtils.SETTINGS_FORM_ID:
                 return SettingsUtils.handleSettingsForm(session, packet.getFormData());
-            case StatisticsUtils.STATISTICS_MENU_FORM_ID:
-                return StatisticsUtils.handleMenuForm(session, packet.getFormData());
             case StatisticsUtils.STATISTICS_LIST_FORM_ID:
                 return StatisticsUtils.handleListForm(session, packet.getFormData());
-            case AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID:
-                return AdvancementsUtils.handleMenuForm(session, packet.getFormData());
-            case AdvancementsUtils.ADVANCEMENTS_LIST_FORM_ID:
-                return AdvancementsUtils.handleListForm(session, packet.getFormData());
-            case AdvancementsUtils.ADVANCEMENT_INFO_FORM_ID:
-                return AdvancementsUtils.handleInfoForm(session, packet.getFormData());
+            case StatisticsUtils.STATISTICS_MENU_FORM_ID:
+                return StatisticsUtils.handleMenuForm(session, packet.getFormData());
         }
 
-        return false;
+        return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {

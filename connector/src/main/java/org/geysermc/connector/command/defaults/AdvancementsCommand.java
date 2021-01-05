@@ -30,7 +30,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.AdvancementsUtils;
+import org.geysermc.connector.network.session.cache.AdvancementsCache;
 
 public class AdvancementsCommand extends GeyserCommand {
 
@@ -63,8 +63,8 @@ public class AdvancementsCommand extends GeyserCommand {
         }
         if (session == null) return;
 
-        SimpleFormWindow window = AdvancementsUtils.buildMenuForm(session);
-        session.sendForm(window, AdvancementsUtils.ADVANCEMENTS_MENU_FORM_ID);
+        SimpleFormWindow window = session.getAdvancementsCache().buildMenuForm();
+        session.sendForm(window, AdvancementsCache.ADVANCEMENTS_MENU_FORM_ID);
     }
 
     @Override
