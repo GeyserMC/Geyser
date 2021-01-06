@@ -595,7 +595,9 @@ public class GeyserSession implements CommandSender {
             }
         }
 
-        tickThread.cancel(true);
+        if (tickThread != null) {
+            tickThread.cancel(true);
+        }
 
         this.chunkCache = null;
         this.entityCache = null;
