@@ -59,6 +59,10 @@ public class RecipeRegistry {
      */
     public static int LAST_RECIPE_NET_ID = 0;
 
+    /**
+     * A list of all the following crafting recipes, but in a format understood by Java servers.
+     * Used for console autocrafting.
+     */
     public static final Int2ObjectMap<Recipe> ALL_CRAFTING_RECIPES = new Int2ObjectOpenHashMap<>();
 
     /**
@@ -163,7 +167,6 @@ public class RecipeRegistry {
         for (JsonNode entry : items.get("tipped_arrows")) {
             TIPPED_ARROW_RECIPES.add(getCraftingDataFromJsonNode(entry));
         }
-        System.out.println(ALL_CRAFTING_RECIPES);
     }
 
     /**

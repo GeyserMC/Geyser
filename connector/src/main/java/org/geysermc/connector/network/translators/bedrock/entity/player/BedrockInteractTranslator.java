@@ -39,6 +39,7 @@ import com.nukkitx.protocol.bedrock.packet.InteractPacket;
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.connector.entity.living.animal.horse.HorseEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -212,6 +213,11 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                             case SKELETON_HORSE:
                             case TRADER_LLAMA:
                             case ZOMBIE_HORSE:
+                                boolean tamed = entityMetadata.getFlags().getFlag(EntityFlag.TAMED);
+                                if (session.isSneaking() && tamed && (interactEntity instanceof HorseEntity || entityMetadata.getFlags().getFlag(EntityFlag.CHESTED))) {
+                                    interactiveTag = InteractiveTag.OPEN_CONTAINER;
+                                    break;
+                                }
                                 // have another switch statement as, while these share mount attributes they don't share food
                                 switch (interactEntity.getEntityType()) {
                                     case LLAMA:
@@ -230,9 +236,9 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                                 }
                                 if (!entityMetadata.getFlags().getFlag(EntityFlag.BABY)) {
                                     // Can't ride a baby
-                                    if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED)) {
+                                    if (tamed) {
                                         interactiveTag = InteractiveTag.RIDE_HORSE;
-                                    } else if (!entityMetadata.getFlags().getFlag(EntityFlag.TAMED) && itemEntry.equals(ItemEntry.AIR)) {
+                                    } else if (itemEntry.equals(ItemEntry.AIR)) {
                                         // Can't hide an untamed entity without having your hand empty
                                         interactiveTag = InteractiveTag.MOUNT;
                                     }
@@ -351,7 +357,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 } else {
                     if (!session.getPlayerEntity().getMetadata().getString(EntityData.INTERACTIVE_TAG).isEmpty()) {
                         // No interactive tag should be sent
-                        session.getPlayerEntity().getMetadata().remove(EntityData.INTERACTIVE_TAG);
+                        session.getPlayerEntity().getMetadata().put(EntityData.INTERACTIVE_TAG, "");
                         session.getPlayerEntity().updateBedrockMetadata(session);
                     }
                 }
