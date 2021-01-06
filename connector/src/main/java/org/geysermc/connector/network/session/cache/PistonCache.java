@@ -35,16 +35,15 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntity;
 
 import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
-public class PistonCache {
+public class PistonCache implements Tickable {
     private final GeyserSession session;
 
     private final Map<Vector3i, PistonBlockEntity> pistons = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
@@ -60,19 +59,13 @@ public class PistonCache {
     @Getter @Setter
     private boolean playerCollided = false;
 
-    private ScheduledFuture<?> updater;
-
     public PistonCache(GeyserSession session) {
         this.session = session;
     }
 
-    public void update() {
+    @Override
+    public void tick(GeyserSession session) {
         resetPlayerMovement();
-
-        if (session.isClosed()) {
-            updater.cancel(false);
-            return;
-        }
 
         pistons.values().forEach(PistonBlockEntity::update);
         pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
@@ -105,6 +98,8 @@ public class PistonCache {
 
                 ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(playerEntity.isOnGround(), position.getX(), position.getY(), position.getZ());
                 session.sendDownstreamPacket(playerPositionPacket);
+
+                session.setLastMovementTimestamp(System.currentTimeMillis());
             }
         }
         if (!playerMotion.equals(Vector3f.ZERO)) {
@@ -126,10 +121,6 @@ public class PistonCache {
 
     public void putPiston(PistonBlockEntity pistonBlockEntity) {
         pistons.put(pistonBlockEntity.getPosition(), pistonBlockEntity);
-
-        if (updater == null || updater.isDone()) {
-            updater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(this::update, 50, 50, TimeUnit.MILLISECONDS);
-        }
     }
 
     public void clear() {

@@ -30,8 +30,10 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.player.PlayerEntity;
@@ -133,6 +135,33 @@ public class CollisionManager {
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
+
+        if (session.getPistonCache().shouldCancelMovement()) {
+            PlayerEntity playerEntity = session.getPlayerEntity();
+            // Gravity might need to be reset...
+            SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+            entityDataPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+            entityDataPacket.getMetadata().putAll(playerEntity.getMetadata());
+            session.sendUpstreamPacket(entityDataPacket);
+
+            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            moveEntityPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+            moveEntityPacket.setPosition(playerEntity.getPosition());
+            moveEntityPacket.setRotation(playerEntity.getBedrockRotation());
+            moveEntityPacket.setOnGround(playerEntity.isOnGround());
+            moveEntityPacket.setTeleported(true);
+            session.sendUpstreamPacket(moveEntityPacket);
+
+            Vector3f playerMotion = session.getPistonCache().getPlayerMotion();
+            if (!playerMotion.equals(Vector3f.ZERO)) {
+                playerEntity.setMotion(playerMotion);
+                SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
+                setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+                setEntityMotionPacket.setMotion(playerMotion);
+                session.sendUpstreamPacket(setEntityMotionPacket);
+            }
+            return null;
+        }
 
         if (session.getConnector().getConfig().isCacheChunks()) {
             // With chunk caching, we can do some proper collision checks
