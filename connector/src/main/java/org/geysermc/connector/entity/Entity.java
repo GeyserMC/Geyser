@@ -348,7 +348,6 @@ public class Entity {
                         }
                         break;
                     case SNEAKING:
-                        //TODO - If the Bedrock player uncrouches, they go at normal speeds
                         if (entityType == EntityType.PLAYER) {
                             height = 1.5f;
                         }
