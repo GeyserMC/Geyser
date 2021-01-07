@@ -31,6 +31,7 @@ import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
@@ -161,10 +162,10 @@ public class GeyserSession implements CommandSender {
     private boolean sneaking;
 
     /**
-     * Stores if the server thinks the player is sneaking
+     * Stores the pose that the server believes the player currently has.
      */
     @Setter
-    private boolean poseSneaking;
+    private Pose pose;
 
     @Setter
     private boolean sprinting;
@@ -679,7 +680,7 @@ public class GeyserSession implements CommandSender {
     public boolean adjustSpeed() {
         Attribute currentPlayerSpeed = playerEntity.getAttributes().get(AttributeType.MOVEMENT_SPEED);
         if (currentPlayerSpeed != null) {
-            if ((poseSneaking && !sneaking && collisionManager.isUnderSlab()) ||
+            if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.isUnderSlab()) ||
                     (!swimmingInWater && playerEntity.getMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
                 // Either of those conditions means that Bedrock goes zoom when they shouldn't be
                 currentPlayerSpeed.setValue(originalSpeedAttribute / 3.32f);

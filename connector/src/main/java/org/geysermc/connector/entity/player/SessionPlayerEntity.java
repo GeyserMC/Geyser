@@ -78,7 +78,7 @@ public class SessionPlayerEntity extends PlayerEntity {
             session.setSwimmingInWater((((byte) entityMetadata.getValue()) & 0x10) == 0x10 && metadata.getFlags().getFlag(EntityFlag.SPRINTING));
             refreshSpeed = true;
         } else if (entityMetadata.getId() == 6) {
-            session.setPoseSneaking(entityMetadata.getValue().equals(Pose.SNEAKING));
+            session.setPose((Pose) entityMetadata.getValue());
             refreshSpeed = true;
         }
     }
