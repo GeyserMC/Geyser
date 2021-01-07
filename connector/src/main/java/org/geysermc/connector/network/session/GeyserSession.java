@@ -466,7 +466,7 @@ public class GeyserSession implements CommandSender {
     }
 
     /**
-     * Present a form window to the user asking to
+     * Present a form window to the user asking to log in with another web browser
      */
     public void authenticateWithMicrosoftCode() {
         if (loggedIn) {
