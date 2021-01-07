@@ -81,6 +81,14 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
+    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
+        if (secondEntity != null) {
+            secondEntity.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
+        }
+        super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
+    }
+
+    @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         // Fake the height to be above where it is so the nametag appears in the right location for invisible non-marker armour stands
         lastPositionIncludedOffset = false;
