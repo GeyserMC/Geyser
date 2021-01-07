@@ -54,8 +54,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
     @Override
     public void translate(PlayerActionPacket packet, GeyserSession session) {
         Entity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
 
         Vector3i vector = packet.getBlockPosition();
         Position position = new Position(vector.getX(), vector.getY(), vector.getZ());
@@ -76,8 +74,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamPacket(startSwimPacket);
                 break;
             case STOP_SWIMMING:
-                ClientPlayerStatePacket stopSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                session.sendDownstreamPacket(stopSwimPacket);
+                if (session.getCollisionManager().isPlayerInWater()) {
+                    // TODO make this better
+                    // Only sneak if the player is stopping in water - otherwise, we aren't going to stop sprinting
+                    ClientPlayerStatePacket stopSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                    session.sendDownstreamPacket(stopSwimPacket);
+                }
                 break;
             case START_GLIDE:
                 // Otherwise gliding will not work in creative

@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.collision;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -38,6 +39,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,17 +106,14 @@ public class CollisionManager {
             } else {
                 playerPosition = session.getPlayerEntity().getPosition();
             }
-            playerBoundingBox = new BoundingBox(playerPosition.getX(), playerPosition.getY() + 0.9, playerPosition.getZ(), 0.6, 1.8, 0.6);
+            playerBoundingBox = new BoundingBox(playerPosition.getX(), playerPosition.getY() + 0.9, playerPosition.getZ(),
+                    EntityType.PLAYER.getWidth(), EntityType.PLAYER.getHeight(), EntityType.PLAYER.getLength());
         } else {
             // According to the Minecraft Wiki, when sneaking:
             // - In Bedrock Edition, the height becomes 1.65 blocks, allowing movement through spaces as small as 1.75 (2 - 1⁄4) blocks high.
             // - In Java Edition, the height becomes 1.5 blocks.
-            // TODO: Have this depend on the player's literal bounding box variable
-            if (session.isSneaking()) {
-                playerBoundingBox.setSizeY(1.5);
-            } else {
-                playerBoundingBox.setSizeY(1.8);
-            }
+            // Other instances have the player's bounding box become as small as 0.6 or 0.2.
+            playerBoundingBox.setSizeY(session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT));
         }
     }
 
@@ -245,6 +244,36 @@ public class CollisionManager {
         updateScaffoldingFlags();
 
         return true;
+    }
+
+    /**
+     * @return true if the block located at the player's floor position plus 1 would intersect with the player,
+     * were they not sneaking
+     */
+    public boolean isUnderSlab() {
+        if (!session.getConnector().getConfig().isCacheChunks()) {
+            // We can't reliably determine this
+            return false;
+        }
+        Vector3i position = session.getPlayerEntity().getPosition().toInt();
+        BlockCollision collision = CollisionTranslator.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
+        if (collision != null) {
+            // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
+            // at the current location.
+            playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
+            boolean result = collision.checkIntersection(playerBoundingBox);
+            playerBoundingBox.setSizeY(session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT));
+            return result;
+        }
+        return false;
+    }
+
+    /**
+     * @return if the player is currently in a water block
+     */
+    public boolean isPlayerInWater() {
+        return session.getConnector().getConfig().isCacheChunks()
+                && session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockTranslator.JAVA_WATER_ID;
     }
 
     /**

@@ -39,9 +39,11 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
 
     @Override
     public void translate(ServerEntityMetadataPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null) return;
 

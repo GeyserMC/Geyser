@@ -50,6 +50,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -69,6 +70,8 @@ import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.attribute.Attribute;
+import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
@@ -157,11 +160,33 @@ public class GeyserSession implements CommandSender {
 
     private boolean sneaking;
 
+    /**
+     * Stores if the server thinks the player is sneaking
+     */
+    @Setter
+    private boolean poseSneaking;
+
     @Setter
     private boolean sprinting;
 
     @Setter
     private boolean jumping;
+
+    /**
+     * Whether the player is swimming in water.
+     * Used to update speed when crawling.
+     */
+    @Setter
+    private boolean swimmingInWater;
+
+    /**
+     * Tracks the original speed attribute.
+     *
+     * We need to do this in order to emulate speeds when sneaking under 1.5-blocks-tall areas if the player isn't sneaking,
+     * and when crawling.
+     */
+    @Setter
+    private float originalSpeedAttribute;
 
     /**
      * The dimension of the player.
@@ -352,6 +377,7 @@ public class GeyserSession implements CommandSender {
         this.collisionManager = new CollisionManager(this);
 
         this.playerEntity = new SessionPlayerEntity(this);
+        collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
         this.inventory = new PlayerInventory();
 
         this.spawned = false;
@@ -643,6 +669,28 @@ public class GeyserSession implements CommandSender {
         this.sneaking = sneaking;
         collisionManager.updatePlayerBoundingBox();
         collisionManager.updateScaffoldingFlags();
+    }
+
+    /**
+     * Adjusts speed if the player should be sneaking, or if the player is crawling.
+     *
+     * @return true if attributes should be updated.
+     */
+    public boolean adjustSpeed() {
+        Attribute currentPlayerSpeed = playerEntity.getAttributes().get(AttributeType.MOVEMENT_SPEED);
+        if (currentPlayerSpeed != null) {
+            if ((poseSneaking && !sneaking && collisionManager.isUnderSlab()) ||
+                    (!swimmingInWater && playerEntity.getMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
+                // Either of those conditions means that Bedrock goes zoom when they shouldn't be
+                currentPlayerSpeed.setValue(originalSpeedAttribute / 3.32f);
+                return true;
+            } else if (originalSpeedAttribute != currentPlayerSpeed.getValue()) {
+                // Speed has reset to normal
+                currentPlayerSpeed.setValue(originalSpeedAttribute);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
