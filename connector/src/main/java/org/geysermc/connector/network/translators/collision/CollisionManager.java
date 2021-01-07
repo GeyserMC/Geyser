@@ -41,6 +41,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -147,6 +148,12 @@ public class CollisionManager {
             position = Vector3d.from(playerBoundingBox.getMiddleX(),
                     playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2),
                     playerBoundingBox.getMiddleZ());
+
+            if (!onGround) {
+                // Trim the position to prevent rounding errors that make Java think we are clipping into a block
+                DecimalFormat format = new DecimalFormat("#.#####");
+                position = Vector3d.from(position.getX(), Double.parseDouble(format.format(position.getY())), position.getZ());
+            }
         } else {
             // When chunk caching is off, we have to rely on this
             // It rounds the Y position up to the nearest 0.5
