@@ -86,7 +86,7 @@ public class ArmorStandEntity extends LivingEntity {
         lastPositionIncludedOffset = false;
         if (secondEntity != null) {
             secondEntity.moveAbsolute(session, position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d), rotation, isOnGround, teleported);
-        } else if (!isMarker && isInvisible && passengers.isEmpty( && !metadata.getFlags().getFlag(EntityFlag.INVISIBLE)) { // Means it's not visible
+        } else if (!isMarker && isInvisible && passengers.isEmpty() && !metadata.getFlags().getFlag(EntityFlag.INVISIBLE)) { // Means it's not visible
             position = position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
             lastPositionIncludedOffset = true;
         }
