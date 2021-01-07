@@ -1,6 +1,7 @@
 pipeline {
     agent any
     tools {
+        gradle 'Gradle 6'
         jdk 'Java 8'
     }
     options {
@@ -9,7 +10,7 @@ pipeline {
     stages {
         stage ('Build') {
             steps {
-                sh './gradlew clean build --refresh-dependencies'
+                sh 'gradle clean build --refresh-dependencies'
             }
             post {
                 success {
