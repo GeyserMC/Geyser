@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,20 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 public class ItemEntity extends Entity {
 
     public ItemEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+        super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
+    }
+
+    @Override
+    public void setMotion(Vector3f motion) {
+        if (isOnGround())
+            motion = Vector3f.from(motion.getX(), 0, motion.getZ());
+
+        super.setMotion(motion);
+    }
+
+    @Override
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround, teleported);
     }
 
     @Override
@@ -44,7 +57,7 @@ public class ItemEntity extends Entity {
         if (entityMetadata.getId() == 7) {
             AddItemEntityPacket itemPacket = new AddItemEntityPacket();
             itemPacket.setRuntimeEntityId(geyserId);
-            itemPacket.setPosition(position);
+            itemPacket.setPosition(position.add(0d, this.entityType.getOffset(), 0d));
             itemPacket.setMotion(motion);
             itemPacket.setUniqueEntityId(geyserId);
             itemPacket.setFromFishing(false);

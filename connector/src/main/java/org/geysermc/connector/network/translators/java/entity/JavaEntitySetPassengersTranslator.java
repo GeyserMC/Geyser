@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.ArmorStandEntity;
+import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -46,6 +48,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
+            entity = session.getPlayerEntity();
+        }
+
         if (entity == null) return;
 
         LongOpenHashSet passengers = entity.getPassengers().clone();
@@ -55,6 +61,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             if (passengerId == session.getPlayerEntity().getEntityId()) {
                 passenger = session.getPlayerEntity();
                 session.setRidingVehicleEntity(entity);
+                // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
+                if (session.getConnector().getConfig().isCacheChunks()) {
+                    session.confirmTeleport(passenger.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0).toDouble());
+                }
             }
             // Passenger hasn't loaded in and entity link needs to be set later
             if (passenger == null && passengerId != 0) {
@@ -76,13 +86,12 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
                 passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, !passengers.isEmpty() ? -90f : 0f);
             } else {
-                passenger.getMetadata().remove(EntityData.RIDER_ROTATION_LOCKED);
-                passenger.getMetadata().remove(EntityData.RIDER_MAX_ROTATION);
-                passenger.getMetadata().remove(EntityData.RIDER_MIN_ROTATION);
+                passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
+                passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
+                passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
             }
 
             passenger.updateBedrockMetadata(session);
-            this.updateOffset(passenger, entity.getEntityType(), session, rider, true, (passengers.size() > 1));
             rider = false;
         }
 
@@ -90,6 +99,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
 
         for (long passengerId : entity.getPassengers()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
+            if (passengerId == session.getPlayerEntity().getEntityId()) {
+                passenger = session.getPlayerEntity();
+            }
             if (passenger == null) {
                 continue;
             }
@@ -98,67 +110,166 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), EntityLinkData.Type.REMOVE, false));
                 session.sendUpstreamPacket(linkPacket);
                 passengers.remove(passenger.getEntityId());
+                passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
+                passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
+                passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
 
-                this.updateOffset(passenger, entity.getEntityType(), session, false, false, (passengers.size() > 1));
+                this.updateOffset(passenger, entity, session, false, false, (packet.getPassengerIds().length > 1));
+            } else {
+                this.updateOffset(passenger, entity, session, (packet.getPassengerIds()[0] == passengerId), true, (packet.getPassengerIds().length > 1));
             }
 
             // Force an update to the passenger metadata
             passenger.updateBedrockMetadata(session);
         }
 
-        if (entity.getEntityType() == EntityType.HORSE) {
-            entity.getMetadata().put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(0.0f, 2.3200102f, -0.2f));
-            entity.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
-
-            entity.updateBedrockMetadata(session);
+        switch (entity.getEntityType()) {
+            case HORSE:
+            case SKELETON_HORSE:
+            case DONKEY:
+            case MULE:
+            case RAVAGER:
+                entity.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
+                entity.updateBedrockMetadata(session);
+                break;
         }
     }
 
-    private void updateOffset(Entity passenger, EntityType mountType, GeyserSession session, boolean rider, boolean riding, boolean moreThanOneEntity) {
-        // Without the Y offset, Bedrock players will find themselves in the floor when mounting
-        float yOffset = 0;
-        switch (mountType) {
-            case BOAT:
-                yOffset = passenger.getEntityType() == EntityType.PLAYER ? 1.02001f : -0.2f;
-                break;
-            case MINECART:
-                yOffset = passenger.getEntityType() == EntityType.PLAYER ? 1.02001f : 0f;
+    private float getMountedHeightOffset(Entity mount) {
+        float height = mount.getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+        float mountedHeightOffset = height * 0.75f;
+        switch (mount.getEntityType()) {
+            case CHICKEN:
+            case SPIDER:
+                mountedHeightOffset = height * 0.5f;
                 break;
             case DONKEY:
-                yOffset = 2.1f;
-                break;
-            case HORSE:
-            case SKELETON_HORSE:
-            case ZOMBIE_HORSE:
             case MULE:
-                yOffset = 2.3f;
+                mountedHeightOffset -= 0.25f;
                 break;
             case LLAMA:
-            case TRADER_LLAMA:
-                yOffset = 2.5f;
+                mountedHeightOffset = height * 0.67f;
                 break;
-            case PIG:
-                yOffset = 1.85001f;
+            case MINECART:
+            case MINECART_HOPPER:
+            case MINECART_TNT:
+            case MINECART_CHEST:
+            case MINECART_FURNACE:
+            case MINECART_SPAWNER:
+            case MINECART_COMMAND_BLOCK:
+                mountedHeightOffset = 0;
                 break;
-            case ARMOR_STAND:
-                yOffset = 1.3f;
+            case BOAT:
+                mountedHeightOffset = -0.1f;
+                break;
+            case HOGLIN:
+            case ZOGLIN:
+                boolean isBaby = mount.getMetadata().getFlags().getFlag(EntityFlag.BABY);
+                mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
+                break;
+            case PIGLIN:
+                mountedHeightOffset = height * 0.92f;
+                break;
+            case RAVAGER:
+                mountedHeightOffset = 2.1f;
+                break;
+            case SKELETON_HORSE:
+                mountedHeightOffset -= 0.1875f;
                 break;
             case STRIDER:
-                yOffset = passenger.getEntityType() == EntityType.PLAYER ? 2.8200102f : 1.6f;
+                mountedHeightOffset = height - 0.19f;
                 break;
         }
-        Vector3f offset = Vector3f.from(0f, yOffset, 0f);
-        if (mountType == EntityType.STRIDER) {
-            offset = offset.add(0f, 0f, -0.2f);
+        return mountedHeightOffset;
+    }
+
+    private float getHeightOffset(Entity passenger) {
+        boolean isBaby;
+        switch (passenger.getEntityType()) {
+            case SKELETON:
+            case STRAY:
+            case WITHER_SKELETON:
+                return -0.6f;
+            case ARMOR_STAND:
+                if (((ArmorStandEntity) passenger).isMarker()) {
+                    return 0.0f;
+                } else {
+                    return 0.1f;
+                }
+            case ENDERMITE:
+            case SILVERFISH:
+                return 0.1f;
+            case PIGLIN:
+            case PIGLIN_BRUTE:
+            case ZOMBIFIED_PIGLIN:
+                isBaby = passenger.getMetadata().getFlags().getFlag(EntityFlag.BABY);
+                return isBaby ? -0.05f : -0.45f;
+            case ZOMBIE:
+                isBaby = passenger.getMetadata().getFlags().getFlag(EntityFlag.BABY);
+                return isBaby ? 0.0f : -0.45f;
+            case EVOKER:
+            case ILLUSIONER:
+            case PILLAGER:
+            case RAVAGER:
+            case VINDICATOR:
+            case WITCH:
+                return -0.45f;
+            case PLAYER:
+                return -0.35f;
         }
-        // Without the X offset, more than one entity on a boat is stacked on top of each other
-        if (rider && moreThanOneEntity) {
-            offset = offset.add(Vector3f.from(0.2, 0, 0));
-        } else if (moreThanOneEntity) {
-            offset = offset.add(Vector3f.from(-0.6, 0, 0));
+        if (passenger instanceof AnimalEntity) {
+            return 0.14f;
         }
+        return 0f;
+    }
+
+    private void updateOffset(Entity passenger, Entity mount, GeyserSession session, boolean rider, boolean riding, boolean moreThanOneEntity) {
         passenger.getMetadata().getFlags().setFlag(EntityFlag.RIDING, riding);
         if (riding) {
+            // Without the Y offset, Bedrock players will find themselves in the floor when mounting
+            float mountedHeightOffset = getMountedHeightOffset(mount);
+            float heightOffset = getHeightOffset(passenger);
+
+            float xOffset = 0;
+            float yOffset = mountedHeightOffset + heightOffset;
+            float zOffset = 0;
+            switch (mount.getEntityType()) {
+                case BOAT:
+                    // Without the X offset, more than one entity on a boat is stacked on top of each other
+                    if (rider && moreThanOneEntity) {
+                        xOffset = 0.2f;
+                    } else if (moreThanOneEntity) {
+                        xOffset = -0.6f;
+                    }
+                    break;
+                case CHICKEN:
+                    zOffset = -0.1f;
+                    break;
+                case LLAMA:
+                    zOffset = -0.3f;
+                    break;
+            }
+            /*
+             * Bedrock Differences
+             * Zoglin & Hoglin seem to be taller in Bedrock edition
+             * Horses are tinier
+             * Players, Minecarts, and Boats have different origins
+             */
+            if (passenger.getEntityType() == EntityType.PLAYER && mount.getEntityType() != EntityType.PLAYER) {
+                yOffset += EntityType.PLAYER.getOffset();
+            }
+            switch (mount.getEntityType()) {
+                case MINECART:
+                case MINECART_HOPPER:
+                case MINECART_TNT:
+                case MINECART_CHEST:
+                case MINECART_FURNACE:
+                case MINECART_SPAWNER:
+                case MINECART_COMMAND_BLOCK:
+                case BOAT:
+                    yOffset -= mount.getEntityType().getHeight() * 0.5f;
+            }
+            Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
             passenger.getMetadata().put(EntityData.RIDER_SEAT_POSITION, offset);
         }
         passenger.updateBedrockMetadata(session);

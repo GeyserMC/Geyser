@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,20 +25,20 @@
 
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerRotationPacket;
+import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.math.vector.Vector3d;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.connector.common.ChatColor;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
@@ -46,7 +46,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null || !session.isSpawned() || session.getPendingDimSwitches().get() > 0) return;
+        if (!session.isSpawned()) return;
 
         if (!session.getUpstream().isInitialized()) {
             MoveEntityAbsolutePacket moveEntityBack = new MoveEntityAbsolutePacket();
@@ -59,33 +59,75 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        // We need to parse the float as a string since casting a float to a double causes us to
-        // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = packet.getPosition().getY() - EntityType.PLAYER.getOffset();
-        if (packet.isOnGround()) javaY = Math.ceil(javaY * 2) / 2;
+        session.setLastMovementTimestamp(System.currentTimeMillis());
 
-        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(packet.getPosition().getX())), javaY,
-                Double.parseDouble(Float.toString(packet.getPosition().getZ())));
+        if (session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0))) {
+            // head yaw, pitch, head yaw
+            Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
 
-        if(!session.confirmTeleport(position)){
-            return;
+            boolean positionChanged = !entity.getPosition().equals(packet.getPosition());
+            boolean rotationChanged = !entity.getRotation().equals(rotation);
+
+            // If only the pitch and yaw changed
+            // This isn't needed, but it makes the packets closer to vanilla
+            // It also means you can't "lag back" while only looking, in theory
+            if (!positionChanged && rotationChanged) {
+                ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(
+                        packet.isOnGround(), packet.getRotation().getY(), packet.getRotation().getX());
+
+                entity.setRotation(rotation);
+                entity.setOnGround(packet.isOnGround());
+
+                session.sendDownstreamPacket(playerRotationPacket);
+            } else {
+                Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
+                if (position != null) { // A null return value cancels the packet
+                    if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
+                        Packet movePacket;
+                        if (rotationChanged) {
+                            // Send rotation updates as well
+                            movePacket = new ClientPlayerPositionRotationPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ(),
+                                    packet.getRotation().getY(), packet.getRotation().getX());
+                            entity.setRotation(rotation);
+                        } else {
+                            // Rotation did not change; don't send an update with rotation
+                            movePacket = new ClientPlayerPositionPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
+                        }
+
+                        // Compare positions here for void floor fix below before the player's position variable is set to the packet position
+                        boolean notMovingUp = entity.getPosition().getY() >= packet.getPosition().getY();
+
+                        entity.setPosition(packet.getPosition(), false);
+                        entity.setOnGround(packet.isOnGround());
+
+                        // Send final movement changes
+                        session.sendDownstreamPacket(movePacket);
+
+                        if (notMovingUp) {
+                            int floorY = position.getFloorY();
+                            if (floorY <= -38 && floorY >= -40) {
+                                // Work around there being a floor at Y -40 and teleport the player below it
+                                // Moving from below Y -40 to above the void floor works fine
+                                //TODO: This will need to be changed for 1.17
+                                entity.setPosition(entity.getPosition().sub(0, 4f, 0));
+                                MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+                                movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                                movePlayerPacket.setPosition(entity.getPosition());
+                                movePlayerPacket.setRotation(entity.getBedrockRotation());
+                                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+                                movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+                                session.sendUpstreamPacket(movePlayerPacket);
+                            }
+                        }
+                    } else {
+                        // Not a valid move
+                        session.getConnector().getLogger().debug("Recalculating position...");
+                        session.getCollisionManager().recalculatePosition();
+                    }
+                }
+            }
         }
 
-        if (!isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
-            session.getConnector().getLogger().debug("Recalculating position...");
-            recalculatePosition(session, entity, entity.getPosition());
-            return;
-        }
-
-        ClientPlayerPositionRotationPacket playerPositionRotationPacket = new ClientPlayerPositionRotationPacket(
-                packet.isOnGround(), position.getX(), position.getY(), position.getZ(), packet.getRotation().getY(), packet.getRotation().getX()
-        );
-
-        // head yaw, pitch, head yaw
-        Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
-        entity.setPosition(packet.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0));
-        entity.setRotation(rotation);
-        entity.setOnGround(packet.isOnGround());
         // Move parrots to match if applicable
         if (entity.getLeftParrot() != null) {
             entity.getLeftParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
@@ -93,22 +135,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (entity.getRightParrot() != null) {
             entity.getRightParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
         }
-
-        /*
-        boolean colliding = false;
-        Position position = new Position((int) packet.getPosition().getX(),
-                (int) Math.ceil(javaY * 2) / 2, (int) packet.getPosition().getZ());
-
-        BlockEntry block = session.getChunkCache().getBlockAt(position);
-        if (!block.getJavaIdentifier().contains("air"))
-            colliding = true;
-
-        if (!colliding)
-         */
-        session.sendDownstreamPacket(playerPositionRotationPacket);
     }
 
-    public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
+    private boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
         if (mode != MovePlayerPacket.Mode.NORMAL)
             return true;
 
@@ -132,19 +161,5 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         return true;
     }
-
-    public void recalculatePosition(GeyserSession session, Entity entity, Vector3f currentPosition) {
-        // Gravity might need to be reset...
-        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityDataPacket.getMetadata().putAll(entity.getMetadata());
-        session.sendUpstreamPacket(entityDataPacket);
-
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-        movePlayerPacket.setPosition(entity.getPosition());
-        movePlayerPacket.setRotation(entity.getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
-        session.sendUpstreamPacket(movePlayerPacket);
-    }
 }
+

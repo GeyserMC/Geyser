@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class WolfEntity extends TameableEntity {
 
+    private byte collarColor;
+
     public WolfEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
@@ -57,12 +59,18 @@ public class WolfEntity extends TameableEntity {
         // Wolf collar color
         // Relies on EntityData.OWNER_EID being set in TameableEntity.java
         if (entityMetadata.getId() == 19 && !metadata.getFlags().getFlag(EntityFlag.ANGRY)) {
-            metadata.put(EntityData.COLOR, (byte) (int) entityMetadata.getValue());
+            metadata.put(EntityData.COLOR, collarColor = (byte) (int) entityMetadata.getValue());
+            if (!metadata.containsKey(EntityData.OWNER_EID)) {
+                // If a color is set and there is no owner entity ID, set one.
+                // Otherwise, the entire wolf is set to that color: https://user-images.githubusercontent.com/9083212/99209989-92691200-2792-11eb-911d-9a315c955be9.png
+                metadata.put(EntityData.OWNER_EID, session.getPlayerEntity().getGeyserId());
+            }
         }
 
         // Wolf anger (1.16+)
         if (entityMetadata.getId() == 20) {
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (int) entityMetadata.getValue() != 0);
+            metadata.put(EntityData.COLOR, (int) entityMetadata.getValue() != 0 ? (byte) 0 : collarColor);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);

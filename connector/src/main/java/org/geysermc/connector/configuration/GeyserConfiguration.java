@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ import java.util.Map;
 
 public interface GeyserConfiguration {
 
-    // Modify this when you update the config
+    // Modify this when you introduce breaking changes into the config
     int CURRENT_CONFIG_VERSION = 4;
 
     IBedrockConfiguration getBedrock();
@@ -71,6 +71,8 @@ public interface GeyserConfiguration {
 
     boolean isShowCooldown();
 
+    boolean isShowCoordinates();
+
     String getDefaultLocale();
 
     Path getFloodgateKeyPath();
@@ -81,7 +83,11 @@ public interface GeyserConfiguration {
 
     boolean isForceResourcePacks();
 
+    boolean isXboxAchievementsEnabled();
+
     int getCacheImages();
+
+    boolean isAllowCustomSkulls();
 
     IMetricsInfo getMetrics();
 
@@ -105,12 +111,14 @@ public interface GeyserConfiguration {
         String getAddress();
 
         int getPort();
-        
+
         void setAddress(String address);
 
         void setPort(int port);
 
         String getAuthType();
+
+        boolean isUseProxyProtocol();
     }
 
     interface IUserAuthenticationInfo {
@@ -132,6 +140,8 @@ public interface GeyserConfiguration {
     boolean isEnableProxyConnections();
 
     int getMtu();
+
+    boolean isUseAdapters();
 
     int getConfigVersion();
 

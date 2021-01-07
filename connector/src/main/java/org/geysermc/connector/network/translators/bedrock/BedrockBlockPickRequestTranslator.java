@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,11 +42,10 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         int blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
         
         // Block is air - chunk caching is probably off
-        if (blockToPick == 0) {
+        if (blockToPick == BlockTranslator.JAVA_AIR_ID) {
             return;
         }
 
-        String targetIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockToPick).split("\\[")[0];
-        InventoryUtils.findOrCreatePickedBlock(session, targetIdentifier);
+        InventoryUtils.findOrCreateItem(session, BlockTranslator.getPickItem(blockToPick));
     }
 }

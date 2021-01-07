@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.connector.common.PlatformType;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
@@ -47,17 +47,12 @@ public class ReloadCommand extends GeyserCommand {
             return;
         }
 
-        String message = "";
-        if (sender instanceof GeyserSession) {
-            message = LanguageUtils.getPlayerLocaleString("geyser.commands.reload.message", ((GeyserSession) sender).getClientData().getLanguageCode());
-        } else {
-            message = LanguageUtils.getLocaleStringLog("geyser.commands.reload.message");
-        }
+        String message = LanguageUtils.getPlayerLocaleString("geyser.commands.reload.message", sender.getLocale());
 
         sender.sendMessage(message);
 
         for (GeyserSession session : connector.getPlayers()) {
-            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getClientData().getLanguageCode()));
+            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getLocale()));
         }
         connector.reload();
     }

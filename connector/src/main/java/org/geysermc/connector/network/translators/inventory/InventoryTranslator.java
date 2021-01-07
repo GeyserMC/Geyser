@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,9 +53,9 @@ public abstract class InventoryTranslator {
             put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
             put(WindowType.ANVIL, new AnvilInventoryTranslator());
             put(WindowType.CRAFTING, new CraftingInventoryTranslator());
-            put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
+            //put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator()); //FIXME
             put(WindowType.MERCHANT, new MerchantInventoryTranslator());
-            put(WindowType.SMITHING, new SmithingInventoryTranslator());
+            //put(WindowType.SMITHING, new SmithingInventoryTranslator()); //TODO for server authoritative inventories
 
             InventoryTranslator furnace = new FurnaceInventoryTranslator();
             put(WindowType.FURNACE, furnace);

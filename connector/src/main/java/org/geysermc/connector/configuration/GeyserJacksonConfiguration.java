@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import org.geysermc.connector.common.serializer.AsteriskSerializer;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.UUID;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -45,8 +46,8 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Setter
     private boolean autoconfiguredRemote = false;
 
-    private BedrockConfiguration bedrock;
-    private RemoteConfiguration remote;
+    private BedrockConfiguration bedrock = new BedrockConfiguration();
+    private RemoteConfiguration remote = new RemoteConfiguration();
 
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile = "public-key.pem";
@@ -88,6 +89,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("show-cooldown")
     private boolean showCooldown = true;
 
+    @JsonProperty("show-coordinates")
+    private boolean showCoordinates = true;
+
     @JsonProperty("allow-third-party-ears")
     private boolean allowThirdPartyEars = false;
 
@@ -100,13 +104,19 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("cache-images")
     private int cacheImages = 0;
 
+    @JsonProperty("allow-custom-skulls")
+    private boolean allowCustomSkulls = true;
+
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding = false;
 
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
 
-    private MetricsInfo metrics;
+    @JsonProperty("xbox-achievements-enabled")
+    private boolean xboxAchievementsEnabled = false;
+
+    private MetricsInfo metrics = new MetricsInfo();
 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
@@ -138,6 +148,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @Setter
         @JsonProperty("auth-type")
         private String authType = "online";
+
+        @JsonProperty("use-proxy-protocol")
+        private boolean useProxyProtocol = false;
     }
 
     @Getter
@@ -154,7 +167,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         private boolean enabled = true;
 
         @JsonProperty("uuid")
-        private String uniqueId = "generateuuid";
+        private String uniqueId = UUID.randomUUID().toString();
     }
 
     @JsonProperty("scoreboard-packet-threshold")
@@ -165,6 +178,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("mtu")
     private int mtu = 1400;
+
+    @JsonProperty("use-adapters")
+    private boolean useAdapters = true;
 
     @JsonProperty("config-version")
     private int configVersion = 0;

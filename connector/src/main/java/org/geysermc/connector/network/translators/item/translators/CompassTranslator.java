@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @ItemRemapper
 public class CompassTranslator extends ItemTranslator {
 
-    private List<ItemEntry> appliedItems;
+    private final List<ItemEntry> appliedItems;
 
     public CompassTranslator() {
         appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("compass")).collect(Collectors.toList());
@@ -53,7 +53,7 @@ public class CompassTranslator extends ItemTranslator {
         Tag lodestoneTag = itemStack.getNbt().get("LodestoneTracked");
         if (lodestoneTag instanceof ByteTag) {
             // Get the fake lodestonecompass entry
-            itemEntry = ItemRegistry.getItemEntry("minecraft:lodestonecompass");
+            itemEntry = ItemRegistry.getItemEntry("minecraft:lodestone_compass");
 
             // Get the loadstone pos
             CompoundTag loadstonePos = itemStack.getNbt().get("LodestonePos");
@@ -83,7 +83,7 @@ public class CompassTranslator extends ItemTranslator {
     @Override
     public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
         boolean isLoadstone = false;
-        if (itemEntry.getJavaIdentifier().equals("minecraft:lodestonecompass")) {
+        if (itemEntry.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
             // Revert the entry back to the compass
             itemEntry = ItemRegistry.getItemEntry("minecraft:compass");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,16 +27,14 @@ package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @Translator(packet = ServerOpenWindowPacket.class)
 public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
@@ -58,18 +56,9 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             return;
         }
 
-        String name = packet.getName();
-        try {
-            JsonParser parser = new JsonParser();
-            JsonObject jsonObject = parser.parse(packet.getName()).getAsJsonObject();
-            if (jsonObject.has("text")) {
-                name = jsonObject.get("text").getAsString();
-            } else if (jsonObject.has("translate")) {
-                name = jsonObject.get("translate").getAsString();
-            }
-        } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().debug("JavaOpenWindowTranslator: " + e.toString());
-        }
+        String name = MessageTranslator.convertMessageLenient(packet.getName(), session.getLocale());
+
+        name = LocaleUtils.getLocaleString(name, session.getLocale());
 
         Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);
         session.getInventoryCache().cacheInventory(newInventory);

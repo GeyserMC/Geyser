@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.*;
@@ -55,6 +56,18 @@ public class WebUtils {
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
+
+    /**
+     * Makes a web request to the given URL and returns the body as a {@link JsonNode}.
+     *
+     * @param reqURL URL to fetch
+     * @return the response as JSON
+     */
+    public static JsonNode getJson(String reqURL) throws IOException {
+        HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
+        con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
+        return GeyserConnector.JSON_MAPPER.readTree(con.getInputStream());
     }
 
     /**

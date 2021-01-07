@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.BlockUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -67,6 +68,8 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 eventPacket.setType(EntityEventType.RESPAWN);
                 eventPacket.setData(0);
                 session.sendUpstreamPacket(eventPacket);
+                // Resend attributes or else in rare cases the user can think they're not dead when they are, upon joining the server
+                entity.updateBedrockAttributes(session);
                 break;
             case START_SWIMMING:
                 ClientPlayerStatePacket startSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
@@ -113,19 +116,24 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamPacket(stopSleepingPacket);
                 break;
             case BLOCK_INTERACT:
-                // Handled in BedrockInventoryTransactionTranslator
+                // Client means to interact with a block; cancel bucket interaction, if any
+                if (session.getBucketScheduledFuture() != null) {
+                    session.getBucketScheduledFuture().cancel(true);
+                    session.setBucketScheduledFuture(null);
+                }
+                // Otherwise handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
                 if (session.getConnector().getConfig().isCacheChunks()) {
-                    if (packet.getFace() == BlockFace.UP.ordinal()) {
-                        int blockUp = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().add(0, 1, 0));
-                        String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockUp);
-                        if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
-                            ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
-                                    packet.getBlockPosition().getY() + 1, packet.getBlockPosition().getZ()), BlockFace.values()[packet.getFace()]);
-                            session.sendDownstreamPacket(startBreakingPacket);
-                            break;
-                        }
+                    // Account for fire - the client likes to hit the block behind.
+                    Vector3i fireBlockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getFace());
+                    int blockUp = session.getConnector().getWorldManager().getBlockAt(session, fireBlockPos);
+                    String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockUp);
+                    if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
+                        ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(fireBlockPos.getX(),
+                                fireBlockPos.getY(), fireBlockPos.getZ()), BlockFace.values()[packet.getFace()]);
+                        session.sendDownstreamPacket(startBreakingPacket);
+                        break;
                     }
                 }
                 ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(packet.getBlockPosition().getX(),
@@ -148,14 +156,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case DIMENSION_CHANGE_SUCCESS:
-                if (session.getPendingDimSwitches().decrementAndGet() == 0) {
-                    //sometimes the client doesn't feel like loading
-                    PlayStatusPacket spawnPacket = new PlayStatusPacket();
-                    spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-                    session.sendUpstreamPacket(spawnPacket);
-                    entity.updateBedrockAttributes(session);
-                    session.getEntityCache().updateBossBars();
-                }
+                //sometimes the client doesn't feel like loading
+                PlayStatusPacket spawnPacket = new PlayStatusPacket();
+                spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+                session.sendUpstreamPacket(spawnPacket);
+                entity.updateBedrockAttributes(session);
+                session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
                 session.setJumping(true);

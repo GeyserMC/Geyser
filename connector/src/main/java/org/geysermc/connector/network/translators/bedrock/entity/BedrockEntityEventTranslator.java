@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,13 +42,13 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
     @Override
     public void translate(EntityEventPacket packet, GeyserSession session) {
         switch (packet.getType()) {
-            // Resend the packet so we get the eating sounds
             case EATING_ITEM:
+                // Resend the packet so we get the eating sounds
                 session.sendUpstreamPacket(packet);
                 return;
             case COMPLETE_TRADE:
                 ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
-                session.getDownstream().getSession().send(selectTradePacket);
+                session.sendDownstreamPacket(selectTradePacket);
 
                 Entity villager = session.getPlayerEntity();
                 Inventory openInventory = session.getInventoryCache().getOpenInventory();

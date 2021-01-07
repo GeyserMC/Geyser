@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,12 @@
 
 package org.geysermc.connector.command;
 
+import org.geysermc.connector.utils.LanguageUtils;
+
+/**
+ * Implemented on top of any class that can send a command.
+ * For example, it wraps around Spigot's CommandSender class.
+ */
 public interface CommandSender {
 
     String getName();
@@ -37,5 +43,17 @@ public interface CommandSender {
 
     void sendMessage(String message);
 
+    /**
+     * @return true if the specified sender is from the console.
+     */
     boolean isConsole();
+
+    /**
+     * Returns the locale of the command sender. Defaults to the default locale at {@link LanguageUtils#getDefaultLocale()}.
+     * 
+     * @return the locale of the command sender.
+     */
+    default String getLocale() {
+        return LanguageUtils.getDefaultLocale();
+    }
 }

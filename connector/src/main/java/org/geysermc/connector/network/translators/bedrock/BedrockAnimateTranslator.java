@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,22 +25,18 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientSteerBoatPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
 import java.util.concurrent.TimeUnit;
 
 @Translator(packet = AnimatePacket.class)
 public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
-
-    private boolean isSteeringLeft;
-    private boolean isSteeringRight;
 
     @Override
     public void translate(AnimatePacket packet, GeyserSession session) {
@@ -61,13 +57,13 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             // These two might need to be flipped, but my recommendation is getting moving working first
             case ROW_LEFT:
                 // Packet value is a float of how long one has been rowing, so we convert that into a boolean
-                isSteeringLeft = packet.getRowingTime() > 0.0;
-                ClientSteerBoatPacket steerLeftPacket = new ClientSteerBoatPacket(isSteeringRight, isSteeringLeft);
+                session.setSteeringLeft(packet.getRowingTime() > 0.0);
+                ClientSteerBoatPacket steerLeftPacket = new ClientSteerBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
                 session.sendDownstreamPacket(steerLeftPacket);
                 break;
             case ROW_RIGHT:
-                isSteeringRight = packet.getRowingTime() > 0.0;
-                ClientSteerBoatPacket steerRightPacket = new ClientSteerBoatPacket(isSteeringRight, isSteeringLeft);
+                session.setSteeringRight(packet.getRowingTime() > 0.0);
+                ClientSteerBoatPacket steerRightPacket = new ClientSteerBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
                 session.sendDownstreamPacket(steerRightPacket);
                 break;
         }

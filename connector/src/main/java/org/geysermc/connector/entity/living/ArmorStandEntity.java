@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import lombok.Getter;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,6 +40,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 public class ArmorStandEntity extends LivingEntity {
 
     // These are used to store the state of the armour stand for use when handling invisibility
+    @Getter
     private boolean isMarker = false;
     private boolean isInvisible = false;
     private boolean isSmall = false;
@@ -66,6 +68,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void spawnEntity(GeyserSession session) {
         this.session = session;
+        this.rotation = Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX());
         super.spawnEntity(session);
     }
 
@@ -83,18 +86,12 @@ public class ArmorStandEntity extends LivingEntity {
         lastPositionIncludedOffset = false;
         if (secondEntity != null) {
             secondEntity.moveAbsolute(session, position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d), rotation, isOnGround, teleported);
-        } else if (!isMarker && isInvisible && !metadata.getFlags().getFlag(EntityFlag.INVISIBLE)) { // Means it's not visible
+        } else if (!isMarker && isInvisible && passengers.isEmpty( && !metadata.getFlags().getFlag(EntityFlag.INVISIBLE)) { // Means it's not visible
             position = position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
             lastPositionIncludedOffset = true;
         }
 
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
-    }
-
-    @Override
-    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        if (relX == 0 && relY == 0 && relZ == 0 && rotation.equals(this.rotation)) return; // Prevents a weird glitch where the armor stand fidgets
-        super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
+        super.moveAbsolute(session, position, Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX()), isOnGround, teleported);
     }
 
     @Override
