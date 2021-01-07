@@ -25,26 +25,11 @@
 
 package org.geysermc.connector.entity;
 
-import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class ItemedFireballEntity extends ThrowableEntity {
-    private final Vector3f acceleration;
-
-    public ItemedFireballEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, Vector3f.ZERO, rotation);
-        acceleration = motion;
-    }
-
-    @Override
-    public void tick(GeyserSession session) {
-        position = position.add(motion);
-        // TODO: While this reduces latency in position updating (needed for better fireball reflecting),
-        // TODO: movement is incredibly stiff.
-        // TODO: Only use this laggy movement for fireballs that be reflected
-        moveAbsoluteImmediate(session, position, rotation, false, true);
-        float drag = getDrag(session);
-        motion = motion.add(acceleration).mul(drag);
-    }
+/**
+ * Implemented onto anything that should have code ran every Minecraft tick - 50 milliseconds.
+ */
+public interface Tickable {
+    void tick(GeyserSession session);
 }
