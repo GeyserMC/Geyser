@@ -74,12 +74,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamPacket(startSwimPacket);
                 break;
             case STOP_SWIMMING:
-                if (session.getCollisionManager().isPlayerInWater()) {
-                    // TODO make this better
-                    // Only sneak if the player is stopping in water - otherwise, we aren't going to stop sprinting
-                    ClientPlayerStatePacket stopSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                    session.sendDownstreamPacket(stopSwimPacket);
-                }
+                // TODO make this better and only stop sprinting if the player is stopping in water - otherwise the sprint continues
+                ClientPlayerStatePacket stopSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                session.sendDownstreamPacket(stopSwimPacket);
                 break;
             case START_GLIDE:
                 // Otherwise gliding will not work in creative
