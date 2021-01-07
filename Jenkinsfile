@@ -70,8 +70,8 @@ pipeline {
             }
         }
         success {
-            build 'Geyser-Fabric/java-1.16'
-            //build 'GeyserAndroid/master'
+            build 'GeyserMC/Geyser-Fabric/java-1.16'
+            build 'GeyserMC/GeyserAndroid/master'
         }
     }
 }
