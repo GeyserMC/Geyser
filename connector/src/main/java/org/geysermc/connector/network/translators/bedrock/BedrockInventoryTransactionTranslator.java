@@ -235,7 +235,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setLastBlockPlacePosition(null);
 
                         // Same deal with vanilla block placing as above.
-                        // No idea what's going on with the Y coordinate here
+                        // This is working out the distance using 3d Pythagoras and the extra value added to the Y is the sneaking height of a java player.
                         playerPosition = session.getPlayerEntity().getPosition();
                         Vector3f floatBlockPosition = packet.getBlockPosition().toFloat();
                         diffX = playerPosition.getX() - (floatBlockPosition.getX() + 0.5f);
