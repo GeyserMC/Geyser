@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,16 @@ import java.util.concurrent.TimeUnit;
 
 public class BoatEntity extends Entity {
 
+    /**
+     * Required when IS_BUOYANT is sent in order for boats to work in the water. <br>
+     *
+     * Taken from BDS 1.16.200, with the modification of <code>simulate_waves</code> since Java doesn't bob the boat up and down
+     * like Bedrock.
+     */
+    private static final String BUOYANCY_DATA = "{\"apply_gravity\":true,\"base_buoyancy\":1.0,\"big_wave_probability\":0.02999999932944775," +
+            "\"big_wave_speed\":10.0,\"drag_down_on_buoyancy_removed\":0.0,\"liquid_blocks\":[\"minecraft:water\"," +
+            "\"minecraft:flowing_water\"],\"simulate_waves\":false}}";
+
     private boolean isPaddlingLeft;
     private float paddleTimeLeft;
     private boolean isPaddlingRight;
@@ -45,6 +55,10 @@ public class BoatEntity extends Entity {
 
     public BoatEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation.add(90, 0, 90));
+
+        // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
+        metadata.put(EntityData.IS_BUOYANT, (byte) 1);
+        metadata.put(EntityData.BUOYANCY_DATA, BUOYANCY_DATA);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,14 +33,12 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import lombok.Data;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.living.InsentientEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
-public class EnderDragonEntity extends InsentientEntity {
+public class EnderDragonEntity extends InsentientEntity implements Tickable {
     /**
      * The Ender Dragon has multiple hit boxes, which
      * are each its own invisible entity
@@ -62,8 +60,6 @@ public class EnderDragonEntity extends InsentientEntity {
     private int latestSegment = -1;
 
     private boolean hovering;
-
-    private ScheduledFuture<?> partPositionUpdater;
 
     public EnderDragonEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -130,22 +126,21 @@ public class EnderDragonEntity extends InsentientEntity {
             segmentHistory[i].y = position.getY();
         }
 
-        partPositionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-            pushSegment();
-            updateBoundingBoxes(session);
-        }, 0, 50, TimeUnit.MILLISECONDS);
-
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
 
     @Override
     public boolean despawnEntity(GeyserSession session) {
-        partPositionUpdater.cancel(true);
-
         for (EnderDragonPartEntity part : allParts) {
             part.despawnEntity(session);
         }
         return super.despawnEntity(session);
+    }
+
+    @Override
+    public void tick(GeyserSession session) {
+        pushSegment();
+        updateBoundingBoxes(session);
     }
 
     /**

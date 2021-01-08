@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -129,11 +129,6 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(EntityEventPacket packet) {
-        return defaultHandler(packet);
-    }
-
-    @Override
-    public boolean handle(EntityFallPacket packet) {
         return defaultHandler(packet);
     }
 
@@ -824,6 +819,45 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(PositionTrackingDBServerBroadcastPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    // 1.16.100 new packets
+
+    @Override
+    public boolean handle(MotionPredictionHintsPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(AnimateEntityPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(CameraShakePacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(PlayerFogPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(CorrectPlayerMovePredictionPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public boolean handle(ItemComponentPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    // 1.16.200 new packet
+
+    @Override
+    public boolean handle(FilterTextPacket packet) {
         return defaultHandler(packet);
     }
 }

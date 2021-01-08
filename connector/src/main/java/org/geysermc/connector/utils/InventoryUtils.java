@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,7 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -168,11 +169,15 @@ public class InventoryUtils {
      * @param session the Bedrock client's session
      * @param itemName the Java identifier of the item to search/select
      */
-    public static void findOrCreatePickedBlock(GeyserSession session, String itemName) {
+    public static void findOrCreateItem(GeyserSession session, String itemName) {
         // Get the inventory to choose a slot to pick
         Inventory inventory = session.getInventoryCache().getOpenInventory();
         if (inventory == null) {
             inventory = session.getInventory();
+        }
+
+        if (itemName.equals("minecraft:air")) {
+            return;
         }
 
         // Check hotbar for item
@@ -219,12 +224,17 @@ public class InventoryUtils {
                 }
             }
 
-            ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
-                    new ItemStack(ItemRegistry.getItemEntry(itemName).getJavaId()));
-            if ((slot - 36) != session.getInventory().getHeldItemSlot()) {
-                setHotbarItem(session, slot);
+            ItemEntry entry = ItemRegistry.getItemEntry(itemName);
+            if (entry != null) {
+                ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
+                        new ItemStack(entry.getJavaId()));
+                if ((slot - 36) != session.getInventory().getHeldItemSlot()) {
+                    setHotbarItem(session, slot);
+                }
+                session.sendDownstreamPacket(actionPacket);
+            } else {
+                session.getConnector().getLogger().debug("Cannot find item for block " + itemName);
             }
-            session.sendDownstreamPacket(actionPacket);
         }
     }
 

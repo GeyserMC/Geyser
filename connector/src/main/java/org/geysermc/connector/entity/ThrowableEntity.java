@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,48 +33,33 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Used as a class for any object-like entity that moves as a projectile
  */
-public class ThrowableEntity extends Entity {
+public class ThrowableEntity extends Entity implements Tickable {
 
     private Vector3f lastPosition;
-    /**
-     * Updates the position for the Bedrock client.
-     *
-     * Java clients assume the next positions of moving items. Bedrock needs to be explicitly told positions
-     */
-    protected ScheduledFuture<?> positionUpdater;
 
     public ThrowableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
         this.lastPosition = position;
     }
 
+    /**
+     * Updates the position for the Bedrock client.
+     *
+     * Java clients assume the next positions of moving items. Bedrock needs to be explicitly told positions
+     */
     @Override
-    public void spawnEntity(GeyserSession session) {
-        super.spawnEntity(session);
-        positionUpdater = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-            if (session.isClosed()) {
-                positionUpdater.cancel(true);
-                return;
-            }
-            updatePosition(session);
-        }, 0, 50, TimeUnit.MILLISECONDS);
-    }
-
-    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
-    }
-
-    protected void updatePosition(GeyserSession session) {
+    public void tick(GeyserSession session) {
         super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
         float drag = getDrag(session);
         float gravity = getGravity();
         motion = motion.mul(drag).down(gravity);
+    }
+
+    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
     }
 
     /**
@@ -140,7 +125,6 @@ public class ThrowableEntity extends Entity {
 
     @Override
     public boolean despawnEntity(GeyserSession session) {
-        positionUpdater.cancel(true);
         if (entityType == EntityType.THROWN_ENDERPEARL) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEventType.PARTICLE_TELEPORT);

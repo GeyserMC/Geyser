@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,11 +38,11 @@ public class ItemedFireballEntity extends ThrowableEntity {
     }
 
     @Override
-    protected void updatePosition(GeyserSession session) {
+    public void tick(GeyserSession session) {
         position = position.add(motion);
         // TODO: While this reduces latency in position updating (needed for better fireball reflecting),
-        // TODO: movement is incredibly stiff. See if the MoveEntityDeltaPacket in 1.16.100 fixes this, and if not,
-        // TODO: only use this laggy movement for fireballs that be reflected
+        // TODO: movement is incredibly stiff.
+        // TODO: Only use this laggy movement for fireballs that be reflected
         moveAbsoluteImmediate(session, position, rotation, false, true);
         float drag = getDrag(session);
         motion = motion.add(acceleration).mul(drag);
