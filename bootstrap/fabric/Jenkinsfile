@@ -38,7 +38,7 @@ pipeline {
                         rtGradleRun (
                                 usesPlugin: true,
                                 tool: 'Gradle 6',
-                                rootDir: "/",
+                                rootDir: "",
                                 buildFile: 'build.gradle',
                                 tasks: 'clean artifactoryPublish',
                                 deployerId: "GRADLE_DEPLOYER",
