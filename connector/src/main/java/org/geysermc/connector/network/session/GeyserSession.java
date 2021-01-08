@@ -166,7 +166,7 @@ public class GeyserSession implements CommandSender {
      * Stores the pose that the server believes the player currently has.
      */
     @Setter
-    private Pose pose;
+    private Pose pose = Pose.STANDING;
 
     @Setter
     private boolean sprinting;
