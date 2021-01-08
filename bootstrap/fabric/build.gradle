@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
     id 'java'
+    id "com.jfrog.artifactory"
 }
 
 apply plugin: 'com.github.johnrengelman.shadow'
