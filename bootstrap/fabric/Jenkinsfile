@@ -40,7 +40,7 @@ pipeline {
                                 tool: 'Gradle 6',
                                 rootDir: "",
                                 buildFile: 'build.gradle',
-                                tasks: 'clean artifactoryPublish',
+                                tasks: 'clean build artifactoryPublish',
                                 deployerId: "GRADLE_DEPLOYER",
                                 resolverId: "GRADLE_RESOLVER"
                         )
