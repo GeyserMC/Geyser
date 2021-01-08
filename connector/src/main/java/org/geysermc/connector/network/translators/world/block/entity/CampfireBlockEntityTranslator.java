@@ -47,7 +47,7 @@ public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     protected NbtMap getItem(CompoundTag tag) {
         ItemEntry entry = ItemRegistry.getItemEntry((String) tag.get("id").getValue());
         NbtMapBuilder tagBuilder = NbtMap.builder()
-                .putShort("id", (short) entry.getBedrockId())
+                .putString("Name", entry.getBedrockIdentifier())
                 .putByte("Count", (byte) tag.get("Count").getValue())
                 .putShort("Damage", (short) entry.getBedrockData());
         tagBuilder.put("tag", NbtMap.builder().build());
