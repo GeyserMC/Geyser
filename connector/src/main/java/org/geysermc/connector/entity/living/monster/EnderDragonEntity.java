@@ -88,14 +88,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 15) { // Phase
             phase = (int) entityMetadata.getValue();
-            if (phase == 5) {
-                // Performing breath attack
-                EntityEventPacket entityEventPacket = new EntityEventPacket();
-                entityEventPacket.setType(EntityEventType.DRAGON_FLAMING);
-                entityEventPacket.setRuntimeEntityId(geyserId);
-                entityEventPacket.setData(0);
-                session.sendUpstreamPacket(entityEventPacket);
-            } else if (phase == 9) {
+            if (phase == 9) {
                 // Dying phase
                 EntityEventPacket entityEventPacket = new EntityEventPacket();
                 entityEventPacket.setType(EntityEventType.ENDER_DRAGON_DEATH);
@@ -244,7 +237,14 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
             } else if (phase == 5) { // Sitting Flaming Phase
                 phaseTicks++;
                 if (phaseTicks % 2 == 0 && phaseTicks < 10) {
-                    sendDragonBreathEffect(session);
+                    metadata.putLong(EntityData.TARGET_EID, head.getGeyserId());
+                    updateBedrockMetadata(session);
+                    // Performing breath attack
+                    EntityEventPacket entityEventPacket = new EntityEventPacket();
+                    entityEventPacket.setType(EntityEventType.DRAGON_FLAMING);
+                    entityEventPacket.setRuntimeEntityId(geyserId);
+                    entityEventPacket.setData(0);
+                    session.sendUpstreamPacket(entityEventPacket);
                 }
             } else if (phase == 7) { // Sitting Attacking Phase
                 playGrowlSound(session);
