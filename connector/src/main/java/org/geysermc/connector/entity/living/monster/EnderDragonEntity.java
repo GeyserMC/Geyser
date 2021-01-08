@@ -82,7 +82,6 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
         metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
-        metadata.putFloat(EntityData.HEALTH, 10); // So the dragon isn't considered dead before it receives health metadata
     }
 
     @Override
