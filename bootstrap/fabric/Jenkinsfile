@@ -21,7 +21,7 @@ pipeline {
 
         stage ('Deploy') {
                     when {
-                        branch "master"
+                        branch "java-1.16"
                     }
 
                     steps {
