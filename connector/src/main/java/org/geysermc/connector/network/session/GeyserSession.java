@@ -35,6 +35,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
@@ -64,6 +65,7 @@ import lombok.Setter;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
@@ -94,6 +96,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @Getter
 public class GeyserSession implements CommandSender {
@@ -110,6 +113,7 @@ public class GeyserSession implements CommandSender {
     private final SessionPlayerEntity playerEntity;
     private PlayerInventory inventory;
 
+    private BookEditCache bookEditCache;
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
@@ -245,10 +249,10 @@ public class GeyserSession implements CommandSender {
     private ScheduledFuture<?> bucketScheduledFuture;
 
     /**
-     * Sends a movement packet every three seconds if the player hasn't moved. Prevents timeouts when AFK in certain instances.
+     * Used to send a movement packet every three seconds if the player hasn't moved. Prevents timeouts when AFK in certain instances.
      */
     @Setter
-    private ScheduledFuture<?> movementSendIfIdle;
+    private long lastMovementTimestamp = System.currentTimeMillis();
 
     /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
@@ -328,12 +332,18 @@ public class GeyserSession implements CommandSender {
     private List<UUID> selectedEmotes = new ArrayList<>();
     private final Set<UUID> emotes = new HashSet<>();
 
+    /**
+     * The thread that will run every 50 milliseconds - one Minecraft tick.
+     */
+    private ScheduledFuture<?> tickThread = null;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
 
+        this.bookEditCache = new BookEditCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
@@ -457,6 +467,9 @@ public class GeyserSession implements CommandSender {
                 if (publicKey != null) {
                     connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
                 }
+
+                // Start ticking
+                tickThread = connector.getGeneralThreadPool().scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
                 downstream = new Client(remoteServer.getAddress(), remoteServer.getPort(), protocol, new TcpSessionFactory());
                 if (connector.getConfig().getRemote().isUseProxyProtocol()) {
@@ -584,6 +597,11 @@ public class GeyserSession implements CommandSender {
             }
         }
 
+        if (tickThread != null) {
+            tickThread.cancel(true);
+        }
+
+        this.bookEditCache = null;
         this.chunkCache = null;
         this.entityCache = null;
         this.effectCache = null;
@@ -596,6 +614,28 @@ public class GeyserSession implements CommandSender {
 
     public void close() {
         disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.close", getClientData().getLanguageCode()));
+    }
+
+    /**
+     * Called every 50 milliseconds - one Minecraft tick.
+     */
+    public void tick() {
+        // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
+        if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
+            // Recalculate in case something else changed position
+            Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
+            // A null return value cancels the packet
+            if (position != null) {
+                ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
+                        position.getX(), position.getY(), position.getZ());
+                sendDownstreamPacket(packet);
+            }
+            lastMovementTimestamp = System.currentTimeMillis();
+        }
+
+        for (Tickable entity : entityCache.getTickableEntities()) {
+            entity.tick(this);
+        }
     }
 
     public void setAuthenticationData(AuthData authData) {
