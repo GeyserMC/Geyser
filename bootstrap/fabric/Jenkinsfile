@@ -18,6 +18,41 @@ pipeline {
                 }
             }
         }
+
+        stage ('Deploy') {
+                    when {
+                        branch "master"
+                    }
+
+                    steps {
+                        sh 'mvn javadoc:jar source:jar deploy -DskipTests'
+                        rtGradleDeployer(
+                                id: "GRADLE_DEPLOYER",
+                                serverId: "opencollab-artifactory",
+                                releaseRepo: "maven-releases",
+                                snapshotRepo: "maven-snapshots"
+                        )
+                        rtGradleResolver(
+                                id: "GRADLE_RESOLVER",
+                                serverId: "opencollab-artifactory",
+                                releaseRepo: "release",
+                                snapshotRepo: "snapshot"
+                        )
+                        rtGradleRun (
+                                usesPlugin: true,
+                                tool: GRADLE_TOOL,
+                                rootDir: "/",
+                                buildFile: 'build.gradle',
+                                tasks: 'clean artifactoryPublish',
+                                deployerId: "GRADLE_DEPLOYER",
+                                resolverId: "GRADLE_RESOLVER"
+                        )
+                        rtPublishBuildInfo(
+                                serverId: "opencollab-artifactory"
+                        )
+                    }
+                }
+            }
     }
 
     post {
