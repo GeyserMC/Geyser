@@ -25,7 +25,6 @@ pipeline {
                     }
 
                     steps {
-                        sh 'mvn javadoc:jar source:jar deploy -DskipTests'
                         rtGradleDeployer(
                                 id: "GRADLE_DEPLOYER",
                                 serverId: "opencollab-artifactory",
@@ -35,8 +34,6 @@ pipeline {
                         rtGradleResolver(
                                 id: "GRADLE_RESOLVER",
                                 serverId: "opencollab-artifactory",
-                                releaseRepo: "release",
-                                snapshotRepo: "snapshot"
                         )
                         rtGradleRun (
                                 usesPlugin: true,
