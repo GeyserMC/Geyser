@@ -113,6 +113,7 @@ public class GeyserSession implements CommandSender {
     private final SessionPlayerEntity playerEntity;
     private PlayerInventory inventory;
 
+    private BookEditCache bookEditCache;
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
@@ -342,6 +343,7 @@ public class GeyserSession implements CommandSender {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
 
+        this.bookEditCache = new BookEditCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
@@ -599,6 +601,7 @@ public class GeyserSession implements CommandSender {
             tickThread.cancel(true);
         }
 
+        this.bookEditCache = null;
         this.chunkCache = null;
         this.entityCache = null;
         this.effectCache = null;
