@@ -69,6 +69,9 @@ public class CollisionManager {
      * This check doesn't allow players right up against the block, so they must be pushed slightly away.
      */
     public static final double COLLISION_TOLERANCE = 0.00001;
+    /**
+     * Trims Y coordinates when jumping to prevent rounding issues being sent to the server.
+     */
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#####");
 
     public CollisionManager(GeyserSession session) {
