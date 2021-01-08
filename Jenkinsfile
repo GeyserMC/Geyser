@@ -26,7 +26,27 @@ pipeline {
             }
 
             steps {
-                sh 'mvn javadoc:jar source:jar deploy -DskipTests'
+                rtMavenDeployer(
+                        id: "maven-deployer",
+                        serverId: "opencollab-artifactory",
+                        releaseRepo: "maven-releases",
+                        snapshotRepo: "maven-snapshots"
+                )
+                rtMavenResolver(
+                        id: "maven-resolver",
+                        serverId: "opencollab-artifactory",
+                        releaseRepo: "release",
+                        snapshotRepo: "snapshot"
+                )
+                rtMavenRun(
+                        pom: 'pom.xml',
+                        goals: 'javadoc:jar source:jar install -DskipTests',
+                        deployerId: "maven-deployer",
+                        resolverId: "maven-resolver"
+                )
+                rtPublishBuildInfo(
+                        serverId: "opencollab-artifactory"
+                )
             }
         }
     }
@@ -67,6 +87,14 @@ pipeline {
             deleteDir()
             withCredentials([string(credentialsId: 'geyser-discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
                 discordSend description: "**Build:** [${currentBuild.id}](${env.BUILD_URL})\n**Status:** [${currentBuild.currentResult}](${env.BUILD_URL})\n${changes}\n\n[**Artifacts on Jenkins**](https://ci.opencollab.dev/job/GeyserMC/job/Geyser)", footer: 'Open Collaboration Jenkins', link: env.BUILD_URL, successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), title: "${env.JOB_NAME} #${currentBuild.id}", webhookURL: DISCORD_WEBHOOK
+            }
+        }
+        success {
+            script {
+                if (env.BRANCH_NAME == 'master') {
+                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/java-1.16'
+                    build propagate: false, wait: false, job: 'GeyserMC/GeyserAndroid/master'
+                }
             }
         }
     }
