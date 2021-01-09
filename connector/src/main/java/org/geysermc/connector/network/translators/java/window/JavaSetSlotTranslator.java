@@ -193,41 +193,60 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
             }
             System.out.println("Sending packet!");
 
-            ItemData[] ingredients = new ItemData[gridSize];
-            //construct ingredient list and clear slots on client
-            for (int i = 0; i < gridSize; i++) {
-                ingredients[i] = inventory.getItem(i + 1).getItemData(session);
+            UUID uuid = UUID.randomUUID();
+            int newRecipeId = session.getLastRecipeNetId().incrementAndGet();
 
-                InventorySlotPacket slotPacket = new InventorySlotPacket();
-                slotPacket.setContainerId(ContainerId.UI);
-                slotPacket.setSlot(i + offset);
-                slotPacket.setItem(ItemData.AIR);
-                session.sendUpstreamPacket(slotPacket);
+            ItemData[] ingredients = new ItemData[height * width];
+            //construct ingredient list and clear slots on client
+            Ingredient[] javaIngredients = new Ingredient[height * width];
+            int index = 0;
+            for (int row = firstRow; row < height + firstRow; row++) {
+                for (int col = firstCol; col < width + firstCol; col++) {
+                    GeyserItemStack geyserItemStack = inventory.getItem(col + (row * gridDimensions) + 1);
+                    ingredients[index] = geyserItemStack.getItemData(session);
+                    ItemStack[] itemStacks = new ItemStack[] {geyserItemStack.isEmpty() ? null : geyserItemStack.getItemStack(1)};
+                    javaIngredients[index] = new Ingredient(itemStacks);
+
+                    InventorySlotPacket slotPacket = new InventorySlotPacket();
+                    slotPacket.setContainerId(ContainerId.UI);
+                    slotPacket.setSlot(col + (row * gridDimensions) + offset);
+                    slotPacket.setItem(ItemData.AIR);
+                    session.sendUpstreamPacket(slotPacket);
+                    index++;
+                }
             }
 
+            ShapedRecipeData data = new ShapedRecipeData(width, height, "", javaIngredients, packet.getItem());
+            session.getConnector().getLogger().error(data.toString());
+            // Cache this recipe so we know the client has received it
+            session.getCraftingRecipes().put(newRecipeId, new Recipe(RecipeType.CRAFTING_SHAPED, uuid.toString(), data));
+
             CraftingDataPacket craftPacket = new CraftingDataPacket();
-            UUID uuid = UUID.randomUUID();
             craftPacket.getCraftingData().add(CraftingData.fromShaped(
                     uuid.toString(),
-                    gridDimensions,
-                    gridDimensions,
+                    width,
+                    height,
                     Arrays.asList(ingredients),
                     Collections.singletonList(ItemTranslator.translateToBedrock(session, packet.getItem())),
                     uuid,
                     "crafting_table",
                     0,
-                    session.getLastRecipeNetId().incrementAndGet()
+                    newRecipeId
             ));
             craftPacket.setCleanRecipes(false);
+            System.out.println(craftPacket);
             session.sendUpstreamPacket(craftPacket);
 
-            //restore cleared slots
-            for (int i = 0; i < gridSize; i++) {
-                InventorySlotPacket slotPacket = new InventorySlotPacket();
-                slotPacket.setContainerId(ContainerId.UI);
-                slotPacket.setSlot(i + offset);
-                slotPacket.setItem(ingredients[i]);
-                session.sendUpstreamPacket(slotPacket);
+            index = 0;
+            for (int row = firstRow; row < height + firstRow; row++) {
+                for (int col = firstCol; col < width + firstCol; col++) {
+                    InventorySlotPacket slotPacket = new InventorySlotPacket();
+                    slotPacket.setContainerId(ContainerId.UI);
+                    slotPacket.setSlot(col + (row * gridDimensions) + offset);
+                    slotPacket.setItem(ingredients[index]);
+                    session.sendUpstreamPacket(slotPacket);
+                    index++;
+                }
             }
         }
     }
